@@ -67,6 +67,7 @@ EraTypes CvEraInfo::m_eAIAgeOfPollution = ERA_NEVER;
 EraTypes CvEraInfo::m_eAIAgeOfFertility = ERA_NEVER;
 EraTypes CvEraInfo::m_eAIAgeOfGuns = ERA_NEVER;
 EraTypes CvEraInfo::m_eAIAtomicAge = ERA_NEVER;
+EraTypes CvEraInfo::m_eAIAgeOfProduction = ERA_NEVER;
 // </advc.erai>
 
 CvEraInfo::CvEraInfo() :
@@ -326,6 +327,11 @@ void CvEraInfo::allInfosRead()
 			kLoopEra.get(CvEraInfo::AIAtomicAge))
 		{
 			m_eAIAtomicAge = eLoopEra;
+		}
+		if (m_eAIAgeOfProduction == ERA_NEVER &&
+			kLoopEra.get(CvEraInfo::AIAgeOfProduction))
+		{
+			m_eAIAgeOfProduction = eLoopEra;
 		}
 	}
 }

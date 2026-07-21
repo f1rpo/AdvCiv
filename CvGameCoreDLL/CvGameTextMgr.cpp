@@ -110,31 +110,29 @@ void CvGameTextMgr::setYearStr(CvWString& szString, int iGameTurn, bool bSave,
 }
 
 
-void CvGameTextMgr::setDateStr(CvWString& szString, int iGameTurn, bool bSave, CalendarTypes eCalendar, int iStartYear, GameSpeedTypes eSpeed)
+void CvGameTextMgr::setDateStr(CvWString& szString, int iGameTurn, bool bSave,
+	CalendarTypes eCalendar, int iStartYear, GameSpeedTypes eSpeed)
 {
 	CvWString szYearBuffer;
-	CvWString szWeekBuffer;
-
 	setYearStr(szYearBuffer, iGameTurn, bSave, eCalendar, iStartYear, eSpeed);
 
 	switch (eCalendar)
 	{
 	case CALENDAR_DEFAULT:
-		if (0 == (getTurnMonthForGame(iGameTurn + 1, iStartYear, eCalendar, eSpeed) - getTurnMonthForGame(iGameTurn, iStartYear, eCalendar, eSpeed)) % GC.getNumMonthInfos())
+		if ((getTurnMonthForGame(iGameTurn + 1, iStartYear, eCalendar, eSpeed)
+			-getTurnMonthForGame(iGameTurn, iStartYear, eCalendar, eSpeed))
+			% GC.getNumMonthInfos() == 0)
 		{
 			szString = szYearBuffer;
 		}
 		else
-		{
-			int iMonth = getTurnMonthForGame(iGameTurn, iStartYear, eCalendar, eSpeed);
+		{	// <advc.001> Had used % (which doesn't work for negative dates, i.e. BC)
+			wchar const* szMonth = GC.getInfo((MonthTypes)intdiv::umodulo(
+					getTurnMonthForGame(iGameTurn, iStartYear, eCalendar, eSpeed),
+					GC.getNumMonthInfos())).getDescription(); // </advc.001>
 			if (bSave)
-			{
-				szString = (szYearBuffer + "-" + GC.getInfo((MonthTypes)(iMonth % GC.getNumMonthInfos())).getDescription());
-			}
-			else
-			{
-				szString = (GC.getInfo((MonthTypes)(iMonth % GC.getNumMonthInfos())).getDescription() + CvString(", ") + szYearBuffer);
-			}
+				szString = szYearBuffer + "-" + szMonth;
+			else szString = szMonth + CvString(", ") + szYearBuffer;
 		}
 		break;
 	case CALENDAR_YEARS:
@@ -147,67 +145,62 @@ void CvGameTextMgr::setDateStr(CvWString& szString, int iGameTurn, bool bSave, C
 		break;
 
 	case CALENDAR_SEASONS:
+	{
+		wchar const* szSeason = GC.getInfo((SeasonTypes)
+					(iGameTurn % GC.getNumSeasonInfos())).getDescription();
 		if (bSave)
-		{
-			szString = (szYearBuffer + "-" + GC.getInfo((SeasonTypes)(iGameTurn % GC.getNumSeasonInfos())).getDescription());
-		}
-		else
-		{
-			szString = (GC.getInfo((SeasonTypes)(iGameTurn % GC.getNumSeasonInfos())).getDescription() + CvString(", ") + szYearBuffer);
-		}
+			szString = szYearBuffer + "-" + szSeason;
+		else szString = szSeason + CvString(", ") + szYearBuffer;
 		break;
-
+	}
 	case CALENDAR_MONTHS:
+	{
+		wchar const* szMonth = GC.getInfo((MonthTypes)
+				(iGameTurn % GC.getNumMonthInfos())).getDescription();
 		if (bSave)
-		{
-			szString = (szYearBuffer + "-" + GC.getInfo((MonthTypes)(iGameTurn % GC.getNumMonthInfos())).getDescription());
-		}
-		else
-		{
-			szString = (GC.getInfo((MonthTypes)(iGameTurn % GC.getNumMonthInfos())).getDescription() + CvString(", ") + szYearBuffer);
-		}
+			szString = szYearBuffer + "-" + szMonth;
+		else szString = szMonth + CvString(", ") + szYearBuffer;
 		break;
-
+	}
 	case CALENDAR_WEEKS:
-		szWeekBuffer = gDLL->getText("TXT_KEY_TIME_WEEK", ((iGameTurn % GC.getDefineINT("WEEKS_PER_MONTHS")) + 1));
-
+	{
+		CvWString szWeekBuffer;
+		static int const iWEEKS_PER_MONTHS = GC.getDefineINT("WEEKS_PER_MONTHS"); // advc.opt
+		szWeekBuffer = gDLL->getText("TXT_KEY_TIME_WEEK",
+				(iGameTurn % iWEEKS_PER_MONTHS) + 1);
+		wchar const* szMonth = GC.getInfo((MonthTypes)
+				((iGameTurn / iWEEKS_PER_MONTHS) % GC.getNumMonthInfos())).
+				getDescription();
 		if (bSave)
-		{
-			szString = (szYearBuffer + "-" + GC.getInfo((MonthTypes)((iGameTurn / GC.getDefineINT("WEEKS_PER_MONTHS")) % GC.getNumMonthInfos())).getDescription() + "-" + szWeekBuffer);
-		}
-		else
-		{
-			szString = (szWeekBuffer + ", " + GC.getInfo((MonthTypes)((iGameTurn / GC.getDefineINT("WEEKS_PER_MONTHS")) % GC.getNumMonthInfos())).getDescription() + ", " + szYearBuffer);
-		}
+			szString = (szYearBuffer + "-" + szMonth + "-" + szWeekBuffer);
+		else szString = (szWeekBuffer + ", " + szMonth + ", " + szYearBuffer);
 		break;
-
+	}
 	default:
-		FAssert(false);
+		FErrorMsg("Unsupported calendar type");
 	}
 }
 
 
 void CvGameTextMgr::setTimeStr(CvWString& szString, int iGameTurn, bool bSave)
 {
-	setDateStr(szString, iGameTurn, bSave, GC.getGame().getCalendar(), GC.getGame().getStartYear(), GC.getGame().getGameSpeedType());
+	setDateStr(szString, iGameTurn, bSave,
+			GC.getGame().getCalendar(), GC.getGame().getStartYear(),
+			GC.getGame().getGameSpeedType());
 }
 
 
 void CvGameTextMgr::setInterfaceTime(CvWString& szString, PlayerTypes ePlayer)
 {
 	CvWString szTempBuffer;
-
 	if (GET_PLAYER(ePlayer).isGoldenAge())
 	{
-		szString.Format(L"%c(%d) ", gDLL->getSymbolID(GOLDEN_AGE_CHAR), GET_PLAYER(ePlayer).getGoldenAgeTurns());
+		szString.Format(L"%c(%d) ", gDLL->getSymbolID(GOLDEN_AGE_CHAR),
+				GET_PLAYER(ePlayer).getGoldenAgeTurns());
 	}
-	else
-	{
-		szString.clear();
-	}
-
+	else szString.clear();
 	setTimeStr(szTempBuffer, GC.getGame().getGameTurn(), false);
-	szString += CvWString(szTempBuffer);
+	szString += szTempBuffer;
 }
 
 
@@ -215,27 +208,25 @@ void CvGameTextMgr::setGoldStr(CvWString& szString, PlayerTypes ePlayer)
 {
 	if (GET_PLAYER(ePlayer).getGold() < 0)
 	{
-		szString.Format(L"%c: " SETCOLR L"%d" SETCOLR, GC.getInfo(COMMERCE_GOLD).getChar(), TEXT_COLOR("COLOR_NEGATIVE_TEXT"), GET_PLAYER(ePlayer).getGold());
+		szString.Format(L"%c: " SETCOLR L"%d" SETCOLR,
+				GC.getInfo(COMMERCE_GOLD).getChar(),
+				TEXT_COLOR("COLOR_NEGATIVE_TEXT"),
+				GET_PLAYER(ePlayer).getGold());
 	}
 	else
 	{
-		szString.Format(L"%c: %d", GC.getInfo(COMMERCE_GOLD).getChar(), GET_PLAYER(ePlayer).getGold());
+		szString.Format(L"%c: %d",
+				GC.getInfo(COMMERCE_GOLD).getChar(),
+				GET_PLAYER(ePlayer).getGold());
 	}
 
 	int iGoldRate = GET_PLAYER(ePlayer).calculateGoldRate();
 	if (iGoldRate < 0)
-	{
 		szString += gDLL->getText("TXT_KEY_MISC_NEG_GOLD_PER_TURN", iGoldRate);
-	}
 	else if (iGoldRate > 0)
-	{
 		szString += gDLL->getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", iGoldRate);
-	}
-
 	if (GET_PLAYER(ePlayer).isStrike())
-	{
 		szString += gDLL->getText("TXT_KEY_MISC_STRIKE");
-	}
 }
 
 
@@ -1606,23 +1597,9 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString,
 {
 	if(kPlot.getCenterUnit() == NULL)
 		return;
-	// <advc.002b>
-	int iFontSize = 12; // default when there is no custom theme
-	CvArtInfoMisc const* pTheme = ARTFILEMGR.getMiscArtInfo("DEFAULT_THEME_NAME");
-	if(pTheme != NULL && pTheme->getPath() != NULL)
-	{
-		CvString szThemePath(pTheme->getPath());
-		/*  Don't know how to look up the font size. Would perhaps have to
-			(re-)parse the theme files (no, thanks). Instead, the DLL is told
-			through XML what font size to assume.
-			I do know how to check if the mod's theme has been removed, and I don't
-			want to rely on players changing the XML setting after removing it. */
-		if(szThemePath.find("Mods") != CvString::npos)
-			iFontSize = ::range(GC.getDefineINT("FONT_SIZE_FACTOR", 13), 7, 19);
-	}
-	// (The code below was written for iFontSize=14, so that's fontFactor=1.)
-	double dFontFactor = 14.0 / iFontSize;
-	// </advc.002b>
+	/*	advc.002b: This function was written with size 16 in mind, so needs to
+		adjust (only) when a different size is used. */
+	double const dFontFactor = 16.0 / getHelpFontSize();
 	CvGame const& kGame = GC.getGame();
 	int iScreenHeight = kGame.getScreenHeight();
 	int iLineLimit = (iScreenHeight == 0 ? 25 :
@@ -4439,6 +4416,25 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot
 		CityPlotTypes ePlot = pWorkingCity->getCityPlotIndex(kPlot);
 		int iBuildValue = pWorkingCity->AI_getBestBuildValue(ePlot);
 		BuildTypes eBestBuild = pWorkingCity->AI_getBestBuild(ePlot);
+		// <advc.007> Akin to CvUnitAI::AI_bestCityBuild
+		CvPlot const* pBestPlot = NULL;
+		if (ePlot == CITY_HOME_PLOT)
+		{
+			iBuildValue = 0;
+			eBestBuild = NO_BUILD;
+			for (WorkablePlotIter it(*pWorkingCity); it.hasNext(); ++it)
+			{
+				CvPlot& kPlot = *it;
+				CityPlotTypes eLoopPlot = it.currID();
+				int iValue = pWorkingCity->AI_getBestBuildValue(eLoopPlot);
+				if (iValue > iBuildValue)
+				{
+					iBuildValue = iValue;
+					eBestBuild = pWorkingCity->AI_getBestBuild(eLoopPlot);
+					pBestPlot = &kPlot;
+				}
+			}
+		} // </advc.007>
 		// BETTER_BTS_AI_MOD, Debug, 06/25/09, jdog5000: START
 		szString.append(NEWLINE);
 
@@ -4455,9 +4451,16 @@ void CvGameTextMgr::setPlotHelpDebug_ShiftOnly(CvWStringBuffer& szString, CvPlot
 		ImprovementTypes eImprovement = kPlot.getImprovementType();
 
 		if (eBestBuild != NO_BUILD)
-		{
-
-			if (GC.getInfo(eBestBuild).getImprovement() != NO_IMPROVEMENT &&
+		{	// <advc.007>
+			if (pBestPlot != NULL)
+			{
+				szTempBuffer.Format(SETCOLR L"\nBest Build: %s in (%d,%d)" ENDCOLR,
+						TEXT_COLOR("COLOR_HIGHLIGHT_TEXT"),
+						GC.getInfo(eBestBuild).getDescription(),
+						pBestPlot->getX(), pBestPlot->getY());
+			}
+			else // </advc.007>
+				if (GC.getInfo(eBestBuild).getImprovement() != NO_IMPROVEMENT &&
 				eImprovement != NO_IMPROVEMENT &&
 				eImprovement != GC.getInfo(eBestBuild).getImprovement())
 			{
@@ -6414,12 +6417,12 @@ void CvGameTextMgr::parseCivInfos(CvWStringBuffer &szInfoText, CivilizationTypes
 		UnitTypes eUniqueUnit = GC.getInfo(eCivilization).
 				getCivilizationUnits(eLoopUnitClass);
 		UnitTypes eDefaultUnit = GC.getInfo(eLoopUnitClass).getDefaultUnit();
-		if (/*eeDefaultUnit != NO_UNIT &&*/ // advc.004: Include UU w/o a default unit
+		if (/*eeDefaultUnit != NO_UNIT &&*/ // advc.003l: Include UU w/o a default unit
 			eUniqueUnit != NO_UNIT && eDefaultUnit != eUniqueUnit)
 		{	// advc: Moved into new function
 			appendUniqueDesc(szInfoText, bFound, bDawnOfMan, bLinks,
 					GC.getInfo(eUniqueUnit).getDescription(),
-					// advc.004:
+					// advc.003l:
 					eDefaultUnit == NO_UNIT ? NULL : GC.getInfo(eDefaultUnit).getDescription());
 			bFound = true;
 		}
@@ -6457,14 +6460,14 @@ void CvGameTextMgr::parseCivInfos(CvWStringBuffer &szInfoText, CivilizationTypes
 				getCivilizationBuildings(eLoopBuildingClass);
 		BuildingTypes eDefaultBuilding = GC.getInfo(eLoopBuildingClass).
 				getDefaultBuilding();
-		if (/*eDefaultBuilding != NO_BUILDING &&*/ // advc.004: Include UB w/o a default building
+		if (/*eDefaultBuilding != NO_BUILDING &&*/ // advc.003l: Include UB w/o a default building
 			eUniqueBuilding != NO_BUILDING && eDefaultBuilding != eUniqueBuilding)
 		{	// advc: Moved into new function
 			appendUniqueDesc(szInfoText, bFound, bDawnOfMan, bLinks,
 					GC.getInfo(eUniqueBuilding).getDescription(),
-					// <advc.004>
+					// <advc.003l>
 					eDefaultBuilding == NO_BUILDING ? NULL :
-					GC.getInfo(eDefaultBuilding).getDescription()); // </advc.004>
+					GC.getInfo(eDefaultBuilding).getDescription()); // </advc.003l>
 			bFound = true;
 		}
 	}
@@ -18456,7 +18459,7 @@ void CvGameTextMgr::buildCityBillboardIconString( CvWStringBuffer& szBuffer, CvC
 		{
 			//szBuffer.append(CvWString::format(L" %c:%s%d%%", gDLL->getSymbolID(DEFENSE_CHAR), ((iDefenseModifier > 0) ? "+" : ""), iDefenseModifier));
 			// <advc.002f>
-			szBuffer.append(CvWString::format(L"   " SETCOLR L"%s%d%%" ENDCOLR L"%c",
+			szBuffer.append(CvWString::format(L"  " SETCOLR L"%s%d%%" ENDCOLR L"%c",
 					// I've tried some other colors, but they're no easier to read.
 					TEXT_COLOR("COLOR_WHITE"),
 					((iDefenseModifier > 0) ? "+" : ""),
@@ -20090,15 +20093,11 @@ void CvGameTextMgr::getTradeScreenTitleIcon(CvString& szButton, CvWidgetDataStru
 void CvGameTextMgr::getTradeScreenIcons(std::vector< std::pair<CvString, CvWidgetDataStruct> >& aIconInfos, PlayerTypes ePlayer)
 {
 	aIconInfos.clear();
-	for (int i = 0; i < GC.getNumCivicOptionInfos(); i++)
+	FOR_EACH_ENUM(CivicOption)
 	{
-		CivicTypes eCivic = GET_PLAYER(ePlayer).getCivics((CivicOptionTypes)i);
-		CvWidgetDataStruct widgetData;
-		widgetData.m_eWidgetType = WIDGET_PEDIA_JUMP_TO_CIVIC;
-		widgetData.m_iData1 = eCivic;
-		widgetData.m_iData2 = -1;
-		widgetData.m_bOption = false;
-		aIconInfos.push_back(std::make_pair(GC.getInfo(eCivic).getButton(), widgetData));
+		CivicTypes eCivic = GET_PLAYER(ePlayer).getCivics(eLoopCivicOption);
+		aIconInfos.push_back(std::make_pair(GC.getInfo(eCivic).getButton(),
+				CvWidgetDataStruct(eCivic, -1, false, WIDGET_PEDIA_JUMP_TO_CIVIC)));
 	}
 
 }
@@ -21120,87 +21119,88 @@ void CvGameTextMgr::getTurnTimerText(CvWString& strText)
 void CvGameTextMgr::getFontSymbols(std::vector< std::vector<wchar> >& aacSymbols,
 	std::vector<int>& aiMaxNumRows)
 {
-	aacSymbols.push_back(std::vector<wchar>());
+	std::vector<wchar> acEmpty; // advc (will get copied)
+
+	aacSymbols.push_back(acEmpty);
 	aiMaxNumRows.push_back(1);
 	FOR_EACH_ENUM(Yield)
 	{
-		aacSymbols[aacSymbols.size() - 1].push_back(GC.getInfo(eLoopYield).getChar());
+		aacSymbols.back().push_back(GC.getInfo(eLoopYield).getChar());
 	}
 
-	aacSymbols.push_back(std::vector<wchar>());
+	aacSymbols.push_back(acEmpty);
 	aiMaxNumRows.push_back(2);
 	FOR_EACH_ENUM(Commerce)
 	{
-		aacSymbols[aacSymbols.size() - 1].push_back(GC.getInfo(eLoopCommerce).getChar());
+		aacSymbols.back().push_back(GC.getInfo(eLoopCommerce).getChar());
 	}
 
-	aacSymbols.push_back(std::vector<wchar>());
+	aacSymbols.push_back(acEmpty);
 	aiMaxNumRows.push_back(2);
 	FOR_EACH_ENUM(Religion)
 	{
-		aacSymbols[aacSymbols.size() - 1].push_back(GC.getInfo(eLoopReligion).getChar());
-		aacSymbols[aacSymbols.size() - 1].push_back(GC.getInfo(eLoopReligion).getHolyCityChar());
+		aacSymbols.back().push_back(GC.getInfo(eLoopReligion).getChar());
+		aacSymbols.back().push_back(GC.getInfo(eLoopReligion).getHolyCityChar());
 	}
 	FOR_EACH_ENUM(Corporation)
 	{
-		aacSymbols[aacSymbols.size() - 1].push_back(GC.getInfo(eLoopCorporation).getChar());
-		aacSymbols[aacSymbols.size() - 1].push_back(GC.getInfo(eLoopCorporation).getHeadquarterChar());
+		aacSymbols.back().push_back(GC.getInfo(eLoopCorporation).getChar());
+		aacSymbols.back().push_back(GC.getInfo(eLoopCorporation).getHeadquarterChar());
 	}
 
-	aacSymbols.push_back(std::vector<wchar>());
+	aacSymbols.push_back(acEmpty);
 	aiMaxNumRows.push_back(3);
 	FOR_EACH_ENUM(Bonus)
 	{
-		aacSymbols[aacSymbols.size() - 1].push_back(GC.getInfo(eLoopBonus).getChar());
+		aacSymbols.back().push_back(GC.getInfo(eLoopBonus).getChar());
 	}
 
-	aacSymbols.push_back(std::vector<wchar>());
+	aacSymbols.push_back(acEmpty);
 	aiMaxNumRows.push_back(3);
 	for (int i = 0; i < MAX_NUM_SYMBOLS; i++)
 	{
-		aacSymbols[aacSymbols.size() - 1].push_back((wchar)gDLL->getSymbolID(i));
+		aacSymbols.back().push_back((wchar)gDLL->getSymbolID(i));
 	}
 }
 
-void CvGameTextMgr::assignFontIds(int iFirstSymbolCode, int iPadAmount)
+// advc: Helper function
+namespace
 {
-	/*	advc.make: safeIntCast calls added throughout so that the info classes
-		can store the symbol as a wchar. */
+	void fillRow(int& iSymbol, int iRowLen)
+	{
+		do
+		{
+			iSymbol++;
+		} while (iSymbol % iRowLen != 0);
+	}
+}
 
-	int iSymbol = iFirstSymbolCode;
+void CvGameTextMgr::assignFontIds(int iFirstSymbolCode, int iRowLen)
+{
+	/*	advc: safeIntCast calls added throughout so that the info classes can
+		store the symbol as a wchar. And param "iPadAmount" renamed to "iRowLen"
+		for clarity. It's the number of columns in GameFont.tga (I think).
+		Probably also needs to stay consistent with getFontSymbols.
+		Comments below are mine. */
 
-	// set yield symbols
+	int iSymbol = iFirstSymbolCode; // (The smaller codes are for glyphs)
+	// One row for yield icons
 	FOR_EACH_ENUM(Yield)
 	{
 		GC.getInfo(eLoopYield).setChar(safeIntCast<wchar>(iSymbol));
 		iSymbol++;
 	}
-
-	do
-	{
-		iSymbol++;
-	} while (iSymbol % iPadAmount != 0);
-
-	// set commerce symbols
+	fillRow(iSymbol, iRowLen);
+	// Two rows for commerce icons
 	FOR_EACH_ENUM(Commerce)
 	{
 		GC.getInfo(eLoopCommerce).setChar(safeIntCast<wchar>(iSymbol));
 		iSymbol++;
 	}
-
-	do
-	{
-		iSymbol++;
-	} while (iSymbol % iPadAmount != 0);
-
-	if (NUM_COMMERCE_TYPES < iPadAmount)
-	{
-		do
-		{
-			iSymbol++;
-		} while (iSymbol % iPadAmount != 0);
-	}
-
+	fillRow(iSymbol, iRowLen);
+	if (NUM_COMMERCE_TYPES < iRowLen)
+		fillRow(iSymbol, iRowLen);
+	// Two rows for religion and corp icons, alternating between regular and starred.
 	FOR_EACH_ENUM(Religion)
 	{
 		GC.getInfo(eLoopReligion).setChar(safeIntCast<wchar>(iSymbol));
@@ -21215,23 +21215,11 @@ void CvGameTextMgr::assignFontIds(int iFirstSymbolCode, int iPadAmount)
 		GC.getInfo(eLoopCorporation).setHeadquarterChar(safeIntCast<wchar>(iSymbol));
 		iSymbol++;
 	}
-
-	do
-	{
-		iSymbol++;
-	} while (iSymbol % iPadAmount != 0);
-
-	if (2 * (GC.getNumReligionInfos() + GC.getNumCorporationInfos()) < iPadAmount)
-	{
-		do
-		{
-			iSymbol++;
-		} while (iSymbol % iPadAmount != 0);
-	}
-
-	// set bonus symbols
+	fillRow(iSymbol, iRowLen);
+	if (2 * (GC.getNumReligionInfos() + GC.getNumCorporationInfos()) < iRowLen)
+		fillRow(iSymbol, iRowLen);
+	// Three rows for bonus resource icons
 	int iBonusBase = iSymbol;
-
 	/*  UNOFFICIAL_PATCH, Bugfix (GameFontFix), 06/02/10, LunarMongoose
 		this erroneous extra increment command was breaking GameFont.tga files
 		when using exactly 49 or 74 resource types in a mod */
@@ -21242,29 +21230,12 @@ void CvGameTextMgr::assignFontIds(int iFirstSymbolCode, int iPadAmount)
 		GC.getInfo(eLoopBonus).setChar(safeIntCast<wchar>(iBonus));
 		iSymbol++;
 	}
-
-	do
-	{
-		iSymbol++;
-	} while (iSymbol % iPadAmount != 0);
-
-	if (GC.getNumBonusInfos() < iPadAmount)
-	{
-		do
-		{
-			iSymbol++;
-		} while (iSymbol % iPadAmount != 0);
-	}
-
-	if (GC.getNumBonusInfos() < 2 * iPadAmount)
-	{
-		do
-		{
-			iSymbol++;
-		} while (iSymbol % iPadAmount != 0);
-	}
-
-	// set extra symbols
+	fillRow(iSymbol, iRowLen);
+	if (GC.getNumBonusInfos() < iRowLen)
+		fillRow(iSymbol, iRowLen);
+	if (GC.getNumBonusInfos() < 2 * iRowLen)
+		fillRow(iSymbol, iRowLen);
+	// The remaining row(s) for misc. icons
 	for (int i = 0; i < MAX_NUM_SYMBOLS; i++)
 	{
 		gDLL->setSymbolID(i, iSymbol);
@@ -21598,6 +21569,34 @@ void CvGameTextMgr::getCorporationDataForWB(bool bHeadquarters, std::vector<CvWB
 		mapCorporationData.push_back(CvWBData(i, strDescription, kInfo.getButton()));
 	}
 }
+
+// <advc.002b>
+bool CvGameTextMgr::isGfcThemeModified() const
+{
+	CvArtInfoMisc const* pTheme = ARTFILEMGR.getMiscArtInfo("DEFAULT_THEME_NAME");
+	if (pTheme != NULL && pTheme->getPath() != NULL)
+	{
+		CvString szThemePath(pTheme->getPath());
+		if (szThemePath.find("Mods") != CvString::npos)
+			return true;
+	}
+	return false;
+}
+
+
+int CvGameTextMgr::getHelpFontSize() const
+{
+	// Default for Size2Normal (the smallest size used) when there is no custom theme
+	int iFontSize = 14;
+	/*  Don't know how to look up the font size. Would perhaps have to (re-)parse
+		the theme files (no, thanks). Instead, the DLL is told through XML what
+		font size to assume. I do know how to check if the mod's theme has been
+		removed, and I don't want to rely on players changing the XML setting
+		after removing it. */
+	if (isGfcThemeModified())
+		iFontSize = ::range(GC.getDefineINT("HELP_FONT_SIZE", 16), 8, 22);
+	return iFontSize;
+} // </advc.002b>
 
 // <advc> Based on BtS and ACO code originally in setCombatPlotHelp
 void CvGameTextMgr::appendCombatModifiers(CvWStringBuffer& szBuffer,

@@ -19,13 +19,12 @@ For information regarding GFC Commercial License Agreements go to:
 
 **********************************************************************/
 
-/* advc.002b: Copied from BtS/Resource/Themes/Civ4. Changed the tga
-   paths based on ancestral's tutorial in order to avoid copies of all
-   the UI graphics. Prefixed each path with "../../../../Resource/".
-   This file is special insofar as it loads all the generic icons
-   (subfolder "Icons").
-   
-   The font-size changes are in here too; see next comment. */
+/*	advc.002b: Copied from BtS/Resource/Themes/Civ4. Changed the tga
+	paths based on ancestral's tutorial in order to avoid copies of all
+	the UI graphics. Prefixed each path with "../../../../Resource/".
+	This file is special insofar as it loads all the generic icons
+	(subfolder "Icons").
+	The font-size changes are in here too; see next comment. */
 
 // *** Control Base properties
 
@@ -376,19 +375,16 @@ with GFC_Control
 			// 4 - normal, 4 - bold
 			// -Moose
 
-			/* advc.002b: Changing
-			   Size1 from 12 to 14,
-			   Size2 from 14 to 16,
-			   Size3 from 16 to 17 (starts looking like bold at 18);
-			   no change to Size4.
-			   Uncommented the 'GFont	.Size' definitions for size 3 italic and bold italic and size 1 bold b/c these are required for
-			   SF_CtrlTheme_Civ4_Control_Font_Size3_Italic,
-			   SF_CtrlTheme_Civ4_Control_Font_Size3_BoldItalic and
-			   SF_CtrlTheme_Civ4_Control_Font_Size1_Bold
-			   in this file and in Civ4Theme_Window.thm.
-			   This appears to be an error by the Vanilla Civ 4 developers.
-			   Not sure if it actually caused problems apart from an error
-			   message in ThemeParseLog. */
+			/*	advc.002b: Changing
+				Size1 from 12 to 14,
+				Size2 from 14 to 16,
+				Size3 from 16 to 17 (starts looking like bold at 18);
+				no change to Size4.
+				And commented out the style definitions .Italic, .BoldItalic and .FooterBold
+				farther below because they use font settings that were disabled by the Civ
+				developers. Also removed a reference to Size1_Bold in Civ4Theme_Window.thm
+				for that reason. Not sure if that had caused any problems apart from an
+				error message in ThemeParseLog. */
 
 			with SF_CtrlTheme_Civ4_Control_Font
 			{
@@ -398,7 +394,7 @@ with GFC_Control
 //				GFont	.Size0_BoldItalic		=	GFont("Sylfaen",		"Bold Italic",	10, GFlags(GFontFeature, GFC_FONT_BOLD,	GFC_FONT_ITALIC, GFC_FONT_ALPHA), 0, GRectMargin(1));
 
 				GFont	.Size1_Normal			=	GFont("Sylfaen",		"Regular",		14, GFlags(GFontFeature, GFC_FONT_ALPHA));
-				GFont	.Size1_Bold				=	GFont("Sylfaen",		"Bold",			12, GFlags(GFontFeature, GFC_FONT_BOLD,	GFC_FONT_ALPHA));
+//				GFont	.Size1_Bold				=	GFont("Sylfaen",		"Bold",			12, GFlags(GFontFeature, GFC_FONT_BOLD,	GFC_FONT_ALPHA));
 //				GFont	.Size1_Italic			=	GFont("Sylfaen",		"Italic",		12, GFlags(GFontFeature, GFC_FONT_ITALIC, GFC_FONT_ALPHA), 0, GRectMargin(1));
 //				GFont	.Size1_BoldItalic		=	GFont("Sylfaen",		"Bold Italic",	12, GFlags(GFontFeature, GFC_FONT_BOLD,	GFC_FONT_ITALIC, GFC_FONT_ALPHA), 0, GRectMargin(1));
 
@@ -409,8 +405,8 @@ with GFC_Control
 
 				GFont	.Size3_Normal			=	GFont("Sylfaen",		"Regular",		17, GFlags(GFontFeature, GFC_FONT_ALPHA));
 				GFont	.Size3_Bold				=	GFont("Sylfaen",		"Bold",			17, GFlags(GFontFeature, GFC_FONT_BOLD,	GFC_FONT_ALPHA));
-				GFont	.Size3_Italic			=	GFont("Sylfaen",		"Italic",		16, GFlags(GFontFeature, GFC_FONT_ITALIC, GFC_FONT_ALPHA), 0, GRectMargin(1));
-				GFont	.Size3_BoldItalic		=	GFont("Sylfaen",		"Bold Italic",	16, GFlags(GFontFeature, GFC_FONT_BOLD,	GFC_FONT_ITALIC, GFC_FONT_ALPHA), 0, GRectMargin(1));
+//				GFont	.Size3_Italic			=	GFont("Sylfaen",		"Italic",		16, GFlags(GFontFeature, GFC_FONT_ITALIC, GFC_FONT_ALPHA), 0, GRectMargin(1));
+//				GFont	.Size3_BoldItalic		=	GFont("Sylfaen",		"Bold Italic",	16, GFlags(GFontFeature, GFC_FONT_BOLD,	GFC_FONT_ITALIC, GFC_FONT_ALPHA), 0, GRectMargin(1));
 
 				GFont	.Size4_Normal			=	GFont("Sylfaen",		"Regular",		22, GFlags(GFontFeature, GFC_FONT_ALPHA));
 				GFont	.Size4_Bold				=	GFont("Sylfaen",		"Bold",			22, GFlags(GFontFeature, GFC_FONT_BOLD,	GFC_FONT_ALPHA));
@@ -420,14 +416,14 @@ with GFC_Control
 			
 			.Normal								=	SF_CtrlTheme_Civ4_Control_Font_Size3_Normal;
 			.Bold								=	SF_CtrlTheme_Civ4_Control_Font_Size3_Bold;
-			.Italic								=	SF_CtrlTheme_Civ4_Control_Font_Size3_Italic;
-			.BoldItalic							=	SF_CtrlTheme_Civ4_Control_Font_Size3_BoldItalic;
+//			.Italic								=	SF_CtrlTheme_Civ4_Control_Font_Size3_Italic;
+//			.BoldItalic							=	SF_CtrlTheme_Civ4_Control_Font_Size3_BoldItalic;
 			
 			.Header								=	SF_CtrlTheme_Civ4_Control_Font_Size4_Normal;
 			.HeaderBold							=	SF_CtrlTheme_Civ4_Control_Font_Size4_Bold;
 			
 			.Footer								=	SF_CtrlTheme_Civ4_Control_Font_Size1_Normal;
-			.FooterBold							=	SF_CtrlTheme_Civ4_Control_Font_Size1_Bold;
+//			.FooterBold							=	SF_CtrlTheme_Civ4_Control_Font_Size1_Bold;
 			
 //			.Fixed								=	GFont("Fonts/cour.ttf",		"Courier New",	"Regular",		14, GFlags(GFontFeature, GFC_FONT_ALPHA));
 //			.FixedBold							=	GFont("Fonts/courbd.ttf",	"Courier New",	"Bold",			14, GFlags(GFontFeature, GFC_FONT_BOLD,	GFC_FONT_ALPHA));

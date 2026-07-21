@@ -15,7 +15,7 @@
 	warnings. BtS had disabled that one through the PCH. */
 
 /*	These should remain enabled even if the global level is dialed back down to 3.
-	But I'm not sure how disable them in the std headers etc.
+	But I'm not sure how to disable them in the std headers etc.
 	May need to put them into a separate header for that, to be included in the PCH
 	after loading the non-conforming headers. */
 /*

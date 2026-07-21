@@ -188,7 +188,7 @@ void CvSelectionGroup::doTurn()
 
 	FAssert(getOwner() != NO_PLAYER);
 	// <advc>
-	if(getNumUnits() <= 0)
+	if (getNumUnits() <= 0)
 	{
 		doDelayedDeath();
 		return;
@@ -1500,13 +1500,21 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 			break;
 
 		case MISSION_BUILD:
-			if(!groupBuild((BuildTypes)missionData.iData1,
-				!missionData.bModified)) // advc.011b
+		{
+			BuildTypes eBuild = (BuildTypes)missionData.iData1;
+			/*	<advc.001> (based on SAS) Routes may get built along the way to the
+				mission plot, but, if route-to or move-to fails and the mission plot
+				isn't reached, then any improvement build needs to be canceled. */
+			CvPlot const* pMissionAIPlot = AI().AI_getMissionAIPlot();
+			bool bCancel = (pMissionAIPlot != NULL && eBuild != NO_BUILD &&
+					GC.getInfo(eBuild).getRoute() == NO_ROUTE && !atPlot(pMissionAIPlot));
+			if (bCancel || // </advc.001>
+				!groupBuild(eBuild, /* advc.011b: */ !missionData.bModified))
 			{
 				bDone = true;
 			}
 			break;
-
+		}
 		default: FAssert(false);
 		}
 	}
@@ -2410,8 +2418,13 @@ bool CvSelectionGroup::canDefend() /* advc: */ const
 	return false;
 }
 
+
 bool CvSelectionGroup::canBombard(CvPlot const& kPlot) const
 {
+	/*	advc.001j (note): For AI units, it's usually enough to check the head
+		unit - due to the group ordering imposed by addUnit. There are exceptions
+		though (sea units in particular). Will have to leave it up to callers
+		to decide whether they need fast or reliable results. */
 	FOR_EACH_UNIT_IN(pUnit, *this)
 	{
 		if (pUnit->canBombard(kPlot))
@@ -2419,6 +2432,7 @@ bool CvSelectionGroup::canBombard(CvPlot const& kPlot) const
 	}
 	return false;
 }
+
 
 int CvSelectionGroup::visibilityRange() const // advc: const; return type was bool
 {
@@ -2451,9 +2465,9 @@ void CvSelectionGroup::unloadAll()
 {
 	FOR_EACH_UNIT_VAR_IN(pUnit, *this)
 	{
-		if (pUnit != NULL)
-			pUnit->unloadAll();
-		else FAssertMsg(pUnit != NULL, "Can this happen?"); // advc.test
+		//if (pUnit != NULL) // advc: Never seen this happen in years
+		pUnit->unloadAll();
+		//else FAssert(pUnit != NULL);
 	}
 }
 
@@ -2461,7 +2475,7 @@ void CvSelectionGroup::unloadAll()
 bool CvSelectionGroup::alwaysInvisible() const
 {
 	//PROFILE_FUNC(); // advc.003o
-	if(getNumUnits() <= 0)
+	if (getNumUnits() <= 0)
 		return false;
 	FOR_EACH_UNIT_IN(pUnit, *this)
 	{
@@ -3005,7 +3019,7 @@ bool CvSelectionGroup::groupRoadTo(int iX, int iY, MovementFlags eFlags)
 		}
 	}
 	// advc.pf: Don't want the AI to route through foreign territory
-	FAssert(eFlags & MOVE_SAFE_TERRITORY);
+	FAssert((eFlags & MOVE_SAFE_TERRITORY) || isHuman());
 	return groupPathTo(iX, iY, eFlags);
 }
 
@@ -3125,12 +3139,11 @@ void CvSelectionGroup::setTransportUnit(CvUnit* pTransportUnit,
 		{
 			CvSelectionGroup* pSplitGroup = splitGroup(iCargoSpaceAvailable, NULL,
 					pOtherGroup); // BETTER_BTS_AI_MOD, General AI, 04/18/10, jdog5000
-			if (pSplitGroup != NULL)
-				pSplitGroup->setTransportUnit(pTransportUnit);
-			/*	advc.test: We shouldn't have split the group then; not sure how to
-				guard against that though. Cf. issue #329 on the C2C GitHub page.
-				Let's first of all see if this even occurs in AdvCiv. */
-			FAssertMsg(pSplitGroup != NULL, "Probably no error but sth. to investigate");
+			/*	advc: We shouldn't have split the group then. But it seems that
+				this can't happen anyway; I've had an assertion in place for years.
+				C2C did have this problem (see issue #329 on their GitHub page). */
+			//if (pSplitGroup != NULL)
+			pSplitGroup->setTransportUnit(pTransportUnit);
 			return;
 		}
 

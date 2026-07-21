@@ -144,7 +144,7 @@
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__GOLDRATEBROKECOLOR_HOVER</Tag>
 		<English>Text color to use when a negative per-turn income exceeds the gold reserves in the treasury</English>
-		<German>Textfarbe bei negativem Einkommen, das den Goldvorrat übersteigt.</German>>
+		<German>Textfarbe bei negativem Einkommen, das den Goldvorrat übersteigt.</German>
 	</TEXT>
 	
 	<!-- advc.004: German shortened (was the longest heading in its column) -->

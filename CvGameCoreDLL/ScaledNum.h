@@ -761,9 +761,8 @@ private:
 		ScaledNum<256,uint> rPowOfTwo; // Ex.: Array position [13] is 19, so rPowOfTwo=19/256
 		rPowOfTwo.m_i = FixedPointPowTables::powersOfTwoNormalized_256[rExpFrac.m_i];
 		++rPowOfTwo; // Denormalize (Ex.: 275/256; approximating 2^0.1)
-		/*	Tbd.: Try replacing this loop with _BitScanReverse (using the /EHsc compiler flag).
-			Or perhaps not available in MSVC03? See: github.com/danaj/Math-Prime-Util/pull/10/
-			*/
+		/*	Tbd.: Try replacing this loop with _BitScanReverse. We might have access to that:
+			github.com/danaj/Math-Prime-Util/pull/10/ */
 		{	//while (iBaseDiv < *this) // Would result in expensive overflow handling
 			int const iCeil = ceil();
 			while (iBaseDiv < iCeil)
@@ -775,7 +774,11 @@ private:
 		} // Ex.: iBaseDiv=8 and rProductOfPowersOfTwo=1270/1024, approximating (2^0.1)^3.
 		ScaledNum<256,uint> rLastFactor(1);
 		// Look up approximate result of ((*this)/iBaseDiv)^rExpFrac in precomputed table
-		int iLastBaseTimes64 = (ScaledNum<64,uint>(*this / iBaseDiv)).m_i; // Ex.: 42/64 approximating 5.2/8
+		int iLastBaseTimes64;
+		if (iBaseDiv > MAX) // iBaseDiv can get too large. Use two divisions then.
+			iLastBaseTimes64 = (ScaledNum<64,uint>((*this / (iBaseDiv / 1024)) / 1024)).m_i;
+		// Ex.: 42/64 approximating 5.2/8
+		else iLastBaseTimes64 = (ScaledNum<64,uint>(*this / iBaseDiv)).m_i;
 		#ifdef SCALED_NUM_EXTRA_ASSERTS
 			FAssertBounds(0, 64+1, iLastBaseTimes64);
 		#endif

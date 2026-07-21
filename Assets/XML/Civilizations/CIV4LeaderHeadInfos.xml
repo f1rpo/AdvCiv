@@ -4052,7 +4052,7 @@
 					<iNoWarProb>110</iNoWarProb>
 				</NoWarAttitudeProb>
 				<NoWarAttitudeProb>
-					<AttitudeType>ATTITUDE_PLEASED</AttitudeType>
+					<AttitudeType>ATTITUDE_FRIENDLY</AttitudeType>
 					<iNoWarProb>115</iNoWarProb>
 				</NoWarAttitudeProb>
 			</NoWarAttitudeProbs>

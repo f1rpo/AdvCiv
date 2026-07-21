@@ -2012,6 +2012,8 @@ void CvPlayer::acquireCity(CvCity* pOldCity, bool bConquest, bool bTrade, bool b
 	{
 		GET_PLAYER(eOldOwner).verifyAlive();
 	} // </advc.001>
+	// advc.001w: Ownership change could affect cached paths (unlikely?)
+	GET_TEAM(getTeam()).updateActivePaths();
 	// <advc.130w> Major power shift; good time to update expansionist hate.
 	for (PlayerAIIter<MAJOR_CIV> itPlayer; itPlayer.hasNext(); ++itPlayer)
 	{
@@ -2145,11 +2147,11 @@ void CvPlayer::getCivilizationCityName(CvWString& szBuffer, CivilizationTypes eC
 }
 
 
-bool CvPlayer::isCityNameValid(CvWString& szName, bool bTestDestroyed) const
+bool CvPlayer::isCityNameValid(CvWString& szName, bool bTestPast) const
 {
-	if (bTestDestroyed)
+	if (bTestPast) // (advc.005c: renamed from "bTestDestroyed")
 	{
-		if (GC.getGame().isDestroyedCityName(szName))
+		if (GC.getGame().isPastCityName(szName))
 			return false;
 
 		for (PlayerIter<EVER_ALIVE> it; it.hasNext(); ++it)
@@ -4537,7 +4539,7 @@ void CvPlayer::disband(CvCity& kCity) // advc: param was CvCity*
 {
 	if (getNumCities() == 1)
 		setFoundedFirstCity(false);
-	GC.getGame().addDestroyedCityName(kCity.getName());
+	GC.getGame().addPastCityName(kCity.getName());
 	kCity.kill(true);
 }
 
@@ -5066,20 +5068,29 @@ void CvPlayer::found(int iX, int iY)
 
 	if (getAdvancedStartPoints() >= 0)
 	{	// Free border expansion for Creative
-		bool bCreative = false;
+		bool bFreeBorderExp = false; // advc: Renamed from "bCreative"
 		FOR_EACH_ENUM(Trait)
 		{
 			if (hasTrait(eLoopTrait))
 			{
 				if (GC.getInfo(eLoopTrait).getCommerceChange(COMMERCE_CULTURE) > 0)
 				{
-					bCreative = true;
+					bFreeBorderExp = true;
 					break;
 				}
 			}
 		}
-
-		if (bCreative)
+		/*	<advc.908b> Let traits handle this explicitly
+			unless the free culture effect is unused */
+		FOR_EACH_ENUM(Trait)
+		{
+			if (kGame.freeCityCultureFromTrait(eLoopTrait) != 0)
+			{
+				bFreeBorderExp = false;
+				break;
+			}
+		} // </advc.908b>
+		if (bFreeBorderExp)
 		{
 			FOR_EACH_ENUM(CultureLevel)
 			{
@@ -10997,7 +11008,7 @@ void CvPlayer::addMessage(CvTalkingHeadMessage const& kMessage)
 	if (eMessage == MESSAGE_TYPE_INFO || eMessage == MESSAGE_TYPE_MINOR_EVENT ||
 		eMessage == MESSAGE_TYPE_MAJOR_EVENT || eMessage == MESSAGE_TYPE_MAJOR_EVENT_LOG_ONLY)
 	{
-		m_iNewMessages++; // See comment in postProcessBeginTurnEvents
+		m_iNewMessages++; // See comment in postProcessMessages
 	}
 	/*	Hotseat clears some messages before players get to see them; we'll show them
 		again at the start of the recipient's next turn. */
@@ -11008,7 +11019,7 @@ void CvPlayer::addMessage(CvTalkingHeadMessage const& kMessage)
 	if (eMessage == MESSAGE_TYPE_MAJOR_EVENT || bMissedMsg)
 	{
 		/*  Need to make a copy b/c, apparently, the EXE deletes the original
-			before postProcessBeginTurnEvents gets called. */
+			before postProcessMessages gets called. */
 		CvTalkingHeadMessage* pCopy = new CvTalkingHeadMessage(kMessage.getTurn(),
 				kMessage.getLength(), kMessage.getDescription(),
 				// Don't play it twice

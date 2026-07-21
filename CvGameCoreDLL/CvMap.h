@@ -61,14 +61,18 @@ public:
 	// 4 | 4 | 3 | 3 | 3 | 4 | 4
 	//
 	// Returns the distance between plots according to the pattern above...
+	/*	advc (note): The standard octile metric would use (sqrt(2)-1) as the
+		weight of the min, providing the exact length of the shortest (zigzag-y)
+		path along centers of adjacent squares. This here is a pretty close
+		approximation of that length. */
 	int plotDistance(int iX1, int iY1, int iX2, int iY2) const
 	{
 		int iDX = xDistance(iX1, iX2);
 		int iDY = yDistance(iY1, iY2);
 		//return std::max(iDX, iDY) + std::min(iDX, iDY) / 2;
 		/*	advc.opt: Non-branching replacement
-			(abs in stdlib uses just xor and sub). Could also use the max and min
-			functions in CvGameCoreUtils.h, but this here seems a little faster. */
+			(abs in stdlib uses just xor and sub). Could also use the max and min functions
+			in the branchless namespace, but this here seems a little faster. */
 		return (3 * (iDX + iDY) + abs(iDX - iDY)) / 4;
 	}
 
@@ -147,7 +151,7 @@ public:
 		return GC.getXYDirection(iDX + DIRECTION_RADIUS, iDY + DIRECTION_RADIUS);
 	}
 
-	DirectionTypes directionXY(CvPlot const& kFromPlot, CvPlot const& kToPlot) const // advc: params as references
+	DirectionTypes directionXY(CvPlot const& kFromPlot, CvPlot const& kToPlot) const
 	{
 		return directionXY(
 				dxWrap(kToPlot.getX() - kFromPlot.getX()),

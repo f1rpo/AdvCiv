@@ -294,7 +294,7 @@ public:
 	{
 		return (m_aiHasMetTurn.get(eOther) >= 0); // advc.091
 	}
-	int getHasMetTurn(TeamTypes eOther) { return m_aiHasMetTurn.get(eOther); } // advc.091  (exposed to Python)
+	int getHasMetTurn(TeamTypes eOther) const { return m_aiHasMetTurn.get(eOther); } // advc.091  (exposed to Python)
 	// advc.071: Return value, 2nd param added.
 	CvPlot* makeHasMet(TeamTypes eOther, bool bNewDiplo, FirstContactData* pData = NULL);
 	bool isHasSeen(TeamTypes eOther) const { return m_abHasSeen.get(eOther); }; // K-Mod
@@ -503,6 +503,7 @@ public:
 	}
 	bool isFriendlyTerritory(TeamTypes eTerritoryOwner) const;
 	bool isAlliedTerritory(TeamTypes eTerritoryOwner, TeamTypes eEnemy) const; // advc.183
+	void updateActivePaths(TeamTypes eOtherTeam = NO_TEAM); // advc.001w
 	// <advc> Same as isRevealedBase (but doesn't have to be)
 	bool isRevealedAirBase(CvPlot const& kPlot) const { return isRevealedBase(kPlot); }
 	bool isRevealedCityHeal(CvPlot const& kPlot) const { return isRevealedBase(kPlot); }
@@ -713,6 +714,7 @@ protected:
 	// <advc.039>
 	CvWString const tradeItemString(TradeableItems eItem, int iData,
 			TeamTypes eFrom) const; // </advc.039>
+	bool isTechSplash() const; // advc
 	void announceTechToPlayers(TechTypes eIndex,
 			PlayerTypes eDiscoverPlayer, // advc.156
 			bool bPartial = false);

@@ -12,6 +12,6 @@ def init(): # called when parsing 'BUG Core.xml'
 		BugUtil.error("Failed to call CvScreensInterface.initBugAdvisors")
 # BUG - Options - end
 
-def deleteTechSplash(): # called when parsing TechWindow.xml
+def deleteTechSplash(option=None, value=None): # called when parsing TechWindow.xml
 	import CvScreensInterface
-	CvScreensInterface.deleteTechSplash()
+	CvScreensInterface.deleteTechSplash(option, value)

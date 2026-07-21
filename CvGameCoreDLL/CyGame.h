@@ -287,6 +287,7 @@ public:
 	void doControl(int iControl);
 
 	void setCityBarWidth(bool bWide); // advc.095
+	void setHelpTextAreaWidth(float fWidth); // advc.092c
 	void saveGame(std::string szFileName); // BULL - AutoSave
 	bool useKModAI(); // advc.104
 	int getBarbarianStartTurn(); // advc.300

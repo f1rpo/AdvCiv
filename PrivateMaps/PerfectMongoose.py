@@ -2,8 +2,9 @@
 ## advc.021b: Latest changes to PerfectWorld in MongooseMod (v3.3) ported back
 ## to the latest standalone version of the script (v3.2) and enhanced and
 ## customized for the AdvCiv mod. The AdvCiv changes are marked with
-## "advc" comments, "advc.001" for bugfixes, "advc.027" for the integration of
-## AdvCiv's starting position algorithm.
+## "advc" comments, "advc.001" for bugfixes, "advc.oxi" for getCirclePoints
+## bugfixes adopted from CFC user Oxidized, "advc.027" for the integration of
+## AdvCiv's starting position algorithm. 
 ## Also corrected some debug output that used "FairWeather" as the map name.
 ## Version history up to v3.3 moved to the end of the file.
 ##
@@ -658,6 +659,8 @@ class MapConstants:
 		# advc: Deleted; can be looked up in-game in AdvCiv. And it's tedious to keep it up to date here.
 		#self.optionsString = 
 
+		#run_smooth_tests() # advc.test
+
 
 mc = MapConstants()
 
@@ -1164,50 +1167,206 @@ class FloatMap:
 		for i in range(self.length):
 			self.data[i] = func(self.data[i])
 
-
+	# advc.opt: Now only used by Smooth_Legacy, i.e. normally unused.
 	def GetAverageInHex(self, x, y, radius):
-		list = pb.getCirclePoints(x, y, radius)
+		'''
+		# advc.oxi: Was getCirclePoints
+		list = pb.getFilledCirclePoints(x, y, radius)
 		avg = 0.0
+		count = 0 # advc.oxi
 		for n in range(len(list)):
 			hex = list[n]
 			i = self.GetIndex(hex.x, hex.y)
-			avg = avg + self.data[i]
-		avg = avg / len(list)
+			# <advc.oxi>
+			if i == -1:
+				continue
+			count += 1 # </advc.oxi>
+			avg += self.data[i]
+		# <advc.oxi>
+		if count == 0:
+			return 0.0
+		#avg = avg / len(list)
+		avg /= count # </advc.oxi>
+		return avg
+		'''
+		# advc.opt: The above was too slow. Expanding the function calls
+		# allows the bulk of the overhead to be eliminated. I've mostly let an
+		# LLM perform this task.
+
+		# (The LLM insists that these are nonnegligible optimizations in Python 2.4.)
+		width = self.width
+		height = self.height
+		data = self.data
+		wrapX = self.wrapX
+		wrapY = self.wrapY
+		r2 = radius * radius
+		avg = 0.0
+		count = 0
+		for dy in range(-radius, radius + 1):
+			yy = y + dy
+			# Handle boundary like GetIndex, but only once per dy.
+			if wrapY:
+				if yy < 0 or yy > height - 1:
+					yy_idx = yy % height
+				else:
+					yy_idx = yy
+				base = yy_idx * width
+			else:
+				if yy < 0 or yy > height - 1:
+					continue
+				else:
+					base = yy * width
+			dx = int(math.sqrt(r2 - dy * dy))
+			for xx in range(x - dx, x + dx + 1):
+				if wrapX:
+					if xx < 0 or xx > width - 1:
+						xx_idx = xx % width
+					else:
+						xx_idx = xx
+					i = base + xx_idx
+				else:
+					if xx < 0 or xx > width - 1:
+						continue
+					i = base + xx
+				count += 1
+				avg += data[i]
+
+		if count == 0:
+			return 0.0
+		avg /= count
 		return avg
 
-
+	# advc.oxi: Similar changes as in GetAverageInHex
 	def GetStdDevInHex(self, x, y, radius):
-		list = pb.getCirclePoints(x, y, radius)
+		list = pb.getFilledCirclePoints(x, y, radius)
 		avg = 0.0
+		count = 0
 		for n in range(len(list)):
 			hex = list[n]
 			i = self.GetIndex(hex.x, hex.y)
-			avg = avg + self.data[i]
-		avg = avg / len(list)
+			if i == -1:
+				continue
+			count += 1
+			avg += self.data[i]
+		if count == 0:
+			return 0.0
+		avg /= count
 		deviation = 0.0
 		for n in range(len(list)):
 			hex = list[n]
 			i = self.GetIndex(hex.x, hex.y)
+			if i == -1:
+				continue
 			sqr = self.data[i] - avg
-			deviation = deviation + (sqr * sqr)
-		deviation = math.sqrt(deviation / len(list))
+			deviation += sqr * sqr
+		deviation = math.sqrt(deviation / count)
 		return deviation
 
-
-	def Smooth(self, radius):
-		dataCopy = {}
+	# advc.opt: Renamed; now unused.
+	def Smooth_Legacy(self, radius):
+		#dataCopy = {}
+		dataCopy = [0.0] * len(self.data) # advc.opt
 		for y in range(self.height):
 			for x in range(self.width):
 				i = self.GetIndex(x, y)
+				if i == -1: continue # advc.oxi
 				dataCopy[i] = self.GetAverageInHex(x, y, radius)
 		self.data = dataCopy
+	# advc.opt: This is almost 100% LLM work, based on my idea (incrementally
+	# moving the disk across the grid), but even that got hijacked. I did verify
+	# that just the same results as before are produced (see commented out
+	# test code at the call location and also run_smooth_tests). And, if there's
+	# a problem, one can always go back to the version above, which, for the
+	# current radius, is just a few seconds slower.
+	def Smooth(self, radius):
+		width = self.width
+		height = self.height
+		data = self.data
+		wrapX = self.wrapX
+		wrapY = self.wrapY
+		r2 = radius * radius
+		r = radius
+		# dx_max[k] corresponds to dy = (k - r)
+		dx_max = [0] * (2 * r + 1)
+		for k in range(2 * r + 1):
+			dy = k - r
+			dx_max[k] = int(math.sqrt(r2 - dy * dy))
+		# Row prefix sums for fast inclusive range sum: sum(data[row][l..r]) = pref[r+1]-pref[l]
+		prefix = [None] * height
+		for yy in range(height):
+			pref = [0.0] * (width + 1)
+			base = yy * width
+			s = 0.0
+			for xx in range(width):
+				s += data[base + xx]
+				pref[xx + 1] = s
+			prefix[yy] = pref
+		out = [0.0] * len(data)
+		for y in range(height):
+			for x in range(width):
+				total = 0.0
+				count = 0
+				for k in range(2 * r + 1):
+					dy = k - r
+					yy = y + dy
+					# Y handling: skip or wrap
+					if wrapY:
+						yy_idx = yy % height
+					else:
+						if yy < 0 or yy > height - 1:
+							continue
+						yy_idx = yy
+					dx = dx_max[k]
+					l = x - dx
+					rr = x + dx
+					if wrapX:
+						# sum and count over wrapped interval; may split into two segments
+						span = rr - l + 1  # equals 2*dx+1
+						if span >= width:
+							# interval covers entire row (or more)
+							total += prefix[yy_idx][width]  # sum entire row
+							count += width
+						else:
+							ll = l % width
+							rr2 = rr % width
+							if ll <= rr2:
+								total += prefix[yy_idx][rr2 + 1] - prefix[yy_idx][ll]
+								count += (rr2 - ll + 1)
+							else:
+								# wraps around end of row: [ll..width-1] + [0..rr2]
+								total += (prefix[yy_idx][width] - prefix[yy_idx][ll]) \
+										 + (prefix[yy_idx][rr2 + 1] - prefix[yy_idx][0])
+								count += (width - ll) + (rr2 + 1)
+					else:
+						# skip-out-of-bounds == clip to valid range
+						if rr < 0 or l > width - 1:
+							continue
+						if l < 0:
+							l_clip = 0
+						else:
+							l_clip = l
+						if rr > width - 1:
+							rr_clip = width - 1
+						else:
+							rr_clip = rr
+						if l_clip > rr_clip:
+							continue
+						total += prefix[yy_idx][rr_clip + 1] - prefix[yy_idx][l_clip]
+						count += (rr_clip - l_clip + 1)
+				if count == 0:
+					out[y * width + x] = 0.0
+				else:
+					out[y * width + x] = (total / count)
+		self.data = out
 
 
 	def Deviate(self, radius):
-		dataCopy = {}
+		#dataCopy = {}
+		dataCopy = [0.0] * len(self.data) # advc.opt
 		for y in range(self.height):
 			for x in range(self.width):
 				i = self.GetIndex(x, y)
+				if i == -1: continue # advc.oxi
 				dataCopy[i] = self.GetStdDevInHex(x, y, radius)
 		self.data = dataCopy
 
@@ -1218,6 +1377,79 @@ class FloatMap:
 			return False
 		return True
 
+# advc: Tests for FloatMap.Smooth. I chose all the test data; the test code is LLM-generated.
+def set_grid_from_rows(map_obj, rows):
+	h = len(rows)
+	w = len(rows[0])
+	for y in range(h):
+		for x in range(w):
+			map_obj.data[y * w + x] = float(rows[y][x])
+def almost_equal(a, b, eps=1e-9):
+	return abs(a - b) <= eps
+def run_smooth_tests():
+	grid_rows = [
+		[1,  3,  2,  5],
+		[0,  6,  2, -3],
+		[10, -2,  4,  3],
+	]
+	width = len(grid_rows[0])
+	height = len(grid_rows)
+	tests = [ # (expectation at a few coordinates after smoothing)
+		# radius 0, (no horizontal wrap, no vertical wrap)
+		(False, False, 0, {
+			(0,1): 0,
+			(0,2): 10,
+			(3,2): 3,
+		}),
+		(False, False, 1, {
+			(0,0): 4/3.0,
+			(1,1): 1.8,
+			(2,2): 1.75,
+			(3,0): 4/3.0,
+		}),
+		(True, False, 1, {
+			(0,0): 2.25,
+			(1,1): 1.8,
+			(3,1): 1.4,
+			(0,2): 2.75,
+		}),
+		(True, True, 1, {
+			(0,0): 3.8,
+			(2,1): 2.2,
+			(1,2): 4.2,
+			(3,0): 1.6,
+		}),
+		(False, False, 2, {
+			(0,0): 22/6.0,
+			(0,1): 20/7.0,
+		}),
+		(False, False, 4, {
+			(1,1): 31/12.0, # mean of all plots
+		}),
+	]
+	'''
+		# Don't need to preserve the semantics for a full wrap-around.
+		# Real maps will be too big for this to happen.
+		(False, True, 3, {
+			(1,1): 74/26.0, # lots of double counting due to wrap-around
+		}),
+	'''
+	for wrapX, wrapY, radius, expected_map in tests:
+		m = FloatMap()
+		m.initialize(width, height, wrapX, wrapY)
+		set_grid_from_rows(m, grid_rows)
+		m.Smooth(radius)
+		for (x, y), want in expected_map.items():
+			i = y * width + x
+			got = m.data[i]
+			if not almost_equal(got, want):
+				print("FAIL:",
+				      "wrapX=%s wrapY=%s radius=%d at (x,y)=(%d,%d)" % (wrapX, wrapY, radius, x, y))
+				print("  got     =", got)
+				print("  expected=", want)
+				return
+		print("PASS:", "wrapX=%s wrapY=%s radius=%d" % (wrapX, wrapY, radius))
+	print("All Smooth tests passed.")
 
 ##############################################################################
 ## PW3 Interpolation and Perlin
@@ -1800,7 +2032,7 @@ class ElevationMap2(FloatMap):
 		#initialize maps
 		for y in range(mc.hmHeight):
 			for x in range(mc.hmWidth):
-				i = GetHmIndex(x, y)
+				#i = GetHmIndex(x, y) # advc: unused
 				self.plateMap.append(PlatePlot(0, maxDistance))
 				borderMap.append(False)
 				self.plateHeightMap.append(0.0)
@@ -2216,7 +2448,26 @@ class ClimateMap3:
 					tempMap.data[i] = waterTemp
 				else:
 					tempMap.data[i] = latTemp
-		tempMap.Smooth(int(math.floor(em.width / 8.0)))
+		# advc: Was floor(em.width / 8.0). That's computationally expensive, and
+		# a smoothing diameter of a quarter of the equator seems enormous.
+		smoothRadius = int(math.ceil(em.width / 15.0))
+		# advc.test: Quick and dirty comparison with legacy smooth method.
+		# Results were identical when I tried this for a couple of maps with
+		# various wrapping behaviors.
+		'''
+		m2 = FloatMap()
+		m2.initialize(tempMap.width, tempMap.height, tempMap.wrapX, tempMap.wrapY)
+		m2.data = tempMap.data[:]
+		m2.Smooth_Legacy(smoothRadius)
+		tempMap.Smooth(smoothRadius)
+		anyErr = False
+		for i in range(tempMap.length):
+			if abs(tempMap.data[i] - m2.data[i]) > 0.001:
+				print "error at " + str(i) + ": " + str(tempMap.data[i]) + " vs. " + str(m2.data[i])
+				anyErr = True
+		if not anyErr:
+			print "Smoothing methods had the same result"
+		'''
 		tempMap.Normalize()
 
 
@@ -3665,7 +3916,7 @@ class PangaeaBreaker:
 		x, y = self.getHighestCentrality(biggestContinentID)
 		return x, y
 
-
+	# advc (note): All three unused. Unclear if circle points past map edges handled correctly.
 	def isChokePoint(self, x, y, biggestContinentID):
 		circlePoints = self.getCirclePoints(x, y, mc.minimumMeteorSize)
 		waterOpposite = False
@@ -3688,8 +3939,6 @@ class PangaeaBreaker:
 			if percent >= mc.minimumLandInChoke:
 				return True
 		return False
-
-
 	def getLandPercentInCircle(self, circlePoints, biggestContinentID):
 		land  = 0
 		water = 0
@@ -3707,8 +3956,6 @@ class PangaeaBreaker:
 			water += waterLine
 		percent = float(land) / float(land + water)
 		return percent
-
-
 	def countCraterLine(self, x1, x2, y, biggestContinentID):
 		land  = 0
 		water = 0
@@ -3785,17 +4032,20 @@ class PangaeaBreaker:
 			return
 		for x in range(x1, x2 + 1):
 			i = GetHmIndex(x, y)
+			# advc.001: Though this might not be an issue.
+			# Or maybe the map edges should be addressed by castMeteorUponTheEarth.
+			if i == -1: continue
 			#em.data[i] = 0.0
 			# advc: 0 elevation leads to coastal peaks when using the lowest-neighbor slope option.
 			em.data[i] *= min(0.88, 0.37 + math.sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY)) / 7.0)
 
 
 	def getCirclePoints(self, xCenter, yCenter, radius):
-		circlePointList = list()
+		circlePoints = set() # advc.oxi: was list
 		x = 0
 		y = radius
 		p = 1 - radius
-		self.addCirclePoints(xCenter, yCenter, x, y, circlePointList)
+		self.addCirclePoints(xCenter, yCenter, x, y, circlePoints)
 		while (x < y):
 			x += 1
 			if p < 0:
@@ -3803,19 +4053,28 @@ class PangaeaBreaker:
 			else:
 				y -= 1
 				p += 2 * (x - y) + 1
-			self.addCirclePoints(xCenter, yCenter, x, y, circlePointList)
-		return circlePointList
+			self.addCirclePoints(xCenter, yCenter, x, y, circlePoints)
+		return list(circlePoints) # advc.oxi
 
+	# advc.oxi: Had been circlePointsList.append, leading to duplicates.
+	def addCirclePoints(self, xCenter, yCenter, x, y, circlePoints):
+		circlePoints.add(CirclePoint(xCenter + x, yCenter + y))
+		circlePoints.add(CirclePoint(xCenter - x, yCenter + y))
+		circlePoints.add(CirclePoint(xCenter + x, yCenter - y))
+		circlePoints.add(CirclePoint(xCenter - x, yCenter - y))
+		circlePoints.add(CirclePoint(xCenter + y, yCenter + x))
+		circlePoints.add(CirclePoint(xCenter - y, yCenter + x))
+		circlePoints.add(CirclePoint(xCenter + y, yCenter - x))
+		circlePoints.add(CirclePoint(xCenter - y, yCenter - x))
 
-	def addCirclePoints(self, xCenter, yCenter, x, y, circlePointList):
-		circlePointList.append(CirclePoint(xCenter + x, yCenter + y))
-		circlePointList.append(CirclePoint(xCenter - x, yCenter + y))
-		circlePointList.append(CirclePoint(xCenter + x, yCenter - y))
-		circlePointList.append(CirclePoint(xCenter - x, yCenter - y))
-		circlePointList.append(CirclePoint(xCenter + y, yCenter + x))
-		circlePointList.append(CirclePoint(xCenter - y, yCenter + x))
-		circlePointList.append(CirclePoint(xCenter + y, yCenter - x))
-		circlePointList.append(CirclePoint(xCenter - y, yCenter - x))
+	# advc.oxi: New method to replace some erroneous uses of getCirclePoints
+	def getFilledCirclePoints(self, xCenter, yCenter, radius):
+		points = []
+		for dy in range(-radius, radius + 1):
+			dx = int(math.sqrt(radius * radius - dy * dy))
+			for x in range(xCenter - dx, xCenter + dx + 1):
+				points.append(CirclePoint(x, yCenter + dy))
+		return points
 
 
 	def createDistanceMap(self):
@@ -5811,7 +6070,7 @@ class StartingArea:
 		# advc: Moved into subroutine
 		self.ClearVicinity(3)
 		print "Number of final plots in areaID = %(a)3d is %(p)5d" % {"a":self.areaID, "p":len(self.plotList)}
-		# advc.021b: Moved up:
+		# advc: Moved up:
 		for n in range(len(self.plotList)):
 			self.rawValue += self.plotList[n].localValue
 		# Moved the last third of this function's body into a new function FillDistanceTable

@@ -63,6 +63,8 @@ CvCityAI::~CvCityAI()
 	SAFE_DELETE_ARRAY(m_aiEmphasizeCommerceCount);
 	SAFE_DELETE_ARRAY(m_aiSpecialYieldMultiplier);
 	SAFE_DELETE_ARRAY(m_aiPlayerCloseness);
+	SAFE_DELETE_ARRAY(m_aiCachePlayerClosenessTurn);
+	SAFE_DELETE_ARRAY(m_aiCachePlayerClosenessDistance);
 
 	SAFE_DELETE_ARRAY(m_aiBestBuildValue);
 	SAFE_DELETE_ARRAY(m_aeBestBuild);
@@ -1677,7 +1679,7 @@ void CvCityAI::AI_chooseProduction()
 
 		// K-Mod (the spies stuff used to be lower down)
 		int iNumSpies = kPlayer.AI_totalAreaUnitAIs(kArea, UNITAI_SPY);
-				// advc.001j: already counted
+				// advc: already counted
 				//+ kPlayer.AI_getNumTrainAIUnits(UNITAI_SPY);
 		int iNeededSpies = iNumCitiesInArea / 3;
 		if (bPrimaryArea)
@@ -2158,8 +2160,14 @@ void CvCityAI::AI_chooseProduction()
 	int iAircraftHave = 0;
 	UnitTypes eBestAttackAircraft = NO_UNIT;
 	UnitTypes eBestMissile = NO_UNIT;
+	// advc: To help consistency between the air production code segments
+	bool bFarTooFewAircraft = false;
 	// K-Mod. was +4, now +12 for the new unit spending metric
-	if (iUnitSpending < iMaxUnitSpending + 12 && (!bCultureCity || bDefenseWar))
+	bool const bFundingForAircraft = //(iUnitSpending < iMaxUnitSpending + 12)
+			// <advc.airf>
+			(iUnitSpending < iMaxUnitSpending + 10 ||
+			iUnitSpending * 100 < iMaxUnitSpending * 115); // </advc.airf>
+	if (bFundingForAircraft && (!bCultureCity || bDefenseWar))
 	{
 		if (bLandWar || bAssault || iFreeAirExperience > 0 || SyncRandOneChanceIn(3))
 		{
@@ -2196,7 +2204,6 @@ void CvCityAI::AI_chooseProduction()
 				{
 					iAircraftNeed = std::max(iAircraftNeed, 1 + kPlayer.getNumCities() / 2);
 				}
-
 				bool bAirBlitz = kPlayer.AI_isDoStrategy(AI_STRATEGY_AIR_BLITZ);
 				bool bLandBlitz = kPlayer.AI_isDoStrategy(AI_STRATEGY_LAND_BLITZ);
 				if (bAirBlitz)
@@ -2209,16 +2216,14 @@ void CvCityAI::AI_chooseProduction()
 					iAircraftNeed /= 2;
 					iAircraftNeed += 1;
 				}
-
 				airWeight.set(UNITAI_ATTACK_AIR, bAirBlitz ? 125 : 80);
-				airWeight.set(UNITAI_DEFENSE_AIR, /*bLandBlitz ? 100 : 100*/ 100); // advc: huh?
+				airWeight.set(UNITAI_DEFENSE_AIR, /*bLandBlitz?100:100*/ 100); // advc: huh?
 				if (iBestMissileValue > 0)
 					airWeight.set(UNITAI_MISSILE_AIR, bAssault ? 60 : 40);
-
 				//airWeight.set(UNITAI_ICBM, 20);
 				airWeight.set(UNITAI_ICBM, 20 * iNukeWeight / 100); // K-Mod
-
-				if (iAircraftHave * 2 < iAircraftNeed)
+				bFarTooFewAircraft = (iAircraftHave * 2 < iAircraftNeed);
+				if (bFarTooFewAircraft)
 				{
 					if (AI_chooseLeastRepresentedUnit(airWeight))
 					{
@@ -2323,11 +2328,17 @@ void CvCityAI::AI_chooseProduction()
 			SyncRandNum(1200) < std::min(400, iNukeWeight)) &&
 			(!bAssault || SyncRandNum(400) < std::min(200, 50 + iNukeWeight/2)))
 		{
-			int iTotalNukes = kPlayer.AI_totalUnitAIs(UNITAI_ICBM);
-			int iNukesWanted = 1 + 2 * std::min(kPlayer.getNumCities(),
+			int const iTotalNukes = kPlayer.AI_totalUnitAIs(UNITAI_ICBM);
+			int const iNukesWanted = 1 + 2 * std::min(kPlayer.getNumCities(),
 					kGame.getNumCities() - kPlayer.getNumCities());
 			if (iTotalNukes < iNukesWanted &&
-				SyncRandNum(100) * iNukesWanted < 90 - (80 * iTotalNukes))
+				/*	advc.650: Reduced in favor of a second, higher-priority rule.
+					Weights were 90 and 80. Now 60% initially, 10% (as before)
+					when target reached, decreasing further from there.
+					The odds effectively a weighted delta divided by the target.
+					Multiple rolls may need to succeed b/c the AI may re-consider
+					the production order on later turns (fixme?).) */
+				SyncRandNum(100) * iNukesWanted < 60 * iNukesWanted - (50 * iTotalNukes))
 			{
 				if (pWaterArea != NULL &&
 					kPlayer.AI_totalUnitAIs(UNITAI_MISSILE_CARRIER_SEA) * 2 < iTotalNukes &&
@@ -2340,8 +2351,7 @@ void CvCityAI::AI_chooseProduction()
 					return;
 			}
 		}
-	}
-	// K-Mod end
+	} // K-Mod end
 
 	// Assault case now completely handled above
 	if (!bAssault && (!bCultureCity || bDefenseWar) && iUnitSpending < iMaxUnitSpending)
@@ -2604,16 +2614,14 @@ void CvCityAI::AI_chooseProduction()
 		}
 	}
 
-	if (iUnitSpending < iMaxUnitSpending + 12 && !bFinancialTrouble) // was +4 (new metric)
+	if (bFundingForAircraft && !bFarTooFewAircraft && // advc (b/c handled higher up)
+		iAircraftHave < iAircraftNeed && !bFinancialTrouble)
 	{
-		if (iAircraftHave * 2 >= iAircraftNeed && iAircraftHave < iAircraftNeed)
-		{
-			int iOdds = 33;
-			if (iFreeAirExperience > 0 || iProductionRank <= 1 + kPlayer.getNumCities() / 2)
-				iOdds = -1;
-			if (AI_chooseLeastRepresentedUnit(airWeight, iOdds))
-				return;
-		}
+		int iOdds = 33;
+		if (iFreeAirExperience > 0 || iProductionRank <= 1 + kPlayer.getNumCities() / 2)
+			iOdds = -1;
+		if (AI_chooseLeastRepresentedUnit(airWeight, iOdds))
+			return;
 	}
 
 	if (!bLandWar)
@@ -4902,7 +4910,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 					if(kRival.AI_atVictoryStage(AI_VICTORY_DIPLOMACY1))
 						iRivalStage++;
 					if(!kBuilding.isStateReligion() &&
-						kOwner.AI_atVictoryStage(AI_VICTORY_DIPLOMACY2))
+						kRival.AI_atVictoryStage(AI_VICTORY_DIPLOMACY2))
 					{
 						iRivalStage++;
 					}
@@ -4928,7 +4936,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 					FOR_EACH_ENUM(Building)
 					{
 						if (GC.getInfo(eLoopBuilding).getReligionType() == eStateReligion)
-							aeReligionBuildings.push_back(eBuilding);
+							aeReligionBuildings.push_back(eLoopBuilding);
 					}
 					scaled rOurBuildings = AI_estimateReligionBuildings(
 							kOwner.getID(), eStateReligion, aeReligionBuildings);
@@ -7645,6 +7653,8 @@ void CvCityAI::AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMult
 	iFoodTotal += iFutureFoodAdjustment;
 	iProductionTotal += aiUnworkedYield[YIELD_PRODUCTION];
 
+	/*	advc (note): Changes to the food targets here may have to be evened out
+		in AI_getImprovementValue to avoid oscillation */
 	int iExtraFoodForGrowth = 0;
 	if (iTargetSize > getPopulation())
 	{
@@ -7846,7 +7856,22 @@ void CvCityAI::AI_getYieldMultipliers(int &iFoodMultiplier, int &iProductionMult
 		iFoodMultiplier = 10000 / (200 - iFoodMultiplier);
 }
 
+// advc: Cut from AI_getImprovementValue
+namespace
+{
+	scaled AI_bonusDiscoverRandVal(ImprovementTypes eImprov)
+	{
+		scaled r;
+		FOR_EACH_ENUM(Bonus)
+		{
+			if (GC.getInfo(eImprov).getImprovementBonusDiscoverRand(eLoopBonus) > 0)
+				r++;
+		}
+		return r;
+	}
+}
 
+// advc (note): K-Mod function based on AI_updateBestBuild
 int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImprovement,
 	int iFoodPriority, int iProductionPriority, int iCommercePriority, int iDesiredFoodChange,
 	int iClearFeatureValue, bool bEmphasizeIrrigation, BuildTypes* peBestBuild) const
@@ -7955,16 +7980,15 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 			}
 		}
 	}
-	else
+	else if (eFinalImprovement != kPlot.getImprovementType()) // advc.121 (save time)
 	{
-		FOR_EACH_ENUM(Bonus)
-		{
-			if (GC.getInfo(eFinalImprovement).getImprovementBonusDiscoverRand(eLoopBonus) > 0)
-				rValue++;
-		}
+		rValue += AI_bonusDiscoverRandVal(eFinalImprovement);
+		// <advc.121> Prefer to use only differences in this upper part
+		if (kPlot.isImproved())
+			rValue -= AI_bonusDiscoverRandVal(kPlot.getImprovementType());
+		// </advc.121>
 	}
-
-	//if (rValue >= 0) // condition disabled by K-Mod. (maybe the yield will be worth it!)
+	//if (rValue >= 0) // disabled by K-Mod. (maybe the yield will be worth it!)
 
 	EagerEnumMap<YieldTypes,scaled> weightedFinalYields;
 	EagerEnumMap<YieldTypes,scaled> weightedYieldDiffs;
@@ -8053,7 +8077,9 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 	{
 		/*	16 is arbitrary. It would be possible to get something better
 			using targetPop and so on, but that would be slower... */
-		int iTotalFood = 16 * GC.getFOOD_CONSUMPTION_PER_POPULATION();
+		/*	advc.121: Try 8 (twice the impact), also with changes in
+			AI_getYieldMultipliers in mind. */
+		int iTotalFood = 8 * GC.getFOOD_CONSUMPTION_PER_POPULATION();
 		iCorrectedFoodPriority = (iCorrectedFoodPriority *
 				(iTotalFood - weightedYieldDiffs.get(YIELD_FOOD)) /
 				std::max(1, iTotalFood)).round();
@@ -8063,11 +8089,38 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 			(weightedYieldDiffs.get(YIELD_FOOD) > 0)));
 	// This corrected priority isn't perfect, but I think it will be better than nothing.
 	// K-Mod end
-
-	rValue += weightedYieldDiffs.get(YIELD_FOOD) * iCorrectedFoodPriority;
-	rValue += weightedYieldDiffs.get(YIELD_PRODUCTION) * iProductionPriority * fixp(0.8); // was 0.6
-	rValue += weightedYieldDiffs.get(YIELD_COMMERCE) * iCommercePriority * fixp(0.4);
-
+	{
+		YieldPercentMap weights;
+		weights.set(YIELD_FOOD, iCorrectedFoodPriority);
+		// Was 60% in BtS, now 80%.
+		weights.set(YIELD_PRODUCTION, (iProductionPriority * 102) / 128);
+		weights.set(YIELD_COMMERCE, (iCommercePriority * 51) / 128);
+		FOR_EACH_ENUM(Yield)
+			rValue += weightedYieldDiffs.get(eLoopYield) * weights.get(eLoopYield);
+		// <advc.131>, advc.005a: Personality moved up
+		if (!isHuman())
+		{
+			int iPersonalityModifier = GC.getInfo(getPersonalityType()).
+					getImprovementWeightModifier(eFinalImprovement);
+			// This would not help the current improvement
+			/*rValue *= std::max(0, 200 + iPersonalityModifier);
+			rValue /= 200;*/ // BtS
+			// Cleaner based on the difference in modifiers
+			iPersonalityModifier -=
+					(kPlot.isImproved() ? GC.getInfo(getPersonalityType()).
+					getImprovementWeightModifier(kPlot.getImprovementType()) : 0);
+			if (iPersonalityModifier != 0) // save time
+			{
+				/*	Let a 100% personality modifier be as weighty as one unit of
+					the least important yield type (probably commerce). Typical
+					modifiers in XML are 20 to 30%. */
+				scaled rMinWeight = scaled::MAX;
+				FOR_EACH_ENUM(Yield)
+					rMinWeight.decreaseTo(weights.get(eLoopYield));
+				rValue += scaled(iPersonalityModifier, 100) * rMinWeight;
+			}
+		} // </advc.131>
+	}
 	/*	K-Mod. If we're going to have too much food
 		regardless of the improvement on this plot, then reduce the food value */
 	if (iDesiredFoodChange < 0 && -iDesiredFoodChange >=
@@ -8149,20 +8202,7 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 		rValue += AI_healthHappyImprovementValue(kPlot, eImprovement,
 				eFinalImprovement, bIgnoreFeature, false); // </advc.901>
 	}
-	/*  <advc.131> When considering to replace an improvement, iValue is
-		based on the yield difference. A small negative value means that the
-		new improvement is almost as good as the old one. Temporarily increase
-		the value to allow ImprovementWeightModifier to tip the scales. */
-	int const iPadding = 50;
-	rValue += iPadding; // </advc.131>
-	if (!isHuman() /* advc.131: */ && rValue > 0)
-	{
-		rValue *= std::max(0, GC.getInfo(getPersonalityType()).
-				// advc.005a: was +200
-				getImprovementWeightModifier(eFinalImprovement) + 100);
-		rValue /= 100; // advc.005a: was /=200
-	}
-	rValue -= iPadding; // advc.131
+	// (advc.131: Leader personality moved up)
 	if (!kPlot.isImproved())
 	{
 		if (kPlot.isBeingWorked() &&
@@ -8243,8 +8283,10 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 		rValue += iClearFeatureValue;
 	} // K-Mod end
 	if (peBestBuild != NULL)
+	{	// advc: Caller relies on no build being returned for present improvement
+		FAssert(eImprovement != kPlot.getImprovementType() || eBestTempBuild == NO_BUILD);
 		*peBestBuild = eBestTempBuild;
-
+	}
 	return rValue.round();
 }
 
@@ -8300,7 +8342,7 @@ int CvCityAI::AI_healthHappyImprovementValue(CvPlot const& kPlot,
 			needed for chop evaluation, which doesn't currently involve _this_ function.
 			Perhaps the way to untangle this would be to use AI_getImprovementValue
 			also for evaluating chopping (with eImprovement=NO_IMPROVEMENT). For now,
-			let's at least subtract the double counted health from the tendency value. */
+			let's at least subtract the double-counted health from the tendency value. */
 		if (bIgnoreFeature)
 		{
 			FeatureTypes const eFeature = kPlot.getFeatureType();
@@ -8567,7 +8609,10 @@ void CvCityAI::AI_updateBestBuild()
 				constructing sth. nonurgent */
 			if (kPlot.isFeature() && GC.getInfo(m_aeBestBuild[ePlot]).
 				isFeatureRemove(kPlot.getFeatureType())) // </advc.117>
-			{
+			{	/*	<advc.121> Extra priority for clearing harmful feature
+					from worked, improved plot. */
+				if (iValue > 0 && kPlot.isImproved() && kPlot.isBeingWorked())
+					iValue *= 2; // </advc.121>
 				// Increase chop multipier from 2 to 3; handle nonurgent construction orders.
 				CvCity* pCity=NULL;
 				int iChopValue = kPlot.getFeatureProduction(
@@ -8590,7 +8635,7 @@ void CvCityAI::AI_updateBestBuild()
 			/*  make some minor adjustments to prioritize plots that are easy to access,
 				and plots which aren't already improved. */
 			if (iValue > 0)
-			{
+			{ 
 				if (kPlot.isRoute())
 					iValue += 2;
 				if (!kPlot.isImproved())
@@ -11567,6 +11612,7 @@ void CvCityAI::AI_bestPlotBuild(CvPlot const& kPlot, int* piBestValue, BuildType
 			if (iValue > iBestValue)
 			{
 				iBestValue = iValue;
+				// advc (note): Will be NO_BUILD for kPlot's present improvement
 				eBestBuild = eBestTempBuild;
 			}
 		}
@@ -11606,10 +11652,15 @@ void CvCityAI::AI_bestPlotBuild(CvPlot const& kPlot, int* piBestValue, BuildType
 				iValue *= 400;
 				iValue /= std::max(1, GC.getInfo(eLoopBuild).getFeatureTime(
 						kPlot.getFeatureType()) + 100);
-
-				if (iValue > iBestValue) // K-Mod. (removed redundant checks)
-					//|| (iValue > 0 && eBestBuild == NO_BUILD))
-				{
+				/*	<advc.001> One of the checks K-Mod had removed. They're needed
+					when kPlot has an improvement that we want to keep. */
+				if (iValue <= 0)
+					continue; // </advc.001>
+				if (iValue > iBestValue || // K-Mod. (removed redundant checks)
+					eBestBuild == NO_BUILD) // advc.001 (restored)
+				{	// <advc.121> Akin to the boost for RouteYieldChanges below
+					if (eBestBuild == NO_BUILD && kPlot.isBeingWorked())
+						iValue *= 2; // </advc.121>
 					iBestValue = iValue;
 					eBestBuild = eLoopBuild;
 				}
@@ -12011,7 +12062,7 @@ void CvCityAI::AI_buildGovernorChooseProduction()
 		if (!kOwner.AI_isAreaAlone(getArea()))
 		{
 			int iNumSpies = kOwner.AI_totalAreaUnitAIs(getArea(), UNITAI_SPY);
-					// advc.001j: Commented out
+					// advc: Commented out
 					//+ kOwner.AI_getNumTrainAIUnits(UNITAI_SPY);
 			int iNeededSpies = 2 + getArea().getCitiesPerPlayer(kOwner.getID()) / 5;
 			iNeededSpies += kOwner.getCommercePercent(COMMERCE_ESPIONAGE)/20;

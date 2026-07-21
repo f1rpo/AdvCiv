@@ -153,7 +153,7 @@ class RectLayout(object):
 	def y(self):
 		return int(round(self.fY))
 	def upperLeft(self):
-		return Point(self.fX, self.fY)
+		return PointLayout(self.fX, self.fY)
 	# Screen coordinates of lower right corner
 	def xRight(self):
 		return self.x() + self.width()

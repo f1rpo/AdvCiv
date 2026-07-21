@@ -13,14 +13,12 @@ public:
 	DllExport static void freeInstance();
 
 	//	This will parse the help for the widget
-	DllExport void parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &widgetDataStruct);
-
+	DllExport void parseHelp(CvWStringBuffer &szBuffer,
+			CvWidgetDataStruct &widgetDataExternal);
 	//	This will execute the action for the widget
-	DllExport bool executeAction(CvWidgetDataStruct &widgetDataStruct);
-
+	DllExport bool executeAction(CvWidgetDataStruct &widgetDataStructExternal);
 	//	This will execute an alternate action for the widget
-	DllExport bool executeAltAction(CvWidgetDataStruct &widgetDataStruct);
-
+	DllExport bool executeAltAction(CvWidgetDataStruct &widgetDataStructExternal);
 	DllExport bool isLink(const CvWidgetDataStruct &widgetDataStruct) const;
 
 	//	Actions to be executed

@@ -534,8 +534,11 @@ ENUM_START(ButtonPopup, BUTTONPOPUP)
 	BUTTONPOPUP_DEAL_CANCELED,
 	BUTTONPOPUP_PYTHON,
 	BUTTONPOPUP_PYTHON_SCREEN,
-	BUTTONPOPUP_DETAILS,
-	BUTTONPOPUP_ADMIN,
+	/*	<advc> These two are apparently hardcoded in the EXE
+		(CvInterface::showDetails, showAdminDetails). Perhaps others too.
+		Best only to append to the end. */
+	BUTTONPOPUP_DETAILS = 21,
+	BUTTONPOPUP_ADMIN = 22, // </advc>
 	BUTTONPOPUP_ADMIN_PASSWORD,
 	BUTTONPOPUP_EXTENDED_GAME,
 	BUTTONPOPUP_DIPLOMACY,

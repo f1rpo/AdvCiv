@@ -90,16 +90,6 @@
 		<Italian>Miglioramenti</Italian>
 		<Spanish>Mejoras</Spanish>
 	</TEXT>
-	<!-- advc.004y: From CIV4GameTextInfos.xml. Only English and German
-		 changed. -->
-	<TEXT> <!-- redefine -->
-		<Tag>TXT_KEY_PEDIA_BONUS_YIELDS</Tag>
-		<English>Bonus Resources</English>
-		<French>Rendement bonus</French>
-		<German>Bonusressourcen</German>
-		<Italian>Prodotti bonus</Italian>
-		<Spanish>Rendim. bonif.</Spanish>
-	</TEXT>
 		<!-- advc.004y: Originally in CIV4GameTextInfos.xml. Only removed the
 		 parentheses and "Total"; more comprehensible this way. -->
 	<TEXT> <!-- redefine -->

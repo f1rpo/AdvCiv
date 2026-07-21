@@ -31,9 +31,12 @@ class GameFontDisplay:
 		screen.setTableColumnHeader( szTableName, 3, "<font=2>Button</font>", 56)
 		screen.setTableColumnHeader( szTableName, 4, "<font=2>Type</font>", 500)
 
-		iMax = FontSymbols.MAX_NUM_SYMBOLS + CyGame().getSymbolID(FontSymbols.HAPPY_CHAR) - 8483 + 10
+		iMax = FontSymbols.MAX_NUM_SYMBOLS + CyGame().getSymbolID(FontSymbols.HAPPY_CHAR) - 8193 + 49 # advc: was 8483+10
 		for iLine in range(iMax):
-			iID = iLine + 8483
+			# <advc> Include letters. Their ID go up to the mid 250s; far lower than the icon IDs.
+			iID = iLine
+			if iID > 280:
+				iID += 8193 # was +8483 </advc>
 			screen.appendTableRow(szTableName)
 			screen.setTableInt(szTableName, 0, iLine , "<font=2>" + unicode(iID) + "<font/>", "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 			screen.setTableInt(szTableName, 1, iLine , "<font=2>" + (u" %c" %  (iID)) + "<font/>", "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )

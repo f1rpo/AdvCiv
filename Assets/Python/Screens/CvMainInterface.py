@@ -336,7 +336,11 @@ class CvMainInterface:
 			lRect = gRect("DefaultHelpAreaMin")
 		else:
 			lRect = gRect("DefaultHelpArea")
-		# (Seems that the EXE ignores the fWidth and iMinWidth params. Sadly.)
+		# advc.092c: Since the EXE apparently ignores the iMinWidth param
+		# (as well as fWidth), let the DLL handle the matter - which it will do
+		# by hacking the EXE. And this hack needs to happen before creating the
+		# help text area.
+		gc.getGame().setHelpTextAreaWidth(lRect.width())
 		self.screen.setHelpTextArea(HLEN(350), FontTypes.SMALL_FONT,
 				lRect.x(), lRect.y(), -0.1,
 				False, "", True, False, CvUtil.FONT_LEFT_JUSTIFY, lRect.width())
@@ -845,6 +849,7 @@ class CvMainInterface:
 		self.m_iNumPlotListButtonsPerRow = (
 				(gRect("BottomButtonMaxSpace").width() - 2 * iPlotListUnitBtnSz) /
 				iPlotListUnitBtnSz)
+		# (Also used for the PLE Info Pane)
 		gSetRect("DefaultHelpArea", "Top",
 				HSPACE(7),
 				# (The center bottom panel doesn't fully scale up, so we shouldn't
@@ -854,9 +859,14 @@ class CvMainInterface:
 				# to maximize the amount of text we can display (while also having tall corners
 				# for the sake of a large minimap).
 				gRect("LowerLeftCornerBackgr").y(),
-				# Default area will actually ignore this, but it's relevant
-				# for the PLE Info Pane.
-				gRect("LowerLeftCorner").width() + HLEN(6), 0)
+				# The subtrahend should account for decorations on the corner panel;
+				# for visual alignment.
+				#gRect("LowerLeftCornerPanel").width() - 21,
+				max(280,
+				# The help text really doesn't use that much width; it's been kept short
+				# with the original width in mind. So ...
+				gRect("LowerLeftCornerPanel").width() - HLEN(0.12 * gRect("LowerLeftCornerPanel").width())),
+				0)
 		gSetRect("DefaultHelpAreaMin", "Top",
 				HSPACE(7),
 				# As in BtS; pretty arbitrary and overlaps the unit pane.
@@ -2414,7 +2424,10 @@ class CvMainInterface:
 				gAlignedScoreboard.hide(screen, True)
 			CyInterface().setDirty(InterfaceDirtyBits.ScoreHelp_DIRTY_BIT, False)
 		# </advc.085>
-		if (CyInterface().isDirty(InterfaceDirtyBits.GlobeInfo_DIRTY_BIT) == True):
+		if (CyInterface().isDirty(InterfaceDirtyBits.GlobeInfo_DIRTY_BIT) == True
+				# advc.004z: Need to determine whether there are options to show
+				# even if GlobeInfo hasn't changed. And hide the scores accordingly.
+				or (bScoreStringsUpdated and CyEngine().isGlobeviewUp())):
 			# Globeview and Globelayer buttons
 			CyInterface().setDirty(InterfaceDirtyBits.GlobeInfo_DIRTY_BIT, False)
 			#self.updateGlobeviewButtons()

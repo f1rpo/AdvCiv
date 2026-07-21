@@ -71,7 +71,8 @@ protected:
 				(eSTATUS == ANY_AGENT_STATUS ? CvAgents::ALL :
 				(eSTATUS == EVER_ALIVE ? CvAgents::CIV_EVER_ALIVE : CvAgents::VASSAL_ALIVE)) :
 			// These four can apply to non-major agents
-			(eRELATION == POTENTIAL_ENEMY_OF || eRELATION == KNOWN_TO ||
+			(eRELATION == POTENTIAL_ENEMY_OF ||
+			eRELATION == KNOWN_TO || eRELATION == OTHER_KNOWN_TO ||
 			eRELATION == KNOWN_POTENTIAL_ENEMY_OF || eRELATION == ENEMY_OF) ?
 				(eSTATUS >= MAJOR_CIV ? CvAgents::MAJOR_ALIVE :
 				(eSTATUS >= CIV_ALIVE ? CvAgents::CIV_ALIVE : CvAgents::ALL)) :

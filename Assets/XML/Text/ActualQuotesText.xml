@@ -1867,7 +1867,9 @@
 	</TEXT>
 	<!-- advc.005f: This key was named "AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_MONTEZUMA_1_CORRECTED"
 		 in Warlords. I don't see how that will "correct" anything. Give it the same name as the
-		 Vanilla key instead (which says "think well or we'll re-evaluate our friendship"). -->
+		 Vanilla key instead (which says "think well or we'll re-evaluate our friendship").
+		 There was also "AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_MONTEZUMA_1" later in this file;
+		 I've renamed that one to ..._2. -->
 	<TEXT>
 		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_MONTEZUMA_1</Tag>
 		<English>Your weakness is contemptible, [CT_NAME]! Give us what we want or perish!</English>
@@ -1909,8 +1911,9 @@
 		<Italian>Questa non &#232; una semplice richiesta di pagamento di tributi, [CT_NAME]. Diciamo che &#232; un investimento sulla pace nel mondo.</Italian>
 		<Spanish>No cre&#225;is que os estamos exigiendo un tributo, [CT_NAME]. Pensad en ello como en una inversi&#243;n en la paz mundial.</Spanish>
 	</TEXT>
+	<!-- advc.005f: was #1 -->
 	<TEXT>
-		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_MONTEZUMA_1</Tag>
+		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_MONTEZUMA_2</Tag>
 		<English>These are [OUR_NAME]'s demands, [CT_NAME]. Should you displease me, I will punish you by sending my hosts of brave warriors against you.</English>
 		<French>Votre faiblesse est m&#233;prisable, [CT_NAME] ! Donnez-nous ce que nous voulons ou ce sera la mort !</French>
 		<German>Ihr seid uns&#228;glich j&#228;mmerlich und schwach, [CT_NAME]! Gebt uns, was wir verlangen, oder sterbt!</German>
@@ -1919,7 +1922,7 @@
 	</TEXT>
 	<!-- advc.005h: Repurpose Montezuma's power_weaker #1 -->
 	<TEXT>
-		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_MONTEZUMA_2</Tag>
+		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_MONTEZUMA_3</Tag>
 		<English>The gods demand sacrifice, [CT_NAME]. If your civilization is to exist for much longer, I recommend that you comply.</English>
 		<French>Les dieux veulent des sacrifices, [CT_NAME]. Si votre civilisation veut durer, je vous conseille de vous plier &#224; mes exigences.</French>
 		<German>Die G&#246;tter fordern Opfer, [CT_NAME]! Wenn Eure Zivilisation &#252;berleben soll, w&#228;rt Ihr gut beraten, dieser Forderung nachzukommen!</German>

@@ -105,7 +105,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_WORKER</Type>
 			<Button>,Art/Interface/Buttons/Units/Worker.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,3,5</Button>
-			<fScale>0.44</fScale>
+			<!-- advc.002j: was 0.44 -->
+			<fScale>0.43</fScale>
 			<fInterfaceScale>1.0</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
@@ -129,7 +130,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_WORKERMODERN</Type>
 			<Button>,Art/Interface/Buttons/Units/Worker.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,3,5</Button>
-			<fScale>0.44</fScale>
+			<!-- advc.002j: was 0.44 -->
+			<fScale>0.43</fScale>
 			<fInterfaceScale>1.0</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
@@ -153,7 +155,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_INDIAN_FAST_WORKER</Type>
 			<Button>,Art/Interface/Buttons/Units/FastWorker.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,8,4</Button>
-			<fScale>0.44</fScale>
+			<!-- advc.002j: was 0.44 -->
+			<fScale>0.43</fScale>
 			<fInterfaceScale>1.0</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
@@ -1509,7 +1512,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_ARABIA_CAMELARCHER</Type>
 			<Button>,Art/Interface/Buttons/Units/CamelArcher.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,5,8</Button>
-			<fScale>0.39</fScale>
+			<!-- advc.002j: was 0.39 -->
+			<fScale>0.38</fScale>
 			<fInterfaceScale>0.8</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
@@ -1630,7 +1634,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_WAR_ELEPHANT</Type>
 			<Button>,Art/Interface/Buttons/Units/WarElephant.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,7,2</Button>
-			<fScale>0.32</fScale>
+			<!-- advc.002j: was 0.32 -->
+			<fScale>0.31</fScale>
 			<fInterfaceScale>0.6</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
@@ -1654,7 +1659,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_KHMER_BALLISTA_ELEPHANT</Type>
 			<Button>,Art/Interface/Buttons/Units/ICBM.dds,Art/Interface/Buttons/Beyond_the_Sword_Atlas.dds,5,10</Button>
-			<fScale>0.32</fScale>
+			<!-- advc.002j: was 0.32 -->
+			<fScale>0.31</fScale>
 			<fInterfaceScale>0.6</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
@@ -1811,7 +1817,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_CATAPULT</Type>
 			<Button>,Art/Interface/Buttons/Units/Catapult.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,7,8</Button>
-			<fScale>0.65</fScale>
+			<!-- advc.002j: was 0.65 -->
+			<fScale>0.62</fScale>
 			<fInterfaceScale>1.0</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
@@ -1845,7 +1852,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_CANNON</Type>
 			<Button>,Art/Interface/Buttons/Units/Cannon.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,6,8</Button>
-			<fScale>0.53</fScale>
+			<!-- advc.002j: was 0.53 -->
+			<fScale>0.52</fScale>
 			<fInterfaceScale>0.8</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
@@ -3559,7 +3567,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_TREBUCHET</Type>
 			<Button>,Art/Interface/Buttons/Units/Catapult.dds,Art/Interface/Buttons/Warlords_Atlas_1.dds,6,7</Button>
-			<fScale>0.40</fScale>
+			<!-- advc.002j: was 0.40 -->
+			<fScale>0.39</fScale>
 			<fInterfaceScale>.7</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
@@ -3594,7 +3603,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_KOREAN_HWACHA</Type>
 			<Button>,Art/Interface/Buttons/Units/Catapult.dds,Art/Interface/Buttons/Warlords_Atlas_1.dds,4,10</Button>
-			<fScale>0.50</fScale>
+			<!-- advc.002j: was 0.50 -->
+			<fScale>0.48</fScale>
 			<fInterfaceScale>1.0</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
@@ -4228,7 +4238,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_CARTHAGE_WAR_ELEPHANT</Type>
 			<Button>,Art/Interface/Buttons/Units/WarElephant.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,7,2</Button>
-			<fScale>0.32</fScale>
+			<!-- advc.002j: was 0.32 -->
+			<fScale>0.31</fScale>
 			<fInterfaceScale>0.6</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
@@ -4493,7 +4504,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_WAR_ELEPHANT_ASIAN</Type>
 			<Button>,Art/Interface/Buttons/Units/WarElephant.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,7,2</Button>
-			<fScale>0.32</fScale>
+			<!-- advc.002j: was 0.32 -->
+			<fScale>0.31</fScale>
 			<fInterfaceScale>0.6</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
@@ -4541,7 +4553,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_WORKER_ASIAN</Type>
 			<Button>,Art/Interface/Buttons/Units/Worker.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,3,5</Button>
-			<fScale>0.44</fScale>
+			<!-- advc.002j: was 0.44 -->
+			<fScale>0.43</fScale>
 			<fInterfaceScale>1.0</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
@@ -4894,7 +4907,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_WAR_ELEPHANT_EUROPEAN</Type>
 			<Button>,Art/Interface/Buttons/Units/WarElephant.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,7,2</Button>
-			<fScale>0.32</fScale>
+			<!-- advc.002j: was 0.32 -->
+			<fScale>0.31</fScale>
 			<fInterfaceScale>0.6</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
@@ -4918,7 +4932,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_WORKER_EUROPEAN</Type>
 			<Button>,Art/Interface/Buttons/Units/Worker.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,3,5</Button>
-			<fScale>0.44</fScale>
+			<!-- advc.002j: was 0.44 -->
+			<fScale>0.43</fScale>
 			<fInterfaceScale>1.0</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
@@ -5038,7 +5053,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_WAR_ELEPHANT_GRECO_ROMAN</Type>
 			<Button>,Art/Interface/Buttons/Units/WarElephant.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,7,2</Button>
-			<fScale>0.32</fScale>
+			<!-- advc.002j: was 0.32 -->
+			<fScale>0.31</fScale>
 			<fInterfaceScale>0.6</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
@@ -5502,7 +5518,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_WORKER_MIDDLE_EAST</Type>
 			<Button>,Art/Interface/Buttons/Units/Worker.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,3,5</Button>
-			<fScale>0.44</fScale>
+			<!-- advc.002j: was 0.44 -->
+			<fScale>0.43</fScale>
 			<fInterfaceScale>1.0</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
@@ -5876,7 +5893,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_WAR_ELEPHANT_SOUTH_AMERICA</Type>
 			<Button>,Art/Interface/Buttons/Units/WarElephant.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,7,2</Button>
-			<fScale>0.32</fScale>
+			<!-- advc.002j: was 0.32 -->
+			<fScale>0.31</fScale>
 			<fInterfaceScale>0.6</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>
@@ -5924,7 +5942,8 @@
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_WORKER_SOUTH_AMERICA</Type>
 			<Button>,Art/Interface/Buttons/Units/Worker.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,3,5</Button>
-			<fScale>0.44</fScale>
+			<!-- advc.002j: was 0.44 -->
+			<fScale>0.43</fScale>
 			<fInterfaceScale>1.0</fInterfaceScale>
 			<bActAsLand>0</bActAsLand>
 			<bActAsAir>0</bActAsAir>

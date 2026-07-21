@@ -143,6 +143,8 @@ public:
 	bool mapPlotsPercent(WorldSizeTypes eWorldSize, int& iModifier) const; // advc.165
 	void mapLatitudeExtremes(int& iTop, int& iBottom) const;
 	void mapWraps(bool& bWrapX, bool& bWrapY) const;
+	// advc.194:
+	void mapDefaultOptionAvailability(bool& bClimateFlexible, bool& bSeaLevelFlexible) const;
 	bool generateRandomMap() const;
 	// Caller needs to initialize the array
 	bool generatePlotTypes(int* aiPlotTypes, size_t uiSize) const;

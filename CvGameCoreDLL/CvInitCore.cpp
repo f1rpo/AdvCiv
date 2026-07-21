@@ -1094,8 +1094,11 @@ void CvInitCore::setType(CvWString const& szType)
 		setType(GAME_SP_NEW);
 	else if (wcsicmp(szType.GetCString(), L"spload") == 0)
 		setType(GAME_SP_LOAD);
-	//FErrorMsg(false, "Invalid game type in ini file!");
-	setType(GAME_NONE);
+	else
+	{
+		//FErrorMsg(false, "Invalid game type in ini file!");
+		setType(GAME_NONE);
+	}
 }
 
 void CvInitCore::setMode(GameMode eMode)
@@ -1842,9 +1845,9 @@ int CvInitCore::getAdvancedStartMinPoints() const
 {
 	FOR_EACH_ENUM(UnitClass)
 	{
-		CvUnitInfo const& u = GC.getInfo(GC.getInfo(eLoopUnitClass).getDefaultUnit());
-		if (u.isFound())
-			return u.getAdvancedStartCost();
+		UnitTypes eDefault = GC.getInfo(eLoopUnitClass).getDefaultUnit();
+		if (eDefault != NO_UNIT && GC.getInfo(eDefault).isFound())
+			return GC.getInfo(eDefault).getAdvancedStartCost();
 	}
 	FAssert(false);
 	return -1;

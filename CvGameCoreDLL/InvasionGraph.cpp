@@ -1537,7 +1537,7 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender,
 			if (rDefArmyPow > 0)
 			{
 				kStep.reducePower(kDefender.m_ePlayer, CAVALRY,
-						rLossesDefArmy * rDefArmyPortion * rDefCavPow / rDefArmyPow);
+						rLossesDefArmy * rDefCavPow / rDefArmyPow);
 			}
 		}
 		/*	Attacker may lose nothing b/c city is so strongly defended that no

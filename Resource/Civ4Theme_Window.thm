@@ -19,10 +19,12 @@ For information regarding GFC Commercial License Agreements go to:
 
 **********************************************************************/
 
-/* advc.002b: Copied from BtS/Resource/Themes/Civ4. Changed the tga
-   paths based on ancestral's tutorial in order to avoid copies of all
-   the UI graphics. Prefixed each path with "../../../../Resource/". */
-
+/*	advc.002b: Copied from BtS/Resource/Themes/Civ4. Changed the tga
+	paths based on ancestral's tutorial in order to avoid copies of all
+	the UI graphics. Prefixed each path with "../../../../Resource/".
+	Also un-bolded the Font_Title for GFC_Control_ToolWindow_Style b/c
+	the bolded size-1 font is disused. Don't know if and where that
+	ToolWindow is actually used. */
 
 /*
 SF_CtrlTheme_Civ4_Control_Window
@@ -3049,7 +3051,8 @@ with GFC_Control_TitleBar
 	
 	GFC_Control_ToolWindow_Style
 	{
-		.Font_Title								=	SF_CtrlTheme_Civ4_Control_Font_Size1_Bold;
+		//.Font_Title								=	SF_CtrlTheme_Civ4_Control_Font_Size1_Bold;
+		.Font_Title								=	SF_CtrlTheme_Civ4_Control_Font_Size1;
 
 		with GFC_CtrlTheme_Bitmap_Control_Window_StyleId
 		{

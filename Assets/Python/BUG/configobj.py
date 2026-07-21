@@ -16,6 +16,9 @@
 # http://lists.sourceforge.net/lists/listinfo/configobj-develop
 # Comments, suggestions and bug reports welcome.
 
+# advc: One bugfix (see next advc comment). Unsure if the BUG devs had modified
+# this module at all.
+
 from __future__ import generators
 
 """
@@ -1858,7 +1861,7 @@ class ConfigObj(Section):
         else:
             start = self._a_to_u(' ' * NUM_INDENT_SPACES)
         if not comment.startswith('#') and not comment.startswith(';'):
-            start += _a_to_u('# ')
+            start += self._a_to_u('# ') # advc.sas: was missing "self"
         return (start + comment)
 
     def _compute_indent_string(self, depth):

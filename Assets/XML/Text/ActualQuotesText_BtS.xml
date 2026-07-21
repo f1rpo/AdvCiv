@@ -238,7 +238,7 @@
 	<TEXT>
 		<Tag>AI_DIPLO_FIRST_CONTACT_LEADER_DE_GAULLE_1</Tag>
 		<English>I, [OUR_NAME], welcome you and the [CT_CIV_ADJ] people. Nothing great will ever be achieved without great men. And men are great only if they are determined to be so. Are you determined to find greatness alongside [OUR_CIV_SHORT]?</English>
-		<French>>Moi, [OUR_NAME], détenteur du plus grand nez de l'histoire humaine, je vous souhaite la bienvenue chez les [OUR_CIV_SHORT:3] !</French>
+		<French>Moi, [OUR_NAME], détenteur du plus grand nez de l'histoire humaine, je vous souhaite la bienvenue chez les [OUR_CIV_SHORT:3] !</French>
 		<German>Ich, [OUR_NAME], ausgestattet mit einem der größten und schönsten Riechkolben der Menschheitsgeschichte, heiße Euch im Namen des glorreichen Volkes von [OUR_CIV_SHORT] willkommen!</German>
 		<Italian>Io, [OUR_NAME], possessore di uno dei più grandi e dei migliori nasi della storia, ti do il benvenuto presso [OUR_CIV_SHORT]!</Italian>
 		<Spanish>Yo, [OUR_NAME], poseedor de una de las más bellas narices de la historia de la Humanidad, os doy la bienvenida a la gloriosa tierra de [OUR_CIV_SHORT]!</Spanish>
@@ -246,7 +246,7 @@
 	<TEXT>
 		<Tag>AI_DIPLO_FIRST_CONTACT_LEADER_DE_GAULLE_2</Tag>
 		<English>Monseigneur [CT_NAME]? I am [OUR_NAME], leader of [OUR_CIV_SHORT]. A leader must aim high, see big, judge widely, thus setting himself apart form the ordinary people who debate in narrow confines. Don't you agree?</English>
-		<French>>Moi, [OUR_NAME], détenteur du plus grand nez de l'histoire humaine, je vous souhaite la bienvenue chez les [OUR_CIV_SHORT:3] !</French>
+		<French>Moi, [OUR_NAME], détenteur du plus grand nez de l'histoire humaine, je vous souhaite la bienvenue chez les [OUR_CIV_SHORT:3] !</French>
 		<German>Ich, [OUR_NAME], ausgestattet mit einem der größten und schönsten Riechkolben der Menschheitsgeschichte, heiße Euch im Namen des glorreichen Volkes von [OUR_CIV_SHORT] willkommen!</German>
 		<Italian>Io, [OUR_NAME], possessore di uno dei più grandi e dei migliori nasi della storia, ti do il benvenuto presso [OUR_CIV_SHORT]!</Italian>
 		<Spanish>Yo, [OUR_NAME], poseedor de una de las más bellas narices de la historia de la Humanidad, os doy la bienvenida a la gloriosa tierra de [OUR_CIV_SHORT]!</Spanish>
@@ -262,7 +262,7 @@
 	<TEXT>
 		<Tag>AI_DIPLO_NO_PEACE_LEADER_DE_GAULLE_1</Tag>
 		<English>[OUR_CIV_SHORT] cannot be [OUR_CIV_SHORT] without greatness. The war continues, for Glory gives herself only to those who dream of her.</English>
-		<French>>Certainement pas ! L'honneur des [OUR_CIV_SHORT:3] exige que cette guerre continue jusqu'à ce que vous soyez réduits en bouillie.</French>
+		<French>Certainement pas ! L'honneur des [OUR_CIV_SHORT:3] exige que cette guerre continue jusqu'à ce que vous soyez réduits en bouillie.</French>
 		<German>Keinesfalls! Es gebührt der Ehre des Volkes von [OUR_CIV_SHORT], dass dieser Krieg fortgeführt wird, bis Ihr alle im Staub liegt!</German>
 		<Italian>Certo che no! L'onore di [OUR_CIV_SHORT] vuole che questa guerra continui fino a quando non sarai ridotto in pezzi molto piccoli.</Italian>
 		<Spanish>¡Por supuesto que no! El honor de [OUR_CIV_SHORT] exige que la guerra continúe hasta que os hayamos hecho paté de foie.</Spanish>
@@ -276,8 +276,9 @@
 		<Italian>Benvenuto, [CT_NAME]. Sei di nuovo qui per ammirare il mio eroico profilo?</Italian>
 		<Spanish>Saludos, [CT_NAME]. ¿Habéis vuelto a admirar mi heroico perfil?</Spanish>
 	</TEXT>
+	<!-- advc.005f: was #2 -->
 	<TEXT>
-		<Tag>AI_DIPLO_GREETINGS_ATT_FR_LEADER_DE_GAULLE_2</Tag>
+		<Tag>AI_DIPLO_GREETINGS_ATT_FR_LEADER_DE_GAULLE_3</Tag>
 		<English>Greatness is a road leading towards the unknown, mon ami. I am glad we walk it together.</English>
 		<French>Bienvenue, [CT_NAME]. Etes-vous revenu admirer mon allure héroïque ?</French>
 		<German>Willkommen, [CT_NAME]. Seid Ihr gekommen, um ein weiteres Mal mein heldenhaftes Profil zu würdigen?</German>

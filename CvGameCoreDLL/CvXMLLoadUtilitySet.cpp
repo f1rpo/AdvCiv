@@ -514,7 +514,7 @@ bool CvXMLLoadUtility::LoadGlobalText()
 		but that text isn't easy to access.) */
 	/*	label text for the currently selected language --
 		that should correspond to the xml label used for that language. */
-	std::string langauge_name;
+	std::string sLanguageName;
 	if (LoadCivXml(m_pFXml, "xml\\text\\CIV4GameText_Misc1.xml"))
 	{
 		bool bValid = true;
@@ -540,7 +540,7 @@ bool CvXMLLoadUtility::LoadGlobalText()
 					if (gDLL->getXMLIFace()->GetLastLocatedNodeTagName(m_pFXml, buffer))
 					{
 						buffer[1023] = 0; // just in case the buffer isn't even terminated!
-						langauge_name.assign(buffer);
+						sLanguageName.assign(buffer);
 					}
 				}
 			}
@@ -571,7 +571,11 @@ bool CvXMLLoadUtility::LoadGlobalText()
 	if (gDLL->isModularXMLLoading())
 	{
 		gDLL->enumerateFiles(aszModfiles, "modules\\*_CIV4GameText.xml");
-		aszFiles.insert(aszFiles.end(), aszModfiles.begin(), aszModfiles.end());
+		aszFiles.insert(//aszFiles.end(),
+				/*	advc.rh (not actually part of rheinig's mod):
+					With game text, the first definition wins out. */
+				aszFiles.begin(),
+				aszModfiles.begin(), aszModfiles.end());
 	}
 
 	for(std::vector<CvString>::iterator it = aszFiles.begin(); it != aszFiles.end(); ++it)
@@ -587,7 +591,7 @@ bool CvXMLLoadUtility::LoadGlobalText()
 		if (bLoaded)
 		{
 			// if the xml is successfully validated
-			SetGameText("Civ4GameText", "Civ4GameText/TEXT", langauge_name);
+			SetGameText("Civ4GameText", "Civ4GameText/TEXT", sLanguageName);
 		}
 	}
 
@@ -969,7 +973,8 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 	PROFILE_FUNC();
 	logMsg("SetGlobalActionInfo\n");
 
-	// Originally named "iOldActionInfos". Not sure what this is for, modular loading?
+	/*	Originally named "iOldActionInfos". Not sure what this is for, modular loading?
+		Normally 0 (no action infos yet). */
 	int const iMissionOffset = GC.getNumActionInfos();
 
 	std::vector<ActionData> aActionData;
@@ -1156,7 +1161,8 @@ void CvXMLLoadUtility::SetGlobalAnimationPathInfo(CvAnimationPathInfo** ppAnimat
 
 
 // Reads game text info from XML and adds it to the translation manager
-void CvXMLLoadUtility::SetGameText(const char* szTextGroup, const char* szTagName, const std::string& language_name)
+void CvXMLLoadUtility::SetGameText(const char* szTextGroup, const char* szTagName,
+	std::string const& sLanguageName) // K-Mod
 {
 	PROFILE_FUNC();
 	logMsg("SetGameText %s\n", szTagName);
@@ -1170,9 +1176,7 @@ void CvXMLLoadUtility::SetGameText(const char* szTextGroup, const char* szTagNam
 		for (int i = 0; i < iNumVals; i++)
 		{
 			CvGameText textInfo;
-			//textInfo.read(this);
-			textInfo.read(this, language_name); // K-Mod
-
+			textInfo.read(this, /* K-Mod: */ sLanguageName);
 			gDLL->addText(textInfo.getType() /*id*/, textInfo.getText(), textInfo.getGender(), textInfo.getPlural());
 			if (!gDLL->getXMLIFace()->NextSibling(m_pFXml) && i!=iNumVals-1)
 			{

@@ -922,24 +922,40 @@ void CvMapGenerator::generateRandomMap()
 	PROFILE_FUNC();
 
 	CvPythonCaller const& py = *GC.getPythonCaller();
+	CvMap& kMap = GC.getMap();
+	// <advc.194> Ensure that selections for disabled map options have no impact
+	CvInitCore& kInitCore = GC.getInitCore();
+	/*ClimateTypes const eSelectedClimate = kMap.getClimate();
+	SeaLevelTypes const eSelectedSeaLevel = kMap.getSeaLevel();*/ // not needed after all
+	bool bClimateFlexible, bSeaLevelFlexible;
+	py.mapDefaultOptionAvailability(bClimateFlexible, bSeaLevelFlexible);
+	if (!bClimateFlexible)
+		kInitCore.setClimate(findStandardClimate());
+	if (!bSeaLevelFlexible)
+		kInitCore.setSeaLevel(findStandardSeaLevel());
+	// </advc.194>
 	py.callMapFunction("beforeGeneration");
-	if (py.generateRandomMap()) // will call applyMapData when done
-		return;
-
-	char buf[256];
-
-	sprintf(buf, "Generating Random Map %S, %S...", gDLL->getMapScriptName().GetCString(), GC.getInfo(GC.getMap().getWorldSize()).getDescription());
-	gDLL->NiTextOut(buf);
-
-	generatePlotTypes();
-	generateTerrain();
-	/* advc.300: Already done in CvMap::calculateAreas, but when calculateAreas
-	   is called during map generation, tile yields aren't yet set. */
-	GC.getMap().computeShelves();
-	// <advc.108>
-	if (GC.getMap().isCustomMapOption(gDLL->getText("TXT_KEY_MAP_BALANCED")))
-		GC.getGame().setStartingPlotNormalizationLevel(CvGame::NORMALIZE_HIGH);
-	// </advc.108>
+	if (!py.generateRandomMap()) // will call applyMapData when done
+	{
+		char buf[256];
+		sprintf(buf, "Generating Random Map %S, %S...",
+				gDLL->getMapScriptName().GetCString(),
+				GC.getInfo(kMap.getWorldSize()).getDescription());
+		gDLL->NiTextOut(buf);
+		generatePlotTypes();
+		generateTerrain();
+		/* advc.300: Already done in CvMap::calculateAreas, but when calculateAreas
+		   is called during map generation, tile yields aren't yet set. */
+		kMap.computeShelves();
+		// <advc.108>
+		if (kMap.isCustomMapOption(gDLL->getText("TXT_KEY_MAP_BALANCED")))
+			GC.getGame().setStartingPlotNormalizationLevel(CvGame::NORMALIZE_HIGH);
+		// </advc.108>
+	}
+	/*	<advc.194> Restore selection so that the game setup screens remember it?
+		We shouldn't b/c these settings can also affect rules and AI decisions. */
+	/*kInitCore.setClimate(eSelectedClimate);
+	kInitCore.setSeaLevel(eSelectedSeaLevel);*/ // </advc.194>
 }
 
 void CvMapGenerator::generatePlotTypes()
@@ -1120,3 +1136,46 @@ int CvMapGenerator::calculateNumBonusesToAdd(BonusTypes eBonus)
 	int iBonusCount = (iMult * (iFromTiles + rFromPlayers.round())) / 100;
 	return std::max(1, iBonusCount);
 }
+
+// <advc.194> To avoid hardcoding the types considered standard
+ClimateTypes CvMapGenerator::findStandardClimate() const
+{
+	float fBestScore = arithm_traits<float>::min;
+	ClimateTypes eBestClimate = NO_CLIMATE;
+	FOR_EACH_ENUM(Climate)
+	{
+		CvClimateInfo const& kLoopClimate = GC.getInfo(eLoopClimate);
+		float fLoopScore = 0;
+		fLoopScore -= abs(kLoopClimate.getDesertBottomLatitudeChange());
+		fLoopScore -= abs(kLoopClimate.getDesertTopLatitudeChange());
+		fLoopScore -= abs(kLoopClimate.getGrassLatitudeChange());
+		fLoopScore -= abs(kLoopClimate.getSnowLatitudeChange());
+		fLoopScore -= abs(kLoopClimate.getTundraLatitudeChange());
+		if (fLoopScore > fBestScore)
+		{
+			fBestScore = fLoopScore;
+			eBestClimate = eLoopClimate;
+		}
+		else FAssertMsg(fLoopScore < 0, "Multiple climates with 0 latitude changes?");
+	}
+	FAssert(eBestClimate != NO_CLIMATE);
+	return eBestClimate;
+}
+
+SeaLevelTypes CvMapGenerator::findStandardSeaLevel() const
+{
+	int iBestScore = arithm_traits<int>::min;
+	SeaLevelTypes eBestSeaLevel = NO_SEALEVEL;
+	FOR_EACH_ENUM(SeaLevel)
+	{
+		int iLoopScore = -abs(GC.getInfo(eLoopSeaLevel).getSeaLevelChange());
+		if (iLoopScore > iBestScore)
+		{
+			iBestScore = iLoopScore;
+			eBestSeaLevel = eLoopSeaLevel;
+		}
+		else FAssertMsg(iLoopScore < 0, "Multiple sea levels with 0 change?");
+	}
+	FAssert(eBestSeaLevel != NO_SEALEVEL);
+	return eBestSeaLevel;
+} // </advc.194>

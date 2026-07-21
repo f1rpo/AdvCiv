@@ -960,7 +960,7 @@ bool CvVoteSourceInfo::read(CvXMLLoadUtility* pXML)
 		m_aszExtraXMLforPass3.push_back(szTextVal);
 	}
 	pXML->SetYieldList(ReligionYield(), "ReligionYields");
-	pXML->SetCommerceList(ReligionYield(), "ReligionCommerces");
+	pXML->SetCommerceList(ReligionCommerce(), "ReligionCommerces");
 
 	return true;
 }

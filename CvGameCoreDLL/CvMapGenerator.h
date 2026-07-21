@@ -54,6 +54,8 @@ protected:
 	// advc.129: To avoid duplicate code in addUniqueBonus and addNonUniqueBonus
 	int placeGroup(BonusTypes eBonus, CvPlot const& kCenter,
 			bool bIgnoreLatitude, int iLimit = 100);
+	ClimateTypes findStandardClimate() const; // advc.194
+	SeaLevelTypes findStandardSeaLevel() const; // advc.194
 
 private:
 	static CvMapGenerator* m_pInst;

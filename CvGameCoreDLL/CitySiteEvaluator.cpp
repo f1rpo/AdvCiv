@@ -48,7 +48,8 @@ CitySiteEvaluator::CitySiteEvaluator(CvPlayerAI const& kPlayer, int iMinRivalRan
 		bool bEasyCultureFromTrait = false;
 		m_bEasyCulture = kPlayer.AI_isEasyCulture(&bEasyCultureFromTrait);
 		if (bEasyCultureFromTrait && pPersonality != NULL &&
-			pPersonality->getBasePeaceWeight() <= 5)
+			//pPersonality->getBasePeaceWeight() <= 5
+			pPersonality->getBuildUnitProb() > 25) // advc.031
 		{
 			m_bAmbitious = true;
 		}
@@ -284,7 +285,7 @@ void CitySiteEvaluator::log(CvPlot const& kPlot)
 			int iNextX = pNextBestSite->getX();
 			int iNextY = pNextBestSite->getY();
 			logBBAI("\nNext best site: %d (%d,%d)", iBest, iNextX, iNextY);
-			evaluateWithLogging(kPlot);
+			evaluateWithLogging(*pNextBestSite);
 		}
 	}
 	{
@@ -304,7 +305,7 @@ void CitySiteEvaluator::log(CvPlot const& kPlot)
 			int iAdjX = pBestAdjSite->getX();
 			int iAdjY = pBestAdjSite->getY();
 			logBBAI("\nBest site adjacent to (%d,%d): %d (%d,%d)", kPlot.getX(), kPlot.getY(), iBest, iAdjX, iAdjY);
-			evaluateWithLogging(kPlot);
+			evaluateWithLogging(*pBestAdjSite);
 		}
 	}
 }
@@ -375,7 +376,7 @@ short AIFoundValue::evaluate()
 	int iInnerBadTiles = 0;
 	int iLandTiles = 0; // advc.031
 	// <advc.040>
-	bool bFirstColony = isPrioritizeAsFirstColony();
+	bFirstColony = isPrioritizeAsFirstColony();
 	IFLOG if(bFirstColony) logBBAI("First colony");
 	// Scope for countBadTiles return parameters
 	{
@@ -1427,13 +1428,14 @@ ImprovementTypes AIFoundValue::getBonusImprovement(BonusTypes eBonus, CvPlot con
 	{
 		aiYield[eLoopYield] = GC.getInfo(eBestImprovement).
 				getImprovementBonusYield(eBonus, eLoopYield);
-		/*	Note/ fixme: We don't count the improvement's YieldChange and
+		/*	Open issue: We don't count the improvement's YieldChange and
 			IrrigatedYieldChange, i.e. we treat wet farms, dry farms and
-			improvements that don't add any yield (plantation, pasture) all
-			the same and thus overestimate the latter.
-			This separate accounting for "special" yields really needs to go,
-			and then CvPlot::calculateImprovementYieldChange could perhaps
-			be used (for all plots). */
+			improvements that don't add any yield (plantation, pasture)
+			all the same and thus overestimate the latter. This separate
+			accounting for "special" yields really needs to go, and then
+			CvPlot::calculateImprovementYieldChange could perhaps be used
+			(for all plots). Stop-gap measure for Mines: */
+		aiYield[eLoopYield] += GC.getInfo(eBestImprovement).getYieldChange(eLoopYield) / 2;
 		if (!bRemoveFeature && eFeature != NO_FEATURE)
 		{
 			aiYield[eLoopYield] += GC.getInfo(eFeature).getYieldChange(eLoopYield);
@@ -2217,7 +2219,7 @@ int AIFoundValue::adjustToFood(int iValue, int iSpecialFoodPlus, int iSpecialFoo
 // (adjustToBadHealth deals with short-term health)
 int AIFoundValue::evaluateLongTermHealth(int& iHealthPercent) const
 {
-	int r = 0;
+	int iR = 0;
 	int iFreshWaterHealth = 0;
 	if (kPlot.isFreshWater())
 	{
@@ -2228,14 +2230,14 @@ int AIFoundValue::evaluateLongTermHealth(int& iHealthPercent) const
 	/*  <advc.031> The above may have accounted for feature production; now
 		evaluated separately elsewhere. */
 	if (iHealthPercent > 0 || eEra >= CvEraInfo::AI_getAgeOfPestilence())
-		r += std::min(iHealthPercent, 350) / 6;
+		iR += std::min(iHealthPercent, 350) / 6;
 	// Extra bonus for persistent health (as in BtS/ K-Mod): // </advc.031> 
-	r += iFreshWaterHealth * 30;
+	iR += iFreshWaterHealth * 30;
 	// (K-Mod (commented this out, compensated by the river bonuses I added.)
 	/*if (iFreshWaterHealth > 0)
 		r += 40;*/
-	IFLOG if(r!=0) logBBAI("+%d from %d/100 health", r, iHealthPercent);
-	return r;
+	IFLOG if(iR!=0) logBBAI("+%d from %d/100 health", iR, iHealthPercent);
+	return iR;
 }
 
 // advc.031:
@@ -2247,7 +2249,7 @@ int AIFoundValue::evaluateFeatureProduction(int iProduction) const
 	if (rAIEraFactor <= 0)
 		r /= 4;
 	else r /= rAIEraFactor + 2;
-	IFLOG if(r!=0) logBBAI("+%d from %d feature production", r, iProduction);
+	IFLOG if(r!=0) logBBAI("+%d from %d feature production", r.round(), iProduction);
 	return r.round();
 }
 
@@ -2579,7 +2581,7 @@ int AIFoundValue::adjustToProduction(int iValue, scaled rBaseProduction) const
 {
 	// K-Mod. reduce value of cities which will struggle to get any productivity.
 	// <advc.040>
-	if(bFirstColony)
+	if (bFirstColony)
 	{
 		rBaseProduction += scaled::max(iUnrevealedTiles * fixp(0.5),
 				(rBaseProduction * iUnrevealedTiles) / NUM_CITY_PLOTS);
@@ -2590,11 +2592,13 @@ int AIFoundValue::adjustToProduction(int iValue, scaled rBaseProduction) const
 			rBaseProduction >= GC.getInfo(YIELD_PRODUCTION).getMinCity());
 	scaled rThreshold = fixp(8.5); // advc.031: was 9
 	// <advc.303> Can't expect that much production from just the inner ring.
-	if(bBarbarian)
+	if (bBarbarian)
 		rThreshold = 4; // </advc.303>
 	if (rBaseProduction < rThreshold)
 	{
-		iValue = ((iValue * rBaseProduction) / rThreshold).round();
+		// <advc.031> Was linear (times BaseProduction/Threshold)
+		iValue = (iValue * (scaled::max(1, rBaseProduction - 1) /
+				rThreshold).sqrt()).round(); // </advc.031>
 		IFLOG logBBAI("Times (%d/%d) for low production", rBaseProduction.getPercent(), rThreshold.getPercent());
 	} // K-Mod end
 	return iValue;
@@ -2689,11 +2693,18 @@ int AIFoundValue::adjustToCivSurroundings(int iValue, int iStealPercent) const
 				}
 			} // </advc.031>
 			int iCultureRange = pLoopCity->getCultureLevel() + 3;
-			if (iDistance <= iCultureRange && kTeam.AI_deduceCitySite(*pLoopCity))
+			if (kTeam.AI_deduceCitySite(*pLoopCity))
 			{
-				// cf. culture distribution in CvCity::doPlotCultureTimes100
-				iProximity += 90*(iDistance-iCultureRange)*(iDistance-iCultureRange)/
-						(iCultureRange*iCultureRange) + 10;
+				if (iDistance <= iCultureRange)
+				{
+					// cf. culture distribution in CvCity::doPlotCultureTimes100
+					iProximity += 90*(iDistance-iCultureRange)*(iDistance-iCultureRange)/
+							(iCultureRange*iCultureRange) + 10;
+				}
+				/*	<advc.031> A little extra range is useful to consider for
+					contested sites */
+				else if (iDistance == iCultureRange + 1)
+					iProximity += 5; // </advc.031>
 			}
 		}
 		if (kLoopPlayer.getTeam() == eTeam)
@@ -2702,11 +2713,15 @@ int AIFoundValue::adjustToCivSurroundings(int iValue, int iStealPercent) const
 		{
 			iForeignProximity = iProximity;
 			// advc.031:
-			bFreeForeignCulture = (kLoopPlayer.getFreeCityCommerce(COMMERCE_CULTURE) > 1);
+			bFreeForeignCulture = (kLoopPlayer.getFreeCityCommerce(COMMERCE_CULTURE) > 1 ||
+					(pNearestForeignCity != NULL && pNearestForeignCity->isCapital()));
 		}
 	}
-	// Reduce the value if we are going to get squeezed out by culture.
-	// Increase the value if we are hoping to block the other player!
+	// <advc.031>
+	int iOurFreeCultureAdvantage = (bFreeForeignCulture ? -1 : 0) +
+			(kSet.isEasyCulture() ? 1 : 0); // </advc.031>
+	/*	Reduce the value if we are going to get squeezed out by culture.
+		Increase the value if we are hoping to block the other player! */
 	if (iForeignProximity > 0)
 	{
 		/*	As a rough guide of scale, settling 3 steps from a level 2 city
@@ -2715,21 +2730,23 @@ int AIFoundValue::adjustToCivSurroundings(int iValue, int iStealPercent) const
 			4 steps from a level 3 city = 20 */
 		int iDelta = iForeignProximity - iOurProximity;
 		IFLOG logBBAI("Proximity difference (foreign minus ours): %d - %d = %d", iForeignProximity, iOurProximity, iDelta);
-		if (iDelta > 50)
+		if (iDelta > 47 + iOurFreeCultureAdvantage * 8) // advc.031: was 50 flat
 		{
 			IFLOG logBBAI("Site disregarded: proximity difference too great");
 			return 0; // we'd be crushed and eventually flipped if we settled here.
 		}
 		int const iTempValue = iValue; // advc.031
-		bool bEasyCulture = (!bFreeForeignCulture && kSet.isEasyCulture()); // advc.031
-		if (iDelta > -20 && iDelta <= (kSet.isAmbitious() ? 10 : 0) *
-			(bEasyCulture ? 2 : 1))
+		if (iDelta > -20 &&
+			//iDelta <= (kSet.isAmbitious() ? 10 : 0) * (bEasyCulture ? 2 : 1))
+			// advc.031:
+			iDelta <= 5 + iOurFreeCultureAdvantage * 5 + (kSet.isAmbitious() ? 8 : 0))
 		{
 			/*	we want to get this spot before our opponents do.
 				The lower our advantage, the more urgent the site is. */
-			iValue *= 120 + iDelta/2 + (kSet.isAmbitious() ? 5 : 0)
+			iValue *= 115 + // advc.031: was 120
+					iDelta/2 + (kSet.isAmbitious() ? 5 : 0)
 					// advc.031: The 2nd city should focus more on high yields
-					- (iCities <= 1 ? 12 : 0);
+					- (iCities <= 1 ? 11 : 0);
 			iValue /= 100;
 			/*  <advc.031> Don't rush to settle marginal spots (which might
 				not even make the MinFoundValue cut w/o the boost above). */
@@ -2740,8 +2757,10 @@ int AIFoundValue::adjustToCivSurroundings(int iValue, int iStealPercent) const
 				iValue = std::max(iTempValue, iValue);
 			} // </advc.031>
 		}
-		iDelta -= bEasyCulture ? 20 : 10;
-		if (iDelta > 0)
+		//iDelta -= (kSet.isEasyCulture() ? 20 : 10);
+		iDelta -= 10 + iOurFreeCultureAdvantage * 10; // advc.031
+		if (iDelta > 0 &&
+			iForeignProximity > 5) // advc.031
 		{
 			iValue *= 100 - iDelta*3/2;
 			iValue /= 100;

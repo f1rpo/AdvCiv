@@ -156,8 +156,8 @@ public:
 		}
 		return m_pEndNode->getMoves();
 	}
-	/*	advc (tbd.): Remove this function so that GroupPathNode is fully encapasulated.
-		Cf. comment in CvUnitAI::AI_considerPathDOW (the only call location). */
+	/*	advc (tbd.): Perhaps this function could be removed. Then GroupPathNode
+		would be fully encapasulated. Cf. comment in CvUnitAI::AI_considerPathDOW. */
 	GroupPathNode* getEndNode() const
 	{	// Note: the returned pointer becomes invalid if the pathfinder is destroyed.
 		FAssert(m_pEndNode != NULL);

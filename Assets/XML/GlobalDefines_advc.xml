@@ -21,14 +21,14 @@
 	</Define>
 
 	<!-- advc.002b: The DLL needs to know (well, it's not crucial ...) the
-		 font size of Size1_Normal in Civ4Theme_Common.thm. AdvCiv sets that
-		 to 14. If a mod-mod changes Size1_Normal, then FONT_SIZE_FACTOR should
+		 font size of Size2_Normal in Civ4Theme_Common.thm. AdvCiv sets that
+		 to 16. If a mod-mod changes Size2_Normal, then FONT_SIZE_FACTOR should
 		 be adjusted accordingly. If the AdvCiv theme is removed (and not
 		 replaced with a different custom theme), then there should be no need
 		 to edit this value; the DLL can figure that out on its own. -->
 	<Define>
-		<DefineName>FONT_SIZE_FACTOR</DefineName>
-		<iDefineIntVal>14</iDefineIntVal>
+		<DefineName>HELP_FONT_SIZE</DefineName>
+		<iDefineIntVal>16</iDefineIntVal>
 	</Define>
 
 	<!-- advc.009: Moved from GlobalDefinesAlt.xml.
@@ -97,6 +97,14 @@
 	<Define>
 		<DefineName>REPLAY_TEXTURE_ERA</DefineName>
 		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
+
+	<!-- advc: 000 in BtS - which makes sense because mods can be compatible
+		 with outdated versions of BtS. AdvCiv, however, requires v3.19.
+		 If the MIN_VERSION check (in the EXE) fails, a warning is displayed. -->
+	<Define> <!-- redefine -->
+		<DefineName>MIN_VERSION</DefineName>
+		<iDefineIntVal>319</iDefineIntVal>
 	</Define>
 
 	<!-- advc.002h: 0 only hides the clouds. Their shadows are hidden through
@@ -622,9 +630,11 @@
 	<!-- [advc.099]
 	     If set to 0 or less (BtS behavior), foreign culture can only
 		 cause a city to revolt if the owner of the foreign culture has a
-		 city nearby. If set to 1 (recommended), revolts can occur in any
-		 cities with high foreign culture, even if the owner of that culture
-		 is no longer alive.
+		 city nearby. Should then probably also revert related changes to
+		 the occupation countdown; see OCCUPATION_COUNTDOWN_EXPONENT.
+		 If set to 1 (recommended), revolts can occur in any cities with
+		 high foreign culture, even if the owner of that culture is
+		 no longer alive.
 		 Either way, the revolt can only flip the city if the foreign
 		 culture is alive and nearby. -->
 	<Define>
@@ -1178,12 +1188,14 @@
 
 	<!-- advc.156: When multiple members of a team are researching the same
 		 technology, their research modifiers are increased by this many
-		 percentage points. Recommended: -10 to penalize researching the same
-		 tech; use 0 for BtS behavior.
+		 percentage points. Recommended: 0 for BtS behavior. -10 for a moderate
+		 penalty when researching the same tech. Note, however, that
+		 human players can use a "binary research" scheme to bypass the
+		 penalty while still focusing their research on one tech at a time.
 		 Related: TECH_COST_EXTRA_TEAM_MEMBER_MODIFIER (50) -->
 	<Define>
 		<DefineName>RESEARCH_MODIFIER_EXTRA_TEAM_MEMBER</DefineName>
-		<iDefineIntVal>-10</iDefineIntVal>
+		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 
 	<!-- advc.082: If set to 1, hover text when about to attack says to

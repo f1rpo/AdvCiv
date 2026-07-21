@@ -115,9 +115,11 @@ ItemType* CvRandom::weightedChoice(std::vector<ItemType*> const& kItems,
 			iTotal += (*pWeights)[i];
 		FAssertMsg(iTotal >= 0, "overflow?");
 		// This we'll need to be able to recover from I think:
-		if (iTotal > getRange())
+		int const iRange = safeIntCast<int>(getRange());
+		if (iTotal > iRange)
 		{
-			scaled rDownScaleFactor(getRange(), iTotal);
+			scaled rDownScaleFactor(iRange, iTotal);
+			rDownScaleFactor.decreaseTo(1 - scaled::epsilon());
 			aiLowPrecisionWeights = *pWeights; // copy
 			pWeights = &aiLowPrecisionWeights;
 			iTotal = 0; // recompute
@@ -127,7 +129,7 @@ ItemType* CvRandom::weightedChoice(std::vector<ItemType*> const& kItems,
 						rDownScaleFactor).floor();
 				iTotal += aiLowPrecisionWeights[i];
 			}
-			FAssert(iTotal > 0 && iTotal <= getRange());
+			FAssert(iTotal > 0 && iTotal <= iRange);
 		}
 	}
 	if (iTotal == 0)

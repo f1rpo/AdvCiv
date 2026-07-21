@@ -402,7 +402,7 @@ class CvTechChooser:
 
 			if bTechName:
 				szTechID = sPanelWidget + "TechID" + str(i)
-				szTechString = "<font=1>"
+				szTechString = "<font=2>" # advc.002b: was 1
 				if ( gc.getPlayer(self.iCivSelected).isResearchingTech(i) ):
 					szTechString = szTechString + str(gc.getPlayer(self.iCivSelected).getQueuePosition(i)) + ". "
 				szTechString += gc.getTechInfo(i).getDescription()
@@ -989,7 +989,7 @@ class CvTechChooser:
 				# Create and place a tech in its proper location
 				szTechRecord = "TechRecord" + str(i)
 				szTechID = "TechID" + str(i)
-				szTechString = "<font=1>"
+				szTechString = "<font=2>" # advc.002b: was 1
 
 				if ( gc.getPlayer(self.iCivSelected).isResearchingTech(i) ):
 					szTechString = szTechString + unicode(gc.getPlayer(self.iCivSelected).getQueuePosition(i)) + ". "

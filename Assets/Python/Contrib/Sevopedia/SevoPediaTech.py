@@ -113,7 +113,9 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 		# <advc.004y> Show the box only for starting techs
 		civs = []
 		for iCiv in range(gc.getNumCivilizationInfos()):
-			if gc.getCivilizationInfo(iCiv).isCivilizationFreeTechs(self.iTech):
+			civ = gc.getCivilizationInfo(iCiv)
+			if (civ.isCivilizationFreeTechs(self.iTech) and
+					(civ.isPlayable() or civ.isAIPlayable())): # Exclude Minor civ
 				civs.append(iCiv)
 		if len(civs) <= 0:
 			return

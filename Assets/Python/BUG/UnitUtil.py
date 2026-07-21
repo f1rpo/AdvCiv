@@ -65,12 +65,13 @@ def init():
 		# generic unit
 		classInfo = gc.getUnitClassInfo(unitInfo.getUnitClassType())
 		eGenericUnit = classInfo.getDefaultUnitIndex()
-		genericUnitIDs[eUnit] = eGenericUnit
-		if eUnit == eGenericUnit:
-			genericUnits.add(eUnit)
-		else:
-			BugUtil.debug("  unique of %s",
-					gc.getUnitInfo(eGenericUnit).getDescription())
+		if eGenericUnit != UnitTypes.NO_UNIT: # advc.003l
+			genericUnitIDs[eUnit] = eGenericUnit
+			if eUnit == eGenericUnit:
+				genericUnits.add(eUnit)
+			else:
+				BugUtil.debug("  unique of %s",
+						gc.getUnitInfo(eGenericUnit).getDescription())
 		
 		# resource sets
 		found = False

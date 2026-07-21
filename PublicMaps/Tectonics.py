@@ -71,11 +71,12 @@
 #      The number of plates could be more tunable.
 #      I could also rewrite the whole rivers thing...
 
+# advc: Some imports were unused
 from CvPythonExtensions import *
-import CvUtil
+#import CvUtil
 import CvMapGeneratorUtil
-import Popup as PyPopup
-from CvMapGeneratorUtil import TerrainGenerator
+#import Popup as PyPopup
+#from CvMapGeneratorUtil import TerrainGenerator
 from CvMapGeneratorUtil import FeatureGenerator
 
 # advc.165:
@@ -183,6 +184,8 @@ def generateTerrainTypes():
 	terrainTypes = terraingen.generateTerrain()
 	return terrainTypes
 
+# advc: Obsolete (probably since v3.7)
+'''
 def addFeatures():
 	NiTextOut("Adding Features (from Python Continents) ...")
 	# advc.021a: was ...==5
@@ -196,6 +199,7 @@ def addFeatures():
 class NoIceFeatureGenerator(FeatureGenerator):
 	def addIceAtPlot(self, pPlot, iX, iY, lat):
 		return
+'''
 
 class voronoiMap:
 	def __init__(self,landPlates,seaPlates,hotspotsF):
@@ -1826,20 +1830,38 @@ def findStartingPlot(argsList):
 		return -10
 	return None
 
-class MediterraneanFeatureGenerator(CvMapGeneratorUtil.FeatureGenerator):
+# <advc.001> (from Taurus) The AdvCiv DLL ensures that map scripts without
+# a climate option use Temperate climate, but let's still include the
+# local bugfix - for portability.
+class TectonicsFeatureGenerator(FeatureGenerator):
+	def patch_getClimate(self, func, *args, **kwargs):
+		getClimate = self.map.getClimate
+		def getTemperateClimate(self):
+			return 0
+		self.map.getClimate = getTemperateClimate.__get__(self.map, type(self.map))
+		try:
+			getattr(FeatureGenerator, func)(self, *args, **kwargs)
+		finally:
+			self.map.getClimate = getClimate
+	def addIceAtPlot(self, pPlot, iX, iY, lat):
+		self.patch_getClimate('addIceAtPlot', pPlot, iX, iY, lat)
+	def addJunglesAtPlot(self, pPlot, iX, iY, lat):
+		self.patch_getClimate('addJunglesAtPlot', pPlot, iX, iY, lat)
+
+class MediterraneanFeatureGenerator(TectonicsFeatureGenerator): # </advc.001>
 	def getLatitudeAtPlot(self, iX, iY):
 		"returns 0.0 for tropical, up to 1.0 for polar"
 		# 25/90 to 65/90:
 		lat = 5/float(18) + 4*(self.iGridH - iY)/float(9*self.iGridH)
 		return lat
-	
+
 def addFeatures():
 	if (6 == CyMap().getCustomMapOption(0)): # advc.021a: was 5==...
 		featuregen = MediterraneanFeatureGenerator()
 		featuregen.addFeatures()
 		return 0
 	else:
-		featuregen = CvMapGeneratorUtil.FeatureGenerator()
+		featuregen = TectonicsFeatureGenerator() # advc.001 (was FeatureGenerator)
 		featuregen.addFeatures()
 		return 0
 

@@ -1245,6 +1245,7 @@
 	<ElementType name="bAIAgeOfFertility" content="textOnly" dt:type="boolean"/>
 	<ElementType name="bAIAgeOfGuns" content="textOnly" dt:type="boolean"/>
 	<ElementType name="bAIAtomicAge" content="textOnly" dt:type="boolean"/>
+	<ElementType name="bAIAgeOfProduction" content="textOnly" dt:type="boolean"/>
 	<!-- advc.erai: end -->
 	<ElementType name="EraInfo" content="eltOnly">
 		<element type="Type"/>
@@ -1318,6 +1319,9 @@
 		<element type="bAIAgeOfGuns" minOccurs="0"/>
 		<!-- Should be 1 for the era during which nukes become available. -->
 		<element type="bAIAtomicAge" minOccurs="0"/>
+		<!-- Should be 1 for the era during which several improvements receive
+			 a production boost from railroads or otherwise. -->
+		<element type="bAIAgeOfProduction" minOccurs="0"/>
 		<!-- advc.erai: end -->
 		<element type="iSoundtrackSpace"/>
 		<element type="bFirstSoundtrackFirst"/>

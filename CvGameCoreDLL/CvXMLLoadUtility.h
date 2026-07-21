@@ -75,7 +75,7 @@ public:
 				the callee can check if the param was set. */
 			int iDefault = MIN_INT);
 	bool GetChildXmlValByName(float* r, TCHAR const* szName,
-			float fDefault = FLT_MIN); // advc.006b: was 0.0f
+			float fDefault = arithm_traits<float>::min); // advc.006b: was 0.0f
 	bool GetChildXmlValByName(bool* r, TCHAR const* szName,
 			/*  advc.006b: Caller will have to set this to false to avoid an error
 				if szName isn't found */
@@ -477,8 +477,8 @@ private:
 	void SetGlobalActionInfo();
 
 	void SetGlobalAnimationPathInfo(CvAnimationPathInfo** ppAnimationPathInfo, char* szTagName, int* iNumVals);
-	//void SetGameText(const char* szTextGroup, const char* szTagName);
-	void SetGameText(const char* szTextGroup, const char* szTagName, const std::string& language_name); // K-Mod
+	void SetGameText(const char* szTextGroup, const char* szTagName,
+			std::string const& sLanguageName); // K-Mod
 
 	/*	<advc.006g> (The BtS code sometimes said "XML Error", sometimes "XML Load Error"
 		not sure if that's meaningful, but I'm going to preserve it.)*/

@@ -109,6 +109,8 @@ class BnSMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 		#global xShiftRoll
 		iContinentsGrain = 1 + self.map.getCustomMapOption(0)
 		iIslandsGrain = 4 + self.map.getCustomMapOption(1)
+		# advc.mxc: Take into account sea level (Big/Medium&Small also don't do that)
+		iSeaLevelChange = CyGlobalContext().getSeaLevelInfo(self.map.getSeaLevel()).getSeaLevelChange()
 
 		# <K-Mod>
 		iTargetSize = 30 + self.dice.get(min(36, self.iW/3), "zone target size (horiz)")
@@ -127,6 +129,10 @@ class BnSMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 		# </K-Mod>
 		print("Patches of Tiny Islands: ", numTinies)
 		if numTinies:
+			iWater = 80
+			# <advc.mxc> Let's adjust the tiny islands' water a little too
+			iWater += iSeaLevelChange // 2
+			iWater = min(iWater, 90) # </advc.mxc>
 			for tiny_loop in range(numTinies):
 				tinyWestLon = 0.01 * self.dice.get(85, "Tiny Longitude - Custom Continents PYTHON")
 				tinyWestX = int(self.iW * tinyWestLon)
@@ -135,7 +141,7 @@ class BnSMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 				tinyWidth = int(self.iW * 0.15)
 				tinyHeight = int(self.iH * 0.15)
 				iHillGrain = 5 # advc.mxc: was 3
-				self.generatePlotsInRegion(80,
+				self.generatePlotsInRegion(iWater,
 				                           tinyWidth, tinyHeight,
 				                           tinyWestX, tinySouthY,
 				                           4, iHillGrain,
@@ -162,13 +168,11 @@ class BnSMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 		iMaxOverLap = 5
 		#iWater = 74
 		# <advc.mxc> Moved down.
-		# Use a slightly higher base percentage to match Fractal  more closely (but not quite - island maps should have a little extra land and I'm also shrinking the dimensions a little through advc.165).
+		# Use a slightly higher base percentage to match Fractal more closely (but not quite - island maps should have a little extra land and I'm also shrinking the dimensions a little through advc.165).
 		iWater = 75
-		# Take into account sea level (crazy that the official Big/Medium&Small maps don't do that).
-		iSeaLevelChange = CyGlobalContext().getSeaLevelInfo(self.map.getSeaLevel()).getSeaLevelChange()
 		# This is what FractalWorld does and it seems to work well enough here as well:
 		iWater += iSeaLevelChange
-		# </advc.mxc>
+		iWater = min(iWater, 90) # </advc.mxc>
 		for i in range(iTotalZones):
 			iWestX = max(0, (i % iHorizontalZones) * iZoneWidth - self.dice.get(iMaxOverLap, "zone overlap (west)"))
 			iEastX = min(self.iW - 1, (i % iHorizontalZones + 1) * iZoneWidth + self.dice.get(iMaxOverLap, "zone overlap (east)"))

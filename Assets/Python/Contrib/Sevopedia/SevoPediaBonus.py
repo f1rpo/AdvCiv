@@ -112,7 +112,8 @@ class SevoPediaBonus:
 					sign = "+"
 				else:
 					sign = ""
-				szYield = (u"%s: %s%i " % (gc.getYieldInfo(k).getDescription(), sign, iYieldChange))
+				# advc.003y: Remove an awkward space
+				szYield = (u"%s: %s%i" % (gc.getYieldInfo(k).getDescription(), sign, iYieldChange))
 				screen.appendListBoxString(panelName, u"<font=3>" + szYield.upper() + (u"%c" % gc.getYieldInfo(k).getChar()) + u"</font>", WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
 
 

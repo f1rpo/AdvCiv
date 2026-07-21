@@ -35,7 +35,7 @@ class FAStar;
  have been too lazy to find a proper place for. */
 
 // advc:
-namespace std11
+namespace sequtil
 {
 // Erik: "Back-ported" from C++11
 template<class ForwardIt, class T>

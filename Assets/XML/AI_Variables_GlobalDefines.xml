@@ -176,8 +176,8 @@
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>
 	<Define>
-		<!-- Discourages early war against humans; not fair when the AI has a
-			 head start. -->
+		<!-- Discourages dogpiling and early war against humans; not fair
+			 when the AI has a head start. -->
 		<DefineName>UWAI_WEIGHT_FAIR_PLAY</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
 	</Define>

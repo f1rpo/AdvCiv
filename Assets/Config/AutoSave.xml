@@ -4,6 +4,9 @@
 	by BUG Team, HOF Team
 
 	Copyright (c) 2008 The BUG Mod.
+
+	advc (note): Will need to remove the dll="1" requirement to enable this
+	module. The AdvCiv DLL does support it.
 -->
 <mod id="AutoSave" 
 	 name="AutoSave" 

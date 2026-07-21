@@ -365,7 +365,8 @@ void CvCity::kill(bool bUpdatePlotGroups, /* advc.001: */ bool bBumpUnits)
 		FOR_EACH_ENUM(Commerce)
 		{
 			changeCommerceRateTimes100(eLoopCommerce,
-					-100 * kOwner.getFreeCityCommerce(eLoopCommerce));
+				-(100 + kOwner.getCommerceRateModifier(eLoopCommerce)) *
+				kOwner.getFreeCityCommerce(eLoopCommerce));
 		}
 	} // </advc.001>
 
@@ -405,14 +406,13 @@ void CvCity::kill(bool bUpdatePlotGroups, /* advc.001: */ bool bBumpUnits)
 	FAssert(!isWorkingPlot(CITY_HOME_PLOT));
 	FAssert(getSpecialistPopulation() == 0);
 	FAssert(getNumGreatPeople() == 0);
-	FAssert(getBaseYieldRate(YIELD_FOOD) == 0);
-	FAssert(getBaseYieldRate(YIELD_PRODUCTION) == 0);
-	FAssert(getBaseYieldRate(YIELD_COMMERCE) == 0);
+	FOR_EACH_ENUM(Yield)
+		FAssert(getYieldRate(eLoopYield) == 0);
 	FAssert(!isProduction());
 	// <advc>
 	FOR_EACH_ENUM(Commerce)
-		FAssertMsg(getCommerceRate(eLoopCommerce) == 0,
-				"Part of lost city's special commerce not subtracted from owner's cache");
+		FAssertMsg(getCommerceRateTimes100(eLoopCommerce) == 0,
+				"Part of lost city's commerce not subtracted from owner's cache");
 	// </advc>
 #endif
 	bool const bCapital = isCapital();
@@ -5252,7 +5252,10 @@ void CvCity::GPProjection(std::vector<std::pair<UnitTypes,int> >& aeiProjection)
 		iTotalUnitProgress += getGreatPeopleUnitProgress(kCiv.unitAt(i));
 	/*	GPP total of the city on the turn that the GP will be born.
 		(Usually greater than GET_PLAYER(getOwner()).greatPeopleThreshold().) */
-	int iProjectedTotal = iTotalUnitProgress + iTurnsLeft * getGreatPeopleRate();
+	int iProjectedTotal = iTotalUnitProgress +
+			std::max(0, iTurnsLeft) * getGreatPeopleRate();
+	if (iProjectedTotal <= 0)
+		return;
 	int iRoundedPercentages = 0;
 	FOR_EACH_ENUM(Unit)
 	{
@@ -6291,7 +6294,8 @@ bool CvCity::isBombardable(const CvUnit* pUnit) const
 {
 	if (pUnit != NULL && !pUnit->isEnemy(getTeam()))
 		return false;
-
+	/*	advc (note): Important not to check pUnit->ignoreBuildingDefense.
+		Need to be able to bombard either way for the sake of other units. */
 	return (getDefenseModifier(false) > 0 ||
 			// advc.004c: Don't give away 0 defense in the fog of war to human attacker
 			(pUnit != NULL && pUnit->isHuman() && !isVisible(pUnit->getTeam())) ||
@@ -6697,8 +6701,8 @@ void CvCity::updateCultureLevel(bool bUpdatePlotGroups)
 	setCultureLevel(eCultureLevel, bUpdatePlotGroups);
 }
 
-/*	advc: Cut from updateCultureLevel. Unlike getCulture(PlayerTypes), this function
-	will always recalculate the culture level. */
+/*	advc: Cut from updateCultureLevel. Unlike getCultureLevel(PlayerTypes),
+	this function is guaranteed to recalculate the culture level. */
 CultureLevelTypes CvCity::calculateCultureLevel(PlayerTypes ePlayer) const
 {
 	int const iCultureTimes100 = getCultureTimes100(ePlayer);
@@ -8296,10 +8300,13 @@ void CvCity::setName(const wchar* szNewValue, bool bFound, /* advc.106k: */ bool
 	{
 		if (GET_PLAYER(getOwner()).isCityNameValid(szName, false))
 		{	// <advc.106k>
-			if(bInitial)
+			if (bInitial)
 				m_szPreviousName.clear();
-			else if(m_szPreviousName.empty())
+			else if (m_szPreviousName.empty())
 				m_szPreviousName = m_szName; // </advc.106k>
+			// <advc.005c>
+			if (!m_szName.empty())
+				GC.getGame().addPastCityName(getName()); // </advc.005c>
 			m_szName = szName;
 
 			setInfoDirty(true);
@@ -9894,8 +9901,7 @@ void CvCity::popOrder(int iNum, bool bFinish,
 				pUnit->move(*pRallyPlot, false, true);
 			if (pUnit->at(*plot()))
 			{
-				pUnit->jumpToNearestValidPlot(); // (as in BtS)
-				bool const bDead = pUnit->isDead();
+				bool const bDead = !pUnit->jumpToNearestValidPlot(); // (as in BtS)
 				if (isActiveOwned())
 				{
 					CvWString szMsg(gDLL->getText("TXT_KEY_AIR_CAPACITY_EXCEEDED",
@@ -10886,7 +10892,8 @@ void CvCity::doReligion()
 				is allowed to spread here, add it to the list. */
 			int iGrip = getReligionGrip(eLoopReligion);
 			// only half the weight for self-spread
-			iGrip += SyncRandNum(iRandomWeight / 2);
+			// advc.173: Instead reduced through XML
+			iGrip += SyncRandNum(iRandomWeight /*/ 2*/);
 			religion_grips.push_back(std::make_pair(iGrip, eLoopReligion));
 		}
 	}
@@ -10977,7 +10984,8 @@ void CvCity::doReligion()
 				FAssert(eWeakestReligion != NO_RELIGION);
 				/*	If the existing religion is weak compared to the new religion,
 					the existing religion can get removed. */
-				int iOdds = getReligionCount() * 100 * (iLoopGrip - iWeakestGrip) /
+				int iOdds = (getReligionCount() - 1) * // advc.173: Don't count eLoopReligion
+						100 * (iLoopGrip - iWeakestGrip) /
 						std::max(1, iLoopGrip);
 				if (SyncRandSuccess100(iOdds))
 				{

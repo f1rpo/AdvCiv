@@ -34,8 +34,8 @@ typedef wchar_t				wchar;
 // <advc> Aliases (also same as WCHAR_MAX, WCHAR_MIN in wchar.h)
 #define MAX_WCHAR							MAX_UNSIGNED_SHORT
 #define MIN_WCHAR							MIN_UNSIGNED_SHORT
-/*	These are unused. FLT_MAX and FLT_MIN are used in a few places,
-	so let's keep using those exclusively. */ // </advc>
+/*	These are unused. FLT_MAX is used in a few places, so let's keep
+	using that exclusively. */ // </advc>
 /*inline DWORD FtoDW( float f ) { return *(DWORD*)&f; }
 inline float DWtoF( dword n ) { return *(float*)&n; }
 inline float MaxFloat() { return DWtoF(0x7f7fffff); }*/

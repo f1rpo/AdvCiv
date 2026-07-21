@@ -53,7 +53,7 @@ bool TeamStepMetric<eMODE>::canStepThrough(CvPlot const& kPlot) const
 			{
 				//bCanal = (kPlot.isImproved() && m_pTeam->isBase(kPlot));
 				/*	^Just too needlessly slow. We check most of the conditions here
-					anyway. As much as I don't like having redundant code ... */
+					anyway. As much as I dislike having redundant code ... */
 				bCanal = (kPlot.isCity() || (kPlot.isImproved() &&
 						GC.getInfo(kPlot.getImprovementType()).isActsAsCity()));
 			}
@@ -162,7 +162,7 @@ int TeamStepMetric<eMODE>::cost(CvPlot const& kFrom, CvPlot const& kTo) const
 	return iCost;
 }
 
-// Eplicit instantiations ...
+// Explicit instantiations ...
 #define DO_FOR_EACH_MODE(DO) \
 		DO(LAND) \
 		DO(ANY_WATER) \

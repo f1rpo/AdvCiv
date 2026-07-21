@@ -358,6 +358,7 @@
 			<bAIAgeOfPollution>1</bAIAgeOfPollution>
 			<bAIAgeOfFertility>1</bAIAgeOfFertility>
 			<bAIAgeOfGuns>1</bAIAgeOfGuns>
+			<bAIAgeOfProduction>1</bAIAgeOfProduction>
 			<!-- advc.erai: end -->
 			<iSoundtrackSpace>120</iSoundtrackSpace>
 			<bFirstSoundtrackFirst>0</bFirstSoundtrackFirst>

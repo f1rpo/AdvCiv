@@ -279,6 +279,8 @@ void CyGamePythonInterface()
 		.def("doControl", &CyGame::doControl, "void (int /*ControlTypes*/ iControl)")
 		// advc.095:
 		.def("setCityBarWidth", &CyGame::setCityBarWidth, "void (bool)")
+		// advc.092c:
+		.def("setHelpTextAreaWidth", &CyGame::setHelpTextAreaWidth, "void (float)")
 		// BULL - AutoSave:
 		.def("saveGame", &CyGame::saveGame, "void saveGame(string fullyQualifiedFileName)")
 		// advc.104:

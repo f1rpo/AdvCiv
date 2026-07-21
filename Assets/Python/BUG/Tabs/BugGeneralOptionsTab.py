@@ -31,6 +31,8 @@ class BugGeneralOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addIntDropdown(screen, left, left, "MainInterface__GraphicsUpdateRate", True)
 		# </advc.256>
 		self.addCheckbox(screen, left, "MainInterface__EnlargeHUD") # advc.092
+		# advc (note): To make the AutoSave module work, the dll=1 requirement
+		# in the Config folder will need to be removed.
 		#self.createAutoSavePanel(screen, center)
 		self.createInfoPanePanel(screen, center)
 		# advc.004k (note): Should remove this spacer if the hide-command options are re-enabled

@@ -24,7 +24,7 @@ public:
 	bool AI_follow(/* K-Mod: */ bool bFirst = true);
 	void AI_upgrade();
 	void AI_promote();
-
+	scaled AI_upgradePriority() const; // advc.131e
 	int AI_groupFirstVal() const;
 	int AI_groupSecondVal() const;
 

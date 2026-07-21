@@ -238,7 +238,7 @@ bool GroupStepMetric::isValidDest(CvPlot const& kPlot, CvSelectionGroup const& k
 #define PATH_DEFENSE_WEIGHT			(7) // defence bonus
 // advc.pf: Was 5 in K-Mod, 3 in BtS.
 #define PATH_TERRITORY_WEIGHT		(9)
-#define PATH_DOW_WEIGHT				(7) // advc.082
+#define PATH_DOW_WEIGHT				(7) // advc.001t
 // advc.pf: Was 4 in K-Mod, 2 in BtS.
 #define PATH_STEP_WEIGHT			(7)
 #define PATH_STRAIGHT_WEIGHT		(2) // K-Mod: was 1
@@ -314,6 +314,11 @@ int GroupStepMetric::cost(CvPlot const& kFrom, CvPlot const& kTo,
 				if it doesn't always work correctly. */
 		}
 	} // </advc.035>
+	TeamTypes const eToPlotTeam = kTo.getTeam();
+	/*	<advc.001t> Don't plan on using enemy routes when declaring war.
+		(Not bothering with CvUnit::isEnemyRoute. AI won't have a DoW group of those. */
+	bool const bIgnoreRoutes = ((eFlags & MOVE_DECLARE_WAR) && eToPlotTeam != NO_TEAM &&
+			GET_TEAM(eTeam).AI_isSneakAttackReady(eToPlotTeam)); // </advc.001t>
 	int iWorstCost = 0;
 	int iWorstMovesLeft = MAX_INT;
 	//int iWorstMaxMoves = MAX_INT; // advc: unused
@@ -322,7 +327,8 @@ int GroupStepMetric::cost(CvPlot const& kFrom, CvPlot const& kTo,
 		FAssert(pGroupUnit->getDomainType() != DOMAIN_AIR);
 		int const iMaxMoves = (iCurrMoves > 0 ? iCurrMoves : pGroupUnit->maxMoves());
 		int const iMoveCost = kTo.movementCost(*pGroupUnit, kFrom,
-				false); // advc.001i
+				false, // advc.001i
+				bIgnoreRoutes); // advc.001t
 		int const iMovesLeft = std::max(0, iMaxMoves - iMoveCost);
 
 		iWorstMovesLeft = std::min(iWorstMovesLeft, iMovesLeft);
@@ -464,16 +470,15 @@ int GroupStepMetric::cost(CvPlot const& kFrom, CvPlot const& kTo,
 		}
 	} //
 
-	// <advc.082>
-	TeamTypes eToPlotTeam = kTo.getTeam();
+	// <advc.001t>
 	/*  The AVOID_ENEMY code in the no-moves-left branch below doesn't stop the AI
 		from trying to move _through_ enemy territory and thus declaring war
 		earlier than necessary */
 	if (bAIControl && (eFlags & MOVE_DECLARE_WAR) && eToPlotTeam != NO_TEAM &&
-		eToPlotTeam != eTeam && GET_TEAM(eTeam).AI_isSneakAttackReady(eToPlotTeam))
+		GET_TEAM(eTeam).AI_isSneakAttackReady(eToPlotTeam))
 	{
 		iWorstCost += PATH_DOW_WEIGHT;
-	} // </advc.082>
+	} // </advc.001t>
 	if (iWorstMovesLeft <= 0)
 	{
 		if (eToPlotTeam != eTeam)
@@ -661,16 +666,22 @@ bool GroupStepMetric::updatePathData(Node& kNode, Node const& kParent,
 				iParentMoves = kGroup.maxMoves();
 			}
 		}
+		// <advc.001t> Consistent with our cost function above
+		bool const bIgnoreRoutes = ((eFlags & MOVE_DECLARE_WAR) && kTo.isOwned() &&
+				GET_TEAM(kGroup.getHeadTeam()).AI_isSneakAttackReady(kTo.getTeam()));
+		// </advc.001t>
 		CLLNode<IDInfo> const* pUnitNode = kGroup.headUnitNode();
 		int iMoveCost = kTo.movementCost(*::getUnit(pUnitNode->m_data), kFrom,
-				false); // advc.001i
+				false, // advc.001i
+				bIgnoreRoutes); // advc.001t
 		bool bUniformCost = true;
 		for (pUnitNode = kGroup.nextUnitNode(pUnitNode);
 			bUniformCost && pUnitNode != NULL; pUnitNode = kGroup.nextUnitNode(pUnitNode))
 		{
 			CvUnit const* pLoopUnit = ::getUnit(pUnitNode->m_data);
 			int iLoopCost = kTo.movementCost(*pLoopUnit, kFrom,
-					false); // advc.001i
+					false, // advc.001i
+					bIgnoreRoutes); // advc.001t
 			if (iLoopCost != iMoveCost)
 				bUniformCost = false;
 		}
@@ -706,7 +717,11 @@ bool GroupStepMetric::updatePathData(Node& kNode, Node const& kParent,
 				for (size_t i = plotList.size() - 1; i > 0; i--)
 				{
 					iUnitMoves -= plotList[i-1]->movementCost(*pLoopUnit, *plotList[i],
-							false); // advc.001i
+							false, // advc.001i
+							// <advc.001t>
+							((eFlags & MOVE_DECLARE_WAR) && plotList[i-1]->isOwned() &&
+							GET_TEAM(kGroup.getHeadTeam()).AI_isSneakAttackReady(
+							plotList[i-1]->getTeam()))); // </advc.001t>
 					FAssert(iUnitMoves > 0 || i == 1);
 				}
 				iUnitMoves = std::max(iUnitMoves, 0);

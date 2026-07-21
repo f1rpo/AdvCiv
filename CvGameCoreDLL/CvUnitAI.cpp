@@ -207,7 +207,14 @@ bool CvUnitAI::AI_update()
 				return false;
 		}
 	} // </advc.139>
-
+	/*	<advc> A frequent breakpoint for debugging, and usually on the stack
+		when breaking elsewhere. */
+#ifdef _DEBUG
+	CvCity* pCityDbg = getPlot().getPlotCity();
+	int iGroupSzDbg = getGroup()->getNumUnits();
+	char const* szTypeDbg = m_pUnitInfo->getType();
+#endif
+	// </advc>
 	switch (eUnitAI)
 	{
 	case UNITAI_UNKNOWN:
@@ -412,9 +419,9 @@ void CvUnitAI::AI_upgrade()
 	if (!isReadyForUpgrade())
 		return;
 
-	const CvPlayerAI& kOwner = GET_PLAYER(getOwner());
-	UnitAITypes eUnitAI = AI_getUnitAIType();
-	CvArea* pArea = area();
+	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
+	UnitAITypes const eUnitAI = AI_getUnitAIType();
+	CvArea const* pArea = area();
 
 	int iBestValue = kOwner.AI_unitValue(getUnitType(), eUnitAI, pArea) * 100;
 	UnitTypes eBestUnit = NO_UNIT;
@@ -501,6 +508,15 @@ void CvUnitAI::AI_promote()
 		promote(eBestPromotion);
 		AI_promote();
 	}
+}
+
+/*	advc.131e: The higher, the greater the priority. Can be negative when
+	a lot of XP will be lost. Most of the prioritization still happens in
+	CvPlayerAI::AI_doTurnUnitsPost; should perhaps move here. */
+scaled CvUnitAI::AI_upgradePriority() const
+{	/*	The post-upgrade XP with extra weight for the (normally non-positive)
+		change upon upgrading */
+	return getExperience() + fixp(1.6) * upgradeXPChange();
 }
 
 // <advc.003u>, advc.003s
@@ -1280,10 +1296,12 @@ bool CvUnitAI::AI_considerPathDOW(CvPlot const& kPlot, MovementFlags eFlags)
 	}
 
 	bool bDOW = false;
-	GroupPathNode* pNode = getPathFinder().getEndNode(); // TODO: rewrite so that getEndNode isn't used.
+	/*	TODO: rewrite so that getEndNode isn't used.
+		(advc: And how would we do that?) */
+	GroupPathNode* pNode = getPathFinder().getEndNode();
 	while (!bDOW && pNode != NULL)
 	{
-		CvPlot const& kLoopPlot = pNode->getPlot(); // advc
+		CvPlot const& kLoopPlot = pNode->getPlot();
 		/*  we need to check DOW even for moves several turns away -
 			otherwise the actual move mission may fail to find a path.
 			however, I would consider it irresponsible to call this function for multi-move missions.
@@ -2651,12 +2669,17 @@ void CvUnitAI::AI_attackMove()
 
 		if (kOwner.getNumCities() > 1 && getGroup()->getNumUnits() == 1)
 		{
-			if (getArea().getAreaAIType(getTeam()) != AREAAI_DEFENSIVE)
+			//if (getArea().getAreaAIType(getTeam()) != AREAAI_DEFENSIVE)
+			if (!kOwner.AI_isFocusWar()) // advc.105
 			{
 				if (getArea().getNumUnrevealedTiles(getTeam()) > 0)
 				{
 					if (kOwner.AI_areaMissionAIs(getArea(), MISSIONAI_EXPLORE, getGroup()) <
-						kOwner.AI_neededExplorers(getArea()) + 1)
+						kOwner.AI_neededExplorers(getArea()) +
+						// <advc.300> Was unconditionally +1
+						((kOwner.AI_isDefenseFocusOnBarbarians(getArea()) &&
+						plotDistance(plot(), kOwner.getCapital()->plot()) > 5) ? 0 : 1))
+						// </advc.300>
 					{
 						if (AI_exploreRange(3))
 						{
@@ -2845,7 +2868,7 @@ void CvUnitAI::AI_paratrooperMove()
 		if (AI_anyAttack(1, 45, 0, 3))
 			return;
 	}*/ // disabled by K-Mod. (redundant)
-	if (AI_pillageRange(1, 15))
+	if (AI_pillageRange(1, 13)) // advc.083: was 15
 	{
 		return;
 	}
@@ -3008,7 +3031,7 @@ void CvUnitAI::AI_attackCityMove()
 		advc (note): There are a couple of exceptions where NO_MOVEMENT_FLAGS
 		is used. I guess this was done on purpose(?). */
 	MovementFlags const eMoveFlags = (MOVE_AVOID_ENEMY_WEIGHT_2 |
-			(bReadyToAttack ? MOVE_ATTACK_STACK | MOVE_DECLARE_WAR : NO_MOVEMENT_FLAGS));
+			(bReadyToAttack ? (MOVE_ATTACK_STACK | MOVE_DECLARE_WAR) : NO_MOVEMENT_FLAGS));
 
 	// K-Mod. Barbarian stacks should be reckless and unpredictable.
 	if (isBarbarian())
@@ -3167,7 +3190,7 @@ void CvUnitAI::AI_attackCityMove()
 					{
 						return;
 					}
-					if (canBombard(getPlot()))
+					if (getGroup()->canBombard(getPlot())) // advc.001j: check group
 					{
 						getGroup()->pushMission(MISSION_BOMBARD, -1, -1, NO_MOVEMENT_FLAGS,
 								false, false, MISSIONAI_ASSAULT, pTargetCity->plot());
@@ -3602,9 +3625,11 @@ void CvUnitAI::AI_attackCityMove()
 						and that'll fail b/c AI_safety has already failed. */
 					CvCity* pAreaTargetCity = getArea().AI_getTargetCity(getOwner());
 					if (pAreaTargetCity != NULL)
-					{	/*  advc: One way that this can happen: Owner is at war with a civ that
-							it can only reach through the territory of a third party (no OB) and
-							is preparing war against the third party.
+					{	/*  advc: Possibly due to an inconsistency between the ratio
+							calculation in this function and that in AI_stackAttackCity.
+							A more obscure way we can end up here: Owner at war with a civ
+							that it can only reach through the territory of a third party
+							(no OB) and is preparing war against the third party.
 							AI_pickTargetCity will then pick a city of the current war enemy, but
 							the Area AI will be set to a non-ASSAULT type, meaning that AI_attackCityMove
 							will (in vain) look for a land path. AI_solveBlockageProblem will then (always?)
@@ -3937,7 +3962,7 @@ void CvUnitAI::AI_pillageMove()
 	/*	K-Mod. Pillage units should focus on pillaging, when possible.
 		note: having 2 moves doesn't necessarily mean we can
 		move & pillage in the same turn, but it's a good enough approximation. */
-	if (AI_pillageRange(getGroup()->baseMoves() > 1 ? 1 : 0, 11))
+	if (AI_pillageRange(getGroup()->baseMoves() > 1 ? 1 : 0, 10)) // advc.083: thresh was 11
 	{
 		return;
 	}
@@ -4002,7 +4027,7 @@ void CvUnitAI::AI_pillageMove()
 
 	if (getArea().getAreaAIType(getTeam()) == AREAAI_OFFENSIVE || isEnemy(getPlot()))
 	{
-		if (AI_pillage(20))
+		if (AI_pillage(12 + GET_PLAYER(getOwner()).AI_getCurrEra())) // advc.083: was 20
 		{
 			return;
 		}
@@ -4029,7 +4054,7 @@ void CvUnitAI::AI_pillageMove()
 	}
 
 	if (!isHuman() && getPlot().isCoastalLand() &&
-		/*  advc.046: SKIP w/o setting eMissionAI would make the group forget
+		/*  advc.046: SKIP w/o setting eMissionAI will make the group forget
 			that it's stranded, and then AI_pickupStranded won't find it. */
 		!AI_getGroup()->AI_isStranded() &&
 		GET_PLAYER(getOwner()).AI_isAnyUnitTargetMissionAI(*this, MISSIONAI_PICKUP))
@@ -4047,6 +4072,42 @@ void CvUnitAI::AI_pillageMove()
 	if (AI_handleStranded())
 		return;
 	// K-Mod end
+	// <advc.017b>
+	UnitAITypes const eConvertAI = (AI_getBirthmark() % 3 == 0 ? UNITAI_ATTACK
+			: UNITAI_ATTACK_CITY);
+	if (getArea().getAreaAIType(getTeam()) == AREAAI_OFFENSIVE &&
+		getPlot().isCity() &&
+		/*	Somewhat mirrors an invaderWeight condition in CvCityAI::
+			AI_chooseProduction - but the correspondence isn't consequential. */
+		GET_PLAYER(getOwner()).AI_totalAreaUnitAIs(getArea(), UNITAI_PILLAGE) * 7 >
+		getArea().getCitiesPerPlayer(getOwner()) * 2 &&
+		GET_PLAYER(getOwner()).AI_unitValue(
+		getUnitType(), eConvertAI, area()) > 0 &&
+		GET_TEAM(getTeam()).AI_getEnemyPowerPercent() > 50)
+	{
+		for (PlayerIter<ALIVE,/*KNOWN_POTENTIAL_*/ENEMY_OF> itEnemy(getTeam());
+			itEnemy.hasNext(); ++itEnemy)
+		{	/*	Better only consider switching the unit type once already at
+				war. Before that, we can't easily tell if there's anything
+				important to pillage. */
+			/*if (!GET_TEAM(getTeam()).AI_mayAttack(itEnemy->getTeam()))
+				continue;*/
+			FOR_EACH_CITY(pEnemyCity, *itEnemy)
+			{
+				if (!pEnemyCity->isRevealed(getTeam()) ||
+					!pEnemyCity->isArea(getArea()))
+				{
+					continue;
+				}
+				if (generatePath(pEnemyCity->getPlot(),
+					MOVE_ATTACK_STACK/* | MOVE_DECLARE_WAR*/))
+				{
+					AI_setUnitAIType(eConvertAI);
+					return;
+				}
+			}
+		}
+	} // </advc.017b>
 
 	if (AI_retreatToCity())
 	{
@@ -5011,6 +5072,7 @@ void CvUnitAI::AI_greatPersonMove()
 	// 3) Attempt to carry out missions, starting with the highest value.
 
 	CvPlot* pBestPlot = NULL;
+	CvCity const* pBestCity = NULL; // advc.001 (from SAS)
 	SpecialistTypes eBestSpecialist = NO_SPECIALIST;
 	BuildingTypes eBestBuilding = NO_BUILDING;
 	int iBestValue = 1;
@@ -5041,6 +5103,9 @@ void CvUnitAI::AI_greatPersonMove()
 				{
 					iBestValue = iValue;
 					pBestPlot = &getPathEndTurnPlot();
+					// <advc.001> (from SAS)
+					pBestCity = pLoopCity;
+					iBestPathTurns = iPathTurns; // </advc.001>
 					eBestSpecialist = eLoopSpecialist;
 					eBestBuilding = NO_BUILDING;
 				}
@@ -5062,6 +5127,9 @@ void CvUnitAI::AI_greatPersonMove()
 				{
 					iBestValue = iValue;
 					pBestPlot = &getPathEndTurnPlot();
+					// <advc.001> (from SAS)
+					pBestCity = pLoopCity;
+					iBestPathTurns = iPathTurns; // </advc.001>
 					eBestBuilding = eBuilding;
 					eBestSpecialist = NO_SPECIALIST;
 				}
@@ -5106,6 +5174,7 @@ void CvUnitAI::AI_greatPersonMove()
 				{
 					iBestValue = iValue;
 					pBestPlot = &getPathEndTurnPlot();
+					pBestCity = pLoopCity; // advc.001 (from SAS)
 					iBestPathTurns = iPathTurns;
 					eBestBuilding = eBuilding;
 					eBestSpecialist = NO_SPECIALIST;
@@ -5361,7 +5430,9 @@ void CvUnitAI::AI_greatPersonMove()
 			}
 			if (eBestBuilding != NO_BUILDING)
 			{
-				MissionAITypes eMissionAI = canConstruct(pBestPlot, eBestBuilding) ? MISSIONAI_CONSTRUCT : MISSIONAI_HURRY;
+				MissionAITypes eMissionAI = canConstruct(
+						pBestCity->plot(), // advc.001: was pBestPlot
+						eBestBuilding) ? MISSIONAI_CONSTRUCT : MISSIONAI_HURRY;
 				if (gUnitLogLevel > 2) logBBAI("    %S %s 'build' (%S) with their %S (value: %d, choice #%d)", GET_PLAYER(getOwner()).getCivilizationDescription(0), AI_getGroup()->AI_getMissionAIType() == eMissionAI?"continues" :"chooses", GC.getInfo(eBestBuilding).getDescription(), getName(0).GetCString(), iSlowValue, iChoice);
 				if (at(*pBestPlot))
 				{
@@ -9715,8 +9786,8 @@ bool CvUnitAI::AI_omniGroup(UnitAITypes eUnitAI, int iMaxGroup, int iMaxOwnUnitA
 					can't rely on head having the most impassable types. */
 				if (kHeadUnit.AI_getUnitAIType() == UNITAI_ASSAULT_SEA)
 				{
-					for (pUnitNode = getGroup()->nextUnitNode(pUnitNode);
-						pUnitNode != NULL; pUnitNode = getGroup()->nextUnitNode(pUnitNode))
+					for (pUnitNode = pLoopGroup->nextUnitNode(pUnitNode);
+						pUnitNode != NULL; pUnitNode = pLoopGroup->nextUnitNode(pUnitNode))
 					{
 						CvUnit const& kUnit = *::getUnit(pUnitNode->m_data);
 						uiTheirMaxImpassables = std::max(uiTheirMaxImpassables,
@@ -13578,8 +13649,8 @@ CvCity* CvUnitAI::AI_pickTargetCity(MovementFlags eFlags, int iMaxPathTurns,
 
 /*	BETTER_BTS_AI_MOD, 03/29/10, jdog5000 (War tactics AI, Efficiency):
 	(K-Mod has apparently merged BBAI's AI_goToTargetBarbCity into this) */
-bool CvUnitAI::AI_goToTargetCity(MovementFlags eFlags,  // advc: some refactoring
-	int iMaxPathTurns, CvCity* pTargetCity)
+bool CvUnitAI::AI_goToTargetCity(MovementFlags eFlags, int iMaxPathTurns,
+	CvCity* pTargetCity)
 {
 	PROFILE_FUNC();
 
@@ -13613,7 +13684,7 @@ bool CvUnitAI::AI_goToTargetCity(MovementFlags eFlags,  // advc: some refactorin
 			int iPathTurns;
 			if (!generatePath(*pAdj, eFlags, true, &iPathTurns, iMaxPathTurns))
 				continue;
-			if(iPathTurns <= iMaxPathTurns &&
+			if (iPathTurns <= iMaxPathTurns &&
 				/*  advc.083: This was previously asserted after the loop ("no suicide missions...")
 					but not actually guaranteed by the loop. If the pathfinder thinks
 					that it's OK to move through the city, then we might as well
@@ -13667,11 +13738,11 @@ bool CvUnitAI::AI_goToTargetCity(MovementFlags eFlags,  // advc: some refactorin
 
 	/*  <advc.001t> Needed when called from AI_attackMove. Attack stacks aren't supposed
 		to declare war, and they shouldn't move into enemy cities when war is imminent. */
-	if(!(eFlags & MOVE_DECLARE_WAR) && GET_TEAM(getTeam()).
+	if (!(eFlags & MOVE_DECLARE_WAR) && GET_TEAM(getTeam()).
 		AI_isSneakAttackReady(pTargetCity->getTeam()))
 	{
 		TeamTypes eBestPlotTeam = pBestPlot->getTeam();
-		if(eBestPlotTeam != NO_TEAM && GET_TEAM(eBestPlotTeam).getMasterTeam() ==
+		if (eBestPlotTeam != NO_TEAM && GET_TEAM(eBestPlotTeam).getMasterTeam() ==
 			GET_TEAM(pTargetCity->getTeam()).getMasterTeam())
 		{
 			return false;
@@ -13682,39 +13753,38 @@ bool CvUnitAI::AI_goToTargetCity(MovementFlags eFlags,  // advc: some refactorin
 	// K-Mod start
 	if (AI_considerPathDOW(*pEndTurnPlot, eFlags))
 	{	// <advc.163>
-		if(!canMove())
+		if (!canMove())
 			return true; // </advc.163>
-		/*  regenerate the path, just in case we want to take a different route after the DOW
+		/*  regenerate the path after the DOW
 			(but don't bother recalculating the best destination)
 			Note. if the best destination happens to be on the border,
 			and has a stack of defenders on it, this will make us attack them.
 			That's bad. I'll try to fix that in the future. */
-		if (!generatePath(*pBestPlot, eFlags, false))
+		if (!generatePath(*pBestPlot, eFlags))
 			return false;
-		CvPlot* pEnemyPlot = pEndTurnPlot; // advc.001t
+		CvPlot* pPreDoWEndTurnPlot = pEndTurnPlot; // advc.001t
 		pEndTurnPlot = &getPathEndTurnPlot();
 		// <advc.139> Don't move through city that is about to be lost
 		CvCityAI const* pPlotCity = pEndTurnPlot->AI_getPlotCity();
-		if(pPlotCity != NULL && pPlotCity->AI_isEvacuating())
+		if (pPlotCity != NULL && pPlotCity->AI_isEvacuating())
 			return false; // </advc.139>
-		// <advc.001t>
-		if(!isEnemy(*pEndTurnPlot))
+		/*	<advc.001t> A DoW on a human and no immediately invading stack will
+			cause confusion, and makes the AI look inept. */
+		if (!isEnemy(*pEndTurnPlot) && pTargetCity->isHuman())
 		{
-			// This will trigger a few times in most games
-			/*FAssertMsg(isEnemy(pEndTurnPlot->getTeam()),
-				"Known issue: AI may change its mind about the path to the target city "
-				"after declaring war; temporary fix: stick to the original path.");*/
-			if(isEnemy(*pEnemyPlot))
-				pEndTurnPlot = pEnemyPlot;
-			else FAssert(isEnemy(pEnemyPlot->getTeam()));
-			/*  If the else... assert fails, it's probably b/c the stack has multiple
-				moves and there is an intermediate tile that requires a DoW. So this
-				can be fine. Could check this through getPathFinder().GetEndNode()
-				like it's done in AI_considerPathDOW -- tbd.? */
+			/*	Consider going back to the original path - even if it's not optimal.
+				(If our group has multiple moves, then we should really also
+				check for enemy plots along the path; but that's too rare
+				to worry about.) */
+			if (isEnemy(*pPreDoWEndTurnPlot) && generatePath(*pPreDoWEndTurnPlot, eFlags))
+				pEndTurnPlot = pPreDoWEndTurnPlot;
+			/*	Could be that neither path ends in an enemy plot; especially (only?)
+				when our group has multiple moves. */
 		} // </advc.001t>
 	}
 	pushGroupMoveTo(*pEndTurnPlot,
-			// I'm going to use MISSIONAI_ASSAULT signal to our spies and other units that we're attacking this city.
+			/*	Using the mission AI type to signal to our spies
+				and other units that we're attacking this city. */
 			eFlags, false, false, MISSIONAI_ASSAULT, pTargetCity->plot());
 	// K-Mod end
 	return true;
@@ -13839,7 +13909,7 @@ bool CvUnitAI::AI_bombardCity()
 		break; // assume there can only be one city adjacent to us
 	}
 
-	if (!canBombard(getPlot()))
+	if (!getGroup()->canBombard(getPlot())) // advc.001j: check group
 		return false;
 
 	CvCity* pBombardCity = bombardTarget(getPlot());
@@ -14089,7 +14159,9 @@ bool CvUnitAI::AI_anyAttack(int iRange, int iOddsThreshold, MovementFlags eFlags
 			return false;
 		pBestPlot = &getPathEndTurnPlot();
 	}
-	if (bFollow && AI_isAnyEnemyDefender(*pBestPlot))
+	if (bFollow && AI_isAnyEnemyDefender(*pBestPlot) &&
+		// advc.001: Group lead by settler. Best way to handle this?
+		canMoveOrAttackInto(*pBestPlot, bDeclareWar))
 	{
 		/*	we need to ungroup to capture the undefended unit / city.
 			(because not everyone in our group can move) */
@@ -14586,7 +14658,7 @@ bool CvUnitAI::AI_blockade()
 		iValue += GET_PLAYER(getOwner()).AI_adjacentPotentialAttackers(pCity->getPlot());
 		iValue += 3 * GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(
 				pCity->getPlot(), MISSIONAI_ASSAULT, getGroup(), 2);
-		if (canBombard(kPlot))
+		if (getGroup()->canBombard(kPlot)) // advc.001j: check group
 			iValue *= 2;
 		iValue *= 1000;
 		iValue /= (iPathTurns + 1);
@@ -14626,7 +14698,7 @@ bool CvUnitAI::AI_blockade()
 
 	if (at(*pBestBlockadePlot))
 	{
-		if (canBombard(getPlot()))
+		if (getGroup()->canBombard(getPlot())) // advc.001j: check group
 		{
 			getGroup()->pushMission(MISSION_BOMBARD, -1, -1, NO_MOVEMENT_FLAGS,
 					false, false, MISSIONAI_BLOCKADE, pBestBlockadePlot);
@@ -14701,8 +14773,7 @@ bool CvUnitAI::AI_pirateBlockade()
 	for (int i = 0; i < GC.getMap().numPlots(); i++)
 	{
 		CvPlot const& kPlot = GC.getMap().getPlotByIndex(i);
-		// advc: Reduce indentation
-		if(!kPlot.isRevealed(getTeam()) || // advc.opt
+		if (!kPlot.isRevealed(getTeam()) || // advc.opt
 			!AI_plotValid(kPlot) ||
 			kPlot.isVisibleEnemyUnit(this) || !canPlunder(kPlot) ||
 			//SyncRandSuccessRatio(3, 4) ||
@@ -15095,7 +15166,8 @@ bool CvUnitAI::AI_pillage(int iBonusValueThreshold, MovementFlags eFlags)
 						if (iValue > iBestValue)
 						{
 							int iPathTurns;
-							if (generatePath(kPlot, eFlags, true, &iPathTurns))
+							if (generatePath(kPlot, eFlags, true, &iPathTurns,
+								8)) // advc.083: Don't move in arbitrarily deep
 							{
 								iValue /= (iPathTurns + 1);
 								if (iValue > iBestValue)
@@ -21238,7 +21310,7 @@ bool CvUnitAI::AI_airAttackDamagedSkip()
 	-- or we should wait for another unit to bombard... */
 bool CvUnitAI::AI_followBombard()
 {
-	if (canBombard(getPlot()))
+	if (getGroup()->canBombard(getPlot())) // advc.001j: check group
 	{
 		getGroup()->pushMission(MISSION_BOMBARD);
 		return true;

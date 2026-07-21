@@ -7,7 +7,8 @@
 	disable all popups by overloading operator new. That said, it looks
 	like one could also disable all popups in CvPlayer::addPopup.
 	So I'm not sure if that was really the idea and whether those NULL checks
-	serve any reasonable purpose. */
+	serve any reasonable purpose. Even if they do, wrapping those checks
+	into a factory function would be much better. */
 
 CvPopupInfo::CvPopupInfo(
 	ButtonPopupTypes eButtonPopupType,

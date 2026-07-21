@@ -1,8 +1,9 @@
-// trs.092b: New implementation file; see comment in header.
+// advc.092b: New implementation file; see comment in header.
 #include "CvGameCoreDLL.h"
 #include "SelfMod.h"
 #include "CvGame.h"
 #include "CvBugOptions.h"
+#include "CvGameTextMgr.h"
 
 Civ4BeyondSwordPatches smc::BtS_EXE;
 
@@ -60,7 +61,7 @@ protected:
 		that has been reverse-engineered to write this class. I don't think a
 		compatibility layer should make a difference. Large address awareness
 		has been tested both ways. It's unclear whether different builds exist
-		apart from the incompatible Steam version. Localized editions perhaps. 
+		apart from the (default) Steam version. Localized editions perhaps. 
 		So this hasn't really been tested; it's a better-than-nothing effort to
 		align a starting address at which a certain sequence of code bytes is
 		expected with the address, if any, at which the sequence is actually found.
@@ -71,7 +72,7 @@ protected:
 		byte* pNeedleBytes, int iNeedleBytes, uint uiExpectedStart,
 		/*	Shorter sequence to check for upfront, to save time.
 			If found at uiQuckTestStart, then an offset of 0 is returned
-			w/o checking pNeeldeBytes. */
+			w/o checking pNeedleBytes. */
 		byte* pQuickTestBytes = NULL, int iQuickTestBytes = 0, uint uiQuickTestStart = 0,
 		/*	How big an offset we contemplate. Not going to search the
 			entire virtual memory*/
@@ -120,10 +121,6 @@ private:
 			m_iAddressOffset = 0;
 			return;
 		}
-		/*	Would be safer to be aware of the few different builds that (may) exist
-			and to hardcode offsets for them. So this is a problem worth reporting,
-			even if we can recover. */
-		FAssertMsg(pQuickTestBytes == NULL, "Trying to compensate through address offset");
 		int iAddressOffset = 0;
 		// Base address of the EXE. Reading below that results in a crash.
 		int const iLowAddressBound = 0x00400000;
@@ -163,15 +160,17 @@ private:
 			m_iAddressOffset = MIN_INT;
 			return;
 		}
-		// Run our initial test again to be on the safe side
-		if (pQuickTestBytes != NULL &&
+		/*	Run our initial test again to be on the safe side?
+			Not likely to work. These offsets can only be used in close proximity,
+			if at all. */
+		/*if (pQuickTestBytes != NULL &&
 			!testCodeLayout(pQuickTestBytes, iQuickTestBytes,
 			uiQuickTestStart + iAddressOffset))
 		{
 			FErrorMsg("Address offset discarded; likely incorrect.");
 			m_iAddressOffset = MIN_INT;
 			return;
-		}
+		}*/
 		m_iAddressOffset = iAddressOffset;
 		return;
 	}
@@ -190,8 +189,8 @@ bool SelfMod::testCodeLayout(byte* pBytes, int iBytes, uint uiStart) const
 						until SelfMod is finished */
 					"Debugger breakpoint?");
 		#endif
-			FErrorMsg("Unexpected memory layout of EXE"
-				" (Steam version? will need to switch to \"unsupported beta\" version of BtS)");
+			/*FErrorMsg("Unexpected memory layout of EXE"
+				" (Steam version? May need to switch to \"unsupported beta\" version of BtS)");*/
 			return false;
 		}
 	}
@@ -299,24 +298,41 @@ protected:
 			 004649A9	call dword ptr ds:[0BC1E64h] */
 		byte aQuickTestBytes[] = { 0xFF, 0x15, 0x64, 0x1E, 0xBC, 0x00 };
 		/*	Longer sequence to search for if we have to find an address offset.
-			The first 27 instructions at the start of the function that calls
+			25 instructions near the start of the function that calls
 			CvPlayer::getGlobeLayerColors. This is a fairly long sequence w/o any
 			absolute addresses in operands. After this sequence, there are a bunch
-			of DLL calls, the last one being CvPlayer::getGlobeLayerColors. */
+			of DLL calls, the last one being CvPlayer::getGlobeLayerColors.
+			I've verified that this sequence exists in the Steamless (unpacked)
+			version of the Steam BtS EXE on disk, namely at 0x00464F88, i.e. at
+			an offset of 1616. */
 		byte aNeedleBytes[] = {
-			0x6A, 0xFF, 0x68, 0x15, 0xB9, 0xA3, 0x00, 0x64, 0xA1, 0x00, 0x00, 0x00,
-			0x00, 0x50, 0x64, 0x89, 0x25, 0x00, 0x00, 0x00, 0x00, 0x83, 0xEC, 0x68,
-			0x53, 0x55, 0x56, 0x57, 0x33, 0xFF, 0x89, 0x7C, 0x24, 0x54, 0x89, 0x7C,
-			0x24, 0x58, 0x89, 0x7C, 0x24, 0x5C, 0x89, 0xBC, 0x24, 0x80, 0x00, 0x00,
-			0x00, 0x89, 0x7C, 0x24, 0x44, 0x89, 0x7C, 0x24, 0x48, 0x89, 0x7C, 0x24,
-			0x4C, 0x8D, 0x54, 0x24, 0x40, 0x52, 0xC6, 0x84, 0x24, 0x84, 0x00, 0x00,
-			0x00, 0x01, 0x8B, 0x41, 0x04, 0x8D, 0x54, 0x24, 0x54, 0x52, 0x50, 0x8B,
-			0x41, 0x08, 0x50 
+			0xA1, 0x00, 0x00, 0x00, 0x00, 0x50, 0x64, 0x89, 0x25, 0x00, 0x00,
+			0x00, 0x00, 0x83, 0xEC, 0x68, 0x53, 0x55, 0x56, 0x57, 0x33, 0xFF,
+			0x89, 0x7C, 0x24, 0x54, 0x89, 0x7C, 0x24, 0x58, 0x89, 0x7C, 0x24,
+			0x5C, 0x89, 0xBC, 0x24, 0x80, 0x00, 0x00, 0x00, 0x89, 0x7C, 0x24,
+			0x44, 0x89, 0x7C, 0x24, 0x48, 0x89, 0x7C, 0x24, 0x4C, 0x8D, 0x54,
+			0x24, 0x40, 0x52, 0xC6, 0x84, 0x24, 0x84, 0x00, 0x00, 0x00, 0x01,
+			0x8B, 0x41, 0x04, 0x8D, 0x54, 0x24, 0x54, 0x52, 0x50, 0x8B, 0x41,
+			0x08, 0x50
 		};
-		int iAddressOffset = findAddressOffset(
-				aNeedleBytes, ARRAYSIZE(aNeedleBytes), 0x00464930,
+		int iNeedleOffset = findAddressOffset(
+				aNeedleBytes, ARRAYSIZE(aNeedleBytes), 0x00464938,
 				aQuickTestBytes, ARRAYSIZE(aQuickTestBytes), 0x004649A9);
-		if (iAddressOffset == MIN_INT)
+		/*	This offset is too far away from most of the code locations. Would
+			need two more search patterns. I'll just hardcode the offsets
+			instead and use the calculated offset only as confirmation that
+			we're dealing with Steam. */
+		/*if (iNeedleOffset == MIN_INT)
+			return false;*/
+		int aAdressOffsets[4] = {};
+		if (iNeedleOffset == 1616)
+		{
+			aAdressOffsets[0] = 1616;
+			aAdressOffsets[1] = 704;
+			aAdressOffsets[2] = 544;
+			aAdressOffsets[3] = 544;
+		}
+		else if (iNeedleOffset != 0)
 			return false;
 
 		// Finally apply the actual patch
@@ -324,8 +340,8 @@ protected:
 		{
 			float fSize = (i >= 3 ? ffBaseSize.offScreen : ffBaseSize.onScreen);
 			uint uiCodeAddress = aCodeAdresses[i] + aOperandOffsets[i];
-			FAssert(((int)uiCodeAddress) > -iAddressOffset);
-			uiCodeAddress += iAddressOffset;
+			FAssert(((int)uiCodeAddress) > -aAdressOffsets[i]);
+			uiCodeAddress += aAdressOffsets[i];
 			if (!unprotectPage(reinterpret_cast<LPVOID>(uiCodeAddress), sizeof(float)))
 				return false;
 			*reinterpret_cast<float*>(uiCodeAddress) = fSize;
@@ -347,6 +363,75 @@ private:
 		}
 		float onScreen, offScreen;
 	};
+};
+
+// advc.092c:
+class HelpTextAreaWidthMod : public SelfMod
+{
+public:
+	HelpTextAreaWidthMod(double dTargetWidth) : m_dTargetWidth(dTargetWidth) {}
+protected:
+	bool apply() // override
+	{
+		byte const iTargetMultiplicand = calculateTargetMultiplicand();
+		/*	The multiplicand is hardcoded as a single-byte immediate operand:
+			|Code addr.| Disassembly						| Code bytes
+			------------------------------------------------------------------------------
+			 00559A91	push 1Dh							  6A 1D
+			------------------------------------------------------------------------------
+			This is in a function that seems to get called (only?) via
+			CyGInterface.setHelpTextArea - and probably not directly from that
+			function and not on every call of it (reliably on the first call,
+			it seems). The push comes before calling some setter member function. */
+		uint uiCodeAddress = 0x00559A91;
+		/*	Before applying our patch, let's confirm that the code is layed out
+			in memory as we expect it to be. This is right up to the byte that
+			we wish to change. */
+		byte aQuickTestBytes[] = { 0x8B, 0x4E, 0x7C, 0x6A };
+		/*	Longer sequence to search for if we have to find an address offset.
+			A group of 12 instructions that contain no absolute addresses, a few
+			instructions before the one we wish to change.*/
+		byte aNeedleBytes[] = {
+			0x8B, 0x11, 0x55, 0xff, 0x52, 0x10, 0x8B, 0xCF, 0x89, 0x7E, 0x7C,
+			0x8B, 0x41, 0x58, 0x8B, 0x51, 0x5C, 0x80, 0xE4, 0xBF, 0x80, 0xCC,
+			0x30, 0x55, 0x52, 0x50
+		};
+		int iAddressOffset = findAddressOffset(
+				aNeedleBytes, ARRAYSIZE(aNeedleBytes), 0x00559A6F,
+				aQuickTestBytes, ARRAYSIZE(aQuickTestBytes), 0x00559A8E);
+		if (iAddressOffset == MIN_INT)
+			return false;
+		/*	In the default Steam version, I find the needle at 0x0055AD2F and
+			the corresponding offset (4800) should also be valid for the code byte
+			that we'll change. If the offset is different, then I don't know
+			what we're dealing with. Pitboss possibly. */
+		FAssertMsg(iAddressOffset == 0 || iAddressOffset == 4800,
+				"Unrecognized version of the BtS executable; might still work.");
+		// Apply our patch
+		uiCodeAddress += 1; // Offset for the operand
+		FAssert(((int)uiCodeAddress) > -iAddressOffset);
+		uiCodeAddress += iAddressOffset;
+		if (!unprotectPage(reinterpret_cast<LPVOID>(uiCodeAddress), sizeof(byte)))
+			return false;
+		*reinterpret_cast<byte*>(uiCodeAddress) = iTargetMultiplicand;
+		return true;
+	}
+	
+private:
+	double const m_dTargetWidth;
+	byte calculateTargetMultiplicand()
+	{
+		/*	The EXE seems to convert the font size set by the theme to a somewhat
+			smaller scale, perhaps one expressing the horizontal space taken up. */
+		double dFontFactorInternal = floor(GAMETEXT.getHelpFontSize() / 1.5);
+		/*	The total width seems to get calculated as a hardcoded constant times
+			the font size factor */
+		double const dMultiplicandInternal = 29;
+		double dWidthInternal = std::max<double>(dFontFactorInternal, 5) * dMultiplicandInternal;
+		double dAdjustmentFactor = m_dTargetWidth / dWidthInternal;
+		return safeIntCast<byte>(fmath::round(
+				dMultiplicandInternal * dAdjustmentFactor));
+	}
 };
 
 } // (end of unnamed namespace)
@@ -381,6 +466,17 @@ void Civ4BeyondSwordPatches::patchPlotIndicatorSize()
 		showErrorMsgToPlayer(
 				"Failed to change balloon icon size. To avoid seeing "
 				"this error message, set the size to \"BtS\" on the Map tab "
-				"of the BUG menu");
+				"of the BUG menu. If using Steam, consider installing the "
+				"\"unsupported beta\" version of BtS.");
 	}
+}
+
+// advc.092c:
+void Civ4BeyondSwordPatches::setHelpTextAreaSize(float fWidth)
+{
+	if (abs(fWidth - getHelpTextAreaWidth()) < 0.5f)
+		return;
+	m_fHelpTextAreaWidth = fWidth;
+	if (!HelpTextAreaWidthMod(fWidth).applyIfEnabled())
+		FErrorMsg("Failed to change help text area width");
 }

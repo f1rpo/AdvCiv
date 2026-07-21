@@ -401,6 +401,14 @@ bool CvTeamAI::AI_hasSharedPrimaryArea(TeamTypes eTeam) const
 	return false;
 }
 
+namespace
+{	// advc.300:
+	int presenceScore(int iCities, int iPop)
+	{
+		return iCities * iCities - iCities + 2 * iPop;
+	}
+}
+
 /*  advc.104s (note): If UWAI is enabled, AI_doWar may adjust (i.e. overwrite) the
 	result of this calculation through UWAI::Team::alignAreaAI. */
 AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea const& kArea, bool bPreparingTotal) const
@@ -412,12 +420,26 @@ AreaAITypes CvTeamAI::AI_calculateAreaAIType(CvArea const& kArea, bool bPreparin
 
 	if (isBarbarian())
 	{
-		if (//kArea.getNumCities() == kArea.getCitiesPerPlayer(BARBARIAN_PLAYER)
-			// advc.300: Relatively peaceable (New World) Barbarians until outnumbered
-			kArea.getTotalPopulation() <= kArea.getPopulationPerPlayer(BARBARIAN_PLAYER) * 2)
-		{
-			return AREAAI_ASSAULT;
+		if (kArea.getNumCities() == kArea.getCitiesPerPlayer(BARBARIAN_PLAYER))
+		{	/*	advc (note): Meaning naval assault against civs on other continents
+				(if any are even reachable). Relatively peaceful behavior within kArea. */
+				return AREAAI_ASSAULT;
 		}
+		// <advc.300> Do the above also while clearly outnumbering the civs
+		int const iBarbarianCities = kArea.getCitiesPerPlayer(BARBARIAN_PLAYER);
+		if (iBarbarianCities > 0)
+		{
+			int const iBarbarianPop = kArea.getPopulationPerPlayer(BARBARIAN_PLAYER);
+			int const iCivCities = kArea.getNumCities() - iBarbarianCities;
+			int const iCivPop = kArea.getTotalPopulation() - iBarbarianPop;
+			int const iBarbarianPresence = presenceScore(iBarbarianCities,
+					std::min(iBarbarianPop, iBarbarianCities * 5));
+			int const iCivPresence = presenceScore(iCivCities, iCivPop);
+			scaled const rExp = GC.getGame().isOption(GAMEOPTION_RAGING_BARBARIANS) ?
+					fixp(0.6) : fixp(0.75);
+			if (iCivPresence <= scaled(iBarbarianPresence).pow(rExp))
+				return AREAAI_ASSAULT;
+		} // </advc.300>
 		if (countNumAIUnitsByArea(kArea, UNITAI_ATTACK) +
 			countNumAIUnitsByArea(kArea, UNITAI_ATTACK_CITY) +
 			countNumAIUnitsByArea(kArea, UNITAI_PILLAGE) +
@@ -2842,13 +2864,38 @@ DenialTypes CvTeamAI::AI_surrenderTrade(TeamTypes eMasterTeam, int iPowerMultipl
 				The cached utility values don't account for the peace with 3rd parties
 				(implied by capitulation), and it's out of date on a human master's turn,
 				so this is all a bit fuzzy. */
-			if (uwai().leaderUWAI().getCache().
-				warUtilityIgnoringDistraction(eMasterTeam) > -40 ||
-				// Expect to tire master out
-				kMasterTeam.uwai().leaderUWAI().getCache().
+			int iOurUtil = uwai().leaderUWAI().getCache().
+					warUtilityIgnoringDistraction(eMasterTeam);
+			if (iOurUtil > -40)
+			{
+				// Let's better sum up all our negative utility values
+				for (TeamIter<MAJOR_CIV, ENEMY_OF> itEnemy(getID()); itEnemy.hasNext();
+					++itEnemy)
+				{
+					if (!itEnemy->isAVassal() && itEnemy->getID() != eMasterTeam)
+					{
+						iOurUtil += std::min(0, uwai().leaderUWAI().getCache().
+								warUtilityIgnoringDistraction(itEnemy->getID()));
+						if (iOurUtil > -50)
+							return DENIAL_POWER_US;
+					}
+				}
+			}
+			if (kMasterTeam.uwai().leaderUWAI().getCache().
 				warUtilityIgnoringDistraction(getID()) < -25)
 			{
-				return DENIAL_POWER_US;
+				// Expect to tire master out - if we can hold out.
+				if (getNumMembers() > 1 ||
+					(getNumCities() > 1 && getNumCities() * 3 > kMasterTeam.getNumCities()))
+				{
+					return DENIAL_POWER_US;
+				}
+				CvCity const* pCapital = GET_PLAYER(getLeaderID()).getCapital();
+				if (pCapital != NULL &&
+					pCapital->getArea().getCitiesPerPlayer(getLeaderID()) != getNumCities())
+				{
+					return DENIAL_POWER_US;
+				}
 			}
 			// </advc.104>  <advc.104o> Take into account past wars
 			int iPastWarScore = GET_PLAYER(getLeaderID()).uwai().getCache().
@@ -3018,7 +3065,7 @@ int CvTeamAI::AI_getEnemyPowerPercent(bool bConsiderOthers) const
 		else if(AI_isChosenWar(kEnemy.getID()) && // Haven't declared war yet
 			/*  advc.104j: getDefensivePower counts vassals already.
 				If planning war against multiple civs, DP allies could also be
-				double counted (fixme). Could collect the war enemies in a std::set
+				double-counted (fixme). Could collect the war enemies in a std::set
 				in a first pass; though it sucks to implement the vassal/DP logic
 				multiple times (already in getDefensivePower and MilitaryAnalyst).
 				Also, the computation for bConsiderOthers above can be way off. */
@@ -4704,8 +4751,11 @@ bool CvTeamAI::AI_isSneakAttackReady(TeamTypes eIndex) const
 {
 	//return (AI_isChosenWar(eIndex) && !(AI_isSneakAttackPreparing(eIndex))); // BtS
 	// K-Mod (advc: originally in an overloaded function)
-	if(eIndex != NO_TEAM)
-		return !isAtWar(eIndex) && AI_isChosenWar(eIndex) && !AI_isSneakAttackPreparing(eIndex); // K-Mod
+	if (eIndex != NO_TEAM)
+	{
+		return !isAtWar(eIndex) && AI_isChosenWar(eIndex) &&
+				!AI_isSneakAttackPreparing(eIndex);
+	}
 	for (TeamIter<MAJOR_CIV> it; it.hasNext(); ++it)
 	{
 		if (AI_isSneakAttackReady(it->getID()))
@@ -4718,7 +4768,7 @@ bool CvTeamAI::AI_isSneakAttackReady(TeamTypes eIndex) const
 
 bool CvTeamAI::AI_isSneakAttackPreparing(TeamTypes eIndex) const
 {
-	if(eIndex != NO_TEAM)
+	if (eIndex != NO_TEAM)
 	{
 		WarPlanTypes eWarPlan = AI_getWarPlan(GET_TEAM(eIndex).getMasterTeam()); // advc.104j
 		return (eWarPlan == WARPLAN_PREPARING_LIMITED || eWarPlan == WARPLAN_PREPARING_TOTAL);

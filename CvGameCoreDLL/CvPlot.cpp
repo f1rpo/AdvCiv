@@ -390,7 +390,7 @@ void CvPlot::doImprovement()
 				continue;
 			// <advc.rom3>
 			//Afforess: check for valid terrains for this bonus before discovering it
-			if (!canHaveBonus(eLoopBonus), false, /* advc.129: */ true)
+			if (!canHaveBonus(eLoopBonus, false, /* advc.129: */ true))
 				continue; // </advc.rom3>
 			iOdds *= GC.getGame().getSpeedPercent();
 			iOdds /= 100;
@@ -2652,7 +2652,8 @@ int CvPlot::defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding,
 
 
 int CvPlot::movementCost(CvUnit const& kUnit, CvPlot const& kFrom,
-	bool bAssumeRevealed) const // advc.001i
+	bool bAssumeRevealed, // advc.001i
+	bool bIgnoresRoute) const // advc.001t
 {
 	// <advc.162>
 	if(kUnit.isInvasionMove(kFrom, *this))
@@ -2724,7 +2725,8 @@ int CvPlot::movementCost(CvUnit const& kUnit, CvPlot const& kFrom,
 	if (kFrom.isValidRoute(&kUnit, bAssumeRevealed) &&
 		isValidRoute(&kUnit, bAssumeRevealed) && // </advc.001i>
 		(GET_TEAM(eTeam).isBridgeBuilding() ||
-		!kFrom.isRiverCrossing(directionXY(kFrom, *this))))
+		!kFrom.isRiverCrossing(directionXY(kFrom, *this))) &&
+		!bIgnoresRoute) // advc.001t
 	{	// <advc.001i>
 		RouteTypes eFromRoute = (bAssumeRevealed ? kFrom.getRouteType() :
 				kFrom.getRevealedRouteType(eTeam));
@@ -4738,7 +4740,7 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue,
 	bool bUpdateInFoW) // advc.055
 {
 	ImprovementTypes const eOldImprovement = getImprovementType();
-	if(getImprovementType() == eNewValue)
+	if (getImprovementType() == eNewValue)
 		return;
 	// <advc.183>
 	bool const bActedAsCity = (eOldImprovement != NO_IMPROVEMENT &&
@@ -5350,7 +5352,7 @@ int CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 		eImprovement = getImprovementType();
 		eRoute = getRouteType();
 	}
-	int iNatureYield = // advc.908a: Preserve this for later
+	int const iNatureYield = // advc.908a: Preserve this for later
 			calculateNatureYield(eYield,
 			bDisplay ? getActiveTeam() : // advc.182
 			/*	(advc: Note that NO_TEAM means that bonus resources are ignored.
@@ -5408,7 +5410,7 @@ int CvPlot::calculateYield(YieldTypes eYield, bool bDisplay) const
 			int iThresh = GET_PLAYER(ePlayer).getExtraYieldThreshold(eYield);
 			if (iThresh > 0)
 			{
-				if(iYield >= iThresh)
+				if (iYield >= iThresh)
 					iYield += GC.getDefineINT(CvGlobals::EXTRA_YIELD);
 			}
 		}
@@ -5900,6 +5902,10 @@ void CvPlot::changeVisibilityCount(TeamTypes eTeam, int iChange,
 			GET_TEAM(getTeam()).meet(eTeam, true, /* advc.071: */ &fcData);
 		}
 		// K-Mod. Meet the owner of any units you can see.
+		/*	advc.071: When border spread grants visibility, any unit spotted
+			could move away before the next graphics update. Confusing, then,
+			to trigger a meeting at this point. */
+		if (pUnit != NULL)
 		{
 			PROFILE("CvPlot::changeVisibility -- meet units"); // (this is new, so I want to time it.)
 			FOR_EACH_UNIT_IN(pLoopUnit, *this)

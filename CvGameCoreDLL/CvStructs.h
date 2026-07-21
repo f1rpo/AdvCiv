@@ -449,13 +449,19 @@ private:
 };
 
 struct CvWidgetDataStruct
-{
-	int m_iData1;										//	The first bit of data
-	int m_iData2;										//	The second piece of data
-
-	bool m_bOption;									//	A boolean piece of data
-
-	WidgetTypes m_eWidgetType;			//	What the 'type' of this widget is (for parsing help and executing actions)
+{	// <advc>
+	CvWidgetDataStruct(int iData1, int iData2, bool bOption, WidgetTypes eWidgetType)
+	:	m_iData1(iData1), m_iData2(iData2),
+		m_bOption(bOption), m_eWidgetType(eWidgetType)
+	{}
+	CvWidgetDataStruct(CvWidgetDataStruct const& kOther)
+	:	m_iData1(kOther.m_iData1), m_iData2(kOther.m_iData2),
+		m_bOption(kOther.m_bOption), m_eWidgetType(kOther.m_eWidgetType)
+	{} // </advc>
+	int m_iData1;
+	int m_iData2;
+	bool m_bOption;
+	WidgetTypes m_eWidgetType; // for parsing help and executing actions
 };
 
 /*	advc (note, fwiw): I've noticed while inspecting disassembly that the EXE

@@ -7,8 +7,8 @@
 // Could increase this value now that player closeness is fixed
 #define DEFAULT_PLAYER_CLOSENESS 7
 
-#define AI_DAGGER_THRESHOLD			100  //higher is a lower chance
-
+#define AI_DAGGER_THRESHOLD 100  // higher is a lower chance
+#define MAX_AI_STRATEGIES 32 // advc: for iteration
 enum AIStrategy // advc.enum: To avoid mixup with victory strategies (was #define)
 {
 	NO_AI_STRATEGY					=	0, // advc.enum

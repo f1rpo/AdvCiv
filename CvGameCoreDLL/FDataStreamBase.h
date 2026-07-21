@@ -16,6 +16,16 @@
 #ifndef FDATASTREAMBASE_H
 #define FDATASTREAMBASE_H
 
+/*	advc: Guard against negative element counts - which crash the writing thread
+	and are therefore difficult to debug - and against implausibly high counts
+	that would busy and fill up the HD. In that latter case, let the EXE handle
+	the error message by changing the count to -1. */
+#define SANITIZE_WRITE_COUNT() \
+	int iUpper = 32 * 1024 * 1024; /* 32M */ \
+	FAssertBounds(0, iUpper, iCount); \
+	if (iCount >= iUpper)  \
+		iCount = -1
+
 #include "ReproTest.h" // advc.repro
 // Stream abstract base class
 class FDataStreamBase
@@ -117,11 +127,13 @@ public:
 	}
 	void Write(int iCount, char const values[])
 	{
+		SANITIZE_WRITE_COUNT();
 		REPRO_TEST_REPORT(sizeof(char) * iCount, values);
 		WriteExternal(iCount, values);
 	}
 	void Write(int iCount, byte const values[])
 	{
+		SANITIZE_WRITE_COUNT();
 		REPRO_TEST_REPORT(sizeof(byte) * iCount, values);
 		WriteExternal(iCount, values);
 	}
@@ -132,6 +144,7 @@ public:
 	}
 	void Write(int iCount, const bool values[])
 	{
+		SANITIZE_WRITE_COUNT();
 		REPRO_TEST_REPORT(sizeof(bool) * iCount, values);
 		WriteExternal(iCount, values);
 	}
@@ -147,11 +160,13 @@ public:
 	}
 	void Write(int iCount, const short values[])
 	{
+		SANITIZE_WRITE_COUNT();
 		REPRO_TEST_REPORT(sizeof(short) * iCount, values);
 		WriteExternal(iCount, values);
 	}
 	void Write(int iCount, const unsigned short values[])
 	{
+		SANITIZE_WRITE_COUNT();
 		REPRO_TEST_REPORT(sizeof(unsigned short) * iCount, values);
 		WriteExternal(iCount, values);
 	}
@@ -167,11 +182,13 @@ public:
 	}
 	void Write(int iCount, int const values[])
 	{
+		SANITIZE_WRITE_COUNT();
 		REPRO_TEST_REPORT(sizeof(int) * iCount, values);
 		WriteExternal(iCount, values);
 	}
 	void Write(int iCount, unsigned int const values[])
 	{
+		SANITIZE_WRITE_COUNT();
 		REPRO_TEST_REPORT(sizeof(uint) * iCount, values);
 		WriteExternal(iCount, values);
 	}
@@ -187,6 +204,7 @@ public:
 	}
 	void Write(int iCount, long const values[])
 	{
+		SANITIZE_WRITE_COUNT();
 		REPRO_TEST_REPORT(sizeof(long) * iCount, values);
 		WriteExternal(iCount, values);
 	}
@@ -240,17 +258,19 @@ public:
 	{
 		WriteExternal(value);
 	}
-	void Write(int count, const float values[])
+	void Write(int iCount, const float values[])
 	{
-		WriteExternal(count, values);
+		SANITIZE_WRITE_COUNT();
+		WriteExternal(iCount, values);
 	}
 	void Write(double value)
 	{
 		WriteExternal(value);
 	}
-	void Write(int count, const double values[])
+	void Write(int iCount, const double values[])
 	{
-		WriteExternal(count, values);
+		SANITIZE_WRITE_COUNT();
+		WriteExternal(iCount, values);
 	} // <advc.repro>
 	// <advc.fract>
 	template<int iSCALE, typename IntType, typename EnumType>
@@ -290,5 +310,7 @@ public:
 			Read(&aValues[i]);
 	} // </advc.enum>
 };
+
+#undef SANITIZE_WRITE_COUNT // advc
 
 #endif

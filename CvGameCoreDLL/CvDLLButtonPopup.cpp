@@ -2605,10 +2605,15 @@ bool CvDLLButtonPopup::launchEventPopup(CvPopup* pPopup, CvPopupInfo &info)
 	EventTriggeredData* pTriggeredData = kActivePlayer.getEventTriggered(info.getData1());
 	if (pTriggeredData == NULL)
 		return false;
-
 	if (pTriggeredData->m_eTrigger == NO_EVENTTRIGGER)
 		return false;
-
+	// <advc.001> Double-check trigger conditions
+	if (kActivePlayer.initTriggeredData(pTriggeredData->m_eTrigger) == NULL)
+	{
+		kActivePlayer.deleteEventTriggered(pTriggeredData->getID());
+		FErrorMsg("Canceling event; is this legit (recently added code)?"); // advc.test
+		return false;
+	} // </advc.001>
 	CvEventTriggerInfo& kTrigger = GC.getInfo(pTriggeredData->m_eTrigger);
 
 	gDLL->UI().popupSetBodyString(pPopup, pTriggeredData->m_szText);
@@ -2635,8 +2640,10 @@ bool CvDLLButtonPopup::launchEventPopup(CvPopup* pPopup, CvPopupInfo &info)
 	}
 
 	if (!bEventAvailable)
+	{	// advc.001: Don't count this as having been triggered
+		kActivePlayer.deleteEventTriggered(pTriggeredData->getID());
 		return false;
-
+	}
 	if (kTrigger.isPickCity())
 	{
 		CvCity* pCity = kActivePlayer.getCity(pTriggeredData->m_iCityId);

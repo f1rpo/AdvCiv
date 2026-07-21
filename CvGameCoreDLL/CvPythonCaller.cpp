@@ -1314,6 +1314,18 @@ void CvPythonCaller::mapWraps(bool& bWrapX, bool& bWrapY) const
 	bWrapY = (lResult != 0);
 }
 
+// advc.194:
+void CvPythonCaller::mapDefaultOptionAvailability(bool& bClimateFlexible,
+	bool& bSeaLevelFlexible) const
+{
+	long lResult = 1;
+	call("isClimateMap", lResult, m_python.getMapScriptModule(), false);
+	bClimateFlexible = toBool(lResult);
+	lResult = 1;
+	call("isSeaLevelMap", lResult, m_python.getMapScriptModule(), false);
+	bSeaLevelFlexible = toBool(lResult);
+}
+
 bool CvPythonCaller::generateRandomMap() const
 {
 	call("generateRandomMap", m_python.getMapScriptModule(), false);

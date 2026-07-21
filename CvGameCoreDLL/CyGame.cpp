@@ -1141,6 +1141,11 @@ void CyGame::setCityBarWidth(bool bWide)
 {
 	m_kGame.setCityBarWidth(bWide);
 }
+// advc.092c:
+void CyGame::setHelpTextAreaWidth(float fWidth)
+{
+	m_kGame.setHelpTextAreaWidth(fWidth);
+}
 // BULL - AutoSave:
 void CyGame::saveGame(std::string szFileName)
 {

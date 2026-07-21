@@ -2089,14 +2089,13 @@ void BorderDisputes::evaluate()
 		// advc.003g: Tbd.: Write a fixed-point logarithm function
 		double dOurCultureMultiplier = iOurPlotCulturePercent / 100.0;
 		/*	E.g. dOurCultureModifier=1 if 0% culture;
-			5% -> 0.92; 10% -> 0.67; 20% -> 0.42; 50% -> 0.08.
+			5% -> 0.92; 10% -> 0.67; 20% -> 0.42; 50% -> 0.09.
 			If we already have a lot of culture in the city, then it's probably
 			not the city causing us to lose border tiles. */
 		if (dOurCultureMultiplier > 0.04)
 		{
 			dOurCultureMultiplier = std::max(0.0,
-					1 - 0.25 * std::log(25 * dOurCultureMultiplier) /
-					0.301/*std::log(2.0)*/); // binary log
+					1 - 0.25 * fmath::log2(25 * dOurCultureMultiplier));
 		}
 		else dOurCultureMultiplier = 1;
 		scaled rOurCultureModifier = scaled::fromDouble(dOurCultureMultiplier);

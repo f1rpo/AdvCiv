@@ -873,7 +873,7 @@
 	<TEXT>
 		<Tag>TXT_KEY_HOME_TILE_YIELD</Tag>
 		<English>Tile yield: </English>
-		<French>Produit du case: </French>
+		<French>Produit du case : </French>
 		<German>Gel&#228;ndeertrag: </German>
 		<Italian>Prodotti della casella: </Italian>
 		<Spanish>Rendim. de la casilla: </Spanish>
@@ -3309,7 +3309,7 @@
 		<Italian>Simile alla Terra (70%% acqua)</Italian>
 		<Spanish>Similar a la Tierra (70%% agua)</Spanish>
 	</TEXT>
-	<TEXT> <!-- redefine -->
+	<TEXT>
 		<Tag>TXT_KEY_MAP_SCRIPT_EARTH_50</Tag>
 		<English>Earthlike (60%% water)</English>
 		<French>Semblable à la Terre (60%% d'eau)</French>
@@ -3326,7 +3326,7 @@
 		<Italian>Mediterraneo (45%% acqua)</Italian>
 		<Spanish>Mediterráneo (45%% agua)</Spanish>
 	</TEXT>
-	<!-- NB: These two only gets used for Tectonics -->
+	<!-- NB: These two only get used for Tectonics -->
 	<TEXT> <!-- redefine -->
 		<Tag>TXT_KEY_MAP_SCRIPT_PANGAEA</Tag>
 		<English>Pangaea (70%% water)</English>
@@ -4264,11 +4264,11 @@
 	<!-- advc.106b -->
 	<TEXT>
 		<Tag>TXT_KEY_END_TURN_MSG</Tag>
-		<English>[COLOR_LIGHT_GREY]----- Older messages:[COLOR_REVERT]</English>
-		<French>[COLOR_LIGHT_GREY]----- Messages plus anciens:[COLOR_REVERT]</French>
-		<German>[COLOR_LIGHT_GREY]----- Ältere Nachrichten:[COLOR_REVERT]</German>
-		<Italian>[COLOR_LIGHT_GREY]----- Messaggi meno recenti:[COLOR_REVERT]</Italian>
-		<Spanish>[COLOR_LIGHT_GREY]----- Mensajes más antiguos:[COLOR_REVERT]</Spanish>
+		<English>----- Older messages:</English>
+		<French>----- Messages plus anciens :</French>
+		<German>----- Ältere Nachrichten:</German>
+		<Italian>----- Messaggi meno recenti:</Italian>
+		<Spanish>----- Mensajes más antiguos:</Spanish>
 	</TEXT>
 	
 	<!-- advc.104v -->
@@ -6789,7 +6789,7 @@
 	<TEXT>
 		<Tag>TXT_KEY_POPUP_ELECTION_FORCE_WAR_VS_YOU</Tag>
 		<English>Force the full members to declare war on you(!!) (Requires %d1_ReqNum of %d2_TotNum Total Votes)</English>
-		<French>>Force les membres permanents à vous (!) déclarer la guerre (%d1_ReqNum vote(s) sur %d2_TotNum requis)</French>
+		<French>Force les membres permanents à vous (!) déclarer la guerre (%d1_ReqNum vote(s) sur %d2_TotNum requis)</French>
 		<German>Zwingt die Vollmitglieder Ihnen(!) den Krieg zu erklären. (Erfordert %d1_ReqNum on insgesamt %d2_TotNum Stimmen.)</German>
 		<Italian>Costringe i membri a pieno titolo a dichiarare guerra a te(!!) (Richiede %d1_ReqNum su %d2_TotNum voti totali)</Italian>
 		<Spanish>Obliga a los miembros de pleno derecho a declararos la guerra(!!) (Requiere %d1_ReqNum de %d2_TotNum votos totales)</Spanish>

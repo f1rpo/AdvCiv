@@ -761,7 +761,7 @@ bool CvXMLLoadUtility::GetChildXmlValByName(float* r, TCHAR const* szName, float
 		//FErrorMsg("Error in GetChildXmlValByName function, unable to find a specified node");
 		return false;
 	}*/ // <advc.006b>
-	if (*r == FLT_MIN && m->bAssertMandatory)
+	if (*r == arithm_traits<float>::min && m->bAssertMandatory)
 	{
 		FErrorMsg((szAssertMsg + szName).c_str());
 		*r = 0; // See See GetChildXmlValByName(int*...)

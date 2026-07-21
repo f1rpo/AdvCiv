@@ -778,20 +778,21 @@ bool UWAI::Team::considerCapitulation(TeamTypes eMaster, int iAgentWarUtility,
 			}
 		}
 	}
-	/*  Low reluctance to peace can just mean that there isn't much left for
-		them to conquer; doesn't have to mean that they'll soon offer peace.
-		Probability test to ensure that we eventually capitulate even if
-		master's reluctance remains low. */
-	scaled rSkipProb = 1 - (iMasterReluctancePeace * fixp(0.015) + fixp(0.3));
+	scaled rSkipProb;
 	int const iAgentCities = GET_TEAM(m_eAgent).getNumCities();
-	rSkipProb.clamp(0,
-			// Reduce maximal waiting time in the late game
-			fixp(0.87) - fixp(0.04) * GET_TEAM(eMaster).AI_getCurrEraFactor());
-	// If few cities remain, we can't afford to wait.
-	if (iAgentCities <= 2)
-		rSkipProb -= fixp(0.2);
-	if (iAgentCities <= 1)
-		rSkipProb -= fixp(0.1);
+	if (iAgentCities > 1) // Can't afford to wait with just 1 city left
+	{
+		/*  Low reluctance to peace can just mean that there isn't much left for
+			them to conquer; doesn't have to mean that they'll soon offer peace.
+			Probability test to ensure that we eventually capitulate even if
+			master's reluctance remains low. */
+		rSkipProb = 1 - (iMasterReluctancePeace * fixp(0.015) + fixp(0.3));
+		rSkipProb.clamp(0,
+				// Reduce maximal waiting time in the late game
+				fixp(0.87) - fixp(0.04) * GET_TEAM(eMaster).AI_getCurrEraFactor());
+		if (iAgentCities <= 2)
+			rSkipProb -= fixp(0.25);
+	}
 	m_pReport->log("%d percent probability to delay capitulation based on master's "
 			"reluctance to peace (%d)", rSkipProb.getPercent(), iMasterReluctancePeace);
 	if (SyncRandSuccess(rSkipProb))
@@ -1982,6 +1983,21 @@ int UWAI::Team::endWarVal(TeamTypes eEnemy) const
 						r = iMaxHumanCanPay;
 					}
 				}
+				// Demand more if they have a lot. Also to avoid asking for a pittance.
+				else if (r > 0)
+				{
+					scaled const rMaxExtraMult = fixp(1.5);
+					scaled const rAssetsImpact = fixp(0.25);
+					// Recompute because earlier calculation had stopped at the current r
+					kAI.uwai().leaderUWAI().canTradeAssets(
+							(r * rMaxExtraMult / rAssetsImpact).ceil(),
+							kHuman.getLeaderID(), &iMaxHumanCanPay, true);
+					if (iMaxHumanCanPay > r)
+					{
+						r *= 1 + scaled::min(rMaxExtraMult,
+								rAssetsImpact * iMaxHumanCanPay / r);
+					}
+				}
 			}
 		}
 	}
@@ -2632,9 +2648,7 @@ bool UWAI::Player::isPeaceDealPossible(PlayerTypes eHuman) const
 
 
 bool UWAI::Player::canTradeAssets(int iTargetTradeVal, PlayerTypes eHuman,
-	int* piAvailableTradeVal,
-	// (advc.ctr: Now unused b/c the AI will always accept cities as payment)
-	bool bIgnoreCities) const
+	int* piAvailableTradeVal, bool bIgnoreCities) const
 {
 	if (piAvailableTradeVal != NULL)
 		*piAvailableTradeVal = iTargetTradeVal;

@@ -60,8 +60,8 @@ class BugMapOptionsTab(BugOptionsTab.BugOptionsTab):
 		self.addSpacer(screen, center, "SpacerCenter1") # advc.004
 		# <advc.002f>
 		self.addLabel(screen, center, "CityIcons", "City Billboards:")
-		# advc.095:
 		centerL, centerR = self.addTwoColumnLayout(screen, center, "CityIcons", False)
+		# advc.095:
 		self.addCheckbox(screen, centerL, "MainInterface__WideCityBars")
 		self.addCheckbox(screen, centerR, "MainInterface__AvoidGrowthIcon")
 		self.addCheckbox(screen, centerL, "MainInterface__CityNetworkIcon")

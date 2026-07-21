@@ -92,6 +92,7 @@
 		<Italian>Multiplayer</Italian>
 		<Spanish>Multijugador</Spanish>
 	</TEXT>
+	<!-- advc (note): Could just replace all the [NEWLINE] with \n for easier editing -->
 	<!-- advc.002b: Added/removed tabs to fix alignment (only for English
 		 though) -->
 	<!-- advc.004y: Stylistic changes to most of the _PEDIA keys, but only for

@@ -30,6 +30,13 @@ namespace intdiv
 		FAssert(iDividend >= 0 && iDivisor > 0);
 		return (iDividend + iDivisor - 1) / iDivisor;
 	}
+
+	inline int umodulo(int iDividend, int iDivisor)
+	{
+		FAssert(iDivisor > 0);
+		int iR = iDividend % iDivisor;
+		return (iR >= 0 ? iR : iR + iDivisor);
+	}
 }
 
 /*	advc.opt: MSVC produces branches for std::max and std::min.
@@ -178,21 +185,28 @@ namespace stats // Seems too generic, but what else to name it?
 		return r;
 	}
 	template<typename T> // (see e.g. Wikipedia)
-	T percentileRank(std::vector<T>& kDistribution, T tScore, bool bSorted = false)
-	{
+	T percentileRank(std::vector<T> const& kDistribution, T tScore, bool bSorted = false)
+	{	// int not supported b/c result is in the unit interval
+		BOOST_STATIC_ASSERT(!integer_limits<T>::is_integer);
+		std::vector<T> const* pSorted = &kDistribution;
+		std::vector<T> localCopy;
 		if (!bSorted)
-			std::sort(kDistribution.begin(), kDistribution.end());
+		{
+			localCopy = kDistribution;
+			std::sort(localCopy.begin(), localCopy.end());
+			pSorted = &localCopy;
+		}
 		int iLesserScores = 0;
-		int iSz = (int)kDistribution.size();
+		int iSz = (int)pSorted->size();
 		for (int i = 0; i < iSz; i++)
 		{
-			if (kDistribution[i] < tScore)
+			if ((*pSorted)[i] < tScore)
 				iLesserScores++;
 			else break;
 		}
 		T tDiv = iSz;
 		return iLesserScores / tDiv;
-	} 
+	}
 }
 
 namespace fmath
@@ -202,6 +216,11 @@ namespace fmath
 	{
 		int r = (int)(d + 0.5 * iMultiple);
 		return r - r % iMultiple;
+	}
+	inline double log2(double d) // as in C++11
+	{
+		static const double dLn2 = std::log(2.0);
+		return std::log(d) / dLn2;
 	}
 }
 

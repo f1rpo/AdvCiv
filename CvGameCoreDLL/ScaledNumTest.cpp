@@ -57,7 +57,7 @@ void TestScaledNum()
 	FAssert(rTest == 3);
 	// The exact result would be 4.5/1024
 	FAssert(ScaledNum<100>(30,100) * ScaledNum<1024>(15,1024) == ScaledNum<1024>(5,1024));
-	// If multiplication was performed like this, we'd get 4/1024:
+	// If multiplication were performed like this, we'd get 4/1024:
 	FAssert(ScaledNum<1024>(ScaledNum<100>(30,100)) *
 			ScaledNum<1024>(15,1024) == ScaledNum<1024>(4,1024));
 	// Now force a result on the smaller scale:
@@ -152,6 +152,12 @@ void TestScaledNum()
 	// (But an approxEquals check isn't possible so close to r2.MAX)
 	FAssert(r2 > fixp(1.99));
 	FAssert(r2 < 2);
+	{
+		scaled rBig = 582913;
+		rBig = rBig.sqrt();
+		// Precision isn't great for such large numbers. Haven't looked into why.
+		FAssert(rBig.approxEquals(fixp(763.5), 3));
+	}
 
 	// Speed measurements
 	// (CPU cycles noted in comments can be out of date)

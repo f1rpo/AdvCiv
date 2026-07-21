@@ -966,7 +966,9 @@ void CvUnit::updateAirCombat(bool bQuick)
 		{
 			CvWString szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_SHOT_DOWN_ENEMY",
 					pInterceptor->getNameKey(), getNameKey(), getVisualCivAdjective(pInterceptor->getTeam()));
-			gDLL->UI().addMessage(pInterceptor->getOwner(), false, -1, szBuffer, *pPlot,
+			gDLL->UI().addMessage(pInterceptor->getOwner(), //false
+					true, // advc.004g
+					-1, szBuffer, *pPlot,
 					"AS2D_INTERCEPT", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("GREEN"));
 
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_SHOT_DOWN",
@@ -981,7 +983,9 @@ void CvUnit::updateAirCombat(bool bQuick)
 					pInterceptor->getNameKey(), getNameKey(),
 					kAirMission.getDamage(BATTLE_UNIT_ATTACKER), // advc.004g
 					getVisualCivAdjective(pInterceptor->getTeam()));
-			gDLL->UI().addMessage(pInterceptor->getOwner(), false, -1, szBuffer, *pPlot,
+			gDLL->UI().addMessage(pInterceptor->getOwner(), //false
+					true, // advc.004g
+					-1, szBuffer, *pPlot,
 					"AS2D_INTERCEPT", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("GREEN"));
 
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_AIR_UNIT_HURT",
@@ -1001,7 +1005,9 @@ void CvUnit::updateAirCombat(bool bQuick)
 
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOU_UNIT_SHOT_DOWN",
 					pInterceptor->getNameKey(), getNameKey());
-			gDLL->UI().addMessage(pInterceptor->getOwner(), false, -1, szBuffer,
+			gDLL->UI().addMessage(pInterceptor->getOwner(), //false
+					true, // advc.004g
+					-1, szBuffer,
 					"AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"),
 					pPlot->getX(), pPlot->getY());
 		}
@@ -1017,7 +1023,9 @@ void CvUnit::updateAirCombat(bool bQuick)
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_AIR_UNIT_DAMAGED",
 					pInterceptor->getNameKey(), getNameKey(),
 					kAirMission.getDamage(BATTLE_UNIT_DEFENDER)); // advc.004g
-			gDLL->UI().addMessage(pInterceptor->getOwner(), false, -1, szBuffer,
+			gDLL->UI().addMessage(pInterceptor->getOwner(), //false
+					true, // advc.004g
+					-1, szBuffer,
 					"AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"),
 					pPlot->getX(), pPlot->getY());
 		}
@@ -1031,7 +1039,9 @@ void CvUnit::updateAirCombat(bool bQuick)
 
 			szBuffer = gDLL->getText("TXT_KEY_MISC_YOUR_AIR_UNIT_ABORTED",
 					getNameKey(), pInterceptor->getNameKey());
-			gDLL->UI().addMessage(getOwner(), false, -1, szBuffer,
+			gDLL->UI().addMessage(getOwner(), //false
+					true, // advc.004g
+					-1, szBuffer,
 					"AS2D_INTERCEPTED", MESSAGE_TYPE_INFO, getButton(), GC.getColorType("RED"),
 					pPlot->getX(), pPlot->getY());
 		}
@@ -3052,7 +3062,10 @@ bool CvUnit::jumpToNearestValidPlot(/* K-Mod: */ bool bGroup, bool bForceMove,
 	{
 		CvPlot& kLoopPlot = GC.getMap().getPlotByIndex(i);
 		if (//kLoopPlot.isValidDomainForLocation(*this)
-			isRevealedValidDomain(kLoopPlot) && // advc
+			(isRevealedValidDomain(kLoopPlot) // advc
+			/*	advc.001b: Allow air units to jump onto transports.
+				(NB: canMove checks the specifics.) */
+			|| (kLoopPlot.isUnit() && getDomainType() == DOMAIN_AIR)) &&
 			canEnterTerritory(kLoopPlot.getTeam(), false, kLoopPlot.area()) &&
 			canMoveInto(kLoopPlot) &&
 			!isEnemy(kLoopPlot))
@@ -3065,7 +3078,7 @@ bool CvUnit::jumpToNearestValidPlot(/* K-Mod: */ bool bGroup, bool bForceMove,
 				!GET_TEAM(getTeam()).isRevealedAirBase(kLoopPlot))
 			{
 				continue;
-			}*/ // advc: canMoveInto already checks thats
+			}*/ // advc: canMoveInto already checks that
 			int iValue = (plotDistance(plot(), &kLoopPlot) * 2);
 			// K-Mod, 2/jan/11 - bForceMove functionality
 			if (bForceMove && iValue == 0)
@@ -3106,32 +3119,28 @@ bool CvUnit::jumpToNearestValidPlot(/* K-Mod: */ bool bGroup, bool bForceMove,
 			}
 		}
 	}
-	bool bValid = true;
-	if (pBestPlot != NULL)
-	{
-		// K-Mod. If a unit is bumped, we should clear their mission queue
-		if(!atPlot(pBestPlot))
-		{
-			CvSelectionGroup* pGroup = getGroup();
-			//pGroup->splitGroup(1); // advc.163: Safer to split? Hopefully no need.
-			pGroup->clearMissionQueue();
-			// K-Mod end
-			// <advc.163>
-			if(!isHuman())
-				pGroup->AI().AI_cancelGroupAttack(); // Maybe not needed, but doesn't hurt.
-			pGroup->setAutomateType(NO_AUTOMATE);
-			pGroup->setActivityType(ACTIVITY_AWAKE); // </advc.163>
-		}
-		if (bFreeMove) // advc.163
-			setXY(pBestPlot->getX(), pBestPlot->getY(), bGroup);
-		else move(*pBestPlot, true, true, bGroup); // advc.163
-	}
-	else
+	if (pBestPlot == NULL)
 	{
 		kill(false);
-		bValid = false;
+		return false;
 	}
-	return bValid;
+	// K-Mod. If a unit is bumped, we should clear their mission queue
+	if(!atPlot(pBestPlot))
+	{
+		CvSelectionGroup* pGroup = getGroup();
+		//pGroup->splitGroup(1); // advc.163: Safer to split? Hopefully no need.
+		pGroup->clearMissionQueue();
+		// K-Mod end
+		// <advc.163>
+		if(!isHuman())
+			pGroup->AI().AI_cancelGroupAttack(); // Maybe not needed, but doesn't hurt.
+		pGroup->setAutomateType(NO_AUTOMATE);
+		pGroup->setActivityType(ACTIVITY_AWAKE); // </advc.163>
+	}
+	if (bFreeMove) // advc.163
+		setXY(pBestPlot->getX(), pBestPlot->getY(), bGroup);
+	else move(*pBestPlot, true, true, bGroup); // advc.163
+	return true;
 }
 
 
@@ -3378,7 +3387,7 @@ void CvUnit::gift(bool bTestTransport)
 	CvEventReporter::getInstance().unitGifted(pGiftUnit, getOwner(), plot());
 }
 
-// advc: Renamed from canLoadUnit, params changed to references.
+// advc: Renamed from "canLoadUnit"
 bool CvUnit::canLoadOnto(CvUnit const& kUnit, CvPlot const& kPlot,
 	bool bCheckMoves) const // advc.123c
 {
@@ -5541,7 +5550,8 @@ bool CvUnit::spread(ReligionTypes eReligion)
 					if (pCity != GC.getGame().getHolyCity(eLoopReligion))
 					{
 						int iInfluence = pCity->getReligionGrip(eLoopReligion);
-						iInfluence += SyncRandNum(iRandomWeight);
+						// advc.173: Two dice (with sides halved through XML)
+						iInfluence += 2 * SyncRandNum(iRandomWeight);
 						if (eLoopReligion == eReligion)
 							iInfluence += m_pUnitInfo->getReligionSpreads(eReligion) / 2;
 						aieRankedReligions.push_back(std::make_pair(
@@ -5568,8 +5578,7 @@ bool CvUnit::spread(ReligionTypes eReligion)
 				pCity->setHasReligion(eFailedReligion, false, true, false,
 						getOwner()); // advc.106e
 				bSuccess = true;
-			}
-			// K-Mod
+			} // K-Mod end
 		}
 
 		// Python Event
@@ -6608,7 +6617,7 @@ int CvUnit::upgradePrice(UnitTypes eUnit) const
 	return std::max(0, iPrice); // advc.mnai: max (future-proofing)
 }
 
-// advc.080: Based on code cut from CvUnit::upgrade. The param is (so far) unused.
+// advc.080, 131e: Based on code cut from CvUnit::upgrade. The param is (so far) unused.
 int CvUnit::upgradeXPChange(UnitTypes eUnit) const
 {
 	if(getLeaderUnitType() != NO_UNIT)

@@ -93,7 +93,7 @@ void CvRandom::shuffle(int* piShuffle, int iNum)
 // advc.enum:
 void CvRandom::shuffle(std::vector<int>& aiIndices)
 {
-	std11::iota(aiIndices.begin(), aiIndices.end(), 0);
+	sequtil::iota(aiIndices.begin(), aiIndices.end(), 0);
 	int const iSize = (int)aiIndices.size();
 	FAssertMsg(iSize > 0, "Shuffling empty vector; intended?");
 	for (int i = 0; i < iSize; i++)

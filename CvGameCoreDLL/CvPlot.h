@@ -192,7 +192,8 @@ public:
 			TeamTypes eAttacker = NO_TEAM, bool bHelp = false,
 			bool bGarrisonStrength = false) const; // advc.500b
 	int movementCost(CvUnit const& kUnit, CvPlot const& kFrom,										// Exposed to Python
-			bool bAssumeRevealed = true) const; // advc.001i
+			bool bAssumeRevealed = true, // advc.001i
+			bool bIgnoreRoutes = false) const; // advc.001t
 	// advc.enum: Still exposed to Python, obsolete within the DLL.
 	/*int getExtraMovePathCost() const;																// Exposed to Python
 	void changeExtraMovePathCost(int iChange);*/													// Exposed to Python

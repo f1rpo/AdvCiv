@@ -18,7 +18,7 @@
 
 bool FAssertDlg( const char*, const char*, const char*, unsigned int,
 		/*  advc.006f (from C2C): const char* param added. And changed the
-			two locations below so that __FUNCTION__ is passed. */
+			two call locations below so that __FUNCTION__ is passed. */
 		const char*, bool& );
 
 // <advc.006h>: Evaluate expr once more when debugging

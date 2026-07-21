@@ -276,7 +276,7 @@ public:
 	int getStackExperienceToGive(int iNumUnits) const;
 
 	int upgradePrice(UnitTypes eUnit) const;																// Exposed to Python
-	int upgradeXPChange(UnitTypes eUnit) const; // advc.080
+	int upgradeXPChange(UnitTypes eUnit = NO_UNIT) const; // advc.080, advc.131e
 	bool upgradeAvailable(UnitTypes eFromUnit, UnitClassTypes eToUnitClass, int iCount = 0) const;			// Exposed to Python
 	bool canUpgrade(UnitTypes eUnit, bool bTestVisible = false) const;										// Exposed to Python
 	bool isReadyForUpgrade() const;

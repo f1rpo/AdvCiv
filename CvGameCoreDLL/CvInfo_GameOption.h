@@ -67,6 +67,7 @@ protected:
 		kElements.addBool(AIAgeOfFertility, "AIAgeOfFertility");
 		kElements.addBool(AIAgeOfGuns, "AIAgeOfGuns");
 		kElements.addBool(AIAtomicAge, "AIAtomicAge");
+		kElements.addBool(AIAgeOfProduction, "AIAgeOfProduction");
 		// </advc.erai>
 		kElements.addBool(AllGoodyTechs, "AllGoodyTechs"); // advc.314
 	}
@@ -85,7 +86,8 @@ public:
 		AIAgeOfPollution,
 		AIAgeOfFertility,
 		AIAgeOfGuns,
-		AIAtomicAge, // </advc.erai>
+		AIAtomicAge,
+		AIAgeOfProduction, // </advc.erai>
 		AllGoodyTechs, // advc.314
 		NUM_BOOL_ELEMENT_TYPES
 	};
@@ -167,6 +169,10 @@ public:
 	{
 		return m_eAIAtomicAge;
 	}
+	static EraTypes AI_getAgeOfProduction()
+	{
+		return m_eAIAgeOfProduction;
+	}
 	// Akin to normalizeEraFactor in Kek-Mod (CvGameCoreUtils)
 	static scaled normalizeEraNum(int iEra)
 	{
@@ -191,6 +197,7 @@ protected:
 	static EraTypes m_eAIAgeOfFertility;
 	static EraTypes m_eAIAgeOfGuns;
 	static EraTypes m_eAIAtomicAge;
+	static EraTypes m_eAIAgeOfProduction;
 	// </advc.erai>
 
 	int m_iStartingUnitMultiplier;
@@ -253,7 +260,7 @@ protected:
 		kElements.addInt(EventRollSidesPercent, "EventRollSidesPercent", 100);
 		kElements.addInt(VoteIntervalPercent, "VoteIntervalPercent", 100);
 		kElements.addInt(UnitCostPercent, "UnitCostPercent", 100);
-		kElements.addInt(ExtraFreeOutsideUnits, "ExtraFreeOutsideUnits", 100);
+		kElements.addInt(ExtraFreeOutsideUnits, "ExtraFreeOutsideUnits");
 		// </advc.252>
 	}
 public:

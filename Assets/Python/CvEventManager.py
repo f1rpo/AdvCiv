@@ -644,6 +644,7 @@ class CvEventManager:
 		# Note that iPlayer may be NULL (-1) and not a refer to a player object
 		
 		# Show tech splash when applicable
+		# (advc - note: CvTeam::setHasTech may now also show the tech splash)
 		if (iPlayer > -1 and bAnnounce and not CyInterface().noTechSplash()):
 			if (gc.getGame().isFinalInitialized() and not gc.getGame().GetWorldBuilderMode()):
 				if ((not gc.getGame().isNetworkMultiPlayer()) and (iPlayer == gc.getGame().getActivePlayer())):

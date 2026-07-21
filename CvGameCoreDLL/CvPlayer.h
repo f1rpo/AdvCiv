@@ -94,7 +94,7 @@ public:
 	void killCities();																								// Exposed to Python
 	CvWString getNewCityName() const;																				// Exposed to Python
 	void getCivilizationCityName(CvWString& szBuffer, CivilizationTypes eCivilization) const;
-	bool isCityNameValid(CvWString& szName, bool bTestDestroyed = true) const;
+	bool isCityNameValid(CvWString& szName, bool bTestPast = true) const;
 
 	CvUnit* initUnit(UnitTypes eUnit, int iX, int iY, UnitAITypes eUnitAI = NO_UNITAI,								// Exposed to Python
 			// advc.003u: Set this default here rather than in CvUnit::init
