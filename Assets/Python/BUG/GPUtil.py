@@ -287,10 +287,12 @@ def getGreatPeopleText(city, iGPTurns, iGPBarWidth, bGPBarTypesNone, bGPBarTypes
 				szTypes = ""
 				for iPercent, iUnit in lPercents:
 					szNewTypes = szTypes + u" %c%d%%" % (getUnitIcon(iUnit), iPercent)
+					# advc (note, based on SAS): Should perhaps be %szNewTypes for a more
+					# accurate width test, but a little extra reluctance to drop text
+					# doesn't seem wrong to me.
 					szNewText = szText + u"<font=2> -%s</font>" % szTypes
 					if (CyInterface().determineWidth(szNewText) > iGPBarWidth - 10):
-						# Keep under width
-						break
+						break # Keep under width
 					szTypes = szNewTypes
 				if (len(szTypes) > 0):
 					szText += u"<font=2> -%s</font>" % szTypes

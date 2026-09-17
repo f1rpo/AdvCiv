@@ -19,6 +19,7 @@ class UWAICache;
 class WarUtilityAspect
 {
 public:
+	virtual ~WarUtilityAspect() {}
 	/*	Returns the computed utility (same as calling the utility accessor
 		afterwards). Sets some protected data members that derived classes should
 		find useful; concrete derived classes should override evaluate(void) instead. */

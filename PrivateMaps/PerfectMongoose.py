@@ -3916,7 +3916,7 @@ class PangaeaBreaker:
 		x, y = self.getHighestCentrality(biggestContinentID)
 		return x, y
 
-	# advc (note): All three unused. Unclear if circle points past map edges handled correctly.
+	# advc (note): All three unused. Unclear if getCirclePoints is employed correctly.
 	def isChokePoint(self, x, y, biggestContinentID):
 		circlePoints = self.getCirclePoints(x, y, mc.minimumMeteorSize)
 		waterOpposite = False
@@ -4039,9 +4039,10 @@ class PangaeaBreaker:
 			# advc: 0 elevation leads to coastal peaks when using the lowest-neighbor slope option.
 			em.data[i] *= min(0.88, 0.37 + math.sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY)) / 7.0)
 
-
+	# advc (note): These are not simply all coordinates that lie close to a circle.
+	# LLM-generated interpretation: Midpoint-circle boundary pixels in scanline-pair order
 	def getCirclePoints(self, xCenter, yCenter, radius):
-		circlePoints = set() # advc.oxi: was list
+		circlePoints = list()
 		x = 0
 		y = radius
 		p = 1 - radius
@@ -4054,20 +4055,19 @@ class PangaeaBreaker:
 				y -= 1
 				p += 2 * (x - y) + 1
 			self.addCirclePoints(xCenter, yCenter, x, y, circlePoints)
-		return list(circlePoints) # advc.oxi
+		return circlePoints
 
-	# advc.oxi: Had been circlePointsList.append, leading to duplicates.
 	def addCirclePoints(self, xCenter, yCenter, x, y, circlePoints):
-		circlePoints.add(CirclePoint(xCenter + x, yCenter + y))
-		circlePoints.add(CirclePoint(xCenter - x, yCenter + y))
-		circlePoints.add(CirclePoint(xCenter + x, yCenter - y))
-		circlePoints.add(CirclePoint(xCenter - x, yCenter - y))
-		circlePoints.add(CirclePoint(xCenter + y, yCenter + x))
-		circlePoints.add(CirclePoint(xCenter - y, yCenter + x))
-		circlePoints.add(CirclePoint(xCenter + y, yCenter - x))
-		circlePoints.add(CirclePoint(xCenter - y, yCenter - x))
+		circlePoints.append(CirclePoint(xCenter + x, yCenter + y))
+		circlePoints.append(CirclePoint(xCenter - x, yCenter + y))
+		circlePoints.append(CirclePoint(xCenter + x, yCenter - y))
+		circlePoints.append(CirclePoint(xCenter - x, yCenter - y))
+		circlePoints.append(CirclePoint(xCenter + y, yCenter + x))
+		circlePoints.append(CirclePoint(xCenter - y, yCenter + x))
+		circlePoints.append(CirclePoint(xCenter + y, yCenter - x))
+		circlePoints.append(CirclePoint(xCenter - y, yCenter - x))
 
-	# advc.oxi: New method to replace some erroneous uses of getCirclePoints
+	# advc.oxi: New method to replace erroneous uses of getCirclePoints
 	def getFilledCirclePoints(self, xCenter, yCenter, radius):
 		points = []
 		for dy in range(-radius, radius + 1):

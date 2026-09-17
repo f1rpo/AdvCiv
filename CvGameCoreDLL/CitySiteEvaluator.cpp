@@ -1019,7 +1019,7 @@ int AIFoundValue::countBadTiles(/* advc.031: */ int& iInnerRadius,
 	}
 	iInnerRadius /= 2; // </advc.031>
 	iBadTiles /= 2;
-	IFLOG (iUnrevealed > 0 ? logBBAI("Bad tiles: %d known bad, %d unrevealed", iBadTiles, iUnrevealedTiles) :
+	IFLOG (iUnrevealed > 0 ? logBBAI("Bad tiles: %d known bad, %d unrevealed", iBadTiles, iUnrevealed) :
 							 logBBAI("Bad tiles: %d", iBadTiles));
 	return iBadTiles;
 }

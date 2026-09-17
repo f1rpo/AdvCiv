@@ -167,7 +167,8 @@ class FractalWorld:
 
 	def findBestSplitY(self, stripRadius):
 		stripSize = 2*stripRadius
-		if stripSize > self.iNumPlotsX:
+		# advc.001 (from SAS): was iNumPlotsX on the right
+		if stripSize > self.iNumPlotsY:
 			return 0
 
 		numPlots = self.iNumPlotsX * self.iNumPlotsY
@@ -792,7 +793,8 @@ class MultilayeredFractal:
 
 	def findBestRegionSplitY(self, iRegionWidth, iRegionHeight, stripRadius):
 		stripSize = 2*stripRadius
-		if stripSize > iRegionWidth:
+		# advc.001 (from SAS): was iRegionWidth
+		if stripSize > iRegionHeight:
 			return 0
 
 		numPlots = iRegionWidth * iRegionHeight

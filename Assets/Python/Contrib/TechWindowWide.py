@@ -1,9 +1,13 @@
 ## TechWindowWide
 ##
-## Originally by SirRethcir: Techanzeige hinzugefügt
+## Originally by SirRethcir
 ## Enhanced by Roamty, Caesium, Guarav
 ##
 ## Copyright (c) 2008 The BUG Mod.
+# advc (note): Starting point was apparently a copy of TechWindow.py, which in turn
+# started as a copy of CvTechSplashScreen.py (BtS). Then Spocko edited some numbers.
+# I've replaced SirRethcir's German-language comments with XML-style tags in both
+# scripts (this one and TechWindow.py).
 
 from CvPythonExtensions import *
 import CvUtil
@@ -28,7 +32,7 @@ class CvTechSplashScreen:
 		self.SCREEN_NAME = "TechSplashScreen"
 		self.EXIT_ID = "TechSplashExit"
 		
-		self.X_SCREEN = 17  #   117                                                                                     # Spocko 205
+		self.X_SCREEN = 17  #   117 (Spocko 205)
 		self.Y_SCREEN = 27
 		self.W_SCREEN = 1024
 		self.H_SCREEN = 768
@@ -43,9 +47,9 @@ class CvTechSplashScreen:
 		
 		self.iMarginSpace = 15
 		
-		self.X_MAIN_PANEL = 17  #   117                                                                             # Spocko 205
+		self.X_MAIN_PANEL = 17  #   117 (Spocko 205)
 		self.Y_MAIN_PANEL = 25
-		self.W_MAIN_PANEL = 996        #796                                                                        # Spocko 620
+		self.W_MAIN_PANEL = 996        #796 (pocko 620)
 		self.H_MAIN_PANEL = 725 # 545
 		
 		# Upper Panel
@@ -60,12 +64,12 @@ class CvTechSplashScreen:
 		
 		self.W_ICON = 96 # 90
 		self.H_ICON = 96 # 90
-#		self.X_ICON = self.X_UPPER_PANEL + 134                                                      # Spocko 56 # 23 #42
+#		self.X_ICON = self.X_UPPER_PANEL + 134 (Spocko 56) # 23 #42
 #		self.Y_ICON = self.Y_UPPER_PANEL + (self.H_UPPER_PANEL / 2) - (self.H_ICON / 2) + 17
 		
 		self.X_ICON_PANEL = self.X_UPPER_PANEL + self.iMarginSpace + 2
 		self.Y_ICON_PANEL = self.Y_UPPER_PANEL + self.iMarginSpace + 33
-		self.W_ICON_PANEL = 160 # 140   #  200   per Roamty                                                          #  Spocko was 140
+		self.W_ICON_PANEL = 160 # 140   #  200   per Roamty; Spocko was 140
 		self.H_ICON_PANEL = 135 # self.H_MAIN_PANEL - (self.iMarginSpace * 2)
 		
 		self.X_ICON = self.X_ICON_PANEL + self.W_ICON_PANEL / 2 - self.W_ICON / 2
@@ -74,11 +78,11 @@ class CvTechSplashScreen:
 		self.X_QUOTE = self.X_UPPER_PANEL + self.W_ICON_PANEL + (self.iMarginSpace * 2)
 #		self.Y_QUOTE = self.Y_UPPER_PANEL + self.iMarginSpace + 36
 		self.Y_QUOTE = self.Y_ICON
-		self.W_QUOTE = 725                                                                                               #  Spocko was 400
+		self.W_QUOTE = 725 # Spocko was 400
 #		self.H_QUOTE = self.H_UPPER_PANEL - (self.iMarginSpace * 2) - 38
 		self.H_QUOTE = self.H_UPPER_PANEL - (self.Y_QUOTE - self.Y_UPPER_PANEL) - (self.iMarginSpace * 2)
 		
-#---Geändert START - siehe original Datei -----------------		
+		# <SirRethcir> (modified)
 		# Lower Panel
 		
 		self.X_LOWER_PANEL = self.X_MAIN_PANEL + self.iMarginSpace
@@ -104,7 +108,7 @@ class CvTechSplashScreen:
 		self.W_ALLOWS_PANEL = self.W_LOWER_PANEL/2 - (self.iMarginSpace)
 		self.Y_ALLOWS_PANEL2 = self.Y_SPECIAL_PANEL + self.H_ALLOWS_PANEL + self.H_ALLOWS_SPACE
 		self.Y_ALLOWS_PANEL3 = self.Y_SPECIAL_PANEL + 2 * (self.H_ALLOWS_PANEL + self.H_ALLOWS_SPACE)
-#---Geändert ENDE ------------------------------------------
+		# </SirRethcir>
 		
 		# Contents
 		
@@ -175,13 +179,13 @@ class CvTechSplashScreen:
 				self.X_SPECIAL_PANEL+self.iMarginSpace, self.Y_SPECIAL_PANEL, self.W_SPECIAL_PANEL-(self.iMarginSpace * 2), self.H_SPECIAL_PANEL, PanelStyles.PANEL_STYLE_IN )
 		screen.setStyle(szSpecialPanel, "Panel_Black25_Style")
 		
-#---Eingefügt START - kann komplett gelöscht werden-----------------
+		# <SirRethcir>
 		# Allows PanelSIR
 		panelNameSIR = "SIR"
 		screen.addPanel( panelNameSIR, "", "", false, true,
                                  self.X_ALLOWS_PANELSIR+self.iMarginSpace, self.Y_ALLOWS_PANELSIR, self.W_ALLOWS_PANELSIR-(self.iMarginSpace * 2), self.H_ALLOWS_PANELSIR, PanelStyles.PANEL_STYLE_IN )
 		screen.setStyle(panelNameSIR, "Panel_Black25_Style")
-#---Eingefügt ENDE -------------------------------------------------
+		# </SirRethcir>
 
 		# Allows Panel
 		panelName = self.getNextWidgetName()
@@ -189,7 +193,7 @@ class CvTechSplashScreen:
                                  self.X_ALLOWS_PANEL+self.iMarginSpace, self.Y_ALLOWS_PANEL, self.W_ALLOWS_PANEL-(self.iMarginSpace * 2), self.H_ALLOWS_PANEL, PanelStyles.PANEL_STYLE_IN )
 		screen.setStyle(panelName, "Panel_Black25_Style")
 		
-#---Eingefügt START - kann komplett gelöscht werden-----------------
+		# <SirRethcir>
 		# Allows Panel2
 		panelName2 = "SIR2"
 		screen.addPanel( panelName2, "", "", false, true,
@@ -201,7 +205,7 @@ class CvTechSplashScreen:
 		screen.addPanel( panelName3, "", "", false, true,
                                  self.X_ALLOWS_PANEL+self.iMarginSpace, self.Y_ALLOWS_PANEL3, self.W_ALLOWS_PANEL-(self.iMarginSpace * 2), self.H_ALLOWS_PANEL, PanelStyles.PANEL_STYLE_IN )
 		screen.setStyle(panelName3, "Panel_Black25_Style")
-#---Eingefügt ENDE -------------------------------------------------
+		# </SirRethcir>
 
 		# Add Contents
 		
@@ -234,7 +238,7 @@ class CvTechSplashScreen:
 		szSpecialText = CyGameTextMgr().getTechHelp(self.iTech, True, False, False, True, -1)[1:]
 		screen.addMultilineText(listName, szSpecialText, self.X_SPECIAL_PANEL+10, self.Y_SPECIAL_PANEL+5, self.W_SPECIAL_PANEL-20, self.H_SPECIAL_PANEL-20, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)	
 		
-#---Eingefügt START - kann komplett gelöscht werden --------------
+		# <SirRethcir>
 		# Allows -> LeadsTo
 		szAllowsTitleDescSIR = u"<font=3b>" + localText.getText("TXT_KEY_PEDIA_LEADS_TO", ()) + ":" + u"</font>"
 		szAllowsTitleWidgetSIR = "AllowsTitleSIR"
@@ -250,8 +254,8 @@ class CvTechSplashScreen:
 				iPrereq = CyGlobalContext().getTechInfo(j).getPrereqAndTechs(k)
 				if (iPrereq == self.iTech):
         				screen.attachImageButton( panelNameSIR, "", CyGlobalContext().getTechInfo(j).getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_DERIVED_TECH, j, self.iTech, False )
+		# </SirRethcir>
 
-#---Eingefügt ENDE ------------------------------------------------
 		# Allows
 		# szAllowsTitleDesc = u"<font=3b>" + localText.getText("TXT_KEY_PEDIA_ALLOWS", ()) + ":" + u"</font>"
 		# szAllowsTitleWidget = "AllowsTitle"
@@ -302,8 +306,7 @@ class CvTechSplashScreen:
 				screen.attachImageButton( panelName3, "", CyGlobalContext().getPromotionInfo(j).getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM,
 							  WidgetTypes.WIDGET_PEDIA_JUMP_TO_PROMOTION, j, 1, False )
 		
-#---Eingefügt START - kann komplett gelöscht werden --------------
-
+		# <SirRethcir>
 		# Improvements
 		for j in range(CyGlobalContext().getNumBuildInfos()):
 				bTechFound = 0;
@@ -318,7 +321,9 @@ class CvTechSplashScreen:
 
 				if (bTechFound == 1):
 					if (CyGlobalContext().getBuildInfo(j).getImprovement() == -1):
-						screen.attachImageButton( panelName3, "", CyGlobalContext().getBuildInfo(j).getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_HELP_IMPROVEMENT, j, 1, False )
+						screen.attachImageButton( panelName3, "", CyGlobalContext().getBuildInfo(j).getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_HELP_IMPROVEMENT,
+								self.iTech, j, # advc.001 (from SAS): was j, 1
+								False )
 					else:
 						screen.attachImageButton( panelName3, "", CyGlobalContext().getBuildInfo(j).getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_IMPROVEMENT, CyGlobalContext().getBuildInfo(j).getImprovement(), 1, False )
 
@@ -333,8 +338,7 @@ class CvTechSplashScreen:
 			if (CyGlobalContext().getCivicInfo(j).getTechPrereq() == self.iTech):
 				screen.attachImageButton( panelName3, "", CyGlobalContext().getCivicInfo(j).getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM,
 							  WidgetTypes.WIDGET_PEDIA_JUMP_TO_CIVIC, j, 1, False )
-
-#---Eingefügt ENDE ------------------------------------------------		
+		# </SirRethcir>	
 
 	# returns a unique ID for a widget in this screen
 	def getNextWidgetName(self):

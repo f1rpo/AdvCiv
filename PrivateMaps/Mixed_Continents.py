@@ -261,7 +261,8 @@ class BnSMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 				tinyWestLon = 0.01 * self.dice.get(85, "Tiny Longitude - Custom Continents PYTHON")
 				tinyWestX = int(self.iW * tinyWestLon)
 				tinySouthLat = 0.01 * self.dice.get(85, "Tiny Latitude - Custom Continents PYTHON")
-				tinySouthY = int(self.iH * tinyWestLon)
+				# advc.001 (from SAS): was * tinyWestLon
+				tinySouthY = int(self.iH * tinySouthLat)
 				tinyWidth = int(self.iW * 0.15)
 				tinyHeight = int(self.iH * 0.15)
 				# advc.mxc: was 3 - which is an unusually coarse grain. Probably the opposite was intended.

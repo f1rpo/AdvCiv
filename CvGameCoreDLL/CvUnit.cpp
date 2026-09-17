@@ -2052,22 +2052,20 @@ void CvUnit::updateFoundingBorder(bool bForceClear) const
 	if (!GC.getGame().isFinalInitialized())
 		return;
 	int iMode = BUGOption::getValue("MainInterface__FoundingBorder", 2);
-	if(BUGOption::isEnabled("MainInterface__FoundingYields", false) && iMode == 1)
-		return; // BtS behavior
 	gDLL->getEngineIFace()->clearAreaBorderPlots(AREA_BORDER_LAYER_FOUNDING_BORDER);
-	if(bForceClear || iMode <= 0 || !isFound())
+	if (bForceClear || iMode <= 0 || !isFound())
 		return;
 	FOR_EACH_UNIT_IN(pUnit, *getGroup())
 	{
-		if(pUnit == NULL || (pUnit->IsSelected() && !pUnit->isFound()))
+		if (pUnit->IsSelected() && !pUnit->isFound())
 			return;
 	}
 	CvPlot* pGoToPlot = gDLL->UI().getGotoPlot();
 	CvPlot* pCenter;
-	if(pGoToPlot == NULL)
+	if (pGoToPlot == NULL)
 		pCenter = plot();
 	else pCenter = pGoToPlot;
-	if(pCenter == NULL || !pCenter->isRevealed(TEAMID(getOwner())) ||
+	if (pCenter == NULL || !pCenter->isRevealed(TEAMID(getOwner())) ||
 		(!atPlot(pCenter) && !canMoveInto(*pCenter)) || !canFound(pCenter))
 	{
 		return;
@@ -6022,7 +6020,7 @@ bool CvUnit::canInfiltrate(const CvPlot* pPlot, bool bTestVisible) const
 		return false;
 	if (!bTestVisible)
 	{
-		if (NULL != pCity && pCity->getTeam() == getTeam())
+		if (pCity != NULL && pCity->getTeam() == getTeam())
 			return false;
 	}
 	return true;
@@ -7127,6 +7125,8 @@ bool CvUnit::isGarrisonInTeamCity() const
 	if (!getPlot().isCity())
 		return false;
 	CvTeam const& kCityTeam = GET_TEAM(getPlot().getTeam());
+	/*	Note that I've changed the bCheckCargo effect in isInvisible so that
+		the city team can see what cargo is in port */
 	if (isInvisible(kCityTeam.getID(), false))
 		return false;
 	return (kCityTeam.getID() == getTeam() ||
@@ -7339,7 +7339,10 @@ int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker,
 						getAIBarbarianCombatModifier();
 				iModifier += iExtraModifier;
 				if (pCombatDetails != NULL)
-					pCombatDetails->iAIBarbarianCombatModifierTB = iExtraModifier;
+				{	/*	advc.001 (from SAS): Was ...TB ("this is Barbarian"),
+						but the attacker is the Barbarian here. */
+					pCombatDetails->iAIBarbarianCombatModifierAB = iExtraModifier;
+				}
 			}
 			// <advc.313>
 			if (pAttacker->isKnownSeaBarbarian())
@@ -7428,7 +7431,7 @@ int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker,
 		}
 	}
 
-	// if we are attacking to an plot with an unknown defender, the calc the modifier in reverse
+	// if we are attacking to a plot with an unknown defender, then calc the modifier in reverse
 	if (bAttackingUnknownDefender)
 		pAttacker = this;
 
@@ -7475,7 +7478,7 @@ int CvUnit::maxCombatStr(CvPlot const* pPlot, CvUnit const* pAttacker,
 		else
 		{
 			iExtraModifier = -pAttacker->terrainAttackModifier(pAttackedPlot->getTerrainType());
-			iModifier += iExtraModifier;
+			iTempModifier += iExtraModifier; // advc.001 (from SAS): was iModifier on the left
 			if (pCombatDetails != NULL)
 				pCombatDetails->iTerrainAttackModifier = iExtraModifier;
 		}
@@ -8228,8 +8231,12 @@ bool CvUnit::isInvisible(TeamTypes eTeam, bool bDebug, bool bCheckCargo) const
 		return false;
 	if (alwaysInvisible())
 		return true;
-	if (bCheckCargo && isCargo())
+	if (bCheckCargo && isCargo() &&
+		// advc.184: Not invisible when in port in eTeam's city
+		(!getPlot().isCity() || getPlot().getPlotCity()->getTeam() != eTeam))
+	{
 		return true;
+	}
 	if (getInvisibleType() == NO_INVISIBLE)
 		return false;
 	return !getPlot().isInvisibleVisible(eTeam, getInvisibleType());

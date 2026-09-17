@@ -731,7 +731,8 @@ void CvCityAI::AI_chooseProduction()
 		/*	<advc.192> If city keeps growing, but production stays slow,
 			then we should bite the bullet and start a slow culture building
 			rather sooner than later. */
-		if (iBestBuildingValue >= 60 && getPopulation() > 2 &&
+		if (bCultureBuilding &&
+			iBestBuildingValue >= 60 && getPopulation() > 2 &&
 			AI_isSwiftBorderExpansion(iProductionTurns /
 			std::min(getPopulation() - 1, 3)))
 		{
@@ -2521,11 +2522,16 @@ void CvCityAI::AI_chooseProduction()
 
 	if (!bUnitExempt && iTotalFloatingDefenders < iNeededFloatingDefenders &&
 		(!bFinancialTrouble || bLandWar))
-	{
-		if (AI_chooseLeastRepresentedUnit(floatingDefenderWeight, 50))
-		{
-			if (gCityLogLevel >= 2) logBBAI("      City %S uses choose floating defender 2", getName().GetCString());
-			return;
+	{	// <advc.107> Respect spending cap unless low on defenders (based on SAS)
+		bool bFloatingDefendersLow = (iTotalFloatingDefenders * 100 <
+				iNeededFloatingDefenders * 72);
+		if (bLandWar || bFloatingDefendersLow || iUnitSpending < iMaxUnitSpending + 15)
+		{	// </advc.107>
+			if (AI_chooseLeastRepresentedUnit(floatingDefenderWeight, 50))
+			{
+				if (gCityLogLevel >= 2) logBBAI("      City %S uses choose floating defender 2", getName().GetCString());
+				return;
+			}
 		}
 	}
 
@@ -3778,7 +3784,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags,
 	if (iFocusFlags & BUILDINGFOCUS_WORLDWONDER)
 	{
 		if (!kBuilding.isWorldWonder() ||
-			findBaseYieldRateRank(YIELD_PRODUCTION) <= 3)
+			findBaseYieldRateRank(YIELD_PRODUCTION) > 3) // advc.001 (from SAS): was <=
 		{
 			/*	Note / TODO: the production condition is from the original BtS code.
 				I intend to remove / change that condition in the future. */
@@ -9358,12 +9364,13 @@ bool CvCityAI::AI_chooseLeastRepresentedUnit(UnitAIWeightMap const& kWeights,
 	return false;
 }
 
-bool CvCityAI::AI_bestSpreadUnit(bool bMissionary, bool bExecutive, int iBaseChance, UnitTypes* eBestSpreadUnit, int* iBestSpreadUnitValue)
+bool CvCityAI::AI_bestSpreadUnit(bool bMissionary, bool bExecutive, int iBaseChance,
+	UnitTypes* peBestSpreadUnit, int* piBestSpreadUnitValue)
 {
 	CvPlayerAI const& kPlayer = GET_PLAYER(getOwner());
 	CvTeamAI const& kTeam = GET_TEAM(getTeam());
 
-	FAssert(eBestSpreadUnit != NULL && iBestSpreadUnitValue != NULL);
+	FAssert(peBestSpreadUnit != NULL && piBestSpreadUnitValue != NULL);
 
 	int iBestValue = 0;
 
@@ -9414,8 +9421,8 @@ bool CvCityAI::AI_bestSpreadUnit(bool bMissionary, bool bExecutive, int iBaseCha
 						if (iValue > iBestValue)
 						{
 							iBestValue = iValue;
-							*eBestSpreadUnit = eLoopUnit;
-							*iBestSpreadUnitValue = iReligionValue;
+							*peBestSpreadUnit = eLoopUnit;
+							*piBestSpreadUnitValue = iReligionValue;
 						}
 					}
 				}
@@ -9492,16 +9499,15 @@ bool CvCityAI::AI_bestSpreadUnit(bool bMissionary, bool bExecutive, int iBaseCha
 						if (iValue > iBestValue)
 						{
 							iBestValue = iValue;
-							*eBestSpreadUnit = eLoopUnit;
-							*iBestSpreadUnitValue = iCorporationValue;
+							*peBestSpreadUnit = eLoopUnit;
+							*piBestSpreadUnitValue = iCorporationValue;
 						}
 					}
 				}
 			}
 		}
 	}
-
-	return (*eBestSpreadUnit != NULL);
+	return (*peBestSpreadUnit != NO_UNIT); // advc.001 (from SAS): was != NULL
 }
 
 bool CvCityAI::AI_chooseBuilding(int iFocusFlags, int iMaxTurns, int iMinThreshold,

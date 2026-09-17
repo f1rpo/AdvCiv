@@ -14519,7 +14519,7 @@ int CvPlayerAI::AI_totalWaterAreaUnitAIs(CvArea const& kArea,
 	for(size_t i = 0; i < aeUnitAI.size(); i++)
 		iCount += AI_totalAreaUnitAIs(kArea, aeUnitAI[i]);
 	// </advc.081>
-	for (PlayerIter<MAJOR_CIV> it; it.hasNext(); ++it)
+	for (PlayerIter<ALIVE> it; it.hasNext(); ++it)
 	{
 		CvPlayer const& kOwner = *it;
 		// <advc.opt> No need to go through cities that our ships can't enter
@@ -14529,7 +14529,7 @@ int CvPlayerAI::AI_totalWaterAreaUnitAIs(CvArea const& kArea,
 		{
 			if (pLoopCity->waterArea() != &kArea)
 				continue;
-			for(size_t j = 0; j < aeUnitAI.size(); j++) // advc.081
+			for (size_t j = 0; j < aeUnitAI.size(); j++) // advc.081
 			{
 				iCount += pLoopCity->getPlot().plotCount(PUF_isUnitAIType,
 						aeUnitAI[j], -1, getID()); // advc.081
@@ -21753,6 +21753,9 @@ void CvPlayerAI::AI_proposeWarTrade(PlayerTypes eHireling)
 				{
 					iBestValue = iValue;
 					eBestTarget = kTarget.getID();
+					// <advc.104o> Moved up (as in SAS)
+					iBestTeamPrice = kOurTeam.AI_declareWarTradeVal(
+							eBestTarget, kHireling.getTeam()); // </advc.104o>
 				}
 			}
 		}
@@ -23355,8 +23358,9 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent,
 		else if (iUnitValue == -1)
 			iUnitValue = 2000; //Great Person?  // (was 200)
 
-		iUnitValue *= GC.getInfo(GC.getGame().getGameSpeedType()).getTrainPercent();
-		iUnitValue /= 100; // K-Mod
+		iUnitValue *= GC.getInfo(GC.getGame().getGameSpeedType()).
+				getTrainPercent();
+		iUnitValue /= 100; // K-Mod (bugfix)
 		iValue -= iUnitValue;
 	}
 	{
@@ -23375,6 +23379,7 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent,
 
 				iBuildingValue *= GC.getInfo(GC.getGame().getGameSpeedType()).
 						getConstructPercent();
+				iBuildingValue /= 100; // advc.001 (from SAS; like the K-Mod fix above)
 				iValue += kEvent.getBuildingChange() * iBuildingValue;
 			}
 		}

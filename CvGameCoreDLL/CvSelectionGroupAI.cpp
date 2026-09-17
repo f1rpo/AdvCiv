@@ -1098,23 +1098,21 @@ CvUnitAI* CvSelectionGroupAI::AI_ejectBestDefender(CvPlot* pDefendPlot)
 		//if (pUnit->noDefensiveBonus()) continue;
 		// commented out by K-Mod. The noDefBonus thing is already taken into account.
 		/*  advc.159: Call AI_currEffectiveStr instead of currEffectiveStr
-			And reduce the precision multiplier from 100 to 10. */
-		int iValue = pUnit->AI_currEffectiveStr(pDefendPlot) * 10;
+			And reduce the precision multiplier from 100 to 20. */
+		int iValue = pUnit->AI_currEffectiveStr(pDefendPlot) * 20;
 		//if (pDefendPlot->isCity(true, getTeam())))
 		if (GET_TEAM(getTeam()).isCityDefense(*pDefendPlot)) // advc
 		{
 			iValue *= 100 + pUnit->cityDefenseModifier();
 			iValue /= 100;
 		}
-
 		iValue *= 100;
 		//iValue /= (100 + pUnit->cityAttackModifier() + pUnit->getExtraCityAttackPercent());
 		// advc.mnai: (Note that cityAttackModifier includes ExtraCityAttackPercent)
-		iValue /= 100 + std::max(-50, 2 * pUnit->cityAttackModifier());
-
-		iValue /= 2 + (pUnit->getLevel() *
+		iValue = intdiv::uceil(iValue, 100 + std::max(-50, 2 * pUnit->cityAttackModifier()));
+		iValue = intdiv::uceil(iValue, 2 + (pUnit->getLevel() *
 				// advc.mnai:
-				(pUnit->AI_getUnitAIType() == UNITAI_ATTACK_CITY ? 2 : 1));
+				(pUnit->AI_getUnitAIType() == UNITAI_ATTACK_CITY ? 2 : 1)));
 		if (iValue > iBestUnitValue)
 		{
 			iBestUnitValue = iValue;

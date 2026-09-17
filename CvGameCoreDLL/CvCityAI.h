@@ -217,7 +217,8 @@ protected:
 	void AI_doPanic();
 	//int AI_calculateCulturePressure(bool bGreatWork = false) const; // disabled by K-Mod
 
-	bool AI_bestSpreadUnit(bool bMissionary, bool bExecutive, int iBaseChance, UnitTypes* eBestSpreadUnit, int* iBestSpreadUnitValue);
+	bool AI_bestSpreadUnit(bool bMissionary, bool bExecutive, int iBaseChance,
+			UnitTypes* peBestSpreadUnit, int* piBestSpreadUnitValue);
 	bool AI_chooseUnit(UnitAITypes eUnitAI = NO_UNITAI,
 			int iOdds = -1); // BETTER_BTS_AI_MOD, 01/09/10, jdog5000: City AI
 	bool AI_chooseUnit(UnitTypes eUnit, UnitAITypes eUnitAI);

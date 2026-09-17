@@ -3897,7 +3897,10 @@ bool CvPlayer::canTradeItem(PlayerTypes eWhoTo, TradeData item, bool bTestDenial
 	{
 		FAssertBounds(0, MAX_CIV_TEAMS, item.m_iData);
 		TeamTypes eTargetTeam = (TeamTypes)item.m_iData;
-		if (!GET_TEAM(eTargetTeam).isAVassal() &&
+		// <advc.104> (correction from SAS)
+		bool bVassalStatusValid = (!GET_TEAM(eTargetTeam).isAVassal() ||
+				(getUWAI().isEnabled() && !GET_TEAM(eTargetTeam).isCapitulated()));
+		if (bVassalStatusValid && // </advc.104>
 			kOurTeam.isHasMet(eTargetTeam) && kToTeam.isHasMet(eTargetTeam) &&
 			kOurTeam.canDeclareWar(eTargetTeam))
 		{

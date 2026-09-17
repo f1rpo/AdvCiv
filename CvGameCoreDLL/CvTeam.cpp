@@ -542,6 +542,10 @@ void CvTeam::addTeam(TeamTypes eTeam)
 		kOther.setWarWeariness(getID(), (iOriginalTeamSize *
 				kOther.getWarWeariness(getID()) + iSecondTeamSize *
 				kOther.getWarWeariness(eTeam)) / getNumMembers());
+		// <advc.001> (from SAS)
+		kOther.AI_setOpenBordersCounter(getID(), (iOriginalTeamSize *
+				kOther.AI_getOpenBordersCounter(getID()) + iSecondTeamSize *
+				kOther.AI_getOpenBordersCounter(eTeam)) / getNumMembers()); // </advc.001>
 		kOther.AI_setDefensivePactCounter(getID(), (iOriginalTeamSize *
 				kOther.AI_getDefensivePactCounter(getID()) + iSecondTeamSize *
 				kOther.AI_getDefensivePactCounter(eTeam)) / getNumMembers());
@@ -775,7 +779,10 @@ void CvTeam::shareCounters(TeamTypes eTeam)
 		if (kShareTeam.AI_getWarSuccess(eLoopTeam) > AI().AI_getWarSuccess(eLoopTeam))
 			AI().AI_setWarSuccess(eLoopTeam, kShareTeam.AI_getWarSuccess(eLoopTeam));
 		//else kShareTeam.AI_setWarSuccess(eLoopTeam, AI_getWarSuccess(eLoopTeam));
-
+		// <advc.130m> (correction from SAS)
+		if (kShareTeam.AI_getSharedWarSuccess(eLoopTeam) > AI().AI_getSharedWarSuccess(eLoopTeam))
+			AI().AI_setSharedWarSuccess(eLoopTeam, kShareTeam.AI_getSharedWarSuccess(eLoopTeam));
+		// </advc.130m>
 		if (kShareTeam.AI_getEnemyPeacetimeTradeValue(eLoopTeam) > AI().AI_getEnemyPeacetimeTradeValue(eLoopTeam))
 			AI().AI_setEnemyPeacetimeTradeValue(eLoopTeam, kShareTeam.AI_getEnemyPeacetimeTradeValue(eLoopTeam));
 		//else kShareTeam.AI_setEnemyPeacetimeTradeValue(eLoopTeam, AI_getEnemyPeacetimeTradeValue(eLoopTeam));
@@ -2510,10 +2517,15 @@ PlayerTypes CvTeam::getRandomMemberAlive(bool bHuman) const
 	int iValid = (bHuman ? PlayerIter<HUMAN,MEMBER_OF>::count(getID()) :
 			getAliveCount());
 	int iIndex = SyncRandNum(iValid);
+	// For the bHuman case. From SAS, fixing an earlier AdvCiv bug.
+	int iValidIndex = 0;
 	for (MemberIter itMember(getID()); itMember.hasNext(); ++itMember)
 	{
-		if ((!bHuman || itMember->isHuman()) && itMember.nextIndex() >= iIndex)
+		if (bHuman && !itMember->isHuman())
+			continue;
+		if (iValidIndex >= iIndex)
 			return itMember->getID();
+		iValidIndex++;
 	}
 	FErrorMsg("Team not alive?");
 	return NO_PLAYER;

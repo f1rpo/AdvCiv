@@ -5790,7 +5790,8 @@ class CvMainInterface:
 			if CityScreenOpt.isShowCityGreatPersonInfo():
 				iGPTurns = GPUtil.getCityTurns(pHeadSelectedCity)
 				szBuffer = GPUtil.getGreatPeopleText(pHeadSelectedCity, iGPTurns,
-						230, MainOpt.isGPBarTypesNone(), MainOpt.isGPBarTypesOne(), False)
+						gRect("GreatPeopleBar").width(),
+						MainOpt.isGPBarTypesNone(), MainOpt.isGPBarTypesOne(), False)
 			else:
 				szBuffer = localText.getText("INTERFACE_CITY_GREATPEOPLE_RATE",
 						(CyGame().getSymbolID(FontSymbols.GREAT_PEOPLE_CHAR),

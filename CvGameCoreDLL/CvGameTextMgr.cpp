@@ -3068,6 +3068,17 @@ void CvGameTextMgr::setPlotHelp(CvWStringBuffer& szString, CvPlot const& kPlot)
 		}
 	}
 	CvUnit const* pHeadSelectedUnit = gDLL->UI().getHeadSelectedUnit(); // advc
+	// advc.004h: (Could show founding border in Go To mode here like BtS does)
+	/*static CvPlot const* pPrevPlot = NULL;
+	if (&kPlot != pPrevPlot)
+	{
+		pPrevPlot = &kPlot;
+		if (pHeadSelectedUnit != NULL &&
+			gDLL->UI().getInterfaceMode() == INTERFACEMODE_GO_TO)
+		{
+			pHeadSelectedUnit->updateFoundingBorder();
+		}
+	}*/
 	// <advc.012>
 	TeamTypes const eDefTeam = (eRevealedOwner != NO_PLAYER ?
 			GET_PLAYER(eRevealedOwner).getTeam() :
