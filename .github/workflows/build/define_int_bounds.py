@@ -20,8 +20,6 @@ MAX_ALLOWED_VALUE = 100000
 # GlobalDefines are obvious; it is checked separately by launch_guard.py.
 ALLOWED_OUT_OF_RANGE_DEFINES = {
 	"SAS_LAUNCH_GUARD_TEST_INT",
-	# <!-- custom: Preserves the previous AdvCiv-SAS hardcoded AI_bestCityBuild bonus-Fallout scrub value (150000), intentionally above normal worker-improvement values so bonus Fallout is scrubbed before ordinary bonus improvement. (GPT-5.5) -->
-	"SAS_WORKER_AI_BONUS_FALLOUT_SCRUB_VALUE",
 }
 
 

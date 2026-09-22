@@ -2838,9 +2838,11 @@ struct SASGameRecordPlayerPrevious
 	int iTerritoryImprovedLand;
 	int iTerritoryImprovedWater;
 	int iTerritoryRoaded;
-	int iTerritoryFarms;
-	int iTerritoryIrrigatedFarms;
-	int iTerritoryDryFarms;
+	int iTerritoryBFCDevelopmentLandRoaded;
+	int iTerritorySuburbDevelopmentLandRoaded;
+	int iTerritoryIrrigationCarriers;
+	int iTerritoryIrrigatedCarriers;
+	int iTerritoryDryCarriers;
 	int iSettlerSettlers;
 	int iSettlerFoundMission;
 	int iSettlerFoundIntent;
@@ -2925,6 +2927,10 @@ struct SASGameRecordTerritoryDevelopment
 	SASGameRecordPlotComposition kOwned;
 	std::vector<int> aiImprovedBonuses;
 	std::vector<int> aiUnimprovedBonuses;
+	std::vector<int> aiIrrigatedCarriers;
+	std::vector<int> aiDryCarriers;
+	std::vector<int> aiBFCDevelopmentRoutes;
+	std::vector<int> aiSuburbDevelopmentRoutes;
 	int iBFCPlots;
 	int iSuburbPlots;
 	int iDevelopmentLand;
@@ -2933,22 +2939,42 @@ struct SASGameRecordTerritoryDevelopment
 	int iImprovedWater;
 	int iBFCDevelopmentLand;
 	int iBFCImprovedLand;
+	int iBFCDevelopmentLandRoaded;
 	int iBFCDevelopmentWater;
 	int iBFCImprovedWater;
 	int iSuburbDevelopmentLand;
 	int iSuburbImprovedLand;
+	int iSuburbDevelopmentLandRoaded;
 	int iSuburbDevelopmentWater;
 	int iSuburbImprovedWater;
-	int iFarms;
-	int iIrrigatedFarms;
-	int iDryFarms;
-	int iBonusFarms;
-	int iIrrigatedBonusFarms;
-	int iDryBonusFarms;
-	int iBFCFarms;
-	int iBFCIrrigatedFarms;
-	int iBFCDryFarms;
-	SASGameRecordTerritoryDevelopment() : aiImprovedBonuses(GC.getNumBonusInfos(), 0), aiUnimprovedBonuses(GC.getNumBonusInfos(), 0), iBFCPlots(0), iSuburbPlots(0), iDevelopmentLand(0), iDevelopmentWater(0), iImprovedLand(0), iImprovedWater(0), iBFCDevelopmentLand(0), iBFCImprovedLand(0), iBFCDevelopmentWater(0), iBFCImprovedWater(0), iSuburbDevelopmentLand(0), iSuburbImprovedLand(0), iSuburbDevelopmentWater(0), iSuburbImprovedWater(0), iFarms(0), iIrrigatedFarms(0), iDryFarms(0), iBonusFarms(0), iIrrigatedBonusFarms(0), iDryBonusFarms(0), iBFCFarms(0), iBFCIrrigatedFarms(0), iBFCDryFarms(0) {}
+	int iIrrigationCarriers;
+	int iIrrigatedCarriers;
+	int iDryCarriers;
+	int iBonusIrrigationCarriers;
+	int iIrrigatedBonusCarriers;
+	int iDryBonusCarriers;
+	int iBFCIrrigationCarriers;
+	int iBFCIrrigatedCarriers;
+	int iBFCDryCarriers;
+	SASGameRecordTerritoryDevelopment() : aiImprovedBonuses(GC.getNumBonusInfos(), 0), aiUnimprovedBonuses(GC.getNumBonusInfos(), 0), aiIrrigatedCarriers(GC.getNumImprovementInfos(), 0), aiDryCarriers(GC.getNumImprovementInfos(), 0), aiBFCDevelopmentRoutes(GC.getNumRouteInfos(), 0), aiSuburbDevelopmentRoutes(GC.getNumRouteInfos(), 0), iBFCPlots(0), iSuburbPlots(0), iDevelopmentLand(0), iDevelopmentWater(0), iImprovedLand(0), iImprovedWater(0), iBFCDevelopmentLand(0), iBFCImprovedLand(0), iBFCDevelopmentLandRoaded(0), iBFCDevelopmentWater(0), iBFCImprovedWater(0), iSuburbDevelopmentLand(0), iSuburbImprovedLand(0), iSuburbDevelopmentLandRoaded(0), iSuburbDevelopmentWater(0), iSuburbImprovedWater(0), iIrrigationCarriers(0), iIrrigatedCarriers(0), iDryCarriers(0), iBonusIrrigationCarriers(0), iIrrigatedBonusCarriers(0), iDryBonusCarriers(0), iBFCIrrigationCarriers(0), iBFCIrrigatedCarriers(0), iBFCDryCarriers(0) {}
+};
+
+struct SASGameRecordCityNetwork
+{
+	std::vector<int> aiRoutes;
+	CvString szCities;
+	int iPlots;
+	int iLandPlots;
+	int iWaterPlots;
+	int iRoutePlots;
+	int iRiverNetworkPlots;
+	int iLandTerrainNetworkPlots;
+	int iWaterNetworkPlots;
+	int iCities;
+	int iOwnCities;
+	int iForeignCities;
+	bool bContainsCapital;
+	SASGameRecordCityNetwork() : aiRoutes(GC.getNumRouteInfos(), 0), iPlots(0), iLandPlots(0), iWaterPlots(0), iRoutePlots(0), iRiverNetworkPlots(0), iLandTerrainNetworkPlots(0), iWaterNetworkPlots(0), iCities(0), iOwnCities(0), iForeignCities(0), bContainsCapital(false) {}
 };
 
 static SASGameRecordPlayerPrevious g_akSASGameRecordPlayerPrevious[MAX_PLAYERS];
@@ -3867,8 +3893,10 @@ static int getSASGameRecordPercentX100(int iValue, int iTotal)
 }
 
 // <!-- custom: Add lightweight owned-territory counts to the map scan already used by the expansion record, rather than scanning every plot again or calculating unused plot yields.
-// BFC means the plot is assigned to one of this player's cities; development land excludes city centers and peaks because Workers cannot add ordinary improvements there. (GPT-5.6-Sol) -->
-static void addSASGameRecordTerritoryDevelopment(SASGameRecordTerritoryDevelopment& kDevelopment, CvPlot const& kPlot, PlayerTypes ePlayer, TeamTypes eTeam, ImprovementTypes eFarm)
+// BFC means the plot is assigned to one of this player's cities; development land excludes city centers and peaks because Workers cannot add ordinary improvements there.
+// Split routes on that same Worker-developable land between BFC and suburb plots, exposing whether route growth supports cities or consumes work outside them without diluting percentages with water, peaks or city centers.
+// Count every XML bCarriesIrrigation improvement rather than hardcoding Farm, matching the Worker evaluator and preserving mod-added food/hammer/commerce carriers. (GPT-5.6-Sol) -->
+static void addSASGameRecordTerritoryDevelopment(SASGameRecordTerritoryDevelopment& kDevelopment, CvPlot const& kPlot, PlayerTypes ePlayer, TeamTypes eTeam)
 {
 	SASGameRecordPlotComposition& kOwned = kDevelopment.kOwned;
 	kOwned.iPlots++;
@@ -3923,12 +3951,22 @@ static void addSASGameRecordTerritoryDevelopment(SASGameRecordTerritoryDevelopme
 			kDevelopment.iBFCDevelopmentLand++;
 			if (bImproved)
 				kDevelopment.iBFCImprovedLand++;
+			if (eRoute != NO_ROUTE)
+			{
+				kDevelopment.iBFCDevelopmentLandRoaded++;
+				kDevelopment.aiBFCDevelopmentRoutes[eRoute]++;
+			}
 		}
 		else
 		{
 			kDevelopment.iSuburbDevelopmentLand++;
 			if (bImproved)
 				kDevelopment.iSuburbImprovedLand++;
+			if (eRoute != NO_ROUTE)
+			{
+				kDevelopment.iSuburbDevelopmentLandRoaded++;
+				kDevelopment.aiSuburbDevelopmentRoutes[eRoute]++;
+			}
 		}
 	}
 	else if (kPlot.isWater() && (eBonus != NO_BONUS || bImproved))
@@ -3951,26 +3989,33 @@ static void addSASGameRecordTerritoryDevelopment(SASGameRecordTerritoryDevelopme
 				kDevelopment.iSuburbImprovedWater++;
 		}
 	}
-	if (eImprovement != eFarm)
+	if (!bImproved || !GC.getInfo(eImprovement).isCarriesIrrigation())
 		return;
-	kDevelopment.iFarms++;
+	kDevelopment.iIrrigationCarriers++;
 	bool const bIrrigated = kPlot.isIrrigated();
 	if (bIrrigated)
-		kDevelopment.iIrrigatedFarms++;
-	else kDevelopment.iDryFarms++;
+	{
+		kDevelopment.iIrrigatedCarriers++;
+		kDevelopment.aiIrrigatedCarriers[eImprovement]++;
+	}
+	else
+	{
+		kDevelopment.iDryCarriers++;
+		kDevelopment.aiDryCarriers[eImprovement]++;
+	}
 	if (eBonus != NO_BONUS)
 	{
-		kDevelopment.iBonusFarms++;
+		kDevelopment.iBonusIrrigationCarriers++;
 		if (bIrrigated)
-			kDevelopment.iIrrigatedBonusFarms++;
-		else kDevelopment.iDryBonusFarms++;
+			kDevelopment.iIrrigatedBonusCarriers++;
+		else kDevelopment.iDryBonusCarriers++;
 	}
 	if (bBFC)
 	{
-		kDevelopment.iBFCFarms++;
+		kDevelopment.iBFCIrrigationCarriers++;
 		if (bIrrigated)
-			kDevelopment.iBFCIrrigatedFarms++;
-		else kDevelopment.iBFCDryFarms++;
+			kDevelopment.iBFCIrrigatedCarriers++;
+		else kDevelopment.iBFCDryCarriers++;
 	}
 }
 
@@ -3998,7 +4043,21 @@ static void logSASGameRecordTerritoryDevelopment(PlayerTypes ePlayer, int iGameT
 	SASGameRecordPlayerPrevious& kPrevious = g_akSASGameRecordPlayerPrevious[ePlayer];
 	CvString szImprovements;
 	CvString szRoutes;
+	CvString szIrrigatedCarrierTypes;
+	CvString szDryCarrierTypes;
+	CvString szBFCDevelopmentRoutes;
+	CvString szSuburbDevelopmentRoutes;
 	getSASGameRecordImprovementRouteTypes(kOwned, szImprovements, szRoutes);
+	for (int iI = 0; iI < GC.getNumImprovementInfos(); iI++)
+	{
+		appendSASGameRecordTypeCount(szIrrigatedCarrierTypes, getSASGameRecordImprovementType((ImprovementTypes)iI), kDevelopment.aiIrrigatedCarriers[iI]);
+		appendSASGameRecordTypeCount(szDryCarrierTypes, getSASGameRecordImprovementType((ImprovementTypes)iI), kDevelopment.aiDryCarriers[iI]);
+	}
+	for (int iI = 0; iI < GC.getNumRouteInfos(); iI++)
+	{
+		appendSASGameRecordTypeCount(szBFCDevelopmentRoutes, getSASGameRecordRouteType((RouteTypes)iI), kDevelopment.aiBFCDevelopmentRoutes[iI]);
+		appendSASGameRecordTypeCount(szSuburbDevelopmentRoutes, getSASGameRecordRouteType((RouteTypes)iI), kDevelopment.aiSuburbDevelopmentRoutes[iI]);
+	}
 	int const iDevelopmentPlots = kDevelopment.iDevelopmentLand + kDevelopment.iDevelopmentWater;
 	int const iImprovedPlots = kDevelopment.iImprovedLand + kDevelopment.iImprovedWater;
 	int const iUnimprovedPlots = iDevelopmentPlots - iImprovedPlots;
@@ -4008,15 +4067,15 @@ static void logSASGameRecordTerritoryDevelopment(PlayerTypes ePlayer, int iGameT
 	int const iBFCUnimprovedWater = kDevelopment.iBFCDevelopmentWater - kDevelopment.iBFCImprovedWater;
 	int const iSuburbUnimprovedLand = kDevelopment.iSuburbDevelopmentLand - kDevelopment.iSuburbImprovedLand;
 	int const iSuburbUnimprovedWater = kDevelopment.iSuburbDevelopmentWater - kDevelopment.iSuburbImprovedWater;
-	int const iSuburbFarms = kDevelopment.iFarms - kDevelopment.iBFCFarms;
-	int const iSuburbIrrigatedFarms = kDevelopment.iIrrigatedFarms - kDevelopment.iBFCIrrigatedFarms;
-	int const iSuburbDryFarms = kDevelopment.iDryFarms - kDevelopment.iBFCDryFarms;
+	int const iSuburbIrrigationCarriers = kDevelopment.iIrrigationCarriers - kDevelopment.iBFCIrrigationCarriers;
+	int const iSuburbIrrigatedCarriers = kDevelopment.iIrrigatedCarriers - kDevelopment.iBFCIrrigatedCarriers;
+	int const iSuburbDryCarriers = kDevelopment.iDryCarriers - kDevelopment.iBFCDryCarriers;
 	// <!-- custom: Emit the cheap subtraction-derived backlog counts directly instead of requiring every human/LLM/parser to reconstruct them repeatedly.
 	// These remain descriptive state, not Worker-AI legality/value judgments.
 	// BFC/suburb water uses the same sparse seafood/actually-improved denominator as total development water. (ChatGPT-5.6-Sol) -->
 	logSASGameRecord("GAME_RECORD_TERRITORY_DEVELOPMENT turn=%d player=%d deltaValid=%d ownedPlots=%d ownedLand=%d ownedWater=%d bfcPlots=%d suburbPlots=%d developmentPlots=%d improvedPlots=%d unimprovedPlots=%d improvedPercentX100=%d developmentLand=%d improvedLand=%d unimprovedLand=%d improvedLandDelta=%+d improvedLandPercentX100=%d developmentWater=%d improvedWater=%d unimprovedWater=%d improvedWaterDelta=%+d improvedWaterPercentX100=%d"
-			" bfcDevelopmentLand=%d bfcImprovedLand=%d bfcUnimprovedLand=%d bfcImprovedLandPercentX100=%d bfcDevelopmentWater=%d bfcImprovedWater=%d bfcUnimprovedWater=%d bfcImprovedWaterPercentX100=%d suburbDevelopmentLand=%d suburbImprovedLand=%d suburbUnimprovedLand=%d suburbImprovedLandPercentX100=%d suburbDevelopmentWater=%d suburbImprovedWater=%d suburbUnimprovedWater=%d suburbImprovedWaterPercentX100=%d roaded=%d roadedDelta=%+d bonusImproved=%d bonusUnimproved=%d"
-			" farms=%d farmsDelta=%+d irrigatedFarms=%d irrigatedFarmsDelta=%+d dryFarms=%d dryFarmsDelta=%+d irrigatedFarmPercentX100=%d dryFarmPercentX100=%d bonusFarms=%d irrigatedBonusFarms=%d dryBonusFarms=%d bfcFarms=%d bfcIrrigatedFarms=%d bfcDryFarms=%d bfcIrrigatedFarmPercentX100=%d suburbFarms=%d suburbIrrigatedFarms=%d suburbDryFarms=%d suburbIrrigatedFarmPercentX100=%d improvements=%s routes=%s",
+			" bfcDevelopmentLand=%d bfcImprovedLand=%d bfcUnimprovedLand=%d bfcImprovedLandPercentX100=%d bfcDevelopmentWater=%d bfcImprovedWater=%d bfcUnimprovedWater=%d bfcImprovedWaterPercentX100=%d suburbDevelopmentLand=%d suburbImprovedLand=%d suburbUnimprovedLand=%d suburbImprovedLandPercentX100=%d suburbDevelopmentWater=%d suburbImprovedWater=%d suburbUnimprovedWater=%d suburbImprovedWaterPercentX100=%d roaded=%d roadedDelta=%+d bfcDevelopmentLandRoaded=%d bfcDevelopmentLandRoadedDelta=%+d bfcDevelopmentLandRoadedPercentX100=%d suburbDevelopmentLandRoaded=%d suburbDevelopmentLandRoadedDelta=%+d suburbDevelopmentLandRoadedPercentX100=%d bfcDevelopmentRoutes=%s suburbDevelopmentRoutes=%s bonusImproved=%d bonusUnimproved=%d"
+			" irrigationCarriers=%d irrigationCarriersDelta=%+d irrigatedCarriers=%d irrigatedCarriersDelta=%+d dryCarriers=%d dryCarriersDelta=%+d irrigatedCarrierPercentX100=%d dryCarrierPercentX100=%d bonusIrrigationCarriers=%d irrigatedBonusCarriers=%d dryBonusCarriers=%d bfcIrrigationCarriers=%d bfcIrrigatedCarriers=%d bfcDryCarriers=%d bfcIrrigatedCarrierPercentX100=%d suburbIrrigationCarriers=%d suburbIrrigatedCarriers=%d suburbDryCarriers=%d suburbIrrigatedCarrierPercentX100=%d irrigatedCarrierTypes=%s dryCarrierTypes=%s improvements=%s routes=%s",
 		iGameTurn, ePlayer, kPrevious.bValid, kOwned.iPlots, kOwned.iLand, kOwned.iWater, kDevelopment.iBFCPlots, kDevelopment.iSuburbPlots,
 		iDevelopmentPlots, iImprovedPlots, iUnimprovedPlots, getSASGameRecordPercentX100(iImprovedPlots, iDevelopmentPlots),
 		kDevelopment.iDevelopmentLand, kDevelopment.iImprovedLand, iUnimprovedLand,
@@ -4033,16 +4092,23 @@ static void logSASGameRecordTerritoryDevelopment(PlayerTypes ePlayer, int iGameT
 		getSASGameRecordPercentX100(kDevelopment.iSuburbImprovedLand, kDevelopment.iSuburbDevelopmentLand),
 		kDevelopment.iSuburbDevelopmentWater, kDevelopment.iSuburbImprovedWater, iSuburbUnimprovedWater,
 		getSASGameRecordPercentX100(kDevelopment.iSuburbImprovedWater, kDevelopment.iSuburbDevelopmentWater), kOwned.iRoaded,
-		getSASGameRecordDelta(kPrevious.bValid, kOwned.iRoaded, kPrevious.iTerritoryRoaded), kOwned.iBonusImproved, kOwned.iBonusUnimproved,
-		kDevelopment.iFarms, getSASGameRecordDelta(kPrevious.bValid, kDevelopment.iFarms, kPrevious.iTerritoryFarms),
-		kDevelopment.iIrrigatedFarms,
-		getSASGameRecordDelta(kPrevious.bValid, kDevelopment.iIrrigatedFarms, kPrevious.iTerritoryIrrigatedFarms), kDevelopment.iDryFarms,
-		getSASGameRecordDelta(kPrevious.bValid, kDevelopment.iDryFarms, kPrevious.iTerritoryDryFarms),
-		getSASGameRecordPercentX100(kDevelopment.iIrrigatedFarms, kDevelopment.iFarms),
-		getSASGameRecordPercentX100(kDevelopment.iDryFarms, kDevelopment.iFarms), kDevelopment.iBonusFarms,
-		kDevelopment.iIrrigatedBonusFarms, kDevelopment.iDryBonusFarms, kDevelopment.iBFCFarms, kDevelopment.iBFCIrrigatedFarms,
-		kDevelopment.iBFCDryFarms, getSASGameRecordPercentX100(kDevelopment.iBFCIrrigatedFarms, kDevelopment.iBFCFarms), iSuburbFarms,
-		iSuburbIrrigatedFarms, iSuburbDryFarms, getSASGameRecordPercentX100(iSuburbIrrigatedFarms, iSuburbFarms),
+		getSASGameRecordDelta(kPrevious.bValid, kOwned.iRoaded, kPrevious.iTerritoryRoaded), kDevelopment.iBFCDevelopmentLandRoaded,
+		getSASGameRecordDelta(kPrevious.bValid, kDevelopment.iBFCDevelopmentLandRoaded, kPrevious.iTerritoryBFCDevelopmentLandRoaded),
+		getSASGameRecordPercentX100(kDevelopment.iBFCDevelopmentLandRoaded, kDevelopment.iBFCDevelopmentLand), kDevelopment.iSuburbDevelopmentLandRoaded,
+		getSASGameRecordDelta(kPrevious.bValid, kDevelopment.iSuburbDevelopmentLandRoaded, kPrevious.iTerritorySuburbDevelopmentLandRoaded),
+		getSASGameRecordPercentX100(kDevelopment.iSuburbDevelopmentLandRoaded, kDevelopment.iSuburbDevelopmentLand),
+		getSASDiagnosticOrDash(szBFCDevelopmentRoutes).GetCString(), getSASDiagnosticOrDash(szSuburbDevelopmentRoutes).GetCString(),
+		kOwned.iBonusImproved, kOwned.iBonusUnimproved,
+		kDevelopment.iIrrigationCarriers, getSASGameRecordDelta(kPrevious.bValid, kDevelopment.iIrrigationCarriers, kPrevious.iTerritoryIrrigationCarriers),
+		kDevelopment.iIrrigatedCarriers,
+		getSASGameRecordDelta(kPrevious.bValid, kDevelopment.iIrrigatedCarriers, kPrevious.iTerritoryIrrigatedCarriers), kDevelopment.iDryCarriers,
+		getSASGameRecordDelta(kPrevious.bValid, kDevelopment.iDryCarriers, kPrevious.iTerritoryDryCarriers),
+		getSASGameRecordPercentX100(kDevelopment.iIrrigatedCarriers, kDevelopment.iIrrigationCarriers),
+		getSASGameRecordPercentX100(kDevelopment.iDryCarriers, kDevelopment.iIrrigationCarriers), kDevelopment.iBonusIrrigationCarriers,
+		kDevelopment.iIrrigatedBonusCarriers, kDevelopment.iDryBonusCarriers, kDevelopment.iBFCIrrigationCarriers, kDevelopment.iBFCIrrigatedCarriers,
+		kDevelopment.iBFCDryCarriers, getSASGameRecordPercentX100(kDevelopment.iBFCIrrigatedCarriers, kDevelopment.iBFCIrrigationCarriers), iSuburbIrrigationCarriers,
+		iSuburbIrrigatedCarriers, iSuburbDryCarriers, getSASGameRecordPercentX100(iSuburbIrrigatedCarriers, iSuburbIrrigationCarriers),
+		getSASDiagnosticOrDash(szIrrigatedCarrierTypes).GetCString(), getSASDiagnosticOrDash(szDryCarrierTypes).GetCString(),
 		getSASDiagnosticOrDash(szImprovements).GetCString(), getSASDiagnosticOrDash(szRoutes).GetCString());
 	if (gGameRecordLogLevel >= 3)
 	{
@@ -4065,9 +4131,11 @@ static void logSASGameRecordTerritoryDevelopment(PlayerTypes ePlayer, int iGameT
 	kPrevious.iTerritoryImprovedLand = kDevelopment.iImprovedLand;
 	kPrevious.iTerritoryImprovedWater = kDevelopment.iImprovedWater;
 	kPrevious.iTerritoryRoaded = kOwned.iRoaded;
-	kPrevious.iTerritoryFarms = kDevelopment.iFarms;
-	kPrevious.iTerritoryIrrigatedFarms = kDevelopment.iIrrigatedFarms;
-	kPrevious.iTerritoryDryFarms = kDevelopment.iDryFarms;
+	kPrevious.iTerritoryBFCDevelopmentLandRoaded = kDevelopment.iBFCDevelopmentLandRoaded;
+	kPrevious.iTerritorySuburbDevelopmentLandRoaded = kDevelopment.iSuburbDevelopmentLandRoaded;
+	kPrevious.iTerritoryIrrigationCarriers = kDevelopment.iIrrigationCarriers;
+	kPrevious.iTerritoryIrrigatedCarriers = kDevelopment.iIrrigatedCarriers;
+	kPrevious.iTerritoryDryCarriers = kDevelopment.iDryCarriers;
 }
 
 static void getSASGameRecordPlotCompositionTypes(SASGameRecordPlotComposition const& kComposition, CvString& szTerrains, CvString& szFeatures, CvString& szBonuses, CvString& szImprovements, CvString& szRoutes)
@@ -8268,12 +8336,74 @@ static void getSASGameRecordCitySiteAlternative(CvPlayerAI const& kPlayer, CvPlo
 	}
 }
 
+// <!-- custom: Summarize each actual CvPlotGroup containing one of the player's cities, so a record directly shows which cities share a trade/resource network instead of requiring consumers to join periodic city rows by plotGroupId.
+// Reuse the expansion map scan and report the route/river/network-terrain composition already present in each component; those counts describe available conduits, not the exact conduit required by every city pair, which would require diagnostic-only graph reconstruction. (GPT-5.6-Sol) -->
+static void addSASGameRecordCityNetworkPlot(std::map<int, SASGameRecordCityNetwork>& kNetworks, CvPlot const& kPlot, PlayerTypes ePlayer, TeamTypes eTeam)
+{
+	CvPlotGroup const* pPlotGroup = kPlot.getPlotGroup(ePlayer);
+	if (pPlotGroup == NULL)
+		return;
+	std::map<int, SASGameRecordCityNetwork>::iterator it = kNetworks.find(pPlotGroup->getID());
+	if (it == kNetworks.end())
+		return;
+	SASGameRecordCityNetwork& kNetwork = it->second;
+	kNetwork.iPlots++;
+	if (kPlot.isWater())
+		kNetwork.iWaterPlots++;
+	else kNetwork.iLandPlots++;
+	RouteTypes const eRoute = kPlot.getRevealedRouteType(eTeam);
+	if (eRoute != NO_ROUTE)
+	{
+		kNetwork.iRoutePlots++;
+		kNetwork.aiRoutes[eRoute]++;
+	}
+	if (kPlot.isRiverNetwork(eTeam))
+		kNetwork.iRiverNetworkPlots++;
+	if (kPlot.isNetworkTerrain(eTeam))
+	{
+		if (kPlot.isWater())
+			kNetwork.iWaterNetworkPlots++;
+		else kNetwork.iLandTerrainNetworkPlots++;
+	}
+	CvCity const* pCity = kPlot.getPlotCity();
+	if (pCity == NULL)
+		return;
+	CvString szCity;
+	szCity.Format(kNetwork.szCities.empty() ? "%d:%d:%S" : ",%d:%d:%S", pCity->getOwner(), pCity->getID(), pCity->getName().GetCString());
+	kNetwork.szCities += szCity;
+	kNetwork.iCities++;
+	if (pCity->getOwner() == ePlayer)
+	{
+		kNetwork.iOwnCities++;
+		if (pCity->isCapital())
+			kNetwork.bContainsCapital = true;
+	}
+	else kNetwork.iForeignCities++;
+}
+
+static void logSASGameRecordCityNetworks(std::map<int, SASGameRecordCityNetwork> const& kNetworks, PlayerTypes ePlayer, int iGameTurn)
+{
+	for (std::map<int, SASGameRecordCityNetwork>::const_iterator it = kNetworks.begin(); it != kNetworks.end(); ++it)
+	{
+		SASGameRecordCityNetwork const& kNetwork = it->second;
+		if (kNetwork.iOwnCities <= 0)
+			continue;
+		CvString szRoutes;
+		for (int iI = 0; iI < GC.getNumRouteInfos(); iI++)
+			appendSASGameRecordTypeCount(szRoutes, getSASGameRecordRouteType((RouteTypes)iI), kNetwork.aiRoutes[iI]);
+		logSASGameRecord("GAME_RECORD_CITY_NETWORK turn=%d player=%d plotGroupId=%d containsCapital=%d cities=%d ownCities=%d foreignCities=%d networkPlots=%d landPlots=%d waterPlots=%d routePlots=%d riverNetworkPlots=%d landTerrainNetworkPlots=%d waterNetworkPlots=%d cityList=%s routes=%s",
+			iGameTurn, ePlayer, it->first, kNetwork.bContainsCapital ? 1 : 0, kNetwork.iCities, kNetwork.iOwnCities, kNetwork.iForeignCities,
+			kNetwork.iPlots, kNetwork.iLandPlots, kNetwork.iWaterPlots, kNetwork.iRoutePlots, kNetwork.iRiverNetworkPlots,
+			kNetwork.iLandTerrainNetworkPlots, kNetwork.iWaterNetworkPlots, getSASDiagnosticQuoted(kNetwork.szCities.GetCString()).GetCString(),
+			getSASDiagnosticOrDash(szRoutes).GetCString());
+	}
+}
+
 static void logSASGameRecordExpansion(PlayerTypes ePlayer, int iGameTurn)
 {
 	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
 	CvPlayerAI const& kPlayerAI = kPlayer.AI();
 	const TeamTypes eTeam = kPlayer.getTeam();
-	static const ImprovementTypes eFarm = (ImprovementTypes)GC.getInfoTypeForString("IMPROVEMENT_FARM");
 	int iRevealedLand = 0;
 	int iVisibleLand = 0;
 	int iRevealedUnownedLand = 0;
@@ -8287,12 +8417,25 @@ static void logSASGameRecordExpansion(PlayerTypes ePlayer, int iGameTurn)
 	int iNearestRevealedOtherTeamLandDistance = -1;
 	int iNearestRevealedEnemyLandDistance = -1;
 	SASGameRecordTerritoryDevelopment kTerritoryDevelopment;
+	std::map<int, SASGameRecordCityNetwork> kCityNetworks;
+	int iCitiesProducingSettlers = 0;
+	int iCityLoop = 0;
+	for (CvCity const* pLoopCity = kPlayer.firstCity(&iCityLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iCityLoop))
+	{
+		CvPlotGroup const* pPlotGroup = pLoopCity->plotGroup(ePlayer);
+		if (pPlotGroup != NULL)
+			kCityNetworks[pPlotGroup->getID()];
+		UnitTypes const eProductionUnit = pLoopCity->getProductionUnit();
+		if (eProductionUnit != NO_UNIT && GC.getInfo(eProductionUnit).getDefaultUnitAIType() == UNITAI_SETTLE)
+			iCitiesProducingSettlers++;
+	}
 	CvMap const& kMap = GC.getMap();
 	for (int iI = 0; iI < kMap.numPlots(); iI++)
 	{
 		CvPlot const& kPlot = kMap.getPlotByIndex(iI);
 		if (kPlot.getOwner() == ePlayer)
-			addSASGameRecordTerritoryDevelopment(kTerritoryDevelopment, kPlot, ePlayer, eTeam, eFarm);
+			addSASGameRecordTerritoryDevelopment(kTerritoryDevelopment, kPlot, ePlayer, eTeam);
+		addSASGameRecordCityNetworkPlot(kCityNetworks, kPlot, ePlayer, eTeam);
 		if (kPlot.isWater())
 			continue;
 		if (kPlot.isRevealed(eTeam, false))
@@ -8325,14 +8468,7 @@ static void logSASGameRecordExpansion(PlayerTypes ePlayer, int iGameTurn)
 				iVisibleOtherTeamLand++;
 		}
 	}
-	int iCitiesProducingSettlers = 0;
-	int iCityLoop = 0;
-	for (CvCity const* pLoopCity = kPlayer.firstCity(&iCityLoop); pLoopCity != NULL; pLoopCity = kPlayer.nextCity(&iCityLoop))
-	{
-		UnitTypes eProductionUnit = pLoopCity->getProductionUnit();
-		if (eProductionUnit != NO_UNIT && GC.getInfo(eProductionUnit).getDefaultUnitAIType() == UNITAI_SETTLE)
-			iCitiesProducingSettlers++;
-	}
+	logSASGameRecordCityNetworks(kCityNetworks, ePlayer, iGameTurn);
 	// <!-- custom: One periodic shortlist summary answers whether the AI currently sees worthwhile expansion opportunities without serializing every plot valuation.
 	// The shortlist is already maintained by normal AI code; reading its primary entry and current threshold adds no map scan or candidate evaluation. (ChatGPT-5.6-Sol) -->
 	int const iCitySites = kPlayerAI.AI_getNumCitySites();

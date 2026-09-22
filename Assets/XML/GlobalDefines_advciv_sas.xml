@@ -1954,47 +1954,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_AI_WORKER_OVERIMPROVE_SKIP_KEEP_CURRENT_UNIMPROVED_BFC_PLOT</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
-	<!-- custom: Minimum era index where AI workers stop replacing existing no-bonus improvements with lower-food alternatives. BBAI logs showed repeated food-threshold oscillation such as Farm -> Cottage -> Farm and Mine -> Windmill -> Mine. Default 2 = Medieval: before then, cities are often small/capped and early cottages still have time to mature; later, cities are usually larger, health sources and specialist yields are stronger, and rebuilt cottages/growth improvements have less time to pay back, so avoid throwing food away. Set to 0 to apply from Ancient onward, or very high to effectively disable. (ChatGPT-5.5 + GPT-5.5) -->
-	<Define>
-		<DefineName>SAS_AI_WORKER_BLOCK_LOWER_FOOD_REPLACEMENT_MIN_ERA</DefineName>
-		<iDefineIntVal>2</iDefineIntVal>
-	</Define>
-	<!-- custom: minimum city population, within the large-city Forest chop path, where AI_bestCityBuild may consider chopping a non-bonus forested BFC plot even when the city has no current health surplus. Effective threshold is max(this define, SAS_WORKER_AI_FEATURE_FOREST_CHOP_LARGE_CITY_MIN_POPULATION), because the C++ relax check is inside the large-city branch. Early/small cities still use the old negative scoring formula rather than the large-city relaxed path. Set to 0 to disable the relaxed no-health-surplus large-city path. (ChatGPT-5.5 + ChatGPT-5.5 temporary review + GPT-5.5 review) -->
-	<Define>
-		<DefineName>SAS_AI_BEST_CITY_BUILD_FOREST_CHOP_RELAX_MIN_POPULATION</DefineName>
-		<iDefineIntVal>7</iDefineIntVal>
-	</Define>
-	<!-- custom: non-bonus Forest chop feature scoring used by CvUnitAI::AI_bestCityBuild. Early/small cities preserve Forest health through the old small-city formula (-100 + 50 * healthDiff by default), so pop 6 / health 0 still remains a low-priority candidate rather than using the relaxed large-city path. Medium/large cities keep Forest chop candidates visible instead of hard-skipping them, because otherwise useful forested BFC tiles can stay unimproved forever even when later health sources and stronger improved yields make chopping reasonable. LARGE_CITY_MIN_POPULATION selects the large-city health-aware path. UNHEALTH_PENALTY_PER_POINT preserves the old larger-city no-health-surplus penalty (health 0 -> -50, health -1 -> -100, etc.). (ChatGPT-5.5 + ChatGPT-5.5 temporary review + GPT-5.5 review) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_FEATURE_FOREST_CHOP_LARGE_CITY_MIN_POPULATION</DefineName>
-		<iDefineIntVal>7</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_WORKER_AI_FEATURE_FOREST_CHOP_SMALL_CITY_BASE_VALUE</DefineName>
-		<iDefineIntVal>-100</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_WORKER_AI_FEATURE_FOREST_CHOP_HEALTH_VALUE_PER_POINT</DefineName>
-		<iDefineIntVal>50</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_WORKER_AI_FEATURE_FOREST_CHOP_UNHEALTH_PENALTY_PER_POINT</DefineName>
-		<iDefineIntVal>50</iDefineIntVal>
-	</Define>
-	<!-- custom: non-bonus Jungle clear feature scoring used by CvUnitAI::AI_bestCityBuild. Jungle is normally worth clearing when possible because it reduces health and blocks normal improvements; scoring only decides priority among candidate worker tasks. LARGE_CITY_MIN_POPULATION selects the population/health-pressure formula: PRESSURE_VALUE_PER_POINT * ((population - (threshold - 1)) - healthDiff). With defaults, pop 7 / health 0 gives +75, pop 7 / health +2 gives -75, and pop 10 / health -2 gives +450. Small cities use max(0, SMALL_CITY_UNHEALTH_VALUE_PER_POINT * -healthDiff), so healthy small cities do not get an artificial penalty while unhealthy small cities are pushed to clear Jungle. (ChatGPT-5.5 + GPT-5.5 review) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_FEATURE_JUNGLE_CLEAR_LARGE_CITY_MIN_POPULATION</DefineName>
-		<iDefineIntVal>7</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_WORKER_AI_FEATURE_JUNGLE_CLEAR_LARGE_CITY_PRESSURE_VALUE_PER_POINT</DefineName>
-		<iDefineIntVal>75</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_WORKER_AI_FEATURE_JUNGLE_CLEAR_SMALL_CITY_UNHEALTH_VALUE_PER_POINT</DefineName>
-		<iDefineIntVal>50</iDefineIntVal>
-	</Define>
-	<!-- custom: Phase 0 productive-feature chopping. CORE Worker/Settler production uses the lower stock threshold and can chop before bonuses; NORMAL production improves bonuses first and only chops very abundant feature stock before roads/ordinary work. Because the rule stays active while the uncommitted count is >= the threshold, 3 leaves about 2 reserves and 6 leaves about 5. The hard chop/reserve is intentionally an early low-output accelerator rather than a permanent plot lock. Current unhealth/unhappiness relief bypasses all economic gates and can still remove the feature. See KI#33.2. (ChatGPT-5.6-Sol) -->
+	<!-- custom: Phase 0 productive-feature chopping. CORE Worker/Settler production uses the lower stock threshold and can chop before bonuses; NORMAL production improves bonuses first and only hard-chops very abundant feature stock before roads/ordinary work. The rule stays active while the uncommitted count is >= the threshold; below it, the generic yield/feature evaluator inspects every plot rather than protecting the remaining stock as an invisible reserve. Current unhealth/unhappiness relief bypasses all economic gates and can still remove the feature. See KI#33.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	<Define>
 		<DefineName>SAS_WORKER_AI_PHASE0_PRODUCTIVE_FEATURE_CHOP_ENABLE</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
@@ -2024,19 +1984,10 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_WORKER_AI_PHASE0_PRODUCTIVE_FEATURE_CHOP_CORE_FOOD_UNIT_MIN_REMAINING_TURNS_NORMAL_GAMESPEED</DefineName>
 		<iDefineIntVal>6</iDefineIntVal>
 	</Define>
-	<!-- custom: value added when scrubbing non-bonus Fallout in CvUnitAI::AI_bestCityBuild. Fallout has severe yield penalties, so keep this much higher than normal tile-improvement values. If Fallout cannot be scrubbed yet, CvUnitAI skips ordinary non-bonus builds on that plot rather than improving through the Fallout. (ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_FEATURE_FALLOUT_SCRUB_VALUE</DefineName>
-		<iDefineIntVal>100000</iDefineIntVal>
-	</Define>
-	<!-- custom: Bonus worker scoring mostly used by CvUnitAI::AI_bestCityBuild. These values preserve previous AdvCiv-SAS bonus-branch behavior while making the custom hardcoded priorities tunable. FEATURE_STEP_VALUE covers feature-preserving bonus builds on Forest/Jungle and feature removal before the final bonus-specific build. FALLOUT_SCRUB_VALUE is higher because Fallout should be scrubbed before ordinary bonus improvement. SPECIFIC_BUILD_BASE_VALUE is the base priority once the bonus-specific build is available. Yield and AIObjective values then order high-food, strategic/production, commerce, and XML-marked critical bonuses against each other. IMPROVE_BONUS_AI_OBJECTIVE_VALUE_PER_POINT is for CvUnitAI::AI_improveBonus target selection across the map, so it keeps the larger previous AdvCiv-SAS scale. FARM_FALLBACK applies to high-food bonuses before the bonus-specific build is available; it requires enough total bonus + Farm food, and by default only applies when the real bonus improvement unlocks in Medieval or later eras (2 = ERA_MEDIEVAL), so workers do not spend early turns on temporary farms when the real improvement is close. (GPT-5.5) -->
+	<!-- custom: Bonus worker scoring mostly used by CvUnitAI::AI_bestCityBuild. These values preserve previous AdvCiv-SAS bonus-branch behavior while making the custom priorities tunable from XML. FEATURE_STEP_VALUE covers a feature-preserving bonus Build or a pure XML-discovered removal step before the final bonus-specific Build; harmful-feature urgency is added dynamically from the feature's yields, health, happiness, turn damage, removal production and Worker time. SPECIFIC_BUILD_BASE_VALUE is the base priority once the bonus-specific Build is available. Yield and AIObjective values then order high-food, strategic/production, commerce, and XML-marked critical bonuses against each other. IMPROVE_BONUS_AI_OBJECTIVE_VALUE_PER_POINT is for CvUnitAI::AI_improveBonus target selection across the map, so it keeps the larger previous AdvCiv-SAS scale. FOOD_FALLBACK lets the Worker select any legal XML improvement that immediately raises a bonus plot to the minimum resulting food; by default it applies only when the real bonus improvement unlocks in Medieval or later eras (2 = ERA_MEDIEVAL), so Workers do not spend early turns on temporary improvements when the real one is close. (GPT-5.5 + GPT-5.6-Sol) -->
 	<Define>
 		<DefineName>SAS_WORKER_AI_BONUS_FEATURE_STEP_VALUE</DefineName>
 		<iDefineIntVal>19000</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_WORKER_AI_BONUS_FALLOUT_SCRUB_VALUE</DefineName>
-		<iDefineIntVal>150000</iDefineIntVal>
 	</Define>
 	<Define>
 		<DefineName>SAS_WORKER_AI_BONUS_SPECIFIC_BUILD_BASE_VALUE</DefineName>
@@ -2067,19 +2018,19 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<iDefineIntVal>20000</iDefineIntVal>
 	</Define>
 	<Define>
-		<DefineName>SAS_WORKER_AI_BONUS_FARM_FALLBACK_MIN_TOTAL_FOOD</DefineName>
+		<DefineName>SAS_WORKER_AI_BONUS_FOOD_FALLBACK_MIN_RESULT_FOOD</DefineName>
 		<iDefineIntVal>3</iDefineIntVal>
 	</Define>
 	<Define>
-		<DefineName>SAS_WORKER_AI_BONUS_FARM_FALLBACK_VALUE</DefineName>
+		<DefineName>SAS_WORKER_AI_BONUS_FOOD_FALLBACK_VALUE</DefineName>
 		<iDefineIntVal>18000</iDefineIntVal>
 	</Define>
 	<Define>
-		<DefineName>SAS_WORKER_AI_BONUS_FARM_FALLBACK_ENABLE</DefineName>
+		<DefineName>SAS_WORKER_AI_BONUS_FOOD_FALLBACK_ENABLE</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 	<Define>
-		<DefineName>SAS_WORKER_AI_BONUS_FARM_FALLBACK_MIN_BUILD_TECH_ERA</DefineName>
+		<DefineName>SAS_WORKER_AI_BONUS_FOOD_FALLBACK_MIN_BUILD_TECH_ERA</DefineName>
 		<iDefineIntVal>2</iDefineIntVal>
 	</Define>
 	<!-- custom: Enable old AI worker fort-airbase construction outside BFC-focused worker logic. Set to 0 to disable (default): BFC plots are already mostly protected by AdvCiv-SAS worker build logic, and outside-BFC forts usually spend worker turns for meagre defensive/airbase/canal utility the AI rarely uses well. They can also block future irrigation-chain paths; nearby cities usually serve aircraft better than scattered forts, and the fort canal/isthmus effect is rarely needed. Set to 1 to restore the Base AdvCiv late-game fort-airbase path for experiments. (GPT-5.5) -->
@@ -2087,344 +2038,66 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_AI_WORKER_FORT_AIRBASE_ENABLE</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
-	<!-- custom: No-bonus worker build branch base values. Branch define names include FEATURE_ or TERRAIN_ plus the XML info suffix and FLAT/HILL context. CvUnitAI parses and caches these once, then applies generic dynamic checks in the picker: low-food pressure rewards the buildable candidate with the best food outcome on the plot, configured food-cost improvements can gain recovered-food value, irrigation paths penalize candidates that do not carry irrigation, and canBuild still filters invalid builds. XML therefore controls candidate lists and base preferences while C++ handles contextual pressure. (GPT-5.5 + ChatGPT-5.5) -->
-	<!-- custom: Flood Plains with enough food:
-	- BUILD_COTTAGE: ideal high-food commerce tile; food is already good enough, so prioritize long-term commerce rather than extra food/production. (GPT-5.5 + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_FEATURE_FLOOD_PLAINS_FLAT</DefineName>
-		<DefineTextVal>BUILD_COTTAGE:2000</DefineTextVal>
-	</Define>
-	<!-- custom: Low-food Flood Plains:
-	- BUILD_FARM: chosen first by current DLL branch order if buildable; rare but useful when the city is short on food.
-	- BUILD_FARM starts lower than Cottage so we do not broadly overfarm Flood Plains; the separate low-food deficit value is what makes it rise when the city is actually short on food.
-	- BUILD_COTTAGE: fallback when Farm cannot be built, or the stronger listed base if this branch is later converted to pure candidate competition; still keeps the high-food commerce tile productive.
-	- The low-food deficit value is added separately by the corresponding SAS define. (GPT-5.5 + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_FEATURE_FLOOD_PLAINS_FLAT_LOW_FOOD</DefineName>
-		<DefineTextVal>BUILD_COTTAGE:2000,BUILD_FARM:1700</DefineTextVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_FEATURE_FLOOD_PLAINS_HILL</DefineName>
-		<DefineTextVal>NONE</DefineTextVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_FEATURE_FLOOD_PLAINS_HILL_LOW_FOOD</DefineName>
-		<DefineTextVal>NONE</DefineTextVal>
-	</Define>
-
-	<!-- custom: Optional manual feature branch. NONE by default because current Oasis plots are not a normal no-bonus worker-improvement target; modmods can add values to flat or hill branches if their XML makes Oasis improvable. NONE keeps the normal terrain branch fallback. (GPT-5.5 + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_FEATURE_OASIS_FLAT</DefineName>
-		<DefineTextVal>NONE</DefineTextVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_FEATURE_OASIS_FLAT_LOW_FOOD</DefineName>
-		<DefineTextVal>NONE</DefineTextVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_FEATURE_OASIS_HILL</DefineName>
-		<DefineTextVal>NONE</DefineTextVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_FEATURE_OASIS_HILL_LOW_FOOD</DefineName>
-		<DefineTextVal>NONE</DefineTextVal>
-	</Define>
-
-	<!-- custom: Grass Hills with enough food:
-	- BUILD_MINE: strong early production while still having enough natural food to be workable; helps avoid overprioritizing flat Grass Cottages and neglecting production; considering a city usually has a food source early or some excess, it seems reasonable to capitalize on it for high early hammer yield and small food cost.
-	- CvUnitAI adds the old population adjustment. BBAI testing showed value 1650 still left Beijing's bare Grass Hill at (27,13) unimproved until turn 101 because repeated 1710-value jobs won; 1700 makes strong Mine production competitive without changing the low-food or poor-terrain branches. (GPT-5.5 + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_TERRAIN_GRASS_HILL</DefineName>
-		<DefineTextVal>BUILD_MINE:1700</DefineTextVal>
-	</Define>
-	<!-- custom: Low-food Grass Hills:
-	- BUILD_WINDMILL: acceptable lower-yield fallback when food pressure matters; helps the city keep growing or stop stagnating.
-	- BUILD_MINE: fallback when Windmill cannot be built; Grass Hill Mine is still strong production for cheap food. (GPT-5.5 + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_TERRAIN_GRASS_HILL_LOW_FOOD</DefineName>
-		<DefineTextVal>BUILD_WINDMILL:1200,BUILD_MINE:1300</DefineTextVal>
-	</Define>
-	<!-- custom: Flat Grass with enough food:
-	- BUILD_COTTAGE: broadly strong default because flat Grass has enough food to grow commerce.
-	- BUILD_FARM: can beat Cottage for mine-heavy/food-support-hungry cities, fast growth, specialists, or concrete irrigation-chain needs; CvUnitAI adds actual plot/player farm food and chain value.
-	- BUILD_WORKSHOP: conservative base value; CvUnitAI adds a generic recovered-food-cost bonus when current rules make a configured food-cost improvement food-neutral or better, so early food-cost Workshops do not need a separate C++ allow gate. (GPT-5.5 + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_TERRAIN_GRASS_FLAT</DefineName>
-		<DefineTextVal>BUILD_FARM:1550,BUILD_COTTAGE:1600,BUILD_WORKSHOP:1500</DefineTextVal>
-	</Define>
-	<!-- custom: Low-food Flat Grass:
-	- BUILD_WORKSHOP: deliberately low base value while food still matters; CvUnitAI can add recovered-food-cost value later, so Workshop does not need to sit first or bypass the ordinary branch competition.
-	- BUILD_FARM: practical food restoration, with extra value from the low-food deficit and food-support logic. Its base starts below the normal Cottage target to avoid overfarming Grass, but it can become good enough when the city actually needs food; later tech/irrigation can also make these farms stronger, and CvUnitAI accounts for actual plot/player farm food separately.
-	- BUILD_COTTAGE: fallback when better food/hammer options are unavailable. (GPT-5.5 + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_TERRAIN_GRASS_FLAT_LOW_FOOD</DefineName>
-		<DefineTextVal>BUILD_FARM:1460,BUILD_COTTAGE:1300,BUILD_WORKSHOP:600</DefineTextVal>
-	</Define>
-	<!-- custom: Plains Hills with enough food:
-	- BUILD_MINE: strong production when the city can afford the food cost. The sufficient-food branch already handles that cost, so do not penalize it again far below Grass Hill Mines; 1500 moved tested Mines from about turns 184-195 into the 140s, but Cologne's (30,10) still repeatedly lost to ordinary 1535-1585 jobs, so 1600 makes it properly competitive. (GPT-5.5 + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_TERRAIN_PLAINS_HILL</DefineName>
-		<DefineTextVal>BUILD_MINE:1600</DefineTextVal>
-	</Define>
-	<!-- custom: Low-food Plains Hills:
-	- BUILD_WINDMILL: preferred because the tile costs food to work.
-	- BUILD_MINE: fallback when Windmill cannot be built; still useful production if the city has no better option. (GPT-5.5 + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_TERRAIN_PLAINS_HILL_LOW_FOOD</DefineName>
-		<DefineTextVal>BUILD_WINDMILL:800,BUILD_MINE:700</DefineTextVal>
-	</Define>
-	<!-- custom: Flat Plains with enough food:
-	- BUILD_FARM: supports low-food or hill-heavy cities; ordinary Plains should not be farmed only because Farm is possible, so CvUnitAI adds food-support value separately.
-	- BUILD_COTTAGE: modest economy fallback, generally below stronger Grass/Flood Plains candidates; useful, but not the first place to spend worker turns when higher-potential tiles remain.
-	- BUILD_WORKSHOP: conservative base value; CvUnitAI adds recovered-food-cost value if current rules make it food-neutral or better. (GPT-5.5 + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_TERRAIN_PLAINS_FLAT</DefineName>
-		<DefineTextVal>BUILD_FARM:950,BUILD_COTTAGE:600,BUILD_WORKSHOP:550</DefineTextVal>
-	</Define>
-	<!-- custom: Low-food Flat Plains:
-	- BUILD_WORKSHOP: low base value because low-food Plains usually need food first; recovered-food-cost value can make it competitive later without a special C++ gate.
-	- BUILD_FARM: main low-food fix; gains low-food deficit and food-support value, and can become more valuable as farm yields improve later.
-	- BUILD_COTTAGE: deliberately weaker because this terrain often needs food first; still a fallback when Farm is unavailable or the city can afford slower growth. (GPT-5.5 + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_TERRAIN_PLAINS_FLAT_LOW_FOOD</DefineName>
-		<DefineTextVal>BUILD_FARM:900,BUILD_COTTAGE:500,BUILD_WORKSHOP:250</DefineTextVal>
-	</Define>
-	<!-- custom: Tundra Hills with enough food:
-	- BUILD_WINDMILL: usually preferred because tundra cities are often food-poor and production is already scarce.
-	- BUILD_MINE: fallback when Windmill is unavailable. (GPT-5.5 + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_TERRAIN_TUNDRA_HILL</DefineName>
-		<DefineTextVal>BUILD_WINDMILL:500,BUILD_MINE:350</DefineTextVal>
-	</Define>
-	<!-- custom: Low-food Tundra Hills:
-	- BUILD_WINDMILL: very weak fallback; it can slightly soften a poor hill but should not compete with real food-support or better terrain work.
-	- BUILD_MINE: near-last-resort cleanup because a food-poor Tundra Hill Mine makes the city even harder to work. Still not NONE because this is a real terrain branch, unlike optional Oasis overrides. (GPT-5.5 + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_TERRAIN_TUNDRA_HILL_LOW_FOOD</DefineName>
-		<DefineTextVal>BUILD_WINDMILL:250,BUILD_MINE:100</DefineTextVal>
-	</Define>
-
-	<!-- custom: Flat Tundra with enough food:
-	- BUILD_FARM: can support scarce food or hill use, though lower than better terrains because tundra is usually developed later.
-	- BUILD_COTTAGE: uses the AdvCiv-SAS tundra commerce change and can be a reasonable economy tile.
-	- BUILD_WORKSHOP: conservative base value; recovered-food-cost value can make it competitive when it no longer costs food.
-	- BUILD_WATERMILL is intentionally not listed as of now: these tiles are low-production and often surrounded by other economy/scarce tundra tiles, so we currently prefer the simpler Farm/Cottage/Workshop competition unless XML tuning later makes Watermills worth testing. (GPT-5.5 + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_TERRAIN_TUNDRA_FLAT</DefineName>
-		<DefineTextVal>BUILD_FARM:650,BUILD_COTTAGE:550,BUILD_WORKSHOP:500</DefineTextVal>
-	</Define>
-	<!-- custom: Low-food Flat Tundra:
-	- BUILD_WORKSHOP: low base value because low-food Tundra usually needs food first; recovered-food-cost value can make it competitive later without a special C++ gate.
-	- BUILD_FARM: often the practical food fix in scarce terrain; tundra cities commonly need food more than another slow economy tile.
-	- BUILD_COTTAGE: weak fallback when Farm cannot be built and better options are unavailable, but still useful with the AdvCiv-SAS tundra commerce change if the city has enough food from elsewhere. (GPT-5.5 + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_TERRAIN_TUNDRA_FLAT_LOW_FOOD</DefineName>
-		<DefineTextVal>BUILD_FARM:500,BUILD_WORKSHOP:250,BUILD_COTTAGE:150</DefineTextVal>
-	</Define>
-	<!-- custom: Snow Hills with enough food:
-	- BUILD_MINE: low-value last-ditch action, but can still be the only productive move in poor starts or already-developed cities. Separate from Desert for cleaner tuning if modmods make either terrain more useful. (GPT-5.5 + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_TERRAIN_SNOW_HILL</DefineName>
-		<DefineTextVal>BUILD_MINE:200</DefineTextVal>
-	</Define>
-	<!-- custom: Low-food Snow Hills:
-	- BUILD_WINDMILL: preferred because the tile is otherwise very hard to work.
-	- BUILD_MINE: fallback; still useful when there is truly nothing better, but deliberately kept low because food is usually the bottleneck on these tiles. (GPT-5.5 + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_TERRAIN_SNOW_HILL_LOW_FOOD</DefineName>
-		<DefineTextVal>BUILD_WINDMILL:250,BUILD_MINE:200</DefineTextVal>
-	</Define>
-	<!-- custom: Flat Snow is almost always a last-ditch no-bonus plot. Current XML usually makes these builds fail canBuild, but keep tiny candidates instead of NONE so the branch works automatically if XML/modmods make any normal improvement valid. (ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_TERRAIN_SNOW_FLAT</DefineName>
-		<DefineTextVal>BUILD_WORKSHOP:80,BUILD_FARM:50,BUILD_COTTAGE:25</DefineTextVal>
-	</Define>
-	<!-- custom: Low-food Flat Snow stays valid but deliberately weak; Farm is listed first in value only if a ruleset somehow permits it, while canBuild filters the usual invalid cases. (ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_TERRAIN_SNOW_FLAT_LOW_FOOD</DefineName>
-		<DefineTextVal>BUILD_FARM:50,BUILD_WORKSHOP:25,BUILD_COTTAGE:10</DefineTextVal>
-	</Define>
-
-	<!-- custom: Desert Hills with enough food:
-	- BUILD_MINE: low-value last-ditch action, but can still be the only productive move in poor starts or already-developed cities. Example: if the worker has Mining but cannot yet chop/mine a forested gem and no better city tile is ready, a Desert Hill Mine can be the least-bad productive build rather than doing nothing. Separate from Snow for cleaner tuning if modmods make either terrain more useful. (GPT-5.5 + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_TERRAIN_DESERT_HILL</DefineName>
-		<DefineTextVal>BUILD_MINE:200</DefineTextVal>
-	</Define>
-	<!-- custom: Low-food Desert Hills:
-	- BUILD_WINDMILL: preferred because the tile is otherwise very hard to work.
-	- BUILD_MINE: fallback; still useful when there is truly nothing better, but deliberately kept low because food is usually the bottleneck on these tiles. Separate from Snow for cleaner tuning if modmods make either terrain more useful. (GPT-5.5 + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_TERRAIN_DESERT_HILL_LOW_FOOD</DefineName>
-		<DefineTextVal>BUILD_WINDMILL:250,BUILD_MINE:200</DefineTextVal>
-	</Define>
-	<!-- custom: Flat Desert is a very weak no-bonus branch but not structurally disabled. Current XML usually leaves bare Desert unimprovable outside special features, but tiny canBuild-gated candidates avoid silently skipping valid modded/edge cases. (ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_TERRAIN_DESERT_FLAT</DefineName>
-		<DefineTextVal>BUILD_WORKSHOP:100,BUILD_FARM:60,BUILD_COTTAGE:40</DefineTextVal>
-	</Define>
-	<!-- custom: Low-food Flat Desert stays very low priority; if any normal build is valid, improve it only after better work is gone. (ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_BASE_BRANCH_TERRAIN_DESERT_FLAT_LOW_FOOD</DefineName>
-		<DefineTextVal>BUILD_FARM:60,BUILD_WORKSHOP:30,BUILD_COTTAGE:20</DefineTextVal>
-	</Define>
-
-	<!-- custom: Extra value per missing city food surplus point when a no-bonus worker branch is in its low-food mode. CvUnitAI now applies this improvement-independently to whichever buildable branch candidate gives the best food outcome on the exact plot, so Farm/Windmill/other future food improvements can benefit without hardcoded build names. Exposing it keeps branch base values focused on terrain/build preference while this one define controls how aggressively low-food branches react to worsening city food pressure. (GPT-5.5 + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_LOW_FOOD_DEFICIT_VALUE_PER_FOOD</DefineName>
-		<iDefineIntVal>100</iDefineIntVal>
-	</Define>
 	<!-- custom: Minimum adjusted value of an ordinary no-bonus improvement for a worker to continue directly from explicit Forest/Jungle/Fallout removal into that improvement. The separate removal pays feature production sooner than a combined build, while preserving a sufficiently valuable AI_bestCityBuild choice avoids delayed yields and a second trip; lower-value Tundra/Snow/Desert work normally stops after removal and is reevaluated. Bonus-specific improvements are not subject to this minimum. (GPT-5.5) -->
 	<Define>
 		<DefineName>SAS_WORKER_AI_FEATURE_REMOVAL_FOLLOWUP_MIN_VALUE</DefineName>
 		<iDefineIntVal>800</iDefineIntVal>
 	</Define>
-	<!-- custom: Master switch for the empirically tuned non-bonus food-support Farm value in CvUnitAI. The heuristic is still computed from Farm/irrigation-chain context, but the generic picker applies its resulting pressure to the buildable candidate with the best food outcome on the exact plot. This keeps the formula coherent for now instead of exposing every internal term; set to 0 for quick A/B testing if the support-food logic overfarms. (GPT-5.5 + ChatGPT-5.5) -->
+	<!-- custom: Master switch for concrete chain-irrigation rescue in CvUnitAI. This covers deterministic owned routes from available irrigation to dry BFC XML carriers or low-food targets, yield-derived route overwrite costs, and protection of completed carriers visibly supplying irrigation onward. The route pass is deliberately separate from ordinary yield valuation because a connector's main value can belong to another plot. (GPT-5.5 + GPT-5.6-Sol) -->
 	<Define>
-		<DefineName>SAS_WORKER_AI_FOOD_SUPPORT_FARM_VALUE_ENABLE</DefineName>
+		<DefineName>SAS_WORKER_AI_IRRIGATION_CHAIN_ENABLE</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
-	<!-- custom: Master switch for concrete chain-irrigation rescue farms in CvUnitAI. This covers deterministic owned routes from available irrigation to dry BFC Farms (including Farm-specific bonuses), reservation of likely irrigation-farm plots from non-farm builds, local adjacent-dry-farm rescue value, selected improvement overwrite for those fixes, and protection of resulting carrier farms. Separate from the broader food-support Farm value so irrigation fixes can be tested independently. (GPT-5.5 + GPT-5.6-Sol) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_IRRIGATION_CHAIN_FARM_VALUE_ENABLE</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
-	<!-- custom: Maximum number of adjacent owned farmable plots in the least-cost route from a dry BFC Farm or high-food-pressure target to currently available irrigation. Twelve covers the long chains reproduced in save file 450 while preventing workers from replacing improvements across an excessive share of an empire for one city. (GPT-5.6-Sol) -->
+	<!-- custom: Maximum number of adjacent owned irrigation-capable plots in the least-cost route from a dry BFC carrier or high-food-pressure target to currently available irrigation. Twelve covers the long chains reproduced in save file 450 while preventing Workers from replacing improvements across an excessive share of an empire for one city. (GPT-5.6-Sol) -->
 	<Define>
 		<DefineName>SAS_WORKER_AI_IRRIGATION_CHAIN_MAX_PLOTS</DefineName>
 		<iDefineIntVal>12</iDefineIntVal>
 	</Define>
-	<!-- custom: Food-support farm value tuning separate from branch selection. Target surplus says when extra adjusted food starts reducing emergency farm value; zero-surplus threshold says when even weak farm food is still useful; value per surplus controls how quickly farm support fades above target surplus. (GPT-5.5 + ChatGPT-5.5) -->
+	<!-- custom: Adjusted city-food surplus target used when deciding whether a dry low-food BFC plot warrants an explicit irrigation-chain candidate. Ordinary food-improvement value comes from the shared yield weights instead of an improvement-specific bonus. (GPT-5.6-Sol) -->
 	<Define>
 		<DefineName>SAS_WORKER_AI_FOOD_SUPPORT_TARGET_SURPLUS</DefineName>
 		<iDefineIntVal>3</iDefineIntVal>
 	</Define>
+	<!-- custom: Minimum current production yield for a BFC land plot to count as a practical strong production option. The default 3 is the ordinary early Mine output missing in the Istanbul/Berlin autoplay cases; using resulting yields instead of terrain or improvement names keeps the policy compatible with XML balance changes and mod-added improvements. (GPT-5.6-Sol) -->
 	<Define>
-		<DefineName>SAS_WORKER_AI_FOOD_SUPPORT_ZERO_SURPLUS_THRESHOLD</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_WORKER_AI_FOOD_SUPPORT_VALUE_PER_SURPLUS</DefineName>
-		<iDefineIntVal>100</iDefineIntVal>
-	</Define>
-	<!-- custom: iAdjustedFoodDifference thresholds that choose the enough-food worker branch instead of the low-food branch for no-bonus plots. Exposing these keeps branch XML values focused on build preference while these defines tune when the AI treats current city food as good enough. Lower values favor production/commerce branches sooner; higher values keep food-restoring branches active longer. (GPT-5.5 + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_FLOOD_PLAINS</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_OASIS</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_GRASS_HILL</DefineName>
-		<iDefineIntVal>-1</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_GRASS_FLAT</DefineName>
-		<iDefineIntVal>2</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_PLAINS_HILL</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_PLAINS_FLAT</DefineName>
+		<DefineName>SAS_WORKER_AI_STRONG_PRODUCTION_PLOT_MIN_YIELD</DefineName>
 		<iDefineIntVal>3</iDefineIntVal>
 	</Define>
+	<!-- custom: City population represented by each desired strong production plot. With the default 3, target one such plot per three citizens; the target remains at least one when enabled and is capped separately below. (GPT-5.6-Sol) -->
 	<Define>
-		<DefineName>SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_TUNDRA_HILL</DefineName>
+		<DefineName>SAS_WORKER_AI_STRONG_PRODUCTION_POPULATION_PER_TARGET</DefineName>
 		<iDefineIntVal>3</iDefineIntVal>
 	</Define>
+	<!-- custom: Maximum number of strong production plots requested by production-scarcity pressure. Default 4 lets growing cities diversify after securing several practical hammer options; 0 disables this pressure without disabling the generic yield evaluator. (GPT-5.6-Sol) -->
 	<Define>
-		<DefineName>SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_TUNDRA_FLAT</DefineName>
-		<iDefineIntVal>3</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_SNOW_HILL</DefineName>
+		<DefineName>SAS_WORKER_AI_STRONG_PRODUCTION_MAX_TARGET</DefineName>
 		<iDefineIntVal>4</iDefineIntVal>
 	</Define>
+	<!-- custom: Production-yield weight added for each desired strong production plot still missing. Default 40 makes a low-food-cost Grass Hill Mine compete with another flatland Cottage/Farm when a city lacks practical hammer options; the total adjustment is capped separately below. (GPT-5.6-Sol) -->
 	<Define>
-		<DefineName>SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_SNOW_FLAT</DefineName>
-		<iDefineIntVal>4</iDefineIntVal>
+		<DefineName>SAS_WORKER_AI_STRONG_PRODUCTION_PRESSURE_VALUE_PER_MISSING_PLOT</DefineName>
+		<iDefineIntVal>40</iDefineIntVal>
 	</Define>
+	<!-- custom: Maximum production-yield weight added by missing strong production plots. Default 120 prevents a severe local hammer shortage from overwhelming food, commerce and ordinary long-lived improvement value. (GPT-5.6-Sol) -->
 	<Define>
-		<DefineName>SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_DESERT_HILL</DefineName>
-		<iDefineIntVal>4</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_DESERT_FLAT</DefineName>
-		<iDefineIntVal>4</iDefineIntVal>
-	</Define>
-	<!-- custom: Comma-separated IMPROVEMENT_* names whose base XML food yield is negative and should receive a value bonus if tech/civics/plot context later make them food-neutral or food-positive. Default preserves Workshop behavior, but modmods can add other food-cost improvements without changing CvUnitAI. This is not meant for Farm/Plantation-style positive future food gains; Farm food is already handled by food-support heuristics, and generic positive future food would risk double counting. Use NONE to disable this improvement-family adjustment. (GPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_FOOD_COST_IMPROVEMENT_NAMES</DefineName>
-		<DefineTextVal>IMPROVEMENT_WORKSHOP</DefineTextVal>
-	</Define>
-	<!-- custom: Value bonus per food gained beyond a configured improvement's base XML food cost. Example: if Workshop is -1 food in XML and current plot/player rules make it 0 food, add 1 * this value; if a modded food-cost improvement goes from -1 to +2, add 3 * this value. This is a value adjustment added to the XML branch base value, not a forced pick. (GPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_FOOD_COST_IMPROVEMENT_VALUE_PER_FOOD_GAIN</DefineName>
-		<iDefineIntVal>1000</iDefineIntVal>
+		<DefineName>SAS_WORKER_AI_STRONG_PRODUCTION_PRESSURE_MAX_VALUE</DefineName>
+		<iDefineIntVal>120</iDefineIntVal>
 	</Define>
 	<!-- custom: Comma-separated IMPROVEMENT_* chain starts whose XML ImprovementUpgrade chains should count as growth improvements for worker overwrite penalties. Default preserves the Cottage -> Hamlet -> Village -> Town chain. Modmods can add shorter/longer chains or other growth-style chains without changing CvUnitAI. Use NONE for no growth-chain penalty levels. (ChatGPT-5.5) -->
 	<Define>
 		<DefineName>SAS_WORKER_AI_GROWTH_IMPROVEMENT_CHAIN_START_NAMES</DefineName>
 		<DefineTextVal>IMPROVEMENT_COTTAGE</DefineTextVal>
 	</Define>
-	<!-- custom: Irrigation-chain connector penalty per configured growth-improvement level when farming over a growth-chain improvement to reach dry farms. CvUnitAI infers the level by following XML ImprovementUpgrade chains from SAS_WORKER_AI_GROWTH_IMPROVEMENT_CHAIN_START_NAMES, then multiplies by this value. e.g., with default Cottage chain and value 400, cottage is 1 * 400 = 400, hamlet is 2 * 400 = 800, village is 3 * 400 = 1200, and town is 4 * 400 = 1600. Note: value kept not too high, so food is a bit more important than keeping growth improvements especially higher level ones and later in the game where we have more specialist or such yields. (GPT-5.5 + ChatGPT-5.5) -->
+	<!-- custom: Irrigation-chain connector penalty per configured growth-improvement level when replacing a growth-chain improvement to reach a dry carrier or low-food target. CvUnitAI infers the level by following XML ImprovementUpgrade chains from SAS_WORKER_AI_GROWTH_IMPROVEMENT_CHAIN_START_NAMES, then multiplies by this value. e.g., with default Cottage chain and value 400, Cottage is 1 * 400 = 400, Hamlet is 2 * 400 = 800, Village is 3 * 400 = 1200, and Town is 4 * 400 = 1600. Keep the value moderate because food infrastructure can be more important, especially later when cities can use more specialists. (GPT-5.5 + ChatGPT-5.5 + GPT-5.6-Sol) -->
 	<Define>
 		<DefineName>SAS_WORKER_AI_IRRIGATION_CHAIN_GROWTH_LEVEL_OVERWRITE_PENALTY</DefineName>
 		<iDefineIntVal>400</iDefineIntVal>
 	</Define>
-	<!-- custom: Irrigation-chain connector penalty when farming over a Workshop to reach dry farms. Workshops are cheap to rebuild and, unlike growth-chain improvements, do not lose accumulated growth, so this is intentionally far below the generic other-improvement penalty. (GPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_IRRIGATION_CHAIN_WORKSHOP_OVERWRITE_PENALTY</DefineName>
-		<iDefineIntVal>150</iDefineIntVal>
-	</Define>
-	<!-- custom: Irrigation-chain connector penalty when farming over a non-growth, non-Workshop improvement to reach dry farms. Keep this high so workers prefer unimproved plots, Workshops, or low-level growth improvements before destroying miscellaneous finished improvements. (GPT-5.5) -->
+	<!-- custom: Maximum irrigation-chain connector penalty when replacing a finished non-growth improvement. CvUnitAI derives the actual penalty from the city-weighted yield advantage lost to the selected XML carrier, with a small sunk-work floor, so cheap or weak mod-added improvements are treated like Workshops without naming them while strong infrastructure remains costly to replace. (GPT-5.5 + GPT-5.6-Sol) -->
 	<Define>
 		<DefineName>SAS_WORKER_AI_IRRIGATION_CHAIN_OTHER_IMPROVEMENT_OVERWRITE_PENALTY</DefineName>
 		<iDefineIntVal>2200</iDefineIntVal>
 	</Define>
-	<!-- custom: Local same-plot penalty per configured growth-improvement level when farming over a growth-chain improvement to irrigate adjacent existing dry farms. This is lower than the broader connector penalty above because the farm itself may solve a city food/irrigation problem. CvUnitAI infers the level from SAS_WORKER_AI_GROWTH_IMPROVEMENT_CHAIN_START_NAMES, then multiplies by this value. e.g., with default Cottage chain and value 150, cottage is 1 * 150 = 150, hamlet is 2 * 150 = 300, village is 3 * 150 = 450, and town is 4 * 150 = 600. Note: as of now not kept too high (same reasoning). (ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_IRRIGATION_LOCAL_GROWTH_LEVEL_OVERWRITE_PENALTY</DefineName>
-		<iDefineIntVal>150</iDefineIntVal>
-	</Define>
-
-	<!-- custom: Comma-separated IMPROVEMENT_* names that AI_bestCityBuild treats as fully protected on no-bonus plots. These are never overwritten by the generic worker candidate picker. Use NONE for no entries. (ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_HOLY_IMPROVEMENT_NAMES_ALWAYS</DefineName>
-		<DefineTextVal>IMPROVEMENT_WINDMILL</DefineTextVal>
-	</Define>
-	<!-- custom: Comma-separated IMPROVEMENT_* names protected like holy improvements, except they may be overwritten when farming this exact plot would irrigate adjacent existing dry farms. This preserves the old behavior for Hamlet/Village/Town/Workshop while making the list tunable and expandable. Use NONE for no entries. (ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_HOLY_IMPROVEMENT_NAMES_ALLOW_IRRIGATION_CHAIN_BREAK</DefineName>
-		<DefineTextVal>IMPROVEMENT_HAMLET,IMPROVEMENT_VILLAGE,IMPROVEMENT_TOWN,IMPROVEMENT_WORKSHOP</DefineTextVal>
-	</Define>
-	<!-- custom: Comma-separated IMPROVEMENT_* names that are not otherwise holy/protected, but may still be overwritten when farming this exact plot would irrigate adjacent existing dry farms. Default keeps basic Cottage eligible for the irrigation-chain exception without making ordinary Cottages globally protected. Use NONE for no entries. (ChatGPT-5.5 temporary + ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_NON_HOLY_IMPROVEMENT_NAMES_ALLOW_IRRIGATION_CHAIN_BREAK</DefineName>
-		<DefineTextVal>IMPROVEMENT_COTTAGE</DefineTextVal>
-	</Define>
-	<!-- custom: Comma-separated IMPROVEMENT_* names protected on low-food no-bonus plots, structural food-support cities, or farms carrying irrigation to adjacent farms. This keeps support farms from being oscillated away. Use NONE for no entries. (ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_SEMI_HOLY_IMPROVEMENT_NAMES_LOW_FOOD</DefineName>
-		<DefineTextVal>IMPROVEMENT_FARM</DefineTextVal>
-	</Define>
-	<!-- custom: Comma-separated IMPROVEMENT_* names protected on Flood Plains no-bonus plots. This keeps the old anti-oscillation Cottage protection while making the set tunable. Use NONE for no entries. (ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_SEMI_HOLY_IMPROVEMENT_NAMES_FLOOD_PLAINS</DefineName>
-		<DefineTextVal>IMPROVEMENT_COTTAGE</DefineTextVal>
-	</Define>
-	<!-- custom: Comma-separated IMPROVEMENT_* names protected on Grass no-bonus plots, unless the local food-support farm overwrite exception allows a basic Cottage to be replaced. This keeps high-food Grass Cottage anti-oscillation tunable. Use NONE for no entries. (ChatGPT-5.5) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_SEMI_HOLY_IMPROVEMENT_NAMES_GRASS</DefineName>
-		<DefineTextVal>IMPROVEMENT_COTTAGE</DefineTextVal>
-	</Define>
-
-
-
 	<Define>
 		<DefineName>SAS_KEY_STRATEGIC_METAL_BONUS_NAME_1</DefineName>
 		<DefineTextVal>BONUS_COPPER</DefineTextVal>

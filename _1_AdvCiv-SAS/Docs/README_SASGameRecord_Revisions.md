@@ -27,7 +27,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=123 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=124 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -52,6 +52,16 @@ This is why the original reconstruction produced 67 revisions through practical 
 Because this numbering is reconstructed after the fact, the descriptions are concise summaries of the canonical commit diffs/messages rather than claims that these revision numbers were emitted by historical builds.
 
 ## History (latest first)
+
+### Revision 124 - SAS practical 6565
+
+- **Date:** 2026-09-23
+- **Git commit:** pending
+- **Change:** Generalized periodic territory irrigation reporting from hardcoded Farms to every improvement whose loaded XML sets `bCarriesIrrigation`, and added compact city-network component rows.
+
+`GAME_RECORD_TERRITORY_DEVELOPMENT` now reports irrigation carriers and their irrigated/dry, bonus, BFC, suburb and by-improvement breakdowns. This matches the Worker evaluator's XML-driven irrigation model, so mod-added food, production or commerce carriers remain visible without new C++ type branches. The same existing territory scan also splits routes on Worker-developable land into periodic BFC and suburb counts, deltas, percentages and route-type lists, making useful city development distinguishable from outer-territory routing.
+
+New `GAME_RECORD_CITY_NETWORK` rows directly list all known cities sharing each `CvPlotGroup` that contains one of the player's cities, along with component plot, route, river-network and terrain-network composition. The implementation reuses the existing expansion map scan and performs no diagnostic pathfinding; conduit counts describe infrastructure present in the connected component rather than claiming an exact mode for every city pair.
 
 ### Revision 123 - SAS practical 6552
 

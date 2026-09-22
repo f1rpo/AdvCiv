@@ -28,6 +28,30 @@ static bool SAS_cityTouchesWaterArea(CvCity const& kCity, CvArea const& kWaterAr
 	return (kCity.waterArea(true) == &kWaterArea || kCity.secondWaterArea() == &kWaterArea);
 }
 
+// <!-- custom: Ordinary land improvements are selected by CvUnitAI::AI_bestCityBuild rather than the legacy city best-build cache.
+// Test whether an owned land plot has any currently legal improvement that raises a yield or connects its visible bonus so city/area Worker demand sees the same class of useful work without hardcoding terrain, feature or improvement names. (GPT-5.6-Sol) -->
+static bool SAS_hasCurrentWorkerImprovement(CvCityAI const& kCity, CvPlot const& kPlot)
+{
+	if (kPlot.isWater() || kPlot.isCity() || kPlot.getOwner() != kCity.getOwner())
+		return false;
+	CvPlayerAI const& kOwner = GET_PLAYER(kCity.getOwner());
+	BonusTypes const eBonus = kPlot.getNonObsoleteBonusType(kCity.getTeam());
+	FOR_EACH_ENUM(Build)
+	{
+		ImprovementTypes const eImprovement = GC.getInfo(eLoopBuild).getImprovement();
+		if (eImprovement == NO_IMPROVEMENT || !kOwner.canBuild(kPlot, eLoopBuild, false, false))
+			continue;
+		if (eBonus != NO_BONUS && kOwner.doesImprovementConnectBonus(eImprovement, eBonus))
+			return true;
+		FOR_EACH_ENUM(Yield)
+		{
+			if (kPlot.getYieldWithBuild(eLoopBuild, eLoopYield, true) > kPlot.getYield(eLoopYield))
+				return true;
+		}
+	}
+	return false;
+}
+
 // <!-- custom: Targeted RAII trace for the Rome-style failure where invested spaceship production is reevaluated and parked. The constructor arms only for an AI city currently producing a spaceship project.
 // The destructor reports the authoritative final head target across every early return in AI_chooseProduction. This is diagnostic-only and adds no RNG calls. (ChatGPT-5.6-Sol) -->
 class SASSpaceProductionReevaluationLogScope
@@ -21010,17 +21034,19 @@ void CvCityAI::AI_updateWorkersHaveAndNeeded()
 
 		if (!kPlot.isImproved())
 		{
+			bool const bSASActionableLandImprovement = SAS_hasCurrentWorkerImprovement(*this, kPlot);
 			if (kPlot.isBeingWorked())
 			{
-				// <!-- custom: AI_getBestBuild is intentionally empty for ordinary land improvements because AI_bestCityBuild owns their exact selection. Treat a currently worked, featureless land plot as Worker demand even when that legacy cache is empty; keep the stricter inherited cache check for unworked plots so KI#192 does not regain speculative/idle Worker demand. See KI#198. (GPT-5.6 Thinking) -->
-				bool const bSASWorkedLandDemand = (!kPlot.isWater() && !kPlot.isFeature() && kPlot.getOwner() == getOwner());
-				if ((AI_getBestBuild(ePlot) != NO_BUILD || bSASWorkedLandDemand) && isArea(kPlot.getArea())) // K-Mod
+				// <!-- custom: AI_getBestBuild is intentionally empty for ordinary land improvements because AI_bestCityBuild owns their exact selection.
+				// Use the shared actionable-plot test above for both worked and unworked land; the 2026-09-22 Archipelago run left Tianjin's only non-city land plot unimproved through turn 350 because the unworked plot retained an empty legacy cache, making the secondary landmass request zero Workers.
+				// Requiring a currently legal, yield-raising or bonus-connecting build preserves zero demand once an island is genuinely finished; the follow-up run improved analogous one-land-plot Arpinum immediately with a Workshop. See KI#198. (GPT-5.6 Thinking + GPT-5.6-Sol) -->
+				if ((AI_getBestBuild(ePlot) != NO_BUILD || bSASActionableLandImprovement) && isArea(kPlot.getArea())) // K-Mod
 				{
 					iUnimprovedWorkedPlotCount++;
 				}
 				else iWorkedUnimprovableCount++;
 			}
-			else if (AI_getBestBuild(ePlot) != NO_BUILD &&
+			else if ((AI_getBestBuild(ePlot) != NO_BUILD || bSASActionableLandImprovement) &&
 				isArea(kPlot.getArea())) // K-Mod
 			{
 				iUnimprovedUnworkedPlotCount++;

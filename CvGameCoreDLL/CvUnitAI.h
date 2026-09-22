@@ -63,7 +63,8 @@ public:
 	int AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy, bool bUnadjusted = false) const;
 	int AI_opportuneOdds(int iActualOdds, CvUnit const& kDefender) const; // advc
 
-	bool AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot = NULL, BuildTypes* peBestBuild = NULL, CvPlot* pIgnorePlot = NULL, CvUnit* pUnit = NULL, int* piBestValue = NULL, BuildTypes* peFollowupBuild = NULL) const;
+	// <!-- custom: pOnlyPlot/bIgnorePath let maritime Worker transport test the current SAS evaluator for an off-area BFC plot before the Worker can path there. (GPT-5.6-Sol) -->
+	bool AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot = NULL, BuildTypes* peBestBuild = NULL, CvPlot* pIgnorePlot = NULL, CvUnit* pUnit = NULL, int* piBestValue = NULL, BuildTypes* peFollowupBuild = NULL, CvPlot const* pOnlyPlot = NULL, bool bIgnorePath = false) const;
 	bool AI_isCityAIType() const;
 	// <advc>
 	bool AI_mayAttack(TeamTypes eTeam, CvPlot const& kPlot) const; // Renamed from AI_potentialEnemy
@@ -257,7 +258,8 @@ protected:
 	bool AI_specialSeaTransportMissionary();
 	bool AI_specialSeaTransportSpy();
 	bool AI_carrierSeaTransport();
-	bool AI_connectPlot(CvPlot const& kPlot, int iRange = 0);
+	// <!-- custom: szContext labels the strategic caller in accepted Worker-route diagnostics; it does not affect connection selection. (GPT-5.6-Sol) -->
+	bool AI_connectPlot(CvPlot const& kPlot, int iRange = 0, char const* szContext = "UNSPECIFIED");
 	CvCityAI* AI_getCityToImprove() const; // advc.113b
 	bool AI_improveCity(CvCityAI const& kCity);
 	bool AI_improveLocalPlot(int iRange, CvCity const* pIgnoreCity, int iMissingWorkersInArea = 0); // advc.117
@@ -269,7 +271,8 @@ protected:
 	// K-Mod <!-- custom: hoisted from multiline signature before `iMissingWorkersInArea` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool AI_improveBonus(int iMissingWorkersInArea = 0); // advc.121
 	bool AI_improvePlot(CvPlot const& kPlot, BuildTypes eBuild);
-	BuildTypes AI_betterPlotBuild(CvPlot const& kPlot, BuildTypes eBuild);
+	// <!-- custom: ppszRouteReason optionally reports why the accepted result is a route Build, without changing the selected Build. (GPT-5.6-Sol) -->
+	BuildTypes AI_betterPlotBuild(CvPlot const& kPlot, BuildTypes eBuild, char const** ppszRouteReason = NULL);
 	bool AI_connectBonus(bool bTestTrade = true);
 	bool AI_connectCity();
 	bool AI_routeCity();
@@ -380,7 +383,8 @@ protected:
 	bool AI_canGroupWithAIType(UnitAITypes eUnitAI) const;
 	bool AI_allowGroup(CvUnitAI const& kUnit, UnitAITypes eUnitAI) const;
 	// <advc>
-	bool AI_shouldRouteWhileImproving(CvPlot const& kDest, MovementFlags& eFlags, CvCity const* pDestCity = NULL) const; // </advc>
+	// <!-- custom: ppszRouteReason optionally exposes which existing routing condition passed so callers can distinguish accepted route-before-improvement missions. (GPT-5.6-Sol) -->
+	bool AI_shouldRouteWhileImproving(CvPlot const& kDest, MovementFlags& eFlags, CvCity const* pDestCity = NULL, char const** ppszRouteReason = NULL) const; // </advc>
 	// advc.pf:
 	bool AI_canRouteThroughSafeTerritory(CvPlot const& kDest, MovementFlags& eFlags) const;
 	bool AI_moveSettlerToCoast(int iMaxPathTurns = 5); // advc.040

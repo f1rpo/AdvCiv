@@ -2549,6 +2549,7 @@ struct CandidatePlot
 	BuildTypes eBuild;
 	// <!-- custom: Preserve a sufficiently valuable improvement selected before explicit feature removal so the same worker can collect feature production early and then finish the plot without another trip. (GPT-5.5) -->
 	BuildTypes eFollowupBuild;
+	bool bIrrigationChainStep;
 
 	bool operator>(const CandidatePlot& other) const
 	{
@@ -2577,7 +2578,7 @@ static bool SAS_isWorkerPhase0CoreFoodProduction(CvCityAI const& kCity)
 	return (eUnitAI == UNITAI_WORKER || eUnitAI == UNITAI_SETTLE);
 }
 
-// <!-- custom: Keep the Phase-0 hard productive-feature chop/reserve as an early low-output acceleration tool, not a permanent ban on ordinary development.
+// <!-- custom: Keep the Phase-0 hard productive-feature chop as an early low-output acceleration tool, not a permanent ban on ordinary development.
 // Pressure-relief removals bypass these economic gates. Otherwise the chop must be early enough in era/empire size, and its effective contribution after the current production modifier must still be worth enough turns of the city's current effective production; a food-production Worker/Settler must also not already be close to completion.
 // The two turn-valued thresholds are expressed at Normal game speed and scaled by FeatureProductionPercent / TrainPercent respectively, so the tested Normal behavior is unchanged while the economic meaning stays comparable across speeds.
 // All thresholds are XML-tunable; a negative MAX_ERA or non-positive value for the other economic limits disables that individual gate. (ChatGPT-5.6-Sol) -->
@@ -2720,7 +2721,7 @@ static bool SAS_getWorkerPhase0ProductiveFeatureInfo(CvUnitAI const& kUnit, CvCi
 	if (kInfo.eBuild == NO_BUILD)
 		return false;
 	// <!-- custom: Current unhealth/unhappiness relief remains independent of the early-economic chop gates.
-	// Other productive-feature removals only participate in Phase 0/reserve while the fixed hammer lump is still strategically meaningful; once they fall out here, ordinary Phase-1 Worker logic can improve the plot normally instead of reserving it forever. (ChatGPT-5.6-Sol) -->
+	// Other productive-feature removals only participate in Phase 0 while the fixed hammer lump is still strategically meaningful; once they fall out here, ordinary Phase-1 Worker logic can improve the plot normally. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (!kInfo.bPressureRelief && !SAS_isWorkerPhase0ProductiveFeatureEconomicContext(kCity, kInfo.iProduction))
 		return false;
 	return true;
@@ -2777,22 +2778,8 @@ static bool SAS_shouldWorkerPhase0ProductiveFeatureChop(CvUnitAI const& kUnit, C
 	return (bUntargetedPressureRelief || iUncommitted >= iMinEligible);
 }
 
-struct SASWorkerNoBonusBuildCandidate
-{
-	BuildTypes eBuild;
-	ImprovementTypes eImprovement;
-	int iBaseValue;
-};
-
-struct SASWorkerNoBonusBranchCache
-{
-	char const* szDefineNameLiteral;
-	CvString szDefineName;
-	std::vector<SASWorkerNoBonusBuildCandidate> aCandidates;
-};
-
-// <!-- custom: Start externalizing no-bonus worker build branch base values without rewriting the dynamic worker AI rules. The XML text define lists candidate builds as BUILD_TAG:value or NONE for an intentionally empty branch; this parser resolves each build once, stores its resulting improvement when there is one, drops non-positive entries, treats NONE like the existing SAS music/string sentinel, and caches the result. Existing terrain branches keep their food-pressure, workshop-timing, irrigation, and canBuild checks while making the old hardcoded base preferences tunable; converted picker branches can also let newly listed builds such as Watermills, Forest Preserves, or later route/feature builds compete. (GPT-5.5 + ChatGPT-5.5) -->
-static CvString SAS_trimWorkerNoBonusBranchToken(CvString szText)
+// <!-- custom: Worker improvement-name lists share this small parser; ordinary build candidates are now enumerated directly from XML Build infos and no longer use terrain-specific text branches. (GPT-5.6-Sol) -->
+static CvString SAS_trimWorkerDefineToken(CvString szText)
 {
 	while (!szText.empty() && (szText[0] == ' ' || szText[0] == '\t' || szText[0] == '\r' || szText[0] == '\n'))
 		szText = szText.substr(1);
@@ -2801,135 +2788,9 @@ static CvString SAS_trimWorkerNoBonusBranchToken(CvString szText)
 	return szText;
 }
 
-static bool SAS_isWorkerNoBonusBranchNoneToken(CvString const& szText)
+static bool SAS_isWorkerDefineNoneToken(CvString const& szText)
 {
 	return (szText.empty() || szText.CompareNoCase("NONE") == 0);
-}
-
-static void SAS_initWorkerNoBonusBranchCandidates(std::vector<SASWorkerNoBonusBuildCandidate>& aCandidates, char const* szDefineName)
-{
-	aCandidates.clear();
-	char const* szDefineText = GC.getDefineSTRING(szDefineName);
-	FAssertMsg(szDefineText != NULL, szDefineName);
-	if (szDefineText == NULL)
-		return;
-	CvString szRemaining = SAS_trimWorkerNoBonusBranchToken(szDefineText);
-	if (SAS_isWorkerNoBonusBranchNoneToken(szRemaining))
-		return;
-	while (!szRemaining.empty())
-	{
-		int const iComma = szRemaining.find(',');
-		CvString const szRawEntry = (iComma < 0 ? szRemaining : szRemaining.substr(0, iComma));
-		szRemaining = (iComma < 0 ? CvString("") : szRemaining.substr(iComma + 1));
-		CvString const szEntry = SAS_trimWorkerNoBonusBranchToken(szRawEntry);
-		if (SAS_isWorkerNoBonusBranchNoneToken(szEntry))
-			continue;
-		int const iColon = szEntry.find(':');
-		FAssertMsg(iColon > 0, szEntry.c_str());
-		if (iColon <= 0)
-			continue;
-		CvString const szBuild = SAS_trimWorkerNoBonusBranchToken(szEntry.substr(0, iColon));
-		CvString const szValue = SAS_trimWorkerNoBonusBranchToken(szEntry.substr(iColon + 1));
-		int const iBaseValue = atoi(szValue.c_str());
-		if (iBaseValue <= 0)
-			continue;
-		BuildTypes const eBuild = (BuildTypes)GC.getInfoTypeForString(szBuild.c_str());
-		FAssertMsg(eBuild != NO_BUILD, szBuild.c_str());
-		if (eBuild == NO_BUILD)
-			continue;
-		SASWorkerNoBonusBuildCandidate kCandidate;
-		kCandidate.eBuild = eBuild;
-		kCandidate.eImprovement = GC.getInfo(eBuild).getImprovement();
-		kCandidate.iBaseValue = iBaseValue;
-		aCandidates.push_back(kCandidate);
-	}
-}
-
-static std::vector<SASWorkerNoBonusBuildCandidate> const& SAS_getWorkerNoBonusBranchCandidates(char const* szDefineName)
-{
-	static std::vector<SASWorkerNoBonusBranchCache> aCaches;
-	// <!-- custom: Current callers pass stable string literals; pointer matching avoids repeated CvString comparisons in the worker plot hot path. Keep the CvString copy as the authoritative key so equivalent future callers can still resolve correctly when their pointer differs. (GPT-5.5 + ChatGPT-5.5) -->
-	for (size_t i = 0; i < aCaches.size(); ++i)
-	{
-		if (aCaches[i].szDefineNameLiteral == szDefineName)
-			return aCaches[i].aCandidates;
-	}
-	for (size_t i = 0; i < aCaches.size(); ++i)
-	{
-		if (aCaches[i].szDefineName == szDefineName)
-			return aCaches[i].aCandidates;
-	}
-	SASWorkerNoBonusBranchCache kCache;
-	kCache.szDefineNameLiteral = szDefineName;
-	kCache.szDefineName = szDefineName;
-	SAS_initWorkerNoBonusBranchCandidates(kCache.aCandidates, szDefineName);
-	aCaches.push_back(kCache);
-	return aCaches[aCaches.size() - 1].aCandidates;
-}
-
-struct SASWorkerNoBonusBranch
-{
-	char const* szDefineName;
-	bool bHasCandidates;
-};
-
-static SASWorkerNoBonusBranch SAS_makeWorkerNoBonusBranch(char const* szDefineName)
-{
-	SASWorkerNoBonusBranch kBranch;
-	kBranch.szDefineName = szDefineName;
-	kBranch.bHasCandidates = !SAS_getWorkerNoBonusBranchCandidates(szDefineName).empty();
-	return kBranch;
-}
-
-struct SASWorkerNoBonusBranchSet
-{
-	SASWorkerNoBonusBranch kFlat;
-	SASWorkerNoBonusBranch kFlatLowFood;
-	SASWorkerNoBonusBranch kHill;
-	SASWorkerNoBonusBranch kHillLowFood;
-};
-
-static void SAS_initWorkerNoBonusBranchSet(SASWorkerNoBonusBranchSet& kSet, char const* szFlat, char const* szFlatLowFood, char const* szHill, char const* szHillLowFood)
-{
-	kSet.kFlat = SAS_makeWorkerNoBonusBranch(szFlat);
-	kSet.kFlatLowFood = SAS_makeWorkerNoBonusBranch(szFlatLowFood);
-	kSet.kHill = SAS_makeWorkerNoBonusBranch(szHill);
-	kSet.kHillLowFood = SAS_makeWorkerNoBonusBranch(szHillLowFood);
-}
-
-static SASWorkerNoBonusBranch const* SAS_getWorkerNoBonusBranch(SASWorkerNoBonusBranchSet const& kSet, bool bHill, bool bLowFood)
-{
-	SASWorkerNoBonusBranch const& kBranch = (bHill ? (bLowFood ? kSet.kHillLowFood : kSet.kHill) : (bLowFood ? kSet.kFlatLowFood : kSet.kFlat));
-	return (kBranch.bHasCandidates ? &kBranch : NULL);
-}
-
-struct SASWorkerNoBonusKnownBranches
-{
-	SASWorkerNoBonusBranchSet kFeatureFloodPlains;
-	SASWorkerNoBonusBranchSet kFeatureOasis;
-	SASWorkerNoBonusBranchSet kTerrainGrass;
-	SASWorkerNoBonusBranchSet kTerrainPlains;
-	SASWorkerNoBonusBranchSet kTerrainTundra;
-	SASWorkerNoBonusBranchSet kTerrainSnow;
-	SASWorkerNoBonusBranchSet kTerrainDesert;
-
-	SASWorkerNoBonusKnownBranches()
-	{
-		SAS_initWorkerNoBonusBranchSet(kFeatureFloodPlains, "SAS_WORKER_AI_BASE_BRANCH_FEATURE_FLOOD_PLAINS_FLAT", "SAS_WORKER_AI_BASE_BRANCH_FEATURE_FLOOD_PLAINS_FLAT_LOW_FOOD", "SAS_WORKER_AI_BASE_BRANCH_FEATURE_FLOOD_PLAINS_HILL", "SAS_WORKER_AI_BASE_BRANCH_FEATURE_FLOOD_PLAINS_HILL_LOW_FOOD");
-		SAS_initWorkerNoBonusBranchSet(kFeatureOasis, "SAS_WORKER_AI_BASE_BRANCH_FEATURE_OASIS_FLAT", "SAS_WORKER_AI_BASE_BRANCH_FEATURE_OASIS_FLAT_LOW_FOOD", "SAS_WORKER_AI_BASE_BRANCH_FEATURE_OASIS_HILL", "SAS_WORKER_AI_BASE_BRANCH_FEATURE_OASIS_HILL_LOW_FOOD");
-		SAS_initWorkerNoBonusBranchSet(kTerrainGrass, "SAS_WORKER_AI_BASE_BRANCH_TERRAIN_GRASS_FLAT", "SAS_WORKER_AI_BASE_BRANCH_TERRAIN_GRASS_FLAT_LOW_FOOD", "SAS_WORKER_AI_BASE_BRANCH_TERRAIN_GRASS_HILL", "SAS_WORKER_AI_BASE_BRANCH_TERRAIN_GRASS_HILL_LOW_FOOD");
-		SAS_initWorkerNoBonusBranchSet(kTerrainPlains, "SAS_WORKER_AI_BASE_BRANCH_TERRAIN_PLAINS_FLAT", "SAS_WORKER_AI_BASE_BRANCH_TERRAIN_PLAINS_FLAT_LOW_FOOD", "SAS_WORKER_AI_BASE_BRANCH_TERRAIN_PLAINS_HILL", "SAS_WORKER_AI_BASE_BRANCH_TERRAIN_PLAINS_HILL_LOW_FOOD");
-		SAS_initWorkerNoBonusBranchSet(kTerrainTundra, "SAS_WORKER_AI_BASE_BRANCH_TERRAIN_TUNDRA_FLAT", "SAS_WORKER_AI_BASE_BRANCH_TERRAIN_TUNDRA_FLAT_LOW_FOOD", "SAS_WORKER_AI_BASE_BRANCH_TERRAIN_TUNDRA_HILL", "SAS_WORKER_AI_BASE_BRANCH_TERRAIN_TUNDRA_HILL_LOW_FOOD");
-		SAS_initWorkerNoBonusBranchSet(kTerrainSnow, "SAS_WORKER_AI_BASE_BRANCH_TERRAIN_SNOW_FLAT", "SAS_WORKER_AI_BASE_BRANCH_TERRAIN_SNOW_FLAT_LOW_FOOD", "SAS_WORKER_AI_BASE_BRANCH_TERRAIN_SNOW_HILL", "SAS_WORKER_AI_BASE_BRANCH_TERRAIN_SNOW_HILL_LOW_FOOD");
-		SAS_initWorkerNoBonusBranchSet(kTerrainDesert, "SAS_WORKER_AI_BASE_BRANCH_TERRAIN_DESERT_FLAT", "SAS_WORKER_AI_BASE_BRANCH_TERRAIN_DESERT_FLAT_LOW_FOOD", "SAS_WORKER_AI_BASE_BRANCH_TERRAIN_DESERT_HILL", "SAS_WORKER_AI_BASE_BRANCH_TERRAIN_DESERT_HILL_LOW_FOOD");
-	}
-};
-
-// <!-- custom: Cache the known manual no-bonus worker branch sets once as small handles. The define names now include FEATURE_/TERRAIN_ plus the XML info suffix and FLAT/HILL context, so rare feature-on-hill cases such as a modded Oasis Hill can use the same selector without special C++ shape changes. Empty branches are cached as unavailable and fall through to the next terrain/feature path. (ChatGPT-5.5) -->
-static SASWorkerNoBonusKnownBranches const& SAS_getWorkerNoBonusKnownBranches()
-{
-	static SASWorkerNoBonusKnownBranches kBranches;
-	return kBranches;
 }
 
 static int SAS_getImprovementUpgradeChainLevel(ImprovementTypes eImprovement, ImprovementTypes eChainStart)
@@ -2953,7 +2814,7 @@ struct SASWorkerImprovementListCache
 	std::vector<ImprovementTypes> aImprovements;
 };
 
-// <!-- custom: Parse comma-separated IMPROVEMENT_* define lists once for worker protection/holy-improvement rules. NONE follows the same sentinel convention as music and branch defines; invalid names are skipped after asserting, so modmods can tune protected improvement sets from XML without changing the worker AI logic. (ChatGPT-5.5) -->
+// <!-- custom: Parse comma-separated IMPROVEMENT_* define lists once for Worker growth-chain and irrigation-route policy. NONE disables a list; invalid names assert and are skipped, so modmods can tune the remaining non-yield policy without changing Worker AI logic. (ChatGPT-5.5 + GPT-5.6-Sol) -->
 static void SAS_initWorkerImprovementList(std::vector<ImprovementTypes>& aImprovements, char const* szDefineName)
 {
 	aImprovements.clear();
@@ -2961,16 +2822,16 @@ static void SAS_initWorkerImprovementList(std::vector<ImprovementTypes>& aImprov
 	FAssertMsg(szDefineText != NULL, szDefineName);
 	if (szDefineText == NULL)
 		return;
-	CvString szRemaining = SAS_trimWorkerNoBonusBranchToken(szDefineText);
-	if (SAS_isWorkerNoBonusBranchNoneToken(szRemaining))
+	CvString szRemaining = SAS_trimWorkerDefineToken(szDefineText);
+	if (SAS_isWorkerDefineNoneToken(szRemaining))
 		return;
 	while (!szRemaining.empty())
 	{
 		int const iComma = szRemaining.find(',');
 		CvString const szRawEntry = (iComma < 0 ? szRemaining : szRemaining.substr(0, iComma));
 		szRemaining = (iComma < 0 ? CvString("") : szRemaining.substr(iComma + 1));
-		CvString const szEntry = SAS_trimWorkerNoBonusBranchToken(szRawEntry);
-		if (SAS_isWorkerNoBonusBranchNoneToken(szEntry))
+		CvString const szEntry = SAS_trimWorkerDefineToken(szRawEntry);
+		if (SAS_isWorkerDefineNoneToken(szEntry))
 			continue;
 		ImprovementTypes const eImprovement = (ImprovementTypes)GC.getInfoTypeForString(szEntry.c_str());
 		FAssertMsg(eImprovement != NO_IMPROVEMENT, szEntry.c_str());
@@ -3001,19 +2862,6 @@ static std::vector<ImprovementTypes> const& SAS_getWorkerImprovementList(char co
 	return aCaches[aCaches.size() - 1].aImprovements;
 }
 
-static bool SAS_isWorkerImprovementInDefineList(char const* szDefineName, ImprovementTypes eImprovement)
-{
-	if (eImprovement == NO_IMPROVEMENT)
-		return false;
-	std::vector<ImprovementTypes> const& aImprovements = SAS_getWorkerImprovementList(szDefineName);
-	for (size_t i = 0; i < aImprovements.size(); ++i)
-	{
-		if (aImprovements[i] == eImprovement)
-			return true;
-	}
-	return false;
-}
-
 // <!-- custom: Return the XML upgrade-chain level of an improvement for any configured worker growth-improvement chain start. Default XML lists IMPROVEMENT_COTTAGE, which preserves Cottage/Hamlet/Village/Town behavior; modmods can add or replace starts for shorter/longer chains or hammer/commerce growth chains without hardcoding them here. (ChatGPT-5.5) -->
 static int SAS_getWorkerGrowthImprovementLevel(ImprovementTypes eImprovement)
 {
@@ -3026,94 +2874,369 @@ static int SAS_getWorkerGrowthImprovementLevel(ImprovementTypes eImprovement)
 	return iBestLevel;
 }
 
-static int SAS_getWorkerRecoveredFoodCostImprovementValue(CvPlot const& kPlot, ImprovementTypes eImprovement, PlayerTypes ePlayer)
+struct SASWorkerYieldWeights
 {
-	if (eImprovement == NO_IMPROVEMENT || !SAS_isWorkerImprovementInDefineList("SAS_WORKER_AI_FOOD_COST_IMPROVEMENT_NAMES", eImprovement))
-		return 0;
-	int const iBaseFoodYieldChange = GC.getInfo(eImprovement).getYieldChange(YIELD_FOOD);
-	if (iBaseFoodYieldChange >= 0)
-		return 0;
-	int const iCurrentFoodYieldChange = kPlot.calculateImprovementYieldChange(eImprovement, YIELD_FOOD, ePlayer);
-	// <!-- custom: Only reward configured food-cost improvements after current plot/player rules make them food-neutral or better. Partial recovery, e.g. -2 food to -1 food, still costs food and should not receive this bonus. (ChatGPT-5.5 + GPT-5.5) -->
-	if (iCurrentFoodYieldChange < 0)
-		return 0;
-	int const iRecoveredFood = iCurrentFoodYieldChange - iBaseFoodYieldChange;
-	if (iRecoveredFood <= 0)
-		return 0;
-	static const int iSAS_WORKER_AI_FOOD_COST_IMPROVEMENT_VALUE_PER_FOOD_GAIN = GC.getDefineINT("SAS_WORKER_AI_FOOD_COST_IMPROVEMENT_VALUE_PER_FOOD_GAIN");
-	return iSAS_WORKER_AI_FOOD_COST_IMPROVEMENT_VALUE_PER_FOOD_GAIN * iRecoveredFood;
+	int iFood;
+	int iProduction;
+	int iCommerce;
+};
+
+// <!-- custom: Value ordinary Worker improvements from their resulting yields instead of terrain/build name tables.
+// Keep the per-100 prices deliberately small and understandable: Food starts above Production and Commerce, then gradually yields some value to Production as improvements and cities mature; financial trouble raises Commerce, city/BFC shortage raises Food, and too few developed strong hammer plots or immediate danger raise Production.
+// Bounded adjustments keep transient city state from overwhelming a long-lived improvement decision. (GPT-5.6-Sol) -->
+static SASWorkerYieldWeights SAS_getWorkerYieldWeights(CvCityAI const& kCity, int iAdjustedFoodDifference, int iStructuralFoodPressure, int iStructuralProductionPressure)
+{
+	static const int iStrongProductionPressureValuePerMissingPlot = std::max(0, GC.getDefineINT("SAS_WORKER_AI_STRONG_PRODUCTION_PRESSURE_VALUE_PER_MISSING_PLOT"));
+	static const int iStrongProductionPressureMaxValue = std::max(0, GC.getDefineINT("SAS_WORKER_AI_STRONG_PRODUCTION_PRESSURE_MAX_VALUE"));
+	CvPlayerAI const& kOwner = GET_PLAYER(kCity.getOwner());
+	int const iGameProgressPercent = (100 * GC.getGame().gameTurnProgress()).uround();
+	SASWorkerYieldWeights kWeights;
+	kWeights.iFood = std::max(120, 170 - iGameProgressPercent / 3);
+	kWeights.iProduction = 140 + iGameProgressPercent / 2;
+	kWeights.iCommerce = 100 + (kOwner.AI_isFinancialTrouble() ? 50 : 0);
+	kWeights.iFood += std::min(200, 35 * std::max(0, -iAdjustedFoodDifference) + 10 * std::max(0, iStructuralFoodPressure));
+	// <!-- custom: Early cities often have no strong hammer source even when several mediocre natural hammers make their BFC total look adequate.
+	// Value each missing strong-production plot enough that a low-food-cost Grass Hill Mine can beat another flatland Cottage/Farm under the default XML values; count resulting yields rather than naming terrain or improvements, and remove the pressure as those options are built so the city still diversifies afterward. (GPT-5.6-Sol) -->
+	kWeights.iProduction += std::min(iStrongProductionPressureMaxValue, iStrongProductionPressureValuePerMissingPlot * std::max(0, iStructuralProductionPressure));
+	if (kCity.AI_isDanger())
+		kWeights.iProduction += 100;
+	return kWeights;
 }
 
-static bool SAS_isWorkerNoBonusIrrigationCarrierCandidate(CvPlot const& kPlot, ImprovementTypes eImprovement, TeamTypes eTeam)
+// <!-- custom: AI_bestCityBuild is called repeatedly by several Workers for the same city; one context row per city/turn preserves the changing scarcity inputs and resolved weights without recreating the prior multi-gigabyte candidate-log duplication. (GPT-5.6-Sol) -->
+static bool SAS_shouldLogWorkerYieldContext(CvCityAI const& kCity)
 {
-	return (eImprovement != NO_IMPROVEMENT && GET_TEAM(eTeam).isIrrigation() && kPlot.canHavePotentialIrrigation() && GC.getInfo(eImprovement).isCarriesIrrigation());
-}
-
-static bool SAS_pickWorkerNoBonusBranchBuild(CvUnitAI const& kUnit, CvPlot& kPlot, char const* szDefineName, bool bLowFoodBranch, int iAdjustedFoodDifference, int iLowFoodValuePerFood, int iFoodSupportValue, int iIrrigationBlockingPenalty, std::vector<int> const& aBuildValueAdjustments, BuildTypes& eBestBuild, int& iValue)
-{
-	std::vector<SASWorkerNoBonusBuildCandidate> const& aCandidates = SAS_getWorkerNoBonusBranchCandidates(szDefineName);
-	if (aCandidates.empty())
-	{
+	typedef std::pair<int,int> SASWorkerCityKey;
+	static std::map<SASWorkerCityKey,int> aiLastLoggedTurn;
+	SASWorkerCityKey const kKey(kCity.getOwner(), kCity.getID());
+	int const iTurn = GC.getGame().getGameTurn();
+	std::map<SASWorkerCityKey,int>::const_iterator const itLastLogged = aiLastLoggedTurn.find(kKey);
+	if (itLastLogged != aiLastLoggedTurn.end() && itLastLogged->second == iTurn)
 		return false;
-	}
-	int iBestCandidateFoodYieldChange = MIN_INT;
-	int iBuildableCandidateCount = 0;
-	for (size_t i = 0; i < aCandidates.size(); ++i)
-	{
-		SASWorkerNoBonusBuildCandidate const& kCandidate = aCandidates[i];
-		if (!kUnit.canBuild(kPlot, kCandidate.eBuild))
-			continue;
-		iBuildableCandidateCount++;
-		if (kCandidate.eImprovement == NO_IMPROVEMENT)
-			continue;
-		iBestCandidateFoodYieldChange = std::max(iBestCandidateFoodYieldChange, kPlot.calculateImprovementYieldChange(kCandidate.eImprovement, YIELD_FOOD, kUnit.getOwner()));
-	}
-	if (iBuildableCandidateCount <= 0)
-		return false;
-	int const iLowFoodDeficitValue = (bLowFoodBranch ? iLowFoodValuePerFood * std::max(0, -iAdjustedFoodDifference) : 0);
-	int const iFoodPressureValue = iLowFoodDeficitValue + iFoodSupportValue;
-	bool const bHasPositiveFoodCandidate = (iBestCandidateFoodYieldChange > 0);
-	BuildTypes eBestCandidateBuild = NO_BUILD;
-	int iBestCandidateValue = MIN_INT;
-	for (size_t i = 0; i < aCandidates.size(); ++i)
-	{
-		SASWorkerNoBonusBuildCandidate const& kCandidate = aCandidates[i];
-		if (!kUnit.canBuild(kPlot, kCandidate.eBuild))
-			continue;
-		int iCandidateValue = kCandidate.iBaseValue;
-		iCandidateValue += SAS_getWorkerRecoveredFoodCostImprovementValue(kPlot, kCandidate.eImprovement, kUnit.getOwner());
-		// <!-- custom: Improvement-independent food pressure: when this city/plot wants food, reward whichever buildable no-bonus candidate gives the best food outcome on this exact plot, rather than hardcoding Farm or Windmill as the answer. (ChatGPT-5.5 + GPT-5.5) -->
-		if (iFoodPressureValue > 0 && bHasPositiveFoodCandidate && kCandidate.eImprovement != NO_IMPROVEMENT && kPlot.calculateImprovementYieldChange(kCandidate.eImprovement, YIELD_FOOD, kUnit.getOwner()) == iBestCandidateFoodYieldChange)
-			iCandidateValue += iFoodPressureValue;
-		// <!-- custom: Improvement-independent irrigation pressure: if this plot is useful as an irrigation carrier, penalize buildable candidates that do not carry irrigation instead of hardcoding only Cottage/Workshop as blockers. (ChatGPT-5.5 + GPT-5.5) -->
-		if (iIrrigationBlockingPenalty > 0 && !SAS_isWorkerNoBonusIrrigationCarrierCandidate(kPlot, kCandidate.eImprovement, kUnit.getTeam()))
-			iCandidateValue -= iIrrigationBlockingPenalty;
-		if ((int)kCandidate.eBuild >= 0 && (int)kCandidate.eBuild < (int)aBuildValueAdjustments.size())
-			iCandidateValue += aBuildValueAdjustments[kCandidate.eBuild];
-		if (iCandidateValue > iBestCandidateValue)
-		{
-			iBestCandidateValue = iCandidateValue;
-			eBestCandidateBuild = kCandidate.eBuild;
-		}
-	}
-	if (eBestCandidateBuild == NO_BUILD)
-		return false;
-	eBestBuild = eBestCandidateBuild;
-	iValue += iBestCandidateValue;
+	aiLastLoggedTurn[kKey] = iTurn;
 	return true;
 }
 
-static bool SAS_pickWorkerNoBonusBranchBuild(CvUnitAI const& kUnit, CvPlot& kPlot, SASWorkerNoBonusBranch const& kBranch, bool bLowFoodBranch, int iAdjustedFoodDifference, int iLowFoodValuePerFood, int iFoodSupportValue, int iIrrigationBlockingPenalty, std::vector<int> const& aBuildValueAdjustments, BuildTypes& eBestBuild, int& iValue)
+static int SAS_getWorkerYieldUtility(int iFood, int iProduction, int iCommerce, SASWorkerYieldWeights const& kWeights)
 {
-	if (!kBranch.bHasCandidates)
+	int iValue = iFood * kWeights.iFood + iProduction * kWeights.iProduction + iCommerce * kWeights.iCommerce;
+	// <!-- custom: Food below citizen consumption makes a plot depend on surplus from somewhere else. Charge that opportunity cost once more so equal-looking yield totals prefer self-supporting plots, e.g. Grass before Plains, without naming either terrain. (GPT-5.6-Sol) -->
+	iValue -= std::max(0, GC.getFOOD_CONSUMPTION_PER_POPULATION() - iFood) * kWeights.iFood;
+	return iValue;
+}
+
+static int SAS_getWorkerCurrentEffectiveYield(CvPlot const& kPlot, YieldTypes eYield, PlayerTypes eOwner)
+{
+	int iCurrentYield = kPlot.getYield(eYield);
+	ImprovementTypes const eCurrentImprovement = kPlot.getImprovementType();
+	if (eCurrentImprovement == NO_IMPROVEMENT)
+		return iCurrentYield;
+	ImprovementTypes const eFinalImprovement = CvImprovementInfo::finalUpgrade(eCurrentImprovement);
+	if (eFinalImprovement == NO_IMPROVEMENT || eFinalImprovement == eCurrentImprovement)
+		return iCurrentYield;
+	int const iFutureGain = kPlot.calculateImprovementYieldChange(eFinalImprovement, eYield, eOwner) - kPlot.calculateImprovementYieldChange(eCurrentImprovement, eYield, eOwner);
+	return iCurrentYield + iFutureGain / 3;
+}
+
+static int SAS_getWorkerBuildResultYield(CvPlot const& kPlot, BuildTypes eBuild, YieldTypes eYield, bool bWithUpgrade, bool bAssumeIrrigation)
+{
+	int iResultYield = kPlot.getYieldWithBuild(eBuild, eYield, bWithUpgrade);
+	if (!bAssumeIrrigation || kPlot.isIrrigationAvailable())
+		return iResultYield;
+	ImprovementTypes eImprovement = GC.getInfo(eBuild).getImprovement();
+	if (bWithUpgrade)
+	{
+		ImprovementTypes const eFinalImprovement = CvImprovementInfo::finalUpgrade(eImprovement);
+		if (eFinalImprovement != NO_IMPROVEMENT)
+			eImprovement = eFinalImprovement;
+	}
+	if (eImprovement != NO_IMPROVEMENT)
+		iResultYield += GC.getInfo(eImprovement).getIrrigatedYieldChange(eYield);
+	return iResultYield;
+}
+
+static int SAS_getWorkerBuildEffectiveYield(CvPlot const& kPlot, BuildTypes eBuild, YieldTypes eYield, bool bAssumeIrrigation = false)
+{
+	int const iImmediateYield = SAS_getWorkerBuildResultYield(kPlot, eBuild, eYield, false, bAssumeIrrigation);
+	int const iFinalUpgradeYield = SAS_getWorkerBuildResultYield(kPlot, eBuild, eYield, true, bAssumeIrrigation);
+	// <!-- custom: Two-thirds immediate and one-third final-upgrade yield keeps growth improvements valuable without pretending that a new Cottage is already a Town. This simple blend is intentionally independent of the number or names of XML upgrade stages. (GPT-5.6-Sol) -->
+	return (2 * iImmediateYield + iFinalUpgradeYield) / 3;
+}
+
+static bool SAS_isWorkerIrrigationCarrierImprovement(ImprovementTypes eImprovement)
+{
+	return (eImprovement != NO_IMPROVEMENT && GC.getInfo(eImprovement).isCarriesIrrigation());
+}
+
+// <!-- custom: A dry target whose carrier requires irrigation cannot pass normal canBuild before the planned chain supplies water.
+// For target planning only, validate every other current requirement while treating irrigation as prospective; actual source-side chain steps still use full canBuild. (GPT-5.6-Sol) -->
+static bool SAS_canWorkerBuildIrrigationCarrier(CvUnitAI const& kUnit, CvPlot& kPlot, BuildTypes eBuild, bool bAssumeIrrigation)
+{
+	if (!bAssumeIrrigation)
+		return kUnit.canBuild(kPlot, eBuild);
+	if (kPlot.getOwner() != kUnit.getOwner() || !kUnit.canBuild(kPlot, eBuild, true))
 		return false;
-	return SAS_pickWorkerNoBonusBranchBuild(kUnit, kPlot, kBranch.szDefineName, bLowFoodBranch, iAdjustedFoodDifference, iLowFoodValuePerFood, iFoodSupportValue, iIrrigationBlockingPenalty, aBuildValueAdjustments, eBestBuild, iValue);
+	CvBuildInfo const& kBuild = GC.getInfo(eBuild);
+	CvTeam const& kTeam = GET_TEAM(kUnit.getTeam());
+	if (kBuild.getTechPrereq() != NO_TECH && !kTeam.isHasTech(kBuild.getTechPrereq()))
+		return false;
+	if (kPlot.isFeature() && !kTeam.isHasTech(kBuild.getFeatureTech(kPlot.getFeatureType())))
+		return false;
+	return (std::max(0, GET_PLAYER(kUnit.getOwner()).getGold()) >= GET_PLAYER(kUnit.getOwner()).getBuildCost(kPlot, eBuild));
+}
+
+// <!-- custom: Discover irrigation carriers from Improvement XML rather than assuming BUILD_FARM/IMPROVEMENT_FARM.
+// A modmod can add several legal carriers; choose the one with the strongest city-weighted resulting yields, then shorter Worker time, so chain infrastructure remains useful on its own plot too. (GPT-5.6-Sol) -->
+static bool SAS_pickWorkerIrrigationCarrierBuild(CvUnitAI const& kUnit, CvPlot& kPlot, SASWorkerYieldWeights const& kWeights, BuildTypes& eBestBuild, bool bAssumeIrrigation = false)
+{
+	eBestBuild = NO_BUILD;
+	int iBestValue = MIN_INT;
+	int iBestTurns = MAX_INT;
+	FOR_EACH_ENUM(Build)
+	{
+		CvBuildInfo const& kBuild = GC.getInfo(eLoopBuild);
+		ImprovementTypes const eImprovement = kBuild.getImprovement();
+		if (!SAS_isWorkerIrrigationCarrierImprovement(eImprovement) || GC.getInfo(eImprovement).isActsAsCity() || !SAS_canWorkerBuildIrrigationCarrier(kUnit, kPlot, eLoopBuild, bAssumeIrrigation))
+			continue;
+		int const iFood = SAS_getWorkerBuildEffectiveYield(kPlot, eLoopBuild, YIELD_FOOD, bAssumeIrrigation);
+		int const iProduction = SAS_getWorkerBuildEffectiveYield(kPlot, eLoopBuild, YIELD_PRODUCTION, bAssumeIrrigation);
+		int const iCommerce = SAS_getWorkerBuildEffectiveYield(kPlot, eLoopBuild, YIELD_COMMERCE, bAssumeIrrigation);
+		int const iValue = SAS_getWorkerYieldUtility(iFood, iProduction, iCommerce, kWeights);
+		int const iTurns = kPlot.getBuildTurnsLeft(eLoopBuild, kUnit.getOwner());
+		if (iValue > iBestValue || (iValue == iBestValue && iTurns < iBestTurns))
+		{
+			eBestBuild = eLoopBuild;
+			iBestValue = iValue;
+			iBestTurns = iTurns;
+		}
+	}
+	return (eBestBuild != NO_BUILD);
+}
+
+// <!-- custom: A temporary improvement on a food bonus is justified by food gained before the real bonus Build unlocks, not by the name Farm.
+// Enumerate every legal economic improvement and require it to raise the plot's immediate food; among qualifying Builds choose the highest resulting food, then city-weighted utility and Worker time. (GPT-5.6-Sol) -->
+static bool SAS_pickWorkerTemporaryFoodBuild(CvUnitAI const& kUnit, CvPlot& kPlot, SASWorkerYieldWeights const& kWeights, int iMinResultFood, BuildTypes& eBestBuild, int& iBestResultFood)
+{
+	eBestBuild = NO_BUILD;
+	iBestResultFood = 0;
+	int iBestUtility = MIN_INT;
+	int iBestTurns = MAX_INT;
+	int const iCurrentFood = kPlot.getYield(YIELD_FOOD);
+	FOR_EACH_ENUM(Build)
+	{
+		CvBuildInfo const& kBuild = GC.getInfo(eLoopBuild);
+		ImprovementTypes const eImprovement = kBuild.getImprovement();
+		if (eImprovement == NO_IMPROVEMENT || GC.getInfo(eImprovement).isActsAsCity() || !kUnit.canBuild(kPlot, eLoopBuild))
+			continue;
+		int const iResultFood = kPlot.getYieldWithBuild(eLoopBuild, YIELD_FOOD, false);
+		if (iResultFood < iMinResultFood || iResultFood <= iCurrentFood)
+			continue;
+		int const iProduction = SAS_getWorkerBuildEffectiveYield(kPlot, eLoopBuild, YIELD_PRODUCTION);
+		int const iCommerce = SAS_getWorkerBuildEffectiveYield(kPlot, eLoopBuild, YIELD_COMMERCE);
+		int const iUtility = SAS_getWorkerYieldUtility(iResultFood, iProduction, iCommerce, kWeights);
+		int const iTurns = kPlot.getBuildTurnsLeft(eLoopBuild, kUnit.getOwner());
+		if (iResultFood > iBestResultFood || (iResultFood == iBestResultFood && (iUtility > iBestUtility || (iUtility == iBestUtility && iTurns < iBestTurns))))
+		{
+			eBestBuild = eLoopBuild;
+			iBestResultFood = iResultFood;
+			iBestUtility = iUtility;
+			iBestTurns = iTurns;
+		}
+	}
+	return (eBestBuild != NO_BUILD);
+}
+
+// <!-- custom: AI_bestCityBuild is evaluated repeatedly by every Worker scanning the same cities; in the first three yield-rework autoplay logs this produced roughly 4-11 million WORKER_YIELD_NO_BUILD rows per run, although only about 1700-2300 city-build assignments occurred; deduplicating one sample by player/plot/turn/current improvement removed about 94% of those rows.
+// Log an unchanged plot decision only once for that state, but allow another row if a Worker completes or replaces the improvement during the same turn, preserving useful candidate evidence without overwhelming BBAI.log. (GPT-5.6-Sol) -->
+static bool SAS_shouldLogWorkerYieldDecision(CvUnitAI const& kUnit, CvPlot const& kPlot)
+{
+	typedef std::pair<int,int> SASWorkerYieldLogState;
+	static std::map<std::pair<int,int>,SASWorkerYieldLogState> akLastLoggedState;
+	std::pair<int,int> const kKey(kUnit.getOwner(), kPlot.plotNum());
+	SASWorkerYieldLogState const kState(GC.getGame().getGameTurn(), kPlot.getImprovementType());
+	std::map<std::pair<int,int>,SASWorkerYieldLogState>::const_iterator const itLastLogged = akLastLoggedState.find(kKey);
+	if (itLastLogged != akLastLoggedState.end() && itLastLogged->second == kState)
+		return false;
+	akLastLoggedState[kKey] = kState;
+	return true;
+}
+
+// <!-- custom: Enumerate every legal improvement Build and score the state transition generically; twice the final-state utility prioritizes plots that cities will actually want to work instead of letting a large gain on poor terrain win by itself; the gain still rewards productive Worker turns, build duration breaks close choices, and replacement hysteresis requires both a fixed and percentage improvement before destroying existing infrastructure.
+// Irrigation-chain infrastructure is selected by the separate route pass instead of being mixed into ordinary plot-yield valuation. (GPT-5.6-Sol) -->
+static bool SAS_pickWorkerYieldBuild(CvUnitAI const& kUnit, CvCityAI const& kCity, CvPlot& kPlot, SASWorkerYieldWeights const& kWeights, BuildTypes& eBestBuild, int& iValue)
+{
+	int aiCurrentYields[NUM_YIELD_TYPES];
+	FOR_EACH_ENUM(Yield)
+		aiCurrentYields[eLoopYield] = SAS_getWorkerCurrentEffectiveYield(kPlot, eLoopYield, kUnit.getOwner());
+	int const iCurrentUtility = SAS_getWorkerYieldUtility(aiCurrentYields[YIELD_FOOD], aiCurrentYields[YIELD_PRODUCTION], aiCurrentYields[YIELD_COMMERCE], kWeights);
+	ImprovementTypes const eCurrentImprovement = kPlot.getImprovementType();
+	int const iGrowthLevel = SAS_getWorkerGrowthImprovementLevel(eCurrentImprovement);
+
+	BuildTypes eBestCandidate = NO_BUILD;
+	BuildTypes eSecondCandidate = NO_BUILD;
+	BuildTypes eThirdCandidate = NO_BUILD;
+	BuildTypes eBestMarginRejectedCandidate = NO_BUILD;
+	int iBestCandidateValue = MIN_INT;
+	int iSecondCandidateValue = MIN_INT;
+	int iThirdCandidateValue = MIN_INT;
+	int iBestCandidateGain = MIN_INT;
+	int iBestMarginRejectedGain = MIN_INT;
+	int iLegalCandidateCount = 0;
+	int iMarginRejectedCount = 0;
+	FOR_EACH_ENUM(Build)
+	{
+		CvBuildInfo const& kBuild = GC.getInfo(eLoopBuild);
+		ImprovementTypes const eImprovement = kBuild.getImprovement();
+		// <!-- custom: Defensive infrastructure belongs to the dedicated Fort/Airbase policy, not economic BFC yield competition.
+		// Autoplay logs showed Fort replacing a temporarily food-negative Workshop at Texcoco and Hastings because the zero-yield Fort appeared beneficial merely by removing the Workshop's food penalty; keep this generic through the XML bActsAsCity role instead of hardcoding Fort; a later idle-Worker defensive policy can still build Forts deliberately outside this economic comparison. (GPT-5.6-Sol) -->
+		if (eImprovement == NO_IMPROVEMENT || eImprovement == eCurrentImprovement || GC.getInfo(eImprovement).isActsAsCity() || !kUnit.canBuild(kPlot, eLoopBuild))
+			continue;
+		iLegalCandidateCount++;
+
+		int aiResultYields[NUM_YIELD_TYPES];
+		FOR_EACH_ENUM(Yield)
+			aiResultYields[eLoopYield] = SAS_getWorkerBuildEffectiveYield(kPlot, eLoopBuild, eLoopYield);
+		int const iResultUtility = SAS_getWorkerYieldUtility(aiResultYields[YIELD_FOOD], aiResultYields[YIELD_PRODUCTION], aiResultYields[YIELD_COMMERCE], kWeights);
+		int const iGain = iResultUtility - iCurrentUtility;
+		int const iReplacementMargin = (eCurrentImprovement == NO_IMPROVEMENT ? 1 : std::max(150 + 100 * iGrowthLevel, std::max(0, iCurrentUtility) / 5));
+		if (iGain < iReplacementMargin)
+		{
+			iMarginRejectedCount++;
+			if (iGain > iBestMarginRejectedGain)
+			{
+				iBestMarginRejectedGain = iGain;
+				eBestMarginRejectedCandidate = eLoopBuild;
+			}
+			continue;
+		}
+
+		int const iBuildDuration = std::min(40, kPlot.getBuildTurnsLeft(eLoopBuild, kUnit.getOwner()));
+		int iCandidateValue = 2 * iResultUtility + iGain - 25 * iBuildDuration;
+		if (kCity.isWorkingPlot(kPlot))
+			iCandidateValue += 150;
+		if (iCandidateValue > iBestCandidateValue)
+		{
+			eThirdCandidate = eSecondCandidate;
+			iThirdCandidateValue = iSecondCandidateValue;
+			eSecondCandidate = eBestCandidate;
+			iSecondCandidateValue = iBestCandidateValue;
+			eBestCandidate = eLoopBuild;
+			iBestCandidateValue = iCandidateValue;
+			iBestCandidateGain = iGain;
+		}
+		else if (iCandidateValue > iSecondCandidateValue)
+		{
+			eThirdCandidate = eSecondCandidate;
+			iThirdCandidateValue = iSecondCandidateValue;
+			eSecondCandidate = eLoopBuild;
+			iSecondCandidateValue = iCandidateValue;
+		}
+		else if (iCandidateValue > iThirdCandidateValue)
+		{
+			eThirdCandidate = eLoopBuild;
+			iThirdCandidateValue = iCandidateValue;
+		}
+	}
+
+	if (eBestCandidate == NO_BUILD)
+	{
+		// <!-- custom: Zero legal candidates are already covered by the compact once-per-plot rejection diagnostic. Keep WORKER_YIELD_NO_BUILD for the strategically useful case where replacement hysteresis rejected otherwise legal Builds. (GPT-5.6-Sol) -->
+		if (gWorkerLogLevel >= 3 && iLegalCandidateCount > 0 && SAS_shouldLogWorkerYieldDecision(kUnit, kPlot))
+			logBBAI("    WORKER_YIELD_NO_BUILD turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) current=%S weights=(%d,%d,%d) currentUtility=%d legal=%d marginRejected=%d bestRejected=%S bestRejectedGain=%d",
+				GC.getGame().getGameTurn(), kUnit.getOwner(), GET_PLAYER(kUnit.getOwner()).getCivilizationDescription(0), kUnit.getID(),
+				kCity.getName().GetCString(), kPlot.getX(), kPlot.getY(),
+				(eCurrentImprovement == NO_IMPROVEMENT ? L"-" : GC.getInfo(eCurrentImprovement).getDescription()),
+				kWeights.iFood, kWeights.iProduction, kWeights.iCommerce, iCurrentUtility, iLegalCandidateCount, iMarginRejectedCount,
+				(eBestMarginRejectedCandidate == NO_BUILD ? L"-" : GC.getInfo(eBestMarginRejectedCandidate).getDescription()),
+				(eBestMarginRejectedCandidate == NO_BUILD ? 0 : iBestMarginRejectedGain));
+		return false;
+	}
+	eBestBuild = eBestCandidate;
+	iValue += iBestCandidateValue;
+	if (gWorkerLogLevel >= 3 && SAS_shouldLogWorkerYieldDecision(kUnit, kPlot))
+	{
+		ImprovementTypes const eResultImprovement = GC.getInfo(eBestCandidate).getImprovement();
+		int aiResultYields[NUM_YIELD_TYPES];
+		FOR_EACH_ENUM(Yield)
+			aiResultYields[eLoopYield] = SAS_getWorkerBuildEffectiveYield(kPlot, eBestCandidate, eLoopYield);
+		logBBAI("    WORKER_YIELD_BUILD turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) current=%S build=%S result=%S weights=(%d,%d,%d) resultYields=(%d,%d,%d) currentUtility=%d gain=%d buildValue=%d runnerUp=%S runnerUpValue=%d third=%S thirdValue=%d legal=%d marginRejected=%d bestRejected=%S bestRejectedGain=%d",
+			GC.getGame().getGameTurn(), kUnit.getOwner(), GET_PLAYER(kUnit.getOwner()).getCivilizationDescription(0), kUnit.getID(),
+			kCity.getName().GetCString(), kPlot.getX(), kPlot.getY(),
+			(eCurrentImprovement == NO_IMPROVEMENT ? L"-" : GC.getInfo(eCurrentImprovement).getDescription()), GC.getInfo(eBestCandidate).getDescription(),
+			GC.getInfo(eResultImprovement).getDescription(), kWeights.iFood, kWeights.iProduction, kWeights.iCommerce,
+			aiResultYields[YIELD_FOOD], aiResultYields[YIELD_PRODUCTION], aiResultYields[YIELD_COMMERCE], iCurrentUtility, iBestCandidateGain, iBestCandidateValue,
+			(eSecondCandidate == NO_BUILD ? L"-" : GC.getInfo(eSecondCandidate).getDescription()),
+			(eSecondCandidate == NO_BUILD ? 0 : iSecondCandidateValue),
+			(eThirdCandidate == NO_BUILD ? L"-" : GC.getInfo(eThirdCandidate).getDescription()),
+			(eThirdCandidate == NO_BUILD ? 0 : iThirdCandidateValue), iLegalCandidateCount, iMarginRejectedCount,
+			(eBestMarginRejectedCandidate == NO_BUILD ? L"-" : GC.getInfo(eBestMarginRejectedCandidate).getDescription()),
+			(eBestMarginRejectedCandidate == NO_BUILD ? 0 : iBestMarginRejectedGain));
+	}
+	return true;
+}
+
+// <!-- custom: Discover a dedicated feature-removal action from Build XML instead of naming Forest, Jungle, Fallout or their Builds.
+// Prefer the legal non-sacrificial action that sends the most production to a city, then the quicker action; improvement Builds remain in the yield evaluator so this helper only supplies the interruptible removal-first step. (GPT-5.6-Sol) -->
+static BuildTypes SAS_getWorkerPureFeatureRemovalBuild(CvUnitAI const& kUnit, CvPlot const& kPlot, int* piProduction = NULL)
+{
+	if (piProduction != NULL)
+		*piProduction = 0;
+	FeatureTypes const eFeature = kPlot.getFeatureType();
+	if (eFeature == NO_FEATURE)
+		return NO_BUILD;
+	BuildTypes eBestBuild = NO_BUILD;
+	int iBestProduction = -1;
+	int iBestTurns = MAX_INT;
+	FOR_EACH_ENUM(Build)
+	{
+		CvBuildInfo const& kBuild = GC.getInfo(eLoopBuild);
+		if (kBuild.getImprovement() != NO_IMPROVEMENT || kBuild.getRoute() != NO_ROUTE || kBuild.isKill() || !kBuild.isFeatureRemove(eFeature) || !kUnit.canBuild(kPlot, eLoopBuild))
+			continue;
+		CvCity* pProductionCity = NULL;
+		int const iProduction = kPlot.getFeatureProduction(eLoopBuild, kUnit.getTeam(), &pProductionCity);
+		int const iTurns = kPlot.getBuildTurnsLeft(eLoopBuild, kUnit.getOwner());
+		if (iProduction > iBestProduction || (iProduction == iBestProduction && iTurns < iBestTurns))
+		{
+			eBestBuild = eLoopBuild;
+			iBestProduction = iProduction;
+			iBestTurns = iTurns;
+		}
+	}
+	if (piProduction != NULL && eBestBuild != NO_BUILD)
+		*piProduction = iBestProduction;
+	return eBestBuild;
+}
+
+// <!-- custom: Score removal from what the current XML feature actually does: recovered plot yields, rounded and fractional city health/happiness, turn damage, received production and Worker time.
+// This makes ordinary Jungle attractive through negative health, protects Forest through positive health and production yield, and makes Fallout urgent through its severe negative yields without naming any of them or assigning a magic Fallout priority.
+// Productive early chopping remains the separate Phase-0 strategic policy. (GPT-5.6-Sol) -->
+static int SAS_getWorkerStandaloneFeatureRemovalValue(CvUnitAI const& kUnit, CvCityAI const& kCity, CvPlot const& kPlot, BuildTypes eRemovalBuild, SASWorkerYieldWeights const& kWeights, int iProduction)
+{
+	if (eRemovalBuild == NO_BUILD || kPlot.getFeatureType() == NO_FEATURE)
+		return MIN_INT;
+	int aiCurrentYields[NUM_YIELD_TYPES];
+	int aiResultYields[NUM_YIELD_TYPES];
+	FOR_EACH_ENUM(Yield)
+	{
+		aiCurrentYields[eLoopYield] = SAS_getWorkerCurrentEffectiveYield(kPlot, eLoopYield, kUnit.getOwner());
+		aiResultYields[eLoopYield] = kPlot.getYieldWithBuild(eRemovalBuild, eLoopYield, false);
+	}
+	int const iCurrentUtility = SAS_getWorkerYieldUtility(aiCurrentYields[YIELD_FOOD], aiCurrentYields[YIELD_PRODUCTION], aiCurrentYields[YIELD_COMMERCE], kWeights);
+	int const iResultUtility = SAS_getWorkerYieldUtility(aiResultYields[YIELD_FOOD], aiResultYields[YIELD_PRODUCTION], aiResultYields[YIELD_COMMERCE], kWeights);
+	int iHappyChange = 0;
+	int iHealthChange = 0;
+	int iHealthPercentChange = 0;
+	ImprovementTypes const eCurrentImprovement = kPlot.getImprovementType();
+	kCity.calculateHealthHappyChange(kPlot, eCurrentImprovement, eCurrentImprovement, true, iHappyChange, iHealthChange, iHealthPercentChange);
+	CvFeatureInfo const& kFeature = GC.getInfo(kPlot.getFeatureType());
+	int const iBuildDuration = std::min(40, kPlot.getBuildTurnsLeft(eRemovalBuild, kUnit.getOwner()));
+	return 2 * (iResultUtility - iCurrentUtility) + 2 * kWeights.iFood * (iHappyChange + iHealthChange) + (kWeights.iFood * iHealthPercentChange) / 50 + 10 * std::max(0, kFeature.getTurnDamage()) + (kWeights.iProduction * iProduction) / 20 - 25 * iBuildDuration;
 }
 
 // <!-- custom: Level-3 diagnostic for the remaining late-game idle-Worker / zero-candidate investigation.
 // Log each owned+assigned blank development plot at most once per player/plot/turn.
-// Report the configured branch dynamically and also scan all currently legal improvement Builds generically, rather than hardcoding Farm/Cottage/Mine/etc. Behavior is unchanged. (ChatGPT-5.6-Sol) -->
-static void SAS_logWorkerCityBuildRejectOnce(CvUnitAI const& kUnit, CvCityAI const& kCity, CvPlot& kPlot, char const* szReason, SASWorkerNoBonusBranch const* pBranch = NULL, BuildTypes eProposedBuild = NO_BUILD)
+// Scan all currently legal improvement Builds generically so zero-candidate cases show whether legality or valuation rejected the plot. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+static void SAS_logWorkerCityBuildRejectOnce(CvUnitAI const& kUnit, CvCityAI const& kCity, CvPlot& kPlot, char const* szReason, BuildTypes eProposedBuild = NO_BUILD)
 {
 	if (kPlot.isWater() || kPlot.isCity() || kPlot.isPeak() ||
 		kPlot.getOwner() != kUnit.getOwner() || kPlot.getWorkingCity() != &kCity ||
@@ -3129,30 +3252,6 @@ static void SAS_logWorkerCityBuildRejectOnce(CvUnitAI const& kUnit, CvCityAI con
 	if (itLastLogged != aiLastLoggedTurn.end() && itLastLogged->second == iGameTurn)
 		return;
 	aiLastLoggedTurn[kKey] = iGameTurn;
-
-	int iBranchCandidates = 0;
-	int iBranchBuildable = 0;
-	CvString szBranch = "-";
-	CvString szBranchBuilds = "-";
-	if (pBranch != NULL)
-	{
-		szBranch = pBranch->szDefineName;
-		std::vector<SASWorkerNoBonusBuildCandidate> const& aCandidates = SAS_getWorkerNoBonusBranchCandidates(pBranch->szDefineName);
-		iBranchCandidates = (int)aCandidates.size();
-		szBranchBuilds.clear();
-		for (size_t i = 0; i < aCandidates.size(); ++i)
-		{
-			bool const bCanBuild = kUnit.canBuild(kPlot, aCandidates[i].eBuild);
-			if (bCanBuild)
-				iBranchBuildable++;
-			if (!szBranchBuilds.empty())
-				szBranchBuilds += ",";
-			szBranchBuilds += GC.getInfo(aCandidates[i].eBuild).getType();
-			szBranchBuilds += (bCanBuild ? ":1" : ":0");
-		}
-		if (szBranchBuilds.empty())
-			szBranchBuilds = "-";
-	}
 
 	int iLegalImprovementBuilds = 0;
 	int iLegalFeatureRemovingImprovementBuilds = 0;
@@ -3183,14 +3282,13 @@ static void SAS_logWorkerCityBuildRejectOnce(CvUnitAI const& kUnit, CvCityAI con
 
 	TerrainTypes const eTerrain = kPlot.getTerrainType();
 	BonusTypes const eBonus = kPlot.getNonObsoleteBonusType(kUnit.getTeam());
-	logBBAI("    WORKER_CITY_BUILD_REJECT turn=%d player=%d %S workerId=%d city=%S cityId=%d plot=(%d,%d) reason=%s terrain=%s feature=%s bonus=%s hills=%d worked=%d yields=(%d,%d,%d) branch=%s branchCandidates=%d branchBuildable=%d branchBuilds=%s proposedBuild=%s legalImprovementBuilds=%d legalImprovementBuildTypes=%s legalFeatureRemovingImprovementBuilds=%d legalFeatureRemovingImprovementBuildTypes=%s",
+	logBBAI("    WORKER_CITY_BUILD_REJECT turn=%d player=%d %S workerId=%d city=%S cityId=%d plot=(%d,%d) reason=%s terrain=%s feature=%s bonus=%s hills=%d worked=%d yields=(%d,%d,%d) proposedBuild=%s legalImprovementBuilds=%d legalImprovementBuildTypes=%s legalFeatureRemovingImprovementBuilds=%d legalFeatureRemovingImprovementBuildTypes=%s",
 		iGameTurn, kUnit.getOwner(), GET_PLAYER(kUnit.getOwner()).getCivilizationDescription(0), kUnit.getID(),
 		kCity.getName().GetCString(), kCity.getID(), kPlot.getX(), kPlot.getY(), szReason,
 		(eTerrain == NO_TERRAIN ? "-" : GC.getInfo(eTerrain).getType()),
 		(eFeature == NO_FEATURE ? "-" : GC.getInfo(eFeature).getType()),
 		(eBonus == NO_BONUS ? "-" : GC.getInfo(eBonus).getType()), kPlot.isHills(), kCity.isWorkingPlot(kPlot),
 		kPlot.getYield(YIELD_FOOD), kPlot.getYield(YIELD_PRODUCTION), kPlot.getYield(YIELD_COMMERCE),
-		szBranch.c_str(), iBranchCandidates, iBranchBuildable, szBranchBuilds.c_str(),
 		(eProposedBuild == NO_BUILD ? "-" : GC.getInfo(eProposedBuild).getType()),
 		iLegalImprovementBuilds, szLegalImprovementBuilds.c_str(),
 		iLegalFeatureRemovingImprovementBuilds, szLegalFeatureRemovingImprovementBuilds.c_str());
@@ -3216,13 +3314,12 @@ struct SASWorkerIrrigationSearchDiagnostics
 	int iForeignOwnedRejects;
 	int iDifferentAreaRejects;
 	int iWaterRejects;
-	int iHillRejects;
 	int iCityCarrierTraversals;
 	int iNoPotentialIrrigationRejects;
 	int iBonusRejects;
 	int iAutomationSafeRejects;
-	int iCannotBuildFarmRejects;
-	SASWorkerIrrigationSearchDiagnostics() : iVisitedStates(0), iDeepestRoute(0), iRouteLimitStops(0), iMapEdgeOrIgnoredRejects(0), iUnownedRejects(0), iForeignOwnedRejects(0), iDifferentAreaRejects(0), iWaterRejects(0), iHillRejects(0), iCityCarrierTraversals(0), iNoPotentialIrrigationRejects(0), iBonusRejects(0), iAutomationSafeRejects(0), iCannotBuildFarmRejects(0) {}
+	int iCannotBuildCarrierRejects;
+	SASWorkerIrrigationSearchDiagnostics() : iVisitedStates(0), iDeepestRoute(0), iRouteLimitStops(0), iMapEdgeOrIgnoredRejects(0), iUnownedRejects(0), iForeignOwnedRejects(0), iDifferentAreaRejects(0), iWaterRejects(0), iCityCarrierTraversals(0), iNoPotentialIrrigationRejects(0), iBonusRejects(0), iAutomationSafeRejects(0), iCannotBuildCarrierRejects(0) {}
 };
 
 // <!-- custom: A no-route result is identical for every Worker evaluating the same city target during a turn. Keep the detailed diagnostic once per target instead of repeating thousands of rows without losing turn-by-turn state changes. (GPT-5.6-Sol) -->
@@ -3239,22 +3336,50 @@ static bool SAS_shouldLogWorkerIrrigationRouteFailure(CvCityAI const& kCity, CvP
 	return aeLoggedTargets.insert(std::make_pair(kCity.plot()->plotNum(), kTargetPlot.plotNum())).second;
 }
 
-// <!-- custom: Positive build progress can remain after a Worker is interrupted and then persist before decaying. Treat a Farm as committed only while a same-owner unit is on the plot with that exact MISSION_BUILD active; this prevents stale progress from supplying imaginary future food or irrigation. See KI#296. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-static bool SAS_isWorkerBuildActivelyCommitted(CvPlot const& kPlot, PlayerTypes eOwner, BuildTypes eBuild)
+// <!-- custom: Positive build progress can remain after a Worker is interrupted and then persist before decaying.
+// Return only the exact improvement Build currently assigned to a same-owner unit on the plot, so future food is credited from live work rather than stale progress and without assuming that the food Build is Farm. See KI#296. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+static BuildTypes SAS_getWorkerActivelyCommittedImprovementBuild(CvPlot const& kPlot, PlayerTypes eOwner)
 {
 	FOR_EACH_UNIT_IN(pUnit, kPlot)
 	{
 		CvSelectionGroup const* pGroup = pUnit->getGroup();
-		if (pUnit->getOwner() == eOwner && pGroup != NULL && pGroup->getMissionType(0) == MISSION_BUILD && pGroup->getMissionData1(0) == eBuild)
-			return true;
+		if (pUnit->getOwner() != eOwner || pGroup == NULL || pGroup->getMissionType(0) != MISSION_BUILD)
+			continue;
+		BuildTypes const eBuild = (BuildTypes)pGroup->getMissionData1(0);
+		if (eBuild != NO_BUILD && GC.getInfo(eBuild).getImprovement() != NO_IMPROVEMENT)
+			return eBuild;
 	}
-	return false;
+	return NO_BUILD;
 }
 
-// <!-- custom: The former four-plot target-side irrigation hunt could select one connector and then forget the intended route, while existing bonus Farms were excluded entirely. Search an actual owned farmable route from the dry BFC target to currently available irrigation and return the least-cost source-side Farm that can be built now. Repeating this after each completed Farm advances the same water connection toward the target; route cost prefers short chains and avoids replacing valuable improvements. (GPT-5.6-Sol) -->
-static bool SAS_findWorkerIrrigationChainStep(CvUnitAI const& kUnit, CvPlot& kTargetPlot, CvPlot const* pIgnorePlot, BuildTypes eBuildFarm, ImprovementTypes eImprovementFarm, ImprovementTypes eImprovementWorkshop, int iMaxPlots, int iGrowthOverwritePenalty, int iWorkshopOverwritePenalty, int iOtherOverwritePenalty, CvPlot*& pStepPlot, int& iRoutePlots, int& iRouteOverwritePenalty, SASWorkerIrrigationSearchDiagnostics* pDiagnostics)
+// <!-- custom: Growth improvements lose accumulated maturation when overwritten, so retain their configured chain-level penalty.
+// For every other finished improvement, derive irrigation-connector sacrifice from its city-weighted yield advantage over the selected carrier, capped by the generic XML penalty; this replaces the named Workshop exception and adapts to mod-added improvements. (GPT-5.6-Sol) -->
+static int SAS_getWorkerIrrigationOverwritePenalty(CvPlot const& kPlot, BuildTypes eCarrierBuild, PlayerTypes eOwner, SASWorkerYieldWeights const& kWeights, int iGrowthOverwritePenalty, int iOtherOverwritePenalty)
+{
+	ImprovementTypes const eCurrentImprovement = kPlot.getImprovementType();
+	if (eCurrentImprovement == NO_IMPROVEMENT || SAS_isWorkerIrrigationCarrierImprovement(eCurrentImprovement))
+		return 0;
+	int const iGrowthLevel = SAS_getWorkerGrowthImprovementLevel(eCurrentImprovement);
+	if (iGrowthLevel > 0)
+		return iGrowthOverwritePenalty * iGrowthLevel;
+	int aiCurrentYields[NUM_YIELD_TYPES];
+	int aiCarrierYields[NUM_YIELD_TYPES];
+	FOR_EACH_ENUM(Yield)
+	{
+		aiCurrentYields[eLoopYield] = SAS_getWorkerCurrentEffectiveYield(kPlot, eLoopYield, eOwner);
+		aiCarrierYields[eLoopYield] = SAS_getWorkerBuildEffectiveYield(kPlot, eCarrierBuild, eLoopYield);
+	}
+	int const iCurrentUtility = SAS_getWorkerYieldUtility(aiCurrentYields[YIELD_FOOD], aiCurrentYields[YIELD_PRODUCTION], aiCurrentYields[YIELD_COMMERCE], kWeights);
+	int const iCarrierUtility = SAS_getWorkerYieldUtility(aiCarrierYields[YIELD_FOOD], aiCarrierYields[YIELD_PRODUCTION], aiCarrierYields[YIELD_COMMERCE], kWeights);
+	return std::min(iOtherOverwritePenalty, 150 + std::max(0, iCurrentUtility - iCarrierUtility));
+}
+
+// <!-- custom: Search an actual owned irrigation-capable route from a dry BFC carrier or low-food target to currently available water and return the least-cost source-side carrier Build that can be made now.
+// Repeating after each completed step advances the same connection; XML carrier flags and per-plot legality support multiple or mod-added irrigation improvements without a Farm name. (GPT-5.6-Sol) -->
+static bool SAS_findWorkerIrrigationChainStep(CvUnitAI const& kUnit, CvPlot& kTargetPlot, CvPlot const* pIgnorePlot, SASWorkerYieldWeights const& kWeights, int iMaxPlots, int iGrowthOverwritePenalty, int iOtherOverwritePenalty, CvPlot*& pStepPlot, BuildTypes& eStepBuild, int& iRoutePlots, int& iRouteOverwritePenalty, SASWorkerIrrigationSearchDiagnostics* pDiagnostics)
 {
 	pStepPlot = NULL;
+	eStepBuild = NO_BUILD;
 	iRoutePlots = 0;
 	iRouteOverwritePenalty = 0;
 	if (iMaxPlots <= 0)
@@ -3298,9 +3423,11 @@ static bool SAS_findWorkerIrrigationChainStep(CvUnitAI const& kUnit, CvPlot& kTa
 			pDiagnostics->iVisitedStates++;
 			pDiagnostics->iDeepestRoute = std::max(pDiagnostics->iDeepestRoute, kNode.iSteps);
 		}
-		if (kNode.iSteps > 0 && pNodePlot != pIgnorePlot && pNodePlot->getImprovementType() != eImprovementFarm && pNodePlot->isIrrigationAvailable(true) && kUnit.canBuild(*pNodePlot, eBuildFarm))
+		BuildTypes eNodeCarrierBuild = NO_BUILD;
+		if (kNode.iSteps > 0 && pNodePlot != pIgnorePlot && !SAS_isWorkerIrrigationCarrierImprovement(pNodePlot->getImprovementType()) && pNodePlot->isIrrigationAvailable(true) && SAS_pickWorkerIrrigationCarrierBuild(kUnit, *pNodePlot, kWeights, eNodeCarrierBuild))
 		{
 			pStepPlot = pNodePlot;
+			eStepBuild = eNodeCarrierBuild;
 			iRoutePlots = kNode.iSteps;
 			iRouteOverwritePenalty = kNode.iOverwritePenalty;
 			return true;
@@ -3342,23 +3469,17 @@ static bool SAS_findWorkerIrrigationChainStep(CvUnitAI const& kUnit, CvPlot& kTa
 					pDiagnostics->iDifferentAreaRejects++;
 				continue;
 			}
-			if (pAdjacentPlot->isHills())
-			{
-				if (pDiagnostics != NULL)
-					pDiagnostics->iHillRejects++;
-				continue;
-			}
 			if (!pAdjacentPlot->canHavePotentialIrrigation())
 			{
 				if (pDiagnostics != NULL)
 					pDiagnostics->iNoPotentialIrrigationRejects++;
 				continue;
 			}
-			ImprovementTypes const eCurrentImprovement = pAdjacentPlot->getImprovementType();
-			// <!-- custom: CvPlot::isPotentialIrrigation treats an owned flat city as an irrigation carrier. Traverse it like an existing Farm instead of requiring the impossible BUILD_FARM on the city plot; hill cities were already rejected above because the engine does not carry irrigation through them. This fixed routes that the first deterministic prototype incorrectly stopped at cities. (GPT-5.6-Sol) -->
-			bool const bExistingIrrigationCarrier = (eCurrentImprovement == eImprovementFarm || pAdjacentPlot->isCity());
+			// <!-- custom: isPotentialIrrigation covers every existing XML carrier and the engine's flat-city carrier rule; traverse these without requiring an impossible Build on a city plot. (GPT-5.6-Sol) -->
+			bool const bExistingIrrigationCarrier = pAdjacentPlot->isPotentialIrrigation(true);
 			if (pDiagnostics != NULL && pAdjacentPlot->isCity())
 				pDiagnostics->iCityCarrierTraversals++;
+			BuildTypes eAdjacentCarrierBuild = NO_BUILD;
 			if (!bExistingIrrigationCarrier)
 			{
 				if (pAdjacentPlot->getNonObsoleteBonusType(kUnit.getTeam()) != NO_BONUS)
@@ -3373,20 +3494,14 @@ static bool SAS_findWorkerIrrigationChainStep(CvUnitAI const& kUnit, CvPlot& kTa
 						pDiagnostics->iAutomationSafeRejects++;
 					continue;
 				}
-				if (!kUnit.canBuild(*pAdjacentPlot, eBuildFarm))
+				if (!SAS_pickWorkerIrrigationCarrierBuild(kUnit, *pAdjacentPlot, kWeights, eAdjacentCarrierBuild))
 				{
 					if (pDiagnostics != NULL)
-						pDiagnostics->iCannotBuildFarmRejects++;
+						pDiagnostics->iCannotBuildCarrierRejects++;
 					continue;
 				}
 			}
-			int const iGrowthLevel = SAS_getWorkerGrowthImprovementLevel(eCurrentImprovement);
-			int const iPlotOverwritePenalty = (
-				bExistingIrrigationCarrier || eCurrentImprovement == NO_IMPROVEMENT ? 0 :
-				eCurrentImprovement == eImprovementWorkshop ? iWorkshopOverwritePenalty :
-				iGrowthLevel > 0 ? iGrowthOverwritePenalty * iGrowthLevel :
-				iOtherOverwritePenalty
-			);
+			int const iPlotOverwritePenalty = (bExistingIrrigationCarrier ? 0 : SAS_getWorkerIrrigationOverwritePenalty(*pAdjacentPlot, eAdjacentCarrierBuild, kUnit.getOwner(), kWeights, iGrowthOverwritePenalty, iOtherOverwritePenalty));
 			int const iNewSteps = kNode.iSteps + 1;
 			int const iNewCost = kNode.iCost + (kNode.iSteps <= 0 ? 0 : 350) + iPlotOverwritePenalty;
 			PlotNumTypes const eAdjacentPlot = pAdjacentPlot->plotNum();
@@ -3402,19 +3517,19 @@ static bool SAS_findWorkerIrrigationChainStep(CvUnitAI const& kUnit, CvPlot& kTa
 }
 
 // Returns true if the unit found a build for this city...
-// <!-- custom: update: also disabled functionally CvCityAI::AI_getImprovementValue and CvUnitAI::AI_irrigateTerritory which solved the farm on spices plains issue when unwanted (not in our exceptions below) as well as inefficient and needless farms on floodplains or flatland grass or other unwanted interferences, see these functions (or whatever remains of them for details, as well as screenshots in known issue 30 for details), we now have greater if not total control over our AI workers or close to it, and this improves ai efficiency further -->
-// <!-- custom: rewrite to handle/optimize terrain improvement choice - don't build cottage on flatland plains if flatland grass tiles (much better candidates) are available. For bonuses, simplify logic to always improve them regardless of terrain (high-food bonuses first). Partially based on settling priorities code in CitySiteEvaluator.cpp. Credit: Gemini AI (original); ChatGPT 5 (polishing). (Claude code Sonnet 4.5 (summarized)) -->
-// This function determines the value of a specific improvement on a plot,
-// which is the core logic that guides AI worker actions.
-// This version is a rewrite to prioritize improvements based on terrain,
-// features, and yield potential, similar to city founding logic.
-// It aims to fix issues like building farms on valuable bonus tiles <!-- custom: like spices instead of a plantation (wait to improve it at all ideally) -->
-// and inefficiently clearing forests or improving low-yield tiles.
-bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, BuildTypes* peBestBuild, CvPlot* pIgnorePlot, CvUnit* pUnit, int* piBestValue, BuildTypes* peFollowupBuild) const
+// <!-- custom: The earlier SAS rewrite replaced Base AdvCiv's unstable land-improvement evaluator with reliable bonus priority, candidate/path fallback, reservations, explicit feature work and irrigation handling, but ordinary no-bonus choices still duplicated current terrain/build XML in manual branches.
+// Preserve that SAS structure while enumerating every legal improvement Build and valuing the actual current-to-result yield transition with city-specific Food/Production/Commerce prices.
+// XML terrain, feature, improvement and upgrade changes now flow through without new C++ branches; a replacement deadband prevents the Farm/Cottage and Mine/Windmill oscillation seen in the old evaluator.
+// Original SAS Worker rewrite developed with Gemini AI, ChatGPT 5 and Claude code Sonnet 4.5. See KI#30. (GPT-5.6-Sol) -->
+// <!-- custom: pOnlyPlot restricts evaluation to one BFC destination, and bIgnorePath lets an embarked Worker value that destination before it has a land path; bIgnorePath is valid only with pOnlyPlot.
+// The Settler transport separately checks its sea path before ferrying the Worker. (GPT-5.6-Sol) -->
+bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, BuildTypes* peBestBuild, CvPlot* pIgnorePlot, CvUnit* pUnit, int* piBestValue, BuildTypes* peFollowupBuild, CvPlot const* pOnlyPlot, bool bIgnorePath) const
 {
 	PROFILE_FUNC();
+	FAssert(!bIgnorePath || pOnlyPlot != NULL);
 
-	// <!-- custom: fix crash at turn 77 more properly now that we have identified the cause to be here since changing the code here triggers it, and guarding null and no build in caller avoids it, see code comment at callers of this function for details. Code provided by chatgpt 5 in an attempt to fix it more cleanly and ideally not have workers parked, check if accurate -->
+	// <!-- custom: fix crash at turn 77 more properly now that we have identified the cause to be here since changing the code here triggers it, and guarding null and no build in caller avoids it, see code comment at callers of this function for details.
+	// Code provided by chatgpt 5 in an attempt to fix it more cleanly and ideally not have workers parked, check if accurate -->
 	// And no—you won’t be “back to square one" or re-introduce the crash as long as you add two tiny safety fixes:
 	if (ppBestPlot)  *ppBestPlot  = NULL;
 	if (peBestBuild) *peBestBuild = NO_BUILD;
@@ -3422,59 +3537,19 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 	if (peFollowupBuild) *peFollowupBuild = NO_BUILD;
 	// ... PHASE 1 builds candidates ...
 
-	// <!-- custom: attempt to support terrains and feature(s) conditional logic -->
-	static const TerrainTypes eTerrainGrass = (TerrainTypes)GC.getInfoTypeForString("TERRAIN_GRASS");
-	static const TerrainTypes eTerrainPlains = (TerrainTypes)GC.getInfoTypeForString("TERRAIN_PLAINS");
-	static const TerrainTypes eTerrainDesert = (TerrainTypes)GC.getInfoTypeForString("TERRAIN_DESERT");
-	static const TerrainTypes eTerrainTundra = (TerrainTypes)GC.getInfoTypeForString("TERRAIN_TUNDRA");
-	static const TerrainTypes eTerrainSnow = (TerrainTypes)GC.getInfoTypeForString("TERRAIN_SNOW");
-
-	static const FeatureTypes eFeatureFloodPlains = (FeatureTypes)GC.getInfoTypeForString("FEATURE_FLOOD_PLAINS");
-	static const FeatureTypes eFeatureOasis = (FeatureTypes)GC.getInfoTypeForString("FEATURE_OASIS");
-	static const FeatureTypes eFeatureForest = (FeatureTypes)GC.getInfoTypeForString("FEATURE_FOREST");
-	static const FeatureTypes eFeatureJungle = (FeatureTypes)GC.getInfoTypeForString("FEATURE_JUNGLE");
-	// <!-- custom: untested but i assume/hope would work-function fine but check to be sure-->
-	static const FeatureTypes eFeatureFallout = (FeatureTypes)GC.getInfoTypeForString("FEATURE_FALLOUT");
-
-	// <!-- custom: Hardcoded BuildTypes for common feature removals and worker build candidates used by the custom AI_bestCityBuild worker logic. (GPT-5.5) -->
-    static const BuildTypes eBuildRemoveForest = (BuildTypes)GC.getInfoTypeForString("BUILD_REMOVE_FOREST");
-    static const BuildTypes eBuildRemoveJungle = (BuildTypes)GC.getInfoTypeForString("BUILD_REMOVE_JUNGLE");
-	static const BuildTypes eBuildScrubFallout = (BuildTypes)GC.getInfoTypeForString("BUILD_SCRUB_FALLOUT");
-    static const BuildTypes eBuildFarm = (BuildTypes)GC.getInfoTypeForString("BUILD_FARM");
-    static const BuildTypes eBuildMine = (BuildTypes)GC.getInfoTypeForString("BUILD_MINE");
-    static const BuildTypes eBuildWorkshop = (BuildTypes)GC.getInfoTypeForString("BUILD_WORKSHOP");
-    static const BuildTypes eBuildWindmill = (BuildTypes)GC.getInfoTypeForString("BUILD_WINDMILL");
-
-	// <!-- custom: absolutely holy improvements without any condition at all (unlike semi-holy ones later that are absolute under some conditions only), not confounded with build, this checks improvements on plots, not builds for workers to build. They are useful to early exit if we don't want to overwrite current plot's improvement. This avoids oscillation very nicely. -->
-	static const ImprovementTypes eImprovementWorkshop = (ImprovementTypes)GC.getInfoTypeForString("IMPROVEMENT_WORKSHOP");
-
-	// <!-- custom: semi-holy improvements as of now -->
-	static const ImprovementTypes eImprovementFarm = (ImprovementTypes)GC.getInfoTypeForString("IMPROVEMENT_FARM");
-	static const ImprovementTypes eImprovementCottage = (ImprovementTypes)GC.getInfoTypeForString("IMPROVEMENT_COTTAGE");
-
-	static const int iSAS_WORKER_AI_LOW_FOOD_DEFICIT_VALUE_PER_FOOD = GC.getDefineINT("SAS_WORKER_AI_LOW_FOOD_DEFICIT_VALUE_PER_FOOD");
-	static const int iSAS_WORKER_AI_FEATURE_FOREST_CHOP_LARGE_CITY_MIN_POPULATION = GC.getDefineINT("SAS_WORKER_AI_FEATURE_FOREST_CHOP_LARGE_CITY_MIN_POPULATION");
-	static const int iSAS_WORKER_AI_FEATURE_FOREST_CHOP_SMALL_CITY_BASE_VALUE = GC.getDefineINT("SAS_WORKER_AI_FEATURE_FOREST_CHOP_SMALL_CITY_BASE_VALUE");
-	static const int iSAS_WORKER_AI_FEATURE_FOREST_CHOP_HEALTH_VALUE_PER_POINT = GC.getDefineINT("SAS_WORKER_AI_FEATURE_FOREST_CHOP_HEALTH_VALUE_PER_POINT");
-	static const int iSAS_WORKER_AI_FEATURE_FOREST_CHOP_UNHEALTH_PENALTY_PER_POINT = GC.getDefineINT("SAS_WORKER_AI_FEATURE_FOREST_CHOP_UNHEALTH_PENALTY_PER_POINT");
-	static const int iSAS_WORKER_AI_FEATURE_JUNGLE_CLEAR_LARGE_CITY_MIN_POPULATION = GC.getDefineINT("SAS_WORKER_AI_FEATURE_JUNGLE_CLEAR_LARGE_CITY_MIN_POPULATION");
-	static const int iSAS_WORKER_AI_FEATURE_JUNGLE_CLEAR_LARGE_CITY_PRESSURE_VALUE_PER_POINT = GC.getDefineINT("SAS_WORKER_AI_FEATURE_JUNGLE_CLEAR_LARGE_CITY_PRESSURE_VALUE_PER_POINT");
-	static const int iSAS_WORKER_AI_FEATURE_JUNGLE_CLEAR_SMALL_CITY_UNHEALTH_VALUE_PER_POINT = GC.getDefineINT("SAS_WORKER_AI_FEATURE_JUNGLE_CLEAR_SMALL_CITY_UNHEALTH_VALUE_PER_POINT");
 	static const bool bSAS_WORKER_AI_PHASE0_PRODUCTIVE_FEATURE_CHOP_ENABLE = GC.getDefineBOOL("SAS_WORKER_AI_PHASE0_PRODUCTIVE_FEATURE_CHOP_ENABLE");
-	static const int iSAS_WORKER_AI_FEATURE_FALLOUT_SCRUB_VALUE = GC.getDefineINT("SAS_WORKER_AI_FEATURE_FALLOUT_SCRUB_VALUE");
 	static const int iSAS_WORKER_AI_BONUS_FEATURE_STEP_VALUE = GC.getDefineINT("SAS_WORKER_AI_BONUS_FEATURE_STEP_VALUE");
-	static const int iSAS_WORKER_AI_BONUS_FALLOUT_SCRUB_VALUE = GC.getDefineINT("SAS_WORKER_AI_BONUS_FALLOUT_SCRUB_VALUE");
 	static const int iSAS_WORKER_AI_BONUS_SPECIFIC_BUILD_BASE_VALUE = GC.getDefineINT("SAS_WORKER_AI_BONUS_SPECIFIC_BUILD_BASE_VALUE");
 	static const int iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_FOOD = GC.getDefineINT("SAS_WORKER_AI_BONUS_YIELD_VALUE_PER_FOOD");
 	static const int iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_PRODUCTION = GC.getDefineINT("SAS_WORKER_AI_BONUS_YIELD_VALUE_PER_PRODUCTION");
 	static const int iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_COMMERCE = GC.getDefineINT("SAS_WORKER_AI_BONUS_YIELD_VALUE_PER_COMMERCE");
 	static const int iSAS_WORKER_AI_BONUS_AI_OBJECTIVE_APPLY_MIN_VALUE = GC.getDefineINT("SAS_WORKER_AI_BONUS_AI_OBJECTIVE_APPLY_MIN_VALUE");
 	static const int iSAS_WORKER_AI_BONUS_AI_OBJECTIVE_VALUE_PER_POINT = GC.getDefineINT("SAS_WORKER_AI_BONUS_AI_OBJECTIVE_VALUE_PER_POINT");
-	static const int iSAS_WORKER_AI_BONUS_FARM_FALLBACK_MIN_TOTAL_FOOD = GC.getDefineINT("SAS_WORKER_AI_BONUS_FARM_FALLBACK_MIN_TOTAL_FOOD");
-	static const int iSAS_WORKER_AI_BONUS_FARM_FALLBACK_VALUE = GC.getDefineINT("SAS_WORKER_AI_BONUS_FARM_FALLBACK_VALUE");
+	static const int iSAS_WORKER_AI_BONUS_FOOD_FALLBACK_MIN_RESULT_FOOD = GC.getDefineINT("SAS_WORKER_AI_BONUS_FOOD_FALLBACK_MIN_RESULT_FOOD");
+	static const int iSAS_WORKER_AI_BONUS_FOOD_FALLBACK_VALUE = GC.getDefineINT("SAS_WORKER_AI_BONUS_FOOD_FALLBACK_VALUE");
 	static const int iSAS_WORKER_AI_FEATURE_REMOVAL_FOLLOWUP_MIN_VALUE = GC.getDefineINT("SAS_WORKER_AI_FEATURE_REMOVAL_FOLLOWUP_MIN_VALUE");
-	static const bool bSAS_WORKER_AI_BONUS_FARM_FALLBACK_ENABLE = GC.getDefineBOOL("SAS_WORKER_AI_BONUS_FARM_FALLBACK_ENABLE");
-	static const EraTypes eSAS_WORKER_AI_BONUS_FARM_FALLBACK_MIN_BUILD_TECH_ERA = (EraTypes)GC.getDefineINT("SAS_WORKER_AI_BONUS_FARM_FALLBACK_MIN_BUILD_TECH_ERA");
+	static const bool bSAS_WORKER_AI_BONUS_FOOD_FALLBACK_ENABLE = GC.getDefineBOOL("SAS_WORKER_AI_BONUS_FOOD_FALLBACK_ENABLE");
+	static const EraTypes eSAS_WORKER_AI_BONUS_FOOD_FALLBACK_MIN_BUILD_TECH_ERA = (EraTypes)GC.getDefineINT("SAS_WORKER_AI_BONUS_FOOD_FALLBACK_MIN_BUILD_TECH_ERA");
 
 	/*	K-Mod. hack: For the AI, I want to use the standard pathfinder, CvUnit::generatePath.
 		but this function is also used to give action recommendations for the player
@@ -3500,15 +3575,16 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 	// <!-- custom: rewrite addresses suboptimal behavior - old code pathfinding-recomputed best plot even after pass 1 computation. More efficient to compute decrementally from best candidate to worse until one is found, then early return, rather than compute all plots including ones that won't be best. New code is cleaner and easier to customize. Credit: Gemini AI. (Claude code Sonnet 4.5 (summarized)) -->
 
 	std::vector<CandidatePlot> candidatePlots;
-	std::vector<int> aNoBonusBuildValueAdjustments(GC.getNumBuildInfos(), 0);
 
 	// <!-- custom: note: performance/logic optimization: it seems faster to not check pathfinding at all and loop over all tiles rather than check pathfinding at same time as we check candidate plots (check if accurate) -->
 
 	// <!-- custom: moved up for perf opt -->
-	int const iCityHealthCalculatedDifference = kCity.goodHealth() - kCity.badHealth();
 	int const iCityPopulation = kCity.getPopulation();
 
 	int const iFoodConsumptionPerPop = GC.getFOOD_CONSUMPTION_PER_POPULATION();
+	static const int iSAS_WORKER_AI_STRONG_PRODUCTION_PLOT_MIN_YIELD = std::max(0, GC.getDefineINT("SAS_WORKER_AI_STRONG_PRODUCTION_PLOT_MIN_YIELD"));
+	static const int iSAS_WORKER_AI_STRONG_PRODUCTION_POPULATION_PER_TARGET = std::max(1, GC.getDefineINT("SAS_WORKER_AI_STRONG_PRODUCTION_POPULATION_PER_TARGET"));
+	static const int iSAS_WORKER_AI_STRONG_PRODUCTION_MAX_TARGET = std::max(0, GC.getDefineINT("SAS_WORKER_AI_STRONG_PRODUCTION_MAX_TARGET"));
 
 	// <!-- custom: note: see also a slightly different implementation of this at variable iEffectiveFoodAfterBuiltHappy in as of now buildingvalue function in cvcityai.cpp file -->
 	// Specialists that actually cost population (and thus 'pull' 2 food each)
@@ -3522,25 +3598,30 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 	// then “give it back" by adding 2 * (non-free specialists + angry citizens) so the AI doesn’t panic-farm just because people are angry or parked in specialist slots.
 	const int iEstimatedCityFoodDifference = iFoodSurplusCityHas + iFoodConsumedBySpecialistOrAngryCitizens;
 
-	// <!-- custom: Use the shared potential-food score for citizen-workable, non-water, non-home BFC plots. This keeps worker terrain/resource classification aligned with settling logic while leaving water to sea buildings/work boats; food from bonus-specific improvements offsets poor terrain, and Grass Hills remain neutral environment quality while their food demand is still counted separately as mine-support pressure. (Claude code Opus 4.6 + GPT-5.5) -->
+	// <!-- custom: Use the shared potential-food score for citizen-workable, non-water, non-home BFC plots.
+	// This keeps worker terrain/resource classification aligned with settling logic while leaving water to sea buildings/work boats; food from bonus-specific improvements offsets poor terrain, and Grass Hills remain neutral environment quality while their food demand is still counted separately as mine-support pressure. (Claude code Opus 4.6 + GPT-5.5) -->
 	int iBFCLowFoodScore = 0;
-	// <!-- custom: count farms already being built in BFC to avoid over-farming.
-	// When multiple workers evaluate simultaneously, each one sees low food and picks farm.
-	// By pre-crediting the food from in-progress farms, subsequent workers see a higher
-	// effective surplus and choose cottages/workshops instead. Require a live Farm mission because interrupted progress persists without a Worker commitment. See KI#296. (Claude code Opus 4.6 + ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-	int iFoodFromFarmsBeingBuiltInBFC = 0;
+	// <!-- custom: Pre-credit the exact food change from every actively assigned improvement Build in the BFC. This prevents simultaneous Workers from all responding to the same apparent food shortage, while supporting any XML food improvement and excluding stale interrupted progress. See KI#296. (Claude code Opus 4.6 + ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	int iFoodFromImprovementsBeingBuiltInBFC = 0;
 	int iBFCMineFoodSupportPressure = 0;
+	int iBFCStrongProductionPlots = 0;
+	int iBFCDevelopmentLandPlots = 0;
 
 	for (WorkablePlotIter itBFC(kCity); itBFC.hasNext(); ++itBFC)
 	{
 		CvPlot& kBFCPlot = *itBFC;
 		if (kBFCPlot.isWater() || itBFC.currID() == CITY_HOME_PLOT)
 			continue;
+		iBFCDevelopmentLandPlots++;
 		int const iNatureFood = kBFCPlot.calculateNatureYield(YIELD_FOOD, getTeam());
 		BonusTypes const eBFCVisibleBonus = kBFCPlot.getBonusType(getTeam());
 		iBFCLowFoodScore += kBFCPlot.SAS_getLowFoodEnvironmentScore(eBFCVisibleBonus, 0, false);
+		if (kBFCPlot.getYield(YIELD_PRODUCTION) >= iSAS_WORKER_AI_STRONG_PRODUCTION_PLOT_MIN_YIELD)
+			iBFCStrongProductionPlots++;
 
-		// <!-- custom: Non-bonus farms can be the right support infrastructure in cities with many food-consuming hill mines. A +2 food farm can let the city work two grass hill mines (about 8 hammers), so count structural pressure from hills and especially low-food/strategic hill tiles rather than relying only on current surplus. This was visible in a mine-heavy Renaissance city where walls took too long despite strong hill mines. (GPT-5.5) -->
+		// <!-- custom: Non-bonus food improvements can be the right support infrastructure in cities with many food-consuming hill mines.
+		// In the default XML, a +2-food Farm can let the city work two Grass Hill Mines (about 8 hammers), so count structural pressure from hills and especially low-food/strategic hill tiles rather than relying only on current surplus.
+		// This was visible in a mine-heavy Renaissance city where Walls took too long despite strong hill mines. (GPT-5.5 + GPT-5.6-Sol) -->
 		if (kBFCPlot.isHills())
 		{
 			int const iHillFoodDeficit = std::max(0, iFoodConsumptionPerPop - iNatureFood);
@@ -3553,51 +3634,46 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 			}
 		}
 
-		if (SAS_isWorkerBuildActivelyCommitted(kBFCPlot, getOwner(), eBuildFarm))
-			iFoodFromFarmsBeingBuiltInBFC += kBFCPlot.calculateImprovementYieldChange(eImprovementFarm, YIELD_FOOD, getOwner());
+		BuildTypes const eCommittedImprovementBuild = SAS_getWorkerActivelyCommittedImprovementBuild(kBFCPlot, getOwner());
+		if (eCommittedImprovementBuild != NO_BUILD)
+			iFoodFromImprovementsBeingBuiltInBFC += kBFCPlot.getYieldWithBuild(eCommittedImprovementBuild, YIELD_FOOD, false) - kBFCPlot.getYield(YIELD_FOOD);
 	}
 
 	static const int iSAS_AI_BEST_CITY_BUILD_LOW_FOOD_BFC_CITY_THRESH = GC.getDefineINT("SAS_AI_BEST_CITY_BUILD_LOW_FOOD_BFC_CITY_THRESH");
-	static const bool bSAS_WORKER_AI_FOOD_SUPPORT_FARM_VALUE_ENABLE = GC.getDefineBOOL("SAS_WORKER_AI_FOOD_SUPPORT_FARM_VALUE_ENABLE");
-	static const bool bSAS_WORKER_AI_IRRIGATION_CHAIN_FARM_VALUE_ENABLE = GC.getDefineBOOL("SAS_WORKER_AI_IRRIGATION_CHAIN_FARM_VALUE_ENABLE");
+	static const bool bSAS_WORKER_AI_IRRIGATION_CHAIN_ENABLE = GC.getDefineBOOL("SAS_WORKER_AI_IRRIGATION_CHAIN_ENABLE");
 	static const int iSAS_WORKER_AI_FOOD_SUPPORT_TARGET_SURPLUS = GC.getDefineINT("SAS_WORKER_AI_FOOD_SUPPORT_TARGET_SURPLUS");
-	static const int iSAS_WORKER_AI_FOOD_SUPPORT_ZERO_SURPLUS_THRESHOLD = GC.getDefineINT("SAS_WORKER_AI_FOOD_SUPPORT_ZERO_SURPLUS_THRESHOLD");
-	static const int iSAS_WORKER_AI_FOOD_SUPPORT_VALUE_PER_SURPLUS = GC.getDefineINT("SAS_WORKER_AI_FOOD_SUPPORT_VALUE_PER_SURPLUS");
-	static const int iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_FLOOD_PLAINS = GC.getDefineINT("SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_FLOOD_PLAINS");
-	static const int iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_OASIS = GC.getDefineINT("SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_OASIS");
-	static const int iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_GRASS_HILL = GC.getDefineINT("SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_GRASS_HILL");
-	static const int iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_GRASS_FLAT = GC.getDefineINT("SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_GRASS_FLAT");
-	static const int iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_PLAINS_HILL = GC.getDefineINT("SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_PLAINS_HILL");
-	static const int iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_PLAINS_FLAT = GC.getDefineINT("SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_PLAINS_FLAT");
-	static const int iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_TUNDRA_HILL = GC.getDefineINT("SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_TUNDRA_HILL");
-	static const int iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_TUNDRA_FLAT = GC.getDefineINT("SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_TUNDRA_FLAT");
-	static const int iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_SNOW_HILL = GC.getDefineINT("SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_SNOW_HILL");
-	static const int iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_SNOW_FLAT = GC.getDefineINT("SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_SNOW_FLAT");
-	static const int iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_DESERT_HILL = GC.getDefineINT("SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_DESERT_HILL");
-	static const int iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_DESERT_FLAT = GC.getDefineINT("SAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_DESERT_FLAT");
 	static const int iSAS_WORKER_AI_IRRIGATION_CHAIN_GROWTH_LEVEL_OVERWRITE_PENALTY = GC.getDefineINT("SAS_WORKER_AI_IRRIGATION_CHAIN_GROWTH_LEVEL_OVERWRITE_PENALTY");
-	static const int iSAS_WORKER_AI_IRRIGATION_CHAIN_WORKSHOP_OVERWRITE_PENALTY = GC.getDefineINT("SAS_WORKER_AI_IRRIGATION_CHAIN_WORKSHOP_OVERWRITE_PENALTY");
 	static const int iSAS_WORKER_AI_IRRIGATION_CHAIN_OTHER_IMPROVEMENT_OVERWRITE_PENALTY = GC.getDefineINT("SAS_WORKER_AI_IRRIGATION_CHAIN_OTHER_IMPROVEMENT_OVERWRITE_PENALTY");
-	static const int iSAS_WORKER_AI_IRRIGATION_LOCAL_GROWTH_LEVEL_OVERWRITE_PENALTY = GC.getDefineINT("SAS_WORKER_AI_IRRIGATION_LOCAL_GROWTH_LEVEL_OVERWRITE_PENALTY");
-	SASWorkerNoBonusKnownBranches const& kWorkerBranches = SAS_getWorkerNoBonusKnownBranches();
 	bool const bCityLowFoodBFC = (iBFCLowFoodScore >= iSAS_AI_BEST_CITY_BUILD_LOW_FOOD_BFC_CITY_THRESH);
 
-	// <!-- custom: base improvement yields ignore irrigation, tech and civic/owner modifiers. Use plot/player farm food from calculateImprovementYieldChange when pre-crediting in-progress farms, otherwise normal irrigated farms counted as 0 food and workers could still over-farm. (Claude code Opus 4.6 + GPT-5.5) -->
-	const int iAdjustedFoodDifference = iEstimatedCityFoodDifference + iFoodFromFarmsBeingBuiltInBFC;
+	const int iAdjustedFoodDifference = iEstimatedCityFoodDifference + iFoodFromImprovementsBeingBuiltInBFC;
 	int const iBFCStructuralFoodSupportPressure = iBFCLowFoodScore + iBFCMineFoodSupportPressure;
 	int const iCityFoodSupportPressure = iBFCStructuralFoodSupportPressure + (2 * std::max(0, iSAS_WORKER_AI_FOOD_SUPPORT_TARGET_SURPLUS - iAdjustedFoodDifference));
 	bool const bCityStructuralFoodSupportNeed = (iBFCStructuralFoodSupportPressure >= iSAS_AI_BEST_CITY_BUILD_LOW_FOOD_BFC_CITY_THRESH + 4);
 	bool const bCityHighFoodSupportNeed = (bCityLowFoodBFC || bCityStructuralFoodSupportNeed || iCityFoodSupportPressure >= iSAS_AI_BEST_CITY_BUILD_LOW_FOOD_BFC_CITY_THRESH + 4);
-
-	const int penaltyForOverwritingPlot = 300;
+	// <!-- custom: Aggregate natural BFC hammers misclassified Istanbul and Berlin as production-rich while their useful early output still lacked developed high-hammer plots.
+	// By default, aim for one 3+-hammer land option per three citizens, capped at four and available land; the XML threshold, population ratio, cap and scarcity weight let balance changes redefine a practical option without terrain/build branches, and pressure ends once the city has enough. (GPT-5.6-Sol) -->
+	int const iBFCStrongProductionPlotTarget = std::min(iBFCDevelopmentLandPlots, std::min(iSAS_WORKER_AI_STRONG_PRODUCTION_MAX_TARGET, std::max(1, (iCityPopulation + iSAS_WORKER_AI_STRONG_PRODUCTION_POPULATION_PER_TARGET - 1) / iSAS_WORKER_AI_STRONG_PRODUCTION_POPULATION_PER_TARGET)));
+	int const iBFCStructuralProductionPressure = std::max(0, iBFCStrongProductionPlotTarget - iBFCStrongProductionPlots);
+	SASWorkerYieldWeights const kWorkerYieldWeights = SAS_getWorkerYieldWeights(kCity, iAdjustedFoodDifference, iBFCStructuralFoodSupportPressure, iBFCStructuralProductionPressure);
+	if (gWorkerLogLevel >= 3 && SAS_shouldLogWorkerYieldContext(kCity))
+	{
+		logBBAI("    WORKER_YIELD_CONTEXT turn=%d player=%d %S city=%S cityId=%d pop=%d developmentLand=%d adjustedFoodDifference=%d lowFoodScore=%d mineFoodPressure=%d structuralFoodPressure=%d strongProductionPlots=%d strongProductionPlotTarget=%d structuralProductionPressure=%d weights=(%d,%d,%d) danger=%d financialTrouble=%d",
+			GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), kCity.getName().GetCString(), kCity.getID(), iCityPopulation,
+			iBFCDevelopmentLandPlots, iAdjustedFoodDifference, iBFCLowFoodScore, iBFCMineFoodSupportPressure, iBFCStructuralFoodSupportPressure,
+			iBFCStrongProductionPlots, iBFCStrongProductionPlotTarget, iBFCStructuralProductionPressure, kWorkerYieldWeights.iFood, kWorkerYieldWeights.iProduction,
+			kWorkerYieldWeights.iCommerce, kCity.AI_isDanger(), GET_PLAYER(getOwner()).AI_isFinancialTrouble());
+	}
 
 	// ===================================================
-	// PHASE 0: Hard productive-feature chop / reserve override.
+	// PHASE 0: Hard productive-feature chop override.
 	// ===================================================
-	// <!-- custom: Two-strength Phase 0. During food-production Worker/Settler builds, use the aggressive CORE threshold (default 3, leaving about 2 reserves) and allow the Worker-move hoist to beat bonus work.
-	// Otherwise use the higher NORMAL threshold (default 6, so an 8-feature start makes only about 3 generic chops before returning to normal improvements); ordinary bonus improvement gets first claim in that mode.
-	// Eligible stock is now also bounded by XML-tunable early-economic gates (era, empire size, chop production relative to current city output, and CORE completion time), so the reserve cannot persist into mature cities and make otherwise useful Forest/Jungle plots invisible forever.
+	// <!-- custom: Two-strength Phase 0. During food-production Worker/Settler builds, use the aggressive CORE threshold (default 3) and allow the Worker-move hoist to beat bonus work.
+	// Otherwise use the higher NORMAL threshold (default 6, so an 8-feature start makes about 3 generic hard chops before returning to ordinary improvement comparison); ordinary bonus improvement gets first claim in that mode.
+	// Eligible stock is also bounded by XML-tunable early-economic gates (era, empire size, chop production relative to current city output, and CORE completion time).
 	// Existing Worker targets count against the uncommitted total; current unhealth/unhappiness relief bypasses the economic gates.
+	// The 2026-09-22 Pusan autoplay showed that treating the stock below either threshold as a protected reserve hid four workable Forest plots through the midgame even after the city already had four strong production plots.
+	// The generic Phase-1 evaluator can preserve feature-valid improvements and reject weak replacements itself, so below the hard-chop threshold let it inspect every plot instead of making the remaining stock invisible.
 	// Prefer pressure relief, then a bonus-removal feature, then more production and shorter path. See KI#33.2. (ChatGPT-5.6-Sol) -->
 	int iSASPhase0Eligible = 0;
 	int iSASPhase0Targeted = 0;
@@ -3605,14 +3681,15 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 	bool const bSASPhase0Active = bSAS_WORKER_AI_PHASE0_PRODUCTIVE_FEATURE_CHOP_ENABLE &&
 			SAS_shouldWorkerPhase0ProductiveFeatureChop(*this, kCity, pIgnorePlot, iSASPhase0Eligible, iSASPhase0Targeted, bSASPhase0PressureReliefOnly);
 	int const iSASPhase0Uncommitted = std::max(0, iSASPhase0Eligible - iSASPhase0Targeted);
-	bool const bSASPhase0ProtectReserve = bSAS_WORKER_AI_PHASE0_PRODUCTIVE_FEATURE_CHOP_ENABLE && !bSASPhase0Active && iSASPhase0Uncommitted > 0;
 
 	if (bSASPhase0Active)
 	{
 		CvPlot* pBestPhase0Plot = NULL;
 		BuildTypes eBestPhase0Build = NO_BUILD;
+		BuildTypes eBestPhase0FollowupBuild = NO_BUILD;
 		int iBestPhase0Priority = MIN_INT;
 		int iBestPhase0Production = 0;
+		int iBestPhase0FollowupValue = 0;
 		int iBestPhase0PathTurns = MAX_INT;
 		bool bBestPhase0PressureRelief = false;
 		bool bBestPhase0BonusRemoval = false;
@@ -3621,7 +3698,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 		for (WorkablePlotIter itPhase0(kCity, false); itPhase0.hasNext(); ++itPhase0)
 		{
 			CvPlot& kPlot = *itPhase0;
-			if (&kPlot == pIgnorePlot)
+			if (&kPlot == pIgnorePlot || (pOnlyPlot != NULL && &kPlot != pOnlyPlot))
 				continue;
 
 			SASWorkerPhase0ProductiveFeatureInfo kInfo;
@@ -3631,11 +3708,45 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 				continue;
 			if (kOwner.AI_plotTargetMissionAIs(kPlot, MISSIONAI_BUILD, getGroup(), 0, 1) > 0)
 				continue;
-			if (!pathFinder.generatePath(kPlot))
+			if (!bIgnorePath && !pathFinder.generatePath(kPlot))
 				continue;
 
-			int const iPathTurns = pathFinder.getPathTurns();
-			int iPriority = kInfo.iProduction * 1000 - iPathTurns * 100;
+			BuildTypes ePhase0FollowupBuild = NO_BUILD;
+			int iPhase0FollowupValue = 0;
+			if (!kCity.AI_isDanger())
+			{
+				BonusTypes const eBonus = kPlot.getNonObsoleteBonusType(getTeam());
+				if (eBonus != NO_BONUS)
+				{
+					BuildTypes const eBonusBuild = kPlot.SAS_getBonusSpecificBuild(eBonus);
+					if (eBonusBuild != NO_BUILD && canBuild(kPlot, eBonusBuild) && GC.getInfo(eBonusBuild).getImprovement() != NO_IMPROVEMENT && GC.getInfo(eBonusBuild).isFeatureRemove(kPlot.getFeatureType()))
+					{
+						ePhase0FollowupBuild = eBonusBuild;
+						iPhase0FollowupValue = iSAS_WORKER_AI_BONUS_SPECIFIC_BUILD_BASE_VALUE;
+					}
+				}
+				else
+				{
+					BuildTypes eYieldBuild = NO_BUILD;
+					int iYieldBuildValue = 0;
+					if (SAS_pickWorkerYieldBuild(*this, kCity, kPlot, kWorkerYieldWeights, eYieldBuild, iYieldBuildValue) && GC.getInfo(eYieldBuild).isFeatureRemove(kPlot.getFeatureType()))
+					{
+						ePhase0FollowupBuild = eYieldBuild;
+						iPhase0FollowupValue = iYieldBuildValue;
+					}
+				}
+				if (iPhase0FollowupValue < iSAS_WORKER_AI_FEATURE_REMOVAL_FOLLOWUP_MIN_VALUE)
+				{
+					ePhase0FollowupBuild = NO_BUILD;
+					iPhase0FollowupValue = 0;
+				}
+			}
+
+			int const iPathTurns = (bIgnorePath ? 0 : pathFinder.getPathTurns());
+			// <!-- custom: Phase-0 chopping used to abandon even a strong Hill Mine after paying the plot's travel and movement cost, then make another Worker return later.
+			// Reuse the ordinary yield evaluator and existing follow-up threshold, but accept only a Build that removes the current feature and therefore remains valid after the pure chop; immediate danger deliberately leaves the queue open for replanning.
+			// A bounded tie-break favours productive post-chop plots without overruling pressure relief, bonus removal or a larger hammer chop. (GPT-5.6-Sol) -->
+			int iPriority = kInfo.iProduction * 1000 - iPathTurns * 100 + std::min(900, iPhase0FollowupValue / 10);
 			if (kInfo.bBonusRemoval)
 				iPriority += 100000;
 			if (kInfo.bPressureRelief)
@@ -3646,7 +3757,9 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 				iBestPhase0Priority = iPriority;
 				pBestPhase0Plot = &kPlot;
 				eBestPhase0Build = kInfo.eBuild;
+				eBestPhase0FollowupBuild = ePhase0FollowupBuild;
 				iBestPhase0Production = kInfo.iProduction;
+				iBestPhase0FollowupValue = iPhase0FollowupValue;
 				iBestPhase0PathTurns = iPathTurns;
 				bBestPhase0PressureRelief = kInfo.bPressureRelief;
 				bBestPhase0BonusRemoval = kInfo.bBonusRemoval;
@@ -3662,13 +3775,13 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 			if (piBestValue != NULL)
 				*piBestValue = 95000; // <!-- custom: diagnostic/ranking value only; PHASE 0 already hard-returned before ordinary scoring. (ChatGPT-5.6-Sol) -->
 			if (peFollowupBuild != NULL)
-				*peFollowupBuild = NO_BUILD;
+				*peFollowupBuild = eBestPhase0FollowupBuild;
 
-			if (gWorkerLogLevel >= 2) logBBAI("    WORKER_PHASE0_PRODUCTIVE_FEATURE_CHOP turn=%d player=%d %S workerId=%d city=%S cityId=%d plot=(%d,%d) feature=%S build=%S production=%d pathTurns=%d eligible=%d targeted=%d uncommitted=%d minEligible=%d pressureRelief=%d bonusRemoval=%d result=HARD_OVERRIDE",
+			if (gWorkerLogLevel >= 2) logBBAI("    WORKER_PHASE0_PRODUCTIVE_FEATURE_CHOP turn=%d player=%d %S workerId=%d city=%S cityId=%d plot=(%d,%d) feature=%S build=%S followup=%S followupValue=%d production=%d pathTurns=%d eligible=%d targeted=%d uncommitted=%d minEligible=%d pressureRelief=%d bonusRemoval=%d result=HARD_OVERRIDE",
 				GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(),
 				kCity.getName().GetCString(), kCity.getID(), pBestPhase0Plot->getX(), pBestPhase0Plot->getY(),
 				GC.getInfo(pBestPhase0Plot->getFeatureType()).getDescription(),
-				GC.getInfo(eBestPhase0Build).getDescription(), iBestPhase0Production, iBestPhase0PathTurns,
+				GC.getInfo(eBestPhase0Build).getDescription(), (eBestPhase0FollowupBuild == NO_BUILD ? L"-" : GC.getInfo(eBestPhase0FollowupBuild).getDescription()), iBestPhase0FollowupValue, iBestPhase0Production, iBestPhase0PathTurns,
 				iSASPhase0Eligible, iSASPhase0Targeted, iSASPhase0Uncommitted,
 				SAS_getWorkerPhase0MinEligiblePlots(kCity),
 				bBestPhase0PressureRelief, bBestPhase0BonusRemoval);
@@ -3676,54 +3789,60 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 		}
 	}
 
-	if (bSAS_WORKER_AI_IRRIGATION_CHAIN_FARM_VALUE_ENABLE && GET_TEAM(getTeam()).isIrrigation())
+	// <!-- custom: An exact-plot transport query asks whether its destination itself has worthwhile work; an irrigation step elsewhere cannot justify unloading a Worker there. (GPT-5.6-Sol) -->
+	if (pOnlyPlot == NULL && bSAS_WORKER_AI_IRRIGATION_CHAIN_ENABLE && GET_TEAM(getTeam()).isIrrigation())
 	{
 		static const int iSAS_WORKER_AI_IRRIGATION_CHAIN_MAX_PLOTS = GC.getDefineINT("SAS_WORKER_AI_IRRIGATION_CHAIN_MAX_PLOTS");
 		for (WorkablePlotIter itBFC(kCity, false); itBFC.hasNext(); ++itBFC)
 		{
 			CvPlot& kTargetPlot = *itBFC;
-			if (kTargetPlot.getOwner() != getOwner() || kTargetPlot.isWater() || kTargetPlot.isHills() || !kTargetPlot.canHavePotentialIrrigation())
+			if (kTargetPlot.getOwner() != getOwner() || kTargetPlot.isWater() || !kTargetPlot.canHavePotentialIrrigation())
 				continue;
 			BonusTypes const eTargetBonus = kTargetPlot.getNonObsoleteBonusType(getTeam());
-			bool const bTargetDryFarm = (kTargetPlot.getImprovementType() == eImprovementFarm && !kTargetPlot.isIrrigated() && !kTargetPlot.isIrrigationAvailable(true));
-			bool const bTargetLowFoodUnimproved = (eTargetBonus == NO_BONUS && bCityHighFoodSupportNeed && kTargetPlot.getImprovementType() == NO_IMPROVEMENT && !kTargetPlot.isIrrigationAvailable(true) && kTargetPlot.calculateNatureYield(YIELD_FOOD, getTeam()) < iFoodConsumptionPerPop && canBuild(kTargetPlot, eBuildFarm));
-			if (!bTargetDryFarm && !bTargetLowFoodUnimproved)
+			bool const bTargetDryCarrier = (SAS_isWorkerIrrigationCarrierImprovement(kTargetPlot.getImprovementType()) && !kTargetPlot.isIrrigated() && !kTargetPlot.isIrrigationAvailable(true));
+			BuildTypes eTargetCarrierBuild = NO_BUILD;
+			bool const bTargetCarrierBuildAvailable = SAS_pickWorkerIrrigationCarrierBuild(*this, kTargetPlot, kWorkerYieldWeights, eTargetCarrierBuild, true);
+			bool const bTargetCarrierAddsFood = (bTargetCarrierBuildAvailable && SAS_getWorkerBuildResultYield(kTargetPlot, eTargetCarrierBuild, YIELD_FOOD, false, true) > kTargetPlot.getYield(YIELD_FOOD));
+			bool const bTargetLowFoodUnimproved = (eTargetBonus == NO_BONUS && bCityHighFoodSupportNeed && kTargetPlot.getImprovementType() == NO_IMPROVEMENT && !kTargetPlot.isIrrigationAvailable(true) && kTargetPlot.calculateNatureYield(YIELD_FOOD, getTeam()) < iFoodConsumptionPerPop && bTargetCarrierAddsFood);
+			if (!bTargetDryCarrier && !bTargetLowFoodUnimproved)
 				continue;
 			CvPlot* pChainStepPlot = NULL;
+			BuildTypes eChainStepBuild = NO_BUILD;
 			int iRoutePlots = 0;
 			int iRouteOverwritePenalty = 0;
 			SASWorkerIrrigationSearchDiagnostics kRouteDiagnostics;
 			SASWorkerIrrigationSearchDiagnostics* pRouteDiagnostics = (gWorkerLogLevel >= 3 ? &kRouteDiagnostics : NULL);
-			bool const bFoundChainStep = SAS_findWorkerIrrigationChainStep(*this, kTargetPlot, pIgnorePlot, eBuildFarm, eImprovementFarm, eImprovementWorkshop, iSAS_WORKER_AI_IRRIGATION_CHAIN_MAX_PLOTS, iSAS_WORKER_AI_IRRIGATION_CHAIN_GROWTH_LEVEL_OVERWRITE_PENALTY, iSAS_WORKER_AI_IRRIGATION_CHAIN_WORKSHOP_OVERWRITE_PENALTY, iSAS_WORKER_AI_IRRIGATION_CHAIN_OTHER_IMPROVEMENT_OVERWRITE_PENALTY, pChainStepPlot, iRoutePlots, iRouteOverwritePenalty, pRouteDiagnostics);
-			int const iChainStepValue = (bFoundChainStep ? (bTargetDryFarm ? 11500 : 8500) - (350 * std::max(0, iRoutePlots - 1)) - iRouteOverwritePenalty : 0);
+			bool const bFoundChainStep = SAS_findWorkerIrrigationChainStep(*this, kTargetPlot, pIgnorePlot, kWorkerYieldWeights, iSAS_WORKER_AI_IRRIGATION_CHAIN_MAX_PLOTS, iSAS_WORKER_AI_IRRIGATION_CHAIN_GROWTH_LEVEL_OVERWRITE_PENALTY, iSAS_WORKER_AI_IRRIGATION_CHAIN_OTHER_IMPROVEMENT_OVERWRITE_PENALTY, pChainStepPlot, eChainStepBuild, iRoutePlots, iRouteOverwritePenalty, pRouteDiagnostics);
+			int const iChainStepValue = (bFoundChainStep ? (bTargetDryCarrier ? 11500 : 8500) - (350 * std::max(0, iRoutePlots - 1)) - iRouteOverwritePenalty : 0);
 			if (bFoundChainStep && iChainStepValue > 0)
 			{
 				CandidatePlot kChainStep;
 				kChainStep.iValue = iChainStepValue;
 				kChainStep.pPlot = pChainStepPlot;
 				kChainStep.ePlot = NO_CITYPLOT;
-				kChainStep.eBuild = eBuildFarm;
+				kChainStep.eBuild = eChainStepBuild;
 				kChainStep.eFollowupBuild = NO_BUILD;
+				kChainStep.bIrrigationChainStep = true;
 				if (gWorkerLogLevel >= 3)
-					logBBAI("    IRRIGATION_CHAIN_STEP_SELECTED turn=%d player=%d %S workerId=%d city=%S step=(%d,%d) target=(%d,%d) targetBonus=%S dryFarm=%d routePlots=%d maxRoutePlots=%d overwritePenalty=%d value=%d foodPressure=%d",
+					logBBAI("    IRRIGATION_CHAIN_STEP_SELECTED turn=%d player=%d %S workerId=%d city=%S step=(%d,%d) build=%S carrier=%S target=(%d,%d) targetBonus=%S dryCarrier=%d routePlots=%d maxRoutePlots=%d overwritePenalty=%d value=%d foodPressure=%d",
 						GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(),
-						kCity.getName().GetCString(), pChainStepPlot->getX(), pChainStepPlot->getY(), kTargetPlot.getX(), kTargetPlot.getY(),
-						eTargetBonus == NO_BONUS ? L"-" : GC.getInfo(eTargetBonus).getDescription(), bTargetDryFarm, iRoutePlots,
+						kCity.getName().GetCString(), pChainStepPlot->getX(), pChainStepPlot->getY(), GC.getInfo(eChainStepBuild).getDescription(), GC.getInfo(GC.getInfo(eChainStepBuild).getImprovement()).getDescription(), kTargetPlot.getX(), kTargetPlot.getY(),
+						eTargetBonus == NO_BONUS ? L"-" : GC.getInfo(eTargetBonus).getDescription(), bTargetDryCarrier, iRoutePlots,
 						iSAS_WORKER_AI_IRRIGATION_CHAIN_MAX_PLOTS, iRouteOverwritePenalty, iChainStepValue, iCityFoodSupportPressure);
 				candidatePlots.push_back(kChainStep);
 			}
 			else if (gWorkerLogLevel >= 3 && SAS_shouldLogWorkerIrrigationRouteFailure(kCity, kTargetPlot))
 			{
-				logBBAI("    IRRIGATION_CHAIN_NO_USABLE_STEP turn=%d player=%d %S workerId=%d city=%S target=(%d,%d) targetBonus=%S dryFarm=%d routeFound=%d routePlots=%d overwritePenalty=%d value=%d foodPressure=%d maxRoutePlots=%d visitedStates=%d deepestRoute=%d routeLimitStops=%d rejects(edgeOrIgnored=%d unowned=%d foreign=%d area=%d water=%d hills=%d noPotential=%d bonuses=%d automationSafe=%d cannotBuildFarm=%d) cityCarrierTraversals=%d",
+				logBBAI("    IRRIGATION_CHAIN_NO_USABLE_STEP turn=%d player=%d %S workerId=%d city=%S target=(%d,%d) targetBonus=%S dryCarrier=%d routeFound=%d routePlots=%d overwritePenalty=%d value=%d foodPressure=%d maxRoutePlots=%d visitedStates=%d deepestRoute=%d routeLimitStops=%d rejects(edgeOrIgnored=%d unowned=%d foreign=%d area=%d water=%d noPotential=%d bonuses=%d automationSafe=%d cannotBuildCarrier=%d) cityCarrierTraversals=%d",
 					GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(),
 					kCity.getName().GetCString(), kTargetPlot.getX(), kTargetPlot.getY(),
-					eTargetBonus == NO_BONUS ? L"-" : GC.getInfo(eTargetBonus).getDescription(), bTargetDryFarm, bFoundChainStep,
+					eTargetBonus == NO_BONUS ? L"-" : GC.getInfo(eTargetBonus).getDescription(), bTargetDryCarrier, bFoundChainStep,
 					iRoutePlots, iRouteOverwritePenalty, iChainStepValue, iCityFoodSupportPressure,
 					iSAS_WORKER_AI_IRRIGATION_CHAIN_MAX_PLOTS, kRouteDiagnostics.iVisitedStates, kRouteDiagnostics.iDeepestRoute,
 					kRouteDiagnostics.iRouteLimitStops, kRouteDiagnostics.iMapEdgeOrIgnoredRejects, kRouteDiagnostics.iUnownedRejects,
 					kRouteDiagnostics.iForeignOwnedRejects, kRouteDiagnostics.iDifferentAreaRejects, kRouteDiagnostics.iWaterRejects,
-					kRouteDiagnostics.iHillRejects, kRouteDiagnostics.iNoPotentialIrrigationRejects, kRouteDiagnostics.iBonusRejects,
-					kRouteDiagnostics.iAutomationSafeRejects, kRouteDiagnostics.iCannotBuildFarmRejects,
+					kRouteDiagnostics.iNoPotentialIrrigationRejects, kRouteDiagnostics.iBonusRejects,
+					kRouteDiagnostics.iAutomationSafeRejects, kRouteDiagnostics.iCannotBuildCarrierRejects,
 					kRouteDiagnostics.iCityCarrierTraversals);
 			}
 		}
@@ -3737,7 +3856,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 		CvPlot& kPlot = *it;
 		CityPlotTypes ePlot = it.currID();
 
-		if (&kPlot == pIgnorePlot || /*!AI_plotValid(kPlot)*/kPlot.isWater()) // advc.opt
+		if (&kPlot == pIgnorePlot || (pOnlyPlot != NULL && &kPlot != pOnlyPlot) || /*!AI_plotValid(kPlot)*/kPlot.isWater()) // advc.opt
 			continue;
 		if (GET_PLAYER(getOwner()).isAutomationSafe(kPlot))
 		{
@@ -3755,25 +3874,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 		// BuildTypes const eBuild = kCity.AI_getBestBuild(ePlot);
 		BuildTypes eBestSupposedBuild = NO_BUILD;
 		BuildTypes eFeatureRemovalFollowupBuild = NO_BUILD;
-		// <!-- custom: Keep the selected no-bonus branch in per-plot scope so the shared Phase 1.3 rejection diagnostics can report it after the bonus and non-bonus paths rejoin; bonus plots leave it NULL. (GPT-5.6-Sol) -->
-		SASWorkerNoBonusBranch const* pNoBonusBranch = NULL;
-
-		TerrainTypes const eTerrain = kPlot.getTerrainType();
 		FeatureTypes const eFeature = kPlot.getFeatureType();
-
-		if (bSASPhase0ProtectReserve && eFeature != NO_FEATURE)
-		{
-			SASWorkerPhase0ProductiveFeatureInfo kReserveInfo;
-			if (SAS_getWorkerPhase0ProductiveFeatureInfo(*this, kCity, kPlot, kReserveInfo) && !kReserveInfo.bPressureRelief)
-			{
-				if (gWorkerLogLevel >= 3) logBBAI("    WORKER_PHASE0_PRODUCTIVE_FEATURE_RESERVE turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) feature=%S production=%d eligible=%d targeted=%d uncommitted=%d minEligible=%d result=SKIP_BEFORE_BONUS_LOGIC",
-						GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(),
-						kCity.getName().GetCString(), kPlot.getX(), kPlot.getY(), GC.getInfo(eFeature).getDescription(),
-						kReserveInfo.iProduction, iSASPhase0Eligible, iSASPhase0Targeted, iSASPhase0Uncommitted,
-						SAS_getWorkerPhase0MinEligiblePlots(kCity));
-				continue;
-			}
-		}
 
 		// === The "Value Hack" ===
 		// <!-- custom: Improving bonuses (if possible) --> on the plot is the highest priority.
@@ -3783,79 +3884,35 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 		if (eBonus != NO_BONUS)
 		{
 			BuildTypes const eBonusSpecificBuild = kPlot.SAS_getBonusSpecificBuild(eBonus);
+			ImprovementTypes const eBonusSpecificImprovement = (eBonusSpecificBuild == NO_BUILD ? NO_IMPROVEMENT : GC.getInfo(eBonusSpecificBuild).getImprovement());
 			bool const bCanBuildBonusSpecificBeforeFeatureRemoval = (eBonusSpecificBuild != NO_BUILD && canBuild(kPlot, eBonusSpecificBuild) && (eFeature == NO_FEATURE || !GC.getInfo(eBonusSpecificBuild).isFeatureRemove(eFeature)));
-			// <!-- custom: note : flexibly chop, instead of bonus flexible build, we'll choose same best plot again, but advantage is we can better respond, say to invasion, and finish chopping (getting production too and worker availability) if we need to interrupt it mid way, more efficient this way, frees also some move speed if flatland for mobile units -->
-			if (eFeature == eFeatureForest)
+			int iFeatureProduction = 0;
+			BuildTypes const eFeatureRemovalBuild = SAS_getWorkerPureFeatureRemovalBuild(*this, kPlot, &iFeatureProduction);
+			int const iFeatureRemovalValue = SAS_getWorkerStandaloneFeatureRemovalValue(*this, kCity, kPlot, eFeatureRemovalBuild, kWorkerYieldWeights, iFeatureProduction);
+			bool const bBonusSpecificImprovementUsesFeatureValidity = (eFeature != NO_FEATURE && eBonusSpecificImprovement != NO_IMPROVEMENT && GC.getInfo(eBonusSpecificImprovement).getFeatureMakesValid(eFeature));
+			bool const bBonusAlreadyCorrect = (eBonusSpecificImprovement != NO_IMPROVEMENT && kPlot.getImprovementType() == eBonusSpecificImprovement);
+			// <!-- custom: A completed feature-preserving bonus improvement is normally the desired endpoint.
+			// Preserve an existing Forest Camp or similar feature-valid infrastructure, but still remove an independently harmful feature such as post-nuclear Fallout when scrubbing leaves the correct improvement intact. (GPT-5.6-Sol) -->
+			if (bBonusAlreadyCorrect && (eFeature == NO_FEATURE || bBonusSpecificImprovementUsesFeatureValidity || iFeatureRemovalValue <= 0))
+				continue;
+			// <!-- custom: Bonus handling first tries the XML-inferred specific Build when it preserves the feature.
+			// Otherwise use the XML-discovered pure removal Build as an interruptible first step, then queue the bonus improvement when currently legal. This preserves Camp-like feature paths and supports mod-added removable features without Forest/Jungle/Fallout branches. (GPT-5.5 + ChatGPT-5.5 + GPT-5.6-Sol) -->
+			if (eFeature != NO_FEATURE && bCanBuildBonusSpecificBeforeFeatureRemoval && (bBonusSpecificImprovementUsesFeatureValidity || iFeatureRemovalValue <= 0))
 			{
-				// <!-- custom: Try the XML-inferred bonus-specific build before removing Forest/Jungle only when that build preserves the current feature. This keeps feature-preserving bonus builds like Camp generic while preventing Mine/Plantation/etc. from skipping the explicit feature-removal step merely because canBuild can remove the feature as part of the build. (GPT-5.5 + ChatGPT-5.5) -->
-				if (bCanBuildBonusSpecificBeforeFeatureRemoval)
-				{
-					eBestSupposedBuild = eBonusSpecificBuild;
-					iValue += iSAS_WORKER_AI_BONUS_FEATURE_STEP_VALUE;
-				}
-				// <!-- custom: also handle silver or other bonuses on forest as well; we need to remove the forest else the bonus specific branch will never be reached due to feature being forest or jungle and we'd be stuck here forever wondering if we chop or not-->
-				else
-				{
-					if (canBuild(kPlot, eBuildRemoveForest))
-					{
-						eBestSupposedBuild = eBuildRemoveForest;
-						if (eBonusSpecificBuild != NO_BUILD && canBuild(kPlot, eBonusSpecificBuild) && GC.getInfo(eBonusSpecificBuild).getImprovement() != NO_IMPROVEMENT)
-							eFeatureRemovalFollowupBuild = eBonusSpecificBuild;
-						iValue += iSAS_WORKER_AI_BONUS_FEATURE_STEP_VALUE;
-					}
-					else
-					{
-						// <!-- custom: ignore the plot for now, we could "pre-chop", but really chop just in anticipation of the bonus specific improvement/build later, but this is inefficient, maybe there are other tiles to work first, even if they don't have a bonus, code is simpler this way too -->
-						if (gWorkerLogLevel >= 3) SAS_logWorkerCityBuildRejectOnce(*this, kCity, kPlot, "BONUS_FOREST_REMOVE_UNAVAILABLE", NULL, eBonusSpecificBuild);
-						continue;
-					}
-				}
+				eBestSupposedBuild = eBonusSpecificBuild;
+				iValue += iSAS_WORKER_AI_BONUS_FEATURE_STEP_VALUE;
 			}
-			else if (eFeature == eFeatureJungle)
+			else if (eFeature != NO_FEATURE)
 			{
-				if (bCanBuildBonusSpecificBeforeFeatureRemoval)
+				if (eFeatureRemovalBuild != NO_BUILD)
 				{
-					eBestSupposedBuild = eBonusSpecificBuild;
-					iValue += iSAS_WORKER_AI_BONUS_FEATURE_STEP_VALUE;
-				}
-				// <!-- custom: also handle gemstones or other bonuses on jungle as well; we need to remove the jungle else the bonus specific branch will never be reached due to feature being forest or jungle and we'd be stuck here forever wondering if we chop or not-->
-				else
-				{
-					if (canBuild(kPlot, eBuildRemoveJungle))
-					{
-						eBestSupposedBuild = eBuildRemoveJungle;
-						if (eBonusSpecificBuild != NO_BUILD && canBuild(kPlot, eBonusSpecificBuild) && GC.getInfo(eBonusSpecificBuild).getImprovement() != NO_IMPROVEMENT)
-							eFeatureRemovalFollowupBuild = eBonusSpecificBuild;
-						iValue += iSAS_WORKER_AI_BONUS_FEATURE_STEP_VALUE;
-					}
-					else
-					{
-						// <!-- custom: ignore the plot for now, we could "pre-chop", but really chop just in anticipation of the bonus specific improvement/build later, but this is inefficient, maybe there are other tiles to work first, even if they don't have a bonus, code is simpler this way too -->
-						if (gWorkerLogLevel >= 3) SAS_logWorkerCityBuildRejectOnce(*this, kCity, kPlot, "BONUS_JUNGLE_REMOVE_UNAVAILABLE", NULL, eBonusSpecificBuild);
-						continue;
-					}
-				}
-			}
-			// <!-- custom: computationally faster to put it at last feature (among features to remove/scrub i mean) even though it has highest value due to urgency to clean/remove/scrub this feature, but very few feature_fallout ever happen in the game and generally quite late, but we loop quite often over al tiles, so try to save computation and put this check last even though is the most important in iValue as of now -->
-			else if (eFeature == eFeatureFallout)
-			{
-				if (canBuild(kPlot, eBuildScrubFallout))
-				{
-					eBestSupposedBuild = eBuildScrubFallout;
+					eBestSupposedBuild = eFeatureRemovalBuild;
 					if (eBonusSpecificBuild != NO_BUILD && canBuild(kPlot, eBonusSpecificBuild) && GC.getInfo(eBonusSpecificBuild).getImprovement() != NO_IMPROVEMENT)
 						eFeatureRemovalFollowupBuild = eBonusSpecificBuild;
-
-					// <!-- custom: more important than improving any bonus, and add some value so it is also more important than scrubing non-bonus fallout tiles (not sure it makes a difference since we want to clear all fallout anyway before improving any bonus but maybe the distinction helps if we change the code someday or someone does it or such) -->
-					iValue += iSAS_WORKER_AI_BONUS_FALLOUT_SCRUB_VALUE;
-				}
-				else
-				{
-					// If you truly can’t scrub yet, consider skipping, don’t try to “overwrite" with another build.
-					continue;
+					iValue += iSAS_WORKER_AI_BONUS_FEATURE_STEP_VALUE + std::max(0, iFeatureRemovalValue);
 				}
 			}
-			// <!-- custom: if we know we can chop, no need to look for a costly specific build we won't do now since we want to chop explicitly/specifically if i may say in this casefirst. So else, only look for a bonus specific build if plot is already chopped, in other words if plot's feature is not forest nor jungle -->
-			else
+			if (eBestSupposedBuild == NO_BUILD)
 			{
 				// <!-- custom: find the bonus's bonus-specific build first -->
 				if (eBonusSpecificBuild == NO_BUILD)
@@ -3863,18 +3920,6 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 					// <!-- custom: up to modders to support this in their mod, here we assume bonus not in map means unknown bonus, do not improve at all, for ease of code mostly if i may say rather than put any random build in a messy and inefficient or ineffective way worked aorund patched in a bad way i'd say-->
 					if (gWorkerLogLevel >= 3) SAS_logWorkerCityBuildRejectOnce(*this, kCity, kPlot, "BONUS_NO_SPECIFIC_BUILD");
 					continue;
-				}
-
-				ImprovementTypes eBonusSpecificImprovement = GC.getBuildInfo(eBonusSpecificBuild).getImprovement();
-
-				// === Blacklist: Early exit if bonus <!-- should not be improved -->
-				if (kPlot.getImprovementType() != NO_IMPROVEMENT)
-				{
-					//  is already improved correctly ===
-					if (kPlot.getImprovementType() == eBonusSpecificImprovement)
-					{
-						continue;
-					}
 				}
 
 				// <!-- custom: build these or almost always nothing else, leave banana tile empty until we have plantation, may be efficient in most cases for the AI to optimize build time usage rather than overwriting them inefficiently later, except some exceptions such as banana farms if irrigated on grass, but generally workers have probably better things (chop for hammer on remove, build cottage early, etc) to do that would not make it so worth it) so maybe fine as such, hopefully no more banana cottages on plains still though and such similar cases or such with this patch or new logic at least for this part of the code -->
@@ -3902,25 +3947,36 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 					if (bonusCommerceYieldChange > 0)
 						iValue += iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_COMMERCE * bonusCommerceYieldChange;
 				}
-				// The bonus-specific improvement is not yet available and there was no feature to chop.
-				// <!-- custom: One exception to the general ignore rule below: a temporary Farm can be worthwhile on a high-food bonus if the real bonus-specific build unlocks late enough. Do not spend early worker turns on temporary farms when the real improvement is close, but avoid leaving strong food bonuses idle for many eras. (GPT-5.5) -->
-				else if (bSAS_WORKER_AI_BONUS_FARM_FALLBACK_ENABLE && canBuild(kPlot, eBuildFarm))
+				// The bonus-specific improvement is not yet available and there was no feature to remove.
+				// <!-- custom: A temporary food-increasing improvement can be worthwhile when the real bonus Build unlocks many eras later.
+				// Select it from actual legal XML Builds rather than assuming Farm, but still require an immediate food gain and the configured minimum resulting plot food so Workers do not overwrite the bonus for cosmetic output. (GPT-5.5 + GPT-5.6-Sol) -->
+				else if (bSAS_WORKER_AI_BONUS_FOOD_FALLBACK_ENABLE)
 				{
-					int const totalFarmBonusFoodYield = bonusFoodYieldChange + kPlot.calculateImprovementYieldChange(eImprovementFarm, YIELD_FOOD, getOwner());
+					BuildTypes eTemporaryFoodBuild = NO_BUILD;
+					int iTemporaryResultFood = 0;
+					bool const bHasTemporaryFoodBuild = SAS_pickWorkerTemporaryFoodBuild(*this, kPlot, kWorkerYieldWeights, iSAS_WORKER_AI_BONUS_FOOD_FALLBACK_MIN_RESULT_FOOD, eTemporaryFoodBuild, iTemporaryResultFood);
 					TechTypes const eBonusSpecificBuildTech = GC.getInfo(eBonusSpecificBuild).getTechPrereq();
-					bool const bBonusSpecificBuildUnlocksLateEnough = (eBonusSpecificBuildTech != NO_TECH && GC.getInfo(eBonusSpecificBuildTech).getEra() >= eSAS_WORKER_AI_BONUS_FARM_FALLBACK_MIN_BUILD_TECH_ERA);
+					bool const bBonusSpecificBuildUnlocksLateEnough = (eBonusSpecificBuildTech != NO_TECH && GC.getInfo(eBonusSpecificBuildTech).getEra() >= eSAS_WORKER_AI_BONUS_FOOD_FALLBACK_MIN_BUILD_TECH_ERA);
 
-					if (bBonusSpecificBuildUnlocksLateEnough && ((eTerrain == eTerrainGrass) || (eTerrain == eTerrainPlains) || (eTerrain == eTerrainTundra)) && totalFarmBonusFoodYield >= iSAS_WORKER_AI_BONUS_FARM_FALLBACK_MIN_TOTAL_FOOD)
+					if (bBonusSpecificBuildUnlocksLateEnough && bHasTemporaryFoodBuild)
 					{
-						eBestSupposedBuild = eBuildFarm;
-
-						iValue += iSAS_WORKER_AI_BONUS_FARM_FALLBACK_VALUE;
+						eBestSupposedBuild = eTemporaryFoodBuild;
+						iValue += iSAS_WORKER_AI_BONUS_FOOD_FALLBACK_VALUE;
+						if (gWorkerLogLevel >= 3) logBBAI("    WORKER_BONUS_TEMPORARY_FOOD_BUILD turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) bonus=%S build=%S improvement=%S resultFood=%d realBuild=%S realBuildTech=%S",
+							GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(), kCity.getName().GetCString(),
+							kPlot.getX(), kPlot.getY(), GC.getInfo(eBonus).getDescription(), GC.getInfo(eTemporaryFoodBuild).getDescription(),
+							GC.getInfo(GC.getInfo(eTemporaryFoodBuild).getImprovement()).getDescription(), iTemporaryResultFood,
+							GC.getInfo(eBonusSpecificBuild).getDescription(), GC.getInfo(eBonusSpecificBuildTech).getDescription());
+					}
+					else
+					{
+						if (gWorkerLogLevel >= 3) SAS_logWorkerCityBuildRejectOnce(*this, kCity, kPlot, "BONUS_SPECIFIC_BUILD_UNAVAILABLE", eBonusSpecificBuild);
+						continue;
 					}
 				}
-				// <!-- custom: else fall back to general rule: ignore until better conditions, we can't build bonus specific build nor the farm alternatively, ignore for now -->
 				else
 				{
-					if (gWorkerLogLevel >= 3) SAS_logWorkerCityBuildRejectOnce(*this, kCity, kPlot, "BONUS_SPECIFIC_BUILD_UNAVAILABLE", NULL, eBonusSpecificBuild);
+					if (gWorkerLogLevel >= 3) SAS_logWorkerCityBuildRejectOnce(*this, kCity, kPlot, "BONUS_SPECIFIC_BUILD_UNAVAILABLE", eBonusSpecificBuild);
 					continue;
 				}
 			}
@@ -3937,302 +3993,46 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 			}
 		}
 
-		// <!-- custom: after bonus computation is handled, for bonus preference do not mind the terrain/feature, improve any terrain as long as it is a bonus with very great priority, else if our best would not be a bonus (no bonus or unreachable), then consider terrain or feature, prefer high food terrain most importantly: for example and in particular, do not build flatland plains cottage when there are flatland grass tiles available in city radius, this is a big waste of food yield and opportunity -->
-        // Logic to prioritize farms on high-food terrains like grassland and plains.
+		// <!-- custom: Bonus plots retain their explicit strategic path above. Ordinary plots below use one XML-derived yield comparison, independent of terrain and improvement names. (GPT-5.6-Sol) -->
 		else
 		{
-			// <!-- custom: for non-bonus tiles, never destroy high value "sacred"/"holy" improvements or later game ones. Helps avoid oscillation (workers changing their mind and overwriting a tile repeatedly based on fleeting conditions, which is very inefficient). Helps AI focus on one improvement and stick to it. (Claude code Sonnet 4.5 (summarized))
-			// <!-- custom: note however that as for bonus tiles, they don't follow this logic: still overwrite a banana hamlet or even town, they shouldn't have been there at all ideally as per our code, but if they are or some other code handled it as such, then do not let the stupid banana hamlet or town persist, we'd get just as much yields with a regular plantation, connecting the bonus as a side effect -->
-			ImprovementTypes const ePlotCurrentImprovement = kPlot.getImprovementType();
-
-			// <!-- custom: Treat non-bonus farms as support infrastructure, not only emergency anti-starvation. In low-food or hill-heavy cities, a strong farm can unlock food-consuming mines, faster growth, or specialists.
-			// After chain irrigation, a farm can also carry water from a river/freshwater tile to a dry tile behind it; if this plot gets a cottage/workshop instead, that later dry farm may not be possible without wasting worker turns and, for cottages, growth time.
-			// Score farms against cottages/workshops using actual plot/player farm food and irrigation state, and taper the bonus once the city already has healthy surplus so this remains targeted support rather than broad irrigation spam. (GPT-5.5) -->
-			bool const bCanBuildFarm = canBuild(kPlot, eBuildFarm);
-			int const iFarmFoodYieldChange = (bCanBuildFarm ? kPlot.calculateImprovementYieldChange(eImprovementFarm, YIELD_FOOD, getOwner()) : 0);
-			bool const bFarmGetsStrongFood = (iFarmFoodYieldChange >= 2);
-			bool const bFarmGetsFood = (iFarmFoodYieldChange > 0);
-			bool const bFarmCanCarryIrrigation = (GET_TEAM(getTeam()).isIrrigation() && kPlot.canHavePotentialIrrigation() && kPlot.isIrrigationAvailable(true));
-			bool const bFarmGoodIrrigationTile = (bFarmCanCarryIrrigation || (kPlot.isFreshWater() && kPlot.canHavePotentialIrrigation()));
-			int iAdjacentDryFarmsIrrigatedByThisFarm = 0;
-			if (bSAS_WORKER_AI_IRRIGATION_CHAIN_FARM_VALUE_ENABLE && !kPlot.isHills() && bCanBuildFarm && bFarmCanCarryIrrigation && !SAS_isWorkerBuildActivelyCommitted(kPlot, getOwner(), eBuildFarm))
-			{
-				// <!-- custom: Hunt concrete chain-irrigation fixes, not abstract irrigation paths. In the Nippur 2014 AD test save, existing farms stayed dry because the missing water-carrying farm could be in another city's BFC and that plot had a cottage/workshop instead.
-				// If farming this exact plot would irrigate adjacent existing dry farms, value it enough to replace basic non-food improvements; skip dry farms already reachable or already being fixed by another in-progress farm so workers do not pile onto irrigation speculation. (GPT-5.5) -->
-				for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
-				{
-					CvPlot* pAdjacentDryFarm = plotDirection(kPlot.getX(), kPlot.getY(), (DirectionTypes)iI);
-					if (pAdjacentDryFarm == NULL || pAdjacentDryFarm->getOwner() != getOwner() || pAdjacentDryFarm->getImprovementType() != eImprovementFarm || pAdjacentDryFarm->isIrrigated() || pAdjacentDryFarm->isIrrigationAvailable(true))
-						continue;
-					bool bAdjacentDryFarmAlreadyGettingIrrigation = false;
-					for (int iJ = 0; iJ < NUM_DIRECTION_TYPES; iJ++)
-					{
-						CvPlot* pOtherPossibleSource = plotDirection(pAdjacentDryFarm->getX(), pAdjacentDryFarm->getY(), (DirectionTypes)iJ);
-						if (pOtherPossibleSource != NULL && pOtherPossibleSource != &kPlot && SAS_isWorkerBuildActivelyCommitted(*pOtherPossibleSource, getOwner(), eBuildFarm) && pOtherPossibleSource->canHavePotentialIrrigation() && pOtherPossibleSource->isIrrigationAvailable(true))
-						{
-							bAdjacentDryFarmAlreadyGettingIrrigation = true;
-							break;
-						}
-					}
-					if (!bAdjacentDryFarmAlreadyGettingIrrigation)
-						iAdjacentDryFarmsIrrigatedByThisFarm++;
-				}
-			}
-			bool const bFarmIrrigatesExistingDryFarm = (iAdjacentDryFarmsIrrigatedByThisFarm > 0);
-			bool const bFoodSupportFarmCandidate = (bSAS_WORKER_AI_FOOD_SUPPORT_FARM_VALUE_ENABLE && !kPlot.isHills() && bCanBuildFarm && bCityHighFoodSupportNeed && (bFarmGetsStrongFood || (bFarmGetsFood && bFarmGoodIrrigationTile) || (iAdjustedFoodDifference <= iSAS_WORKER_AI_FOOD_SUPPORT_ZERO_SURPLUS_THRESHOLD && bFarmGetsFood)));
-			bool const bIrrigationChainFarmCandidate = (bSAS_WORKER_AI_IRRIGATION_CHAIN_FARM_VALUE_ENABLE && !kPlot.isHills() && bCanBuildFarm && bFarmIrrigatesExistingDryFarm);
-			bool const bSupportFarmCandidate = (bFoodSupportFarmCandidate || bIrrigationChainFarmCandidate);
-			int const iBasicCottageFoodSupportOverwriteBias = ((ePlotCurrentImprovement == eImprovementCottage && bSupportFarmCandidate) ? (kPlot.isBeingWorked() ? -100 : 150) : 0);
-			int const iDryFarmIrrigationChainValue = 1400 * iAdjacentDryFarmsIrrigatedByThisFarm;
-			int const iPlotGrowthLevel = SAS_getWorkerGrowthImprovementLevel(ePlotCurrentImprovement);
-			bool const bProtectedImprovementCanBeBrokenForIrrigation = SAS_isWorkerImprovementInDefineList("SAS_WORKER_AI_HOLY_IMPROVEMENT_NAMES_ALLOW_IRRIGATION_CHAIN_BREAK", ePlotCurrentImprovement);
-			bool const bNonProtectedImprovementCanBeBrokenForIrrigation = SAS_isWorkerImprovementInDefineList("SAS_WORKER_AI_NON_HOLY_IMPROVEMENT_NAMES_ALLOW_IRRIGATION_CHAIN_BREAK", ePlotCurrentImprovement);
-			// <!-- custom: If this exact farm would irrigate existing dry farms, unholy the blocker but rank candidates by damage: unimproved/workshop first, then configured growth-chain improvements by XML growth level. This local same-plot penalty is lower than the broader irrigation connector penalty because the farm itself may solve a food/irrigation problem for the city; canBuild and the generic branch picker still decide whether the final value is worth it. (GPT-5.5 + ChatGPT-5.5) -->
-			int const iDryFarmIrrigationOverwritePenalty = (
-				!bFarmIrrigatesExistingDryFarm ? 0 :
-				ePlotCurrentImprovement == eImprovementWorkshop ? 0 :
-				iPlotGrowthLevel > 0 ? iSAS_WORKER_AI_IRRIGATION_LOCAL_GROWTH_LEVEL_OVERWRITE_PENALTY * iPlotGrowthLevel :
-				0
-			);
-			int const iRawFoodSupportFarmValue = (bSupportFarmCandidate ? 350 + (250 * iFarmFoodYieldChange) + (bFarmGoodIrrigationTile ? 150 : 0) + (bCityStructuralFoodSupportNeed ? 150 : 0) + iDryFarmIrrigationChainValue - iDryFarmIrrigationOverwritePenalty + (iSAS_WORKER_AI_FOOD_SUPPORT_VALUE_PER_SURPLUS * std::max(0, -iAdjustedFoodDifference)) + iBasicCottageFoodSupportOverwriteBias : 0);
-			int const iFoodSupportFarmValue = std::max(iDryFarmIrrigationChainValue - iDryFarmIrrigationOverwritePenalty, iRawFoodSupportFarmValue - (iSAS_WORKER_AI_FOOD_SUPPORT_VALUE_PER_SURPLUS * std::max(0, iAdjustedFoodDifference - iSAS_WORKER_AI_FOOD_SUPPORT_TARGET_SURPLUS)));
-			bool const bAllowDryFarmIrrigationChainOverwrite = (
-				bFarmIrrigatesExistingDryFarm &&
-				(bProtectedImprovementCanBeBrokenForIrrigation || bNonProtectedImprovementCanBeBrokenForIrrigation)
-			);
-			bool const bAllowBasicCottageFoodSupportOverwrite = (ePlotCurrentImprovement == eImprovementCottage && bSupportFarmCandidate && (bAllowDryFarmIrrigationChainOverwrite || !kPlot.isBeingWorked() || bFarmGetsStrongFood || iAdjustedFoodDifference <= iSAS_WORKER_AI_FOOD_SUPPORT_ZERO_SURPLUS_THRESHOLD));
-			int const iNonFoodIrrigationPathPenalty = ((iFoodSupportFarmValue > 0 && bFarmGoodIrrigationTile) ? 75 : 0);
-			bool bFarmCarriesIrrigationToAdjacentFarm = false;
-			if (bSAS_WORKER_AI_IRRIGATION_CHAIN_FARM_VALUE_ENABLE && ePlotCurrentImprovement == eImprovementFarm && kPlot.isIrrigated())
-			{
-				// <!-- custom: Once the chain farm exists, keep it semi-holy too. Otherwise a later cottage/workshop pass could remove the carrier farm and recreate the same dry-farm problem we just fixed. This is a cheap adjacent-farm guard rather than full irrigation-network analysis; it protects irrigated farms next to owned irrigated farms that do not have direct fresh water. (GPT-5.5) -->
-				for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
-				{
-					CvPlot* pAdjacentFarm = plotDirection(kPlot.getX(), kPlot.getY(), (DirectionTypes)iI);
-					if (pAdjacentFarm != NULL && pAdjacentFarm->getOwner() == getOwner() && pAdjacentFarm->getImprovementType() == eImprovementFarm && pAdjacentFarm->isIrrigated() && !pAdjacentFarm->isFreshWater())
-					{
-						bFarmCarriesIrrigationToAdjacentFarm = true;
-						break;
-					}
-				}
-			}
-
-			// <!-- custom: first the absolutely holy improvements to never improve -->
-			if (SAS_isWorkerImprovementInDefineList("SAS_WORKER_AI_HOLY_IMPROVEMENT_NAMES_ALWAYS", ePlotCurrentImprovement) ||
-				(bProtectedImprovementCanBeBrokenForIrrigation && !bAllowDryFarmIrrigationChainOverwrite))
-			{
-				// This 'continue' will skip to the next build in the outer loop,
-				// preventing the AI from ever considering destroying a high-level non-bonus improvement.
-				continue;
-			}
-
-			// <!-- custom: with our reworked system, assume current improvement is always or often good for effiency and no reason not to, should often hopefully not be a too bad improvement, so give a general penalty to discourage overwriting a plot; do so only when all other plots, especially unupgraded ones that are good enough, have been handled first, not strict foribddance so workshops and such later game buildings can be built -->
-			if (kPlot.getImprovementType() != NO_IMPROVEMENT)
-			{
-				// <!-- custom: then the relatively improvements handled here as well, not absolutely holy, but always holy under/if some conditions / are met-->
-				bool const bLowFoodEnvironment = (kPlot.SAS_getLowFoodEnvironmentScore(kPlot.getBonusType(getTeam()), 0, false) > 0);
-				// <!-- custom: also the opposite, in high food environments (lots of grass, i have noticed workers inefficiently swapping cottage then farm on flatland grass for example), but if we built cottage once, it means environment was high enough food to being with at that time, else we would not have had done so, so assume that environment is still high food and it is just our current food difference that is fluctuating, either due to suboptimal or more produciton focused plot allocation, or if not irrigated enough or such, but for simplicity, assume our environment is still the same (high-food) and we should thus consider cottage to be absolutely holy under/within/if these conditions //are met as well-->
-
-				if ((bLowFoodEnvironment || bCityStructuralFoodSupportNeed || bFarmCarriesIrrigationToAdjacentFarm) && SAS_isWorkerImprovementInDefineList("SAS_WORKER_AI_SEMI_HOLY_IMPROVEMENT_NAMES_LOW_FOOD", ePlotCurrentImprovement))
-				{
-					// <!-- custom: extra oscillation avoid cases, even with our system, for the better maybe, we respond dynamically to food surplus in city, in low-food environments, one has to win, it is likely will starve again, so if we built a farm once, do not cancel it ever again and consider it holy as well -->
-					continue;
-				}
-				// <!-- custom: high-food environments 's semi-holy improvement(s) -->
-				else if ((eFeature == eFeatureFloodPlains) && SAS_isWorkerImprovementInDefineList("SAS_WORKER_AI_SEMI_HOLY_IMPROVEMENT_NAMES_FLOOD_PLAINS", ePlotCurrentImprovement))
-				{
-					// <!-- custom: extra oscillation avoid cases, see above for details -->
-					continue;
-				}
-				else if ((eTerrain == eTerrainGrass) && SAS_isWorkerImprovementInDefineList("SAS_WORKER_AI_SEMI_HOLY_IMPROVEMENT_NAMES_GRASS", ePlotCurrentImprovement) && !bAllowBasicCottageFoodSupportOverwrite)
-				{
-					// <!-- custom: extra oscillation avoid cases, see above for details -->
-					continue;
-				}	
-
-				// <!-- custom: check and be alert on whether we can build higher level improvements, ignoring less relevant ones like forest preserve, lumbermill, watermill, that are not too good i mean generally or for efficiency, focus on most efficent ones -->
-				bool const bCanBuildAssumedEfficientHigherLevelImprovements = (canBuild(kPlot, eBuildWorkshop) || canBuild(kPlot, eBuildWindmill));
-
-				if (!bCanBuildAssumedEfficientHigherLevelImprovements)
-				{
-					iValue -= 3 * penaltyForOverwritingPlot;
-					// <!-- note: adjusted in some other places where it is really better to replace it, such as plains farm that are meh (see there at plains checks for details), considering overwriting existing ones when/if all good tiles have been improved first -->
-				}
-				else
-				{
-					// <!-- custom: the higher level improvements are more attractive, still we'd want to improve unimproved tiles first that are good enough, and if none remain, with now a low threshold, consider overwriting plots, especially attractive ones -->
-					iValue -= penaltyForOverwritingPlot;
-				}
-			}
-
-			// <!-- custom: PHASE 1 - estimate plot value (i.e. priority for the next plot to improve first) and best build on said plot, for all plots in our loop -->
-
-			// <!-- custom: PHASE 1.1: general for non-bonus plots terrain/feature (not choppable ones) analysis -->
-			bool bNoBonusLowFoodBranch = false;
-			// <!-- custom: Most no-bonus dynamic scoring is now improvement-independent inside the generic picker: low-food pressure rewards the buildable candidate with the best food yield, and irrigation pressure penalizes candidates that do not carry irrigation. Keep this small BuildTypes-indexed vector only for rare residual build-specific tweaks, e.g. the old Grass Hill Mine population adjustment. (ChatGPT-5.5 + GPT-5.5) -->
-			for (size_t iBuildAdjustment = 0; iBuildAdjustment < aNoBonusBuildValueAdjustments.size(); ++iBuildAdjustment)
-				aNoBonusBuildValueAdjustments[iBuildAdjustment] = 0;
-
-			// <!-- custom: Pass 3: choose no-bonus worker builds through the generic XML branch picker instead of terrain-local if/else build order. Terrain/feature code now selects the branch and adds context adjustments; the picker then lets all valid listed candidates compete after canBuild filtering. This keeps special food/workshop/irrigation heuristics while making XML base values the real ranking source. Flattened so feature override branches and terrain fallback branches share the same pipeline; each context is checked only while no usable branch has been found. (ChatGPT-5.5) -->
-			bool bNoBonusBranchSelected = false;
-
-			if (!bNoBonusBranchSelected && eFeatureFloodPlains != NO_FEATURE && eFeature == eFeatureFloodPlains)
-			{
-				bNoBonusLowFoodBranch = (iAdjustedFoodDifference < iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_FLOOD_PLAINS);
-				pNoBonusBranch = SAS_getWorkerNoBonusBranch(kWorkerBranches.kFeatureFloodPlains, kPlot.isHills(), bNoBonusLowFoodBranch);
-				bNoBonusBranchSelected = (pNoBonusBranch != NULL);
-			}
-			if (!bNoBonusBranchSelected && eFeatureOasis != NO_FEATURE && eFeature == eFeatureOasis)
-			{
-				// <!-- custom: Oasis feature branches are optional XML overrides. They are NONE by default and fall through to terrain logic; if a modmod fills them, listed builds compete normally through canBuild. (ChatGPT-5.5) -->
-				bNoBonusLowFoodBranch = (iAdjustedFoodDifference < iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_OASIS);
-				pNoBonusBranch = SAS_getWorkerNoBonusBranch(kWorkerBranches.kFeatureOasis, kPlot.isHills(), bNoBonusLowFoodBranch);
-				bNoBonusBranchSelected = (pNoBonusBranch != NULL);
-			}
-			if (!bNoBonusBranchSelected && eTerrain == eTerrainGrass)
-			{
-				if (kPlot.isHills())
-				{
-					bNoBonusLowFoodBranch = (iAdjustedFoodDifference < iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_GRASS_HILL);
-					pNoBonusBranch = SAS_getWorkerNoBonusBranch(kWorkerBranches.kTerrainGrass, true, bNoBonusLowFoodBranch);
-					if (eBuildMine != NO_BUILD && (int)eBuildMine < (int)aNoBonusBuildValueAdjustments.size())
-						aNoBonusBuildValueAdjustments[eBuildMine] = (!bNoBonusLowFoodBranch ? -100 + (50 * std::min(3, iCityPopulation)) : 0);
-				}
-				else
-				{
-					bNoBonusLowFoodBranch = (iAdjustedFoodDifference < iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_GRASS_FLAT);
-					pNoBonusBranch = SAS_getWorkerNoBonusBranch(kWorkerBranches.kTerrainGrass, false, bNoBonusLowFoodBranch);
-				}
-				bNoBonusBranchSelected = (pNoBonusBranch != NULL);
-			}
-			if (!bNoBonusBranchSelected && eTerrain == eTerrainPlains)
-			{
-				if (kPlot.isHills())
-				{
-					bNoBonusLowFoodBranch = (iAdjustedFoodDifference < iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_PLAINS_HILL);
-					pNoBonusBranch = SAS_getWorkerNoBonusBranch(kWorkerBranches.kTerrainPlains, true, bNoBonusLowFoodBranch);
-				}
-				else
-				{
-					bNoBonusLowFoodBranch = (iAdjustedFoodDifference < iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_PLAINS_FLAT || bCityLowFoodBFC);
-					pNoBonusBranch = SAS_getWorkerNoBonusBranch(kWorkerBranches.kTerrainPlains, false, bNoBonusLowFoodBranch);
-				}
-				bNoBonusBranchSelected = (pNoBonusBranch != NULL);
-			}
-			if (!bNoBonusBranchSelected && eTerrain == eTerrainTundra)
-			{
-				if (kPlot.isHills())
-				{
-					bNoBonusLowFoodBranch = (iAdjustedFoodDifference < iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_TUNDRA_HILL);
-					pNoBonusBranch = SAS_getWorkerNoBonusBranch(kWorkerBranches.kTerrainTundra, true, bNoBonusLowFoodBranch);
-				}
-				else
-				{
-					bNoBonusLowFoodBranch = (iAdjustedFoodDifference < iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_TUNDRA_FLAT || bCityLowFoodBFC);
-					pNoBonusBranch = SAS_getWorkerNoBonusBranch(kWorkerBranches.kTerrainTundra, false, bNoBonusLowFoodBranch);
-				}
-				bNoBonusBranchSelected = (pNoBonusBranch != NULL);
-			}
-			if (!bNoBonusBranchSelected && eTerrain == eTerrainSnow)
-			{
-				bNoBonusLowFoodBranch = (iAdjustedFoodDifference < (kPlot.isHills() ? iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_SNOW_HILL : iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_SNOW_FLAT));
-				pNoBonusBranch = SAS_getWorkerNoBonusBranch(kWorkerBranches.kTerrainSnow, kPlot.isHills(), bNoBonusLowFoodBranch);
-				bNoBonusBranchSelected = (pNoBonusBranch != NULL);
-			}
-			if (!bNoBonusBranchSelected && eTerrain == eTerrainDesert)
-			{
-				bNoBonusLowFoodBranch = (iAdjustedFoodDifference < (kPlot.isHills() ? iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_DESERT_HILL : iSAS_WORKER_AI_FOOD_BRANCH_THRESHOLD_DESERT_FLAT));
-				pNoBonusBranch = SAS_getWorkerNoBonusBranch(kWorkerBranches.kTerrainDesert, kPlot.isHills(), bNoBonusLowFoodBranch);
-				bNoBonusBranchSelected = (pNoBonusBranch != NULL);
-			}
-
-			if (pNoBonusBranch != NULL && !SAS_pickWorkerNoBonusBranchBuild(*this, kPlot, *pNoBonusBranch, bNoBonusLowFoodBranch, iAdjustedFoodDifference, iSAS_WORKER_AI_LOW_FOOD_DEFICIT_VALUE_PER_FOOD, iFoodSupportFarmValue, iNonFoodIrrigationPathPenalty, aNoBonusBuildValueAdjustments, eBestSupposedBuild, iValue))
-			{
-				if (gWorkerLogLevel >= 3) SAS_logWorkerCityBuildRejectOnce(*this, kCity, kPlot, "NO_BUILDABLE_NO_BONUS_BRANCH", pNoBonusBranch);
-				continue;
-			}
+			// <!-- custom: PHASE 1.1: select the best ordinary non-bonus improvement from actual resulting yields. Terrain, feature and Build XML changes flow through getYieldWithBuild/canBuild automatically; the separate irrigation pass above remains responsible for water-network infrastructure. (GPT-5.6-Sol) -->
+			bool const bHasYieldBuild = SAS_pickWorkerYieldBuild(*this, kCity, kPlot, kWorkerYieldWeights, eBestSupposedBuild, iValue);
 			BuildTypes const ePreFeatureRemovalBuild = eBestSupposedBuild;
 			int const iPreFeatureRemovalBuildValue = iValue;
+			ImprovementTypes const eCurrentImprovement = kPlot.getImprovementType();
+			bool const bCurrentImprovementUsesFeatureValidity = (eFeature != NO_FEATURE && eCurrentImprovement != NO_IMPROVEMENT && GC.getInfo(eCurrentImprovement).getFeatureMakesValid(eFeature));
+			bool const bPreserveCurrentImprovementFeature = (bCurrentImprovementUsesFeatureValidity && !bHasYieldBuild);
+			int iFeatureProduction = 0;
+			BuildTypes const ePureFeatureRemovalBuild = SAS_getWorkerPureFeatureRemovalBuild(*this, kPlot, &iFeatureProduction);
+			bool const bSelectedBuildRemovesFeature = (bHasYieldBuild && eFeature != NO_FEATURE && GC.getInfo(ePreFeatureRemovalBuild).isFeatureRemove(eFeature));
+			ImprovementTypes const eSelectedImprovement = (bHasYieldBuild ? GC.getInfo(ePreFeatureRemovalBuild).getImprovement() : NO_IMPROVEMENT);
+			bool const bSelectedImprovementUsesFeatureValidity = (eFeature != NO_FEATURE && eSelectedImprovement != NO_IMPROVEMENT && GC.getInfo(eSelectedImprovement).getFeatureMakesValid(eFeature));
+			int const iRemovalValue = (bPreserveCurrentImprovementFeature ? MIN_INT : SAS_getWorkerStandaloneFeatureRemovalValue(*this, kCity, kPlot, ePureFeatureRemovalBuild, kWorkerYieldWeights, iFeatureProduction));
 
-			// <!-- custom: PHASE 1.2 - feature removal overlay for non-bonus plots. The normal no-bonus branch picker chooses ordinary improvements first; this overlay then lets Forest/Jungle/Fallout removal adjust or override that choice when the feature itself is the main worker problem. Detailed scoring rationale and default values live in GlobalDefines_advciv_sas.xml. (ChatGPT-5.5 temporary review + GPT-5.5 review) -->
-			if (eFeature == eFeatureForest)
+			// <!-- custom: PHASE 1.2 - when the chosen improvement removes the current feature, perform the XML-discovered pure removal first so its production arrives promptly and the Worker can be redirected before committing to the improvement.
+			// Also remove an independently harmful feature before a feature-neutral improvement; e.g. severe Fallout yield/health penalties outweigh building through it, while a feature-valid Camp or Lumbermill still preserves the feature it needs.
+			// If no improvement cleared the yield/replacement gate, consider removal by its own XML-derived yield, health, happiness, damage, production and time effects instead of a Forest/Jungle/Fallout rule.
+			// The Tiwanaku autoplay exposed why the yield gate remains authoritative: two Lumbermills built on turns 161-162 were independently chopped on turn 186 despite rejected Cottage replacements, then rebuilt as Cottages on turn 190.
+			// FeatureMakesValid now preserves such infrastructure unless a replacement passes the gate. (GPT-5.6-Sol) -->
+			if (bSelectedBuildRemovesFeature && ePureFeatureRemovalBuild != NO_BUILD)
 			{
-				if (canBuild(kPlot, eBuildRemoveForest))
-				{
-					// <!-- custom: Forest: do not blindly chop health-providing Forests in small/unhealthy cities. Small cities use the old negative scoring formula; the no-health-surplus relax check applies only inside the large-city branch, so its effective threshold is also gated by SAS_WORKER_AI_FEATURE_FOREST_CHOP_LARGE_CITY_MIN_POPULATION. (ChatGPT-5.5 + ChatGPT-5.5 temporary review + GPT-5.5 review) -->
-					static const int iSAS_AI_BEST_CITY_BUILD_FOREST_CHOP_RELAX_MIN_POPULATION = GC.getDefineINT("SAS_AI_BEST_CITY_BUILD_FOREST_CHOP_RELAX_MIN_POPULATION");
-					if (iCityPopulation >= iSAS_WORKER_AI_FEATURE_FOREST_CHOP_LARGE_CITY_MIN_POPULATION)
-					{
-						if (iCityHealthCalculatedDifference >= 1)
-						{
-							eBestSupposedBuild = eBuildRemoveForest;
-							iValue += iSAS_WORKER_AI_FEATURE_FOREST_CHOP_HEALTH_VALUE_PER_POINT * iCityHealthCalculatedDifference;
-						}
-						else if (iSAS_AI_BEST_CITY_BUILD_FOREST_CHOP_RELAX_MIN_POPULATION > 0 && iCityPopulation >= iSAS_AI_BEST_CITY_BUILD_FOREST_CHOP_RELAX_MIN_POPULATION)
-						{
-							eBestSupposedBuild = eBuildRemoveForest;
-							iValue -= iSAS_WORKER_AI_FEATURE_FOREST_CHOP_UNHEALTH_PENALTY_PER_POINT * (1 - iCityHealthCalculatedDifference);
-						}
-						else
-						{
-							continue;
-						}
-					}
-					else
-					{
-						eBestSupposedBuild = eBuildRemoveForest;
-						iValue += iSAS_WORKER_AI_FEATURE_FOREST_CHOP_SMALL_CITY_BASE_VALUE + (iSAS_WORKER_AI_FEATURE_FOREST_CHOP_HEALTH_VALUE_PER_POINT * iCityHealthCalculatedDifference);
-					}
-				}
-				else if (eBestSupposedBuild == NO_BUILD)
-				{
-					if (gWorkerLogLevel >= 3) SAS_logWorkerCityBuildRejectOnce(*this, kCity, kPlot, "FOREST_REMOVE_UNAVAILABLE_NO_FOLLOWUP", pNoBonusBranch);
-					continue;
-				}
+				eBestSupposedBuild = ePureFeatureRemovalBuild;
+				if (iPreFeatureRemovalBuildValue >= iSAS_WORKER_AI_FEATURE_REMOVAL_FOLLOWUP_MIN_VALUE)
+					eFeatureRemovalFollowupBuild = ePreFeatureRemovalBuild;
 			}
-			else if (eFeature == eFeatureJungle)
+			else if (iRemovalValue > 0 && !bSelectedImprovementUsesFeatureValidity)
 			{
-				if (canBuild(kPlot, eBuildRemoveJungle))
-				{
-					// <!-- custom: Jungle: usually clear because it blocks normal improvements and adds unhealth; XML-tunable population and health-pressure scoring only controls priority among possible worker jobs. (ChatGPT-5.5 + ChatGPT-5.5 temporary review + GPT-5.5 review) -->
-					if (iCityPopulation >= iSAS_WORKER_AI_FEATURE_JUNGLE_CLEAR_LARGE_CITY_MIN_POPULATION)
-					{
-						eBestSupposedBuild = eBuildRemoveJungle;
-						int const iJungleLargeCityPopulationPressure = iCityPopulation - std::max(0, iSAS_WORKER_AI_FEATURE_JUNGLE_CLEAR_LARGE_CITY_MIN_POPULATION - 1);
-						iValue += iSAS_WORKER_AI_FEATURE_JUNGLE_CLEAR_LARGE_CITY_PRESSURE_VALUE_PER_POINT * (iJungleLargeCityPopulationPressure - iCityHealthCalculatedDifference);
-					}
-					else
-					{
-						eBestSupposedBuild = eBuildRemoveJungle;
-						iValue += std::max(0, iSAS_WORKER_AI_FEATURE_JUNGLE_CLEAR_SMALL_CITY_UNHEALTH_VALUE_PER_POINT * (-1 * iCityHealthCalculatedDifference));
-					}
-				}
-				else if (eBestSupposedBuild == NO_BUILD)
-				{
-					if (gWorkerLogLevel >= 3) SAS_logWorkerCityBuildRejectOnce(*this, kCity, kPlot, "JUNGLE_REMOVE_UNAVAILABLE_NO_FOLLOWUP", pNoBonusBranch);
-					continue;
-				}
+				eBestSupposedBuild = ePureFeatureRemovalBuild;
+				iValue += iRemovalValue;
+				if (bHasYieldBuild && iPreFeatureRemovalBuildValue >= iSAS_WORKER_AI_FEATURE_REMOVAL_FOLLOWUP_MIN_VALUE)
+					eFeatureRemovalFollowupBuild = ePreFeatureRemovalBuild;
 			}
-			else if (eFeature == eFeatureFallout)
+			else if (!bHasYieldBuild)
 			{
-				// <!-- custom: Fallout: scrub before ordinary non-bonus worker builds; if scrubbing is unavailable, skip the plot so workers do not improve through Fallout. (ChatGPT-5.5 + ChatGPT-5.5 temporary review + GPT-5.5 review) -->
-				if (canBuild(kPlot, eBuildScrubFallout))
-				{
-					eBestSupposedBuild = eBuildScrubFallout;
-					iValue += iSAS_WORKER_AI_FEATURE_FALLOUT_SCRUB_VALUE;
-				}
-				else
-				{
-					if (gWorkerLogLevel >= 3) SAS_logWorkerCityBuildRejectOnce(*this, kCity, kPlot, "FALLOUT_SCRUB_UNAVAILABLE", pNoBonusBranch);
-					continue;
-				}
+				if (gWorkerLogLevel >= 3) SAS_logWorkerCityBuildRejectOnce(*this, kCity, kPlot, bPreserveCurrentImprovementFeature ? "PRESERVE_FEATURE_DEPENDENT_IMPROVEMENT" : "NO_POSITIVE_BUILD_OR_FEATURE_REMOVAL");
+				continue;
 			}
-			if (eBestSupposedBuild != ePreFeatureRemovalBuild && ePreFeatureRemovalBuild != NO_BUILD && iPreFeatureRemovalBuildValue >= iSAS_WORKER_AI_FEATURE_REMOVAL_FOLLOWUP_MIN_VALUE && GC.getInfo(ePreFeatureRemovalBuild).getImprovement() != NO_IMPROVEMENT && canBuild(kPlot, ePreFeatureRemovalBuild))
-				eFeatureRemovalFollowupBuild = ePreFeatureRemovalBuild;
-
-			// else: no special feature handling; KEEP the eBestSupposedBuild chosen above
-			// <!-- custom: modify this if you implement new terrains/features/builds in your mod and want AI workers to support them with custom priorities. Unknown builds (not set up here) would be NO_BUILD and rejected later in plot loop. Add modifications wherever relevant (likely phase 1) for AI workers to use them in city tiles. (Claude code Sonnet 4.5 (summarized)) -->
-			// <!-- custom: note: in theory this new system should handle oscillation tremendously better, considering "sacred" higher level improvements, while being responsive to food or health or such conditions to overwrite or adjust future builds if needed -->
 		}
 
 		// <!-- custom: PHASE 1.3 - common logic again (both bonus and non-bonus plots again) no more adjusting the best build to build for this loop plot, now only final adjustments before storing plot information -->
@@ -4240,68 +4040,47 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 		// <!-- custom: check here after all builds adjustments if final settled on build is still none, then forget this plot -->
 		if (eBestSupposedBuild == NO_BUILD)
 		{
-			if (gWorkerLogLevel >= 3) SAS_logWorkerCityBuildRejectOnce(*this, kCity, kPlot, "NO_SELECTED_BUILD", (eBonus == NO_BONUS ? pNoBonusBranch : NULL));
+			if (gWorkerLogLevel >= 3) SAS_logWorkerCityBuildRejectOnce(*this, kCity, kPlot, "NO_SELECTED_BUILD");
 			continue;
 		}
 		if (!canBuild(kPlot, eBestSupposedBuild))
 		{
-			if (gWorkerLogLevel >= 3) SAS_logWorkerCityBuildRejectOnce(*this, kCity, kPlot, "SELECTED_BUILD_CANBUILD_FALSE", (eBonus == NO_BONUS ? pNoBonusBranch : NULL), eBestSupposedBuild);
+			if (gWorkerLogLevel >= 3) SAS_logWorkerCityBuildRejectOnce(*this, kCity, kPlot, "SELECTED_BUILD_CANBUILD_FALSE", eBestSupposedBuild);
 			continue;
 		}
 
-		// <!-- custom: Protect completed irrigation-chain Farms and directly irrigatable Farms selected for cities with high food need from non-Farm replacement builds.
-		// The deterministic route search above selects each new source-side connector when it can carry irrigation; keeping the old four-tile possible-bridge reservation would preserve unrelated plots that are not on its chosen route. (GPT-5.6-Sol) -->
+		// <!-- custom: Protect any completed XML irrigation carrier from a non-carrier replacement only when an adjacent irrigated carrier without direct fresh water visibly depends on it.
+		// Ordinary carrier improvements otherwise compete through the shared yield/hysteresis formula; the deterministic route pass separately creates missing connectors. (GPT-5.6-Sol) -->
 		ImprovementTypes const ePlotCurrentImprovement = kPlot.getImprovementType();
 		ImprovementTypes const eSupposedImprovement = GC.getInfo(eBestSupposedBuild).getImprovement();
-		if (bSAS_WORKER_AI_IRRIGATION_CHAIN_FARM_VALUE_ENABLE && GET_TEAM(getTeam()).isIrrigation() && eBonus == NO_BONUS && eSupposedImprovement != NO_IMPROVEMENT && eSupposedImprovement != eImprovementFarm && !kPlot.isWater() && !kPlot.isHills() && !kPlot.isCity() && kPlot.canHavePotentialIrrigation())
+		if (bSAS_WORKER_AI_IRRIGATION_CHAIN_ENABLE && GET_TEAM(getTeam()).isIrrigation() && eBonus == NO_BONUS && eSupposedImprovement != NO_IMPROVEMENT && !SAS_isWorkerIrrigationCarrierImprovement(eSupposedImprovement) && !kPlot.isWater() && !kPlot.isCity() && kPlot.canHavePotentialIrrigation())
 		{
-			bool bReserveForIrrigationFarm = (ePlotCurrentImprovement == eImprovementFarm);
-			if (!bReserveForIrrigationFarm && bCityHighFoodSupportNeed && canBuild(kPlot, eBuildFarm) && (kPlot.isFreshWater() || kPlot.isIrrigationAvailable(true)))
-				bReserveForIrrigationFarm = true;
-			if (bReserveForIrrigationFarm)
+			bool bReserveIrrigationCarrier = false;
+			if (SAS_isWorkerIrrigationCarrierImprovement(ePlotCurrentImprovement) && kPlot.isIrrigated())
+			{
+				for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
+				{
+					CvPlot const* pAdjacentCarrier = plotDirection(kPlot.getX(), kPlot.getY(), (DirectionTypes)iI);
+					if (pAdjacentCarrier != NULL && pAdjacentCarrier->getOwner() == getOwner() && SAS_isWorkerIrrigationCarrierImprovement(pAdjacentCarrier->getImprovementType()) && pAdjacentCarrier->isIrrigated() && !pAdjacentCarrier->isFreshWater())
+					{
+						bReserveIrrigationCarrier = true;
+						break;
+					}
+				}
+			}
+			if (bReserveIrrigationCarrier)
 			{
 				// <!-- custom: this fires 20k+ times so log level 3 -->
 				if (gWorkerLogLevel >= 3)
 				{
 					wchar const* szCurrentImprovement = (ePlotCurrentImprovement == NO_IMPROVEMENT ? L"-" : GC.getInfo(ePlotCurrentImprovement).getDescription());
-					logBBAI("    %S worker skips non-farm build on future irrigation-farm plot for city %S: plot=(%d,%d) build=%S improvement=%S currentImprovement=%S",
+					logBBAI("    %S worker skips non-carrier build on irrigation-dependent plot for city %S: plot=(%d,%d) build=%S improvement=%S currentImprovement=%S",
 						GET_PLAYER(getOwner()).getCivilizationDescription(0), kCity.getName().GetCString(), kPlot.getX(), kPlot.getY(),
 						GC.getInfo(eBestSupposedBuild).getDescription(), GC.getInfo(eSupposedImprovement).getDescription(),
 						szCurrentImprovement);
 				}
 				continue;
 			}
-		}
-
-		// <!-- custom: BBAI logs showed repeated non-bonus improvement oscillation such as Farm -> Cottage -> Farm and Mine -> Windmill -> Mine after food-support thresholds flipped back and forth. Before the configured era, cities are often small and health/happiness-capped, so extra food can be inefficient and early cottages still have time to mature.
-		// Later, cities are usually larger, health sources and specialist yields are stronger, and newly rebuilt cottages/growth improvements have less time to pay back. Block replacements that reduce plot food; this targets the observed food-direction reversals and also catches Cottage -> Workshop while workshops still cost food, without blocking equal-food retools, food-restoration changes such as Cottage -> Farm, or cleanup of City Ruins/obsolete Camps. (ChatGPT-5.5 + GPT-5.5); plus if we needed food once we are likely to prefer food again so prefer food anyway -->
-		// <!-- custom: In the tested BBAI log, old Mali plots that had repeated Farm -> Cottage -> Farm -> Cottage -> Farm loops now reached Farm again and then skipped later Farm -> Cottage attempts from about T128/T130 onward, stopping the repeated later loop. (ChatGPT-5.5 + GPT-5.5) -->
-		static const int iSAS_AI_WORKER_BLOCK_LOWER_FOOD_REPLACEMENT_MIN_ERA = GC.getDefineINT("SAS_AI_WORKER_BLOCK_LOWER_FOOD_REPLACEMENT_MIN_ERA");
-		if (GET_PLAYER(getOwner()).getCurrentEra() >= iSAS_AI_WORKER_BLOCK_LOWER_FOOD_REPLACEMENT_MIN_ERA && eBonus == NO_BONUS && ePlotCurrentImprovement != NO_IMPROVEMENT && ePlotCurrentImprovement != GC.getRUINS_IMPROVEMENT() && eSupposedImprovement != NO_IMPROVEMENT && ePlotCurrentImprovement != eSupposedImprovement)
-		{
-			int const iCurrentImprovementFood = kPlot.calculateImprovementYieldChange(ePlotCurrentImprovement, YIELD_FOOD, getOwner());
-			int const iSupposedImprovementFood = kPlot.calculateImprovementYieldChange(eSupposedImprovement, YIELD_FOOD, getOwner());
-			int const iReplacementFoodDelta = iSupposedImprovementFood - iCurrentImprovementFood;
-			if (iReplacementFoodDelta < 0)
-			{
-				if (gWorkerLogLevel >= 3)
-				{
-					logBBAI("    %S worker skips lower-food replacement for city %S: turn=%d plot=(%d,%d) current=%S food=%d proposed=%S food=%d replacementFoodDelta=%d build=%S value=%d",
-						GET_PLAYER(getOwner()).getCivilizationDescription(0), kCity.getName().GetCString(), GC.getGame().getGameTurn(),
-						kPlot.getX(), kPlot.getY(), GC.getInfo(ePlotCurrentImprovement).getDescription(), iCurrentImprovementFood,
-						GC.getInfo(eSupposedImprovement).getDescription(), iSupposedImprovementFood, iReplacementFoodDelta,
-						GC.getInfo(eBestSupposedBuild).getDescription(), iValue);
-				}
-				continue;
-			}
-		}
-
-		// <!-- custom: apply final penalties here, to account for edge cases where they are not relevant (badly needing a farm in a city full of flatland plains for example, then we may strongly consider overwriting, use bOverwriteCurrentImprovementHasPenalty to determine that). We could have applied it at first then cancel it for edge cases but is redundant and inefficient so do here rather i mean as seems ideal or more ideal if it is a word or way to say it-->
-
-		// <!-- custom: valorization for river tiles, we get one extra commerce, prioritize there if everything else is equal otherwise; but less than the penalty for overwriting as it should still be better to not overwrite just because there is a river; a river is otherwise sueful/valuable in this case at least if i may say i meanif all other conditions being equal, we can build there if i may say -->
-		if (kPlot.isRiver())
-		{
-			iValue += 100;
 		}
 
 		// Store this candidate <!-- custom: plot -->. We will check pathfinding <!-- custom: and other conditions (such as enemy on plot maybe) --> later <!-- custom: for efficiency, as there is no need to check this on tiles we would not select as best anyways, as gemini ai did thanks i mean, it is faster to just sort them all without looking too deep, then process them later, than spend computation to look at a tile we won't use later -->
@@ -4311,15 +4090,14 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 		candidatePlot.ePlot = ePlot;
 		candidatePlot.eBuild = eBestSupposedBuild;
 		candidatePlot.eFollowupBuild = eFeatureRemovalFollowupBuild;
+		candidatePlot.bIrrigationChainStep = false;
 
 		candidatePlots.push_back(candidatePlot);
 	}
 
-	// <!-- custom: If this city still has ordinary unimproved BFC plots with valid improvement builds,
-	// do those before normal replacement builds on already-improved non-bonus plots. This keeps workers from
-	// spending turns on Mine<->Windmill or Cottage<->Farm churn while useful blank city tiles remain.
-	// Exceptions remain for bonus fixes and concrete irrigation-chain farm work, both of which can be more urgent
-	// than filling ordinary blank plots. (ChatGPT-5.5) -->
+	// <!-- custom: If this city still has ordinary unimproved BFC plots with valid improvement builds, do those before normal replacement builds on already-improved non-bonus plots.
+	// This keeps workers from spending turns on Mine<->Windmill or Cottage<->Farm churn while useful blank city tiles remain.
+	// Exceptions remain for bonus fixes and concrete irrigation-chain carrier work, both of which can be more urgent than filling ordinary blank plots. (ChatGPT-5.5) -->
 	bool bHasUnimprovedBFCImprovementCandidate = false;
 	for (size_t i = 0; i < candidatePlots.size(); ++i)
 	{
@@ -4337,8 +4115,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 
 	// <!-- custom: Diagnostic logging for remaining large-city blank-plot cases.
 	// This logs the candidate layer, not only the final chosen mission. It helps distinguish:
-	// city not selected, blank BFC plot not considered, blank plot considered but losing, replacement skipped,
-	// path failure, or plot reservation. Keep this temporary while testing Beijing-style unimproved large-city cases. (ChatGPT-5.5) -->
+	// city not selected, blank BFC plot not considered, blank plot considered but losing, replacement skipped, path failure, or plot reservation. Retain this level-3 diagnostic for investigating similar large-city unimproved-plot cases. (ChatGPT-5.5 + ChatGPT-5.6-Sol) -->
 	if (gWorkerLogLevel >= 3 && iCityPopulation >= 6)
 	{
 		int iUnimprovedImprovementCandidates = 0;
@@ -4362,7 +4139,8 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 				continue;
 			ImprovementTypes const eCurrentImprovement = pCandidatePlot->getImprovementType();
 			ImprovementTypes const eCandidateImprovement = GC.getInfo(eCandidateBuild).getImprovement();
-			// <!-- custom: A worker chopped a worked Grass Hill near Cologne and then left without improving it. Log every unimproved BFC candidate in large cities so testing can show whether the follow-up Mine was generated and how its value compared with competing work. No behavior change. (GPT-5.5) -->
+			// <!-- custom: A worker chopped a worked Grass Hill near Cologne and then left without improving it.
+			// Log every unimproved BFC candidate in large cities so testing can show whether the follow-up Mine was generated and how its value compared with competing work; no behavior change. (GPT-5.5) -->
 			if (candidatePlots[i].ePlot != NO_CITYPLOT && eCurrentImprovement == NO_IMPROVEMENT)
 			{
 				TerrainTypes const eCandidateTerrain = pCandidatePlot->getTerrainType();
@@ -4445,7 +4223,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 				continue;
 			if (pCandidatePlot->getImprovementType() != NO_IMPROVEMENT || GC.getInfo(eCandidateBuild).getImprovement() == NO_IMPROVEMENT)
 				continue;
-			if (pCandidatePlot->isVisibleEnemyUnit(this) || !pathFinder.generatePath(*pCandidatePlot))
+			if (pCandidatePlot->isVisibleEnemyUnit(this) || (!bIgnorePath && !pathFinder.generatePath(*pCandidatePlot)))
 				continue;
 			int const iMaxWorkers = 1;
 			int const iReservedPlot = GET_PLAYER(getOwner()).AI_plotTargetMissionAIs(*pCandidatePlot, MISSIONAI_BUILD, getGroup(), iRange, iMaxWorkers);
@@ -4488,11 +4266,11 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 			ImprovementTypes const eCurrentImprovement = pB->getImprovementType();
 			ImprovementTypes const eCandidateImprovement = GC.getInfo(eB).getImprovement();
 			BonusTypes const eCandidateBonus = pB->getNonObsoleteBonusType(getTeam());
-			bool const bIrrigationFarmReplacement = (
-				bSAS_WORKER_AI_IRRIGATION_CHAIN_FARM_VALUE_ENABLE &&
-				eCandidateImprovement == eImprovementFarm &&
+			bool const bIrrigationCarrierReplacement = (
+				bSAS_WORKER_AI_IRRIGATION_CHAIN_ENABLE &&
+				SAS_isWorkerIrrigationCarrierImprovement(eCandidateImprovement) &&
 				GET_TEAM(getTeam()).isIrrigation() &&
-				!pB->isWater() && !pB->isHills() && !pB->isCity() &&
+				!pB->isWater() && !pB->isCity() &&
 				pB->canHavePotentialIrrigation() &&
 				(pB->isFreshWater() || pB->isIrrigationAvailable(true)));
 			bool const bNormalReplacementWhileBlankBFCRemains = (
@@ -4500,7 +4278,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 				eCandidateImprovement != NO_IMPROVEMENT &&
 				eCurrentImprovement != eCandidateImprovement &&
 				eCandidateBonus == NO_BONUS &&
-				!bIrrigationFarmReplacement);
+				!bIrrigationCarrierReplacement);
 			if (bNormalReplacementWhileBlankBFCRemains)
 			{
 				iDiagnosticReplacementSkipRejects++;
@@ -4536,10 +4314,11 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 				iMaxWorkers = AI_calculatePlotWorkersNeeded(pB, eB);
 		} */ // BtS
 		// K-Mod. basically the same thing, but using pathFinder.
-		if (pathFinder.generatePath(*pB))
+		if (bIgnorePath || pathFinder.generatePath(*pB))
 		{
 			iDiagnosticPathableCandidates++;
-			// <!-- custom: max one worker per tile, should be much more efficient in most cases, minimal gain in spending a lot of move speed to go in one tile this move speed could be used to start much faster on other tiles, especially if it's to inefficiently move to high move cost tile like unroaded hill or forest; however in some cases this may be slower, than say improve a bonus to a farm or pasture with 2 available workers, but i hope that in most cases this is statistically more beneficial for the AI than not to focus one worker on one tile, the type of improvement may also be improtant to tweak as well, ideally start with the improvement not a road on food bonuses (even if just 1 food) but not handled here if we ever handle it; is maybe also computationally faster as a side effect to execute this code maybe (but check to be sure as this is just a guess and i don't know too much about these but i assume so), it also nicely simplifies code as gemini ai suggested. -->
+			// <!-- custom: max one worker per tile, should be much more efficient in most cases, minimal gain in spending a lot of move speed to go in one tile this move speed could be used to start much faster on other tiles, especially if it's to inefficiently move to high move cost tile like unroaded hill or forest; however in some cases this may be slower, than say improve a bonus to a farm or pasture with 2 available workers, but i hope that in most cases this is statistically more beneficial for the AI than not to focus one worker on one tile.
+			// The type of improvement may also be improtant to tweak as well, ideally start with the improvement not a road on food bonuses (even if just 1 food) but not handled here if we ever handle it; is maybe also computationally faster as a side effect to execute this code maybe (but check to be sure as this is just a guess and i don't know too much about these but i assume so), it also nicely simplifies code as gemini ai suggested. -->
 			//int iPathTurns = pathFinder.getPathTurns() + (pathFinder.getFinalMoves() == 0 ? 1 : 0);
 			// int iMaxWorkers = iPathTurns > 1 ? 1 : AI_calculatePlotWorkersNeeded(*pB, eB);
 			// if (pUnit != NULL && pUnit->getPlot().isCity() && iPathTurns == 1)
@@ -4569,7 +4348,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 				bFound     = true;
 				if (gWorkerLogLevel >= 2 && iCityPopulation >= 6)
 				{
-					int const iDiagnosticPathTurns = pathFinder.getPathTurns();
+					int const iDiagnosticPathTurns = (bIgnorePath ? 0 : pathFinder.getPathTurns());
 					ImprovementTypes const eCurrentImprovement = pB->getImprovementType();
 					ImprovementTypes const eCandidateImprovement = GC.getInfo(eB).getImprovement();
 					wchar const* szCurrentImprovement = (eCurrentImprovement == NO_IMPROVEMENT ? L"-" : GC.getInfo(eCurrentImprovement).getDescription());
@@ -4579,7 +4358,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 						GC.getInfo(eB).getDescription(), szCurrentImprovement, szCandidateImprovement, candidatePlots[i].iValue,
 						iDiagnosticPathTurns, iReservedPlot, iMaxWorkers);
 				}
-				if (gWorkerLogLevel >= 2 && candidatePlots[i].ePlot == NO_CITYPLOT && eB == eBuildFarm)
+				if (gWorkerLogLevel >= 2 && candidatePlots[i].bIrrigationChainStep)
 					logBBAI("    %S worker chooses irrigation-chain step at (%d,%d), value=%d",
 						GET_PLAYER(getOwner()).getCivilizationDescription(0), pB->getX(), pB->getY(), candidatePlots[i].iValue);
 				break;
@@ -6082,8 +5861,6 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 	// Simple, readable "redirect instead of retreat" logic
 	// ----------------------------------------------------
 
-	static const FeatureTypes eFeatureJungle = (FeatureTypes)GC.getInfoTypeForString("FEATURE_JUNGLE");
-
 	if (bCanRetreat && !getGroup()->canDefend())
 	{
     /* Retreat logic policy change:
@@ -6143,9 +5920,17 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 				{
 					int iNearTurns = 1;
 
-					// Commit from a bit farther if target is high-impact (jungle clear or bonus)
-					if ((pTarget->getFeatureType() == eFeatureJungle) ||
-						(pTarget->getNonObsoleteBonusType(getTeam()) != NO_BONUS))
+					// <!-- custom: Commit from a little farther when finishing a bonus or clearing any XML-defined harmful feature, rather than naming Jungle; negative health, tile yields or turn damage identify the same strategic urgency for mod-added features. (GPT-5.6-Sol) -->
+					FeatureTypes const eTargetFeature = pTarget->getFeatureType();
+					bool bHarmfulTargetFeature = false;
+					if (eTargetFeature != NO_FEATURE)
+					{
+						CvFeatureInfo const& kTargetFeature = GC.getInfo(eTargetFeature);
+						bHarmfulTargetFeature = (kTargetFeature.getHealthPercent() < 0 || kTargetFeature.getTurnDamage() > 0);
+						for (int i = 0; i < NUM_YIELD_TYPES && !bHarmfulTargetFeature; i++)
+							bHarmfulTargetFeature = (kTargetFeature.getYieldChange(i) < 0);
+					}
+					if (bHarmfulTargetFeature || pTarget->getNonObsoleteBonusType(getTeam()) != NO_BONUS)
 					{
 						iNearTurns = 2;
 					}
@@ -6236,12 +6021,16 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 			}
 			getGroup()->pushMission(MISSION_BUILD, ePhase0Build, -1, NO_MOVEMENT_FLAGS,
 				true, false, MISSIONAI_BUILD, pPhase0Plot);
+			// <!-- custom: AI_bestCityBuild now returns a worthwhile post-chop improvement for Phase 0.
+			// This short-circuit path bypasses AI_nextCityToImprove, so queue that same follow-up here to preserve the Worker's position and Hill/feature movement investment. (GPT-5.6-Sol) -->
+			if (ePhase0Followup != NO_BUILD)
+				getGroup()->pushMission(MISSION_BUILD, ePhase0Followup, -1, NO_MOVEMENT_FLAGS, true, false, MISSIONAI_BUILD, pPhase0Plot);
 
-			if (bLogPhase0Action) logBBAI("    WORKER_PHASE0_PRODUCTIVE_FEATURE_ACTION turn=%d player=%d %S workerId=%d worker=(%d,%d) city=%S cityId=%d target=(%d,%d) feature=%S build=%S production=%d eligible=%d targeted=%d minEligible=%d coreFoodProduction=%d result=SHORT_CIRCUIT_BEFORE_BONUS_AND_ROUTE_LOGIC",
+			if (bLogPhase0Action) logBBAI("    WORKER_PHASE0_PRODUCTIVE_FEATURE_ACTION turn=%d player=%d %S workerId=%d worker=(%d,%d) city=%S cityId=%d target=(%d,%d) feature=%S build=%S followup=%S production=%d eligible=%d targeted=%d minEligible=%d coreFoodProduction=%d result=SHORT_CIRCUIT_BEFORE_BONUS_AND_ROUTE_LOGIC",
 					GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getID(), getX(), getY(),
 					pPhase0City->getName().GetCString(), pPhase0City->getID(), pPhase0Plot->getX(), pPhase0Plot->getY(),
 					(ePhase0FeatureForLog == NO_FEATURE ? L"-" : GC.getInfo(ePhase0FeatureForLog).getDescription()),
-					GC.getInfo(ePhase0Build).getDescription(), kVerify.iProduction,
+					GC.getInfo(ePhase0Build).getDescription(), (ePhase0Followup == NO_BUILD ? L"-" : GC.getInfo(ePhase0Followup).getDescription()), kVerify.iProduction,
 					iEligible, iTargeted, iPhase0MinEligibleForLog, bCoreFoodProduction);
 			return;
 		}
@@ -6258,8 +6047,10 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 				//if (NO_IMPROVEMENT != eImprovement && GC.getInfo(eImprovement).isImprovementBonusTrade(eNonObsoleteBonus))
 				if (kOwner.doesImprovementConnectBonus(eImprovement, eNonObsoleteBonus))
 				{
-					if (AI_connectPlot(getPlot()))
+					if (AI_connectPlot(getPlot(), 0, "CONNECT_CURRENT_BONUS"))
+					{
 						return;
+					}
 				}
 			}
 		}
@@ -6283,7 +6074,7 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 
 	// <!-- custom: NORMAL Phase 0 comes after bonus improvement but before city-connection roads and ordinary tile work.
 	// Its higher threshold intentionally spends only the most abundant part of an early/low-output productive-feature stock.
-	// Once the XML era/empire/output gates say the fixed chop lump is no longer strategically large, these plots are no longer Phase-0 stock or reserve and fall through to ordinary Worker development instead of remaining blocked.
+	// Once the XML era/empire/output gates say the fixed chop lump is no longer strategically large, these plots are no longer Phase-0 stock and fall through to ordinary Worker development.
 	// E.g. an early 8-eligible-Forest city with the default threshold 6 can make about 3 generic chops, while a mature high-output or post-Medieval city simply uses normal Phase-1 logic. See KI#33.2. (ChatGPT-5.6-Sol) -->
 	if (bNotBarbPhase0)
 	{
@@ -6340,12 +6131,15 @@ void CvUnitAI::AI_workerMove(/* advc.113b: */ bool bUpdateWorkersHave)
 			}
 			getGroup()->pushMission(MISSION_BUILD, ePhase0Build, -1, NO_MOVEMENT_FLAGS,
 				true, false, MISSIONAI_BUILD, pPhase0Plot);
+			// <!-- custom: Preserve the same selected post-chop improvement in the NORMAL Phase-0 short-circuit path; otherwise only city-job callers would retain the new follow-up. (GPT-5.6-Sol) -->
+			if (ePhase0Followup != NO_BUILD)
+				getGroup()->pushMission(MISSION_BUILD, ePhase0Followup, -1, NO_MOVEMENT_FLAGS, true, false, MISSIONAI_BUILD, pPhase0Plot);
 
-			if (bLogPhase0Action) logBBAI("    WORKER_PHASE0_PRODUCTIVE_FEATURE_ACTION turn=%d player=%d %S workerId=%d worker=(%d,%d) city=%S cityId=%d target=(%d,%d) feature=%S build=%S production=%d eligible=%d targeted=%d minEligible=%d coreFoodProduction=0 result=SHORT_CIRCUIT_AFTER_BONUS_BEFORE_ROUTE_AND_NORMAL_WORK",
+			if (bLogPhase0Action) logBBAI("    WORKER_PHASE0_PRODUCTIVE_FEATURE_ACTION turn=%d player=%d %S workerId=%d worker=(%d,%d) city=%S cityId=%d target=(%d,%d) feature=%S build=%S followup=%S production=%d eligible=%d targeted=%d minEligible=%d coreFoodProduction=0 result=SHORT_CIRCUIT_AFTER_BONUS_BEFORE_ROUTE_AND_NORMAL_WORK",
 					GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getID(), getX(), getY(),
 					pPhase0City->getName().GetCString(), pPhase0City->getID(), pPhase0Plot->getX(), pPhase0Plot->getY(),
 					(ePhase0FeatureForLog == NO_FEATURE ? L"-" : GC.getInfo(ePhase0FeatureForLog).getDescription()),
-					GC.getInfo(ePhase0Build).getDescription(), kVerify.iProduction,
+					GC.getInfo(ePhase0Build).getDescription(), (ePhase0Followup == NO_BUILD ? L"-" : GC.getInfo(ePhase0Followup).getDescription()), kVerify.iProduction,
 					iEligible, iTargeted, iPhase0MinEligibleForLog);
 			return;
 		}
@@ -23344,6 +23138,9 @@ bool CvUnitAI::AI_ferryWorkers()
 			CvPlot& kPlot = kMap.getPlotByIndex(i);
 			if(kPlot.isWater() || kPlot.getOwner() != kOwner.getID())
 				continue;
+			// <!-- custom: A cityless island needs at most one ferried Worker at a time; that Worker can improve every connected BFC/bonus plot, then the existing stranded-unit pickup path can recover it; reject another voyage while one already occupies the land area. (GPT-5.6-Sol) -->
+			if (kPlot.getArea().getCitiesPerPlayer(kOwner.getID()) <= 0 && kOwner.AI_totalAreaUnitAIs(kPlot.getArea(), UNITAI_WORKER) > 0)
+				continue;
 			CvCityAI* pWorkingCity = NULL;
 			if (kPlot.getArea().getCitiesPerPlayer(kOwner.getID()) > 0 ||
 				kOwner.AI_neededWorkers(kPlot.getArea()) <= 0 ||
@@ -23375,16 +23172,28 @@ bool CvUnitAI::AI_ferryWorkers()
 				continue;
 			if (pWorkingCity != NULL)
 			{
-				BuildTypes eBestBuild = pWorkingCity->AI_getBestBuild(pWorkingCity->
-						getCityPlotIndex(kPlot));
-				if (eBestBuild == NO_BUILD || !kWorker.canBuild(kPlot, eBestBuild))
+				CvPlot* pEvaluatedPlot = NULL;
+				BuildTypes eBestBuild = NO_BUILD;
+				BuildTypes eFollowupBuild = NO_BUILD;
+				int iBuildValue = 0;
+				// <!-- custom: Base AdvCiv's off-area BFC ferry scan used the city best-build cache, but SAS deliberately disables that legacy evaluator for land plots.
+				// Query the current yield/feature/bonus evaluator for this exact plot without land pathfinding; the Settler transport separately proves the sea route before dispatching one Worker.
+				// This restores the intended small-island BFC support without maintaining a second improvement formula. (GPT-5.6-Sol) -->
+				if (!kWorker.AI_bestCityBuild(*pWorkingCity, &pEvaluatedPlot, &eBestBuild, NULL, pWorker, &iBuildValue, &eFollowupBuild, &kPlot, true) || pEvaluatedPlot != &kPlot)
 					continue;
-				ImprovementTypes eBestImpr = GC.getInfo(eBestBuild).getImprovement();
+				BuildTypes const eImprovementBuild = (GC.getInfo(eBestBuild).getImprovement() != NO_IMPROVEMENT ? eBestBuild : eFollowupBuild);
+				if (eImprovementBuild == NO_BUILD || !kWorker.canBuild(kPlot, eImprovementBuild))
+					continue;
+				ImprovementTypes eBestImpr = GC.getInfo(eImprovementBuild).getImprovement();
 				if (eBestImpr == NO_IMPROVEMENT) // Don't go there just to chop
 					continue;
 				// Not going to build forts on workable tiles
 				if (GC.getInfo(eBestImpr).isActsAsCity())
 					continue;
+				if (gWorkerLogLevel >= 3 || gOverseasTransportLogLevel >= 3) logBBAI("    WORKER_CROSS_WATER_BFC_CANDIDATE turn=%d player=%d %S transportId=%d workerId=%d city=%S plot=(%d,%d) plotArea=%d directBuild=%S followup=%S improvement=%S buildValue=%d result=ELIGIBLE",
+					GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getID(), pWorker->getID(), pWorkingCity->getName().GetCString(),
+					kPlot.getX(), kPlot.getY(), kPlot.getArea().getID(), GC.getInfo(eBestBuild).getDescription(),
+					(eFollowupBuild == NO_BUILD ? L"-" : GC.getInfo(eFollowupBuild).getDescription()), GC.getInfo(eBestImpr).getDescription(), iBuildValue);
 			}
 			else
 			{
@@ -23436,6 +23245,13 @@ bool CvUnitAI::AI_ferryWorkers()
 
 	if (pBestPlot != NULL)
 	{
+		if ((gWorkerLogLevel >= 2 || gOverseasTransportLogLevel >= 2) && !pBestPlot->isCity())
+		{
+			CvCity const* pWorkingCity = pBestPlot->AI_getWorkingCity();
+			if (pWorkingCity != NULL) logBBAI("    WORKER_CROSS_WATER_BFC_DISPATCH turn=%d player=%d %S transportId=%d transport=(%d,%d) workersAboardBeforeTrim=%d city=%S target=(%d,%d) targetArea=%d result=ONE_WORKER_FERRY",
+				GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getID(), getX(), getY(), iWorkers,
+				pWorkingCity->getName().GetCString(), pBestPlot->getX(), pBestPlot->getY(), pBestPlot->getArea().getID());
+		}
 		if (atPlot(pBestPlot))
 		{
 			unloadAll(); // XXX is this dangerous (not pushing a mission...) XXX air units?
@@ -23917,7 +23733,9 @@ bool CvUnitAI::AI_carrierSeaTransport()
 }
 
 
-bool CvUnitAI::AI_connectPlot(CvPlot const& kPlot, int iRange) // advc: 1st param was CvPlot*
+// <!-- custom: Worker routes are selected through several independent paths, so log the strategic caller context separately from AI_connectPlot's concrete route plan.
+// This distinguishes current/other-city and bonus connection requests from the four ways this helper can lay the connection, without logging rejected candidates or low-level mission execution repeatedly. (GPT-5.6-Sol) -->
+bool CvUnitAI::AI_connectPlot(CvPlot const& kPlot, int iRange, char const* szContext) // advc: 1st param was CvPlot*
 {
 	PROFILE_FUNC();
 
@@ -23952,6 +23770,9 @@ bool CvUnitAI::AI_connectPlot(CvPlot const& kPlot, int iRange) // advc: 1st para
 				}
 				getGroup()->pushMission(MISSION_ROUTE_TO, c->getX(), c->getY(),
 						MOVE_SAFE_TERRITORY, false, false, MISSIONAI_BUILD, &kPlot);
+				if (gWorkerLogLevel >= 2) logBBAI("    WORKER_ROUTE_ACTION turn=%d player=%d %S workerId=%d worker=(%d,%d) reason=%s plan=BARBARIAN_TARGET_TO_WORKING_CITY target=(%d,%d) routeEnd=(%d,%d) routeEndCity=%S routeEndCityId=%d",
+					GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(), getX(), getY(), szContext,
+					kPlot.getX(), kPlot.getY(), c->getX(), c->getY(), c->getName().GetCString(), c->getID());
 				return true;
 			} // </advc.300>
 			FOR_EACH_CITY(pLoopCity, GET_PLAYER(getOwner()))
@@ -23963,6 +23784,9 @@ bool CvUnitAI::AI_connectPlot(CvPlot const& kPlot, int iRange) // advc: 1st para
 					{
 						getGroup()->pushMission(MISSION_ROUTE_TO, kPlot.getX(), kPlot.getY(),
 								MOVE_SAFE_TERRITORY, false, false, MISSIONAI_BUILD, &kPlot);
+						if (gWorkerLogLevel >= 2) logBBAI("    WORKER_ROUTE_ACTION turn=%d player=%d %S workerId=%d worker=(%d,%d) reason=%s plan=CURRENT_NETWORK_TO_TARGET target=(%d,%d) disconnectedCity=%S disconnectedCityId=%d",
+							GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(), getX(), getY(), szContext,
+							kPlot.getX(), kPlot.getY(), pLoopCity->getName().GetCString(), pLoopCity->getID());
 						return true;
 					}
 				}
@@ -23987,6 +23811,9 @@ bool CvUnitAI::AI_connectPlot(CvPlot const& kPlot, int iRange) // advc: 1st para
 					{
 						getGroup()->pushMission(MISSION_ROUTE_TO, pLoopCity->getX(), pLoopCity->getY(),
 								MOVE_SAFE_TERRITORY, false, false, MISSIONAI_BUILD, &kPlot);
+						if (gWorkerLogLevel >= 2) logBBAI("    WORKER_ROUTE_ACTION turn=%d player=%d %S workerId=%d worker=(%d,%d) reason=%s plan=TARGET_TO_REACHABLE_CITY target=(%d,%d) routeEnd=(%d,%d) routeEndCity=%S routeEndCityId=%d",
+							GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(), getX(), getY(), szContext,
+							kPlot.getX(), kPlot.getY(), pLoopCity->getX(), pLoopCity->getY(), pLoopCity->getName().GetCString(), pLoopCity->getID());
 					}
 					else
 					{
@@ -23996,6 +23823,9 @@ bool CvUnitAI::AI_connectPlot(CvPlot const& kPlot, int iRange) // advc: 1st para
 						getGroup()->pushMission(MISSION_ROUTE_TO,
 								kPlot.getX(), kPlot.getY(), MOVE_SAFE_TERRITORY,
 								true, false, MISSIONAI_BUILD, &kPlot); // K-Mod
+						if (gWorkerLogLevel >= 2) logBBAI("    WORKER_ROUTE_ACTION turn=%d player=%d %S workerId=%d worker=(%d,%d) reason=%s plan=REACHABLE_CITY_THEN_TARGET target=(%d,%d) firstRouteEnd=(%d,%d) firstRouteEndCity=%S firstRouteEndCityId=%d",
+							GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(), getX(), getY(), szContext,
+							kPlot.getX(), kPlot.getY(), pLoopCity->getX(), pLoopCity->getY(), pLoopCity->getName().GetCString(), pLoopCity->getID());
 					}
 					return true;
 				}
@@ -24005,21 +23835,30 @@ bool CvUnitAI::AI_connectPlot(CvPlot const& kPlot, int iRange) // advc: 1st para
 	return false;
 }
 
-// advc: Cut from AI_improveCity to reduce code duplication
+// advc: Cut from AI_improveCity to reduce code duplication; MovementFlags& eFlags, // in-out param
+// <!-- custom: ppszRouteReason reports only an accepted condition already evaluated here; callers pass NULL when Worker diagnostics are disabled, avoiding diagnostic-only writes without repeating pathfinding or changing the decision. (GPT-5.6-Sol) -->
 // in-out param <!-- custom: hoisted from multiline signature between `eFlags` and `pDestCity` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-bool CvUnitAI::AI_shouldRouteWhileImproving(CvPlot const& kDest, MovementFlags& eFlags, CvCity const* pDestCity) const
+bool CvUnitAI::AI_shouldRouteWhileImproving(CvPlot const& kDest, MovementFlags& eFlags, CvCity const* pDestCity, char const** ppszRouteReason) const
 {
 	bool bRoute = false;
+	if (ppszRouteReason != NULL)
+		*ppszRouteReason = "NONE";
 	if (pDestCity != NULL && getPlot().getWorkingCity() != pDestCity /*||
 		GC.getInfo(eBestBuild).getRoute() != NO_ROUTE*/) // advc.121: Walk don't route
 	{
 		bRoute = true;
+		if (ppszRouteReason != NULL)
+			*ppszRouteReason = "DESTINATION_OTHER_WORKING_CITY";
 	}
 	else if (generatePath(kDest, eFlags, true) &&
 		getPathFinder().getPathTurns() == 1 && getPathFinder().getFinalMoves() == 0)
 	{
 		if (kDest.isRoute())
+		{
 			bRoute = true;
+			if (ppszRouteReason != NULL)
+				*ppszRouteReason = "ONE_TURN_DESTINATION_ALREADY_ROUTED";
+		}
 	}
 	else if (!getPlot().isRoute())
 	{
@@ -24030,9 +23869,16 @@ bool CvUnitAI::AI_shouldRouteWhileImproving(CvPlot const& kDest, MovementFlags& 
 		if (getPlot().isHills())
 			iPlotMoveCost += GC.getDefineINT(CvGlobals::HILLS_EXTRA_MOVEMENT);
 		if (iPlotMoveCost > 1)
+		{
 			bRoute = true;
+			if (ppszRouteReason != NULL)
+				*ppszRouteReason = "SLOW_UNROUTED_SOURCE_PLOT";
+		}
 	}
-	return (bRoute && AI_canRouteThroughSafeTerritory(kDest, eFlags));
+	bool const bSafeRoute = (bRoute && AI_canRouteThroughSafeTerritory(kDest, eFlags));
+	if (!bSafeRoute && ppszRouteReason != NULL)
+		*ppszRouteReason = "NONE";
+	return bSafeRoute;
 }
 
 // advc.pf: Don't route through foreign territory
@@ -24073,7 +23919,9 @@ bool CvUnitAI::AI_improveCity(CvCityAI const& kCity)
 
 	MovementFlags eFlags = NO_MOVEMENT_FLAGS; // advc.pf
 	// <advc> Moved into helper function
-	MissionTypes eMission = (AI_shouldRouteWhileImproving(*pBestPlot, eFlags, &kCity) ?
+	bool const bLogRoute = (gWorkerLogLevel >= 2);
+	char const* szRouteReason = NULL;
+	MissionTypes eMission = (AI_shouldRouteWhileImproving(*pBestPlot, eFlags, &kCity, (bLogRoute ? &szRouteReason : NULL)) ?
 			MISSION_ROUTE_TO : MISSION_MOVE_TO); // </advc>
 	getGroup()->pushMission(eMission,
 			pBestPlot->getX(), pBestPlot->getY(),
@@ -24086,6 +23934,10 @@ bool CvUnitAI::AI_improveCity(CvCityAI const& kCity)
 			false, MISSIONAI_BUILD, pBestPlot);
 	if (eFollowupBuild != NO_BUILD)
 		getGroup()->pushMission(MISSION_BUILD, eFollowupBuild, -1, eFlags, true, false, MISSIONAI_BUILD, pBestPlot);
+	if (bLogRoute && eMission == MISSION_ROUTE_TO) logBBAI("    WORKER_ROUTE_BEFORE_CITY_IMPROVEMENT turn=%d player=%d %S workerId=%d worker=(%d,%d) source=IMPROVE_CITY target=(%d,%d) targetCity=%S targetCityId=%d reason=%s targetHasRoute=%d intendedBuild=%S followup=%S",
+		GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(), getX(), getY(),
+		pBestPlot->getX(), pBestPlot->getY(), kCity.getName().GetCString(), kCity.getID(), szRouteReason, pBestPlot->isRoute(),
+		GC.getInfo(eBestBuild).getDescription(), (eFollowupBuild == NO_BUILD ? L"-" : GC.getInfo(eFollowupBuild).getDescription()));
 	return true;
 }
 
@@ -24228,7 +24080,9 @@ bool CvUnitAI::AI_improveLocalPlot(int iRange, CvCity const* pIgnoreCity, int iM
 	}*/
 	MovementFlags eFlags = NO_MOVEMENT_FLAGS; // advc.pf
 	// <advc> Moved into helper function
-	MissionTypes eMission = (AI_shouldRouteWhileImproving(*pBestPlot, eFlags) ?
+	bool const bLogRoute = (gWorkerLogLevel >= 2);
+	char const* szRouteReason = NULL;
+	MissionTypes eMission = (AI_shouldRouteWhileImproving(*pBestPlot, eFlags, NULL, (bLogRoute ? &szRouteReason : NULL)) ?
 			MISSION_ROUTE_TO : MISSION_MOVE_TO); // </advc>
 	getGroup()->pushMission(eMission,
 			pBestPlot->getX(), pBestPlot->getY(),
@@ -24236,12 +24090,19 @@ bool CvUnitAI::AI_improveLocalPlot(int iRange, CvCity const* pIgnoreCity, int iM
 			MISSIONAI_BUILD, pBestPlot);
 	/* advc.117: betterPlotBuild will only suggest Farms or Forts
 		or who knows what -- stick to the chopping plan. */
+	char const* szBuildRouteReason = NULL;
 	if (!bChop)
-		eBestBuild = AI_betterPlotBuild(*pBestPlot, eBestBuild);
+		eBestBuild = AI_betterPlotBuild(*pBestPlot, eBestBuild, (bLogRoute ? &szBuildRouteReason : NULL));
 	getGroup()->pushMission(MISSION_BUILD,
 			eBestBuild, -1,
 			eFlags, true, false,
 			MISSIONAI_BUILD, pBestPlot); // K-Mod
+	if (bLogRoute && eMission == MISSION_ROUTE_TO) logBBAI("    WORKER_ROUTE_BEFORE_CITY_IMPROVEMENT turn=%d player=%d %S workerId=%d worker=(%d,%d) source=IMPROVE_LOCAL_PLOT target=(%d,%d) reason=%s targetHasRoute=%d intendedBuild=%S standaloneChop=%d",
+		GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(), getX(), getY(),
+		pBestPlot->getX(), pBestPlot->getY(), szRouteReason, pBestPlot->isRoute(), GC.getInfo(eBestBuild).getDescription(), bChop);
+	if (bLogRoute && GC.getInfo(eBestBuild).getRoute() != NO_ROUTE) logBBAI("    WORKER_ROUTE_BUILD_ACTION turn=%d player=%d %S workerId=%d worker=(%d,%d) source=IMPROVE_LOCAL_PLOT target=(%d,%d) reason=%s build=%S standaloneChop=%d",
+		GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(), getX(), getY(),
+		pBestPlot->getX(), pBestPlot->getY(), szBuildRouteReason, GC.getInfo(eBestBuild).getDescription(), bChop);
 	return true;
 }
 
@@ -24259,7 +24120,12 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity const* pCity) // advc: const param
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 	//bool const bMoveAllTerrain = getGroup()->canMoveAllTerrain(); // advc
 
-	// <!-- custom: with AI worker move optimization (going to city B/C sooner instead of overimproving city A), workers now go back to city A since they consider it improved enough. Strong indication something else prevents going to city C (unimproved at turn 105-175). Making this much more lax since we handle worker oscillation in our own way. Old code prevented workers from ever going to city C - AI behaved badly, staying forever in city A. Results after fix: tremendous improvement - city C now fully improved and size 2 at turn 105, with 5+ tiles chopped/improved (jungle chopping gives production in our mod), instead of staying parked in city A. Jungle cities get first improvements much earlier. See known issue 41 with screenshots for details. Credit: ChatGPT 5. (Claude code Sonnet 4.5 (summarized)) -->
+	// <!-- custom: with AI worker move optimization (going to city B/C sooner instead of overimproving city A), workers now go back to city A since they consider it improved enough.
+	// Strong indication something else prevents going to city C (unimproved at turn 105-175).
+	// Making this much more lax since we handle worker oscillation in our own way.
+	// Old code prevented workers from ever going to city C - AI behaved badly, staying forever in city A.
+	// Results after fix: tremendous improvement - city C now fully improved and size 2 at turn 105, with 5+ tiles chopped/improved (jungle chopping gives production in our mod), instead of staying parked in city A.
+	// Jungle cities get first improvements much earlier. See known issue 41 with screenshots for details. Credit: ChatGPT 5. (Claude code Sonnet 4.5 (summarized)) -->
 	// FOR_EACH_CITYAI(pLoopCity, kOwner)
 	// {
 	// 	if (pLoopCity == pCity)
@@ -24340,8 +24206,8 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity const* pCity) // advc: const param
         BuildTypes eBuild = NO_BUILD;
 		BuildTypes eFollowupBuild = NO_BUILD;
 		int iBuildValue = 0;
-		// <!-- custom: Legacy context: calling only our rewritten AI_bestCityBuild initially exposed crashes around turns 77/156, so its callers and outputs retain explicit null/NO_BUILD guards. This version no longer depends on old AI_getBestBuild filtering, which had hidden valid custom worker jobs; attempted bonus-roading additions were reverted after making workers less efficient. (GPT-5.5) -->
-        // <!-- custom: AI_getBestBuild is disabled for land improvements; relying on it here made workers ignore cities whose custom AI_bestCityBuild still had work. In the Niani 2027 AD autoplay sample, a roaded but unimproved Pig stayed unimproved while nearby workers were on HOLD; letting AI_bestCityBuild decide fixed the in-game case. (GPT-5.5) -->
+		// <!-- custom: Legacy context: calling only our rewritten AI_bestCityBuild initially exposed crashes around turns 77/156, so its callers and outputs retain explicit null/NO_BUILD guards; this version no longer depends on old AI_getBestBuild filtering, which had hidden valid custom worker jobs; attempted bonus-roading additions were reverted after making workers less efficient. (GPT-5.5) -->
+        // <!-- custom: AI_getBestBuild is disabled for land improvements; relying on it here made workers ignore cities whose custom AI_bestCityBuild still had work; in the Niani 2027 AD autoplay sample, a roaded but unimproved Pig stayed unimproved while nearby workers were on HOLD; letting AI_bestCityBuild decide fixed the in-game case. (GPT-5.5) -->
         if (!AI_bestCityBuild(*pLoopCity, &pPlot, &eBuild, NULL, this, &iBuildValue, &eFollowupBuild))
         {
 			if (bLogWorkerCityTarget)
@@ -24464,25 +24330,17 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity const* pCity) // advc: const param
 	// if (!canBuild(*pBestPlot, eBestBuild))
 	// 	return false; // something changed; replan next turn
 
-	// <!-- custom: reverted the roading and such logic and crash fixes here as well as said above in code comments too as workers were not efficient and not worth the hassle, see above for details -->
-	// <advc.121>
-	MissionTypes eMission = MISSION_MOVE_TO;
-	if (!getPlot().isSamePlotGroup(*pBestPlot, getOwner()) || !getPlot().isRoute() ||
-		SyncRandOneChanceIn(stepDistance(plot(), pBestPlot) + 1))
-	{
-		if (generatePath(*pBestPlot, MOVE_SAFE_TERRITORY)) // advc.pf
-			eMission = MISSION_ROUTE_TO;
-	}
-	getGroup()->pushMission(eMission, /* </advc.121> */
-			pBestPlot->getX(), pBestPlot->getY(),
-			eMission == MISSION_ROUTE_TO ? MOVE_SAFE_TERRITORY : NO_MOVEMENT_FLAGS, // advc.pf
-			false, false, MISSIONAI_BUILD, pBestPlot);
+	// <!-- custom: Move directly to the selected city improvement instead of inheriting a Road merely because the Worker starts outside the target plot group, stands on an unroaded plot, or passes a distance-based random roll.
+	// Two 2026-09-22 autoplay runs logged 1,850 and 1,608 such route-before-improvement missions; Berlin also showed a Worker spend Mine turns roading toward the plot and then leave.
+	// City-pair roads, bonus connections, improvement-yield routes, and later fallback route work remain responsible for deliberate network coverage, while this path completes the already-scored city yield first. See KI#30. (GPT-5.6-Sol) -->
+	getGroup()->pushMission(MISSION_MOVE_TO, pBestPlot->getX(), pBestPlot->getY(), NO_MOVEMENT_FLAGS, false, false, MISSIONAI_BUILD, pBestPlot);
 	// <!-- custom: AI_bestCityBuild already evaluates the city, plot, feature removal, and exact build together. Chengdu selected Chop Forest at (29,11) on turn 106, but postprocessing it through AI_betterPlotBuild replaced the scored and reserved job with Road; execute the selected build unchanged so worker assignment remains consistent with its full evaluation. (GPT-5.5) -->
 	getGroup()->pushMission(MISSION_BUILD,
 			eBestBuild, -1, NO_MOVEMENT_FLAGS,
 			//(getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BUILD, pBestPlot);
 			true, false, MISSIONAI_BUILD, pBestPlot); // K-Mod
-	// <!-- custom: AI_bestCityBuild deliberately chooses standalone feature removal so Forest/Jungle production arrives sooner, but previously forgot the valuable Mine/Farm/Cottage/etc. it had selected underneath. Continue into that evaluator-selected improvement when supplied; low-value no-bonus follow-ups are filtered by XML, while mission legality is checked again when the queued build executes. (GPT-5.5) -->
+	// <!-- custom: AI_bestCityBuild deliberately chooses standalone feature removal so Forest/Jungle production arrives sooner, but previously forgot the valuable Mine/Farm/Cottage/etc it had selected underneath.
+	// Continue into that evaluator-selected improvement when supplied; low-value no-bonus follow-ups are filtered by XML, while mission legality is checked again when the queued build executes. (GPT-5.5) -->
 	if (eBestFollowupBuild != NO_BUILD)
 	{
 		getGroup()->pushMission(MISSION_BUILD, eBestFollowupBuild, -1, NO_MOVEMENT_FLAGS, true, false, MISSIONAI_BUILD, pBestPlot);
@@ -24491,9 +24349,9 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity const* pCity) // advc: const param
 	if (gWorkerLogLevel >= 3)
 	{
 		wchar const* szFollowupBuild = (eBestFollowupBuild == NO_BUILD ? L"-" : GC.getInfo(eBestFollowupBuild).getDescription());
-		logBBAI("    WORKER_CITY_ASSIGNMENT turn=%d player=%d %S workerId=%d worker=(%d,%d) groupId=%d target=(%d,%d) moveMission=%d build=%S followup=%S missionAI=%d missionQueue=%d movesSpent=%d movesLeft=%d",
+		logBBAI("    WORKER_CITY_ASSIGNMENT turn=%d player=%d %S workerId=%d worker=(%d,%d) groupId=%d target=(%d,%d) moveMission=MOVE_TO routePolicy=DIRECT_TO_CITY_YIELD targetHasRoute=%d build=%S followup=%S missionAI=%d missionQueue=%d movesSpent=%d movesLeft=%d",
 			GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(), getX(), getY(),
-			getGroup()->getID(), pBestPlot->getX(), pBestPlot->getY(), eMission, GC.getInfo(eBestBuild).getDescription(), szFollowupBuild,
+			getGroup()->getID(), pBestPlot->getX(), pBestPlot->getY(), pBestPlot->isRoute(), GC.getInfo(eBestBuild).getDescription(), szFollowupBuild,
 			AI_getGroup()->AI_getMissionAIType(), getGroup()->getLengthMissionQueue(), getMoves(), movesLeft());
 	}
 	return true;
@@ -24540,7 +24398,8 @@ bool CvUnitAI::AI_nextCityToImproveAirlift()
 }
 
 
-// <!-- custom: we handle these ourselves now in CvUnitAI::AI_bestCityBuild, please do not override and interfere with our preferred ideal tiles like often cottages on flood plains or grass, no farm on plains spices (exceptions managed there as well), we as of now don't strictly handle irrigation, but we want to remove unwanted interferences, this ruins good city radiuses with needless farms just because a tile, any unimproved tile, can be irrigated, according to what i understand of claude ai's explanation, and otherwise we have almost total control and improved it nicely. So testing commenting-out this function entirely to see what happens, as advised by claude ai, we already choose and improve cities based on terrain and such, even if as of now we don't handle irrigation, it is not a concern big enough to override nice and ultimate or at least very efficient yield and terrain optimization we added, so testing to disable functionally this to see -->
+// <!-- custom: we handle these ourselves now in CvUnitAI::AI_bestCityBuild, please do not override and interfere with our preferred ideal tiles like often cottages on flood plains or grass, no farm on plains spices (exceptions managed there as well), we as of now don't strictly handle irrigation, but we want to remove unwanted interferences, this ruins good city radiuses with needless farms just because a tile, any unimproved tile, can be irrigated, according to what i understand of claude ai's explanation, and otherwise we have almost total control and improved it nicely.
+// So testing commenting-out this function entirely to see what happens, as advised by claude ai, we already choose and improve cities based on terrain and such, even if as of now we don't handle irrigation, it is not a concern big enough to override nice and ultimate or at least very efficient yield and terrain optimization we added, so testing to disable functionally this to see -->
 bool CvUnitAI::AI_irrigateTerritory()
 {
 	// PROFILE_FUNC();
@@ -24779,6 +24638,9 @@ bool CvUnitAI::AI_fortTerritory(bool bCanal, bool bAirbase)
 		getGroup()->pushMission(MISSION_BUILD, eBestBuild, -1, eFlags,
 				//(getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BUILD, pBestPlot);
 				true, false, MISSIONAI_BUILD, pBestPlot); // K-Mod
+		if (gWorkerLogLevel >= 2) logBBAI("    WORKER_ROUTE_BEFORE_CITY_IMPROVEMENT turn=%d player=%d %S workerId=%d worker=(%d,%d) source=FORT_TERRITORY target=(%d,%d) reason=FORT_AIRBASE_PATH_ALWAYS_ROUTES intendedBuild=%S canalRequested=%d airbaseRequested=%d value=%d",
+			GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(), getX(), getY(),
+			pBestPlot->getX(), pBestPlot->getY(), GC.getInfo(eBestBuild).getDescription(), bCanal, bAirbase, iBestValue);
 
 		return true;
 	}
@@ -24825,40 +24687,6 @@ bool CvUnitAI::AI_improveBonus(int iMissingWorkersInArea) // advc.121
 		BonusTypes eNonObsoleteBonus = kPlot.getNonObsoleteBonusType(getTeam());
 		if(eNonObsoleteBonus == NO_BONUS)
 			continue;
-
-		// <!-- custom: Only CORE Worker/Settler production protects the final productive-feature reserve against this separate bonus path.
-		// In normal production, bonus improvement intentionally takes precedence over generic Phase 0.
-		// This avoids the v3 behavior where a forest-heavy city chopped nearly everything before developing any resources/tiles. See KI#33.2. (ChatGPT-5.6-Sol) -->
-		if (getDomainType() == DOMAIN_LAND && kPlot.getFeatureType() != NO_FEATURE)
-		{
-			CvCityAI const* pReserveCity = kPlot.AI_getWorkingCity();
-			if (pReserveCity != NULL &&
-				SAS_isWorkerPhase0CoreFoodProduction(*pReserveCity))
-			{
-				SASWorkerPhase0ProductiveFeatureInfo kReserveInfo;
-				if (SAS_getWorkerPhase0ProductiveFeatureInfo(
-					*this, *pReserveCity, kPlot, kReserveInfo) &&
-					!kReserveInfo.bPressureRelief)
-				{
-					int iEligible = 0;
-					int iTargeted = 0;
-					bool bPressureReliefOnly = false;
-					bool const bPhase0Active = SAS_shouldWorkerPhase0ProductiveFeatureChop(*this,
-						*pReserveCity, NULL, iEligible, iTargeted, bPressureReliefOnly);
-					if (!bPhase0Active)
-					{
-						if (gWorkerLogLevel >= 3) logBBAI("    WORKER_PHASE0_PRODUCTIVE_FEATURE_RESERVE_BONUS turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) bonus=%S feature=%S production=%d eligible=%d targeted=%d minEligible=%d result=SKIP_AI_IMPROVE_BONUS",
-								GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getID(),
-								pReserveCity->getName().GetCString(), kPlot.getX(), kPlot.getY(),
-								GC.getInfo(eNonObsoleteBonus).getDescription(),
-								GC.getInfo(kPlot.getFeatureType()).getDescription(), kReserveInfo.iProduction,
-								iEligible, iTargeted,
-								SAS_getWorkerPhase0MinEligiblePlots(*pReserveCity));
-						continue;
-					}
-				}
-			}
-		}
 
 		bool bConnected = kPlot.isConnectedToCapital(getOwner());
 		// <!-- custom: Work Boats can connect sea bonuses through the bonus improvement itself. Do not reject owned outside-BFC seafood merely because the plot has no working city and the unit cannot build routes; AI_neededSeaWorkers counts those targets, so rejecting them here can create a produce-boat / target-still-unimproved loop. Later checks still require AI_canConnectBonus, canBuild, pathing, and target reservation. See KI#157. (GPT-5.5 + ChatGPT-5.5) -->
@@ -25060,7 +24888,9 @@ bool CvUnitAI::AI_improveBonus(int iMissingWorkersInArea) // advc.121
 	{
 		FAssert(!bBestBuildIsRoute);
 		FAssert(eBestBuild < GC.getNumBuildInfos());
+		bool const bLogRoute = (gWorkerLogLevel >= 2);
 		MissionTypes eBestMission = MISSION_MOVE_TO;
+		char const* szRouteReason = NULL;
 		// advc.001y: Sea workers can't route
 		if (getGroup()->canDoMission(MISSION_ROUTE_TO, getX(), getY(), plot(), false, false))
 		{
@@ -25068,6 +24898,8 @@ bool CvUnitAI::AI_improveBonus(int iMissingWorkersInArea) // advc.121
 				!pBestPlot->getWorkingCity()->isConnectedToCapital())
 			{
 				eBestMission = MISSION_ROUTE_TO;
+				if (bLogRoute)
+					szRouteReason = (pBestPlot->getWorkingCity() == NULL ? "BONUS_OUTSIDE_CITY_RADIUS" : "BONUS_CITY_NOT_CONNECTED_TO_CAPITAL");
 			}
 			else
 			{
@@ -25078,28 +24910,53 @@ bool CvUnitAI::AI_improveBonus(int iMissingWorkersInArea) // advc.121
 					&iPathTurns))
 				{
 					if (iPathTurns >= iDistance)
+					{
 						eBestMission = MISSION_ROUTE_TO;
+						if (bLogRoute)
+							szRouteReason = "BONUS_PATH_TURNS_AT_LEAST_STEP_DISTANCE";
+					}
 				}
 			}
 		}
 		// <advc.pf>
 		MovementFlags eFlags = NO_MOVEMENT_FLAGS;
 		if (!AI_canRouteThroughSafeTerritory(*pBestPlot, eFlags))
+		{
 			eBestMission = MISSION_MOVE_TO; // </advc.pf>
+			if (bLogRoute)
+				szRouteReason = "NONE";
+		}
 		getGroup()->pushMission(eBestMission,
 				pBestPlot->getX(), pBestPlot->getY(), eFlags, false,
 				false, MISSIONAI_BUILD, pBestPlot);
-		eBestBuild = AI_betterPlotBuild(*pBestPlot, eBestBuild);
+		char const* szBuildRouteReason = NULL;
+		eBestBuild = AI_betterPlotBuild(*pBestPlot, eBestBuild, (bLogRoute ? &szBuildRouteReason : NULL));
 		getGroup()->pushMission(MISSION_BUILD,
 				eBestBuild, -1, eFlags,
 				//(getGroup()->getLengthMissionQueue() > 0),
 				true, // K-Mod
 				false, MISSIONAI_BUILD, pBestPlot);
+		if (bLogRoute && eBestMission == MISSION_ROUTE_TO)
+		{
+			BonusTypes const eTargetBonus = pBestPlot->getNonObsoleteBonusType(getTeam());
+			logBBAI("    WORKER_ROUTE_BEFORE_CITY_IMPROVEMENT turn=%d player=%d %S workerId=%d worker=(%d,%d) source=IMPROVE_BONUS target=(%d,%d) reason=%s targetHasRoute=%d targetBonus=%S intendedBuild=%S value=%d",
+				GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(), getX(), getY(),
+				pBestPlot->getX(), pBestPlot->getY(), szRouteReason, pBestPlot->isRoute(),
+				(eTargetBonus == NO_BONUS ? L"-" : GC.getInfo(eTargetBonus).getDescription()), GC.getInfo(eBestBuild).getDescription(), iBestValue);
+		}
+		if (bLogRoute && GC.getInfo(eBestBuild).getRoute() != NO_ROUTE)
+		{
+			BonusTypes const eTargetBonus = pBestPlot->getNonObsoleteBonusType(getTeam());
+			logBBAI("    WORKER_ROUTE_BUILD_ACTION turn=%d player=%d %S workerId=%d worker=(%d,%d) source=IMPROVE_BONUS target=(%d,%d) reason=%s bonus=%S build=%S value=%d",
+				GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(), getX(), getY(),
+				pBestPlot->getX(), pBestPlot->getY(), szBuildRouteReason,
+				(eTargetBonus == NO_BONUS ? L"-" : GC.getInfo(eTargetBonus).getDescription()), GC.getInfo(eBestBuild).getDescription(), iBestValue);
+		}
 		return true;
 	}
 	else if (bBestBuildIsRoute)
 	{
-		if (AI_connectPlot(*pBestPlot))
+		if (AI_connectPlot(*pBestPlot, 0, "IMPROVE_BONUS_ROUTE_ONLY"))
 		{
 			return true;
 		}
@@ -25125,10 +24982,15 @@ bool CvUnitAI::AI_improvePlot(CvPlot const& kPlot, BuildTypes eBuild) // advc: p
 			pushGroupMoveTo(kPlot, NO_MOVEMENT_FLAGS, false, false,
 					MISSIONAI_BUILD, &kPlot);
 		}
-		eBuild = AI_betterPlotBuild(kPlot, eBuild);
+		bool const bLogRoute = (gWorkerLogLevel >= 2);
+		char const* szBuildRouteReason = NULL;
+		eBuild = AI_betterPlotBuild(kPlot, eBuild, (bLogRoute ? &szBuildRouteReason : NULL));
 		getGroup()->pushMission(MISSION_BUILD, eBuild, -1, NO_MOVEMENT_FLAGS,
 				//(getGroup()->getLengthMissionQueue() > 0), false, MISSIONAI_BUILD, pPlot);
 				true, false, MISSIONAI_BUILD, &kPlot); // K-Mod
+		if (bLogRoute && GC.getInfo(eBuild).getRoute() != NO_ROUTE) logBBAI("    WORKER_ROUTE_BUILD_ACTION turn=%d player=%d %S workerId=%d worker=(%d,%d) source=IMPROVE_PLOT_EXPLICIT_BUILD target=(%d,%d) reason=%s build=%S",
+			GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(), getX(), getY(),
+			kPlot.getX(), kPlot.getY(), szBuildRouteReason, GC.getInfo(eBuild).getDescription());
 
 		return true;
 	}
@@ -25162,6 +25024,9 @@ bool CvUnitAI::AI_improvePlot(CvPlot const& kPlot, BuildTypes eBuild) // advc: p
                     }
                     getGroup()->pushMission(MISSION_BUILD, eLoopBuild, -1, NO_MOVEMENT_FLAGS,
                             true, false, MISSIONAI_BUILD, &kPlot);
+					if (gWorkerLogLevel >= 2) logBBAI("    WORKER_ROUTE_ACTION turn=%d player=%d %S workerId=%d worker=(%d,%d) reason=IMPROVE_PLOT_DIRECT_BONUS_ROUTE_BUILD plan=MOVE_THEN_BUILD_ROUTE target=(%d,%d) bonus=%S build=%S",
+						GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(), getX(), getY(),
+						kPlot.getX(), kPlot.getY(), GC.getInfo(eBonus).getDescription(), GC.getInfo(eLoopBuild).getDescription());
                     return true;
                 }
             }
@@ -25170,7 +25035,7 @@ bool CvUnitAI::AI_improvePlot(CvPlot const& kPlot, BuildTypes eBuild) // advc: p
         // Then fall back to your existing AI_connectPlot logic
         if (canBuildRoute())
         {
-            if (AI_connectPlot(kPlot))
+            if (AI_connectPlot(kPlot, 0, "IMPROVE_PLOT_ROUTE_FALLBACK"))
                 return true;
         }
     }
@@ -25178,9 +25043,14 @@ bool CvUnitAI::AI_improvePlot(CvPlot const& kPlot, BuildTypes eBuild) // advc: p
     return false;
 }
 
-BuildTypes CvUnitAI::AI_betterPlotBuild(CvPlot const& kPlot, BuildTypes eBuild) // advc: param was CvPlot*
+// <!-- custom: When this helper returns a route Build, expose whether it was already requested or replaced an improvement to connect a bonus or bridge plot groups; callers log only the accepted Build; the optional output does not add candidate scans or change selection. (GPT-5.6-Sol) -->
+BuildTypes CvUnitAI::AI_betterPlotBuild(CvPlot const& kPlot, BuildTypes eBuild, char const** ppszRouteReason) // advc: param was CvPlot*
 {
-	// <!-- custom: rewrite and simplify this function's logic, with gemini ai's help thanks, so that we never override the best build, if i understood it correctly, in particular with roads but not only in very select few cases, otherwise always build best build first: deprioritize routes, we want the improvement first (pasture, farm, etc.) on our bonuses before roading, gives the yield slightly sooner, especially valuable for food bonuses but maybe not only (may help production as well although the need to have a route for say iron would be higher, but even then in the end it would need to be mined (for iron for example), then in that case better mine at first, we also allow only one AI worker per build now in advciv-sas to try to make AI more efficient (see changes at CvUnitAI::AI_bestCityBuild for details)); so consider route later after other more important improvements have been built, we may lose some mobility but hopefully get yields sooner or more reliably, i believe higher level players may more often than not not route as is more efficient but is just my opinion/intuition of it based of my memories of when i played at monarch/emperor hehe, every worker turn counts, try to save them, and move speed is not so critical early, but yields are, then later, it would be all roaded, hopefully makes AI stronger this way at least in most cases; tweak hinted by gemini ai telling me to change something around here although i didn't look at all, i hope this code i did doesn't break anything as it is conservative yet hopefully effective (trade movement for sooner yields in short) -->
+	if (ppszRouteReason != NULL)
+		*ppszRouteReason = "NONE";
+	// <!-- custom: rewrite and simplify this function's logic, with gemini ai's help thanks, so that we never override the best build, if i understood it correctly, in particular with roads but not only in very select few cases, otherwise always build best build first: deprioritize routes, we want the improvement first (pasture, farm, etc.) on our bonuses before roading, gives the yield slightly sooner, especially valuable for food bonuses but maybe not only (may help production as well although the need to have a route for say iron would be higher, but even then in the end it would need to be mined (for iron for example).
+	// Then in that case better mine at first, we also allow only one AI worker per build now in advciv-sas to try to make AI more efficient (see changes at CvUnitAI::AI_bestCityBuild for details)); so consider route later after other more important improvements have been built, we may lose some mobility but hopefully get yields sooner or more reliably, i believe higher level players may more often than not not route as is more efficient but is just my opinion/intuition of it based of my memories of when i played at monarch/emperor hehe, every worker turn counts.
+	// Try to save them, and move speed is not so critical early, but yields are, then later, it would be all roaded, hopefully makes AI stronger this way at least in most cases; tweak hinted by gemini ai telling me to change something around here although i didn't look at all, i hope this code i did doesn't break anything as it is conservative yet hopefully effective (trade movement for sooner yields in short) -->
 
 	// <!-- custom: new function code here -->
 	// This function is a simplified and refactored version of the original.
@@ -25191,8 +25061,7 @@ BuildTypes CvUnitAI::AI_betterPlotBuild(CvPlot const& kPlot, BuildTypes eBuild) 
 	// 1. To clear a feature if a planned improvement requires it.
 	// 2. To build a road if the plot bridges two separate road networks.
 
-	// <!-- custom: not sure it is needed to add fallout as such but just to be safe, get any build we can, as fallout doesn't have as of now a build_remove_fallout, get build through say build_farm if it can remove fallout (anything is good as long as we remove fallout, but if our preivous build was already made with that in mind (removing fallout if we selected a workshop in another function for example, then kOriginalBuildInfo.isFeatureRemove(eFeature) would be true and we wouldn't reach this code at all anyway so this is really a safeguad of a safeguard xd and in case other functions call this somehow (i ddin't check))) -->
-	// <!-- custom: for feature remove builds, this is a safeguard for cases where somehow we may have missed the specific build to remove feature (if any exists); note: advantage of hardcoding these especially for forest and jungle is we don't say get a farm that maybe can remove a jungle when we wanted to build a workshop instead after chopping, requires a bit more maintenance but hopefully this stay consistent enough and is computationally efficient, also when caller is one of our refactored functions such as CvUnitAI::AI_bestCityBuild, they already process extensively best build in many conditions including chopping, so this is a safeguard and in case other functions call this (didn't check too much if at all). -->
+	// <!-- custom: Keep feature removal as a separate first mission when the requested improvement removes that feature. Selecting only a pure XML removal Build preserves the intended follow-up improvement instead of substituting an arbitrary Farm or other feature-removing improvement. (GPT-5.6-Sol) -->
 	// <!-- custom: fix on refactored version: while we now improve bonuses much more efficiently, and not needlessly road them first and other things, so very nice early yields, and bonuses improved much sooner in the game, so very very nice yields too, we now however have bonuses sometimes unroaded, for quite a long time often. Trying to do the best of both, improving bonuses sooner, but also roading them sooner as well, and not roading everything execessively/needlessly or too soon as well (the former function was quite crazy about roading based on the ai that helped me refactor it and all's reaction to the code xd if i remember it correctly); code provided by claude ai; with this version it seems we are on a good track, as we road more bonuses or sooner (at turn 60 almost all are roaded in capital city it seems (vs most but not marbe with o3's fix, and i assume worse or same before o3's fix even) in the autoplay same map i ran, but we'd still like to road even sooner ideally -->
 
 	FAssert(eBuild != NO_BUILD);
@@ -25205,21 +25074,14 @@ BuildTypes CvUnitAI::AI_betterPlotBuild(CvPlot const& kPlot, BuildTypes eBuild) 
 	if (eBuild < 0 || eBuild >= GC.getNumBuildInfos())
 		return NO_BUILD;
 
-	static const FeatureTypes eFeatureForest = (FeatureTypes)GC.getInfoTypeForString("FEATURE_FOREST");
-	static const FeatureTypes eFeatureJungle = (FeatureTypes)GC.getInfoTypeForString("FEATURE_JUNGLE");
-	static const FeatureTypes eFeatureFallout = (FeatureTypes)GC.getInfoTypeForString("FEATURE_FALLOUT");
-
-	// Hardcoded BuildTypes for common feature removals for efficiency.
-	static const BuildTypes eBuildRemoveForest = (BuildTypes)GC.getInfoTypeForString("BUILD_REMOVE_FOREST");
-	static const BuildTypes eBuildRemoveJungle = (BuildTypes)GC.getInfoTypeForString("BUILD_REMOVE_JUNGLE");
-	static const BuildTypes eBuildScrubFallout = (BuildTypes)GC.getInfoTypeForString("BUILD_SCRUB_FALLOUT");
-
 	FeatureTypes const eFeature = kPlot.getFeatureType();
 	CvBuildInfo const& kOriginalBuildInfo = GC.getInfo(eBuild);
 
 	// If the original build is a route or the plot already has a route,
 	// we don't need to override it.
 	if (kOriginalBuildInfo.getRoute() != NO_ROUTE || kPlot.isRoute()) {
+		if (ppszRouteReason != NULL && kOriginalBuildInfo.getRoute() != NO_ROUTE)
+			*ppszRouteReason = "ORIGINAL_ROUTE_BUILD";
 		return eBuild;
 	}
 
@@ -25249,6 +25111,8 @@ BuildTypes CvUnitAI::AI_betterPlotBuild(CvPlot const& kPlot, BuildTypes eBuild) 
 				if (GC.getInfo(eLoopBuild).getRoute() != NO_ROUTE &&
 					canBuild(kPlot, eLoopBuild))
 				{
+					if (ppszRouteReason != NULL)
+						*ppszRouteReason = "IMPROVED_BONUS_CONNECTION_OVERRIDE";
 					return eLoopBuild;   // Build road on improved bonus
 				}
 			}
@@ -25260,27 +25124,10 @@ BuildTypes CvUnitAI::AI_betterPlotBuild(CvPlot const& kPlot, BuildTypes eBuild) 
 	// A caller-validated feature-preserving improvement such as Camp on Forest Deer/Fur must not become a pure chop merely because the dedicated removal build is also legal. See KI#700. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (eFeature != NO_FEATURE && kOriginalBuildInfo.isFeatureRemove(eFeature))
 	{
-		if (eFeature == eFeatureForest)
-		{
-			if (canBuild(kPlot, eBuildRemoveForest))
-			{
-				return eBuildRemoveForest;
-			}
-		}
-		else if (eFeature == eFeatureJungle)
-		{
-			if (canBuild(kPlot, eBuildRemoveJungle))
-			{
-				return eBuildRemoveJungle;
-			}
-		}
-		else if (eFeature == eFeatureFallout)
-		{
-			if (canBuild(kPlot, eBuildScrubFallout))
-			{
-				return eBuildScrubFallout;
-			}
-		}
+		// <!-- custom: Preserve the removal-first safeguard without naming the feature or Build; use the same XML-derived pure removal selection as AI_bestCityBuild; if none exists, keep the original legal improvement Build, which can remove the feature itself. (GPT-5.6-Sol) -->
+		BuildTypes const ePureFeatureRemovalBuild = SAS_getWorkerPureFeatureRemovalBuild(*this, kPlot);
+		if (ePureFeatureRemovalBuild != NO_BUILD)
+			return ePureFeatureRemovalBuild;
 	}
 
 	// --- High-Priority Override 2: Bridge Plot Groups ---
@@ -25329,6 +25176,8 @@ BuildTypes CvUnitAI::AI_betterPlotBuild(CvPlot const& kPlot, BuildTypes eBuild) 
 			{
 				if (canBuild(kPlot, eLoopBuild))
 				{
+					if (ppszRouteReason != NULL)
+						*ppszRouteReason = "PLOT_GROUP_BRIDGE_OVERRIDE";
 					return eLoopBuild;
 				}
 			}
@@ -25340,6 +25189,8 @@ BuildTypes CvUnitAI::AI_betterPlotBuild(CvPlot const& kPlot, BuildTypes eBuild) 
 }
 
 
+// <!-- custom: Periodic Worker snapshots showed substantial early BUILD_ROAD activity but could not identify whether it connected a city/bonus or merely filled/upgraded the network.
+// Log only accepted route actions, classifying mandatory connections separately from optional city-pair, improvement-yield and territory-fallback routing; optional routing already runs only after useful city work fails, so no redundant era gate is needed. (GPT-5.6-Sol) -->
 bool CvUnitAI::AI_connectBonus(bool bTestTrade)
 {
 	PROFILE_FUNC();
@@ -25364,8 +25215,10 @@ bool CvUnitAI::AI_connectBonus(bool bTestTrade)
 				//if (!bTestTrade || ((pLoopPlot->getImprovementType() != NO_IMPROVEMENT) && (GC.getInfo(kPlot.getImprovementType()).isImprovementBonusTrade(eNonObsoleteBonus))))
 				if (!bTestTrade || GET_PLAYER(getOwner()).doesImprovementConnectBonus(kPlot.getImprovementType(), eNonObsoleteBonus))
 				{
-					if (AI_connectPlot(kPlot))
+					if (AI_connectPlot(kPlot, 0, (bTestTrade ? "CONNECT_TRADE_READY_BONUS" : "CONNECT_ANY_BONUS")))
+					{
 						return true;
+					}
 				}
 			}
 		}
@@ -25385,8 +25238,10 @@ bool CvUnitAI::AI_connectCity()
 	if (pCity != NULL && !pCity->isConnectedToCapital())
 	{
 		// (advc.003opt: AI_plotValid check removed)
-		if (AI_connectPlot(*pCity->plot(), 1))
+		if (AI_connectPlot(*pCity->plot(), 1, "CONNECT_WORKING_CITY"))
+		{
 			return true;
+		}
 	}
 	// <advc.300>
 	if(isBarbarian())
@@ -25398,7 +25253,7 @@ bool CvUnitAI::AI_connectCity()
 		if (//AI_plotValid(kCityPlot) &&
 			isArea(kCityPlot.getArea()) && // advc.opt
 			!pLoopCity->isConnectedToCapital() &&
-			AI_connectPlot(kCityPlot, 1))
+			AI_connectPlot(kCityPlot, 1, "CONNECT_OTHER_CITY"))
 		{
 			return true;
 		}
@@ -25468,6 +25323,9 @@ bool CvUnitAI::AI_routeCity()
 						pRouteToCity->getX(), pRouteToCity->getY(),
 						MOVE_SAFE_TERRITORY, true,
 						false, MISSIONAI_BUILD, pRouteToCity->plot()); // K-Mod
+				if (gWorkerLogLevel >= 2) logBBAI("    WORKER_ROUTE_ACTION turn=%d player=%d %S workerId=%d worker=(%d,%d) reason=ROUTE_CITY_PAIR mandatory=0 from=(%d,%d) fromCity=%S fromCityId=%d target=(%d,%d) targetCity=%S targetCityId=%d",
+					GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(), getX(), getY(),
+					kLoopCity.getX(), kLoopCity.getY(), kLoopCity.getName().GetCString(), kLoopCity.getID(), pRouteToCity->getX(), pRouteToCity->getY(), pRouteToCity->getName().GetCString(), pRouteToCity->getID());
 				return true;
 			}
 		}
@@ -25566,10 +25424,16 @@ bool CvUnitAI::AI_routeTerritory(bool bImprovementOnly)
 			if bAppend is set to !bRouteTo) */
 		getGroup()->pushMission(MISSION_BUILD, eBestBuild, -1,
 				NO_MOVEMENT_FLAGS, true, false, MISSIONAI_BUILD, pBestPlot);
+		if (gWorkerLogLevel >= 2) logBBAI("    WORKER_ROUTE_ACTION turn=%d player=%d %S workerId=%d worker=(%d,%d) reason=ROUTE_IMPROVEMENT_YIELD mandatory=0 target=(%d,%d) build=%S value=%d routeAlongPath=0",
+			GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(), getX(), getY(),
+			pBestPlot->getX(), pBestPlot->getY(), GC.getInfo(eBestBuild).getDescription(), iBestValue);
 		return true;
 	} // </advc.121>
 	getGroup()->pushMission(MISSION_ROUTE_TO, pBestPlot->getX(), pBestPlot->getY(),
 			MOVE_SAFE_TERRITORY, false, false, MISSIONAI_BUILD, pBestPlot);
+	if (gWorkerLogLevel >= 2) logBBAI("    WORKER_ROUTE_ACTION turn=%d player=%d %S workerId=%d worker=(%d,%d) reason=%s mandatory=0 target=(%d,%d) build=%S value=%d routeAlongPath=1",
+		GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(), getX(), getY(),
+		bImprovementOnly ? "ROUTE_IMPROVEMENT_YIELD" : "ROUTE_TERRITORY_FALLBACK", pBestPlot->getX(), pBestPlot->getY(), GC.getInfo(eBestBuild).getDescription(), iBestValue);
 	return true;
 }
 
