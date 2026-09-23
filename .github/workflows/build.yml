@@ -50,6 +50,7 @@ jobs:
       - run: python .github/workflows/build/tech_audio.py
       - run: python .github/workflows/build/leader_audio.py
       - run: python .github/workflows/build/opening_music.py
+      - run: python .github/workflows/build/diagnostic_log_safety.py
       - run: python .github/workflows/build/bbai_log.py
       - run: python .github/workflows/build/sas_game_record_log.py
       - run: python .github/workflows/build/fonts.py

@@ -27,7 +27,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=124 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=125 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -53,10 +53,20 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
-### Revision 124 - SAS practical 6565
+### Revision 125 - SAS practical pending
 
 - **Date:** 2026-09-23
 - **Git commit:** pending
+- **Change:** Routed final SASGameRecord emission through the shared literal-safe diagnostic log boundary so already-formatted percent signs cannot be reinterpreted by Civ4's EXE logger.
+
+`emitSASGameRecordLine` now uses `logSASDiagnosticLiteralLine`, shared with BBAI. The helper doubles each literal `%` only after the recorder's own `CvString::formatv`/row assembly is complete, so dynamic text or future fields containing percent signs reach the log literally rather than becoming a second printf conversion.
+
+This changes no GameRecord schema and adds no work while SASGameRecord is disabled; it hardens only enabled diagnostic emission. Structured fields should still prefer explicit names such as `Percent`/`X100` where that is clearer for machine readers, but that convention is no longer relied upon for memory safety. See also [KI#375.3](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-375.3).
+
+### Revision 124 - SAS practical 6565
+
+- **Date:** 2026-09-23
+- **Git commit:** `0e0379b78b74cd03827feb1ed1ed94d0b5b93c75`
 - **Change:** Generalized periodic territory irrigation reporting from hardcoded Farms to every improvement whose loaded XML sets `bCarriesIrrigation`, and added compact city-network component rows.
 
 `GAME_RECORD_TERRITORY_DEVELOPMENT` now reports irrigation carriers and their irrigated/dry, bonus, BFC, suburb and by-improvement breakdowns. This matches the Worker evaluator's XML-driven irrigation model, so mod-added food, production or commerce carriers remain visible without new C++ type branches. The same existing territory scan also splits routes on Worker-developable land into periodic BFC and suburb counts, deltas, percentages and route-type lists, making useful city development distinguishable from outer-territory routing.

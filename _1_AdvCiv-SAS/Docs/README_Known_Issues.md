@@ -475,6 +475,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#374 - (Fixed AdvCiv-SAS diagnostic regression) Nearby-enemy helpers tested hostility at the center plot](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-374)\
 [KI#375 - (Fixed AdvCiv-SAS diagnostic data-loss defect) Structured GameRecord rows silently stopped at 2047 bytes](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-375)\
 [KI#375.2 - (Fixed inherited Firaxis SDK string-formatting defect) `CvString::formatv` exact-fit output could lack a NUL terminator and acquire garbage suffix bytes](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-375.2)\
+[KI#375.3 - (Fixed AdvCiv-SAS diagnostic sink defect) Preformatted BBAI/SASGameRecord percent signs were reinterpreted at Civ4's EXE log boundary, corrupting rows and intermittently crashing](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-375.3)\
 [KI#376 - (Fixed AdvCiv-SAS diagnostic classification defect) Stationary-spy preparation included home-idle and Great Spies](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-376)\
 [KI#377 - (Fixed AdvCiv-SAS diagnostic location regression) Failed attacks were recorded at the attacker's origin](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-377)\
 [KI#378 - (Fixed AdvCiv-SAS diagnostic interval defect) Battle summaries fabricated their start from the configured interval](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-378)\
@@ -12415,6 +12416,31 @@ GAME_RECORD_CITY_DELTA seq=138949 turn=380 player=3 cityId=286746 previousTurn=3
 Against the immediately preceding pre-fix revision-123 control `SASGameRecord_20260921T123103Z_load1.log`, the official GameRecord comparison reports all 426 RNG checkpoints and all 426 semantic CORE state checkpoints identical. All 37,459 `GAME_RECORD_ACTION` rows also match after ignoring the normal sequence/wall-clock fields. After excluding expected build/source/performance metadata, the formerly corrupted Chichen Itza row is the only remaining content difference: its eight-byte suffix `5D 08 3F 63 06 14 F4 19` is gone. This is direct runtime confirmation of the exact-fit termination repair, not merely a compile/smoke test.
 
 Found through SASGameRecord revision-123 delta/reconstruction validation with ChatGPT-5.6-Sol after the recorder made an otherwise tiny nondeterministic string tail visible; repair reviewed against Firaxis Civ4/Warlords/BtS, K-Mod, Taurus and Base AdvCiv lineage, then compiled and exact-case autoplay-validated with wonderingabout, thanks.
+
+<a id="ki-375.3"></a>
+
+## KI#375.3 - (Fixed AdvCiv-SAS diagnostic sink defect) Preformatted BBAI/SASGameRecord percent signs were reinterpreted at Civ4's EXE log boundary, corrupting rows and intermittently crashing
+
+Screenshots/files for this issue: [google drive folder link](https://drive.google.com/drive/folders/1v4ECv_j5ko6kmlc2ploCBUDel2C5B1Ri?usp=sharing).
+
+Before the XML-driven Settler AI city-site yield refactor received its first commit, its new human-readable potential-improvement diagnostics such as `timing=%d%%` and `best=.../%d%% second=...` exposed this defect. Those producer format strings are correct for the DLL's first `CvString::formatv` pass: `%%` intentionally becomes one literal `%` in the finished BBAI line. The finished line was then passed directly as the message argument to `gDLL->logMsg`, however, and runtime evidence shows that Civ4's EXE logger interprets percent signs in that message as printf-style syntax again. A valid fragment such as `100% second=` can therefore be treated as a second `%s` conversion, causing the logger to consume unrelated stack data as a string pointer.
+
+The T312 crash dump from the in-progress Settler test is unusually specific. WinDbg reports an access violation reading address `00000069` in `Civ4BeyondSword.exe`, with the matching line-symbol stack passing through `CvGameCoreDLL!logBBAI`, `AIFoundValue::evaluateBestPotentialPlotYield`, `AIFoundValue::evaluate`, `CvPlayerAI::logFoundValue`, `CvPlayer::found`, and `CvUnitAI::AI_settleMove`. This places the failure in diagnostic emission while a Settler is founding a city rather than in the gameplay evaluator itself. The small invalid address is also consistent with an ordinary integer being misread as a pointer after a bogus second format conversion; the exact stack slot consumed is not claimed from the dump alone.
+
+A separate run with the same old/crashy DLL is valuable because it completed normally to turn 449 and a Space Race victory while still demonstrating the corruption on every affected row. Its BBAI file contains **5,976** `PLOT_POTENTIAL_CANDIDATES` rows; all **5,976** contain the same non-text byte sequence immediately where the intended `% second=` should appear, and the entire BBAI file contains **zero literal `%` bytes**. For example, the intended `.../100% second=...` appears bytewise as `.../100\xF4\xEC\xA9econd=...`. Thus successful autoplays with the old DLL do not clear the bug: the unsafe second interpretation can silently corrupt thousands of rows and only crashes when the accidental consumed value is an invalid pointer.
+
+The prepared fix centralizes the safety rule instead of rewriting individual diagnostics to avoid `%`:
+
+- `CvGameCoreUtils` adds `logSASDiagnosticLiteralLine`, which receives an **already-formatted** line and doubles every remaining `%` immediately before calling `gDLL->logMsg`. Civ4's second format pass then emits one literal `%`.
+- `logBBAI` routes its completed `CvString::formatv` result through that helper. Producer format strings still follow ordinary printf rules, so an intended literal percent remains written as `%%` in the original `logBBAI` format string.
+- `SASGameRecord` routes its final assembled line through the same helper as preventive hardening. Its machine-readable schema should continue preferring explicit `Percent`, `X100`, `X1000`, etc. field names where useful, but those names are a clarity convention rather than a memory-safety requirement. Dynamic text containing `%` is now safe too.
+- A dedicated `diagnostic_log_safety.py` build check keeps both BBAI and SASGameRecord routed through the shared final-boundary helper and verifies that the helper retains the percent-doubling contract.
+
+The helper runs only when one of these diagnostics is actually emitting a line, so normal disabled logging gains no per-turn or AI-evaluation cost. This change deliberately does not claim to audit every inherited direct `gDLL->logMsg` caller elsewhere in the Civ4/AdvCiv codebase; the proven crash concerns the SAS BBAI/GameRecord diagnostic sinks.
+
+Runtime validation used a fresh Debug-opt DLL and a 50-turn smoke autoplay. `BBAI_20260923T121040Z_load1.log` contains 1,293 `PLOT_POTENTIAL_CANDIDATES` rows, and all 1,293 preserve the expected literal-percent sequence across `best`, `second` and `third` candidates; the file contains 2,664 literal `%` bytes overall instead of the old zero-percent/corrupt-byte result. BBAI and SASGameRecord both reached turn 50 normally, including final turn/checkpoint rows, with no crash or garbage-byte replacement.
+
+Diagnosed from the matching T312 dump plus byte-level BBAI evidence, with the fix/CI/docs prepared by ChatGPT-5.6-Sol and Debug-opt smoke-autoplay validation by wonderingabout, thanks.
 
 <a id="ki-376"></a>
 

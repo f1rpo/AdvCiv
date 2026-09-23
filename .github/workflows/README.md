@@ -98,6 +98,7 @@ This is intentionally a syntax/compile compatibility check only: it does not lau
 - [`build/tech_audio.py`](#buildtech_audiopy)
 - [`build/leader_audio.py`](#buildleader_audiopy)
 - [`build/opening_music.py`](#buildopening_musicpy)
+- [`build/diagnostic_log_safety.py`](#builddiagnostic_log_safetypy)
 - [`build/bbai_log.py`](#buildbbai_logpy)
 - [`build/sas_game_record_log.py`](#buildsas_game_record_logpy)
 - [`build/fonts.py`](#buildfontspy)
@@ -283,6 +284,12 @@ Verifies every non-empty leader diplomacy-audio reference resolves through the m
 ### `build/opening_music.py`
 
 Verifies main-menu opening music has a valid `Audio2DScripts.xml` trigger/fixed script, and if shuffle is enabled, at least one valid non-`NONE` shuffle script.
+
+### `build/diagnostic_log_safety.py`
+
+Verifies the BBAI and SASGameRecord final emission paths use the shared `logSASDiagnosticLiteralLine` wrapper instead of passing an already-formatted dynamic line directly to `gDLL->logMsg`. Civ4's EXE logger can interpret `%` in that message as printf syntax again; the wrapper doubles every remaining literal percent only at the final boundary.
+
+The check also guards the helper's percent-doubling implementation and carries small executable-specification examples such as `75%` -> `75%%`. Producer format strings still use ordinary printf escaping (`%%` for one intended `%`). This check is intentionally scoped to the two SAS diagnostic sinks implicated by [KI#375.3](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-375.3), not every inherited `gDLL->logMsg` caller in the DLL.
 
 ### `build/bbai_log.py`
 

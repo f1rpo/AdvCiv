@@ -90,6 +90,9 @@ uint getSASMonotonicMilliseconds();
 uint getSASElapsedMilliseconds(uint uiStartMilliseconds, uint uiEndMilliseconds);
 // <!-- custom: Return the one DLL-process UTC identity shared by BBAI and SASGameRecord. See KI#629. (GPT-5.6-Sol) -->
 CvString const& getSASProcessUtcTimestamp();
+// <!-- custom: Write one already-formatted narrow diagnostic line through Civ4's EXE logger; the EXE treats percent signs in the message as printf syntax again, so escape every literal percent only at this final boundary.
+// BBAI and SASGameRecord use this after their own formatting pass; producer format strings still use normal printf escaping (%% for one literal percent). See KI#375.3. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+void logSASDiagnosticLiteralLine(char const* szLogName, char const* szLine);
 // <!-- custom: Serialize the canonical active-mod display/folder/path fields shared by diagnostic log headers. (ChatGPT-5.6-Sol) -->
 CvString getSASModContextFields();
 // <!-- custom: Serialize runtime source/version provenance shared by BBAI and SASGameRecord; dirty is tri-state (-1 unavailable, 0 verified clean, 1 tracked changes). (ChatGPT-5.6-Sol) -->

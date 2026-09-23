@@ -244,7 +244,9 @@ void logBBAI(TCHAR* format, ... )
 	if (!bFormatted)
 		return;
 	CvString const szLogName = getSASBBAILogName();
-	gDLL->logMsg(szLogName.GetCString(), szLine.c_str(), /* advc.007: No time stamps */ false, false);
+	// <!-- custom: The EXE logger applies a second printf-style interpretation to this already-formatted line.
+	// Preserve literal percent signs and prevent bogus vararg reads through the shared final-boundary escape. See KI#375.3. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	logSASDiagnosticLiteralLine(szLogName.GetCString(), szLine.c_str());
 }
 
 // advc.133:

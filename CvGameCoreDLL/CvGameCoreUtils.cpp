@@ -68,6 +68,25 @@ CvString const& getSASProcessUtcTimestamp()
 	return g_szSASProcessUtcTimestamp;
 }
 
+// <!-- custom: Civ4's EXE log boundary treats the message as printf-style text even when the DLL has already formatted it.
+// Escape every remaining percent sign here so a legitimate line such as "timing=75% second=..." reaches the file literally instead of letting "% s" consume a bogus vararg/pointer.
+// Keep this after producer formatting: producer format strings still use ordinary printf rules and %% for one intended percent. See KI#375.3. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+void logSASDiagnosticLiteralLine(char const* szLogName, char const* szLine)
+{
+	FAssert(szLogName != NULL);
+	FAssert(szLine != NULL);
+	if (szLogName == NULL || szLine == NULL)
+		return;
+	std::string szEscapedLine;
+	for (char const* p = szLine; *p != '\0'; p++)
+	{
+		if (*p == '%')
+			szEscapedLine += '%';
+		szEscapedLine += *p;
+	}
+	gDLL->logMsg(szLogName, szEscapedLine.c_str(), false, false);
+}
+
 // <!-- custom: The Makefile stamps the real nmake target through /DSAS_DLL_BUILD_CONFIGURATION; keep 0 only as an UNKNOWN fallback for alternate or legacy build paths that do not inject it. This lives in shared diagnostics code because BBAI and SASGameRecord both report the same compiled binary. (ChatGPT-5.6-Sol) -->
 #ifndef SAS_DLL_BUILD_CONFIGURATION
 #define SAS_DLL_BUILD_CONFIGURATION 0

@@ -1836,7 +1836,8 @@ static void emitSASGameRecordLine(CvString const& szLogName, std::string szLine)
 		szSequence.Format(" seq=%I64u", ++g_uiSASGameRecordSemanticSequence);
 		insertSASGameRecordFieldAfterRowType(szLine, szSequence.GetCString());
 	}
-	gDLL->logMsg(szLogName.GetCString(), szLine.c_str(), false, false);
+	// <!-- custom: Preserve any literal percent signs that survive producer formatting (including dynamic/free text) before crossing Civ4's printf-style EXE log boundary. See KI#375.3. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	logSASDiagnosticLiteralLine(szLogName.GetCString(), szLine.c_str());
 }
 
 static void logSASGameRecordFormattedLine(CvString const& szLogName, TCHAR* format, va_list args)
