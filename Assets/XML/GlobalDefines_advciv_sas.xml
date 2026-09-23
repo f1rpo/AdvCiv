@@ -2083,14 +2083,9 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_WORKER_AI_STRONG_PRODUCTION_PRESSURE_MAX_VALUE</DefineName>
 		<iDefineIntVal>120</iDefineIntVal>
 	</Define>
-	<!-- custom: Comma-separated IMPROVEMENT_* chain starts whose XML ImprovementUpgrade chains should count as growth improvements for worker overwrite penalties. Default preserves the Cottage -> Hamlet -> Village -> Town chain. Modmods can add shorter/longer chains or other growth-style chains without changing CvUnitAI. Use NONE for no growth-chain penalty levels. (ChatGPT-5.5) -->
+	<!-- custom: Irrigation-chain connector penalty per XML ImprovementUpgrade maturation level when replacing an automatically upgrading improvement to reach a dry carrier or low-food target. CvUnitAI discovers every chain without named roots, so Cottage -> Hamlet -> Village -> Town remains 1/2/3/4 while mod-added Food-, Production- or Commerce-growing chains receive the same protection automatically. Keep the value moderate because food infrastructure can be more important, especially later when cities can use more specialists. (GPT-5.5 + ChatGPT-5.5 + GPT-5.6-Sol) -->
 	<Define>
-		<DefineName>SAS_WORKER_AI_GROWTH_IMPROVEMENT_CHAIN_START_NAMES</DefineName>
-		<DefineTextVal>IMPROVEMENT_COTTAGE</DefineTextVal>
-	</Define>
-	<!-- custom: Irrigation-chain connector penalty per configured growth-improvement level when replacing a growth-chain improvement to reach a dry carrier or low-food target. CvUnitAI infers the level by following XML ImprovementUpgrade chains from SAS_WORKER_AI_GROWTH_IMPROVEMENT_CHAIN_START_NAMES, then multiplies by this value. e.g., with default Cottage chain and value 400, Cottage is 1 * 400 = 400, Hamlet is 2 * 400 = 800, Village is 3 * 400 = 1200, and Town is 4 * 400 = 1600. Keep the value moderate because food infrastructure can be more important, especially later when cities can use more specialists. (GPT-5.5 + ChatGPT-5.5 + GPT-5.6-Sol) -->
-	<Define>
-		<DefineName>SAS_WORKER_AI_IRRIGATION_CHAIN_GROWTH_LEVEL_OVERWRITE_PENALTY</DefineName>
+		<DefineName>SAS_WORKER_AI_IRRIGATION_CHAIN_MATURATION_LEVEL_OVERWRITE_PENALTY</DefineName>
 		<iDefineIntVal>400</iDefineIntVal>
 	</Define>
 	<!-- custom: Maximum irrigation-chain connector penalty when replacing a finished non-growth improvement. CvUnitAI derives the actual penalty from the city-weighted yield advantage lost to the selected XML carrier, with a small sunk-work floor, so cheap or weak mod-added improvements are treated like Workshops without naming them while strong infrastructure remains costly to replace. (GPT-5.5 + GPT-5.6-Sol) -->

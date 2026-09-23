@@ -2778,100 +2778,33 @@ static bool SAS_shouldWorkerPhase0ProductiveFeatureChop(CvUnitAI const& kUnit, C
 	return (bUntargetedPressureRelief || iUncommitted >= iMinEligible);
 }
 
-// <!-- custom: Worker improvement-name lists share this small parser; ordinary build candidates are now enumerated directly from XML Build infos and no longer use terrain-specific text branches. (GPT-5.6-Sol) -->
-static CvString SAS_trimWorkerDefineToken(CvString szText)
-{
-	while (!szText.empty() && (szText[0] == ' ' || szText[0] == '\t' || szText[0] == '\r' || szText[0] == '\n'))
-		szText = szText.substr(1);
-	while (!szText.empty() && (szText[szText.length() - 1] == ' ' || szText[szText.length() - 1] == '\t' || szText[szText.length() - 1] == '\r' || szText[szText.length() - 1] == '\n'))
-		szText = szText.substr(0, szText.length() - 1);
-	return szText;
-}
-
-static bool SAS_isWorkerDefineNoneToken(CvString const& szText)
-{
-	return (szText.empty() || szText.CompareNoCase("NONE") == 0);
-}
-
-static int SAS_getImprovementUpgradeChainLevel(ImprovementTypes eImprovement, ImprovementTypes eChainStart)
-{
-	if (eImprovement == NO_IMPROVEMENT || eChainStart == NO_IMPROVEMENT)
-		return 0;
-	ImprovementTypes eLoopImprovement = eChainStart;
-	for (int iLevel = 1; eLoopImprovement != NO_IMPROVEMENT && iLevel <= GC.getNumImprovementInfos(); ++iLevel)
-	{
-		if (eImprovement == eLoopImprovement)
-			return iLevel;
-		eLoopImprovement = GC.getInfo(eLoopImprovement).getImprovementUpgrade();
-	}
-	return 0;
-}
-
-struct SASWorkerImprovementListCache
-{
-	char const* szDefineNameLiteral;
-	CvString szDefineName;
-	std::vector<ImprovementTypes> aImprovements;
-};
-
-// <!-- custom: Parse comma-separated IMPROVEMENT_* define lists once for Worker growth-chain and irrigation-route policy. NONE disables a list; invalid names assert and are skipped, so modmods can tune the remaining non-yield policy without changing Worker AI logic. (ChatGPT-5.5 + GPT-5.6-Sol) -->
-static void SAS_initWorkerImprovementList(std::vector<ImprovementTypes>& aImprovements, char const* szDefineName)
-{
-	aImprovements.clear();
-	char const* szDefineText = GC.getDefineSTRING(szDefineName);
-	FAssertMsg(szDefineText != NULL, szDefineName);
-	if (szDefineText == NULL)
-		return;
-	CvString szRemaining = SAS_trimWorkerDefineToken(szDefineText);
-	if (SAS_isWorkerDefineNoneToken(szRemaining))
-		return;
-	while (!szRemaining.empty())
-	{
-		int const iComma = szRemaining.find(',');
-		CvString const szRawEntry = (iComma < 0 ? szRemaining : szRemaining.substr(0, iComma));
-		szRemaining = (iComma < 0 ? CvString("") : szRemaining.substr(iComma + 1));
-		CvString const szEntry = SAS_trimWorkerDefineToken(szRawEntry);
-		if (SAS_isWorkerDefineNoneToken(szEntry))
-			continue;
-		ImprovementTypes const eImprovement = (ImprovementTypes)GC.getInfoTypeForString(szEntry.c_str());
-		FAssertMsg(eImprovement != NO_IMPROVEMENT, szEntry.c_str());
-		if (eImprovement == NO_IMPROVEMENT)
-			continue;
-		aImprovements.push_back(eImprovement);
-	}
-}
-
-static std::vector<ImprovementTypes> const& SAS_getWorkerImprovementList(char const* szDefineName)
-{
-	static std::vector<SASWorkerImprovementListCache> aCaches;
-	for (size_t i = 0; i < aCaches.size(); ++i)
-	{
-		if (aCaches[i].szDefineNameLiteral == szDefineName)
-			return aCaches[i].aImprovements;
-	}
-	for (size_t i = 0; i < aCaches.size(); ++i)
-	{
-		if (aCaches[i].szDefineName == szDefineName)
-			return aCaches[i].aImprovements;
-	}
-	SASWorkerImprovementListCache kCache;
-	kCache.szDefineNameLiteral = szDefineName;
-	kCache.szDefineName = szDefineName;
-	SAS_initWorkerImprovementList(kCache.aImprovements, szDefineName);
-	aCaches.push_back(kCache);
-	return aCaches[aCaches.size() - 1].aImprovements;
-}
-
-// <!-- custom: Return the XML upgrade-chain level of an improvement for any configured worker growth-improvement chain start. Default XML lists IMPROVEMENT_COTTAGE, which preserves Cottage/Hamlet/Village/Town behavior; modmods can add or replace starts for shorter/longer chains or hammer/commerce growth chains without hardcoding them here. (ChatGPT-5.5) -->
-static int SAS_getWorkerGrowthImprovementLevel(ImprovementTypes eImprovement)
+// <!-- custom: Cache each improvement's deepest XML ImprovementUpgrade-chain level instead of naming Cottage or configuring chain roots.
+// Every automatically maturing chain receives the same sunk-development protection, including mod-added Food-, Production- or Commerce-growing improvements; ordinary standalone improvements remain level 0.
+// Scanning each possible chain start and retaining the greatest level also handles converging chains, while the per-start visited set prevents malformed XML cycles from looping. (GPT-5.6-Sol) -->
+static int SAS_getWorkerImprovementMaturationLevel(ImprovementTypes eImprovement)
 {
 	if (eImprovement == NO_IMPROVEMENT)
 		return 0;
-	std::vector<ImprovementTypes> const& aChainStarts = SAS_getWorkerImprovementList("SAS_WORKER_AI_GROWTH_IMPROVEMENT_CHAIN_START_NAMES");
-	int iBestLevel = 0;
-	for (size_t i = 0; i < aChainStarts.size(); ++i)
-		iBestLevel = std::max(iBestLevel, SAS_getImprovementUpgradeChainLevel(eImprovement, aChainStarts[i]));
-	return iBestLevel;
+	static std::vector<int> aiMaturationLevels;
+	if (aiMaturationLevels.empty())
+	{
+		int const iNumImprovements = GC.getNumImprovementInfos();
+		aiMaturationLevels.resize(iNumImprovements, 0);
+		for (int iStart = 0; iStart < iNumImprovements; ++iStart)
+		{
+			ImprovementTypes eLoopImprovement = (ImprovementTypes)iStart;
+			if (GC.getInfo(eLoopImprovement).getImprovementUpgrade() == NO_IMPROVEMENT)
+				continue;
+			std::vector<bool> abVisited(iNumImprovements, false);
+			for (int iLevel = 1; eLoopImprovement != NO_IMPROVEMENT && !abVisited[eLoopImprovement]; ++iLevel)
+			{
+				abVisited[eLoopImprovement] = true;
+				aiMaturationLevels[eLoopImprovement] = std::max(aiMaturationLevels[eLoopImprovement], iLevel);
+				eLoopImprovement = GC.getInfo(eLoopImprovement).getImprovementUpgrade();
+			}
+		}
+	}
+	return aiMaturationLevels[eImprovement];
 }
 
 struct SASWorkerYieldWeights
@@ -3070,7 +3003,7 @@ static bool SAS_pickWorkerYieldBuild(CvUnitAI const& kUnit, CvCityAI const& kCit
 		aiCurrentYields[eLoopYield] = SAS_getWorkerCurrentEffectiveYield(kPlot, eLoopYield, kUnit.getOwner());
 	int const iCurrentUtility = SAS_getWorkerYieldUtility(aiCurrentYields[YIELD_FOOD], aiCurrentYields[YIELD_PRODUCTION], aiCurrentYields[YIELD_COMMERCE], kWeights);
 	ImprovementTypes const eCurrentImprovement = kPlot.getImprovementType();
-	int const iGrowthLevel = SAS_getWorkerGrowthImprovementLevel(eCurrentImprovement);
+	int const iMaturationLevel = SAS_getWorkerImprovementMaturationLevel(eCurrentImprovement);
 
 	BuildTypes eBestCandidate = NO_BUILD;
 	BuildTypes eSecondCandidate = NO_BUILD;
@@ -3098,7 +3031,7 @@ static bool SAS_pickWorkerYieldBuild(CvUnitAI const& kUnit, CvCityAI const& kCit
 			aiResultYields[eLoopYield] = SAS_getWorkerBuildEffectiveYield(kPlot, eLoopBuild, eLoopYield);
 		int const iResultUtility = SAS_getWorkerYieldUtility(aiResultYields[YIELD_FOOD], aiResultYields[YIELD_PRODUCTION], aiResultYields[YIELD_COMMERCE], kWeights);
 		int const iGain = iResultUtility - iCurrentUtility;
-		int const iReplacementMargin = (eCurrentImprovement == NO_IMPROVEMENT ? 1 : std::max(150 + 100 * iGrowthLevel, std::max(0, iCurrentUtility) / 5));
+		int const iReplacementMargin = (eCurrentImprovement == NO_IMPROVEMENT ? 1 : std::max(150 + 100 * iMaturationLevel, std::max(0, iCurrentUtility) / 5));
 		if (iGain < iReplacementMargin)
 		{
 			iMarginRejectedCount++;
@@ -3352,16 +3285,17 @@ static BuildTypes SAS_getWorkerActivelyCommittedImprovementBuild(CvPlot const& k
 	return NO_BUILD;
 }
 
-// <!-- custom: Growth improvements lose accumulated maturation when overwritten, so retain their configured chain-level penalty.
+// <!-- custom: Automatically upgrading improvements lose accumulated maturation when overwritten, so apply their XML-derived chain-level penalty regardless of which yield grows.
+// Keep this sunk-development penalty yield-agnostic: ordinary improvement choice already values immediate/final yields, irrigation planning already selects the strongest city-weighted carrier and SAS currently has only the Cottage chain, so yield-type or upgrade-speed premiums can wait for an empirical mod-added case.
 // For every other finished improvement, derive irrigation-connector sacrifice from its city-weighted yield advantage over the selected carrier, capped by the generic XML penalty; this replaces the named Workshop exception and adapts to mod-added improvements. (GPT-5.6-Sol) -->
-static int SAS_getWorkerIrrigationOverwritePenalty(CvPlot const& kPlot, BuildTypes eCarrierBuild, PlayerTypes eOwner, SASWorkerYieldWeights const& kWeights, int iGrowthOverwritePenalty, int iOtherOverwritePenalty)
+static int SAS_getWorkerIrrigationOverwritePenalty(CvPlot const& kPlot, BuildTypes eCarrierBuild, PlayerTypes eOwner, SASWorkerYieldWeights const& kWeights, int iMaturationOverwritePenalty, int iOtherOverwritePenalty)
 {
 	ImprovementTypes const eCurrentImprovement = kPlot.getImprovementType();
 	if (eCurrentImprovement == NO_IMPROVEMENT || SAS_isWorkerIrrigationCarrierImprovement(eCurrentImprovement))
 		return 0;
-	int const iGrowthLevel = SAS_getWorkerGrowthImprovementLevel(eCurrentImprovement);
-	if (iGrowthLevel > 0)
-		return iGrowthOverwritePenalty * iGrowthLevel;
+	int const iMaturationLevel = SAS_getWorkerImprovementMaturationLevel(eCurrentImprovement);
+	if (iMaturationLevel > 0)
+		return iMaturationOverwritePenalty * iMaturationLevel;
 	int aiCurrentYields[NUM_YIELD_TYPES];
 	int aiCarrierYields[NUM_YIELD_TYPES];
 	FOR_EACH_ENUM(Yield)
@@ -3376,7 +3310,7 @@ static int SAS_getWorkerIrrigationOverwritePenalty(CvPlot const& kPlot, BuildTyp
 
 // <!-- custom: Search an actual owned irrigation-capable route from a dry BFC carrier or low-food target to currently available water and return the least-cost source-side carrier Build that can be made now.
 // Repeating after each completed step advances the same connection; XML carrier flags and per-plot legality support multiple or mod-added irrigation improvements without a Farm name. (GPT-5.6-Sol) -->
-static bool SAS_findWorkerIrrigationChainStep(CvUnitAI const& kUnit, CvPlot& kTargetPlot, CvPlot const* pIgnorePlot, SASWorkerYieldWeights const& kWeights, int iMaxPlots, int iGrowthOverwritePenalty, int iOtherOverwritePenalty, CvPlot*& pStepPlot, BuildTypes& eStepBuild, int& iRoutePlots, int& iRouteOverwritePenalty, SASWorkerIrrigationSearchDiagnostics* pDiagnostics)
+static bool SAS_findWorkerIrrigationChainStep(CvUnitAI const& kUnit, CvPlot& kTargetPlot, CvPlot const* pIgnorePlot, SASWorkerYieldWeights const& kWeights, int iMaxPlots, int iMaturationOverwritePenalty, int iOtherOverwritePenalty, CvPlot*& pStepPlot, BuildTypes& eStepBuild, int& iRoutePlots, int& iRouteOverwritePenalty, SASWorkerIrrigationSearchDiagnostics* pDiagnostics)
 {
 	pStepPlot = NULL;
 	eStepBuild = NO_BUILD;
@@ -3501,7 +3435,7 @@ static bool SAS_findWorkerIrrigationChainStep(CvUnitAI const& kUnit, CvPlot& kTa
 					continue;
 				}
 			}
-			int const iPlotOverwritePenalty = (bExistingIrrigationCarrier ? 0 : SAS_getWorkerIrrigationOverwritePenalty(*pAdjacentPlot, eAdjacentCarrierBuild, kUnit.getOwner(), kWeights, iGrowthOverwritePenalty, iOtherOverwritePenalty));
+			int const iPlotOverwritePenalty = (bExistingIrrigationCarrier ? 0 : SAS_getWorkerIrrigationOverwritePenalty(*pAdjacentPlot, eAdjacentCarrierBuild, kUnit.getOwner(), kWeights, iMaturationOverwritePenalty, iOtherOverwritePenalty));
 			int const iNewSteps = kNode.iSteps + 1;
 			int const iNewCost = kNode.iCost + (kNode.iSteps <= 0 ? 0 : 350) + iPlotOverwritePenalty;
 			PlotNumTypes const eAdjacentPlot = pAdjacentPlot->plotNum();
@@ -3642,7 +3576,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 	static const int iSAS_AI_BEST_CITY_BUILD_LOW_FOOD_BFC_CITY_THRESH = GC.getDefineINT("SAS_AI_BEST_CITY_BUILD_LOW_FOOD_BFC_CITY_THRESH");
 	static const bool bSAS_WORKER_AI_IRRIGATION_CHAIN_ENABLE = GC.getDefineBOOL("SAS_WORKER_AI_IRRIGATION_CHAIN_ENABLE");
 	static const int iSAS_WORKER_AI_FOOD_SUPPORT_TARGET_SURPLUS = GC.getDefineINT("SAS_WORKER_AI_FOOD_SUPPORT_TARGET_SURPLUS");
-	static const int iSAS_WORKER_AI_IRRIGATION_CHAIN_GROWTH_LEVEL_OVERWRITE_PENALTY = GC.getDefineINT("SAS_WORKER_AI_IRRIGATION_CHAIN_GROWTH_LEVEL_OVERWRITE_PENALTY");
+	static const int iSAS_WORKER_AI_IRRIGATION_CHAIN_MATURATION_LEVEL_OVERWRITE_PENALTY = GC.getDefineINT("SAS_WORKER_AI_IRRIGATION_CHAIN_MATURATION_LEVEL_OVERWRITE_PENALTY");
 	static const int iSAS_WORKER_AI_IRRIGATION_CHAIN_OTHER_IMPROVEMENT_OVERWRITE_PENALTY = GC.getDefineINT("SAS_WORKER_AI_IRRIGATION_CHAIN_OTHER_IMPROVEMENT_OVERWRITE_PENALTY");
 	bool const bCityLowFoodBFC = (iBFCLowFoodScore >= iSAS_AI_BEST_CITY_BUILD_LOW_FOOD_BFC_CITY_THRESH);
 
@@ -3812,7 +3746,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 			int iRouteOverwritePenalty = 0;
 			SASWorkerIrrigationSearchDiagnostics kRouteDiagnostics;
 			SASWorkerIrrigationSearchDiagnostics* pRouteDiagnostics = (gWorkerLogLevel >= 3 ? &kRouteDiagnostics : NULL);
-			bool const bFoundChainStep = SAS_findWorkerIrrigationChainStep(*this, kTargetPlot, pIgnorePlot, kWorkerYieldWeights, iSAS_WORKER_AI_IRRIGATION_CHAIN_MAX_PLOTS, iSAS_WORKER_AI_IRRIGATION_CHAIN_GROWTH_LEVEL_OVERWRITE_PENALTY, iSAS_WORKER_AI_IRRIGATION_CHAIN_OTHER_IMPROVEMENT_OVERWRITE_PENALTY, pChainStepPlot, eChainStepBuild, iRoutePlots, iRouteOverwritePenalty, pRouteDiagnostics);
+			bool const bFoundChainStep = SAS_findWorkerIrrigationChainStep(*this, kTargetPlot, pIgnorePlot, kWorkerYieldWeights, iSAS_WORKER_AI_IRRIGATION_CHAIN_MAX_PLOTS, iSAS_WORKER_AI_IRRIGATION_CHAIN_MATURATION_LEVEL_OVERWRITE_PENALTY, iSAS_WORKER_AI_IRRIGATION_CHAIN_OTHER_IMPROVEMENT_OVERWRITE_PENALTY, pChainStepPlot, eChainStepBuild, iRoutePlots, iRouteOverwritePenalty, pRouteDiagnostics);
 			int const iChainStepValue = (bFoundChainStep ? (bTargetDryCarrier ? 11500 : 8500) - (350 * std::max(0, iRoutePlots - 1)) - iRouteOverwritePenalty : 0);
 			if (bFoundChainStep && iChainStepValue > 0)
 			{
