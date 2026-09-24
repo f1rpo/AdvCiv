@@ -426,9 +426,12 @@ static bool SAS_isFoundValueClearlyBetter(int iCurrentFoundValue, int iBetterFou
 	return iValueDiff >= iSAS_AI_SETTLER_FOUND_IN_PLACE_BETTER_SITE_MIN_VALUE_DIFF && 100 * iValueDiff >= iCurrentFoundValue * iSAS_AI_SETTLER_FOUND_IN_PLACE_BETTER_SITE_MIN_PERCENT_DIFF;
 }
 
-static bool SAS_shouldDelayFoundInPlaceForBetterReachableSite(CvUnitAI& kSettler, MovementFlags eMoveFlags, CvPlot const& kCurrentPlot, int iCurrentFoundValue, CvPlot const*& pBetterFoundPlot, int& iBetterFoundValue, int& iBetterPathTurns)
+// <!-- custom: pBetterEndTurnPlot is returned alongside pBetterFoundPlot so callers keep the end-turn plot belonging to the same successful winning path query.
+// Do not reconstruct it with getPathEndTurnPlot() after this helper returns: later candidate generatePath calls reuse and may replace or clear the shared pathfinder endpoint. See KI#180.2. (ChatGPT-5.6-Sol) -->
+static bool SAS_shouldDelayFoundInPlaceForBetterReachableSite(CvUnitAI& kSettler, MovementFlags eMoveFlags, CvPlot const& kCurrentPlot, int iCurrentFoundValue, CvPlot const*& pBetterFoundPlot, CvPlot const*& pBetterEndTurnPlot, int& iBetterFoundValue, int& iBetterPathTurns)
 {
 	pBetterFoundPlot = NULL;
+	pBetterEndTurnPlot = NULL;
 	iBetterFoundValue = 0;
 	iBetterPathTurns = -1;
 	CvPlayerAI const& kOwner = GET_PLAYER(kSettler.getOwner());
@@ -444,12 +447,17 @@ static bool SAS_shouldDelayFoundInPlaceForBetterReachableSite(CvUnitAI& kSettler
 		if (iValue > iBetterFoundValue)
 		{
 			pBetterFoundPlot = &kSite;
+			// <!-- custom: Preserve the winning query's end-turn plot while that successful path is still current when level-2 diagnostics need it.
+			// Later generatePath calls reuse and can clear the shared finder, so asking getPathEndTurnPlot after the scan can describe another candidate or null-dereference after a later failure.
+			// Keep this pregated so disabled Settler logging adds no path-end lookup; originally found as the C027-WIP13 album side note and runtime-confirmed during the Settler AI rework. See KI#180.2. (ChatGPT-5.6-Sol) -->
+			if (gSettlerLogLevel >= 2) pBetterEndTurnPlot = &kSettler.getPathEndTurnPlot();
 			iBetterFoundValue = iValue;
 			iBetterPathTurns = iPathTurns;
 		}
 	}
 	if (pBetterFoundPlot == NULL)
 		return false;
+	FAssert(gSettlerLogLevel < 2 || pBetterEndTurnPlot != NULL);
 	return SAS_isFoundValueClearlyBetter(iCurrentFoundValue, iBetterFoundValue);
 }
 
@@ -4890,12 +4898,13 @@ void CvUnitAI::AI_settleMove()
 				else
 				{
 					CvPlot const* pBetterFoundPlot = NULL;
+					CvPlot const* pBetterEndTurnPlot = NULL;
 					int iBetterFoundValue = 0;
 					int iBetterPathTurns = -1;
 					int const iCurrentFoundValue = getPlot().getFoundValue(getOwner());
-					if (SAS_shouldDelayFoundInPlaceForBetterReachableSite(*this, eMoveFlags, getPlot(), iCurrentFoundValue, pBetterFoundPlot, iBetterFoundValue, iBetterPathTurns))
+					if (SAS_shouldDelayFoundInPlaceForBetterReachableSite(*this, eMoveFlags, getPlot(), iCurrentFoundValue, pBetterFoundPlot, pBetterEndTurnPlot, iBetterFoundValue, iBetterPathTurns))
 					{
-						if (gSettlerLogLevel >= 2) SAS_logSettlerMissionDecision("DELAY_FOUND_IN_PLACE_BETTER_SITE", *this, pBetterFoundPlot, &getPathEndTurnPlot(), iBetterFoundValue, iBetterPathTurns, "BETTER_REACHABLE_SITE");
+						if (gSettlerLogLevel >= 2) SAS_logSettlerMissionDecision("DELAY_FOUND_IN_PLACE_BETTER_SITE", *this, pBetterFoundPlot, pBetterEndTurnPlot, iBetterFoundValue, iBetterPathTurns, "BETTER_REACHABLE_SITE");
 						continue;
 					}
 					if (gSettlerLogLevel >= 2)
@@ -21706,11 +21715,12 @@ bool CvUnitAI::AI_found(MovementFlags eFlags)
 							if (at(kSite))
 							{
 								CvPlot const* pBetterFoundPlot = NULL;
+								CvPlot const* pBetterEndTurnPlot = NULL;
 								int iBetterFoundValue = 0;
 								int iBetterPathTurns = -1;
-								if (SAS_shouldDelayFoundInPlaceForBetterReachableSite(*this, eFlags, kSite, kSite.getFoundValue(getOwner()), pBetterFoundPlot, iBetterFoundValue, iBetterPathTurns))
+								if (SAS_shouldDelayFoundInPlaceForBetterReachableSite(*this, eFlags, kSite, kSite.getFoundValue(getOwner()), pBetterFoundPlot, pBetterEndTurnPlot, iBetterFoundValue, iBetterPathTurns))
 								{
-									if (gSettlerLogLevel >= 2) SAS_logSettlerMissionDecision("SKIP_AI_FOUND_CURRENT_SITE_BETTER_SITE", *this, pBetterFoundPlot, &getPathEndTurnPlot(), iBetterFoundValue, iBetterPathTurns, "BETTER_REACHABLE_SITE");
+									if (gSettlerLogLevel >= 2) SAS_logSettlerMissionDecision("SKIP_AI_FOUND_CURRENT_SITE_BETTER_SITE", *this, pBetterFoundPlot, pBetterEndTurnPlot, iBetterFoundValue, iBetterPathTurns, "BETTER_REACHABLE_SITE");
 									continue;
 								}
 							}
@@ -21822,12 +21832,13 @@ bool CvUnitAI::AI_foundFollow()
 			return false;
 		}
 		CvPlot const* pBetterFoundPlot = NULL;
+		CvPlot const* pBetterEndTurnPlot = NULL;
 		int iBetterFoundValue = 0;
 		int iBetterPathTurns = -1;
 		int const iCurrentFoundValue = getPlot().getFoundValue(getOwner());
-		if (SAS_shouldDelayFoundInPlaceForBetterReachableSite(*this, NO_MOVEMENT_FLAGS, getPlot(), iCurrentFoundValue, pBetterFoundPlot, iBetterFoundValue, iBetterPathTurns))
+		if (SAS_shouldDelayFoundInPlaceForBetterReachableSite(*this, NO_MOVEMENT_FLAGS, getPlot(), iCurrentFoundValue, pBetterFoundPlot, pBetterEndTurnPlot, iBetterFoundValue, iBetterPathTurns))
 		{
-			if (gSettlerLogLevel >= 2) SAS_logSettlerMissionDecision("DELAY_FOLLOW_FOUND_BETTER_SITE", *this, pBetterFoundPlot, &getPathEndTurnPlot(), iBetterFoundValue, iBetterPathTurns, "BETTER_REACHABLE_SITE");
+			if (gSettlerLogLevel >= 2) SAS_logSettlerMissionDecision("DELAY_FOLLOW_FOUND_BETTER_SITE", *this, pBetterFoundPlot, pBetterEndTurnPlot, iBetterFoundValue, iBetterPathTurns, "BETTER_REACHABLE_SITE");
 			return false;
 		}
 		if (gSettlerLogLevel >= 2)

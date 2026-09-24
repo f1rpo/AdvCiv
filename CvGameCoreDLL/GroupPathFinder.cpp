@@ -816,6 +816,10 @@ bool GroupPathFinder::generatePath(CvPlot const& kTo)
 CvPlot& GroupPathFinder::getPathEndTurnPlot() const
 {
 	GroupPathNode* pNode = m_pEndNode;
+	// <!-- custom: Base AdvCiv dereferenced pNode in its first assertion before checking it.
+	// Keep the successful-current-path contract rather than fabricating a fallback path, but diagnose a violated contract before any dereference in Assert/Debug builds.
+	// The concrete SAS misuse is fixed at its caller. See KI#180.2. (ChatGPT-5.6-Sol) -->
+	FAssertMsg(pNode != NULL, "getPathEndTurnPlot requires a current successful path; a later generatePath call may have replaced or cleared it");
 	FAssert(pNode->getPathLength() == 1 || pNode->m_pParent != NULL);
 	while (pNode != NULL && pNode->getPathLength() > 1)
 	{

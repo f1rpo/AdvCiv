@@ -88,6 +88,8 @@ public:
 	using KmodPathFinder<GroupStepMetric,GroupPathNode>::generatePath;
 	int getPathTurns() const { return getPathLength(); }
 	#endif // advc.test
+	// <!-- custom: Requires the pathfinder state from the current successful generatePath query. A later generatePath can replace or clear the shared end node; callers that need an earlier result must preserve the returned CvPlot before another query.
+	// Base AdvCiv 1.14 has the same precondition; runtime-confirmed one SAS Settler diagnostic caller that violated it. See KI#180.2. (ChatGPT-5.6-Sol) -->
 	CvPlot& getPathEndTurnPlot() const;
 	int getFinalMoves() const
 	{

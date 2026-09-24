@@ -240,6 +240,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#179.2 - (Fixed/Improved) AdvCiv-SAS guarded-Settler regression: stronger escort safety outgrew inherited AdvCiv production assumptions](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-179.2)\
 [KI#179.3 - (Fixed/Improved) AdvCiv-SAS first-Settler escort sequencing could over-delay expansion through overlapping inherited and SAS safety gates](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-179.3)\
 [KI#180 - (Fixed/Improved) AI Settlers could settle a merely valid current plot (e.g., after nearby Barbarian city spawn made remaining space smaller and poorer) even when a clearly better reachable city site existed](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-180)\
+[KI#180.2 - (Fixed AdvCiv-SAS KI#180 diagnostic regression; originally album-found, runtime-confirmed during Settler AI rework) Level-2 Settler logging could dereference a stale/null pathfinder endpoint after later candidate searches](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-180.2)\
 [KI#181 - (Fixed/Improved) AI could train early/midgame Settlers for weak remaining sites after good expansion was gone (e.g., Paris's settler for snow/filler sites example)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-181)\
 [KI#181.2 - (Improved) AdvCiv-SAS first-trained-Settler safeguards could over-delay or suppress the second city on constrained starts](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-181.2)\
 [KI#182 - (Fixed/Improved) UWAI war-target selection could fall through to farther targets even when a closer weak/disliked land target was available](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-182)\
@@ -8669,6 +8670,56 @@ The fix now has two parts:
 Follow-up T130 testing (`BBAI_20260711T180850Z_load1.log` and `SASGameRecord_20260711T180850Z_load1.log`) then founded stronger Zulu cities: Nobamba at `(13,35)`, Bulawayo at `(10,41)`, and later captured Barbarian Aryan at `(7,45)` with Horse, Deer, and Silver; Shaka reached rank 2 by turn 130 in that run.
 
 Fixed/improved with the help of GPT-5.5 (on ChatGPT Codex) thanks.
+
+<a id="ki-180.2"></a>
+
+## KI#180.2 - (Fixed AdvCiv-SAS KI#180 diagnostic regression; originally album-found, runtime-confirmed during Settler AI rework) Level-2 Settler logging could dereference a stale/null pathfinder endpoint after later candidate searches
+
+Screenshots/files for this issue: [google drive folder link](https://drive.google.com/drive/folders/1IjqxPX4ogevdGzyar3zTxUWMyJHRi3c0?usp=sharing).
+
+This issue was actually found before it was encountered at runtime. During the C027-WIP13 `GroupPathFinder.cpp` source-album audit, the full `getPathEndTurnPlot` caller inventory recorded a cross-file side note:
+
+> The full getPathEndTurnPlot caller inventory found a real SAS diagnostic hazard, but not a GroupPathFinder gameplay root suitable for F306.
+
+The album then described the exact failure mechanism: `SAS_shouldDelayFoundInPlaceForBetterReachableSite` repeatedly calls `generatePath`, remembers the best site's plot/value/path-turn scalar data, but did not preserve that winning query's end-turn plot. A later candidate can replace the reusable pathfinder state or fail and leave `m_pEndNode == NULL`; the helper can nevertheless return true because an earlier reachable site remains the best. Three level-2 Settler diagnostic calls then queried `getPathEndTurnPlot()` only after the entire scan. The album therefore warned that these rows could report another candidate's path end or hit the accessor's release-unsafe null dereference when the final later query failed.
+
+The album intentionally did **not** allocate F306 / provisional KI#629 for this. Queue 054 was auditing `GroupPathFinder.cpp`, while the concrete defect was a cross-file AdvCiv-SAS Settler diagnostic caller; default Settler logging was 0 and gameplay already used the stored best-site values. It was explicitly retained for a later `CvUnitAI` / Settler logging review rather than classified as a separate GroupPathFinder gameplay root. In other words, the issue was not dismissed as harmless; it was correctly scoped and deferred, but had not yet been promoted into a normal KI entry.
+
+It was then empirically encountered during the September 24, 2026 Settler AI refactor testing with `SAS_BBAI_SETTLER_LOG_LEVEL = 3`. The T100 crash dump resolved the access violation to `GroupPathFinder::getPathEndTurnPlot` with `m_pEndNode == NULL`, called directly from `CvUnitAI::AI_settleMove`. This runtime failure matches the album's earlier predicted sequence and turns that deferred source finding into a confirmed crash.
+
+WinDbg points at the exact failure moment (line numbers below are from the crashing Settler-refactor DLL):
+
+```text
+Failure.Bucket
+Value: INVALID_POINTER_READ_c0000005_CvGameCoreDLL.dll!GroupPathFinder::getPathEndTurnPlot
+...
+CvGameCoreDLL!GroupPathFinder::getPathEndTurnPlot+0x1c [GroupPathFinder.cpp @ 826]
+Attempt to read from address 00000000
+...
+824: FAssert(pNode != NULL);
+825: #if VERIFY_PATHF == 0
+> 826: return pNode->getPlot();
+...
+CvGameCoreDLL!CvUnitAI::AI_settleMove+0x2f2 [CvUnitAI.cpp @ 4937]
+```
+
+In the Release DLL the assertions are compiled out, so the null shared endpoint survives the loop and is dereferenced at `return pNode->getPlot()`. The caller line is the KI#180 level-2 `DELAY_FOUND_IN_PLACE_BETTER_SITE` diagnostic that queried `getPathEndTurnPlot()` after the helper had finished scanning later candidates.
+
+The fix keeps the KI#180 gameplay policy unchanged and repairs the diagnostic lifetime contract:
+
+- `SAS_shouldDelayFoundInPlaceForBetterReachableSite` now preserves the winning candidate's end-turn `CvPlot` immediately while that candidate's successful path is still the current pathfinder result;
+- all three KI#180 level-2 diagnostic callers use that preserved plot instead of querying mutable shared pathfinder state after the candidate scan;
+- `GroupPathFinder::getPathEndTurnPlot` now documents that it requires the current successful `generatePath` result, and its Assert/Debug check verifies `m_pEndNode` before the inherited code dereferences it.
+
+The low-level accessor fragility itself is inherited from Base AdvCiv 1.14: its implementation has the same successful-current-path precondition and could null-dereference in Release if a caller violates it. The source-album caller audit, however, found the ordinary shipped C++ uses attached to successful path queries or saved success booleans, and current shipped Python had no caller of the exposed path-plot accessors.
+
+Therefore no independent Base AdvCiv gameplay crash is demonstrated here. Returning an arbitrary fallback plot would hide caller bugs and could create incorrect AI movement, so the accessor contract is clarified/hardened while the actual release crash is fixed at the SAS caller that violated it.
+
+Runtime validation on the Settler AI refactor branch then replayed the same test for the requested 101 turns with the recompiled DLL. The pre-fix crash run and repaired run have identical `END_GAME_TURN` CORE combined fingerprints for every comparable checkpoint from turn 0 through turn 99. Their synchronized RNG state, session call count and stream fingerprint also match at every one of those 100 turn-end checkpoints.
+
+On turn 100, all 162 SASGameRecord lines present in the crashing run are byte-for-byte identical in the repaired run through the old termination point; the repaired run then continues normally through the rest of the turn and records `GAME_RECORD_TURN_END turn=100` plus the turn-100 CORE checkpoint. This is therefore a same-history validation through the formerly crashing path, not merely a generic smoke run.
+
+Originally found by the C027-WIP13 source-album audit, then runtime-confirmed and fixed during the Settler AI rework with the help of ChatGPT-5.6-Sol, thanks.
 
 <a id="ki-181"></a>
 
