@@ -3612,6 +3612,68 @@ static int SAS_getWorkerIrrigationOverwritePenalty(CvPlot const& kPlot, BuildTyp
 	return std::min(iOtherOverwritePenalty, 150 + std::max(0, iCurrentUtility - iCarrierUtility));
 }
 
+// <!-- custom: Test a proposed carrier replacement against the engine's full connected-component irrigation rule rather than only adjacent improvements.
+// Removing a source Farm can strand a downstream Farm through one or more XML carriers or flat city tiles; Barcelona repeatedly rebuilt such a Farm through its city tile, replaced it with a Workshop, and dried the target again.
+// Protect the source only when an owner carrier lies in a component that would have no surviving fresh-water source, so redundant routes and obsolete connectors remain replaceable. (GPT-5.6-Sol) -->
+static bool SAS_findWorkerIrrigationCarrierDependency(CvPlot const& kRemovedCarrier, PlayerTypes eOwner, CvPlot const*& pDependentCarrier, bool& bDependencyComponentHasCityCarrier)
+{
+	pDependentCarrier = NULL;
+	bDependencyComponentHasCityCarrier = false;
+	if (!SAS_isWorkerIrrigationCarrierImprovement(kRemovedCarrier.getImprovementType()) || !kRemovedCarrier.isIrrigated())
+		return false;
+	CvMap const& kMap = GC.getMap();
+	static std::vector<unsigned int> aiVisitedGeneration;
+	static unsigned int iGeneration = 0;
+	if ((int)aiVisitedGeneration.size() != kMap.numPlots())
+	{
+		aiVisitedGeneration.assign(kMap.numPlots(), 0);
+		iGeneration = 0;
+	}
+	iGeneration++;
+	if (iGeneration == 0)
+	{
+		std::fill(aiVisitedGeneration.begin(), aiVisitedGeneration.end(), 0);
+		iGeneration = 1;
+	}
+	aiVisitedGeneration[kRemovedCarrier.plotNum()] = iGeneration;
+	FOR_EACH_ADJ_PLOT(kRemovedCarrier)
+	{
+		if (!pAdj->isPotentialIrrigation() || aiVisitedGeneration[pAdj->plotNum()] == iGeneration)
+			continue;
+		std::vector<CvPlot const*> apComponent;
+		apComponent.push_back(pAdj);
+		aiVisitedGeneration[pAdj->plotNum()] = iGeneration;
+		CvPlot const* pComponentDependentCarrier = NULL;
+		bool bComponentHasFreshWater = false;
+		bool bComponentUsesCityCarrier = false;
+		for (size_t i = 0; i < apComponent.size(); i++)
+		{
+			CvPlot const& kComponentPlot = *apComponent[i];
+			if (kComponentPlot.isFreshWater())
+				bComponentHasFreshWater = true;
+			if (kComponentPlot.isCity())
+				bComponentUsesCityCarrier = true;
+			if (pComponentDependentCarrier == NULL && kComponentPlot.getOwner() == eOwner && kComponentPlot.isIrrigated() && SAS_isWorkerIrrigationCarrierImprovement(kComponentPlot.getImprovementType()))
+				pComponentDependentCarrier = &kComponentPlot;
+			FOR_EACH_ADJ_PLOT_VAR(kComponentPlot)
+			{
+				if (pAdj->isPotentialIrrigation() && aiVisitedGeneration[pAdj->plotNum()] != iGeneration)
+				{
+					aiVisitedGeneration[pAdj->plotNum()] = iGeneration;
+					apComponent.push_back(pAdj);
+				}
+			}
+		}
+		if (!bComponentHasFreshWater && pComponentDependentCarrier != NULL)
+		{
+			pDependentCarrier = pComponentDependentCarrier;
+			bDependencyComponentHasCityCarrier = bComponentUsesCityCarrier;
+			return true;
+		}
+	}
+	return false;
+}
+
 // <!-- custom: Search an actual owned irrigation-capable route from a dry BFC carrier or low-food target to currently available water and return the least-cost source-side carrier Build that can be made now.
 // This is a conservative persistent-route search rather than a greedy next-step guess: water, hills/other plots that cannot carry irrigation, foreign/unowned plots, protected automation-safe plots and non-carrier bonus improvements are barriers; a Horse Pasture, for example, is never temporarily replaced just to pass irrigation through.
 // The search traverses existing carriers and carrier Builds legal now, so it can reject some longer chains that would become buildable only after several future source-side steps, but any accepted route does not depend on a temporary carrier that would later be removed.
@@ -4101,6 +4163,11 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 		}
 	}
 
+	// <!-- custom: Remember existing irrigated carriers that are supplying the source-side step of a viable chain found in this city evaluation.
+	// Until that next carrier is built, ordinary yield logic must not remove the provider and make the same chain start over.
+	// The set is local to this evaluation and rebuilt from current map state rather than becoming persistent Worker memory. (ChatGPT-5.6-Sol) -->
+	std::set<PlotNumTypes> aePendingIrrigationProviderPlots;
+
 	// <!-- custom: An exact-plot transport query asks whether its destination itself has worthwhile work; an irrigation step elsewhere cannot justify unloading a Worker there. (GPT-5.6-Sol) -->
 	if (pOnlyPlot == NULL && bSAS_WORKER_AI_IRRIGATION_CHAIN_ENABLE && GET_TEAM(getTeam()).isIrrigation())
 	{
@@ -4132,6 +4199,28 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 			int const iChainStepValue = (bFoundChainStep ? (bTargetDryCarrier ? 11500 : 8500) - (350 * std::max(0, iRoutePlots - 1)) - iRouteOverwritePenalty : 0);
 			if (bFoundChainStep && iChainStepValue > 0)
 			{
+				// <!-- custom: A source-side step can be buildable only because an adjacent irrigated carrier currently supplies it.
+				// Protect those immediate providers until the step is completed; if a flat city tile is the immediate carrier, protect its adjacent improvement providers too.
+				// New York repeatedly Farmed a Workshop source, advanced one tile, then rebuilt the source as a Workshop before the downstream Farm existed, forcing the chain planner to start over. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				if (pChainStepPlot != NULL && !pChainStepPlot->isFreshWater())
+				{
+					FOR_EACH_ADJ_PLOT(*pChainStepPlot)
+					{
+						if (pAdj == NULL || !pAdj->isIrrigated())
+							continue;
+						if (pAdj->getOwner() == getOwner() && SAS_isWorkerIrrigationCarrierImprovement(pAdj->getImprovementType()))
+							aePendingIrrigationProviderPlots.insert(pAdj->plotNum());
+						else if (pAdj->isCity() && pAdj->isPotentialIrrigation())
+						{
+							CvPlot const* pCityCarrier = pAdj;
+							FOR_EACH_ADJ_PLOT_VAR(*pCityCarrier)
+							{
+								if (pAdj->getOwner() == getOwner() && pAdj->isIrrigated() && SAS_isWorkerIrrigationCarrierImprovement(pAdj->getImprovementType()))
+									aePendingIrrigationProviderPlots.insert(pAdj->plotNum());
+							}
+						}
+					}
+				}
 				CandidatePlot kChainStep;
 				kChainStep.iValue = iChainStepValue;
 				kChainStep.pPlot = pChainStepPlot;
@@ -4441,34 +4530,27 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 			continue;
 		}
 
-		// <!-- custom: Protect any completed XML irrigation carrier from a non-carrier replacement only when an adjacent irrigated carrier without direct fresh water visibly depends on it.
+		// <!-- custom: Protect a completed XML irrigation carrier from a non-carrier replacement only while an existing carrier component or a pending chain step depends on it.
 		// Ordinary carrier improvements otherwise compete through the shared yield/hysteresis formula; the deterministic route pass separately creates missing connectors. (GPT-5.6-Sol) -->
 		ImprovementTypes const ePlotCurrentImprovement = kPlot.getImprovementType();
 		ImprovementTypes const eSupposedImprovement = GC.getInfo(eBestSupposedBuild).getImprovement();
 		if (bSAS_WORKER_AI_IRRIGATION_CHAIN_ENABLE && GET_TEAM(getTeam()).isIrrigation() && eBonus == NO_BONUS && eSupposedImprovement != NO_IMPROVEMENT && !SAS_isWorkerIrrigationCarrierImprovement(eSupposedImprovement) && !kPlot.isWater() && !kPlot.isCity() && kPlot.canHavePotentialIrrigation())
 		{
-			bool bReserveIrrigationCarrier = false;
-			if (SAS_isWorkerIrrigationCarrierImprovement(ePlotCurrentImprovement) && kPlot.isIrrigated())
-			{
-				for (int iI = 0; iI < NUM_DIRECTION_TYPES; iI++)
-				{
-					CvPlot const* pAdjacentCarrier = plotDirection(kPlot.getX(), kPlot.getY(), (DirectionTypes)iI);
-					if (pAdjacentCarrier != NULL && pAdjacentCarrier->getOwner() == getOwner() && SAS_isWorkerIrrigationCarrierImprovement(pAdjacentCarrier->getImprovementType()) && pAdjacentCarrier->isIrrigated() && !pAdjacentCarrier->isFreshWater())
-					{
-						bReserveIrrigationCarrier = true;
-						break;
-					}
-				}
-			}
+			bool const bPendingChainProvider = (aePendingIrrigationProviderPlots.find(kPlot.plotNum()) != aePendingIrrigationProviderPlots.end());
+			CvPlot const* pDependentCarrier = NULL;
+			bool bDependencyComponentHasCityCarrier = false;
+			bool const bEstablishedDependency = (!bPendingChainProvider && SAS_findWorkerIrrigationCarrierDependency(kPlot, getOwner(), pDependentCarrier, bDependencyComponentHasCityCarrier));
+			bool const bReserveIrrigationCarrier = (bPendingChainProvider || bEstablishedDependency);
 			if (bReserveIrrigationCarrier)
 			{
 				if (gWorkerLogLevel >= 3 && SAS_shouldLogWorkerIrrigationCarrierProtection(kCity, kPlot))
 				{
 					wchar const* szCurrentImprovement = (ePlotCurrentImprovement == NO_IMPROVEMENT ? L"-" : GC.getInfo(ePlotCurrentImprovement).getDescription());
-					logBBAI("    WORKER_IRRIGATION_CARRIER_PROTECTED turn=%d player=%d %S city=%S plot=(%d,%d) reason=ESTABLISHED_DEPENDENCY build=%S improvement=%S currentImprovement=%S",
+					logBBAI("    WORKER_IRRIGATION_CARRIER_PROTECTED turn=%d player=%d %S city=%S plot=(%d,%d) reason=%s dependent=(%d,%d) dependencyComponentHasCityCarrier=%d build=%S improvement=%S currentImprovement=%S",
 						GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), kCity.getName().GetCString(),
-						kPlot.getX(), kPlot.getY(), GC.getInfo(eBestSupposedBuild).getDescription(), GC.getInfo(eSupposedImprovement).getDescription(),
-						szCurrentImprovement);
+						kPlot.getX(), kPlot.getY(), (bPendingChainProvider ? "PENDING_CHAIN_PROVIDER" : "ESTABLISHED_ROUTE_DEPENDENCY"),
+						(pDependentCarrier == NULL ? -1 : pDependentCarrier->getX()), (pDependentCarrier == NULL ? -1 : pDependentCarrier->getY()), bDependencyComponentHasCityCarrier,
+						GC.getInfo(eBestSupposedBuild).getDescription(), GC.getInfo(eSupposedImprovement).getDescription(), szCurrentImprovement);
 				}
 				continue;
 			}

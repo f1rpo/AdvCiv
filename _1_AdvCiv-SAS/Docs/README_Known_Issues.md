@@ -9682,9 +9682,25 @@ Save file 449 independently confirmed a long route to Camulodunum's Rice: its Fa
 
 Save file 452 produced 110 selected irrigation-chain jobs; valid routes used at most 7 plots, so none reached the default maximum of 12. The only five repeated target/location failures were explained by current ownership or terrain, and Avar's later repeated dry Farm was a pillaged improvement that Workers repaired before its diagnostic stopped again.
 
-Update (AdvCiv-SAS 6565): the Worker refactor retains this deterministic route planner but removes Farm as its C++ representative. Candidate carriers and dry targets now come from every improvement whose loaded XML sets `bCarriesIrrigation`; the route follows actual irrigation availability and resulting yields, and its special overwrite protection applies only to a completed carrier or a carrier currently useful to the concrete route.
+### Update (AdvCiv-SAS 6565)
+
+The Worker refactor retains this deterministic route planner but removes Farm as its C++ representative. Candidate carriers and dry targets now come from every improvement whose loaded XML sets `bCarriesIrrigation`; the route follows actual irrigation availability and resulting yields, and its special overwrite protection applies only to a completed carrier or a carrier currently useful to the concrete route.
 
 Configured growth-improvement overwrite costs follow XML `ImprovementUpgrade` chains rather than naming Cottage/Hamlet/Village/Town. The present AdvCiv-SAS XML still normally produces Farm chains, but modmods can add, remove or rebalance food, production or commerce irrigation carriers without adding another identity branch to this code or SASGameRecord revision 124's matching territory report.
+
+### Update 2 (AdvCiv-SAS 6572)
+
+Later level-3 Worker diagnostics found a second defect in this **AdvCiv-SAS chain system itself**. The deterministic route planner could correctly build a source-side carrier and advance toward its target, but ordinary `AI_bestCityBuild` yield valuation could then replace that upstream carrier before the downstream link was secure.
+
+In Barcelona, a flat city tile also bridged the dependency, which the older adjacent-carrier protection did not model. The result was a repeated SAS-created Farm/Workshop loop even though the route search itself was valid.
+
+The repair protects both kinds of live SAS route dependency without reverting to Base AdvCiv's untargeted irrigation routine. While a viable chain still needs its next source-side step, currently irrigated carriers supplying that step are protected from ordinary non-carrier replacement.
+
+For already established chains, the Worker AI tests the remaining potential-irrigation connected component with the candidate source removed; if an owned downstream XML carrier would otherwise have no surviving fresh-water source, the provider remains protected. Flat city tiles can therefore bridge a real dependency, while a carrier with another surviving source or a no-longer-needed connector remains replaceable.
+
+A controlled Tiny Islands replay validated the cure. Through turn 370, Barcelona `(8,63)` direct reversals fell from 55 to 1, cross-path reversals from 67 to 17, reversals within five turns from 86 to 34, total reversals from 146 to 111, and replacement assignments from 587 to 486. `SASGameRecord` remained identical through turn 151 and first diverged on turn 152, exactly when the new city-bridged provider protection first changed gameplay.
+
+The run then completed normally by Space Race. Remaining rapid Farm/Workshop reversals caused entirely by ordinary `CITY_BUILD` scarcity weighting are tracked separately; this irrigation fix deliberately does not mask them with a generic replacement cooldown.
 
 Fixed/improved with the help of GPT-5.6-Sol (on ChatGPT Codex) thanks.
 
