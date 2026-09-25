@@ -6794,8 +6794,9 @@ bool CvPlot::changeBuildProgress(BuildTypes eBuild, int iChange, /*TeamTypes eTe
 
 		setFeatureType(NO_FEATURE);
 	}
-	// <!-- custom: Completed worker builds can change an improvement, route and feature together. Buffer one coordinate for the whole build rather than logging each underlying plot setter separately. (GPT-5.6-Sol) -->
-	if (bLogPlotChange) recordSASGameRecordPlotChange(*this, kOldState, "workerBuilds", "WORKER_BUILD", false);
+	// <!-- custom: Completed worker builds can change an improvement, route and feature together.
+	// Buffer one coordinate for the whole build and aggregate its factual transition rather than logging each underlying plot setter separately. (GPT-5.6-Sol) -->
+	if (bLogPlotChange) recordSASGameRecordWorkerBuild(*this, kOldState, ePlayer, eBuild);
 
 	return true;
 }

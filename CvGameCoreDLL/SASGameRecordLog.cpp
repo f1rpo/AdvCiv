@@ -2764,6 +2764,82 @@ struct SASGameRecordPlotChangeGroup
 	std::vector<std::pair<int,int> > aCoordinates;
 };
 
+struct SASGameRecordWorkerImprovementTransition
+{
+	ImprovementTypes eOldImprovement;
+	ImprovementTypes eNewImprovement;
+	int iCount;
+	SASGameRecordWorkerImprovementTransition(ImprovementTypes eOld, ImprovementTypes eNew) : eOldImprovement(eOld), eNewImprovement(eNew), iCount(1) {}
+};
+
+struct SASGameRecordWorkerCompletedReplacement
+{
+	int iTurn;
+	ImprovementTypes eOldImprovement;
+	ImprovementTypes eNewImprovement;
+	SASGameRecordWorkerCompletedReplacement() : iTurn(-1), eOldImprovement(NO_IMPROVEMENT), eNewImprovement(NO_IMPROVEMENT) {}
+};
+
+// <!-- custom: Keep Worker Build history compact at broad GameRecord level 2: one row per player/turn with completed work retains factual completed work and XML-driven carrier/maturation outcomes, while BBAI remains responsible for rejected candidates and numeric AI valuation. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
+struct SASGameRecordWorkerBuildTurn
+{
+	int iCompleted;
+	int iImprovementChanges;
+	int iNewImprovements;
+	int iImprovementRemovals;
+	int iImprovementReplacements;
+	int iWorkedImprovementReplacements;
+	int iUnworkedImprovementReplacements;
+	int iDirectReversalsObserved;
+	int iDirectReversalsWithin5TurnsObserved;
+	int iRouteChanges;
+	int iFeatureRemovals;
+	int iBFC;
+	int iOutsideBFC;
+	int iBonus;
+	int iBonusImprovementResults;
+	int iIrrigationCarrierResults;
+	int iIrrigatedCarrierResults;
+	int iDryCarrierResults;
+	int iIrrigationCarrierReplacements;
+	int iIrrigationCarrierLosses;
+	int iGrowthChainResults;
+	int iGrowthChainReplacements;
+	std::vector<int> aiBuilds;
+	std::vector<int> aiFeaturesRemoved;
+	std::vector<SASGameRecordWorkerImprovementTransition> aImprovementTransitions;
+
+	SASGameRecordWorkerBuildTurn() { reset(); }
+	void reset()
+	{
+		iCompleted = 0;
+		iImprovementChanges = 0;
+		iNewImprovements = 0;
+		iImprovementRemovals = 0;
+		iImprovementReplacements = 0;
+		iWorkedImprovementReplacements = 0;
+		iUnworkedImprovementReplacements = 0;
+		iDirectReversalsObserved = 0;
+		iDirectReversalsWithin5TurnsObserved = 0;
+		iRouteChanges = 0;
+		iFeatureRemovals = 0;
+		iBFC = 0;
+		iOutsideBFC = 0;
+		iBonus = 0;
+		iBonusImprovementResults = 0;
+		iIrrigationCarrierResults = 0;
+		iIrrigatedCarrierResults = 0;
+		iDryCarrierResults = 0;
+		iIrrigationCarrierReplacements = 0;
+		iIrrigationCarrierLosses = 0;
+		iGrowthChainResults = 0;
+		iGrowthChainReplacements = 0;
+		std::fill(aiBuilds.begin(), aiBuilds.end(), 0);
+		std::fill(aiFeaturesRemoved.begin(), aiFeaturesRemoved.end(), 0);
+		aImprovementTransitions.clear();
+	}
+};
+
 static int g_iSASGameRecordPendingPlotTurn = -1;
 
 // <!-- custom: Keep the city-bombard member named szMode. During the 6385 city-raze logging work it was accidentally renamed to szRazeMode while the existing bombard code still referenced szMode, causing MSVC C2039 compile errors.
@@ -2795,6 +2871,10 @@ struct SASGameRecordCityBombardPending
 
 static SASGameRecordCityBombardPending g_kSASGameRecordPendingCityBombard;
 static std::vector<SASGameRecordPlotChangeGroup> g_aSASGameRecordPlotChanges;
+static SASGameRecordWorkerBuildTurn g_akSASGameRecordWorkerBuildTurn[MAX_PLAYERS];
+// <!-- custom: Remember only completed replacements observed in this log session.
+// This measures realized A>B>A churn without copying BBAI's candidate scoring or pretending that pre-load history is known. (GPT-5.6-Sol) -->
+static std::map<std::pair<int,int>, SASGameRecordWorkerCompletedReplacement> g_mapSASGameRecordWorkerCompletedReplacements;
 static std::vector<std::pair<int,int> > g_aaSASGameRecordRevealedPlots[MAX_TEAMS];
 static TeamTypes g_eSASGameRecordFullMapRevelationTeam = NO_TEAM;
 static int g_iSASGameRecordFullMapRevealedBefore = 0;
@@ -3208,7 +3288,9 @@ static void resetSASGameRecordState()
 		g_aiSASGameRecordCitiesTradedOut[iI] = 0;
 		g_akSASGameRecordPlayerFlow[iI].reset();
 		g_akSASGameRecordPlayerPrevious[iI].bValid = false;
+		g_akSASGameRecordWorkerBuildTurn[iI].reset();
 	}
+	g_mapSASGameRecordWorkerCompletedReplacements.clear();
 	for (int iI = 0; iI < MAX_TEAMS; iI++)
 	{
 		g_akSASGameRecordTeamPrevious[iI].bValid = false;
@@ -3552,6 +3634,49 @@ void flushSASGameRecordTurnChanges(int iGameTurn)
 		return;
 	FAssert(iGameTurn == g_iSASGameRecordPendingPlotTurn);
 	int const iLoggedTurn = iGameTurn;
+	for (int iPlayer = 0; iPlayer < MAX_PLAYERS; iPlayer++)
+	{
+		SASGameRecordWorkerBuildTurn& kWorkerBuild = g_akSASGameRecordWorkerBuildTurn[iPlayer];
+		if (kWorkerBuild.iCompleted <= 0)
+			continue;
+		CvString szBuilds;
+		for (size_t iI = 0; iI < kWorkerBuild.aiBuilds.size(); iI++)
+		{
+			if (kWorkerBuild.aiBuilds[iI] <= 0)
+				continue;
+			CvString szItem;
+			szItem.Format(szBuilds.empty() ? "%s:%d" : ",%s:%d", GC.getInfo((BuildTypes)iI).getType(), kWorkerBuild.aiBuilds[iI]);
+			szBuilds += szItem;
+		}
+		CvString szFeaturesRemoved;
+		for (size_t iI = 0; iI < kWorkerBuild.aiFeaturesRemoved.size(); iI++)
+		{
+			if (kWorkerBuild.aiFeaturesRemoved[iI] <= 0)
+				continue;
+			CvString szItem;
+			szItem.Format(szFeaturesRemoved.empty() ? "%s:%d" : ",%s:%d", getSASGameRecordFeatureType((FeatureTypes)iI), kWorkerBuild.aiFeaturesRemoved[iI]);
+			szFeaturesRemoved += szItem;
+		}
+		CvString szImprovementTransitions;
+		for (size_t iI = 0; iI < kWorkerBuild.aImprovementTransitions.size(); iI++)
+		{
+			SASGameRecordWorkerImprovementTransition const& kTransition = kWorkerBuild.aImprovementTransitions[iI];
+			CvString szItem;
+			szItem.Format(szImprovementTransitions.empty() ? "%s>%s:%d" : ",%s>%s:%d", getSASGameRecordImprovementType(kTransition.eOldImprovement), getSASGameRecordImprovementType(kTransition.eNewImprovement), kTransition.iCount);
+			szImprovementTransitions += szItem;
+		}
+		logSASGameRecord("GAME_RECORD_WORKER_BUILDS_COMPLETED turn=%d player=%d completed=%d improvementChanges=%d newImprovements=%d improvementRemovals=%d improvementReplacements=%d workedImprovementReplacements=%d unworkedImprovementReplacements=%d directReversalsObserved=%d directReversalsWithin5TurnsObserved=%d routeChanges=%d featureRemovals=%d bfc=%d outsideBFC=%d bonus=%d bonusImprovementResults=%d irrigationCarrierResults=%d irrigatedCarrierResults=%d dryCarrierResults=%d irrigationCarrierReplacements=%d irrigationCarrierLosses=%d growthChainResults=%d growthChainReplacements=%d builds=%s improvementTransitions=%s featuresRemoved=%s",
+			iLoggedTurn, iPlayer, kWorkerBuild.iCompleted, kWorkerBuild.iImprovementChanges, kWorkerBuild.iNewImprovements, kWorkerBuild.iImprovementRemovals,
+			kWorkerBuild.iImprovementReplacements, kWorkerBuild.iWorkedImprovementReplacements, kWorkerBuild.iUnworkedImprovementReplacements,
+			kWorkerBuild.iDirectReversalsObserved, kWorkerBuild.iDirectReversalsWithin5TurnsObserved,
+			kWorkerBuild.iRouteChanges, kWorkerBuild.iFeatureRemovals,
+			kWorkerBuild.iBFC, kWorkerBuild.iOutsideBFC, kWorkerBuild.iBonus, kWorkerBuild.iBonusImprovementResults,
+			kWorkerBuild.iIrrigationCarrierResults, kWorkerBuild.iIrrigatedCarrierResults, kWorkerBuild.iDryCarrierResults,
+			kWorkerBuild.iIrrigationCarrierReplacements, kWorkerBuild.iIrrigationCarrierLosses,
+			kWorkerBuild.iGrowthChainResults, kWorkerBuild.iGrowthChainReplacements,
+			getSASDiagnosticOrDash(szBuilds).GetCString(), getSASDiagnosticOrDash(szImprovementTransitions).GetCString(), getSASDiagnosticOrDash(szFeaturesRemoved).GetCString());
+		kWorkerBuild.reset();
+	}
 	std::vector<CvString> aszPlotChunks;
 	CvString szPlotChunk;
 	for (size_t iI = 0; iI < g_aSASGameRecordPlotChanges.size(); iI++)
@@ -3651,6 +3776,133 @@ void recordSASGameRecordPlotChange(CvPlot const& kPlot, SASGameRecordPlotState c
 				kOldState.aiExtraYield[YIELD_PRODUCTION], GC.getMap().getPlotExtraYield(kPlot, YIELD_PRODUCTION),
 				kOldState.aiExtraYield[YIELD_COMMERCE], GC.getMap().getPlotExtraYield(kPlot, YIELD_COMMERCE));
 	}
+}
+
+// <!-- custom: Identify every member of an XML ImprovementUpgrade chain, including mature endpoints such as Town, so recorder summaries use the same generic concept as Worker replacement protection without naming one chain.
+// Cache after XML load because completed Worker Builds can be frequent. (GPT-5.6-Sol) -->
+static bool isSASGameRecordGrowthChainImprovement(ImprovementTypes eImprovement)
+{
+	if (eImprovement == NO_IMPROVEMENT)
+		return false;
+	static std::vector<bool> abGrowthChain;
+	if (abGrowthChain.empty())
+	{
+		int const iNumImprovements = GC.getNumImprovementInfos();
+		abGrowthChain.resize(iNumImprovements, false);
+		for (int iStart = 0; iStart < iNumImprovements; iStart++)
+		{
+			ImprovementTypes eLoopImprovement = (ImprovementTypes)iStart;
+			if (GC.getInfo(eLoopImprovement).getImprovementUpgrade() == NO_IMPROVEMENT)
+				continue;
+			std::vector<bool> abVisited(iNumImprovements, false);
+			while (eLoopImprovement != NO_IMPROVEMENT && !abVisited[eLoopImprovement])
+			{
+				abVisited[eLoopImprovement] = true;
+				abGrowthChain[eLoopImprovement] = true;
+				eLoopImprovement = GC.getInfo(eLoopImprovement).getImprovementUpgrade();
+			}
+		}
+	}
+	return abGrowthChain[eImprovement];
+}
+
+void recordSASGameRecordWorkerBuild(CvPlot const& kPlot, SASGameRecordPlotState const& kOldState, PlayerTypes ePlayer, BuildTypes eBuild)
+{
+	if (GC.getGame().getElapsedGameTurns() <= 0 || !isSASGameRecordPlotStateChanged(kOldState, kPlot))
+		return;
+	recordSASGameRecordPlotChange(kPlot, kOldState, "workerBuilds", "WORKER_BUILD", false);
+	FAssertBounds(0, MAX_PLAYERS, ePlayer);
+	FAssertBounds(0, GC.getNumBuildInfos(), eBuild);
+	prepareSASGameRecordTurnChanges();
+	SASGameRecordWorkerBuildTurn& kWorkerBuild = g_akSASGameRecordWorkerBuildTurn[ePlayer];
+	if ((int)kWorkerBuild.aiBuilds.size() != GC.getNumBuildInfos())
+		kWorkerBuild.aiBuilds.resize(GC.getNumBuildInfos(), 0);
+	if ((int)kWorkerBuild.aiFeaturesRemoved.size() != GC.getNumFeatureInfos())
+		kWorkerBuild.aiFeaturesRemoved.resize(GC.getNumFeatureInfos(), 0);
+	kWorkerBuild.iCompleted++;
+	kWorkerBuild.aiBuilds[eBuild]++;
+	CvCity const* pWorkingCity = kPlot.getWorkingCity();
+	bool const bOwnedBFC = (pWorkingCity != NULL && pWorkingCity->getOwner() == ePlayer);
+	if (bOwnedBFC)
+		kWorkerBuild.iBFC++;
+	else kWorkerBuild.iOutsideBFC++;
+	BonusTypes const eBonus = kPlot.getBonusType();
+	if (eBonus != NO_BONUS)
+		kWorkerBuild.iBonus++;
+	ImprovementTypes const eNewImprovement = kPlot.getImprovementType();
+	if (kOldState.eImprovement != eNewImprovement)
+	{
+		kWorkerBuild.iImprovementChanges++;
+		if (kOldState.eImprovement == NO_IMPROVEMENT)
+			kWorkerBuild.iNewImprovements++;
+		else if (eNewImprovement == NO_IMPROVEMENT)
+			kWorkerBuild.iImprovementRemovals++;
+		else
+		{
+			kWorkerBuild.iImprovementReplacements++;
+			if (bOwnedBFC && pWorkingCity->isWorkingPlot(kPlot))
+				kWorkerBuild.iWorkedImprovementReplacements++;
+			else kWorkerBuild.iUnworkedImprovementReplacements++;
+			// <!-- custom: Recent Worker-AI validation compared completed overwrites and short direct reversals, not merely changing candidate assignments.
+			// Retain those compact factual outcomes here; exact plots and decision paths remain in BBAI. (GPT-5.6-Sol) -->
+			std::pair<int,int> const kReplacementKey(ePlayer, kPlot.plotNum());
+			std::map<std::pair<int,int>, SASGameRecordWorkerCompletedReplacement>::iterator itPrevious = g_mapSASGameRecordWorkerCompletedReplacements.find(kReplacementKey);
+			if (itPrevious != g_mapSASGameRecordWorkerCompletedReplacements.end() && itPrevious->second.eOldImprovement == eNewImprovement && itPrevious->second.eNewImprovement == kOldState.eImprovement)
+			{
+				kWorkerBuild.iDirectReversalsObserved++;
+				if (GC.getGame().getGameTurn() - itPrevious->second.iTurn <= 5)
+					kWorkerBuild.iDirectReversalsWithin5TurnsObserved++;
+			}
+			SASGameRecordWorkerCompletedReplacement& kCompletedReplacement = g_mapSASGameRecordWorkerCompletedReplacements[kReplacementKey];
+			kCompletedReplacement.iTurn = GC.getGame().getGameTurn();
+			kCompletedReplacement.eOldImprovement = kOldState.eImprovement;
+			kCompletedReplacement.eNewImprovement = eNewImprovement;
+		}
+		bool bFoundTransition = false;
+		for (size_t iI = 0; iI < kWorkerBuild.aImprovementTransitions.size(); iI++)
+		{
+			SASGameRecordWorkerImprovementTransition& kTransition = kWorkerBuild.aImprovementTransitions[iI];
+			if (kTransition.eOldImprovement == kOldState.eImprovement && kTransition.eNewImprovement == eNewImprovement)
+			{
+				kTransition.iCount++;
+				bFoundTransition = true;
+				break;
+			}
+		}
+		if (!bFoundTransition)
+			kWorkerBuild.aImprovementTransitions.push_back(SASGameRecordWorkerImprovementTransition(kOldState.eImprovement, eNewImprovement));
+	}
+	if (kOldState.eRoute != kPlot.getRouteType())
+		kWorkerBuild.iRouteChanges++;
+	if (kOldState.eFeature != NO_FEATURE && kOldState.eFeature != kPlot.getFeatureType())
+	{
+		kWorkerBuild.iFeatureRemovals++;
+		kWorkerBuild.aiFeaturesRemoved[kOldState.eFeature]++;
+	}
+	bool const bOldCarrier = (kOldState.eImprovement != NO_IMPROVEMENT && GC.getInfo(kOldState.eImprovement).isCarriesIrrigation());
+	bool const bNewCarrier = (eNewImprovement != NO_IMPROVEMENT && GC.getInfo(eNewImprovement).isCarriesIrrigation());
+	bool const bImprovementChanged = (kOldState.eImprovement != eNewImprovement);
+	if (bImprovementChanged && bNewCarrier)
+	{
+		kWorkerBuild.iIrrigationCarrierResults++;
+		if (kPlot.isIrrigated())
+			kWorkerBuild.iIrrigatedCarrierResults++;
+		else kWorkerBuild.iDryCarrierResults++;
+	}
+	if (bOldCarrier && bImprovementChanged)
+	{
+		if (bNewCarrier)
+			kWorkerBuild.iIrrigationCarrierReplacements++;
+		else kWorkerBuild.iIrrigationCarrierLosses++;
+	}
+	bool const bOldGrowthChain = isSASGameRecordGrowthChainImprovement(kOldState.eImprovement);
+	bool const bNewGrowthChain = isSASGameRecordGrowthChainImprovement(eNewImprovement);
+	if (bImprovementChanged && bNewGrowthChain)
+		kWorkerBuild.iGrowthChainResults++;
+	if (bOldGrowthChain && bImprovementChanged)
+		kWorkerBuild.iGrowthChainReplacements++;
+	if (bImprovementChanged && eBonus != NO_BONUS && eNewImprovement != NO_IMPROVEMENT && GET_PLAYER(ePlayer).doesImprovementConnectBonus(eNewImprovement, eBonus))
+		kWorkerBuild.iBonusImprovementResults++;
 }
 
 void logSASGameRecordRiverEdgeChanged(CvPlot const& kPlot, bool bOldSouthBoundary, bool bOldEastBoundary)

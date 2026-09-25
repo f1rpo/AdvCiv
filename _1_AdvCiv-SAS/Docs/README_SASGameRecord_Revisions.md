@@ -27,7 +27,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=126 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=127 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -53,10 +53,24 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
-### Revision 126 - SAS practical 6569
+### Revision 127 - SAS practical 6576
 
 - **Date:** 2026-09-25
 - **Git commit:** pending
+- **Change:** Added compact per-player/per-turn completed Worker-build history so improvement churn and irrigation outcomes remain reconstructible between periodic territory snapshots.
+
+At level 2+, `GAME_RECORD_WORKER_BUILDS_COMPLETED` aggregates the exact realized Builds and improvement transitions, separating new improvements, outright removals and replacements, with replacements also split into worked versus unworked plots.
+
+It also retains direct/within-5-turn completed reversals observed from replacement history available in the current log session, route changes, feature removals, BFC/bonus context, matching bonus-improvement results, irrigation-carrier results and losses, and XML-defined maturation-chain results/replacements.
+
+The reversal fields are per emitted player/turn row rather than cumulative session totals; pre-load replacement history is intentionally not invented.
+
+One row covers all Builds completed by one player in a turn; rejected candidates and numeric AI scoring remain in dedicated BBAI diagnostics.
+
+### Revision 126 - SAS practical 6569
+
+- **Date:** 2026-09-25
+- **Git commit:** `6a2f1747805760d905517f0581f689eb80b2027e`
 - **Change:** Expanded broad settlement, vassal-freedom and exact-battle context without copying detailed BBAI decision spam.
 
 At level 2+, new `GAME_RECORD_CITY_SITE_QUALITY` rows describe only the site actually founded: coastal/known-versus-omniscient-seafood/area/nearest-city context plus player-known and diagnostic-omniscient founding-time rescored values and `best1/2/3/6/10/14` BFC quality. The existing `GAME_RECORD_CITY_SITE_CHOICE` remains authoritative for the cached shortlist/rank context that led to founding.

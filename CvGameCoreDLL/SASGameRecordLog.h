@@ -26,7 +26,7 @@ int getSASGameRecordTurnInterval();
 // This is deliberately not a compatibility/schema promise: increment it for every intentional change to SASGameRecord implementation code, relevant bridges/call sites/configuration/checkers, or their code comments, even when emitted semantics are unchanged.
 // Standalone docs/example-log/package refreshes do not require a bump. Keep the matching revision-history entry in the same commit.
 // An anonymous enum keeps this a C++03 compile-time integer without a separate storage/linkage definition. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-enum { SAS_GAME_RECORD_REVISION = 126 };
+enum { SAS_GAME_RECORD_REVISION = 127 };
 // <!-- custom: Finalize buffered observations in the old game state before a new game or loaded save resets/replaces it. See KI#382. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 void finalizeSASGameRecordLogSession();
 void startSASGameRecordLogForNewGame();
@@ -457,6 +457,8 @@ void logSASGameRecordTurn(int iGameTurn);
 // The environment hook receives values already computed by CvGame::doGlobalWarming so it adds no map scan. (GPT-5.6-Sol) -->
 void flushSASGameRecordTurnChanges(int iGameTurn);
 void recordSASGameRecordPlotChange(CvPlot const& kPlot, SASGameRecordPlotState const& kOldState, char const* szCategory, char const* szCause, bool bDetailed);
+// <!-- custom: Aggregate completed Worker Builds by player/turn so broad records preserve improvement churn and irrigation outcomes without copying per-candidate BBAI scoring or emitting one verbose row per Build; caller must pre-gate at GameRecord level 2+. (GPT-5.6-Sol) -->
+void recordSASGameRecordWorkerBuild(CvPlot const& kPlot, SASGameRecordPlotState const& kOldState, PlayerTypes ePlayer, BuildTypes eBuild);
 // <!-- custom: Directional river edits are rare and independent from ordinary plot-state actions, so record them separately instead of adding unused river fields to every detailed plot-change row. Callers gate this helper before computing logging-only arguments. (GPT-5.6-Sol) -->
 void logSASGameRecordRiverEdgeChanged(CvPlot const& kPlot, bool bOldSouthBoundary, bool bOldEastBoundary);
 void recordSASGameRecordPlotRevealed(CvPlot const& kPlot, TeamTypes eTeam);
