@@ -426,6 +426,8 @@ public:
 	bool SAS_isGoodEnoughFirstCityBFCPlot(BonusTypes eVisibleBonus, PlayerTypes ePlayer, CvPlot const& kCandidateCityPlot, bool bVeryBadBFCPlot) const;
 	static int SAS_getWaterFoodBuildingSeaPlotFoodChange(PlayerTypes ePlayer);
 	int calculateImprovementYieldChange(ImprovementTypes eImprovement, YieldTypes eYield, PlayerTypes ePlayer) const; // Exposed to Python
+	// <!-- custom: Candidate-city potential must apply the evaluating player and an explicitly visibility-filtered bonus instead of inheriting a plot's current rival owner. (GPT-5.6-Sol) -->
+	int calculatePotentialImprovementYieldChange(ImprovementTypes eImprovement, YieldTypes eYield, PlayerTypes ePlayer, BonusTypes eVisibleBonus) const;
 	int calculateYield(YieldTypes eIndex, bool bDisplay = false) const;								// Exposed to Python
 	bool hasYield() const { return m_aiYield.isAnyNonDefault(); } // advc.enum							// Exposed to Python
 	void updateYield();
@@ -616,6 +618,8 @@ public:
 	static void setMaxVisibilityRangeCache();
 
 protected:
+	// <!-- custom: Keep the established yield calculation and the candidate-city assumed-owner variant on one implementation path; bAssumePlayerOwner changes only ownership-sensitive modifiers and eVisibleBonus remains explicitly filtered by the caller's information. (GPT-5.6-Sol) -->
+	int calculateImprovementYieldChangeInternal(ImprovementTypes eImprovement, YieldTypes eYield, PlayerTypes ePlayer, bool bAssumePlayerOwner, BonusTypes eVisibleBonus) const;
 	/*	advc (note): Should keep the data members in an order that optimizes
 		the memory layout (packing, locality). While enum types can be declared
 		as bitfields (:8 or :16), it seems that e.g. a short int and a 16-bit enum

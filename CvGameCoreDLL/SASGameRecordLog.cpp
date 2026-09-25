@@ -14,6 +14,7 @@
 #include "CombatOdds.h" // <!-- custom: Needed only for exact pre-combat odds on real level-2+ battle outcomes; AI candidate valuation remains untouched. (ChatGPT-5.6-Sol) -->
 #include "CvUnitAI.h" // <!-- custom: Needed to inspect the head unit of large city groups and its UnitAI role; the base unit header only forward-declares CvUnitAI. (GPT-5.6-Sol) -->
 #include "CityPlotIterator.h" // <!-- custom: Needed by compact game-record BFC composition rows. (ChatGPT-5.5) -->
+#include "CitySiteEvaluator.h" // <!-- custom: Needed only for cold city-founding site-quality summaries; ordinary periodic SASGameRecord snapshots do not invoke settlement evaluation. (ChatGPT-5.6-Sol) -->
 #include "CvPlot.h" // <!-- custom: Needed by game-record BFC and unit posture rows. (ChatGPT-5.5) -->
 #include "CvInfo_Build.h" // <!-- custom: Needed for worker build-type names and build target classification in game-record rows. (ChatGPT-5.5) -->
 #include "CvInfo_Command.h" // <!-- custom: Needed for mission-type names in worker/settler game-record rows. (ChatGPT-5.5) -->
@@ -2238,6 +2239,15 @@ static void logSASGameRecordTechCapabilitySources()
 		getSASDiagnosticOrDash(szVassalStateTrading).GetCString());
 }
 
+// <!-- custom: Vassal freedom thresholds are loaded-rule context, not changing relationship state; emit them once per GameRecord session instead of repeating the same values on every periodic vassal row.
+// This cold helper runs only when a new-game or loaded-save GameRecord file opens, so direct define lookups intentionally avoid persistent cache state for values that are read just once per session. (ChatGPT-5.6-Sol) -->
+static void logSASGameRecordVassalRules()
+{
+	logSASGameRecord("GAME_RECORD_VASSAL_RULES freeVassalLandPercent=%d freeVassalPopulationPercent=%d ownLossesFactor=%d masterLossesFactor=%d vassalLandFloor=10 relativeSizeMasterLand=OWN_ONLY masterLossMasterLand=INCLUDING_VASSAL_CONTRIBUTION",
+		GC.getDefineINT(CvGlobals::FREE_VASSAL_LAND_PERCENT), GC.getDefineINT(CvGlobals::FREE_VASSAL_POPULATION_PERCENT),
+		GC.getDefineINT("VASSAL_REVOLT_OWN_LOSSES_FACTOR"), GC.getDefineINT("VASSAL_REVOLT_MASTER_LOSSES_FACTOR"));
+}
+
 static void resetSASGameRecordState();
 static void logSASGameRecordInitialContext(bool bNewGame);
 static void logSASGameRecordInitialPlayerIdentities();
@@ -2287,6 +2297,7 @@ void startSASGameRecordLogForNewGame()
 	logSASGameRecordProvenanceContext();
 	logSASGameRecordLogSettings();
 	logSASGameRecordTechCapabilitySources();
+	logSASGameRecordVassalRules();
 	// <!-- custom: Settings below are not final until map/player initialization finishes.
 	// Buffer setup-generated actions only as a failure diagnostic: successful gameStart replaces the procedural transcript with authoritative finalized initial state, while an aborted initialization flushes the raw actions with contextComplete=0. (ChatGPT-5.6-Sol) -->
 	g_bSASGameRecordBufferInitializingActions = true;
@@ -2332,6 +2343,7 @@ void startSASGameRecordLogForLoadedSave()
 	logSASGameRecordVersionHistory();
 	logSASGameRecordLogSettings();
 	logSASGameRecordTechCapabilitySources();
+	logSASGameRecordVassalRules();
 	logSASGameRecordInitialPlayerIdentities();
 	logSASGameRecordInitialContext(false);
 }
@@ -2423,6 +2435,12 @@ struct SASGameRecordCombatPending
 	int iDefenderUnitId;
 	int iX;
 	int iY;
+	int iAttackerFromX;
+	int iAttackerFromY;
+	int iRiverCrossingAttack;
+	int iRiverAttackPenalty;
+	int iAmphibiousAttack;
+	int iAmphibiousAttackPenalty;
 	int iAttackerCombatOddsPermille;
 	bool bLuckEligible;
 };
@@ -6350,6 +6368,39 @@ static void logSASGameRecordAITargetCities(PlayerTypes ePlayer, int iGameTurn)
 		iGameTurn, ePlayer, kPlayer.getTeam(), kPlayer.AI_getCityTargetTimer(), iTargets, getSASDiagnosticOrDash(szTargets).GetCString());
 }
 
+// <!-- custom: Vassal freedom is threshold/state driven rather than a random "break chance".
+// Keep the loaded relationship's stamped land values and current revolt-rule state in one compact periodic row so a truncated GameRecord can explain later independence without BBAI or UI tooltip reconstruction.
+// Direct getters only; no diplomacy valuation or RNG. (ChatGPT-5.6-Sol) -->
+static void logSASGameRecordVassalStatus(CvTeam const& kVassal, int iGameTurn)
+{
+	if (!kVassal.isAVassal())
+		return;
+	TeamTypes const eMaster = kVassal.getMasterTeam();
+	if (eMaster == NO_TEAM)
+		return;
+	CvTeam const& kMaster = GET_TEAM(eMaster);
+	int const iVassalLand = kVassal.getTotalLand(false);
+	int const iVassalRuleLand = std::max(10, iVassalLand); // Native revolt rules apply this lower bound.
+	// <!-- custom: CvTeam uses two different master-land views in the native freedom rules: relative-size checks use own land only, while the master-loss rule and its stamped baseline use getTotalLand() including vassal contribution.
+	// Record both explicitly to avoid the same ambiguity that UI percentages can create. (ChatGPT-5.6-Sol) -->
+	int const iMasterOwnLand = kMaster.getTotalLand(false);
+	int const iMasterLossRuleLand = kMaster.getTotalLand();
+	int const iVassalPop = kVassal.getTotalPopulation(false);
+	int const iMasterPop = kMaster.getTotalPopulation(false);
+	int const iOriginalVassalLand = kVassal.getVassalPower();
+	int const iOriginalMasterLossRuleLand = kVassal.getMasterPower();
+	bool const bRevoltByRelativeSize = kVassal.canVassalRevolt(eMaster, false);
+	bool const bRevoltByLosses = kVassal.isLossesAllowRevolt(eMaster);
+	bool const bCanVassalRevolt = kVassal.canVassalRevolt(eMaster, true);
+	FAssert(bCanVassalRevolt == (bRevoltByRelativeSize || bRevoltByLosses));
+	logSASGameRecord("GAME_RECORD_VASSAL_STATUS turn=%d vassalTeam=%d masterTeam=%d capitulated=%d vassalLand=%d vassalRuleLand=%d originalVassalLand=%d vassalRuleLandVsOriginalPercentX100=%d masterOwnLand=%d masterLossRuleLand=%d originalMasterLossRuleLand=%d masterLossRuleLandVsOriginalPercentX100=%d vassalRuleVsMasterOwnLandPercentX100=%d vassalPop=%d masterPop=%d vassalVsMasterPopPercentX100=%d revoltByRelativeSize=%d revoltByLosses=%d canVassalRevolt=%d",
+		iGameTurn, kVassal.getID(), eMaster, kVassal.isCapitulated(), iVassalLand, iVassalRuleLand, iOriginalVassalLand,
+		getSASGameRecordPercentX100(iVassalRuleLand, iOriginalVassalLand), iMasterOwnLand, iMasterLossRuleLand, iOriginalMasterLossRuleLand,
+		getSASGameRecordPercentX100(iMasterLossRuleLand, iOriginalMasterLossRuleLand), getSASGameRecordPercentX100(iVassalRuleLand, iMasterOwnLand),
+		iVassalPop, iMasterPop, getSASGameRecordPercentX100(iVassalPop, iMasterPop),
+		bRevoltByRelativeSize, bRevoltByLosses, bCanVassalRevolt);
+}
+
 static void logSASGameRecordTeamSnapshot(TeamTypes eTeam, int iGameTurn)
 {
 	CvGame const& kGame = GC.getGame();
@@ -6376,6 +6427,7 @@ static void logSASGameRecordTeamSnapshot(TeamTypes eTeam, int iGameTurn)
 	{
 		logSASGameRecordTeamContacts(eTeam, iGameTurn, "snapshot");
 		logSASGameRecordAreaAISnapshot(eTeam, iGameTurn);
+		if (kTeam.isAVassal()) logSASGameRecordVassalStatus(kTeam, iGameTurn);
 	}
 	seedSASGameRecordTeamPreviousFromCurrentState(eTeam);
 
@@ -11404,12 +11456,57 @@ void logSASGameRecordCityFoundingSite(CvPlayer const& kPlayer, CvPlot const& kPl
 	int iAlt2FoundValue = -1;
 	getSASGameRecordCitySiteAlternative(kPlayerAI, &kPlot, 0, iAlt1Rank, iAlt1X, iAlt1Y, iAlt1FoundValue);
 	getSASGameRecordCitySiteAlternative(kPlayerAI, &kPlot, 1, iAlt2Rank, iAlt2X, iAlt2Y, iAlt2FoundValue);
+
+	// <!-- custom: Founding is a rare level-2 event, so preserve a compact player-known versus diagnostic-omniscient quality summary for the site that actually became a city.
+	// This reuses AIFoundValue's existing 1/2/3/6/10/14 plot-distribution work in one evaluation per perspective; periodic snapshots do no settlement rescoring.
+	// It complements BBAI candidate/sniping diagnostics without copying rejected-candidate spam into the broad GameRecord. (ChatGPT-5.6-Sol) -->
+	bool const bFirstCity = (kPlayer.getNumCities() <= 0);
+	int aiKnownCoreSums[6] = {0, 0, 0, 0, 0, 0};
+	int iKnownPositivePlots = 0;
+	int iKnownSustainableProductivePlotValue = 0;
+	CitySiteEvaluator kKnownEvaluator(kPlayerAI, -1, bFirstCity);
+	// <!-- custom: Match the existing BBAI chosen-site replay: ignore the maintained city-site list during this founding-time rescore.
+	// Those sites were not all present when this plot was originally selected; leaving them active can reject/distort the founded plot itself. Diagnostic only. (ChatGPT-5.6-Sol) -->
+	kKnownEvaluator.setDebug(true);
+	if (bFirstCity)
+		kKnownEvaluator.setAllSeeing(false);
+	int const iKnownRescoredFoundValue = kKnownEvaluator.evaluateWithPlotValueDistribution(kPlot, aiKnownCoreSums, iKnownPositivePlots, iKnownSustainableProductivePlotValue);
+
+	int aiOmniscientCoreSums[6] = {0, 0, 0, 0, 0, 0};
+	int iOmniscientPositivePlots = 0;
+	int iOmniscientSustainableProductivePlotValue = 0;
+	CitySiteEvaluator kOmniscientEvaluator(kPlayerAI, -1, bFirstCity);
+	kOmniscientEvaluator.setDebug(true);
+	kOmniscientEvaluator.setDiagnosticOmniscience(true);
+	int const iOmniscientRescoredFoundValue = kOmniscientEvaluator.evaluateWithPlotValueDistribution(kPlot, aiOmniscientCoreSums, iOmniscientPositivePlots, iOmniscientSustainableProductivePlotValue);
+	FAssert(iKnownSustainableProductivePlotValue == iOmniscientSustainableProductivePlotValue);
+
+	int const iMinWaterSizeForOcean = GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN);
+	bool const bCoastal = kPlot.isCoastalLand(iMinWaterSizeForOcean);
+	int const iKnownWaterBonuses = (bCoastal ? CitySiteEvaluator::countWaterBonuses(kPlot, kPlayer.getTeam(), false) : 0);
+	int const iOmniscientWaterBonuses = (bCoastal ? CitySiteEvaluator::countWaterBonuses(kPlot, kPlayer.getTeam(), true) : 0);
+	int const iAreaUnownedTiles = kPlot.getArea().getNumUnownedTiles();
+	int const iAreaSelectionFactor = std::min(NUM_CITY_PLOTS * 2, iAreaUnownedTiles + 1);
+	CvCity const* pNearestOwnCity = GC.getMap().findCity(kPlot.getX(), kPlot.getY(), kPlayer.getID(), NO_TEAM, false);
+	int const iNearestOwnCityId = (pNearestOwnCity == NULL ? -1 : pNearestOwnCity->getID());
+	int const iNearestOwnCityX = (pNearestOwnCity == NULL ? -1 : pNearestOwnCity->getX());
+	int const iNearestOwnCityY = (pNearestOwnCity == NULL ? -1 : pNearestOwnCity->getY());
+	int const iNearestOwnCityDistance = (pNearestOwnCity == NULL ? -1 : plotDistance(&kPlot, pNearestOwnCity->plot()));
+
 	// <!-- custom: `chosenCachedFoundValue=-1` means the founded plot is not in the current cached strategic shortlist, not that its true CitySiteEvaluator value is -1.
 	// This distinction is useful in itself: a travelling settler can legitimately found a formerly selected site after the live shortlist has changed. (ChatGPT-5.6-Sol) -->
 	logSASGameRecord("GAME_RECORD_CITY_SITE_CHOICE turn=%d player=%d human=%d x=%d y=%d area=%d plotOwner=%d citySites=%d minFoundValue=%d chosenSiteListRank=%d chosenCachedFoundValue=%d alt1SiteListRank=%d alt1X=%d alt1Y=%d alt1CachedFoundValue=%d alt2SiteListRank=%d alt2X=%d alt2Y=%d alt2CachedFoundValue=%d",
 		GC.getGame().getGameTurn(), kPlayer.getID(), kPlayer.isHuman(), kPlot.getX(), kPlot.getY(), kPlot.getArea().getID(),
 		kPlot.getOwner(), kPlayerAI.AI_getNumCitySites(), kPlayerAI.AI_getMinFoundValue(), iChosenRank, iChosenFoundValue, iAlt1Rank, iAlt1X,
 		iAlt1Y, iAlt1FoundValue, iAlt2Rank, iAlt2X, iAlt2Y, iAlt2FoundValue);
+	// <!-- custom: Keep the heavier chosen-site quality in its own rare row rather than widening the established shortlist row; rejected-candidate causes remain BBAI Found diagnostics.
+	// `*RescoredFoundValue` is an explicit founding-time diagnostic replay, not the cached value that originally selected the site; GAME_RECORD_CITY_SITE_CHOICE preserves that strategic shortlist value separately. (ChatGPT-5.6-Sol) -->
+	logSASGameRecord("GAME_RECORD_CITY_SITE_QUALITY turn=%d player=%d firstCity=%d x=%d y=%d coastal=%d knownWaterBonuses=%d omniscientWaterBonuses=%d areaUnownedTiles=%d areaSelectionFactor=%d nearestOwnCityId=%d nearestOwnCityX=%d nearestOwnCityY=%d nearestOwnCityDistance=%d sustainableProductivePlotValue=%d knownRescoredFoundValue=%d knownBest1Sum=%d knownBest2Sum=%d knownBest3Sum=%d knownBest6Sum=%d knownBest10Sum=%d knownBest14Sum=%d knownPositivePlots=%d omniscientRescoredFoundValue=%d omniscientBest1Sum=%d omniscientBest2Sum=%d omniscientBest3Sum=%d omniscientBest6Sum=%d omniscientBest10Sum=%d omniscientBest14Sum=%d omniscientPositivePlots=%d",
+		GC.getGame().getGameTurn(), kPlayer.getID(), bFirstCity, kPlot.getX(), kPlot.getY(), bCoastal, iKnownWaterBonuses, iOmniscientWaterBonuses,
+		iAreaUnownedTiles, iAreaSelectionFactor, iNearestOwnCityId, iNearestOwnCityX, iNearestOwnCityY, iNearestOwnCityDistance, iKnownSustainableProductivePlotValue,
+		iKnownRescoredFoundValue, aiKnownCoreSums[0], aiKnownCoreSums[1], aiKnownCoreSums[2], aiKnownCoreSums[3], aiKnownCoreSums[4],
+		aiKnownCoreSums[5], iKnownPositivePlots, iOmniscientRescoredFoundValue, aiOmniscientCoreSums[0], aiOmniscientCoreSums[1],
+		aiOmniscientCoreSums[2], aiOmniscientCoreSums[3], aiOmniscientCoreSums[4], aiOmniscientCoreSums[5], iOmniscientPositivePlots);
 }
 
 void logSASGameRecordCityBuilt(CvCity const* pCity)
@@ -13976,7 +14073,11 @@ void logSASGameRecordSpaceshipFailed(TeamTypes eTeam, VictoryTypes eVictory, int
 
 void logSASGameRecordVassalState(TeamTypes eMaster, TeamTypes eVassal, bool bVassal)
 {
-	logSASGameRecord("GAME_RECORD_ACTION turn=%d type=%s master=%d vassal=%d", GC.getGame().getGameTurn(), bVassal ? "VASSALAGE_STARTED" : "VASSALAGE_ENDED", eMaster, eVassal);
+	int const iGameTurn = GC.getGame().getGameTurn();
+	logSASGameRecord("GAME_RECORD_ACTION turn=%d type=%s master=%d vassal=%d", iGameTurn, bVassal ? "VASSALAGE_STARTED" : "VASSALAGE_ENDED", eMaster, eVassal);
+	// <!-- custom: Capture the relationship's stamped land baselines immediately after vassalage starts; periodic level-2 team snapshots then show movement toward any revolt threshold. (ChatGPT-5.6-Sol) -->
+	if (bVassal && eVassal != NO_TEAM)
+		logSASGameRecordVassalStatus(GET_TEAM(eVassal), iGameTurn);
 }
 
 void logSASGameRecordVictory(TeamTypes eWinner, VictoryTypes eVictory)
@@ -14650,6 +14751,27 @@ void noteSASGameRecordCombatStarted(CvUnit const* pAttacker, CvUnit const* pDefe
 	kPending.iDefenderUnitId = pDefender->getID();
 	kPending.iX = pBattlePlot->getX();
 	kPending.iY = pBattlePlot->getY();
+	// <!-- custom: Exact level-3 battle rows should say whether the attacker actually crossed a river or attacked from water, not force later analysis to reconstruct transient origin state from map snapshots.
+	// Mirror CvUnit::maxCombatStr's penalty conditions without changing combat; level-2 luck-only pending context keeps these fields unknown to avoid extra work. (ChatGPT-5.6-Sol) -->
+	kPending.iAttackerFromX = -1;
+	kPending.iAttackerFromY = -1;
+	kPending.iRiverCrossingAttack = -1;
+	kPending.iRiverAttackPenalty = -1;
+	kPending.iAmphibiousAttack = -1;
+	kPending.iAmphibiousAttackPenalty = -1;
+	if (bLogExactBattle)
+	{
+		CvPlot const& kFrom = pAttacker->getPlot();
+		bool const bAdjacent = (stepDistance(&kFrom, pBattlePlot) == 1);
+		bool const bRiverCrossingAttack = (bAdjacent && kFrom.isRiverCrossing(directionXY(kFrom, *pBattlePlot)));
+		bool const bAmphibiousAttack = (!pBattlePlot->isWater() && kFrom.isWater());
+		kPending.iAttackerFromX = kFrom.getX();
+		kPending.iAttackerFromY = kFrom.getY();
+		kPending.iRiverCrossingAttack = bRiverCrossingAttack;
+		kPending.iRiverAttackPenalty = (bRiverCrossingAttack && !pAttacker->isRiver());
+		kPending.iAmphibiousAttack = bAmphibiousAttack;
+		kPending.iAmphibiousAttackPenalty = (bAmphibiousAttack && !pAttacker->isAmphib());
+	}
 	kPending.bLuckEligible = bLuckEligible;
 	bool const bCivilizationBattle = (pAttacker->getOwner() >= 0 && pAttacker->getOwner() < MAX_CIV_PLAYERS && pDefender->getOwner() >= 0 && pDefender->getOwner() < MAX_CIV_PLAYERS && !pAttacker->isBarbarian() && !pDefender->isBarbarian());
 	kPending.iAttackerCombatOddsPermille = ((bLuckEligible || (bLogExactBattle && bCivilizationBattle)) ? calculateCombatOdds(*pAttacker, *pDefender) : -1);
@@ -14708,10 +14830,13 @@ void logSASGameRecordNonlethalCombat(CvUnit const* pAttacker, CvUnit const* pDef
 	bool const bPending = popSASGameRecordCombatPending(pAttacker, pDefender, pBattlePlot, kPending);
 	if (gGameRecordLogLevel >= 3)
 	{
-		logSASGameRecord("GAME_RECORD_BATTLE_NONLETHAL turn=%d attacker=%d defender=%d attackerUnit=%s attackerUnitId=%d defenderUnit=%s defenderUnitId=%d reason=%s x=%d y=%d cityPlot=%d attackerBaseStr=%d defenderBaseStr=%d attackerDamage=%d defenderDamage=%d attackerCombatLimit=%d attackerWithdrawal=%d attackerCombatOddsPermille=%d attackerXP=%d attackerLevel=%d defenderXP=%d defenderLevel=%d",
+		logSASGameRecord("GAME_RECORD_BATTLE_NONLETHAL turn=%d attacker=%d defender=%d attackerUnit=%s attackerUnitId=%d defenderUnit=%s defenderUnitId=%d reason=%s x=%d y=%d cityPlot=%d attackerFromX=%d attackerFromY=%d riverCrossingAttack=%d riverAttackPenalty=%d amphibiousAttack=%d amphibiousAttackPenalty=%d attackerBaseStr=%d defenderBaseStr=%d attackerDamage=%d defenderDamage=%d attackerCombatLimit=%d attackerWithdrawal=%d attackerCombatOddsPermille=%d attackerXP=%d attackerLevel=%d defenderXP=%d defenderLevel=%d",
 			GC.getGame().getGameTurn(), eAttacker, eDefender, getSASGameRecordUnitType(pAttacker->getUnitType()), pAttacker->getID(),
 			getSASGameRecordUnitType(pDefender->getUnitType()), pDefender->getID(), bCombatLimitReached ? "COMBAT_LIMIT" : "WITHDRAWAL",
 			pBattlePlot->getX(), pBattlePlot->getY(), pBattlePlot->isCity(),
+			bPending ? kPending.iAttackerFromX : -1, bPending ? kPending.iAttackerFromY : -1,
+			bPending ? kPending.iRiverCrossingAttack : -1, bPending ? kPending.iRiverAttackPenalty : -1,
+			bPending ? kPending.iAmphibiousAttack : -1, bPending ? kPending.iAmphibiousAttackPenalty : -1,
 			pAttacker->baseCombatStr(), pDefender->baseCombatStr(), pAttacker->getDamage(), pDefender->getDamage(), pAttacker->combatLimit(), pAttacker->withdrawalProbability(),
 			bPending ? kPending.iAttackerCombatOddsPermille : -1, pAttacker->getExperience(), pAttacker->getLevel(), pDefender->getExperience(), pDefender->getLevel());
 	}
@@ -14876,12 +15001,15 @@ void logSASGameRecordCombatResult(CvUnit const* pWinner, CvUnit const* pLoser, C
 		// <!-- custom: Include exact unit IDs so WAR_ATTACK_ORDER attacker selections can be joined to the resulting battle even when several units of the same type fight on the same turn.
 		// The transient start context additionally preserves true attacker identity and pre-combat odds after visible-combat delay. (ChatGPT-5.6-Sol) -->
 		int const iWinnerOddsPermille = (!bPendingCombat || kPending.iAttackerCombatOddsPermille < 0 ? -1 : (pWinner->getOwner() == kPending.eAttacker && pWinner->getID() == kPending.iAttackerUnitId ? kPending.iAttackerCombatOddsPermille : 1000 - kPending.iAttackerCombatOddsPermille));
-		logSASGameRecord("GAME_RECORD_BATTLE turn=%d winner=%d loser=%d winnerUnit=%s winnerUnitId=%d loserUnit=%s loserUnitId=%d attacker=%d attackerUnitId=%d attackerCombatOddsPermille=%d winnerCombatOddsPermille=%d luckEligible=%d x=%d y=%d cityPlot=%d winnerBaseStr=%d loserBaseStr=%d winnerDamage=%d loserDamage=%d winnerXP=%d winnerLevel=%d loserXP=%d loserLevel=%d winnerLeaderUnit=%s loserLeaderUnit=%s",
+		logSASGameRecord("GAME_RECORD_BATTLE turn=%d winner=%d loser=%d winnerUnit=%s winnerUnitId=%d loserUnit=%s loserUnitId=%d attacker=%d attackerUnitId=%d attackerCombatOddsPermille=%d winnerCombatOddsPermille=%d luckEligible=%d x=%d y=%d cityPlot=%d attackerFromX=%d attackerFromY=%d riverCrossingAttack=%d riverAttackPenalty=%d amphibiousAttack=%d amphibiousAttackPenalty=%d winnerBaseStr=%d loserBaseStr=%d winnerDamage=%d loserDamage=%d winnerXP=%d winnerLevel=%d loserXP=%d loserLevel=%d winnerLeaderUnit=%s loserLeaderUnit=%s",
 			GC.getGame().getGameTurn(), eWinner, eLoser, getSASGameRecordUnitType(pWinner->getUnitType()), pWinner->getID(),
 			getSASGameRecordUnitType(pLoser->getUnitType()), pLoser->getID(), bPendingCombat ? kPending.eAttacker : NO_PLAYER,
 			bPendingCombat ? kPending.iAttackerUnitId : -1, bPendingCombat ? kPending.iAttackerCombatOddsPermille : -1, iWinnerOddsPermille,
-			bPendingCombat && kPending.bLuckEligible, pPlot->getX(), pPlot->getY(), bCityPlot, pWinner->baseCombatStr(),
-			pLoser->baseCombatStr(), pWinner->getDamage(), pLoser->getDamage(), pWinner->getExperience(), pWinner->getLevel(),
+			bPendingCombat && kPending.bLuckEligible, pPlot->getX(), pPlot->getY(), bCityPlot,
+			bPendingCombat ? kPending.iAttackerFromX : -1, bPendingCombat ? kPending.iAttackerFromY : -1,
+			bPendingCombat ? kPending.iRiverCrossingAttack : -1, bPendingCombat ? kPending.iRiverAttackPenalty : -1,
+			bPendingCombat ? kPending.iAmphibiousAttack : -1, bPendingCombat ? kPending.iAmphibiousAttackPenalty : -1,
+			pWinner->baseCombatStr(), pLoser->baseCombatStr(), pWinner->getDamage(), pLoser->getDamage(), pWinner->getExperience(), pWinner->getLevel(),
 			pLoser->getExperience(), pLoser->getLevel(), getSASGameRecordUnitType(pWinner->getLeaderUnitType()),
 			getSASGameRecordUnitType(pLoser->getLeaderUnitType()));
 	}

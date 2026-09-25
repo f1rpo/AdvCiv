@@ -863,7 +863,8 @@ protected:
 	int AI_baseBonusRouteVal(BonusTypes eBonus, RouteTypes eRoute, RouteTypes eBestRoute, TechTypes eBuildTech, bool bTrade) const;
 	// </advc>
 	void AI_setHuman(bool b); // advc.127
-	void logFoundValue(CvPlot const& kPlot, bool bStartingLoc = false) const; // advc.031c
+	// <!-- custom: Runtime first-city traces use starting-capital weights but only information known to the founder; map-generation starting-plot traces keep their existing omniscient view. (GPT-5.6-Sol) -->
+	void logFoundValue(CvPlot const& kPlot, bool bStartingLoc = false, bool bPlayerKnown = false) const; // advc.031c
 
 	friend class CvGameTextMgr;
 	friend class CvPlayer; // advc.003u: So that protected functions can be called through CvPlayer::AI

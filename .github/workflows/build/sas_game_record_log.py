@@ -32,6 +32,7 @@ TEAM_AI_SOURCE = Path("CvGameCoreDLL/CvTeamAI.cpp")
 UWAI_AGENT_SOURCE = Path("CvGameCoreDLL/UWAIAgent.cpp")
 UNIT_AI_HEADER = Path("CvGameCoreDLL/CvUnitAI.h")
 UNIT_AI_SOURCE = Path("CvGameCoreDLL/CvUnitAI.cpp")
+CITY_SITE_EVALUATOR_HEADER = Path("CvGameCoreDLL/CitySiteEvaluator.h")
 
 
 
@@ -2062,6 +2063,50 @@ def check_ai_city_trade_intent_provenance(repo_root: Path) -> list[str]:
 	return failures
 
 
+def check_broad_settlement_vassal_battle_contracts(repo_root: Path) -> list[str]:
+	"""Keep revision-126 broad settlement, vassal and exact-battle facts semantically unambiguous."""
+	failures = []
+	for relative_path in (REVISION_SOURCE, CITY_SITE_EVALUATOR_HEADER):
+		if not (repo_root / relative_path).is_file():
+			failures.append(f"missing SASGameRecord settlement/vassal contract file: {relative_path}")
+	if failures:
+		return failures
+	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	evaluator_text = (repo_root / CITY_SITE_EVALUATOR_HEADER).read_text(encoding="utf-8", errors="replace")
+	for required in (
+		"GAME_RECORD_CITY_SITE_QUALITY", "knownBest1Sum=%d", "knownBest6Sum=%d", "knownBest14Sum=%d",
+		"omniscientBest1Sum=%d", "omniscientBest6Sum=%d", "omniscientBest14Sum=%d",
+		"knownPositivePlots=%d", "omniscientPositivePlots=%d", "knownWaterBonuses=%d", "omniscientWaterBonuses=%d", "nearestOwnCityDistance=%d",
+		"knownRescoredFoundValue=%d", "omniscientRescoredFoundValue=%d",
+		"kKnownEvaluator.setDebug(true)", "kOmniscientEvaluator.setDebug(true)", "setDiagnosticOmniscience(true)",
+	):
+		if required not in record_text:
+			failures.append(f"{REVISION_SOURCE}: broad chosen-site quality contract missing {required}")
+	if "evaluateWithPlotValueDistribution" not in evaluator_text or "1/2/3/6/10/14" not in evaluator_text:
+		failures.append(f"{CITY_SITE_EVALUATOR_HEADER}: chosen-site distribution bridge changed")
+
+	for required in (
+		"GAME_RECORD_VASSAL_RULES", "vassalLandFloor=10", "relativeSizeMasterLand=OWN_ONLY",
+		"masterLossMasterLand=INCLUDING_VASSAL_CONTRIBUTION",
+		"GAME_RECORD_VASSAL_STATUS", "vassalRuleLand=%d", "originalVassalLand=%d",
+		"masterOwnLand=%d", "masterLossRuleLand=%d", "originalMasterLossRuleLand=%d",
+		"revoltByRelativeSize=%d", "revoltByLosses=%d", "canVassalRevolt=%d",
+	):
+		if required not in record_text:
+			failures.append(f"{REVISION_SOURCE}: broad vassal-status contract missing {required}")
+	if record_text.count("logSASGameRecordVassalStatus(") < 3:
+		failures.append(f"{REVISION_SOURCE}: vassal status must remain defined plus emitted at relationship start and periodic team snapshots")
+
+	for required in (
+		"GAME_RECORD_BATTLE_NONLETHAL", "GAME_RECORD_BATTLE turn=%d",
+		"attackerFromX=%d", "attackerFromY=%d", "riverCrossingAttack=%d", "riverAttackPenalty=%d",
+		"amphibiousAttack=%d", "amphibiousAttackPenalty=%d",
+	):
+		if required not in record_text:
+			failures.append(f"{REVISION_SOURCE}: exact battle tactical-context contract missing {required}")
+	return failures
+
+
 EXPECTED_GAME_RECORD_DEFAULTS = {
 	"SAS_GAME_RECORD_LOG_LEVEL": 0,
 	# These configure enabled record logging but do not enable it themselves.
@@ -2082,6 +2127,7 @@ def main() -> int:
 	failures.extend(check_revision(args.repo_root))
 	failures.extend(check_context_consumer_contracts(args.repo_root))
 	failures.extend(check_city_delta_contracts(args.repo_root))
+	failures.extend(check_broad_settlement_vassal_battle_contracts(args.repo_root))
 	failures.extend(check_ai_strategy_diagnostics(args.repo_root))
 	failures.extend(check_area_ai_diagnostics(args.repo_root))
 	failures.extend(check_ai_target_city_provenance(args.repo_root))
@@ -2116,7 +2162,7 @@ def main() -> int:
 		for failure in failures:
 			print(f"  - {failure}")
 		return 1
-	print(f"PASS SASGameRecord report/revision checks: logging defaults={len(EXPECTED_GAME_RECORD_DEFAULTS)}, revision history/current marker/context-consumer-contracts/city-delta/AI-strategy/AreaAI/AI-target-city/AI-attitude/strategic-trade/UWAI-war-plan/AI-vote/AI-contact/AI-help-tribute/AI-give-help/AI-tech-trade/AI-deal-cancel/deal-invalidation/AI-city-trade/AI-embargo/AI-joint-war/AI-vassalage/AI-colony-split/AI-spaceship-launch/AI-religion-spread-target/AI-map-trade/unit-completion-sources/AI-vassal-resource-tribute/AI-draft/AI-hurry/AI-war-trade/AI-conquer-city/AI-Great-Person/AI-Great-General diagnostics synchronized")
+	print(f"PASS SASGameRecord report/revision checks: logging defaults={len(EXPECTED_GAME_RECORD_DEFAULTS)}, revision history/current marker/context-consumer-contracts/city-delta/settlement-vassal-battle/AI-strategy/AreaAI/AI-target-city/AI-attitude/strategic-trade/UWAI-war-plan/AI-vote/AI-contact/AI-help-tribute/AI-give-help/AI-tech-trade/AI-deal-cancel/deal-invalidation/AI-city-trade/AI-embargo/AI-joint-war/AI-vassalage/AI-colony-split/AI-spaceship-launch/AI-religion-spread-target/AI-map-trade/unit-completion-sources/AI-vassal-resource-tribute/AI-draft/AI-hurry/AI-war-trade/AI-conquer-city/AI-Great-Person/AI-Great-General diagnostics synchronized")
 	return 0
 
 

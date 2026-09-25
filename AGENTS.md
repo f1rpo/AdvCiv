@@ -80,12 +80,6 @@ Compile errors (e.g., for a "Debug-opt" build) at:
 
 - "C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\Project\Debug-opt\AdvCiv.log"
 
-### DLL compilation
-
-- By default, let the user compile the DLL; the local legacy Civ4 SDK toolchain is configured, and the user generally prefers to handle compilation to save agent time/tokens. Do not compile merely for routine verification when the user has said they will do it.
-- If compilation is needed or the user is fine with the agent doing it, follow the tested [AdvCiv-SAS DLL Compilation Guide](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md).
-- Core safety rule: before every full compile attempt or retry, delete that configuration's exact `CvGameCoreDLL/Project/temp_files/<target>` folder so the accepted DLL never resumes from stale or partial intermediates. Target folders are isolated, so a retained Debug-opt folder does not affect a clean Release build. After a successful Debug-opt build, retain its ignored folder while its installed DLL is relevant so WinDbg can find the exact matching PDB path embedded in that DLL; delete it before the next Debug-opt build. Other generated temp targets remain unignored as a visible warning. Keep the parent folder's tracked zero-byte `.gitkeep` for fresh clones and CI.
-
 ## Comparison with Base AdvCiv 1.12's CvMainInterface.py processed to single-line
 
 For comparison purposes, as of 2026-06-10 we have also processed with the help of ChatGPT-5.5 thanks Base AdvCiv 1.12's `CvMainInterface.py` to single-line: [CvMainInterface_1_12_singleline.py](/LLM_Helpers/examples/CvMainInterface_1_12_singleline.py). If you need to, you may find looking at this file much easier than the old multi-line/unprocessed file. See also if needed [the corresponding readme section](/LLM_Helpers/README.md#comparison-with-base-advciv-112s-main-interface-processed-similarly).
@@ -239,6 +233,18 @@ These are general guidelines, not irrevocable requirements; adjust based on task
 - Use `static const` for our defines whenever possible and relevant for computational efficiency (value is always the same, quick check it rather). Example `static const bool bSAS_CAN_SCRAP_OBSOLETE_TECH = GC.getDefineBOOL("SAS_CAN_SCRAP_OBSOLETE_TECH");`.
 - Gate BBAI logging at the caller before `logBBAI(...)` or a logging helper, and guard logging-only setup too; a check inside the helper is too late because C++ evaluates call arguments first which is needless and inefficient perf cost. So do not guard inside the logging helper: the burden belongs at every call site, and do not use e.g., `void logUnitDecision(...) { if (gUnitLogLevel < 2) return; ... }` and then call `logUnitDecision(computeDetail());` unconditionally; keep the helper unguarded and use `if (gUnitLogLevel >= 2) logUnitDecision(computeDetail());` at the caller instead.
 - C++ diagnostic logging safety: Civ4's EXE `gDLL->logMsg` boundary can interpret percent signs in an already-formatted message as printf syntax again. BBAI and SASGameRecord must therefore pass completed lines through `logSASDiagnosticLiteralLine` rather than directly passing dynamic `szLine.c_str()` to `gDLL->logMsg`; the helper doubles literal `%` only at that final boundary. Producer format strings still use ordinary printf escaping (`%%` to request one literal `%`). For structured SASGameRecord fields, continue preferring names such as `Percent`/`X100` when they are clearer for parsers, but do not rely on that naming convention for safety. The `diagnostic_log_safety.py` build check guards this contract. See KI#375.3.
+
+### DLL compilation
+
+- By default, let the user compile the DLL; the local legacy Civ4 SDK toolchain is configured, and the user generally prefers to handle compilation to save agent time/tokens. Do not compile merely for routine verification when the user has said they will do it.
+- If compilation is needed or the user is fine with the agent doing it, follow the tested [AdvCiv-SAS DLL Compilation Guide](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md).
+- Core safety rule: before every full compile attempt or retry, delete that configuration's exact `CvGameCoreDLL/Project/temp_files/<target>` folder so the accepted DLL never resumes from stale or partial intermediates. Target folders are isolated, so a retained Debug-opt folder does not affect a clean Release build. After a successful Debug-opt build, retain its ignored folder while its installed DLL is relevant so WinDbg can find the exact matching PDB path embedded in that DLL; delete it before the next Debug-opt build. Other generated temp targets remain unignored as a visible warning. Keep the parent folder's tracked zero-byte `.gitkeep` for fresh clones and CI.
+
+### Editing while an autoplay is running
+
+- While a validation autoplay is running, documentation and C++ source/header edits are safe because the live game does not reload them.
+- Do not edit runtime-sensitive files like XML or Python files during the run: as of now, this has produced live XML errors and Python errors/crashes.
+- Note: these boundaries describe the current Civ4 runtime and can be revised if later testing proves different behavior.
 
 ### Docs
 

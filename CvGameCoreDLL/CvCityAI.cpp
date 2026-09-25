@@ -12,6 +12,7 @@
 #include "CvInfo_Terrain.h"
 #include "CvInfo_GameOption.h"
 #include "CvInfo_Civics.h"
+#include "CitySiteEvaluator.h" // <!-- custom: Settler-production found-value floors share the XML-driven sustainable-plot reference used by city-site evaluation. (GPT-5.6-Sol) -->
 #include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 #include "SASGameRecordLog.h" // <!-- custom: Level-2+ AI production-churn history brackets AI_chooseProduction without adding recorder schema to its decision branches. (ChatGPT-5.6-Sol) -->
 
@@ -492,12 +493,23 @@ static int SAS_getDangerAdjustedMinFoundValue(CvPlayerAI const& kPlayer, bool bD
 	return iMinFoundValue;
 }
 
+static int SAS_getSettlerReferenceBFCValue()
+{
+	return (NUM_CITY_PLOTS - 1) * CitySiteEvaluator::getSustainableProductivePlotValue();
+}
+
+static int SAS_getFirstExpansionFoundValueFloor()
+{
+	static const int iReferenceBFCPercentX100 = std::max(0, GC.getDefineINT("SAS_AI_CHOOSE_UNIT_SETTLER_FIRST_EXPANSION_MIN_FOUND_VALUE_REFERENCE_BFC_PERCENT_X100"));
+	return (SAS_getSettlerReferenceBFCValue() * iReferenceBFCPercentX100 + 5000) / 10000;
+}
+
 static bool SAS_isSettlerEarlyFoundValueFloorActive(CvPlayerAI const& kPlayer, int& iFloor, int& iMinCities, int& iMaxEra)
 {
-	static const int iSAS_AI_CHOOSE_UNIT_SETTLER_EARLY_MIN_FOUND_VALUE = GC.getDefineINT("SAS_AI_CHOOSE_UNIT_SETTLER_EARLY_MIN_FOUND_VALUE");
+	static const int iReferenceBFCPercentX100 = std::max(0, GC.getDefineINT("SAS_AI_CHOOSE_UNIT_SETTLER_EARLY_MIN_FOUND_VALUE_REFERENCE_BFC_PERCENT_X100"));
 	static const int iSAS_AI_CHOOSE_UNIT_SETTLER_EARLY_MIN_FOUND_VALUE_MIN_CITIES = GC.getDefineINT("SAS_AI_CHOOSE_UNIT_SETTLER_EARLY_MIN_FOUND_VALUE_MIN_CITIES");
 	static const int iSAS_AI_CHOOSE_UNIT_SETTLER_EARLY_MIN_FOUND_VALUE_MAX_ERA = GC.getDefineINT("SAS_AI_CHOOSE_UNIT_SETTLER_EARLY_MIN_FOUND_VALUE_MAX_ERA");
-	iFloor = iSAS_AI_CHOOSE_UNIT_SETTLER_EARLY_MIN_FOUND_VALUE;
+	iFloor = (SAS_getSettlerReferenceBFCValue() * iReferenceBFCPercentX100 + 5000) / 10000;
 	iMinCities = iSAS_AI_CHOOSE_UNIT_SETTLER_EARLY_MIN_FOUND_VALUE_MIN_CITIES;
 	iMaxEra = iSAS_AI_CHOOSE_UNIT_SETTLER_EARLY_MIN_FOUND_VALUE_MAX_ERA;
 	return (iFloor > 0 && kPlayer.getNumCities() >= iMinCities && (iMaxEra < 0 || kPlayer.getCurrentEra() <= iMaxEra));
@@ -508,7 +520,7 @@ static int SAS_getSettlerBuildMinFoundValue(CvPlayerAI const& kPlayer, bool bDan
 	int iMinFoundValue = SAS_getDangerAdjustedMinFoundValue(kPlayer, bDanger);
 	// <!-- custom: Treat the second city separately from later filler expansion. A one-city empire can use normal AdvCiv valuation by default, or an optional lighter floor, while the stricter early/midgame floor can begin at city 2+.
 	// Great Plains logs showed one-city AIs otherwise losing a viable expansion window and then never training their first Settler. (ChatGPT-5.6-Sol) -->
-	static const int iFirstExpansionFloor = std::max(0, GC.getDefineINT("SAS_AI_CHOOSE_UNIT_SETTLER_FIRST_EXPANSION_MIN_FOUND_VALUE"));
+	const int iFirstExpansionFloor = SAS_getFirstExpansionFoundValueFloor();
 	if (kPlayer.getNumCities() == 1 && iFirstExpansionFloor > 0)
 		iMinFoundValue = std::max(iMinFoundValue, iFirstExpansionFloor);
 	int iSettlerFloor = 0;
@@ -3686,7 +3698,7 @@ void CvCityAI::AI_chooseProduction()
 		int iEarlyFloorMinCities = 0;
 		int iEarlyFloorMaxEra = 0;
 		bool const bEarlyFloorActive = SAS_isSettlerEarlyFoundValueFloorActive(kPlayer, iEarlyFloor, iEarlyFloorMinCities, iEarlyFloorMaxEra);
-		static const int iFirstExpansionFloor = std::max(0, GC.getDefineINT("SAS_AI_CHOOSE_UNIT_SETTLER_FIRST_EXPANSION_MIN_FOUND_VALUE"));
+		const int iFirstExpansionFloor = SAS_getFirstExpansionFoundValueFloor();
 		int const iNormalMinFound = SAS_getDangerAdjustedMinFoundValue(kPlayer, bDanger);
 		bool const bFoundValuePass = (iAreaBestFoundValue > iSettlerBuildMinFoundValue || iWaterAreaBestFoundValue > iSettlerBuildMinFoundValue);
 		logBBAI("      FIRST_SETTLER_SITE_GATE turn=%d player=%d %S city=%S result=%s areaSites=%d areaBest=%d waterSites=%d waterBest=%d normalMinFound=%d firstExpansionFloor=%d earlyFloorActive=%d earlyFloor=%d earlyFloorMinCities=%d earlyFloorMaxEra=%d settlerBuildMin=%d",

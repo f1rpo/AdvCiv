@@ -1029,75 +1029,13 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 
 
 
-	<!-- custom: Long_Comments_XML.txt #204 -->
-	<!-- custom: don't settle here, unless locally extremely good otherwise, made it even lower as some AIs still didn't listen -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_HOME_FLOOD_PLAINS</DefineName>
-		<iDefineIntVal>-150</iDefineIntVal>
-	</Define>
-	<!-- custom: if not floodplains (note: as of now we can't settle on oasis so not accounted for in code), consider adding it there if you want to allow it in your modmod and then put a knob/tunable here, not done in advciv-sas as we don't need it -->
-	<!-- custom: then if not floodplains -->
-	<!-- custom: still good as is low-food, although not as good as settling on hill plains ideally -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_HOME_HILL_DESERT</DefineName>
-		<iDefineIntVal>50</iDefineIntVal>
-	</Define>
-	<!-- custom: locally optimal if we can, but don't devalue otherwise nice tile -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_HOME_FLATLAND_DESERT</DefineName>
-		<iDefineIntVal>50</iDefineIntVal>
-	</Define>
-	<!-- custom: even more valuable than flatland grass, the hammer yield for low food cost is extremely good, early and even later in game too still quite good, absolutely avoid settling on this unless really the best locally otherwise -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_HOME_HILL_GRASS</DefineName>
-		<iDefineIntVal>-75</iDefineIntVal>
-	</Define>
-	<!-- custom: very valuable, better avoid settling on this plot if we can unless otherwise the best or very good locally -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_HOME_FLATLAND_GRASS</DefineName>
-		<iDefineIntVal>-50</iDefineIntVal>
-	</Define>
-	<!-- custom: extremely good, we remove a low-food tile and get a free extra hammer, plus defensive bonus, ideal starting plot when it comes to terrain; one minus than fresh water, would be as good otherwise; now trying a higher value as some cities still did't listen before it, not too high as 10 plains + settle on hill plains is not better than 10 grass + settle on grass -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_HOME_HILL_PLAINS</DefineName>
-		<iDefineIntVal>250</iDefineIntVal>
-	</Define>
-	<!-- custom: still quite good, we remove a bad low food tile after all, but not too good to overlook otherwise good local other plot concurrents -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_HOME_FLATLAND_PLAINS</DefineName>
-		<iDefineIntVal>50</iDefineIntVal>
-	</Define>
-	<!-- custom: quite good similarly, just not as good as say hill plains but very good otherwise as a starter -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_HOME_HILL_TUNDRA</DefineName>
-		<iDefineIntVal>50</iDefineIntVal>
-	</Define>
-	<!-- custom: still good, especially in low food environments where every food yield counts, and maybe there is grass near us to not settle on or similar -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_HOME_FLATLAND_TUNDRA</DefineName>
-		<iDefineIntVal>25</iDefineIntVal>
-	</Define>
-	<!-- custom: note: snow is ice sheet (i.e. ice (terrain)) -->
-	<!-- custom: quite good similarly, just not as good as say hill plains but very good otherwise as a starter -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_HOME_HILL_SNOW</DefineName>
-		<iDefineIntVal>50</iDefineIntVal>
-	</Define>
-	<!-- custom: same as desert, low food tile, try hard to settle on it rather unless extremely good otherwise to do else -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_HOME_FLATLAND_SNOW</DefineName>
-		<iDefineIntVal>50</iDefineIntVal>
-	</Define>
-
-
-
 	<!-- custom: AI still often / quite often ignores water bonus in range and settles as a non-coastal city rather, so try to enforce or strengthen this bonus, especially considering water bonuses are often if not entirely food yield related in advciv-sas -->
 	<Define>
 		<DefineName>SAS_EVALUATE_VALUE_HOME_WATER_BONUS_NO_COAST</DefineName>
 		<iDefineIntVal>-400</iDefineIntVal>
 	</Define>
 
-	<!-- custom: starting-location-only city-site tuning. The capital snowballs from early growth more than later cities do, so modestly favor food bonuses, fresh-water city tiles, and river support, while slightly dampening non-food bonus value. This helps first settlers choose nearby corn/fresh-water positions instead of slower commerce/hammer-bonus starts, without changing later strategic/bonus city placement. Home fresh-water value is applied before home plot value is doubled in CitySiteEvaluator. Food/non-food bonus percents affect the non-yield bonus-value component; normal tile yields are still evaluated separately. (GPT-5.5); even though food is important, do not overbuff it here (also because it is extra valuation only) or we would neglect valuable other plots like hill grass for hammer and small food cost in save file 446. -->
+	<!-- custom: Starting-location-only tuning. Early capital growth snowballs, so modestly favor food bonuses, fresh-water city tiles, and rivers while slightly reducing non-food bonus value; normal yields and later city placement remain separate. Home fresh-water value is applied before home value is doubled. Keep the food bonus restrained so it does not eclipse efficient production plots such as the Hill Grass in save file 446. (GPT-5.5) -->
 	<Define>
 		<DefineName>SAS_EVALUATE_STARTING_FOOD_BONUS_VALUE_PERCENT</DefineName>
 		<iDefineIntVal>125</iDefineIntVal>
@@ -1115,7 +1053,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_EVALUATE_STARTING_RIVER_TILE_VALUE</DefineName>
 		<iDefineIntVal>5</iDefineIntVal>
 	</Define>
-	<!-- custom: Value per actual Food/Production/Commerce yield added by a bonus-specific BFC improvement. Formula: added Food * FOOD_VALUE + added Production * PRODUCTION_VALUE + added Commerce * COMMERCE_VALUE. For example, an improvement adding +2 Food and +1 Production contributes 2 * 100 + 1 * 75 = 275 with the defaults below. Replaces AdvCiv's hardcoded nonlinear special-yield aggregation so bonus-tile yields are counted once and can be tuned without recompiling; separate health, happiness, strategic, duplicate, and trade values remain unchanged. (GPT-5.5) -->
+	<!-- custom: Value per Food/Production/Commerce added by a bonus-specific BFC improvement, before the top-level yield-emphasis percentages below. At default 100% emphasis, +2 Food and +1 Production contributes 2 * 100 + 1 * 75 = 275. This replaces AdvCiv's nonlinear special-yield aggregation so yields are counted once; health, happiness, strategic, duplicate, and trade values remain separate. (GPT-5.5 + GPT-5.6-Sol) -->
 	<Define>
 		<DefineName>SAS_EVALUATE_BFC_BONUS_IMPROVEMENT_FOOD_VALUE</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
@@ -1149,7 +1087,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_EVALUATE_NON_YIELD_BONUS_BUILDING_EFFECT_MAX_PREREQ_ERA</DefineName>
 		<iDefineIntVal>2</iDefineIntVal>
 	</Define>
-	<!-- custom: Special buildings should contribute to long-term city-site value without counting every overlapping religious variant at full ordinary-building value. Each positive health/happiness point from a religion-linked special building contributes 25, while a nonreligious special building contributes 100 because its variants are less likely to overlap. Cap their combined value at 200 so seven Incense Cathedrals contribute 7 * 25 = 175 rather than 7 * 150, and mod-added special buildings cannot inflate a site without bound. Religion-linked detection uses the building's religion, prerequisite religion, state religion, or holy city rather than hardcoded SpecialBuildingType names. (GPT-5.6-Sol) -->
+	<!-- custom: Value special-building health/happiness without counting every overlapping religious variant like an ordinary building. Defaults give religion-linked points 25, nonreligious points 100, and cap the total at 200; seven Incense Cathedrals therefore give 175 rather than 1050. Detection uses religion fields rather than hardcoded SpecialBuildingType names. (GPT-5.6-Sol) -->
 	<Define>
 		<DefineName>SAS_EVALUATE_NON_YIELD_BONUS_RELIGIOUS_SPECIAL_BUILDING_HAPPY_HEALTH_VALUE_PER_POINT</DefineName>
 		<iDefineIntVal>25</iDefineIntVal>
@@ -1162,8 +1100,25 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_EVALUATE_NON_YIELD_BONUS_SPECIAL_BUILDING_HAPPY_HEALTH_MAX_VALUE</DefineName>
 		<iDefineIntVal>200</iDefineIntVal>
 	</Define>
-	<!-- custom: Base AdvCiv weights now tunable: every plot starts with its natural XML yields: terrain, retained feature, and any revealed bonus's intrinsic yield, but not improvement yield handled by SAS_EVALUATE_BFC_BONUS_IMPROVEMENT_*. The code then selects exactly one value set: SELF_SUSTAINING, ONE_FOOD_SHORT, or DEFAULT. (GPT-5.5) -->
-	<!-- custom: SELF_SUSTAINING applies to a land home plot or land plot with at least the 2 Food consumed by one citizen. E.g. 2F1P contributes the fixed 10-point self-sustaining bonus + 2 * 40 + 1 * 30 = 120 before other plot adjustments. (GPT-5.5) -->
+	<!-- custom: Top-level Settler yield emphasis, applied after the detailed plot-class weights and to resource-improvement yields. Raising Production above 100 therefore favors hammer-rich BFCs consistently instead of editing four values. Defaults 100 preserve tested balance. (GPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_EVALUATE_YIELD_FOOD_VALUE_PERCENT</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SAS_EVALUATE_YIELD_PRODUCTION_VALUE_PERCENT</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SAS_EVALUATE_YIELD_COMMERCE_VALUE_PERCENT</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<!-- custom: Shared found-value weights for natural terrain, retained features, revealed bonuses, and the best timing-discounted XML-valid improvement on ordinary plots; resource-improvement gains use SAS_EVALUATE_BFC_BONUS_IMPROVEMENT_*. Exactly one class applies: SELF_SUSTAINING, ONE_FOOD_SHORT, or DEFAULT. Use the top-level percentages above for consistent yield-wide emphasis. (GPT-5.5 + GPT-5.6-Sol) -->
+	<!-- custom: SELF_SUSTAINING applies to a land home plot or land plot that feeds its citizen. With default weights, 2F1P contributes 10 + 2 * 40 + 1 * 30 = 120 before other adjustments. (GPT-5.5 + GPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_EVALUATE_NATURE_YIELD_SELF_SUSTAINING_EXTRA_VALUE</DefineName>
+		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
 	<Define>
 		<DefineName>SAS_EVALUATE_NATURE_YIELD_SELF_SUSTAINING_FOOD_VALUE</DefineName>
 		<iDefineIntVal>40</iDefineIntVal>
@@ -1202,6 +1157,42 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_EVALUATE_NATURE_YIELD_DEFAULT_COMMERCE_VALUE</DefineName>
 		<iDefineIntVal>8</iDefineIntVal>
 	</Define>
+	<!-- custom: Relative weights for an ordinary improvement's immediate and final-upgrade yields. Default 2:1 preserves the tested two-thirds immediate/one-third mature balance; 1:1 values both equally, 1:0 ignores the upgrade, and 0:0 keeps the unimproved value. (GPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_EVALUATE_PLOT_POTENTIAL_IMMEDIATE_IMPROVEMENT_WEIGHT</DefineName>
+		<iDefineIntVal>2</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SAS_EVALUATE_PLOT_POTENTIAL_FINAL_UPGRADE_WEIGHT</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<!-- custom: Percentage of improvement gain retained when its technology is near-researchable or later. Currently buildable improvements retain 100%; defaults 75/50 preserve early differences while recognizing long-term XML-valid potential. (GPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_EVALUATE_PLOT_POTENTIAL_NEAR_TECH_VALUE_PERCENT</DefineName>
+		<iDefineIntVal>75</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SAS_EVALUATE_PLOT_POTENTIAL_LATER_TECH_VALUE_PERCENT</DefineName>
+		<iDefineIntVal>50</iDefineIntVal>
+	</Define>
+	<!-- custom: Founding consumes the home plot as a workable tile. Apply the first percentage when city-center yield loses against its best timing-adjusted improvement, but only the second when founding improves a weak plot that might never be worked. Defaults 200/40 preserve tested Grass-Hill avoidance and a modest barren-plot benefit without overriding the complete BFC. (GPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_EVALUATE_HOME_STRONG_PLOT_OPPORTUNITY_VALUE_PERCENT</DefineName>
+		<iDefineIntVal>200</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SAS_EVALUATE_HOME_WEAK_PLOT_OPPORTUNITY_VALUE_PERCENT</DefineName>
+		<iDefineIntVal>40</iDefineIntVal>
+	</Define>
+	<!-- custom: Add this percentage of workable-plot economy per 100% XML terrain/hill defense, then apply the personality percentage. Defaults make a 25% Hill worth 2.5%, or 5% for a defensive AI, without scaling resources or unrelated rewards. (GPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_EVALUATE_CITY_SITE_DEFENSE_WORKABLE_VALUE_PERCENT_PER_100_DEFENSE</DefineName>
+		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
+	<Define>
+		<DefineName>SAS_EVALUATE_CITY_SITE_DEFENSIVE_PERSONALITY_VALUE_PERCENT</DefineName>
+		<iDefineIntVal>200</iDefineIntVal>
+	</Define>
 	<!-- custom: Optional flat coastal found-value biases on naval-heavy maps. Following the KI#173 scoring changes, save file 420 now chooses the strong Cuzco coastal site with both values at 0, and Japan no longer favored the old tundra-heavy candidates thus a significant naval settling bias no longer seems necessary: keep these disabled by default, or use only a fairly small positive value if an additional strategic preference for coastal access, work boats, contact, trade, galleys, or Moai is wanted. See KI#146. (GPT-5.5) -->
 	<Define>
 		<DefineName>SAS_EVALUATE_NAVAL_HEAVY_FIRST_CITY_COASTAL_EXTRA_VALUE</DefineName>
@@ -1234,77 +1225,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 
 
 
-	<!-- custom: non-bonus non-home tiles (note: home plot/tile is the tile where we will settle on if we choose this site -->
-	<!-- custom: Long_Comments_XML.txt #159 -->
-	<!-- custom: high food and great cottage candidate, very strong -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_NOT_HOME_FLOOD_PLAINS</DefineName>
-		<iDefineIntVal>100</iDefineIntVal>
-	</Define>
-	<!-- custom: can't grow as much as flood plains with a cottage as it cannot be improved, but we have no health penalty, and we get the extra commerce yield immediately, plus it provides fresh water as well. I assume (hope) fresh water code is handled elsewhere that supports oasis too hopefully, but even if not and in all cases, maybe this valorization can help. -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_NOT_HOME_OASIS</DefineName>
-		<iDefineIntVal>90</iDefineIntVal>
-	</Define>
-	<!-- custom: then if not flood plains nor oasis -->
-	<!-- custom: low food but at least we can mine it, avoid but not like flatland desert, defensive bonus is locally not too bad maybe as well if someone invades us (but harder to attack them there as well so so so) -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_NOT_HOME_HILL_DESERT</DefineName>
-		<iDefineIntVal>-25</iDefineIntVal>
-	</Define>
-	<!-- custom: low food and cannot be improve, strongly avoid -->
-	<!-- custom: note: now handled by the verybadtiles code rather as we handle the tolerance for a certain number of tiles and other such things like ice cap, peak that may not possibly be accounted for in the loop that handles this, so handled there rather directly, so left as 0 here instead as of now -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_NOT_HOME_FLATLAND_DESERT</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
-	</Define>
-	<!-- custom: very good, low food cost high hammer, a tile we'd want to mine very early for high yields even in stone age, very high value tile to have in city radius; even if it's not as strong late game, most cities are settled early/mid-game so this gives a significant advantage for minimal food cost so value it -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_NOT_HOME_HILL_GRASS</DefineName>
-		<iDefineIntVal>80</iDefineIntVal>
-	</Define>
-	<!-- custom: very valuable for flatland as well, a great tile to start near in our city radius, slightly worse than floodplains, but since it doesn't have health penalty maybe we can count it as about the same; it can also be irrigated and be a very nice food source especially late game. -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_NOT_HOME_FLATLAND_GRASS</DefineName>
-		<iDefineIntVal>65</iDefineIntVal>
-	</Define>
-	<!-- custom: quite good tile with hammer yield but food is really too low, value but not a lot, we want to grow most after all, but this is not too bad either -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_NOT_HOME_HILL_PLAINS</DefineName>
-		<iDefineIntVal>15</iDefineIntVal>
-	</Define>
-	<!-- custom: low-food, has a base hammer though, but we'd need to irrigate it to get the equivalent of a grass tile, and if we cottage it it drains our food growth. This is quite good later in the game with workshops that don't cost food or such, but assume it to be bad as a general rule as most game and cities are settled early anyway -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_NOT_HOME_FLATLAND_PLAINS</DefineName>
-		<iDefineIntVal>-20</iDefineIntVal>
-	</Define>
-	<!-- custom: worse than plains hill yield for same low-food food, this is really bad, especially in a tundra environment where food is scarce already, but if needed the hammer yield is not too bad -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_NOT_HOME_HILL_TUNDRA</DefineName>
-		<iDefineIntVal>-30</iDefineIntVal>
-	</Define>
-	<!-- custom: not too bad with as of now the tundra base commerce yield buff we added, still weaker than a base hammer of the plains, avoid more than flatland plains -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_NOT_HOME_FLATLAND_TUNDRA</DefineName>
-		<iDefineIntVal>-25</iDefineIntVal>
-	</Define>
-	<!-- custom: note: snow is ice sheet (i.e. ice (terrain)) -->
-	<!-- custom: same as tundra hill, this is really not great, and i am not sure the less base commerce yield makes too much of a difference. We could mine it though maybe or some other improvements maybe too although i didn't check, but it would be costly in food, so not a great choice to have in our city radius (great to settle on though otherwise but is not handled here, as we are in the non-home-plot code) -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_NOT_HOME_HILL_SNOW</DefineName>
-		<iDefineIntVal>-35</iDefineIntVal>
-	</Define>
-	<!-- custom: low-food same as desert, i am not sure we can do anything with this in our city radius, maybe find a way to buff in our mod somehow, but for now if not always or not, this is really low value tile to have in our city radius, better avoid -->
-	<!-- custom: same as flatland desert for this very bad tile -->
-	<Define>
-		<DefineName>SAS_EVALUATE_VALUE_NOT_HOME_FLATLAND_SNOW</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
-	</Define>
-	<!-- custom: water tiles are considered neutral as of now, ideally we would penalize 0 food ones but left as such for now -->
-	<!-- custom: note: peak, ice cap are handled in very bad tiles similarly to desert and snow, plus they may not be in the part of the loop where we use this define so maybe best as such -->
-
-
-
 	<!-- custom: value iAIObjective bonuses especially more to settle on first, could be critical for our life and death (ideally check if obsolete too). Not having copper or iron may make us die, so really value it more; Long_Comments_XML.txt #158 -->
 	<Define>
 		<DefineName>SAS_EVALUATE_EXTRA_VALUE_NOT_HOME_BONUS_IAIOBJECTIVE_MULTIPLIER</DefineName>
@@ -1313,7 +1233,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 
 
 
-	<!-- custom: Discourage non-coastal sites whose summed usable non-home BFC potential-food score exceeds this threshold. Each non-very-bad plot contributes food required per citizen minus natural food, visible bonus food, food from its bonus-specific improvement, and eligible Harbor-class food; productive Grass Hills remain neutral. Very-bad plots are excluded because their dead BFC capacity is handled separately. This replaces terrain-name counting so XML yield changes and bonuses are reflected automatically; also now that food from bonuses offsets bad food count, making low food requirement harsher, and this maybe also helps increase food pressure on ai settlers which is maybe good too (as GPT-5.5 seems to agree too thanks) (was 7) -->
+	<!-- custom: Discourage non-coastal sites above this summed non-home BFC food-deficit threshold. Each usable plot compares citizen food consumption with natural food, visible bonus/improvement food, and eligible Harbor-class food; productive Grass Hills remain neutral. Very-bad plots are handled separately. This replaces terrain-name counting, and the lower default 5 reflects bonus food now offsetting the score (was 7). (GPT-5.5) -->
 	<Define>
 		<DefineName>SAS_EVALUATE_MAX_TOLERATED_NOT_COASTAL_LOW_FOOD_SCORE</DefineName>
 		<iDefineIntVal>5</iDefineIntVal>
@@ -1419,12 +1339,12 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_AI_FOUND_FIRST_CITY_MAX_TURNS_UNSCALED_GAMESPEED_TO_FOUND</DefineName>
 		<iDefineIntVal>7</iDefineIntVal>
 	</Define>
-	<!-- custom: When first-city scouting decides whether to keep exploring or return, subtract this value per return-path turn from each currently known site's found value. This does not change city-site valuation itself; it makes a nearly equal nearby capital preferable to several extra turns of backtracking. A value of 150 is intended to keep the full search within SAS_AI_FOUND_FIRST_CITY_MAX_TURNS_UNSCALED_GAMESPEED_TO_FOUND while preserving the stronger Berlin, Karakorum, and Cuzco choices; set to 0 to ignore return time when choosing. (GPT-5.5) -->
+	<!-- custom: First-city return cost per path turn, as a percentage of one sustainable productive reference plot (citizen food consumption + 1 Production under the shared weights). This follows the found-value scale without altering site valuation. Default 125% resolves to the tested 150 that preserved Berlin, Karakorum, and Cuzco; 0 ignores return time. (GPT-5.5 + GPT-5.6-Sol) -->
 	<Define>
-		<DefineName>SAS_AI_FOUND_FIRST_CITY_RETURN_TRAVEL_VALUE_PER_TURN</DefineName>
-		<iDefineIntVal>150</iDefineIntVal>
+		<DefineName>SAS_AI_FOUND_FIRST_CITY_RETURN_TRAVEL_REFERENCE_PLOT_PERCENT</DefineName>
+		<iDefineIntVal>125</iDefineIntVal>
 	</Define>
-	<!-- custom: In the Berlin test (save file 442), the live first settler preferred fresh-water (35,11), although grass bonus-rich (33,13) site's valuation was higher (4569 vs 3934 before final modifiers), because the old map-generation surroundings adjustment penalized it by -1482 (so 4569 - 1482 < 3934 - 480). Disabling this (0, recommended) fixes this by ranking revealed candidate value without range-6 hidden terrain or other civilizations' assigned starts. Map generation and normalization still use the adjustment to spread assigned starts; but once play begins, whichever best sites AI settlers choose should be their own choice regardless how close or far from rivals. Set to 1 to restore the old base AdvCiv runtime adjustment. See KI#173. (GPT-5.5) -->
+	<!-- custom: In save file 442, map-generation surroundings penalties reversed Berlin's stronger revealed site: (33,13) scored 4569 then -1482, versus (35,11) at 3934 then -480. Default 0 keeps assigned-start spacing in map generation but removes its hidden range-6 terrain/other-start bias from live Settler choices. Set to 1 for Base AdvCiv runtime behavior. See KI#173. (GPT-5.5) -->
 	<Define>
 		<DefineName>SAS_AI_FOUND_FIRST_CITY_RUNTIME_STARTING_SURROUNDINGS_ADJUSTMENT_ENABLE</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
@@ -1434,9 +1354,29 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_AI_FOUND_FIRST_CITY_GOOD_ENOUGH_FOOD_BONUSES</DefineName>
 		<iDefineIntVal>2</iDefineIntVal>
 	</Define>
-	<!-- custom: First-city roaming treats a capital candidate as bad when its revealed non-home BFC reaches this food-environment score. Each plot contributes food required per citizen minus natural food, visible bonus food, and food from its bonus-specific improvement; an ocean-coastal candidate also assumes its civilization's configured Harbor-class sea food. Productive Grass Hills are neutral, food-surplus plots offset poor plots, and each citizen-unworkable peak/ice adds one extra point beyond its normal +2 food deficit because it is also a dead BFC slot; also now that food from bonuses offsets bad food count, making low food requirement harsher, and this maybe also helps increase food pressure on ai settlers which is maybe good too (as GPT-5.5 seems to agree too thanks) (was 7) -->
+	<!-- custom: A poor whole BFC can still have a strong early core. Compare its six best plot values with six sustainable reference plots (citizen food consumption + 1 Production); complete found value still ranks the whole BFC. Default 100% gives 6 * 120 = 720 under current weights. Five SAS48 tests separated needless scouts with cores 763/800/802 from a useful Zulu scout at 702. 0 disables this override. (GPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_AI_FOUND_FIRST_CITY_GOOD_ENOUGH_BEST_6_PLOT_REFERENCE_PERCENT</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<!-- custom: First-city roaming treats a candidate as bad at this revealed non-home food-deficit score. Each plot compares citizen consumption with natural and visible bonus/improvement food; ocean-coastal sites also assume their Harbor-class sea food. Productive Grass Hills are neutral, food surpluses offset deficits, and citizen-unworkable Peak/Ice adds one extra point for its dead BFC slot. Default 5 reflects bonus food now offsetting the score (was 7). (GPT-5.5) -->
 	<Define>
 		<DefineName>SAS_AI_FOUND_FIRST_CITY_BAD_FOOD_ENVIRONMENT_SCORE</DefineName>
+		<iDefineIntVal>5</iDefineIntVal>
+	</Define>
+	<!-- custom: Local first-city rechecks compare complete site values and worked-plot cores without charging travel twice. Default 2 covers the nearby neighborhood; the separate scouting/return window governs longer travel. Unscaled because path turns already use the active game speed. (GPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_AI_FOUND_FIRST_CITY_LOCAL_RECHECK_MAX_PATH_TURNS_UNSCALED_GAMESPEED</DefineName>
+		<iDefineIntVal>2</iDefineIntVal>
+	</Define>
+	<!-- custom: Percentage of the combined best-6 and best-10 worked-plot improvement added when a nearby first-city candidate improves both cores. Default 100 preserves the tested Wang Kon behavior; 0 leaves local rechecks driven only by complete found value. (GPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_AI_FOUND_FIRST_CITY_GROWTH_CORE_IMPROVEMENT_VALUE_PERCENT</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<!-- custom: Extra sustainable-reference-plot units for a safe first-city scout step ending in fog; nearby reveals and known site prospects remain separate. Default 5 preserves tested bounded scouting. (GPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_AI_FOUND_FIRST_CITY_SCOUT_UNREVEALED_ENDPOINT_REFERENCE_PLOT_MULTIPLIER</DefineName>
 		<iDefineIntVal>5</iDefineIntVal>
 	</Define>
 	<!-- custom: Block dangerous exposed post-capital founding by an unescorted Settler group. This replaced the old reckless early-settling override after BBAI save-file 450 showed Nobamba founded without a defender and razed; follow-up logs showed guarded founding instead. Save-file 449 later showed that requiring an escort even with no plot danger left a Settler exposed on its valid site for more than 100 turns, so danger-free founding in place remains allowed. See KI#179. (ChatGPT-5.5 + GPT-5.6-Sol) -->
@@ -1444,7 +1384,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_AI_SETTLER_REQUIRE_ESCORT_FOR_EXPOSED_FOUNDING_OPTIMIZE</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
-	<!-- custom: When an unescorted Settler is parked in one of its own cities, allow the AI to reassign one healthy local defender as escort before evaluating exposed expansion. This is not a temporary loan: the unit joins the Settler group. Save-file 450 BBAI testing showed this prevents freezing expansion while avoiding lone exposed Settlers. `AI_neededDefenders` can be conservative for this specific choice; the practical rule is the tunable remaining-defenders value below, e.g. at 2, a city with 3 healthy defenders can reassign 1 escort and keep 2. Delaying a guarded Settler can lose contested city sites and early growth snowball. See KI#179. (ChatGPT-5.5) -->
+	<!-- custom: Let an unescorted Settler parked in its own city permanently attach one healthy local defender before exposed expansion. Save-file 450 showed this prevents frozen expansion and lone Settlers. The practical safety rule is the remaining-defenders value below: at 2, a city with 3 healthy defenders can lend 1 and keep 2. See KI#179. (ChatGPT-5.5) -->
 	<Define>
 		<DefineName>SAS_AI_SETTLER_ATTACH_CITY_ESCORT_OPTIMIZE</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
@@ -1454,7 +1394,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_AI_SETTLER_ATTACH_CITY_ESCORT_MIN_HEALTHY_CITY_DEFENDERS_LEFT</DefineName>
 		<iDefineIntVal>2</iDefineIntVal>
 	</Define>
-	<!-- custom: Coordinate first-Settler production with the AdvCiv-SAS attachment safety rule. Before training the first Settler, opportunistically prepare the spare healthy defender only when the best defender can finish within the max-turn bound below; slow-production capitals proceed with the Settler and use the post-completion repair instead. While enabled, this precise first-Settler decision also owns the inherited AdvCiv 1.14 "extra quick defense" gate so that the older coarse military-unit-count fallback cannot silently undo SKIP_SLOW_DEFENDER. Completed unguarded Settlers still request/preserve the missing defender regardless of the pre-build bound. This never lowers movement-side safety. 1 enables coordination; 0 restores the older/inherited production sequencing. See KI#179.2 and KI#179.3. (ChatGPT-5.6-Sol) -->
+	<!-- custom: Coordinate first-Settler production with attachment safety: prepare a spare healthy defender only within the max-turn bound below; slow capitals train the Settler and use post-completion repair. While enabled, this decision owns AdvCiv's coarse "extra quick defense" gate so it cannot undo SKIP_SLOW_DEFENDER. Completed unguarded Settlers still request the missing defender. 0 restores inherited sequencing. See KI#179.2 and KI#179.3. (ChatGPT-5.6-Sol) -->
 	<Define>
 		<DefineName>SAS_AI_CHOOSE_PRODUCTION_SETTLER_ESCORT_COORDINATION_OPTIMIZE</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
@@ -1464,7 +1404,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_AI_CHOOSE_PRODUCTION_FIRST_SETTLER_ESCORT_PREPARATION_MAX_TURNS_NORMAL_GAMESPEED</DefineName>
 		<iDefineIntVal>5</iDefineIntVal>
 	</Define>
-	<!-- custom: When a Settler is already standing on a foundable city site, do not immediately found if another reachable city site is clearly better by raw found value. Save-file 450 BBAI testing showed Zulu city 3 founding weak tundra-heavy Nobamba at (10,47): the original target area had become much poorer and smaller after a nearby Barbarian city spawned, and the found-value logger already saw a much better reachable site. This prevents that direct-found valid-tile trap without chasing tiny differences. Set either threshold very high to effectively disable that part of the check. See KI#180 for info about a related fix too. (GPT-5.5) -->
+	<!-- custom: Do not found immediately on a valid plot when another reachable site is clearly better by raw found value. In save file 450, Zulu city 3 founded weak tundra-heavy Nobamba at (10,47) after a Barbarian city shrank its target area despite a much better reachable site. These thresholds prevent that trap without chasing tiny differences; set either very high to disable its check. See KI#180. (GPT-5.5) -->
 	<Define>
 		<DefineName>SAS_AI_SETTLER_FOUND_IN_PLACE_BETTER_SITE_MIN_VALUE_DIFF</DefineName>
 		<iDefineIntVal>150</iDefineIntVal>
@@ -1501,18 +1441,18 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_AI_CHOOSE_PRODUCTION_FIRST_SETTLER_GROWTH_WAIT_MAX_TURNS_NORMAL_GAMESPEED</DefineName>
 		<iDefineIntVal>5</iDefineIntVal>
 	</Define>
-	<!-- custom: Optional minimum found value for the second city specifically, before the general early/midgame floor below begins. 0 (default) uses normal AdvCiv minimum-found-value logic, which is the first A/B test for one-city lockouts; raise this (e.g. 1200-1500) if that proves too willing to accept genuinely weak second-city sites without restoring the full AdvCiv-SAS 2000 filler-city floor. See KI#181.2. (ChatGPT-5.6-Sol) -->
+	<!-- custom: Optional second-city floor as percent times 100 of a reference BFC whose 20 non-home plots each provide citizen food consumption + 1 Production under shared yield weights. 0 (default) uses normal AdvCiv logic; with current weights, 5000 = 50.00% = 1200 and 6250 = 62.50% = 1500. This scales with XML yields instead of fixing an absolute value. See KI#181.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	<Define>
-		<DefineName>SAS_AI_CHOOSE_UNIT_SETTLER_FIRST_EXPANSION_MIN_FOUND_VALUE</DefineName>
+		<DefineName>SAS_AI_CHOOSE_UNIT_SETTLER_FIRST_EXPANSION_MIN_FOUND_VALUE_REFERENCE_BFC_PERCENT_X100</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
-	<!-- custom: Optional AI production floor for trained early/midgame Settlers. Weak Settlers are costly while empires are still small because they pause growth/production, tie up escorts, raise maintenance, and can weaken military tempo before the new city repays the investment. If only poor sites remain, a compact AI may be better off growing, defending, or attacking than forcing a far, slow filler city.
-	Later empires have more cities, production, trade/building/bonus support, and can better absorb added maintenance or slow growth; lower-value filler/resource/denial/colony cities can therefore become worthwhile again, so this floor can stop applying by era. This is an AI build-choice gate only, not a canTrain rule: existing Settlers, humans, scripts, and late opportunistic settling remain legal. Set value to 0 to defer to normal AdvCiv minimum found-value logic. (ChatGPT-5.5) -->
+	<!-- custom: Optional early/midgame Settler production floor as percent times 100 of the same 20-plot sustainable reference BFC. Weak expansion costs growth, production, escorts, maintenance, and military tempo; later empires can better absorb lower-value filler/resource/denial cities, so the floor can expire by era.
+	Default 8333 = 83.33% = the tested 2000 under current weights and scales with XML yields. This is an AI build-choice gate, not canTrain: humans, scripts, existing Settlers/queues, and later expansion remain legal. 0 restores normal AdvCiv minimum found value. (ChatGPT-5.5 + GPT-5.6-Sol) -->
 	<Define>
-		<DefineName>SAS_AI_CHOOSE_UNIT_SETTLER_EARLY_MIN_FOUND_VALUE</DefineName>
-		<iDefineIntVal>2000</iDefineIntVal>
+		<DefineName>SAS_AI_CHOOSE_UNIT_SETTLER_EARLY_MIN_FOUND_VALUE_REFERENCE_BFC_PERCENT_X100</DefineName>
+		<iDefineIntVal>8333</iDefineIntVal>
 	</Define>
-	<!-- custom: City-count threshold before the full early/midgame Settler found-value floor applies. Default 2 leaves the crucial second city to normal AdvCiv valuation (plus the optional first-expansion floor above), then applies the stricter 2000 floor from city 2 onward to avoid weak filler expansion. Great Plains logs showed several one-city AIs with ample free land never training a Settler when the full floor started at city 1. Lower to 1 for the old stricter behavior; raise further to leave more early expansion to normal valuation. See KI#181.2. (ChatGPT-5.5 + ChatGPT-5.6-Sol) -->
+	<!-- custom: City count before the full early/midgame floor applies. Default 2 leaves the crucial second city to normal AdvCiv valuation plus the optional floor above, then blocks weak filler expansion. Great Plains logs found several one-city AIs never training a Settler when the full floor began at 1. Lower to restore that stricter behavior; raise to exempt more early expansion. See KI#181.2. (ChatGPT-5.5 + ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	<Define>
 		<DefineName>SAS_AI_CHOOSE_UNIT_SETTLER_EARLY_MIN_FOUND_VALUE_MIN_CITIES</DefineName>
 		<iDefineIntVal>2</iDefineIntVal>
@@ -1677,7 +1617,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_BBAI_SETTLER_LOG_LEVEL</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
-	<!-- custom: Base AdvCiv LOG_FOUND_VALUE default: when enabled: 1; when disabled: 0. (GPT-5.5?) -->
+	<!-- custom: Detailed city-site scoring calculations, separate from Settler-unit movement/security diagnostics. Level 1 logs the selected site plus next-best and adjacent alternatives with verbose plot/component calculations; level 2 also logs their compact stage breakdowns and the top three XML-valid improvement outcomes per ordinary plot; level 3 expands those three with immediate/final yields, feature removal, maturation and timing details. Level 3 is the highest implemented level. Base AdvCiv LOG_FOUND_VALUE default: when enabled: 1; when disabled: 0. (GPT-5.5 + GPT-5.6-Sol) -->
 	<Define>
 		<DefineName>SAS_BBAI_FOUND_LOG_LEVEL</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>

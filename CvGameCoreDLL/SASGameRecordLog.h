@@ -26,7 +26,7 @@ int getSASGameRecordTurnInterval();
 // This is deliberately not a compatibility/schema promise: increment it for every intentional change to SASGameRecord implementation code, relevant bridges/call sites/configuration/checkers, or their code comments, even when emitted semantics are unchanged.
 // Standalone docs/example-log/package refreshes do not require a bump. Keep the matching revision-history entry in the same commit.
 // An anonymous enum keeps this a C++03 compile-time integer without a separate storage/linkage definition. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-enum { SAS_GAME_RECORD_REVISION = 125 };
+enum { SAS_GAME_RECORD_REVISION = 126 };
 // <!-- custom: Finalize buffered observations in the old game state before a new game or loaded save resets/replaces it. See KI#382. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 void finalizeSASGameRecordLogSession();
 void startSASGameRecordLogForNewGame();
@@ -516,8 +516,8 @@ void logSASGameRecordUnitCompleted(CvCity const* pCity, CvUnit const* pUnit, SAS
 void logSASGameRecordResearchCompleted(TechTypes eTech, TeamTypes eTeam, PlayerTypes ePlayer, int iProgressBefore, int iProgressBeforeClamp, int iResearchModifier, int iUnmodifiedOverflow);
 // <!-- custom: Added eCause so the existing TECH_ACQUIRED action can name its explicit source. (GPT-5.6-Sol + GPT-5.6 Thinking) -->
 void logSASGameRecordTechAcquired(TechTypes eType, TeamTypes eTeam, PlayerTypes ePlayer, TechAcquisitionCause eCause);
-// <!-- custom: Preserve the AI's already-cached strategic city-site context immediately before normal founding mutates the plot/city state.
-// This is intentionally compact broad-record context, not a CitySiteEvaluator/BBAI breakdown: no map rescan, pathfinding or candidate rescoring is performed. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Preserve the strategic shortlist plus one cold quality summary for the site that is actually founded, immediately before normal founding mutates the plot/city state.
+// Level 2 deliberately rescans only that rare chosen BFC from player-known and diagnostic-omniscient perspectives; rejected-candidate reasons remain BBAI territory and periodic snapshots do no settlement rescoring. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordCityFoundingSite(CvPlayer const& kPlayer, CvPlot const& kPlot);
 void logSASGameRecordCityBuilt(CvCity const* pCity);
 // <!-- custom: City razing is rare but strategically consequential. Capture level-2 context immediately before destruction, then finalize after disband so exact land/population/victory deltas reflect what the raze actually changed.
