@@ -3872,7 +3872,8 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 		{
 			BuildTypes const eBonusSpecificBuild = kPlot.SAS_getBonusSpecificBuild(eBonus);
 			ImprovementTypes const eBonusSpecificImprovement = (eBonusSpecificBuild == NO_BUILD ? NO_IMPROVEMENT : GC.getInfo(eBonusSpecificBuild).getImprovement());
-			bool const bCanBuildBonusSpecificBeforeFeatureRemoval = (eBonusSpecificBuild != NO_BUILD && canBuild(kPlot, eBonusSpecificBuild) && (eFeature == NO_FEATURE || !GC.getInfo(eBonusSpecificBuild).isFeatureRemove(eFeature)));
+			bool const bCanBuildBonusSpecific = (eBonusSpecificBuild != NO_BUILD && canBuild(kPlot, eBonusSpecificBuild));
+			bool const bCanBuildBonusSpecificBeforeFeatureRemoval = (bCanBuildBonusSpecific && (eFeature == NO_FEATURE || !GC.getInfo(eBonusSpecificBuild).isFeatureRemove(eFeature)));
 			int iFeatureProduction = 0;
 			BuildTypes const eFeatureRemovalBuild = SAS_getWorkerPureFeatureRemovalBuild(*this, kPlot, &iFeatureProduction);
 			int const iFeatureRemovalValue = SAS_getWorkerStandaloneFeatureRemovalValue(*this, kCity, kPlot, eFeatureRemovalBuild, kWorkerYieldWeights, iFeatureProduction);
@@ -3894,7 +3895,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 				if (eFeatureRemovalBuild != NO_BUILD)
 				{
 					eBestSupposedBuild = eFeatureRemovalBuild;
-					if (eBonusSpecificBuild != NO_BUILD && canBuild(kPlot, eBonusSpecificBuild) && GC.getInfo(eBonusSpecificBuild).getImprovement() != NO_IMPROVEMENT)
+					if (bCanBuildBonusSpecific && GC.getInfo(eBonusSpecificBuild).getImprovement() != NO_IMPROVEMENT)
 						eFeatureRemovalFollowupBuild = eBonusSpecificBuild;
 					iValue += iSAS_WORKER_AI_BONUS_FEATURE_STEP_VALUE + std::max(0, iFeatureRemovalValue);
 				}
@@ -3913,7 +3914,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 				// Fail-fast check: If we can build the bonus-specific improvement, then proceed with the high-value logic.
 				int const bonusFoodYieldChange = GC.getBonusInfo(eBonus).getYieldChange(YIELD_FOOD);
 
-				if (canBuild(kPlot, eBonusSpecificBuild))
+				if (bCanBuildBonusSpecific)
 				{
 					eBestSupposedBuild = eBonusSpecificBuild;
 
@@ -3977,6 +3978,44 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 			{
 				// <!-- custom: make sure we improve it first before anything else -->
 				iValue += iSAS_WORKER_AI_BONUS_AI_OBJECTIVE_VALUE_PER_POINT * iAIObjectiveBonus;
+			}
+
+			// <!-- custom: Level 3 exposes bonus-build availability and both the current raw-BonusInfo yield score and the actual improved-plot yield score.
+			// This notably distinguishes a true priority problem from a near-tech scheduling case; e.g. the Cuzco Tiny Islands run mined Gold while Animal Husbandry was still one turn away, then Pastured Pig immediately after it unlocked. (ChatGPT-5.6-Sol) -->
+			if (gWorkerLogLevel >= 3 && SAS_shouldLogWorkerYieldDecision(*this, kPlot))
+			{
+				CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
+				CvBonusInfo const& kBonusInfo = GC.getBonusInfo(eBonus);
+				TechTypes const eBuildTech = (eBonusSpecificBuild == NO_BUILD ? NO_TECH : GC.getInfo(eBonusSpecificBuild).getTechPrereq());
+				TechTypes const eFeatureTech = (eBonusSpecificBuild == NO_BUILD || eFeature == NO_FEATURE ? NO_TECH : GC.getInfo(eBonusSpecificBuild).getFeatureTech(eFeature));
+				TechTypes const eCurrentResearch = kOwner.getCurrentResearch();
+				int const iBuildTechTurns = (eBuildTech != NO_TECH && eCurrentResearch == eBuildTech ? kOwner.getResearchTurnsLeft(eBuildTech, true) : -1);
+				int aiPotentialResultYields[NUM_YIELD_TYPES] = {0, 0, 0};
+				if (eBonusSpecificBuild != NO_BUILD)
+				{
+					FOR_EACH_ENUM(Yield)
+						aiPotentialResultYields[eLoopYield] = SAS_getWorkerBuildEffectiveYield(kPlot, eBonusSpecificBuild, eLoopYield);
+				}
+				int const iRawYieldValue =
+					iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_FOOD * kBonusInfo.getYieldChange(YIELD_FOOD) +
+					iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_PRODUCTION * kBonusInfo.getYieldChange(YIELD_PRODUCTION) +
+					iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_COMMERCE * kBonusInfo.getYieldChange(YIELD_COMMERCE);
+				int const iPotentialResultYieldValue =
+					iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_FOOD * aiPotentialResultYields[YIELD_FOOD] +
+					iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_PRODUCTION * aiPotentialResultYields[YIELD_PRODUCTION] +
+					iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_COMMERCE * aiPotentialResultYields[YIELD_COMMERCE];
+				logBBAI("    WORKER_BONUS_CANDIDATE turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) worked=%d bonus=%S specificBuild=%S canBuildNow=%d buildTech=%S buildTechKnown=%d buildTechTurnsIfCurrent=%d featureTech=%S featureTechKnown=%d currentResearch=%S rawBonusYields=(%d,%d,%d) potentialResultYields=(%d,%d,%d) weights=(%d,%d,%d) rawYieldValue=%d potentialResultYieldValue=%d aiObjective=%d selectedBuild=%S selectedValue=%d",
+					GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getID(), kCity.getName().GetCString(),
+					kPlot.getX(), kPlot.getY(), kCity.isWorkingPlot(kPlot), kBonusInfo.getDescription(),
+					(eBonusSpecificBuild == NO_BUILD ? L"-" : GC.getInfo(eBonusSpecificBuild).getDescription()), bCanBuildBonusSpecific,
+					(eBuildTech == NO_TECH ? L"-" : GC.getInfo(eBuildTech).getDescription()), (eBuildTech == NO_TECH || GET_TEAM(getTeam()).isHasTech(eBuildTech)), iBuildTechTurns,
+					(eFeatureTech == NO_TECH ? L"-" : GC.getInfo(eFeatureTech).getDescription()), (eFeatureTech == NO_TECH || GET_TEAM(getTeam()).isHasTech(eFeatureTech)),
+					(eCurrentResearch == NO_TECH ? L"-" : GC.getInfo(eCurrentResearch).getDescription()),
+					kBonusInfo.getYieldChange(YIELD_FOOD), kBonusInfo.getYieldChange(YIELD_PRODUCTION), kBonusInfo.getYieldChange(YIELD_COMMERCE),
+					aiPotentialResultYields[YIELD_FOOD], aiPotentialResultYields[YIELD_PRODUCTION], aiPotentialResultYields[YIELD_COMMERCE],
+					iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_FOOD, iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_PRODUCTION, iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_COMMERCE,
+					iRawYieldValue, iPotentialResultYieldValue, iAIObjectiveBonus,
+					(eBestSupposedBuild == NO_BUILD ? L"-" : GC.getInfo(eBestSupposedBuild).getDescription()), iValue);
 			}
 		}
 
@@ -24958,14 +24997,32 @@ bool CvUnitAI::AI_improveBonus(int iMissingWorkersInArea) // advc.121
 				// Let "best build" handle improvement replacements near cities for non-land-worker cases.
 				eBuild = pWorkingCity->AI_getBestBuild(pWorkingCity->getCityPlotIndex(kPlot));
 			}
-			if (eBuild != NO_BUILD && kOwner.doesImprovementConnectBonus(
-				GC.getInfo(eBuild).getImprovement(), eNonObsoleteBonus) &&
-				canBuild(kPlot, eBuild))
+			bool const bCandidateConnectsBonus = (eBuild != NO_BUILD && kOwner.doesImprovementConnectBonus(
+				GC.getInfo(eBuild).getImprovement(), eNonObsoleteBonus));
+			bool const bCanBuildCandidate = (bCandidateConnectsBonus && canBuild(kPlot, eBuild));
+			if (bCanBuildCandidate)
 			{
 				bDoImprove = true;
 				eBestTempBuild = eBuild;
 			}
-			else bDoImprove = false;
+			else
+			{
+				// <!-- custom: AI_improveBonus is an earlier Worker path than AI_bestCityBuild.
+				// Record near-tech bonus misses here too; the Cuzco Tiny Islands case selected available Gold while Pig's Pasture was still one turn from Animal Husbandry, so AI_bestCityBuild-only logging could not explain the original choice. (ChatGPT-5.6-Sol) -->
+				if (gWorkerLogLevel >= 3 && eBuild != NO_BUILD)
+				{
+					TechTypes const eBuildTech = GC.getInfo(eBuild).getTechPrereq();
+					TechTypes const eCurrentResearch = kOwner.getCurrentResearch();
+					int const iBuildTechTurns = (eBuildTech != NO_TECH && eCurrentResearch == eBuildTech ? kOwner.getResearchTurnsLeft(eBuildTech, true) : -1);
+					logBBAI("    WORKER_IMPROVE_BONUS_UNAVAILABLE turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) bonus=%S build=%S connectsBonus=%d canBuildNow=%d buildTech=%S buildTechKnown=%d buildTechTurnsIfCurrent=%d currentResearch=%S",
+						GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getID(), pWorkingCity->getName().GetCString(),
+						kPlot.getX(), kPlot.getY(), GC.getInfo(eNonObsoleteBonus).getDescription(), GC.getInfo(eBuild).getDescription(),
+						bCandidateConnectsBonus, bCanBuildCandidate, (eBuildTech == NO_TECH ? L"-" : GC.getInfo(eBuildTech).getDescription()),
+						(eBuildTech == NO_TECH || GET_TEAM(getTeam()).isHasTech(eBuildTech)), iBuildTechTurns,
+						(eCurrentResearch == NO_TECH ? L"-" : GC.getInfo(eCurrentResearch).getDescription()));
+				}
+				bDoImprove = false;
+			}
 		} // K-Mod end
 		//if (bDoImprove)
 		if (bDoImprove && eBestTempBuild == NO_BUILD) // K-Mod
@@ -24999,25 +25056,31 @@ bool CvUnitAI::AI_improveBonus(int iMissingWorkersInArea) // advc.121
 		if(!generatePath(kPlot, NO_MOVEMENT_FLAGS, true, &iPathTurns))
 			continue;
 
-		int iValue = kOwner.AI_bonusVal(eNonObsoleteBonus, 1);
+		int const iBaseBonusValue = kOwner.AI_bonusVal(eNonObsoleteBonus, 1);
+		int iValue = iBaseBonusValue;
+		int iImprovementFoodValue = 0;
+		int iNatureFoodValue = 0;
 		if (bDoImprove)
 		{
 			eImprovement = GC.getInfo(eBestTempBuild).getImprovement();
 			FAssert(eImprovement != NO_IMPROVEMENT);
 			//iValue += (GC.getInfo(GC.getInfo(eBestTempBuild).getImprovement()))
-			iValue += 5 * kPlot.calculateImprovementYieldChange(
+			iImprovementFoodValue = 5 * kPlot.calculateImprovementYieldChange(
 					eImprovement, YIELD_FOOD, getOwner());
-			iValue += 5 * kPlot.calculateNatureYield(YIELD_FOOD, getTeam(),
+			iNatureFoodValue = 5 * kPlot.calculateNatureYield(YIELD_FOOD, getTeam(),
 					!kPlot.isFeature() ? true :
 					GC.getInfo(eBestTempBuild).isFeatureRemove(kPlot.getFeatureType()));
+			iValue += iImprovementFoodValue + iNatureFoodValue;
 		}
 		// <!-- custom: improve iron before stone -->
 		// iValue += std::max(0, 100 * GC.getInfo(eNonObsoleteBonus).getAIObjective());
-		iValue += std::max(0, iSAS_WORKER_AI_IMPROVE_BONUS_AI_OBJECTIVE_VALUE_PER_POINT * GC.getInfo(eNonObsoleteBonus).getAIObjective());
+		int const iAIObjectiveValue = std::max(0, iSAS_WORKER_AI_IMPROVE_BONUS_AI_OBJECTIVE_VALUE_PER_POINT * GC.getInfo(eNonObsoleteBonus).getAIObjective());
+		iValue += iAIObjectiveValue;
 
-
-		if(kOwner.getNumTradeableBonuses(eNonObsoleteBonus) == 0)
+		bool const bNoTradeableBonus = (kOwner.getNumTradeableBonuses(eNonObsoleteBonus) == 0);
+		if(bNoTradeableBonus)
 			iValue *= 2;
+		int const iValueBeforePath = iValue;
 
 		// <!-- custom: switch to strict 1 worker per tile for simplicity and efficiency -->
 		// int iMaxWorkers = 1;
@@ -25057,6 +25120,13 @@ bool CvUnitAI::AI_improveBonus(int iMissingWorkersInArea) // advc.121
 				iValue /= (iPathTurns + 1);
 				if(kPlot.isCityRadius())
 					iValue *= 2;
+				if (gWorkerLogLevel >= 3)
+					logBBAI("    WORKER_IMPROVE_BONUS_CANDIDATE turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) bonus=%S build=%S baseBonusValue=%d improvementFoodValue=%d natureFoodValue=%d aiObjectiveValue=%d noTradeableBonus=%d valueBeforePath=%d pathTurns=%d cityRadius=%d finalValue=%d",
+						GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getID(),
+						(kPlot.getWorkingCity() == NULL ? L"-" : kPlot.getWorkingCity()->getName().GetCString()),
+						kPlot.getX(), kPlot.getY(), GC.getInfo(eNonObsoleteBonus).getDescription(), GC.getInfo(eBestTempBuild).getDescription(),
+						iBaseBonusValue, iImprovementFoodValue, iNatureFoodValue, iAIObjectiveValue, bNoTradeableBonus,
+						iValueBeforePath, iPathTurns, kPlot.isCityRadius(), iValue);
 				if (iValue > iBestValue)
 				{
 					iBestValue = iValue;
@@ -25099,6 +25169,15 @@ bool CvUnitAI::AI_improveBonus(int iMissingWorkersInArea) // advc.121
 
 	if (pBestPlot == NULL)
 		return false;
+
+	if (gWorkerLogLevel >= 3)
+	{
+		BonusTypes const eSelectedBonus = pBestPlot->getNonObsoleteBonusType(getTeam());
+		logBBAI("    WORKER_IMPROVE_BONUS_SELECTED turn=%d player=%d %S workerId=%d target=(%d,%d) bonus=%S build=%S routeOnly=%d value=%d",
+			GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getID(), pBestPlot->getX(), pBestPlot->getY(),
+			(eSelectedBonus == NO_BONUS ? L"-" : GC.getInfo(eSelectedBonus).getDescription()),
+			(eBestBuild == NO_BUILD ? L"-" : GC.getInfo(eBestBuild).getDescription()), bBestBuildIsRoute, iBestValue);
+	}
 
 	if (eBestBuild != NO_BUILD)
 	{
