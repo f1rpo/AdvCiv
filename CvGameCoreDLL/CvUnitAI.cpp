@@ -2878,6 +2878,59 @@ struct SASWorkerYieldContext
 	int iStrongProductionPlotMinYield;
 };
 
+struct SASWorkerYieldContextLogState
+{
+	int iTurn;
+	int iAdjustedFoodDifference;
+	int iStrongProductionPlots;
+	int iFoodWeight;
+	int iProductionWeight;
+	int iCommerceWeight;
+	bool operator==(SASWorkerYieldContextLogState const& kOther) const
+	{
+		return (iTurn == kOther.iTurn &&
+			iAdjustedFoodDifference == kOther.iAdjustedFoodDifference &&
+			iStrongProductionPlots == kOther.iStrongProductionPlots &&
+			iFoodWeight == kOther.iFoodWeight &&
+			iProductionWeight == kOther.iProductionWeight &&
+			iCommerceWeight == kOther.iCommerceWeight);
+	}
+};
+
+enum SASWorkerYieldLogDecisionKind
+{
+	SAS_WORKER_YIELD_LOG_NO_BUILD,
+	SAS_WORKER_YIELD_LOG_BUILD,
+	SAS_WORKER_YIELD_LOG_BONUS
+};
+
+struct SASWorkerYieldLogState
+{
+	int iTurn;
+	ImprovementTypes eImprovement;
+	SASWorkerYieldLogDecisionKind eDecisionKind;
+	BuildTypes eDecisionBuild;
+	int iCurrentFoodWeight;
+	int iCurrentProductionWeight;
+	int iCurrentCommerceWeight;
+	int iValuationFoodWeight;
+	int iValuationProductionWeight;
+	int iValuationCommerceWeight;
+	bool operator==(SASWorkerYieldLogState const& kOther) const
+	{
+		return (iTurn == kOther.iTurn &&
+			eImprovement == kOther.eImprovement &&
+			eDecisionKind == kOther.eDecisionKind &&
+			eDecisionBuild == kOther.eDecisionBuild &&
+			iCurrentFoodWeight == kOther.iCurrentFoodWeight &&
+			iCurrentProductionWeight == kOther.iCurrentProductionWeight &&
+			iCurrentCommerceWeight == kOther.iCurrentCommerceWeight &&
+			iValuationFoodWeight == kOther.iValuationFoodWeight &&
+			iValuationProductionWeight == kOther.iValuationProductionWeight &&
+			iValuationCommerceWeight == kOther.iValuationCommerceWeight);
+	}
+};
+
 // <!-- custom: Value ordinary Worker improvements from their resulting yields instead of terrain/build name tables.
 // Keep the per-100 prices deliberately small and understandable: Food starts above Production and Commerce, then gradually yields some value to Production as improvements and cities mature; financial trouble raises Commerce, city/BFC shortage raises Food, and too few developed strong hammer plots or immediate danger raise Production.
 // Bounded adjustments keep transient city state from overwhelming a long-lived improvement decision. (GPT-5.6-Sol) -->
@@ -2902,12 +2955,14 @@ static SASWorkerYieldWeights SAS_getWorkerYieldWeights(CvCityAI const& kCity, in
 
 // <!-- custom: A replacement can immediately remove the scarcity premium that made it look attractive, or create the opposite shortage and make itself look bad on the next turn.
 // Value both sides of the transition with the midpoint of current and prospective pressures: this approximates the marginal value across the state change without persistent memory or a Farm/Workshop-specific cooldown.
-// Only a currently worked plot changes the city's immediate food difference, while every BFC replacement can add or remove a strong-production option.
+// A worked plot changes the city's immediate food difference; an existing improvement can also change whether citizens work that plot, so project its replacement even while momentarily unworked.
+// Every BFC replacement can add or remove a strong-production option.
+// In the full turn-446 Tiny Islands diagnostic, 77 of 139 direct-reversal assignments occurred while the plot was unworked; late Lagos repeatedly left its Farm unworked, replaced it without projecting the Food loss, then worked the resulting Workshop and exposed the deficit again.
 // Together with the build-duration replacement margin, this reduced <=5-turn reversals from 34 to 6 and total reversals from 111 to 41 through turn 370 of the controlled Tiny Islands replay while the dedicated irrigation planner remained active. See KI#196. (GPT-5.6-Sol) -->
 static SASWorkerYieldWeights SAS_getWorkerTransitionYieldWeights(CvCityAI const& kCity, CvPlot const& kPlot, int iResultFood, int iResultProduction, SASWorkerYieldContext const& kContext, SASWorkerYieldWeights& kProspectiveWeights)
 {
 	int iProspectiveFoodDifference = kContext.iAdjustedFoodDifference;
-	if (kCity.isWorkingPlot(kPlot))
+	if (kCity.isWorkingPlot(kPlot) || kPlot.getImprovementType() != NO_IMPROVEMENT)
 		iProspectiveFoodDifference += iResultFood - kPlot.getYield(YIELD_FOOD);
 	bool const bCurrentStrongProduction = (kPlot.getYield(YIELD_PRODUCTION) >= kContext.iStrongProductionPlotMinYield);
 	bool const bResultStrongProduction = (iResultProduction >= kContext.iStrongProductionPlotMinYield);
@@ -2921,17 +2976,23 @@ static SASWorkerYieldWeights SAS_getWorkerTransitionYieldWeights(CvCityAI const&
 	return kTransitionWeights;
 }
 
-// <!-- custom: AI_bestCityBuild is called repeatedly by several Workers for the same city; one context row per city/turn preserves the changing scarcity inputs and resolved weights without recreating the prior multi-gigabyte candidate-log duplication. (GPT-5.6-Sol) -->
-static bool SAS_shouldLogWorkerYieldContext(CvCityAI const& kCity)
+// <!-- custom: AI_bestCityBuild is called repeatedly by several Workers for the same city; log an unchanged context only once per city/turn, but preserve same-turn scarcity changes so parallel assignments can be audited without recreating the prior multi-gigabyte candidate-log duplication. (GPT-5.6-Sol) -->
+static bool SAS_shouldLogWorkerYieldContext(CvCityAI const& kCity, SASWorkerYieldContext const& kContext)
 {
 	typedef std::pair<int,int> SASWorkerCityKey;
-	static std::map<SASWorkerCityKey,int> aiLastLoggedTurn;
+	static std::map<SASWorkerCityKey,SASWorkerYieldContextLogState> akLastLoggedState;
 	SASWorkerCityKey const kKey(kCity.getOwner(), kCity.getID());
-	int const iTurn = GC.getGame().getGameTurn();
-	std::map<SASWorkerCityKey,int>::const_iterator const itLastLogged = aiLastLoggedTurn.find(kKey);
-	if (itLastLogged != aiLastLoggedTurn.end() && itLastLogged->second == iTurn)
+	SASWorkerYieldContextLogState kState;
+	kState.iTurn = GC.getGame().getGameTurn();
+	kState.iAdjustedFoodDifference = kContext.iAdjustedFoodDifference;
+	kState.iStrongProductionPlots = kContext.iStrongProductionPlots;
+	kState.iFoodWeight = kContext.kCurrentWeights.iFood;
+	kState.iProductionWeight = kContext.kCurrentWeights.iProduction;
+	kState.iCommerceWeight = kContext.kCurrentWeights.iCommerce;
+	std::map<SASWorkerCityKey,SASWorkerYieldContextLogState>::const_iterator const itLastLogged = akLastLoggedState.find(kKey);
+	if (itLastLogged != akLastLoggedState.end() && itLastLogged->second == kState)
 		return false;
-	aiLastLoggedTurn[kKey] = iTurn;
+	akLastLoggedState[kKey] = kState;
 	return true;
 }
 
@@ -3103,14 +3164,24 @@ static bool SAS_pickWorkerTemporaryFoodBuild(CvUnitAI const& kUnit, CvPlot& kPlo
 }
 
 // <!-- custom: AI_bestCityBuild is evaluated repeatedly by every Worker scanning the same cities; in the first three yield-rework autoplay logs this produced roughly 4-11 million WORKER_YIELD_NO_BUILD rows per run, although only about 1700-2300 city-build assignments occurred; deduplicating one sample by player/plot/turn/current improvement removed about 94% of those rows.
-// Log an unchanged plot decision only once for that state, but allow another row if a Worker completes or replaces the improvement during the same turn, preserving useful candidate evidence without overwhelming BBAI.log. (GPT-5.6-Sol) -->
-static bool SAS_shouldLogWorkerYieldDecision(CvUnitAI const& kUnit, CvPlot const& kPlot)
+// Log an unchanged city/plot decision only once for that state, but allow another row when the result or its current/prospective scarcity context changes during the same turn. Including the city preserves distinct evidence for shared BFC plots without making alternating city scans defeat deduplication. See KI#196. (GPT-5.6-Sol) -->
+static bool SAS_shouldLogWorkerYieldDecision(CvUnitAI const& kUnit, CvCityAI const& kCity, CvPlot const& kPlot, SASWorkerYieldLogDecisionKind eDecisionKind, BuildTypes eDecisionBuild, SASWorkerYieldWeights const& kCurrentWeights, SASWorkerYieldWeights const& kValuationWeights)
 {
-	typedef std::pair<int,int> SASWorkerYieldLogState;
-	static std::map<std::pair<int,int>,SASWorkerYieldLogState> akLastLoggedState;
-	std::pair<int,int> const kKey(kUnit.getOwner(), kPlot.plotNum());
-	SASWorkerYieldLogState const kState(GC.getGame().getGameTurn(), kPlot.getImprovementType());
-	std::map<std::pair<int,int>,SASWorkerYieldLogState>::const_iterator const itLastLogged = akLastLoggedState.find(kKey);
+	typedef std::pair<int,std::pair<int,int> > SASWorkerCityPlotKey;
+	static std::map<SASWorkerCityPlotKey,SASWorkerYieldLogState> akLastLoggedState;
+	SASWorkerCityPlotKey const kKey(kUnit.getOwner(), std::make_pair(kCity.getID(), kPlot.plotNum()));
+	SASWorkerYieldLogState kState;
+	kState.iTurn = GC.getGame().getGameTurn();
+	kState.eImprovement = kPlot.getImprovementType();
+	kState.eDecisionKind = eDecisionKind;
+	kState.eDecisionBuild = eDecisionBuild;
+	kState.iCurrentFoodWeight = kCurrentWeights.iFood;
+	kState.iCurrentProductionWeight = kCurrentWeights.iProduction;
+	kState.iCurrentCommerceWeight = kCurrentWeights.iCommerce;
+	kState.iValuationFoodWeight = kValuationWeights.iFood;
+	kState.iValuationProductionWeight = kValuationWeights.iProduction;
+	kState.iValuationCommerceWeight = kValuationWeights.iCommerce;
+	std::map<SASWorkerCityPlotKey,SASWorkerYieldLogState>::const_iterator const itLastLogged = akLastLoggedState.find(kKey);
 	if (itLastLogged != akLastLoggedState.end() && itLastLogged->second == kState)
 		return false;
 	akLastLoggedState[kKey] = kState;
@@ -3227,10 +3298,10 @@ static bool SAS_pickWorkerYieldBuild(CvUnitAI const& kUnit, CvCityAI const& kCit
 	{
 		// <!-- custom: Zero legal candidates are already covered by the compact once-per-plot rejection diagnostic.
 		// Keep WORKER_YIELD_NO_BUILD for the strategically useful case where replacement hysteresis rejected otherwise legal Builds. (GPT-5.6-Sol) -->
-		if (bDetailedYieldLogging && iLegalCandidateCount > 0 && SAS_shouldLogWorkerYieldDecision(kUnit, kPlot))
-			logBBAI("    WORKER_YIELD_NO_BUILD turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) current=%S weights=(%d,%d,%d) prospectiveWeights=(%d,%d,%d) valuationWeights=(%d,%d,%d) currentUtility=%d legal=%d marginRejected=%d bestRejected=%S bestRejectedGain=%d bestRejectedMargin=%d",
+		if (bDetailedYieldLogging && iLegalCandidateCount > 0 && SAS_shouldLogWorkerYieldDecision(kUnit, kCity, kPlot, SAS_WORKER_YIELD_LOG_NO_BUILD, eBestMarginRejectedCandidate, kContext.kCurrentWeights, kBestMarginRejectedTransitionWeights))
+			logBBAI("    WORKER_YIELD_NO_BUILD turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) worked=%d current=%S weights=(%d,%d,%d) prospectiveWeights=(%d,%d,%d) valuationWeights=(%d,%d,%d) currentUtility=%d legal=%d marginRejected=%d bestRejected=%S bestRejectedGain=%d bestRejectedMargin=%d",
 				GC.getGame().getGameTurn(), kUnit.getOwner(), GET_PLAYER(kUnit.getOwner()).getCivilizationDescription(0), kUnit.getID(),
-				kCity.getName().GetCString(), kPlot.getX(), kPlot.getY(),
+				kCity.getName().GetCString(), kPlot.getX(), kPlot.getY(), kCity.isWorkingPlot(kPlot),
 				(eCurrentImprovement == NO_IMPROVEMENT ? L"-" : GC.getInfo(eCurrentImprovement).getDescription()),
 				kContext.kCurrentWeights.iFood, kContext.kCurrentWeights.iProduction, kContext.kCurrentWeights.iCommerce,
 				kBestMarginRejectedProspectiveWeights.iFood, kBestMarginRejectedProspectiveWeights.iProduction, kBestMarginRejectedProspectiveWeights.iCommerce,
@@ -3243,15 +3314,15 @@ static bool SAS_pickWorkerYieldBuild(CvUnitAI const& kUnit, CvCityAI const& kCit
 	}
 	eBestBuild = eBestCandidate;
 	iValue += iBestCandidateValue;
-	if (bDetailedYieldLogging && SAS_shouldLogWorkerYieldDecision(kUnit, kPlot))
+	if (bDetailedYieldLogging && SAS_shouldLogWorkerYieldDecision(kUnit, kCity, kPlot, SAS_WORKER_YIELD_LOG_BUILD, eBestCandidate, kContext.kCurrentWeights, kBestCandidateTransitionWeights))
 	{
 		ImprovementTypes const eResultImprovement = GC.getInfo(eBestCandidate).getImprovement();
 		int aiResultYields[NUM_YIELD_TYPES];
 		FOR_EACH_ENUM(Yield)
 			aiResultYields[eLoopYield] = SAS_getWorkerBuildEffectiveYield(kPlot, eBestCandidate, eLoopYield);
-		logBBAI("    WORKER_YIELD_BUILD turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) current=%S build=%S result=%S weights=(%d,%d,%d) prospectiveWeights=(%d,%d,%d) valuationWeights=(%d,%d,%d) resultYields=(%d,%d,%d) currentUtility=%d gain=%d replacementMargin=%d buildValue=%d runnerUp=%S runnerUpValue=%d third=%S thirdValue=%d legal=%d marginRejected=%d bestRejected=%S bestRejectedGain=%d bestRejectedMargin=%d",
+		logBBAI("    WORKER_YIELD_BUILD turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) worked=%d current=%S build=%S result=%S weights=(%d,%d,%d) prospectiveWeights=(%d,%d,%d) valuationWeights=(%d,%d,%d) resultYields=(%d,%d,%d) currentUtility=%d gain=%d replacementMargin=%d buildValue=%d runnerUp=%S runnerUpValue=%d third=%S thirdValue=%d legal=%d marginRejected=%d bestRejected=%S bestRejectedGain=%d bestRejectedMargin=%d",
 			GC.getGame().getGameTurn(), kUnit.getOwner(), GET_PLAYER(kUnit.getOwner()).getCivilizationDescription(0), kUnit.getID(),
-			kCity.getName().GetCString(), kPlot.getX(), kPlot.getY(),
+			kCity.getName().GetCString(), kPlot.getX(), kPlot.getY(), kCity.isWorkingPlot(kPlot),
 			(eCurrentImprovement == NO_IMPROVEMENT ? L"-" : GC.getInfo(eCurrentImprovement).getDescription()), GC.getInfo(eBestCandidate).getDescription(),
 			GC.getInfo(eResultImprovement).getDescription(), kContext.kCurrentWeights.iFood, kContext.kCurrentWeights.iProduction, kContext.kCurrentWeights.iCommerce,
 			kBestCandidateProspectiveWeights.iFood, kBestCandidateProspectiveWeights.iProduction, kBestCandidateProspectiveWeights.iCommerce,
@@ -4038,13 +4109,13 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 	// Specialists that actually cost population (and thus 'pull' 2 food each)
 	const int iNonFreeSpecialists = std::max(0, kCity.getSpecialistPopulation() - kCity.totalFreeSpecialists());
 	const int iAngryCitizens = kCity.angryPopulation();
-	const int iFoodConsumedBySpecialistOrAngryCitizens = (iFoodConsumptionPerPop * (iNonFreeSpecialists + iAngryCitizens));
+	const int iFoodConsumedByAngryCitizens = iFoodConsumptionPerPop * iAngryCitizens;
 
 	const int iFoodSurplusCityHas = (kCity.getYieldRate(YIELD_FOOD) - kCity.foodConsumption(/*bFoodProduction=*/false));
-	// That looks solid! You’re doing exactly what we wanted:
-	// take the ordinary surplus food - consumption(false) (which includes angry + specialists),
-	// then “give it back" by adding 2 * (non-free specialists + angry citizens) so the AI doesn’t panic-farm just because people are angry or parked in specialist slots.
-	const int iEstimatedCityFoodDifference = iFoodSurplusCityHas + iFoodConsumedBySpecialistOrAngryCitizens;
+	// <!-- custom: Ignore temporary food consumption by angry citizens for long-lived Worker planning, but retain non-free specialist consumption because supporting productive specialists is a real food use.
+	// The former shared compensation hid 8-10 Food of specialist demand in late Lagos; its Farm then looked expendable while unworked, the replacement Workshop became worked and recreated a severe deficit, and Workers repeatedly reversed the two improvements.
+	// After the expected gameplay divergence at turn 171, the repeat's through-turn-380 totals were directional rather than state-matched: completed direct reversals fell from 54 to 44 and <=5-turn completed reversals from 14 to 12, without another concentrated Lagos-scale loop. See KI#196. (GPT-5.6-Sol) -->
+	const int iEstimatedCityFoodDifference = iFoodSurplusCityHas + iFoodConsumedByAngryCitizens;
 
 	// <!-- custom: Use the shared potential-food score for citizen-workable, non-water, non-home BFC plots.
 	// This keeps worker terrain/resource classification aligned with settling logic while leaving water to sea buildings/work boats; food from bonus-specific improvements offsets poor terrain, and Grass Hills remain neutral environment quality while their food demand is still counted separately as mine-support pressure. (Claude code Opus 4.6 + GPT-5.5) -->
@@ -4115,11 +4186,14 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 	kWorkerYieldContext.iStrongProductionPlotMinYield = iSAS_WORKER_AI_STRONG_PRODUCTION_PLOT_MIN_YIELD;
 	kWorkerYieldContext.kCurrentWeights = SAS_getWorkerYieldWeights(kCity, iAdjustedFoodDifference, iBFCStructuralFoodSupportPressure, iBFCStructuralProductionPressure);
 	SASWorkerYieldWeights const& kWorkerYieldWeights = kWorkerYieldContext.kCurrentWeights;
-	if (gWorkerLogLevel >= 3 && SAS_shouldLogWorkerYieldContext(kCity))
+	if (gWorkerLogLevel >= 3 && SAS_shouldLogWorkerYieldContext(kCity, kWorkerYieldContext))
 	{
-		logBBAI("    WORKER_YIELD_CONTEXT turn=%d player=%d %S city=%S cityId=%d pop=%d developmentLand=%d adjustedFoodDifference=%d lowFoodScore=%d mineFoodPressure=%d structuralFoodPressure=%d strongProductionPlots=%d strongProductionPlotTarget=%d structuralProductionPressure=%d weights=(%d,%d,%d) danger=%d financialTrouble=%d",
+		// <!-- custom: The full Tiny Islands continuation still showed late Lagos Farm/Workshop reversals with gains well above the replacement margin while its Food weight repeatedly moved between roughly 180 and 340.
+		// Record stored Food, raw surplus, angry-citizen compensation, non-free specialists and active-Build projection separately so the cause and cure can be distinguished from transient city assignment or parallel-Worker context. See KI#196. (GPT-5.6-Sol) -->
+		logBBAI("    WORKER_YIELD_CONTEXT turn=%d player=%d %S city=%S cityId=%d pop=%d developmentLand=%d foodStored=%d foodThreshold=%d rawFoodSurplus=%d angryFoodCompensation=%d committedBuildFoodDelta=%d nonFreeSpecialists=%d angryCitizens=%d adjustedFoodDifference=%d lowFoodScore=%d mineFoodPressure=%d structuralFoodPressure=%d strongProductionPlots=%d strongProductionPlotTarget=%d structuralProductionPressure=%d weights=(%d,%d,%d) danger=%d financialTrouble=%d",
 			GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), kCity.getName().GetCString(), kCity.getID(), iCityPopulation,
-			iBFCDevelopmentLandPlots, iAdjustedFoodDifference, iBFCLowFoodScore, iBFCMineFoodSupportPressure, iBFCStructuralFoodSupportPressure,
+			iBFCDevelopmentLandPlots, kCity.getFood(), kCity.growthThreshold(), iFoodSurplusCityHas, iFoodConsumedByAngryCitizens,
+			iFoodFromImprovementsBeingBuiltInBFC, iNonFreeSpecialists, iAngryCitizens, iAdjustedFoodDifference, iBFCLowFoodScore, iBFCMineFoodSupportPressure, iBFCStructuralFoodSupportPressure,
 			iBFCStrongProductionPlots, iBFCStrongProductionPlotTarget, iBFCStructuralProductionPressure, kWorkerYieldWeights.iFood, kWorkerYieldWeights.iProduction,
 			kWorkerYieldWeights.iCommerce, kCity.AI_isDanger(), GET_PLAYER(getOwner()).AI_isFinancialTrouble());
 	}
@@ -4522,7 +4596,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 
 			// <!-- custom: Level 3 exposes bonus-build availability and both the current raw-BonusInfo yield score and the actual improved-plot yield score.
 			// This notably distinguishes a true priority problem from a near-tech scheduling case; e.g. the Cuzco Tiny Islands run mined Gold while Animal Husbandry was still one turn away, then Pastured Pig immediately after it unlocked. (ChatGPT-5.6-Sol) -->
-			if (gWorkerLogLevel >= 3 && SAS_shouldLogWorkerYieldDecision(*this, kPlot))
+			if (gWorkerLogLevel >= 3 && SAS_shouldLogWorkerYieldDecision(*this, kCity, kPlot, SAS_WORKER_YIELD_LOG_BONUS, eBestSupposedBuild, kWorkerYieldWeights, kWorkerYieldWeights))
 			{
 				CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 				CvBonusInfo const& kBonusInfo = GC.getBonusInfo(eBonus);
