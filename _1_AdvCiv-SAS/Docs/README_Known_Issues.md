@@ -2197,7 +2197,29 @@ I have written most details there, so only adding here as less tedious to do so,
 
 These changes hopefully fix this issue (see "Boston" screenshot in this google drive (as of now screenshot 1478)). Although i couldn't reproduce it directly since worker behaviour changed in more ways or it is autoplay variation somehow maybe (less likely but maybe?), starting from same save file 334 (also appended), Washington is quickly improved, firt with bonuses. In some cases, see screenshot 1499, other tiles seem to prevail, most likely due to other code parts, but it corrected soon enough and the silver was improved soon after which was the main purpose/goal of these changes (in base advciv i would have a bonus not improved for a few dozen turns if not more if i remember it correctly, which was very unimmersive), so hopefully AI is more efficient this way.
 
-### Update: AdvCiv-SAS 6565 XML-driven Worker valuation (2026-09-23)
+As part of this change, i tried to increase AI worker efficiency by having them max put one worker to a tile to improve: if a worker is improving it already, skip it and go to another tile instead (there may be some delay until a worker goes there and starts improving it resulting in some ineffiencies of traveling there while a worker is also already travelling there, perhaps closer or not, but it seems to correct better, as soon as the closest worker starts, the other workers bounces back fast to another tile if i may say)
+
+This is not always the best choice, but i believe generally AI would be more efficient this way.
+
+As a side effect, this new code seems slightly faster (see gemini ai link for details).
+
+I would want to do other changes ideally to AI worker and such logic, not sure i would but ideally.
+
+### Update
+
+I have noticed that commenting out the `CvUnitAI::AI_improveBonus` function entirely in the inner body i mean in this caseand returning always and only false, we'd fix farm spices issue, however we'd lose the roading bonuses ability we had; i didn't see an easy way to selectively do this with AIs like chatgpt o3, so kept as is and tolerating occasional suboptimal improvements for the sake of having many nice ones often (we now mostly handle improving bonuses ourselves in `CvUnitAI::AI_bestCityBuild` in a way that should be much more efficient)
+
+### update 2
+
+Also disabled functionally `CvCityAI::AI_getImprovementValue` and `CvUnitAI::AI_irrigateTerritory` which solved the farm on spices plains issue when unwanted (not in our exceptions below) as well as inefficient and needless farms on floodplains or flatland grass or other unwanted interferences, see these functions (or whatever remains of them for details, as well as screenshots 1858 (no farm on spices plains and no farms on flood plains either since we're not starving) and 1863 (still no farm even at turn 150, now building plantation as intended and city looks very nice improved) for comparison.
+
+Also not shown but no farms on flatland grass anymore since we're not starving there as well. We now have greater if not total control over our AI workers or close to it, and this improves ai efficiency further and is thanks to chatgpt and co or such like claude ai and such if i may say too (and thanks to me too)
+
+### update 3
+
+Disabling it entirely throws off workboats that use this too, then they stay parked in city, so updated this to disable it functionally only for land workers as we want them to use our optimized AI worker logic, but as for sea workers, fine if they do as such as long as works-functions
+
+### Update 4: AdvCiv-SAS 6565 XML-driven Worker valuation (2026-09-23)
 
 The earlier AdvCiv-SAS rewrite was much stronger than the inherited logic in its motivating games, but its explicit terrain, feature and improvement branches created a maintenance weakness: XML yield changes, newly useful Watermills/Lumbermills/Forest Preserves, or a mod-added terrain/feature could require several matching C++ edits. It could also miss combinations that had never been anticipated when the table was written.
 
@@ -2217,19 +2239,15 @@ Conversely, when the chosen improvement does remove the feature—or standalone 
 
 While testing this branch, the replay also deterministically rediscovered the inherited `CvCity::kill` use-after-free crashes tracked as KI#895/KI#896. That repair was isolated and committed cleanly to `main`, rather than being hidden inside the Worker rewrite; the fixed replay then continued beyond the former crash path.
 
-As part of this change, i tried to increase AI worker efficiency by having them max put one worker to a tile to improve: if a worker is improving it already, skip it and go to another tile instead (there may be some delay until a worker goes there and starts improving it resulting in some ineffiencies of traveling there while a worker is also already travelling there, perhaps closer or not, but it seems to correct better, as soon as the closest worker starts, the other workers bounces back fast to another tile if i may say)
+### Update 5: shared bonus/build economic valuation (2026-09-25)
 
-This is not always the best choice, but i believe generally AI would be more efficient this way.
+The earlier `AI_improveBonus` notes above record the historical experiments that led here. The current AdvCiv-SAS Worker architecture deliberately keeps `CvUnitAI::AI_improveBonus` as a separate strategic resource-connection path rather than disabling or folding it completely into `AI_bestCityBuild`: it still owns resource value, `AIObjective`, pathing/routing, outside-BFC bonus work and sea-Worker behavior. What is now shared is the economic Build evaluation.
 
-As a side effect, this new code seems slightly faster (see gemini ai link for details).
+For a workable BFC bonus, `AI_improveBonus` uses the same city-aware Food/Production/Commerce transition, current/result yields, scarcity weights, build time and improvement-maturation context as ordinary city development instead of its older food-only economic approximation. Its strategic resource connection remains primary, so the ordinary replacement margin is diagnostic here rather than a veto; outside every BFC the inherited food-oriented fallback remains because there is no city scarcity context to apply honestly.
 
-I would want to do other changes ideally to AI worker and such logic, not sure i would but ideally.
+Level-3 BBAI diagnostics were extended at the caller boundary rather than inside the shared per-Build evaluator, avoiding candidate-log multiplication. `AI_improveBonus` now records each strategically eligible candidate's base bonus value, outside-BFC fallback or shared economic current/result yields and weights, gain, replacement margin, applied economic value, path distance and final score, followed by the selected target.
 
-update note: i have noticed that commenting out the `CvUnitAI::AI_improveBonus` function entirely in the inner body i mean in this caseand returning always and only false, we'd fix farm spices issue, however we'd lose the roading bonuses ability we had; i didn't see an easy way to selectively do this with AIs like chatgpt o3, so kept as is and tolerating occasional suboptimal improvements for the sake of having many nice ones often (we now mostly handle improving bonuses ourselves in `CvUnitAI::AI_bestCityBuild` in a way that should be much more efficient)
-
-update 2: update: also disabled functionally `CvCityAI::AI_getImprovementValue` and `CvUnitAI::AI_irrigateTerritory` which solved the farm on spices plains issue when unwanted (not in our exceptions below) as well as inefficient and needless farms on floodplains or flatland grass or other unwanted interferences, see these functions (or whatever remains of them for details, as well as screenshots 1858 (no farm on spices plains and no farms on flood plains either since we're not starving) and 1863 (still no farm even at turn 150, now building plantation as intended and city looks very nice improved) for comparison; also not shown but no farms on flatland grass anymore since we're not starving there as well. We now have greater if not total control over our AI workers or close to it, and this improves ai efficiency further and is thanks to chatgpt and co or such like claude ai and such if i may say too (and thanks to me too)
-
-update 3: disabling it entirely throws off workboats that use this too, then they stay parked in city, so updated this to disable it functionally only for land workers as we want them to use our optimized AI worker logic, but as for sea workers, fine if they do as such as long as works-functions
+The validating Tiny Islands run completed by Space victory on turn 337 with 977 bonus-candidate rows: 825 used shared city-aware economics and 152 outside-BFC candidates retained the fallback. Cuzco's Gold received `economicYieldValue=18`, while the later Pig Pastures received `35-36`; the first semantic divergence at turn 11 was an actual changed Worker target choice rather than unexplained RNG drift. This supports the shared valuation boundary while keeping the bonus-specific strategic policy separate.
 
 <a id="ki-31"></a>
 
