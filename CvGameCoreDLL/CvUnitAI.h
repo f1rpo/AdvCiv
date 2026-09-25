@@ -63,8 +63,8 @@ public:
 	int AI_attackOdds(const CvPlot* pPlot, bool bPotentialEnemy, bool bUnadjusted = false) const;
 	int AI_opportuneOdds(int iActualOdds, CvUnit const& kDefender) const; // advc
 
-	// <!-- custom: pOnlyPlot/bIgnorePath let maritime Worker transport test the current SAS evaluator for an off-area BFC plot before the Worker can path there. (GPT-5.6-Sol) -->
-	bool AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot = NULL, BuildTypes* peBestBuild = NULL, CvPlot* pIgnorePlot = NULL, CvUnit* pUnit = NULL, int* piBestValue = NULL, BuildTypes* peFollowupBuild = NULL, CvPlot const* pOnlyPlot = NULL, bool bIgnorePath = false) const;
+	// <!-- custom: pOnlyPlot/bIgnorePath let maritime Worker transport test the current SAS evaluator for an off-area BFC plot before the Worker can path there; the optional chain-step output is diagnostic provenance for the eventual Worker assignment. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
+	bool AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot = NULL, BuildTypes* peBestBuild = NULL, CvPlot* pIgnorePlot = NULL, CvUnit* pUnit = NULL, int* piBestValue = NULL, BuildTypes* peFollowupBuild = NULL, CvPlot const* pOnlyPlot = NULL, bool bIgnorePath = false, bool* pbIrrigationChainStep = NULL) const;
 	bool AI_isCityAIType() const;
 	// <advc>
 	bool AI_mayAttack(TeamTypes eTeam, CvPlot const& kPlot) const; // Renamed from AI_potentialEnemy

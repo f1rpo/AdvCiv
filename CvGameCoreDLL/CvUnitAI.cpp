@@ -2999,6 +2999,42 @@ static bool SAS_pickWorkerIrrigationCarrierBuild(CvUnitAI const& kUnit, CvPlot& 
 	return (eBestBuild != NO_BUILD);
 }
 
+
+// <!-- custom: Level-3 irrigation diagnostics need the immediate value of actually receiving irrigation, including for an already-existing dry carrier where no new target Build is legal.
+// Keep this helper out of gameplay decisions: callers invoke it only inside logging gates, so normal Worker evaluation retains the prior cost and behavior. (ChatGPT-5.6-Sol) -->
+static void SAS_getWorkerIrrigationTargetDiagnostic(CvPlot const& kTargetPlot, BuildTypes eTargetCarrierBuild, SASWorkerYieldWeights const& kWeights, ImprovementTypes& eIrrigationImprovement, int& iFoodGain, int& iProductionGain, int& iCommerceGain, int& iUtilityGain)
+{
+	ImprovementTypes const eCurrentImprovement = kTargetPlot.getImprovementType();
+	eIrrigationImprovement = (SAS_isWorkerIrrigationCarrierImprovement(eCurrentImprovement) ?
+		eCurrentImprovement : (eTargetCarrierBuild == NO_BUILD ? NO_IMPROVEMENT : GC.getInfo(eTargetCarrierBuild).getImprovement()));
+	int aiDryYields[NUM_YIELD_TYPES];
+	int aiIrrigatedYields[NUM_YIELD_TYPES];
+	FOR_EACH_ENUM(Yield)
+	{
+		if (SAS_isWorkerIrrigationCarrierImprovement(eCurrentImprovement))
+		{
+			aiDryYields[eLoopYield] = kTargetPlot.getYield(eLoopYield);
+			aiIrrigatedYields[eLoopYield] = aiDryYields[eLoopYield] + GC.getInfo(eCurrentImprovement).getIrrigatedYieldChange(eLoopYield);
+		}
+		else if (eTargetCarrierBuild != NO_BUILD)
+		{
+			aiDryYields[eLoopYield] = SAS_getWorkerBuildResultYield(kTargetPlot, eTargetCarrierBuild, eLoopYield, false, false);
+			aiIrrigatedYields[eLoopYield] = SAS_getWorkerBuildResultYield(kTargetPlot, eTargetCarrierBuild, eLoopYield, false, true);
+		}
+		else
+		{
+			aiDryYields[eLoopYield] = kTargetPlot.getYield(eLoopYield);
+			aiIrrigatedYields[eLoopYield] = aiDryYields[eLoopYield];
+		}
+	}
+	iFoodGain = aiIrrigatedYields[YIELD_FOOD] - aiDryYields[YIELD_FOOD];
+	iProductionGain = aiIrrigatedYields[YIELD_PRODUCTION] - aiDryYields[YIELD_PRODUCTION];
+	iCommerceGain = aiIrrigatedYields[YIELD_COMMERCE] - aiDryYields[YIELD_COMMERCE];
+	iUtilityGain =
+		SAS_getWorkerYieldUtility(aiIrrigatedYields[YIELD_FOOD], aiIrrigatedYields[YIELD_PRODUCTION], aiIrrigatedYields[YIELD_COMMERCE], kWeights) -
+		SAS_getWorkerYieldUtility(aiDryYields[YIELD_FOOD], aiDryYields[YIELD_PRODUCTION], aiDryYields[YIELD_COMMERCE], kWeights);
+}
+
 // <!-- custom: A temporary improvement on a food bonus is justified by food gained before the real bonus Build unlocks, not by the name Farm.
 // Enumerate every legal economic improvement and require it to raise the plot's immediate food; among qualifying Builds choose the highest resulting food, then city-weighted utility and Worker time. (GPT-5.6-Sol) -->
 static bool SAS_pickWorkerTemporaryFoodBuild(CvUnitAI const& kUnit, CvPlot& kPlot, SASWorkerYieldWeights const& kWeights, int iMinResultFood, BuildTypes& eBestBuild, int& iBestResultFood)
@@ -3157,6 +3193,32 @@ static bool SAS_pickWorkerYieldBuild(CvUnitAI const& kUnit, CvCityAI const& kCit
 			(eThirdCandidate == NO_BUILD ? 0 : iThirdCandidateValue), iLegalCandidateCount, iMarginRejectedCount,
 			(eBestMarginRejectedCandidate == NO_BUILD ? L"-" : GC.getInfo(eBestMarginRejectedCandidate).getDescription()),
 			(eBestMarginRejectedCandidate == NO_BUILD ? 0 : iBestMarginRejectedGain));
+		// <!-- custom: A dry XML irrigation carrier can still win the ordinary yield path; this is intentionally separate from the dedicated irrigation-chain planner above.
+		// Log the actual dry state, the hypothetical irrigated state, and the self-support food penalties so cases such as a Workshop->dry-carrier replacement show whether city food pressure truly outweighed lost production instead of being mistaken for chain infrastructure. (ChatGPT-5.6-Sol) -->
+		if (SAS_isWorkerIrrigationCarrierImprovement(eResultImprovement) && !kPlot.isIrrigationAvailable())
+		{
+			int aiIrrigatedResultYields[NUM_YIELD_TYPES];
+			FOR_EACH_ENUM(Yield)
+				aiIrrigatedResultYields[eLoopYield] = SAS_getWorkerBuildEffectiveYield(kPlot, eBestCandidate, eLoopYield, true);
+			int const iResultUtility = SAS_getWorkerYieldUtility(aiResultYields[YIELD_FOOD], aiResultYields[YIELD_PRODUCTION], aiResultYields[YIELD_COMMERCE], kWeights);
+			int const iIrrigatedResultUtility = SAS_getWorkerYieldUtility(aiIrrigatedResultYields[YIELD_FOOD], aiIrrigatedResultYields[YIELD_PRODUCTION], aiIrrigatedResultYields[YIELD_COMMERCE], kWeights);
+			int const iCurrentFoodPenalty = std::max(0, GC.getFOOD_CONSUMPTION_PER_POPULATION() - aiCurrentYields[YIELD_FOOD]) * kWeights.iFood;
+			int const iResultFoodPenalty = std::max(0, GC.getFOOD_CONSUMPTION_PER_POPULATION() - aiResultYields[YIELD_FOOD]) * kWeights.iFood;
+			int const iIrrigatedFoodPenalty = std::max(0, GC.getFOOD_CONSUMPTION_PER_POPULATION() - aiIrrigatedResultYields[YIELD_FOOD]) * kWeights.iFood;
+			int const iReplacementMargin = (eCurrentImprovement == NO_IMPROVEMENT ? 1 : std::max(150 + 100 * iMaturationLevel, std::max(0, iCurrentUtility) / 5));
+			logBBAI("    WORKER_DRY_IRRIGATION_CARRIER_BUILD turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) worked=%d terrain=%s feature=%s current=%S build=%S result=%S ordinaryYieldPath=1 freshWater=%d potentialIrrigation=%d currentYields=(%d,%d,%d) resultYields=(%d,%d,%d) irrigatedResultYields=(%d,%d,%d) weights=(%d,%d,%d) foodPenalty=(%d,%d,%d) currentUtility=%d resultUtility=%d irrigatedUtility=%d gain=%d irrigatedGain=%d replacementMargin=%d gainOverMargin=%d buildValue=%d runnerUp=%S runnerUpValue=%d",
+				GC.getGame().getGameTurn(), kUnit.getOwner(), GET_PLAYER(kUnit.getOwner()).getCivilizationDescription(0), kUnit.getID(),
+				kCity.getName().GetCString(), kPlot.getX(), kPlot.getY(), kCity.isWorkingPlot(kPlot),
+				(kPlot.getTerrainType() == NO_TERRAIN ? "-" : GC.getInfo(kPlot.getTerrainType()).getType()),
+				(kPlot.getFeatureType() == NO_FEATURE ? "-" : GC.getInfo(kPlot.getFeatureType()).getType()),
+				(eCurrentImprovement == NO_IMPROVEMENT ? L"-" : GC.getInfo(eCurrentImprovement).getDescription()), GC.getInfo(eBestCandidate).getDescription(), GC.getInfo(eResultImprovement).getDescription(),
+				kPlot.isFreshWater(), kPlot.canHavePotentialIrrigation(), aiCurrentYields[YIELD_FOOD], aiCurrentYields[YIELD_PRODUCTION], aiCurrentYields[YIELD_COMMERCE],
+				aiResultYields[YIELD_FOOD], aiResultYields[YIELD_PRODUCTION], aiResultYields[YIELD_COMMERCE],
+				aiIrrigatedResultYields[YIELD_FOOD], aiIrrigatedResultYields[YIELD_PRODUCTION], aiIrrigatedResultYields[YIELD_COMMERCE],
+				kWeights.iFood, kWeights.iProduction, kWeights.iCommerce, iCurrentFoodPenalty, iResultFoodPenalty, iIrrigatedFoodPenalty,
+				iCurrentUtility, iResultUtility, iIrrigatedResultUtility, iBestCandidateGain, iIrrigatedResultUtility - iCurrentUtility, iReplacementMargin, iBestCandidateGain - iReplacementMargin, iBestCandidateValue,
+				(eSecondCandidate == NO_BUILD ? L"-" : GC.getInfo(eSecondCandidate).getDescription()), (eSecondCandidate == NO_BUILD ? 0 : iSecondCandidateValue));
+		}
 	}
 	return true;
 }
@@ -3305,7 +3367,16 @@ struct SASWorkerIrrigationSearchDiagnostics
 	int iBonusRejects;
 	int iAutomationSafeRejects;
 	int iCannotBuildCarrierRejects;
-	SASWorkerIrrigationSearchDiagnostics() : iVisitedStates(0), iDeepestRoute(0), iRouteLimitStops(0), iMapEdgeOrIgnoredRejects(0), iUnownedRejects(0), iForeignOwnedRejects(0), iDifferentAreaRejects(0), iWaterRejects(0), iCityCarrierTraversals(0), iNoPotentialIrrigationRejects(0), iBonusRejects(0), iAutomationSafeRejects(0), iCannotBuildCarrierRejects(0) {}
+	int iSourceFreshWater;
+	int iSourceAdjacentIrrigated;
+	int iFirstNoPotentialX;
+	int iFirstNoPotentialY;
+	int iFirstBonusX;
+	int iFirstBonusY;
+	int iFirstCannotBuildX;
+	int iFirstCannotBuildY;
+	CvString szRoute;
+	SASWorkerIrrigationSearchDiagnostics() : iVisitedStates(0), iDeepestRoute(0), iRouteLimitStops(0), iMapEdgeOrIgnoredRejects(0), iUnownedRejects(0), iForeignOwnedRejects(0), iDifferentAreaRejects(0), iWaterRejects(0), iCityCarrierTraversals(0), iNoPotentialIrrigationRejects(0), iBonusRejects(0), iAutomationSafeRejects(0), iCannotBuildCarrierRejects(0), iSourceFreshWater(0), iSourceAdjacentIrrigated(0), iFirstNoPotentialX(-1), iFirstNoPotentialY(-1), iFirstBonusX(-1), iFirstBonusY(-1), iFirstCannotBuildX(-1), iFirstCannotBuildY(-1) {}
 };
 
 // <!-- custom: A no-route result is identical for every Worker evaluating the same city target during a turn. Keep the detailed diagnostic once per target instead of repeating thousands of rows without losing turn-by-turn state changes. (GPT-5.6-Sol) -->
@@ -3320,6 +3391,186 @@ static bool SAS_shouldLogWorkerIrrigationRouteFailure(CvCityAI const& kCity, CvP
 		aeLoggedTargets.clear();
 	}
 	return aeLoggedTargets.insert(std::make_pair(kCity.plot()->plotNum(), kTargetPlot.plotNum())).second;
+}
+
+// <!-- custom: Successful irrigation routes are also rediscovered by many Workers scanning the same city.
+// Log an unchanged full route once per city/target/turn, but emit another row if the selected source-to-target route changes during that turn. (ChatGPT-5.6-Sol) -->
+static bool SAS_shouldLogWorkerIrrigationRouteSuccess(CvCityAI const& kCity, CvPlot const& kTargetPlot, CvString const& szRoute)
+{
+	static int iLoggedTurn = -1;
+	static std::map<std::pair<PlotNumTypes, PlotNumTypes>, CvString> aszLoggedRoutes;
+	int const iCurrentTurn = GC.getGame().getGameTurn();
+	if (iLoggedTurn != iCurrentTurn)
+	{
+		iLoggedTurn = iCurrentTurn;
+		aszLoggedRoutes.clear();
+	}
+	std::pair<PlotNumTypes, PlotNumTypes> const kKey(kCity.plot()->plotNum(), kTargetPlot.plotNum());
+	std::map<std::pair<PlotNumTypes, PlotNumTypes>, CvString>::const_iterator const it = aszLoggedRoutes.find(kKey);
+	if (it != aszLoggedRoutes.end() && it->second == szRoute)
+		return false;
+	aszLoggedRoutes[kKey] = szRoute;
+	return true;
+}
+
+
+// <!-- custom: Carrier-preservation checks are rediscovered by every Worker scanning the same city; log one protection row per city/plot/turn rather than repeating the same dependency thousands of times. (ChatGPT-5.6-Sol) -->
+static bool SAS_shouldLogWorkerIrrigationCarrierProtection(CvCityAI const& kCity, CvPlot const& kPlot)
+{
+	static int iLoggedTurn = -1;
+	static std::set<std::pair<PlotNumTypes, PlotNumTypes> > aeLoggedPlots;
+	int const iCurrentTurn = GC.getGame().getGameTurn();
+	if (iLoggedTurn != iCurrentTurn)
+	{
+		iLoggedTurn = iCurrentTurn;
+		aeLoggedPlots.clear();
+	}
+	return aeLoggedPlots.insert(std::make_pair(kCity.plot()->plotNum(), kPlot.plotNum())).second;
+}
+
+
+// <!-- custom: Global-warming and other terrain/feature changes can invalidate an irrigation carrier after it was sensible when built.
+// At Worker level 3, remember only the last observed BFC irrigation state and log terrain/feature transitions (plus a first-seen carrier that can no longer ever carry irrigation), so broken chains can be distinguished from ordinary dry-but-repairable carriers without adding gameplay work. (ChatGPT-5.6-Sol) -->
+struct SASWorkerIrrigationObservedState
+{
+	int iTurn;
+	TerrainTypes eTerrain;
+	FeatureTypes eFeature;
+	ImprovementTypes eImprovement;
+	bool bPotentialIrrigation;
+	bool bIrrigated;
+	bool bIrrigationAvailable;
+	bool bFreshWater;
+	SASWorkerIrrigationObservedState() : iTurn(-1), eTerrain(NO_TERRAIN), eFeature(NO_FEATURE), eImprovement(NO_IMPROVEMENT), bPotentialIrrigation(false), bIrrigated(false), bIrrigationAvailable(false), bFreshWater(false) {}
+};
+
+static void SAS_logWorkerIrrigationPlotStateChange(CvUnitAI const& kUnit, CvCityAI const& kCity, CvPlot const& kPlot)
+{
+	typedef std::pair<int,int> SASWorkerIrrigationPlotKey;
+	static std::map<SASWorkerIrrigationPlotKey, SASWorkerIrrigationObservedState> akLastState;
+	SASWorkerIrrigationPlotKey const kKey(kUnit.getOwner(), kPlot.plotNum());
+	SASWorkerIrrigationObservedState kCurrent;
+	kCurrent.iTurn = GC.getGame().getGameTurn();
+	kCurrent.eTerrain = kPlot.getTerrainType();
+	kCurrent.eFeature = kPlot.getFeatureType();
+	kCurrent.eImprovement = kPlot.getImprovementType();
+	kCurrent.bPotentialIrrigation = kPlot.canHavePotentialIrrigation();
+	kCurrent.bIrrigated = kPlot.isIrrigated();
+	kCurrent.bIrrigationAvailable = kPlot.isIrrigationAvailable(true);
+	kCurrent.bFreshWater = kPlot.isFreshWater();
+
+	std::map<SASWorkerIrrigationPlotKey, SASWorkerIrrigationObservedState>::iterator it = akLastState.find(kKey);
+	if (it == akLastState.end())
+	{
+		akLastState[kKey] = kCurrent;
+		if (SAS_isWorkerIrrigationCarrierImprovement(kCurrent.eImprovement) && !kCurrent.bPotentialIrrigation)
+		{
+			logBBAI("    WORKER_IRRIGATION_CARRIER_STRANDED turn=%d player=%d %S city=%S plot=(%d,%d) reason=FIRST_OBSERVED_NO_POTENTIAL terrain=%s feature=%s improvement=%s irrigated=%d irrigationAvailable=%d freshWater=%d",
+				kCurrent.iTurn, kUnit.getOwner(), GET_PLAYER(kUnit.getOwner()).getCivilizationDescription(0), kCity.getName().GetCString(),
+				kPlot.getX(), kPlot.getY(), (kCurrent.eTerrain == NO_TERRAIN ? "-" : GC.getInfo(kCurrent.eTerrain).getType()),
+				(kCurrent.eFeature == NO_FEATURE ? "-" : GC.getInfo(kCurrent.eFeature).getType()),
+				(kCurrent.eImprovement == NO_IMPROVEMENT ? "-" : GC.getInfo(kCurrent.eImprovement).getType()),
+				kCurrent.bIrrigated, kCurrent.bIrrigationAvailable, kCurrent.bFreshWater);
+		}
+		return;
+	}
+
+	SASWorkerIrrigationObservedState const kPrevious = it->second;
+	bool const bTerrainChanged = (kPrevious.eTerrain != kCurrent.eTerrain);
+	bool const bFeatureChanged = (kPrevious.eFeature != kCurrent.eFeature);
+	bool const bLostPotential = (kPrevious.bPotentialIrrigation && !kCurrent.bPotentialIrrigation);
+	if (bTerrainChanged || bFeatureChanged)
+	{
+		logBBAI("    WORKER_IRRIGATION_PLOT_STATE_CHANGE turn=%d player=%d %S city=%S plot=(%d,%d) terrainChanged=%d featureChanged=%d lostPotentialIrrigation=%d oldTerrain=%s newTerrain=%s oldFeature=%s newFeature=%s oldImprovement=%s newImprovement=%s oldPotentialIrrigation=%d newPotentialIrrigation=%d oldIrrigated=%d newIrrigated=%d oldIrrigationAvailable=%d newIrrigationAvailable=%d oldFreshWater=%d newFreshWater=%d lastObservedTurn=%d",
+			kCurrent.iTurn, kUnit.getOwner(), GET_PLAYER(kUnit.getOwner()).getCivilizationDescription(0), kCity.getName().GetCString(),
+			kPlot.getX(), kPlot.getY(), bTerrainChanged, bFeatureChanged, bLostPotential,
+			(kPrevious.eTerrain == NO_TERRAIN ? "-" : GC.getInfo(kPrevious.eTerrain).getType()),
+			(kCurrent.eTerrain == NO_TERRAIN ? "-" : GC.getInfo(kCurrent.eTerrain).getType()),
+			(kPrevious.eFeature == NO_FEATURE ? "-" : GC.getInfo(kPrevious.eFeature).getType()),
+			(kCurrent.eFeature == NO_FEATURE ? "-" : GC.getInfo(kCurrent.eFeature).getType()),
+			(kPrevious.eImprovement == NO_IMPROVEMENT ? "-" : GC.getInfo(kPrevious.eImprovement).getType()),
+			(kCurrent.eImprovement == NO_IMPROVEMENT ? "-" : GC.getInfo(kCurrent.eImprovement).getType()),
+			kPrevious.bPotentialIrrigation, kCurrent.bPotentialIrrigation, kPrevious.bIrrigated, kCurrent.bIrrigated,
+			kPrevious.bIrrigationAvailable, kCurrent.bIrrigationAvailable, kPrevious.bFreshWater, kCurrent.bFreshWater, kPrevious.iTurn);
+	}
+	if (bLostPotential && SAS_isWorkerIrrigationCarrierImprovement(kCurrent.eImprovement))
+	{
+		logBBAI("    WORKER_IRRIGATION_CARRIER_STRANDED turn=%d player=%d %S city=%S plot=(%d,%d) reason=LOST_POTENTIAL_IRRIGATION terrain=%s feature=%s improvement=%s irrigated=%d irrigationAvailable=%d freshWater=%d",
+			kCurrent.iTurn, kUnit.getOwner(), GET_PLAYER(kUnit.getOwner()).getCivilizationDescription(0), kCity.getName().GetCString(),
+			kPlot.getX(), kPlot.getY(), (kCurrent.eTerrain == NO_TERRAIN ? "-" : GC.getInfo(kCurrent.eTerrain).getType()),
+			(kCurrent.eFeature == NO_FEATURE ? "-" : GC.getInfo(kCurrent.eFeature).getType()),
+			(kCurrent.eImprovement == NO_IMPROVEMENT ? "-" : GC.getInfo(kCurrent.eImprovement).getType()),
+			kCurrent.bIrrigated, kCurrent.bIrrigationAvailable, kCurrent.bFreshWater);
+	}
+	it->second = kCurrent;
+}
+
+// <!-- custom: Replacement hysteresis reduces churn, but broad autoplay can still hide A->B->A reversals among millions of candidate rows.
+// Record only actual city-job replacement assignments, suppress repeated attempts at the same transition, and flag direct reversals.
+// Preserve whether each transition came from the dedicated irrigation-chain planner or another city-build path, plus per-plot transition/reversal counts, so cross-subsystem churn can be distinguished from ordinary yield oscillation.
+// This is diagnostic-only and intentionally independent of improvement names. (ChatGPT-5.6-Sol) -->
+struct SASWorkerReplacementAssignmentState
+{
+	int iTurn;
+	int iWorkerId;
+	ImprovementTypes eFrom;
+	ImprovementTypes eTo;
+	bool bIrrigationChainStep;
+	int iTransitionCount;
+	int iReverseCount;
+	SASWorkerReplacementAssignmentState() : iTurn(-1), iWorkerId(-1), eFrom(NO_IMPROVEMENT), eTo(NO_IMPROVEMENT), bIrrigationChainStep(false), iTransitionCount(0), iReverseCount(0) {}
+};
+
+static void SAS_logWorkerReplacementAssignment(CvUnitAI const& kUnit, CvPlot const& kPlot, BuildTypes eBuild, BuildTypes eFollowupBuild, bool bIrrigationChainStep)
+{
+	BuildTypes eResultBuild = eBuild;
+	if (eFollowupBuild != NO_BUILD && GC.getInfo(eFollowupBuild).getImprovement() != NO_IMPROVEMENT)
+		eResultBuild = eFollowupBuild;
+	if (eResultBuild == NO_BUILD)
+		return;
+	ImprovementTypes const eFrom = kPlot.getImprovementType();
+	ImprovementTypes const eTo = GC.getInfo(eResultBuild).getImprovement();
+	if (eFrom == NO_IMPROVEMENT || eTo == NO_IMPROVEMENT || eFrom == eTo)
+		return;
+
+	typedef std::pair<int,int> SASWorkerReplacementPlotKey;
+	static std::map<SASWorkerReplacementPlotKey, SASWorkerReplacementAssignmentState> akLastReplacement;
+	SASWorkerReplacementPlotKey const kKey(kUnit.getOwner(), kPlot.plotNum());
+	std::map<SASWorkerReplacementPlotKey, SASWorkerReplacementAssignmentState>::iterator it = akLastReplacement.find(kKey);
+	if (it != akLastReplacement.end() && it->second.eFrom == eFrom && it->second.eTo == eTo)
+		return;
+
+	SASWorkerReplacementAssignmentState const* pPrevious = (it == akLastReplacement.end() ? NULL : &it->second);
+	bool const bReverseOfPrevious = (pPrevious != NULL && pPrevious->eFrom == eTo && pPrevious->eTo == eFrom);
+	bool const bCrossPathReverse = (bReverseOfPrevious && pPrevious->bIrrigationChainStep != bIrrigationChainStep);
+	int const iTransitionCount = (pPrevious == NULL ? 1 : pPrevious->iTransitionCount + 1);
+	int const iReverseCount = (pPrevious == NULL ? 0 : pPrevious->iReverseCount + (bReverseOfPrevious ? 1 : 0));
+	CvCity const* pWorkingCity = kPlot.getWorkingCity();
+	logBBAI("    WORKER_IMPROVEMENT_REPLACEMENT_ASSIGNMENT turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) worked=%d terrain=%s feature=%s decisionPath=%s from=%s to=%s build=%s followup=%s reverseOfPrevious=%d crossPathReverse=%d previousDecisionPath=%s previousFrom=%s previousTo=%s previousTurn=%d turnsSincePrevious=%d previousWorkerId=%d plotTransitions=%d plotReversals=%d",
+		GC.getGame().getGameTurn(), kUnit.getOwner(), GET_PLAYER(kUnit.getOwner()).getCivilizationDescription(0), kUnit.getID(),
+		(pWorkingCity == NULL ? L"-" : pWorkingCity->getName().GetCString()), kPlot.getX(), kPlot.getY(),
+		(pWorkingCity == NULL ? 0 : pWorkingCity->isWorkingPlot(kPlot)),
+		(kPlot.getTerrainType() == NO_TERRAIN ? "-" : GC.getInfo(kPlot.getTerrainType()).getType()),
+		(kPlot.getFeatureType() == NO_FEATURE ? "-" : GC.getInfo(kPlot.getFeatureType()).getType()),
+		(bIrrigationChainStep ? "IRRIGATION_CHAIN" : "CITY_BUILD"),
+		GC.getInfo(eFrom).getType(), GC.getInfo(eTo).getType(), GC.getInfo(eBuild).getType(),
+		(eFollowupBuild == NO_BUILD ? "-" : GC.getInfo(eFollowupBuild).getType()), bReverseOfPrevious, bCrossPathReverse,
+		(pPrevious == NULL ? "-" : (pPrevious->bIrrigationChainStep ? "IRRIGATION_CHAIN" : "CITY_BUILD")),
+		(pPrevious == NULL || pPrevious->eFrom == NO_IMPROVEMENT ? "-" : GC.getInfo(pPrevious->eFrom).getType()),
+		(pPrevious == NULL || pPrevious->eTo == NO_IMPROVEMENT ? "-" : GC.getInfo(pPrevious->eTo).getType()),
+		(pPrevious == NULL ? -1 : pPrevious->iTurn),
+		(pPrevious == NULL ? -1 : GC.getGame().getGameTurn() - pPrevious->iTurn),
+		(pPrevious == NULL ? -1 : pPrevious->iWorkerId), iTransitionCount, iReverseCount);
+
+	SASWorkerReplacementAssignmentState kState;
+	kState.iTurn = GC.getGame().getGameTurn();
+	kState.iWorkerId = kUnit.getID();
+	kState.eFrom = eFrom;
+	kState.eTo = eTo;
+	kState.bIrrigationChainStep = bIrrigationChainStep;
+	kState.iTransitionCount = iTransitionCount;
+	kState.iReverseCount = iReverseCount;
+	akLastReplacement[kKey] = kState;
 }
 
 // <!-- custom: Positive build progress can remain after a Worker is interrupted and then persist before decaying.
@@ -3362,7 +3613,9 @@ static int SAS_getWorkerIrrigationOverwritePenalty(CvPlot const& kPlot, BuildTyp
 }
 
 // <!-- custom: Search an actual owned irrigation-capable route from a dry BFC carrier or low-food target to currently available water and return the least-cost source-side carrier Build that can be made now.
-// Repeating after each completed step advances the same connection; XML carrier flags and per-plot legality support multiple or mod-added irrigation improvements without a Farm name. (GPT-5.6-Sol) -->
+// This is a conservative persistent-route search rather than a greedy next-step guess: water, hills/other plots that cannot carry irrigation, foreign/unowned plots, protected automation-safe plots and non-carrier bonus improvements are barriers; a Horse Pasture, for example, is never temporarily replaced just to pass irrigation through.
+// The search traverses existing carriers and carrier Builds legal now, so it can reject some longer chains that would become buildable only after several future source-side steps, but any accepted route does not depend on a temporary carrier that would later be removed.
+// Repeating after each completed source-side step advances the same persistent carrier connection; XML carrier flags and per-plot legality support multiple or mod-added irrigation improvements without a Farm name. Level-3 diagnostics reconstruct the accepted source-to-target route so surprising choices can be audited against the exact path the search considered. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
 static bool SAS_findWorkerIrrigationChainStep(CvUnitAI const& kUnit, CvPlot& kTargetPlot, CvPlot const* pIgnorePlot, SASWorkerYieldWeights const& kWeights, int iMaxPlots, int iMaturationOverwritePenalty, int iOtherOverwritePenalty, CvPlot*& pStepPlot, BuildTypes& eStepBuild, int& iRoutePlots, int& iRouteOverwritePenalty, SASWorkerIrrigationSearchDiagnostics* pDiagnostics)
 {
 	pStepPlot = NULL;
@@ -3377,11 +3630,14 @@ static bool SAS_findWorkerIrrigationChainStep(CvUnitAI const& kUnit, CvPlot& kTa
 	// <!-- custom: Cost and route length are independent constraints. A cheaper long route to one plot previously discarded a costlier short route that could be the only one able to reach irrigation within SAS_WORKER_AI_IRRIGATION_CHAIN_MAX_PLOTS. Keep one best cost per (plot, steps) state; the small route limit bounds memory, and generation stamps still initialize only reached states during repeated Worker-city evaluation. See KI#214. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	static std::vector<int> aiBestCost;
 	static std::vector<unsigned int> aiCostGeneration;
+	// <!-- custom: Parent state is needed only to reconstruct a successful level-3 diagnostic route; states on that route are always written in the current search generation, so no full-vector clearing is needed. (ChatGPT-5.6-Sol) -->
+	static std::vector<int> aiParentState;
 	static unsigned int iSearchGeneration = 0;
 	if ((int)aiBestCost.size() != iSearchStateCount)
 	{
 		aiBestCost.assign(iSearchStateCount, MAX_INT);
 		aiCostGeneration.assign(iSearchStateCount, 0);
+		aiParentState.assign(iSearchStateCount, -1);
 		iSearchGeneration = 0;
 	}
 	iSearchGeneration++;
@@ -3394,6 +3650,8 @@ static bool SAS_findWorkerIrrigationChainStep(CvUnitAI const& kUnit, CvPlot& kTa
 	int const iTargetState = kTargetPlot.plotNum() * iStatesPerPlot;
 	aiBestCost[iTargetState] = 0;
 	aiCostGeneration[iTargetState] = iSearchGeneration;
+	if (pDiagnostics != NULL)
+		aiParentState[iTargetState] = -1;
 	kOpen.push(SASWorkerIrrigationSearchNode(0, 0, 0, kTargetPlot.plotNum()));
 	while (!kOpen.empty())
 	{
@@ -3417,6 +3675,48 @@ static bool SAS_findWorkerIrrigationChainStep(CvUnitAI const& kUnit, CvPlot& kTa
 			eStepBuild = eNodeCarrierBuild;
 			iRoutePlots = kNode.iSteps;
 			iRouteOverwritePenalty = kNode.iOverwritePenalty;
+			if (pDiagnostics != NULL)
+			{
+				pDiagnostics->iSourceFreshWater = pNodePlot->isFreshWater();
+				FOR_EACH_ADJ_PLOT(*pNodePlot)
+				{
+					if (pAdj->isIrrigated())
+						pDiagnostics->iSourceAdjacentIrrigated++;
+				}
+				int iRouteState = iNodeState;
+				int iRouteGuard = 0;
+				while (iRouteState >= 0 && iRouteGuard <= iMaxPlots)
+				{
+					CvPlot* pRoutePlot = kMap.plotByIndex(iRouteState / iStatesPerPlot);
+					if (pRoutePlot == NULL)
+						break;
+					bool const bTarget = (pRoutePlot == &kTargetPlot);
+					bool const bExistingCarrier = pRoutePlot->isPotentialIrrigation(true);
+					BuildTypes eRouteBuild = NO_BUILD;
+					if (!bExistingCarrier)
+					{
+						if (pRoutePlot == pNodePlot)
+							eRouteBuild = eNodeCarrierBuild;
+						else SAS_pickWorkerIrrigationCarrierBuild(kUnit, *pRoutePlot, kWeights, eRouteBuild, bTarget);
+					}
+					ImprovementTypes const eCurrentImprovement = pRoutePlot->getImprovementType();
+					BonusTypes const eBonus = pRoutePlot->getNonObsoleteBonusType(kUnit.getTeam());
+					CvString szRoutePlot;
+					szRoutePlot.Format("(%d,%d):%s:current=%s:build=%s:bonus=%s:irr=%d:avail=%d:fresh=%d",
+						pRoutePlot->getX(), pRoutePlot->getY(), bTarget ? "target" : (pRoutePlot == pNodePlot ? "source" : "link"),
+						(eCurrentImprovement == NO_IMPROVEMENT ? "-" : GC.getInfo(eCurrentImprovement).getType()),
+						(eRouteBuild == NO_BUILD ? (bExistingCarrier ? "EXISTING_CARRIER" : "-") : GC.getInfo(eRouteBuild).getType()),
+						(eBonus == NO_BONUS ? "-" : GC.getInfo(eBonus).getType()), pRoutePlot->isIrrigated(),
+						pRoutePlot->isIrrigationAvailable(true), pRoutePlot->isFreshWater());
+					if (!pDiagnostics->szRoute.empty())
+						pDiagnostics->szRoute += ">";
+					pDiagnostics->szRoute += szRoutePlot;
+					if (iRouteState == iTargetState)
+						break;
+					iRouteState = aiParentState[iRouteState];
+					iRouteGuard++;
+				}
+			}
 			return true;
 		}
 		if (kNode.iSteps >= iMaxPlots)
@@ -3459,7 +3759,14 @@ static bool SAS_findWorkerIrrigationChainStep(CvUnitAI const& kUnit, CvPlot& kTa
 			if (!pAdjacentPlot->canHavePotentialIrrigation())
 			{
 				if (pDiagnostics != NULL)
+				{
 					pDiagnostics->iNoPotentialIrrigationRejects++;
+					if (pDiagnostics->iFirstNoPotentialX < 0)
+					{
+						pDiagnostics->iFirstNoPotentialX = pAdjacentPlot->getX();
+						pDiagnostics->iFirstNoPotentialY = pAdjacentPlot->getY();
+					}
+				}
 				continue;
 			}
 			// <!-- custom: isPotentialIrrigation covers every existing XML carrier and the engine's flat-city carrier rule; traverse these without requiring an impossible Build on a city plot. (GPT-5.6-Sol) -->
@@ -3472,7 +3779,14 @@ static bool SAS_findWorkerIrrigationChainStep(CvUnitAI const& kUnit, CvPlot& kTa
 				if (pAdjacentPlot->getNonObsoleteBonusType(kUnit.getTeam()) != NO_BONUS)
 				{
 					if (pDiagnostics != NULL)
+					{
 						pDiagnostics->iBonusRejects++;
+						if (pDiagnostics->iFirstBonusX < 0)
+						{
+							pDiagnostics->iFirstBonusX = pAdjacentPlot->getX();
+							pDiagnostics->iFirstBonusY = pAdjacentPlot->getY();
+						}
+					}
 					continue;
 				}
 				if (GET_PLAYER(kUnit.getOwner()).isAutomationSafe(*pAdjacentPlot))
@@ -3484,7 +3798,14 @@ static bool SAS_findWorkerIrrigationChainStep(CvUnitAI const& kUnit, CvPlot& kTa
 				if (!SAS_pickWorkerIrrigationCarrierBuild(kUnit, *pAdjacentPlot, kWeights, eAdjacentCarrierBuild))
 				{
 					if (pDiagnostics != NULL)
+					{
 						pDiagnostics->iCannotBuildCarrierRejects++;
+						if (pDiagnostics->iFirstCannotBuildX < 0)
+						{
+							pDiagnostics->iFirstCannotBuildX = pAdjacentPlot->getX();
+							pDiagnostics->iFirstCannotBuildY = pAdjacentPlot->getY();
+						}
+					}
 					continue;
 				}
 			}
@@ -3497,6 +3818,8 @@ static bool SAS_findWorkerIrrigationChainStep(CvUnitAI const& kUnit, CvPlot& kTa
 				continue;
 			aiBestCost[iAdjacentState] = iNewCost;
 			aiCostGeneration[iAdjacentState] = iSearchGeneration;
+			if (pDiagnostics != NULL)
+				aiParentState[iAdjacentState] = iNodeState;
 			kOpen.push(SASWorkerIrrigationSearchNode(iNewCost, iNewSteps, kNode.iOverwritePenalty + iPlotOverwritePenalty, eAdjacentPlot));
 		}
 	}
@@ -3510,7 +3833,8 @@ static bool SAS_findWorkerIrrigationChainStep(CvUnitAI const& kUnit, CvPlot& kTa
 // Original SAS Worker rewrite developed with Gemini AI, ChatGPT 5 and Claude code Sonnet 4.5. See KI#30. (GPT-5.6-Sol) -->
 // <!-- custom: pOnlyPlot restricts evaluation to one BFC destination, and bIgnorePath lets an embarked Worker value that destination before it has a land path; bIgnorePath is valid only with pOnlyPlot.
 // The Settler transport separately checks its sea path before ferrying the Worker. (GPT-5.6-Sol) -->
-bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, BuildTypes* peBestBuild, CvPlot* pIgnorePlot, CvUnit* pUnit, int* piBestValue, BuildTypes* peFollowupBuild, CvPlot const* pOnlyPlot, bool bIgnorePath) const
+// <!-- custom: pbIrrigationChainStep optionally reports whether the selected candidate came from the irrigation-chain planner; the caller uses this diagnostic provenance to distinguish chain-driven improvement replacements and reversals from ordinary city-build decisions; it does not affect selection. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, BuildTypes* peBestBuild, CvPlot* pIgnorePlot, CvUnit* pUnit, int* piBestValue, BuildTypes* peFollowupBuild, CvPlot const* pOnlyPlot, bool bIgnorePath, bool* pbIrrigationChainStep) const
 {
 	PROFILE_FUNC();
 	FAssert(!bIgnorePath || pOnlyPlot != NULL);
@@ -3522,6 +3846,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 	if (peBestBuild) *peBestBuild = NO_BUILD;
 	if (piBestValue) *piBestValue = 0;
 	if (peFollowupBuild) *peFollowupBuild = NO_BUILD;
+	if (pbIrrigationChainStep) *pbIrrigationChainStep = false;
 	// ... PHASE 1 builds candidates ...
 
 	static const bool bSAS_WORKER_AI_PHASE0_PRODUCTIVE_FEATURE_CHOP_ENABLE = GC.getDefineBOOL("SAS_WORKER_AI_PHASE0_PRODUCTIVE_FEATURE_CHOP_ENABLE");
@@ -3783,14 +4108,18 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 		for (WorkablePlotIter itBFC(kCity, false); itBFC.hasNext(); ++itBFC)
 		{
 			CvPlot& kTargetPlot = *itBFC;
+			if (gWorkerLogLevel >= 3 && kTargetPlot.getOwner() == getOwner() && !kTargetPlot.isWater())
+				SAS_logWorkerIrrigationPlotStateChange(*this, kCity, kTargetPlot);
 			if (kTargetPlot.getOwner() != getOwner() || kTargetPlot.isWater() || !kTargetPlot.canHavePotentialIrrigation())
 				continue;
 			BonusTypes const eTargetBonus = kTargetPlot.getNonObsoleteBonusType(getTeam());
-			bool const bTargetDryCarrier = (SAS_isWorkerIrrigationCarrierImprovement(kTargetPlot.getImprovementType()) && !kTargetPlot.isIrrigated() && !kTargetPlot.isIrrigationAvailable(true));
+			ImprovementTypes const eTargetCurrentImprovement = kTargetPlot.getImprovementType();
+			bool const bTargetDryCarrier = (SAS_isWorkerIrrigationCarrierImprovement(eTargetCurrentImprovement) && !kTargetPlot.isIrrigated() && !kTargetPlot.isIrrigationAvailable(true));
 			BuildTypes eTargetCarrierBuild = NO_BUILD;
 			bool const bTargetCarrierBuildAvailable = SAS_pickWorkerIrrigationCarrierBuild(*this, kTargetPlot, kWorkerYieldWeights, eTargetCarrierBuild, true);
+			// <!-- custom: Keep the original gameplay condition unchanged; the separate diagnostic helper below measures irrigation-only gain without feeding it back into target selection. (ChatGPT-5.6-Sol) -->
 			bool const bTargetCarrierAddsFood = (bTargetCarrierBuildAvailable && SAS_getWorkerBuildResultYield(kTargetPlot, eTargetCarrierBuild, YIELD_FOOD, false, true) > kTargetPlot.getYield(YIELD_FOOD));
-			bool const bTargetLowFoodUnimproved = (eTargetBonus == NO_BONUS && bCityHighFoodSupportNeed && kTargetPlot.getImprovementType() == NO_IMPROVEMENT && !kTargetPlot.isIrrigationAvailable(true) && kTargetPlot.calculateNatureYield(YIELD_FOOD, getTeam()) < iFoodConsumptionPerPop && bTargetCarrierAddsFood);
+			bool const bTargetLowFoodUnimproved = (eTargetBonus == NO_BONUS && bCityHighFoodSupportNeed && eTargetCurrentImprovement == NO_IMPROVEMENT && !kTargetPlot.isIrrigationAvailable(true) && kTargetPlot.calculateNatureYield(YIELD_FOOD, getTeam()) < iFoodConsumptionPerPop && bTargetCarrierAddsFood);
 			if (!bTargetDryCarrier && !bTargetLowFoodUnimproved)
 				continue;
 			CvPlot* pChainStepPlot = NULL;
@@ -3810,26 +4139,63 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 				kChainStep.eBuild = eChainStepBuild;
 				kChainStep.eFollowupBuild = NO_BUILD;
 				kChainStep.bIrrigationChainStep = true;
-				if (gWorkerLogLevel >= 3)
-					logBBAI("    IRRIGATION_CHAIN_STEP_SELECTED turn=%d player=%d %S workerId=%d city=%S step=(%d,%d) build=%S carrier=%S target=(%d,%d) targetBonus=%S dryCarrier=%d routePlots=%d maxRoutePlots=%d overwritePenalty=%d value=%d foodPressure=%d",
+				// <!-- custom: Keep the selected-step row compact enough for broad Worker logging but include the exact source-to-target route once per changed city/target/turn.
+				// `targetDryCarrier` refers to the target that would benefit from irrigation, not the source-side step being built; naming both current improvements avoids the ambiguity exposed by the Tiwanaku Workshop case. (ChatGPT-5.6-Sol) -->
+				if (gWorkerLogLevel >= 3 && SAS_shouldLogWorkerIrrigationRouteSuccess(kCity, kTargetPlot, kRouteDiagnostics.szRoute))
+				{
+					ImprovementTypes const eStepCurrentImprovement = pChainStepPlot->getImprovementType();
+					ImprovementTypes eTargetIrrigationImprovement = NO_IMPROVEMENT;
+					int iTargetIrrigationFoodGain = 0;
+					int iTargetIrrigationProductionGain = 0;
+					int iTargetIrrigationCommerceGain = 0;
+					int iTargetIrrigationUtilityGain = 0;
+					SAS_getWorkerIrrigationTargetDiagnostic(kTargetPlot, eTargetCarrierBuild, kWorkerYieldWeights, eTargetIrrigationImprovement, iTargetIrrigationFoodGain, iTargetIrrigationProductionGain, iTargetIrrigationCommerceGain, iTargetIrrigationUtilityGain);
+					logBBAI("    IRRIGATION_CHAIN_STEP_SELECTED turn=%d player=%d %S workerId=%d city=%S step=(%d,%d) stepCurrent=%S build=%S carrier=%S stepFreshWater=%d stepIrrigated=%d stepIrrigationAvailable=%d sourceAdjacentIrrigated=%d target=(%d,%d) targetTerrain=%s targetFeature=%s targetCurrent=%S targetCarrier=%S targetBonus=%S targetDryCarrier=%d targetIrrigationGain=(%d,%d,%d) targetIrrigationUtilityGain=%d targetIrrigated=%d targetIrrigationAvailable=%d routePlots=%d maxRoutePlots=%d overwritePenalty=%d value=%d foodPressure=%d route=%s",
 						GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(),
-						kCity.getName().GetCString(), pChainStepPlot->getX(), pChainStepPlot->getY(), GC.getInfo(eChainStepBuild).getDescription(), GC.getInfo(GC.getInfo(eChainStepBuild).getImprovement()).getDescription(), kTargetPlot.getX(), kTargetPlot.getY(),
-						eTargetBonus == NO_BONUS ? L"-" : GC.getInfo(eTargetBonus).getDescription(), bTargetDryCarrier, iRoutePlots,
-						iSAS_WORKER_AI_IRRIGATION_CHAIN_MAX_PLOTS, iRouteOverwritePenalty, iChainStepValue, iCityFoodSupportPressure);
+						kCity.getName().GetCString(), pChainStepPlot->getX(), pChainStepPlot->getY(),
+						(eStepCurrentImprovement == NO_IMPROVEMENT ? L"-" : GC.getInfo(eStepCurrentImprovement).getDescription()),
+						GC.getInfo(eChainStepBuild).getDescription(), GC.getInfo(GC.getInfo(eChainStepBuild).getImprovement()).getDescription(),
+						kRouteDiagnostics.iSourceFreshWater, pChainStepPlot->isIrrigated(), pChainStepPlot->isIrrigationAvailable(true), kRouteDiagnostics.iSourceAdjacentIrrigated,
+						kTargetPlot.getX(), kTargetPlot.getY(),
+						(kTargetPlot.getTerrainType() == NO_TERRAIN ? "-" : GC.getInfo(kTargetPlot.getTerrainType()).getType()),
+						(kTargetPlot.getFeatureType() == NO_FEATURE ? "-" : GC.getInfo(kTargetPlot.getFeatureType()).getType()),
+						(eTargetCurrentImprovement == NO_IMPROVEMENT ? L"-" : GC.getInfo(eTargetCurrentImprovement).getDescription()),
+						(eTargetIrrigationImprovement == NO_IMPROVEMENT ? L"-" : GC.getInfo(eTargetIrrigationImprovement).getDescription()),
+						(eTargetBonus == NO_BONUS ? L"-" : GC.getInfo(eTargetBonus).getDescription()), bTargetDryCarrier,
+						iTargetIrrigationFoodGain, iTargetIrrigationProductionGain, iTargetIrrigationCommerceGain, iTargetIrrigationUtilityGain,
+						kTargetPlot.isIrrigated(), kTargetPlot.isIrrigationAvailable(true), iRoutePlots,
+						iSAS_WORKER_AI_IRRIGATION_CHAIN_MAX_PLOTS, iRouteOverwritePenalty, iChainStepValue, iCityFoodSupportPressure,
+						kRouteDiagnostics.szRoute.empty() ? "-" : kRouteDiagnostics.szRoute.c_str());
+				}
 				candidatePlots.push_back(kChainStep);
 			}
 			else if (gWorkerLogLevel >= 3 && SAS_shouldLogWorkerIrrigationRouteFailure(kCity, kTargetPlot))
 			{
-				logBBAI("    IRRIGATION_CHAIN_NO_USABLE_STEP turn=%d player=%d %S workerId=%d city=%S target=(%d,%d) targetBonus=%S dryCarrier=%d routeFound=%d routePlots=%d overwritePenalty=%d value=%d foodPressure=%d maxRoutePlots=%d visitedStates=%d deepestRoute=%d routeLimitStops=%d rejects(edgeOrIgnored=%d unowned=%d foreign=%d area=%d water=%d noPotential=%d bonuses=%d automationSafe=%d cannotBuildCarrier=%d) cityCarrierTraversals=%d",
+				ImprovementTypes eTargetIrrigationImprovement = NO_IMPROVEMENT;
+				int iTargetIrrigationFoodGain = 0;
+				int iTargetIrrigationProductionGain = 0;
+				int iTargetIrrigationCommerceGain = 0;
+				int iTargetIrrigationUtilityGain = 0;
+				SAS_getWorkerIrrigationTargetDiagnostic(kTargetPlot, eTargetCarrierBuild, kWorkerYieldWeights, eTargetIrrigationImprovement, iTargetIrrigationFoodGain, iTargetIrrigationProductionGain, iTargetIrrigationCommerceGain, iTargetIrrigationUtilityGain);
+				logBBAI("    IRRIGATION_CHAIN_NO_USABLE_STEP turn=%d player=%d %S workerId=%d city=%S target=(%d,%d) targetTerrain=%s targetFeature=%s targetCurrent=%S targetCarrier=%S targetBonus=%S targetDryCarrier=%d targetIrrigationGain=(%d,%d,%d) targetIrrigationUtilityGain=%d targetIrrigated=%d targetIrrigationAvailable=%d routeFound=%d routePlots=%d overwritePenalty=%d value=%d foodPressure=%d maxRoutePlots=%d visitedStates=%d deepestRoute=%d routeLimitStops=%d rejects(edgeOrIgnored=%d unowned=%d foreign=%d area=%d water=%d noPotential=%d bonuses=%d automationSafe=%d cannotBuildCarrier=%d) blockerSamples(noPotential=(%d,%d) bonus=(%d,%d) cannotBuildCarrier=(%d,%d)) cityCarrierTraversals=%d",
 					GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(),
 					kCity.getName().GetCString(), kTargetPlot.getX(), kTargetPlot.getY(),
-					eTargetBonus == NO_BONUS ? L"-" : GC.getInfo(eTargetBonus).getDescription(), bTargetDryCarrier, bFoundChainStep,
+					(kTargetPlot.getTerrainType() == NO_TERRAIN ? "-" : GC.getInfo(kTargetPlot.getTerrainType()).getType()),
+					(kTargetPlot.getFeatureType() == NO_FEATURE ? "-" : GC.getInfo(kTargetPlot.getFeatureType()).getType()),
+					(eTargetCurrentImprovement == NO_IMPROVEMENT ? L"-" : GC.getInfo(eTargetCurrentImprovement).getDescription()),
+					(eTargetIrrigationImprovement == NO_IMPROVEMENT ? L"-" : GC.getInfo(eTargetIrrigationImprovement).getDescription()),
+					(eTargetBonus == NO_BONUS ? L"-" : GC.getInfo(eTargetBonus).getDescription()), bTargetDryCarrier,
+					iTargetIrrigationFoodGain, iTargetIrrigationProductionGain, iTargetIrrigationCommerceGain, iTargetIrrigationUtilityGain,
+					kTargetPlot.isIrrigated(), kTargetPlot.isIrrigationAvailable(true), bFoundChainStep,
 					iRoutePlots, iRouteOverwritePenalty, iChainStepValue, iCityFoodSupportPressure,
 					iSAS_WORKER_AI_IRRIGATION_CHAIN_MAX_PLOTS, kRouteDiagnostics.iVisitedStates, kRouteDiagnostics.iDeepestRoute,
 					kRouteDiagnostics.iRouteLimitStops, kRouteDiagnostics.iMapEdgeOrIgnoredRejects, kRouteDiagnostics.iUnownedRejects,
 					kRouteDiagnostics.iForeignOwnedRejects, kRouteDiagnostics.iDifferentAreaRejects, kRouteDiagnostics.iWaterRejects,
 					kRouteDiagnostics.iNoPotentialIrrigationRejects, kRouteDiagnostics.iBonusRejects,
 					kRouteDiagnostics.iAutomationSafeRejects, kRouteDiagnostics.iCannotBuildCarrierRejects,
+					kRouteDiagnostics.iFirstNoPotentialX, kRouteDiagnostics.iFirstNoPotentialY,
+					kRouteDiagnostics.iFirstBonusX, kRouteDiagnostics.iFirstBonusY,
+					kRouteDiagnostics.iFirstCannotBuildX, kRouteDiagnostics.iFirstCannotBuildY,
 					kRouteDiagnostics.iCityCarrierTraversals);
 			}
 		}
@@ -4096,13 +4462,12 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 			}
 			if (bReserveIrrigationCarrier)
 			{
-				// <!-- custom: this fires 20k+ times so log level 3 -->
-				if (gWorkerLogLevel >= 3)
+				if (gWorkerLogLevel >= 3 && SAS_shouldLogWorkerIrrigationCarrierProtection(kCity, kPlot))
 				{
 					wchar const* szCurrentImprovement = (ePlotCurrentImprovement == NO_IMPROVEMENT ? L"-" : GC.getInfo(ePlotCurrentImprovement).getDescription());
-					logBBAI("    %S worker skips non-carrier build on irrigation-dependent plot for city %S: plot=(%d,%d) build=%S improvement=%S currentImprovement=%S",
-						GET_PLAYER(getOwner()).getCivilizationDescription(0), kCity.getName().GetCString(), kPlot.getX(), kPlot.getY(),
-						GC.getInfo(eBestSupposedBuild).getDescription(), GC.getInfo(eSupposedImprovement).getDescription(),
+					logBBAI("    WORKER_IRRIGATION_CARRIER_PROTECTED turn=%d player=%d %S city=%S plot=(%d,%d) reason=ESTABLISHED_DEPENDENCY build=%S improvement=%S currentImprovement=%S",
+						GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), kCity.getName().GetCString(),
+						kPlot.getX(), kPlot.getY(), GC.getInfo(eBestSupposedBuild).getDescription(), GC.getInfo(eSupposedImprovement).getDescription(),
 						szCurrentImprovement);
 				}
 				continue;
@@ -4232,6 +4597,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 	BuildTypes eBestBuild = NO_BUILD;
 	BuildTypes eBestFollowupBuild = NO_BUILD;
 	int iBestValue = 0;
+	bool bBestIrrigationChainStep = false;
 	bool bFound = false;
 	int const iRange = 0;
 	// <!-- custom: pathable/reservable blank-BFC work should be tried before ordinary replacement churn, but raw blank candidates alone are not enough.
@@ -4371,6 +4737,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 				eBestBuild = eB;
 				eBestFollowupBuild = candidatePlots[i].eFollowupBuild;
 				iBestValue = candidatePlots[i].iValue;
+				bBestIrrigationChainStep = candidatePlots[i].bIrrigationChainStep;
 				bFound     = true;
 				if (gWorkerLogLevel >= 2 && iCityPopulation >= 6)
 				{
@@ -4439,6 +4806,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 	if (peBestBuild) *peBestBuild = bFound ? eBestBuild : NO_BUILD;
 	if (piBestValue) *piBestValue = bFound ? iBestValue : 0;
 	if (peFollowupBuild) *peFollowupBuild = bFound ? eBestFollowupBuild : NO_BUILD;
+	if (pbIrrigationChainStep) *pbIrrigationChainStep = (bFound && bBestIrrigationChainStep);
 	return bFound;
 }
 
@@ -24446,6 +24814,7 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity const* pCity) // advc: const param
 
 	// <!-- custom: Compare every city's best available job instead of stopping at the first viable city. (GPT-5.5) -->
     int bestScore = MIN_INT;
+	bool bBestIrrigationChainStep = false;
 
 	bool const bLogWorkerCityTargetLevel = (gWorkerLogLevel >= 3);
 
@@ -24460,10 +24829,11 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity const* pCity) // advc: const param
         CvPlot* pPlot = NULL;
         BuildTypes eBuild = NO_BUILD;
 		BuildTypes eFollowupBuild = NO_BUILD;
+		bool bIrrigationChainStep = false;
 		int iBuildValue = 0;
 		// <!-- custom: Legacy context: calling only our rewritten AI_bestCityBuild initially exposed crashes around turns 77/156, so its callers and outputs retain explicit null/NO_BUILD guards; this version no longer depends on old AI_getBestBuild filtering, which had hidden valid custom worker jobs; attempted bonus-roading additions were reverted after making workers less efficient. (GPT-5.5) -->
         // <!-- custom: AI_getBestBuild is disabled for land improvements; relying on it here made workers ignore cities whose custom AI_bestCityBuild still had work; in the Niani 2027 AD autoplay sample, a roaded but unimproved Pig stayed unimproved while nearby workers were on HOLD; letting AI_bestCityBuild decide fixed the in-game case. (GPT-5.5) -->
-        if (!AI_bestCityBuild(*pLoopCity, &pPlot, &eBuild, NULL, this, &iBuildValue, &eFollowupBuild))
+        if (!AI_bestCityBuild(*pLoopCity, &pPlot, &eBuild, NULL, this, &iBuildValue, &eFollowupBuild, NULL, false, &bIrrigationChainStep))
         {
 			if (bLogWorkerCityTarget)
 				logBBAI("    %S worker city-target scan: city=%S pop=%d no AI_bestCityBuild candidate",
@@ -24535,10 +24905,10 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity const* pCity) // advc: const param
 			BonusTypes const eDiagnosticBonus = pPlot->getNonObsoleteBonusType(getTeam());
 			wchar const* szDiagnosticBonus = (eDiagnosticBonus == NO_BONUS ? L"-" : GC.getInfo(eDiagnosticBonus).getDescription());
 			wchar const* szDiagnosticFollowup = (eFollowupBuild == NO_BUILD ? L"-" : GC.getInfo(eFollowupBuild).getDescription());
-			logBBAI("    %S worker city-target candidate: city=%S pop=%d improved=%d assignedWorkers=%d effectiveImproved=%d readinessPercent=%d plot=(%d,%d) worked=%d build=%S followup=%S buildValue=%d bonus=%S pathTurns=%d score=%d bestBefore=%d",
+			logBBAI("    %S worker city-target candidate: city=%S pop=%d improved=%d assignedWorkers=%d effectiveImproved=%d readinessPercent=%d plot=(%d,%d) worked=%d decisionPath=%s build=%S followup=%S buildValue=%d bonus=%S pathTurns=%d score=%d bestBefore=%d",
 				GET_PLAYER(getOwner()).getCivilizationDescription(0), pLoopCity->getName().GetCString(), pLoopCity->getPopulation(),
 				iImprovedPlots, iAssignedWorkers, iEffectiveImprovedPlots, iReadinessPercent, pPlot->getX(), pPlot->getY(), bWorkedPlot,
-				GC.getInfo(eBuild).getDescription(), szDiagnosticFollowup, iBuildValue, szDiagnosticBonus, pf.getPathTurns(), score,
+				(bIrrigationChainStep ? "IRRIGATION_CHAIN" : "CITY_BUILD"), GC.getInfo(eBuild).getDescription(), szDiagnosticFollowup, iBuildValue, szDiagnosticBonus, pf.getPathTurns(), score,
 				bestScore);
 		}
         if (score > bestScore)
@@ -24546,6 +24916,7 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity const* pCity) // advc: const param
             bestScore = score;
             eBestBuild = eBuild;
 			eBestFollowupBuild = eFollowupBuild;
+			bBestIrrigationChainStep = bIrrigationChainStep;
             pBestPlot  = pPlot;
         }
 
@@ -24574,10 +24945,10 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity const* pCity) // advc: const param
 	{
 		CvCity const* pChosenWorkingCity = pBestPlot->getWorkingCity();
 		wchar const* szFollowupBuild = (eBestFollowupBuild == NO_BUILD ? L"-" : GC.getInfo(eBestFollowupBuild).getDescription());
-		logBBAI("    %S worker city-job chosen: from=(%d,%d) targetCity=%S plot=(%d,%d) build=%S followup=%S currentCity=%d bestScore=%d",
+		logBBAI("    %S worker city-job chosen: from=(%d,%d) targetCity=%S plot=(%d,%d) decisionPath=%s build=%S followup=%S currentCity=%d bestScore=%d",
 			GET_PLAYER(getOwner()).getCivilizationDescription(0), getX(), getY(),
 			(pChosenWorkingCity == NULL ? L"-" : pChosenWorkingCity->getName().GetCString()), pBestPlot->getX(), pBestPlot->getY(),
-			GC.getInfo(eBestBuild).getDescription(), szFollowupBuild, (pChosenWorkingCity == pCity), bestScore);
+			(bBestIrrigationChainStep ? "IRRIGATION_CHAIN" : "CITY_BUILD"), GC.getInfo(eBestBuild).getDescription(), szFollowupBuild, (pChosenWorkingCity == pCity), bestScore);
 	}
 
 	// <!-- custom: this tentative fix doesn't fix crash at turn 95 so disabled -->
@@ -24603,10 +24974,12 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity const* pCity) // advc: const param
 	// <!-- custom: Pair the chosen city job with the exact worker, movement mode, and resulting queue so repeated selections can be distinguished from separate workers and traced through mission execution. No behavior change. (GPT-5.5) -->
 	if (gWorkerLogLevel >= 3)
 	{
+		SAS_logWorkerReplacementAssignment(*this, *pBestPlot, eBestBuild, eBestFollowupBuild, bBestIrrigationChainStep);
 		wchar const* szFollowupBuild = (eBestFollowupBuild == NO_BUILD ? L"-" : GC.getInfo(eBestFollowupBuild).getDescription());
-		logBBAI("    WORKER_CITY_ASSIGNMENT turn=%d player=%d %S workerId=%d worker=(%d,%d) groupId=%d target=(%d,%d) moveMission=MOVE_TO routePolicy=DIRECT_TO_CITY_YIELD targetHasRoute=%d build=%S followup=%S missionAI=%d missionQueue=%d movesSpent=%d movesLeft=%d",
+		logBBAI("    WORKER_CITY_ASSIGNMENT turn=%d player=%d %S workerId=%d worker=(%d,%d) groupId=%d target=(%d,%d) decisionPath=%s moveMission=MOVE_TO routePolicy=DIRECT_TO_CITY_YIELD targetHasRoute=%d build=%S followup=%S missionAI=%d missionQueue=%d movesSpent=%d movesLeft=%d",
 			GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getID(), getX(), getY(),
-			getGroup()->getID(), pBestPlot->getX(), pBestPlot->getY(), pBestPlot->isRoute(), GC.getInfo(eBestBuild).getDescription(), szFollowupBuild,
+			getGroup()->getID(), pBestPlot->getX(), pBestPlot->getY(), (bBestIrrigationChainStep ? "IRRIGATION_CHAIN" : "CITY_BUILD"),
+			pBestPlot->isRoute(), GC.getInfo(eBestBuild).getDescription(), szFollowupBuild,
 			AI_getGroup()->AI_getMissionAIType(), getGroup()->getLengthMissionQueue(), getMoves(), movesLeft());
 	}
 	return true;
