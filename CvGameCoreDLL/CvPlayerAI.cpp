@@ -105,6 +105,7 @@ CvPlayerAI::CvPlayerAI(/* advc.003u: */ PlayerTypes eID) : CvPlayer(eID)
 	m_pUWAI = new UWAI::Player(); // advc.104
 	m_aiBonusValue = NULL;
 	m_aiBonusValueTrade = NULL; // advc.036
+	m_bBonusValueCacheDirty = false; // <!-- custom: See KI#820. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	m_aiUnitClassWeights = NULL;
 	m_aiUnitCombatWeights = NULL;
 	//m_aiCloseBordersAttitude = new int[MAX_PLAYERS];
@@ -301,6 +302,7 @@ void CvPlayerAI::AI_reset(bool bConstructor)
 
 	m_bWasFinancialTrouble = false;
 	m_iTurnLastProductionDirty = -1;
+	m_bBonusValueCacheDirty = false; // <!-- custom: See KI#820. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 
 	//m_iUpgradeUnitsCacheTurn = -1;
 	//m_iUpgradeUnitsCachedExpThreshold = 0;
@@ -12653,22 +12655,27 @@ static bool shouldLogSASBonusValueChange(CvString const& szKey, CvString const& 
 int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) const
 {
 	// <!-- custom: Cache dynamic bonus values per player and current game state, not as timeless per-era tables.
-	// Technology progress, owned alternative resources, available replacement units, constructed buildings, corporations and city health/happiness needs can change the correct value within one era; AI_doTurnPre clears all entries each turn, while resource, technology/team and relevant civic changes also invalidate them immediately. (GPT-5.6-Sol) -->
+	// Technology progress, owned alternative resources, available replacement units, constructed buildings, corporations and city health/happiness needs can change the correct value within one era. AI_doTurnPre clears all entries each turn.
+	// Explicit full refreshes invalidate them immediately, while domestic capital-network changes temporarily bypass the whole cache because one resource can change another resource's value. See KI#820. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	//recalculate if not defined
-	if (!bTrade && // advc.036
+	if (!m_bBonusValueCacheDirty && !bTrade && // advc.036
 		m_aiBonusValue[eBonus] != -1)
 	{
 		return m_aiBonusValue[eBonus];
 	}
 	// <advc.036>
-	if (bTrade && m_aiBonusValueTrade[eBonus] != -1)
+	if (!m_bBonusValueCacheDirty && bTrade && m_aiBonusValueTrade[eBonus] != -1)
 		return m_aiBonusValueTrade[eBonus]; // </advc.036>
 
 	if (GET_TEAM(getTeam()).isBonusObsolete(eBonus))
 	{
-		m_aiBonusValue[eBonus] = 0;
-		m_aiBonusValueTrade[eBonus] = 0; // advc.036
-		return m_aiBonusValue[eBonus];
+		// <!-- custom: Do not repopulate even the obsolete fast path while a cross-resource transition has made the cache non-authoritative. See KI#820. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		if (!m_bBonusValueCacheDirty)
+		{
+			m_aiBonusValue[eBonus] = 0;
+			m_aiBonusValueTrade[eBonus] = 0; // advc.036
+		}
+		return 0;
 	}
 	PROFILE("CvPlayerAI::AI_baseBonusVal::recalculate");
 	// <advc.036>
@@ -12907,7 +12914,7 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 	}
 	/*  To address karadoc's "@*#!" comment in the middle of this function;
 		coupled with a change in AI_updateBonusValue(BonusTypes). */
-	if (!GC.getGame().isNetworkMultiPlayer())
+	if (!GC.getGame().isNetworkMultiPlayer() && !m_bBonusValueCacheDirty)
 		(bTrade ? m_aiBonusValueTrade : m_aiBonusValue)[eBonus] = iValue;	
 	return iValue; // </advc.036>
 }
@@ -32190,6 +32197,9 @@ void CvPlayerAI::AI_updateBonusValue()
 {
 	PROFILE_FUNC(); // advc.036: Slow only in multiplayer (see comment above)
 	FAssert(m_aiBonusValue != NULL);
+	// <!-- custom: This is the authoritative whole-cache refresh boundary.
+	// Clear the cross-resource dirty guard before rebuilding/invalidating every entry so multiplayer can eagerly repopulate as before and singleplayer can resume normal lazy caching. See KI#820. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	m_bBonusValueCacheDirty = false;
 	FOR_EACH_ENUM(Bonus)
 		AI_updateBonusValue(eLoopBonus);
 }

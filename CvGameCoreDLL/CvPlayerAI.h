@@ -599,6 +599,8 @@ public:
 
 	void AI_updateBonusValue(BonusTypes eBonus);
 	void AI_updateBonusValue();
+	// <!-- custom: A domestic availability change can alter the cached value of other substitute bonuses; keep cached values bypassed until the next authoritative full refresh. See KI#820. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	void AI_markBonusValueCacheDirty() { m_bBonusValueCacheDirty = true; }
 
 	int AI_getUnitClassWeight(UnitClassTypes eUnitClass) const;
 	int AI_getUnitCombatWeight(UnitCombatTypes eUnitCombat) const;
@@ -726,6 +728,8 @@ protected:
 	mutable UnitTypes m_eGreetingBragUnit;
 	int* m_aiBonusValue;
 	int* m_aiBonusValueTrade; // advc.036
+	// <!-- custom: Transient, non-serialized guard for cross-resource bonus-value dependencies. See KI#820. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	bool m_bBonusValueCacheDirty;
 	int* m_aiUnitClassWeights;
 	int* m_aiUnitCombatWeights;
 	ArrayEnumMap<VictoryTypes,short> m_aiVictoryWeights; // advc.115f

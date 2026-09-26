@@ -936,7 +936,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#817 - (Provisional Pending inherited K-Mod AI Auto Play production-order defect) Culture can lack its stop marker](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-817)\
 [KI#818 - (Provisional Pending AdvCiv city-acquisition regression) Cross-civilization unique buildings can disappear](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-818)\
 [KI#819 - (Provisional Pending inherited BtS corporation-commerce cache defect) Suppression civics leave foreign HQ commerce stale](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-819)\
-[KI#820 - (Provisional Pending AdvCiv bonus-value cache regression) Domestic resource changes leave substitute values stale](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-820)\
+[KI#820 - (Fixed AdvCiv bonus-value cache regression) Domestic resource changes left substitute values stale](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-820)\
 [KI#821 - (Provisional Pending inherited K-Mod construction-value cache defect) Later policy changes reuse pre-research values](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-821)\
 [KI#822 - (Provisional Pending inherited K-Mod available-income cache defect) GPT changes trigger commerce from stale income](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-822)\
 [KI#823 - (Provisional Pending inherited BtS deal transaction-ordering defect) GPT can trigger commerce during a partial bundle](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-823)\
@@ -17544,11 +17544,17 @@ Found as F496 during ChatGPT-5.6-Sol's C031-WIP239 `CvPlayer.cpp` deep re-audit;
 
 <a id="ki-820"></a>
 
-## KI#820 - (Provisional Pending AdvCiv bonus-value cache regression) Domestic resource changes leave substitute values stale
+## KI#820 - (Fixed AdvCiv bonus-value cache regression) Domestic resource changes left substitute values stale
 
-AdvCiv made one resource's cached AI value depend on the availability of other substitute resources, but domestic/capital-network resource transitions do not invalidate those cross-resource cache entries. Resource trade and production decisions can reuse values from the old network state. Rebuild at a stable synchronized resource-network boundary.
+AdvCiv made one resource's cached AI value depend on the availability of other substitute resources, but domestic/capital-network resource transitions did not invalidate those cross-resource cache entries. Resource trade and production decisions could therefore reuse values from the old network state.
 
-Found as F497 during ChatGPT-5.6-Sol's C031-WIP240 `CvPlayer.cpp` deep re-audit; reconciled into Known Issues with the help of GPT-5.6-Sol, thanks.
+AdvCiv-SAS now marks the whole bonus-value cache non-authoritative whenever a capital-network bonus crosses the available/unavailable boundary.
+
+While dirty, `AI_baseBonusVal` bypasses cached reads and writes, so temporary plot-group reconstruction counts cannot become persistent cache entries; the next existing whole-cache `AI_updateBonusValue()` clears the guard and resumes the normal singleplayer lazy cache or multiplayer eager refresh.
+
+This also covers the later SAS dynamic building and Route OR-prerequisite valuation, where one owned alternative can reduce another bonus's marginal value. See the source comments for the transient-count rationale.
+
+Found as F497 during ChatGPT-5.6-Sol's C031-WIP240 `CvPlayer.cpp` deep re-audit; fixed during the dynamic bonus-value rework after a focused ChatGPT-5.6-Sol review, thanks.
 
 <a id="ki-821"></a>
 

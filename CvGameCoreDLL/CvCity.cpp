@@ -8899,7 +8899,12 @@ void CvCity::changeNumBonuses(BonusTypes eBonus, int iChange, bool bVerifyProduc
 		return;
 
 	bool const bOldHasBonus = hasBonus(eBonus);
+	int const iOldNetworkCount = m_aiNumBonuses.get(eBonus);
 	m_aiNumBonuses.add(eBonus, iChange);
+	// <!-- custom: AI_baseBonusVal can value one resource differently when another substitute becomes available.
+	// Capital plot-group updates can pass through temporary/negative counts, so only mark the whole cache non-authoritative here; AI_baseBonusVal bypasses it until the next existing full refresh instead of eagerly caching an intermediate network state. See KI#820. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	if (isCapital() && ((iOldNetworkCount > 0) != (m_aiNumBonuses.get(eBonus) > 0)))
+		GET_PLAYER(getOwner()).AI().AI_markBonusValueCacheDirty();
 	if (bOldHasBonus != hasBonus(eBonus))
 	{
 		if (hasBonus(eBonus))
