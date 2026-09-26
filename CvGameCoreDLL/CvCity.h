@@ -26,6 +26,8 @@ public:
 	// Helper: attempts to force-construct a single building
 	// Returns true if we set an emergency building order (or one was already queued)
 	bool SASTryEmergencyBuilding(BuildingClassTypes eBuildingClass, bool* pbDefenseBlockedByShelter = NULL, bool bLandDanger = false);
+	// <!-- custom: Select a civilization-specific water-yield building from its XML effect instead of a configured building-class name. (GPT-5.6-Sol) -->
+	bool SASTryEmergencySeaYieldBuilding(YieldTypes eYield);
 
 	void doTurn();
 	void doRevolt(); // advc: previously in CvPlot::doCulture

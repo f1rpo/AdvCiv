@@ -1454,7 +1454,7 @@ int CvTeamAI::AI_warSpoilsValue(TeamTypes eTarget, WarPlanTypes eWarPlan, bool b
 			if (it->getNumAvailableBonuses(eLoopBonus) == 0)
 				iMissing++;
 		}
-		iBonusValue += GC.getInfo(eLoopBonus).getAIObjective(); // (support for mods.)
+		// <!-- custom: Member AI_bonusVal already supplies civilization- and state-specific resource importance; the static BonusInfo AIObjective addition duplicated it and could not age or recognize substitutes. (GPT-5.6-Sol) -->
 		iBonusValue = iBonusValue * getNumCities() *
 				(std::min(100*iMissing, bonuses[eLoopBonus]) +
 				std::max(0, bonuses[eLoopBonus] - 100*iMissing)/8) /

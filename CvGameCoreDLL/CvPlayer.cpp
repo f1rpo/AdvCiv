@@ -4580,29 +4580,6 @@ int CvPlayer::getNumAvailableBonuses(BonusTypes eBonus) const
 }
 
 
-// <!-- custom: we need more siege units early if we don't have key strategic bonuses, so relax threshold in these cases. May be useful in other cases, and is reused several times at different code functions or scopes, so make it a helper rather-->
-// <!-- custom: note: it seems this only checks main capital network (as per getNumAvailableBonuses it seems and as chatgpt 5 confirms it as well but check if accurate), so use it with that intent in mind or if you don't mind xd, else the hasBonus or possibly other functions might be used instead but check to be sure-->
-// Your simple check will work, but it’s “capital-network only." If you’re okay with that approximation, keep it. If you want one tiny robustness bump (still very cheap), use global OR city plot-group so a locally-connected city isn’t punished.
-bool CvPlayer::getNumAvailableBonusesHaveAnyKeyEarlyStrategicBonuses() const
-{
-	static const BonusTypes B_COPPER = (BonusTypes)GC.getInfoTypeForString(GC.getDefineSTRING("SAS_KEY_STRATEGIC_METAL_BONUS_NAME_1"));
-	static const BonusTypes B_IRON   = (BonusTypes)GC.getInfoTypeForString(GC.getDefineSTRING("SAS_KEY_STRATEGIC_METAL_BONUS_NAME_2"));
-	static const BonusTypes B_HORSE  = (BonusTypes)GC.getInfoTypeForString(GC.getDefineSTRING("SAS_MOUNTED_UNITS_BONUS_NAME_1"));
-	static const BonusTypes B_CAMEL  = (BonusTypes)GC.getInfoTypeForString(GC.getDefineSTRING("SAS_MOUNTED_UNITS_BONUS_NAME_2"));
-	static const BonusTypes B_ELEPHANTS  = (BonusTypes)GC.getInfoTypeForString(GC.getDefineSTRING("SAS_MOUNTED_UNITS_BONUS_NAME_3"));
-
-	const bool bHaveCopper = (B_COPPER != NO_BONUS && getNumAvailableBonuses(B_COPPER) > 0);
-	const bool bHaveIron   = (B_IRON   != NO_BONUS && getNumAvailableBonuses(B_IRON)   > 0);
-	const bool bHaveHorse  = (B_HORSE  != NO_BONUS && getNumAvailableBonuses(B_HORSE)  > 0);
-	const bool bHaveCamel  = (B_CAMEL  != NO_BONUS && getNumAvailableBonuses(B_CAMEL)  > 0);
-	const bool bHaveElephants = (B_ELEPHANTS != NO_BONUS && getNumAvailableBonuses(B_ELEPHANTS) > 0);
-
-	const bool bHaveAnyKeyEarlyStrategicBonus = (bHaveIron || bHaveCopper || bHaveHorse || bHaveCamel || bHaveElephants);
-
-	return bHaveAnyKeyEarlyStrategicBonus;
-}
-
-
 bool CvPlayer::hasBonus(BonusTypes eBonus) const
 {
 	FOR_EACH_CITY(pLoopCity, *this)

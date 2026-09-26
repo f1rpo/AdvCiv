@@ -5604,19 +5604,42 @@ bool CvPlot::SAS_isGoodEnoughFirstCityBFCPlot(BonusTypes eVisibleBonus, PlayerTy
 
 int CvPlot::SAS_getWaterFoodBuildingSeaPlotFoodChange(PlayerTypes ePlayer)
 {
-	// <!-- custom: Assertions diagnose invalid player/building data in assert builds; the matching sentinel guards remain active in Release and avoid invalid lookups by contributing no assumed food. (GPT-5.5 + ChatGPT-5.5 review) -->
+	// <!-- custom: Candidate-city and Worker valuation need a practical long-term sea-food baseline before a city exists.
+	// The previous configured Harbor class is replaced by the civilization's most hammer-efficient positive sea-food building, with lower cost breaking equal efficiency; this preserves cheap early infrastructure while supporting unique replacements and mod-added XML. (GPT-5.5 + ChatGPT-5.5 review + GPT-5.6-Sol) -->
 	FAssert(ePlayer != NO_PLAYER);
 	if (ePlayer == NO_PLAYER)
 		return 0;
-	static BuildingClassTypes const eWaterFoodBuildingClass = static_cast<BuildingClassTypes>(GC.getInfoTypeForString(GC.getDefineSTRING("SAS_WATER_FOOD_BUILDING_BUILDINGCLASS_FULL_NAME")));
-	FAssert(eWaterFoodBuildingClass != NO_BUILDINGCLASS);
-	if (eWaterFoodBuildingClass == NO_BUILDINGCLASS)
+	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
+	CivilizationTypes const eCivilization = kPlayer.getCivilizationType();
+	FAssert(eCivilization != NO_CIVILIZATION);
+	if (eCivilization == NO_CIVILIZATION)
 		return 0;
-	BuildingTypes const eWaterFoodBuilding = GET_PLAYER(ePlayer).getCivilization().getBuilding(eWaterFoodBuildingClass);
-	FAssert(eWaterFoodBuilding != NO_BUILDING);
-	if (eWaterFoodBuilding == NO_BUILDING)
-		return 0;
-	return GC.getInfo(eWaterFoodBuilding).getSeaPlotYieldChange(YIELD_FOOD);
+	// <!-- custom: This helper is called repeatedly for Settler and Worker plot valuation, while civilization Building mappings and base costs are immutable after XML load.
+	// Cache by civilization rather than player/session; normal non-wonder building cost scaling is common to every candidate and therefore cannot change the yield-per-hammer ordering. (GPT-5.6-Sol) -->
+	static std::vector<int> aiCivilizationFoodChange(GC.getNumCivilizationInfos(), -1);
+	if (aiCivilizationFoodChange[eCivilization] >= 0)
+		return aiCivilizationFoodChange[eCivilization];
+	CvCivilization const& kCiv = kPlayer.getCivilization();
+	int iBestYieldChange = 0;
+	int iBestCost = MAX_INT;
+	for (int i = 0; i < kCiv.getNumBuildings(); i++)
+	{
+		BuildingTypes const eBuilding = kCiv.buildingAt(i);
+		CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+		int const iYieldChange = kBuilding.getSeaPlotYieldChange(YIELD_FOOD);
+		// <!-- custom: The assumed ordinary-city baseline excludes limited wonders and buildings that cannot be produced normally. (GPT-5.6-Sol) -->
+		if (iYieldChange <= 0 || kBuilding.getProductionCost() <= 0 || kBuilding.isLimited())
+			continue;
+		int const iCost = kBuilding.getProductionCost();
+		if (iBestYieldChange == 0 || iYieldChange * iBestCost > iBestYieldChange * iCost ||
+			(iYieldChange * iBestCost == iBestYieldChange * iCost && iCost < iBestCost))
+		{
+			iBestYieldChange = iYieldChange;
+			iBestCost = iCost;
+		}
+	}
+	aiCivilizationFoodChange[eCivilization] = iBestYieldChange;
+	return aiCivilizationFoodChange[eCivilization];
 }
 
 

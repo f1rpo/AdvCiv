@@ -160,7 +160,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#106 - (Worked Around) Base AdvCiv bug of having an option number error in Simple Game (e.g. in Highlands, Boreal), if we started another simple Game map before that had a lot of options (e.g. BTG_Lagoon and Planet_Generator_068 have around 15+ options), but Custom game works fine](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-106)\
 [KI#107 - (Fixed) Base AdvCiv crash after loading a save file, returning to main menu, opening sevopedia (index since first time opened) and typing a sequence like "xsv"](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-107)\
 [KI#108 - (Fixed) Base AdvCiv diplomacy inconsistency: AI can refuse "tribute" for pure Vassal/Surrender, then accept the same deal through "What do you want in exchange?" with nothing added](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-108)\
-[KI#109 - (Tremendously Improved) AI bonus trading: AI very inefficiently buying dominated or equivalent strategic bonuses (era and bonus-aware exclusions)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-109)\
+[KI#109 - (Reworked/Improved) AI bonus trading: dynamic value replaces named dominated-resource exclusions](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-109)\
 [KI#110 - (AdvCiv-SAS music shuffle cleanup) Intermittent Python startup/MainInterface errors from early BUG path calls in Sevopedia music path helper](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-110)\
 [KI#111 - (Reverted this Patch) Sevopedia Index UnicodeDecodeError in build/sort/filter UnicodeDecodeError: 'ascii' codec can't decode byte 0xc8 in position 0](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-111)\
 [KI#112 - (Seemingly Fixed) Base AdvCiv issue of missing getPrereqOrPromotion3 in sevopedia promotion](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-112)\
@@ -6048,7 +6048,7 @@ Result:
 
 <a id="ki-109"></a>
 
-## KI#109 - (Tremendously Improved) AI bonus trading: AI very inefficiently buying dominated or equivalent strategic bonuses (era and bonus-aware exclusions)
+## KI#109 - (Reworked/Improved) AI bonus trading: dynamic value replaces named dominated-resource exclusions
 
 Screenshots/files for this issue: [google drive folder link](https://drive.google.com/drive/folders/1gwIEOEnKSjQmE7CfvTmoaXyBZby802Ji?usp=sharing).
 
@@ -6058,11 +6058,19 @@ Observed issues:
 - AI willing to buy copper when it has iron
 - AI willing to buy horse when it has camel or iron at classical, etc.
 
-Fix:
+Historical fix (superseded):
 
 - Keep era/substitute evaluation rules, but enforce exclusion in `CvPlayerAI::AI_bonusTrade` (file: [CvPlayerAI.cpp](/CvGameCoreDLL/CvPlayerAI.cpp)) by returning `DENIAL_JOKING` for dominated/equivalent strategic buy cases; this is filtered from trade tables by explicit buy-denial rules in `AI_bonusTrade`.
 - Logic and bonus dependent (e.g., `BONUS_CAMEL` is not an equivalent of Horse anymore at Industrial+ Era (no Camel Dragoon))
 - These are explicit current-balance rules rather than relationships derived automatically from every XML unit. Modmods that substantially change strategic-resource prerequisites or their useful eras should review the rules or disable `SAS_AI_BONUS_TRADE_ZERO_DOMINATED_STRATEGIC_BUYS`; see KI#239 and KI#240 for the human-recipient, corporation-value and Medieval Copper corrections.
+
+### Update (AdvCiv-SAS practical 6577)
+
+This first fix greatly reduced the observed waste, but remained tied to current names, eras and unit balance; KI#239 and KI#240 record two later corrections needed by that approach.
+
+The explicit exclusion system and its named-resource XML defines were removed. Settler, Worker, trade and strategic consumers now use one player-specific dynamic bonus value derived from the civilization's current units, buildings, projects, routes, health/happiness, technology readiness, obsolescence and available substitutes. Same-unit OR prerequisites recognize owned alternatives, replacement units reduce duplicate role value, and alternative building/route prerequisites retain only supply-insurance value when another enabling resource is already available. Distinct uses remain valuable: possessing Copper can reduce Iron's Axeman contribution without erasing Iron-only units or buildings.
+
+All current `iAIObjective` values are `0`; the field remains as an optional additive author/mod-mod adjustment to the shared result rather than the old primary strategic label. Dedicated BBAI component/price diagnostics and SASGameRecord's ordinary/trade marginal-value fields make the result auditable without restoring resource-name assumptions. In the final validation run, Byzantium owned both Horse and Camel and late Camel declined to value `1`; owning Coal similarly reduced Oil's Railroad contribution from `4000` to `2000` while preserving Oil's independent military-unit value.
 
 <a id="ki-110"></a>
 
@@ -10856,6 +10864,8 @@ The fix requires a non-human recipient for this hard dominated-resource gate. It
 
 This is an AdvCiv-SAS regression introduced in practical 5484 (`923840f152`). Found and investigated through the systematic archaeology with the help of ChatGPT-5.6-Sol; fixed and documented with the help of GPT-5.6-Sol thanks.
 
+Update: practical 6577 removed the hard dominated-resource denial entirely in favor of shared dynamic recipient valuation. The original human-recipient leak remains useful historical evidence, but that obsolete gate can no longer affect either AI or human recipients.
+
 <a id="ki-240"></a>
 
 ## KI#240 - (Fixed AdvCiv-SAS bug) Medieval Copper denial overrode live strategic and corporation value
@@ -10865,6 +10875,8 @@ The same practical 5484 gate classified every Medieval-or-later Copper purchase 
 The fix treats Copper as dominated by Iron only when the recipient actually has Iron, rather than from era alone. It also bypasses the hard denial when `AI_corporationBonusVal(eBonus, true)` is positive, so a corporation-useful resource reaches the existing valuation path regardless of its military substitutes. Corporation valuation is queried only after a resource matches a dominated rule. The other explicit substitute and obsolescence rules remain unchanged, and the whole feature remains XML-toggleable. Because those rules encode current AdvCiv-SAS unit prerequisites and era balance rather than discovering every relationship automatically, a modmod that adds uses such as Ancient Copper-only units or late Industrial Copper units should review the C++ rules or disable `SAS_AI_BONUS_TRADE_ZERO_DOMINATED_STRATEGIC_BUYS`; the configured bonus identities remain XML-tunable. The DLL compiled successfully, and a general in-game smoke run completed with an empty refreshed `PythonErr.log`; the corrected Privateer/corporation cases are validated from current XML and source paths rather than a separately constructed diplomacy save.
 
 This is an AdvCiv-SAS AI trade-logic regression introduced in practical 5484 (`923840f152`). Found and investigated through the systematic archaeology with the help of ChatGPT-5.6-Sol; fixed and documented with the help of GPT-5.6-Sol thanks.
+
+Update: practical 6577 removed this era/name-based Copper denial entirely. Copper's current Privateer, corporation and alternative-unit uses now enter shared dynamic valuation directly; Iron reduces only overlapping value rather than triggering a hard exclusion.
 
 <a id="ki-241"></a>
 

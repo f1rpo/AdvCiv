@@ -5285,7 +5285,7 @@
 			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<!-- custom: get this effect from the old lighthouse before its rework, was empty -->
-			<!-- custom: see related info and define to configure at SAS_WATER_FOOD_BUILDING_BUILDINGCLASS_FULL_NAME-->
+			<!-- custom: AI city/plot valuation now discovers this sea-food effect directly, including civilization-specific replacements, rather than naming the Harbor class in a define. (GPT-5.6-Sol) -->
 			<SeaPlotYieldChanges>
 				<iYield>1</iYield>
 			</SeaPlotYieldChanges>
@@ -5483,7 +5483,7 @@
 			<iPower>0</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
 			<!-- custom: get this effect from the old lighthouse before its rework, was empty -->
-			<!-- custom: see related info and define to configure at SAS_WATER_FOOD_BUILDING_BUILDINGCLASS_FULL_NAME-->
+			<!-- custom: AI city/plot valuation now discovers this sea-food effect directly, including civilization-specific replacements, rather than naming the Harbor class in a define. (GPT-5.6-Sol) -->
 			<SeaPlotYieldChanges>
 				<iYield>1</iYield>
 			</SeaPlotYieldChanges>

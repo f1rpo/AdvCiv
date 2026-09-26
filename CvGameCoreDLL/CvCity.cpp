@@ -669,6 +669,37 @@ bool CvCity::SASTryEmergencyBuilding(BuildingClassTypes eBuildingClass, bool* pb
 	}
 }
 
+
+bool CvCity::SASTryEmergencySeaYieldBuilding(YieldTypes eYield)
+{
+	// <!-- custom: The previous emergency rules named Harbor and Port classes.
+	// Select among this civilization's currently constructible buildings by their actual sea-plot yield instead, prioritizing more yield per hammer and then the cheaper building; unique replacements and mod-added buildings therefore work without another define. (GPT-5.6-Sol) -->
+	BuildingClassTypes eBestBuildingClass = NO_BUILDINGCLASS;
+	int iBestYieldChange = 0;
+	int iBestCost = MAX_INT;
+	CvCivilization const& kCiv = getCivilization();
+	for (int i = 0; i < kCiv.getNumBuildings(); i++)
+	{
+		BuildingTypes const eBuilding = kCiv.buildingAt(i);
+		CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+		BuildingClassTypes const eBuildingClass = kCiv.buildingClassAt(i);
+		int const iYieldChange = kBuilding.getSeaPlotYieldChange(eYield);
+		// <!-- custom: Emergency infrastructure must not commandeer a limited wonder or a GP/free-only building merely because it also changes sea yields. (GPT-5.6-Sol) -->
+		if (iYieldChange <= 0 || kBuilding.getProductionCost() <= 0 || kBuilding.isLimited() ||
+			getNumBuilding(eBuilding) != 0 || !canConstruct(eBuilding, false, false, true))
+			continue;
+		int const iCost = std::max(1, getProductionNeeded(eBuilding));
+		if (eBestBuildingClass == NO_BUILDINGCLASS || iYieldChange * iBestCost > iBestYieldChange * iCost ||
+			(iYieldChange * iBestCost == iBestYieldChange * iCost && iCost < iBestCost))
+		{
+			eBestBuildingClass = eBuildingClass;
+			iBestYieldChange = iYieldChange;
+			iBestCost = iCost;
+		}
+	}
+	return SASTryEmergencyBuilding(eBestBuildingClass);
+}
+
 void CvCity::doTurn()
 {
 	PROFILE_FUNC();
@@ -740,11 +771,10 @@ void CvCity::doTurn()
 	// <!-- custom: add this to make sure we don't overlap our previously chosen emergency building with some other logic -->
 	bool bEmergencyBuilding = false;
 
-	// <!-- custom: performance optimization: compute this only once if i'm not mistaken; e.g. "BUILDINGCLASS_HARBOR", check defines for string value -->
-	static const BuildingClassTypes eWaterFoodBuildingClass = (BuildingClassTypes)GC.getInfoTypeForString(GC.getDefineSTRING("SAS_WATER_FOOD_BUILDING_BUILDINGCLASS_FULL_NAME"));
-
-	// <!-- custom: emergency harbor (or whatever the water food building is in your mod) is top priority if city is coastal, low food per turn (stagnant coastal tundra cities in autoplay never build a harbor and stay low food for dozen turns), code added thanks to chatgpt 5 and my prompts and adjustments or such, check if accurate -->
-	// 	<!-- custom: update: the harbor is more likely to be useful than walls for a coastal city, plus a harbor would help us build our walls or such faster anyway, so risk weaker defenses to make sure we get the very important harbor first rather. We would also be slow to build units, and even if we do, there is a chance they may not be useful if city is an island or some isolated place so focus on economy rather should help in most of these cases of +/- coastal/watery cities or low hammer so as of now do not follow through with emergency defense buildings nor emegency units for these cities -->
+	// <!-- custom: A positive sea-food building is top priority if a coastal city has low food per turn; stagnant coastal tundra cities otherwise remained small for dozens of turns.
+	// The building itself is now selected from the civilization's XML effects rather than a named Harbor class. (ChatGPT 5 + GPT-5.6-Sol) -->
+	// 	<!-- custom: update: the harbor is more likely to be useful than walls for a coastal city, plus a harbor would help us build our walls or such faster anyway, so risk weaker defenses to make sure we get the very important harbor first rather.
+	// We would also be slow to build units, and even if we do, there is a chance they may not be useful if city is an island or some isolated place so focus on economy rather should help in most of these cases of +/- coastal/watery cities or low hammer so as of now do not follow through with emergency defense buildings nor emegency units for these cities -->
 	// --- SAS: force Harbor ASAP if coastal & buildable (no era/pop checks) ---
 	static const bool bSAS_DO_TURN_FORCE_WATER_FOOD_BUILDING = GC.getDefineBOOL("SAS_DO_TURN_FORCE_WATER_FOOD_BUILDING");
 
@@ -767,7 +797,7 @@ void CvCity::doTurn()
 			if (bLowFood)
 			{
 				// <!-- custom: note: this helper also pushes an emergency building if it returns true -->
-				if (SASTryEmergencyBuilding(eWaterFoodBuildingClass))
+				if (SASTryEmergencySeaYieldBuilding(YIELD_FOOD))
 				{
 					bEmergencyBuilding = true;
 				}
@@ -899,8 +929,7 @@ void CvCity::doTurn()
 
 				if (bMatureLowYieldCoast)
 				{
-					static const BuildingClassTypes eWaterHammerBuildingClass = (BuildingClassTypes)GC.getInfoTypeForString(GC.getDefineSTRING("SAS_WATER_HAMMER_BUILDING_BUILDINGCLASS_FULL_NAME"));
-					if (SASTryEmergencyBuilding(eWaterHammerBuildingClass))
+					if (SASTryEmergencySeaYieldBuilding(YIELD_PRODUCTION))
 					{
 						bEmergencyBuilding = true;
 						if (gCityLogLevel >= 2) logBBAI("      City %S forces water hammer building. pop %d/%d, base hammers %d, food surplus %d/%d",

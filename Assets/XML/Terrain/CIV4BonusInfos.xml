@@ -29,8 +29,8 @@
 			</YieldChanges>
 			<!-- advc.036: was 10 -->
 			<iAITradeModifier>0</iAITradeModifier>
-			<!-- custom: due to robotic/future era changes/additions, try to make this bonus extra important as an objective similarly to other bonuses that have this > 0 as well, was 0 -->
-			<iAIObjective>10</iAIObjective>
+			<!-- custom: AdvCiv-SAS keeps iAIObjective at 0 for every current bonus because shared player-specific valuation derives ordinary importance from units, buildings, projects, routes, era/technology readiness, obsolescence, substitutes, corporations and health/happiness. Authors/mod-mods can set a nonzero value as an additive manual adjustment to that shared result; each point adds one final bonus-value unit consistently for trade, Settler, Worker and strategic consumers. (GPT-5.6-Sol) -->
+			<iAIObjective>0</iAIObjective>
 			<iHealth>0</iHealth>
 			<iHappiness>0</iHappiness>
 			<iPlacementOrder>2</iPlacementOrder>
@@ -143,8 +143,7 @@
 			</YieldChanges>
 			<!-- advc.036: was 10 -->
 			<iAITradeModifier>0</iAITradeModifier>
-			<!-- custom: not as important as bonus_iron but really not far, if all fails we can produce axemen, macemen, possibly other units so definitely value it. Note: this iAIObjective field is now used by workers to decide which plot to work first or which city to move to, was 0 -->
-			<iAIObjective>8</iAIObjective>
+			<iAIObjective>0</iAIObjective>
 			<iHealth>0</iHealth>
 			<iHappiness>0</iHappiness>
 			<iPlacementOrder>1</iPlacementOrder>
@@ -210,8 +209,7 @@
 				<iYieldChange>0</iYieldChange>
 			</YieldChanges>
 			<iAITradeModifier>0</iAITradeModifier>
-			<!-- custom: try to make horse extra important as an objective (not restricting trade if uneeded extra in possession ideally but not tested nor do i know too much about it but hopefully maybe would work as intended maybe not guaranteed though may or not) if they don't have it, was 0 -->
-			<iAIObjective>10</iAIObjective>
+			<iAIObjective>0</iAIObjective>
 			<iHealth>0</iHealth>
 			<iHappiness>0</iHappiness>
 			<iPlacementOrder>1</iPlacementOrder>
@@ -273,8 +271,7 @@
 			</YieldChanges>
 			<!-- advc.036: was 10 -->
 			<iAITradeModifier>0</iAITradeModifier>
-			<!-- custom: try to make iron extra important as an objective (not restricting trade if uneeded extra in possession ideally but not tested nor do i know too much about it but hopefully maybe would work as intended maybe not guaranteed though may or not) if they don't have it, was 0 -->
-			<iAIObjective>10</iAIObjective>
+			<iAIObjective>0</iAIObjective>
 			<iHealth>0</iHealth>
 			<iHappiness>0</iHappiness>
 			<iPlacementOrder>0</iPlacementOrder>
@@ -535,8 +532,7 @@
 			</YieldChanges>
 			<!-- advc.036: was 30 -->
 			<iAITradeModifier>0</iAITradeModifier>
-			<!-- custom: useful for some future units, possibly nukes or whatever (i really don't know a lot about these since i didn't play civ4 so late into the game, but with our advciv-sas changes, it could be useful in many ways still), was 0 -->
-			<iAIObjective>6</iAIObjective>
+			<iAIObjective>0</iAIObjective>
 			<iHealth>0</iHealth>
 			<iHappiness>0</iHappiness>
 			<iPlacementOrder>2</iPlacementOrder>
@@ -2107,9 +2103,7 @@
 				<iYieldChange>0</iYieldChange>
 			</YieldChanges>
 			<iAITradeModifier>0</iAITradeModifier>
-			<!-- custom: unlike horse, don't seek hard camel, but take it naturally if it's there maybe -->
-			<!-- custom: not as important as bonus_horse but really not far, we can't build chariots and cavalry as of now, but if all fails we can produce camel archers, horse knights, and camel knights, a very strong bonus to value especially if we don't have it, but even if we do we could trade it or keep as extra in case so to simplify it value it just as much, was 0 -->
-			<iAIObjective>8</iAIObjective>
+			<iAIObjective>0</iAIObjective>
 			<iHealth>0</iHealth>
 			<iHappiness>0</iHappiness>
 			<iPlacementOrder>1</iPlacementOrder>

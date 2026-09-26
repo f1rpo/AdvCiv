@@ -244,7 +244,37 @@ static void logSASMilitaryProductionConcreteReject(CvCityAI const& kCity, UnitTy
 		(eUnit == NO_UNIT ? "-" : GC.getInfo(eUnit).getType()), (eUnitAI == NO_UNITAI ? "-" : GC.getInfo(eUnitAI).getType()), szReason, szMetricA, iValueA, szMetricB, iValueB);
 }
 
-// <!-- custom: Targeted diagnostics for possible AI Work Boat overproduction. City logs showed many Work Boat pushes/finishes after the earlier iLookAhead=0 fix, so log every worker-sea production source plus the exact worker-sea target bonuses when worker-sea logging is high. No behavior change. See KI#157. (GPT-5.5) -->
+// <!-- custom: The early siege-cap exception is meant for a city whose practical attackers are otherwise too weak, not for a hardcoded Copper/Iron/Horse/Camel/Elephants list.
+// Find a currently trainable non-siege land attacker directly from civilization XML; this recognizes civilization-specific and mod-added units, resource alternatives, and no-resource units such as Muskets.
+// A modest relative-strength floor preserves Spearmen as useful Catapult-era alternatives without letting obsolete Warriors suppress the exception.
+// Full-autoplay validation found useful alternatives in 63 of 90 checks, including civilization-specific Ballista Elephants; the other 27 checks retained the relaxed cap. (GPT-5.6-Sol) -->
+static UnitTypes SAS_bestUsefulNonSiegeLandAttacker(CvCityAI const& kCity, UnitCombatTypes eSiegeCombat, int iSiegeStrength, int iMinStrengthPercent, int* piBestStrength)
+{
+	UnitTypes eBestUnit = NO_UNIT;
+	int iBestStrength = 0;
+	CvCivilization const& kCivilization = GET_PLAYER(kCity.getOwner()).getCivilization();
+	for (int i = 0; i < kCivilization.getNumUnits(); i++)
+	{
+		UnitTypes const eLoopUnit = kCivilization.unitAt(i);
+		CvUnitInfo const& kLoopUnit = GC.getInfo(eLoopUnit);
+		UnitAITypes const eDefaultUnitAI = kLoopUnit.getDefaultUnitAIType();
+		bool const bMainAttacker = (eDefaultUnitAI == UNITAI_ATTACK || eDefaultUnitAI == UNITAI_ATTACK_CITY || eDefaultUnitAI == UNITAI_COUNTER);
+		if (!bMainAttacker || kLoopUnit.getDomainType() != DOMAIN_LAND || kLoopUnit.getCombat() <= 0 || kLoopUnit.getUnitCombatType() == eSiegeCombat || !kCity.canTrain(eLoopUnit))
+			continue;
+		if (100 * kLoopUnit.getCombat() < std::max(1, iMinStrengthPercent) * std::max(1, iSiegeStrength))
+			continue;
+		if (kLoopUnit.getCombat() > iBestStrength)
+		{
+			eBestUnit = eLoopUnit;
+			iBestStrength = kLoopUnit.getCombat();
+		}
+	}
+	if (piBestStrength != NULL) *piBestStrength = iBestStrength;
+	return eBestUnit;
+}
+
+// <!-- custom: Targeted diagnostics for possible AI Work Boat overproduction.
+// City logs showed many Work Boat pushes/finishes after the earlier iLookAhead=0 fix, so log every worker-sea production source plus the exact worker-sea target bonuses when worker-sea logging is high. No behavior change. See KI#157. (GPT-5.5) -->
 static void logSASWorkerSeaChooseDetail(char const* szBranch, CvCityAI const& kCity, CvArea const* pRelevantWaterArea, int iCityPopulation, int iNeededSeaWorkers, int iExistingSeaWorkers, bool bWaterDanger, bool bFinancialTrouble)
 {
 	CvPlayerAI const& kPlayer = GET_PLAYER(kCity.getOwner());
@@ -7210,67 +7240,43 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 						}
 					}
 				}
-				// <!-- custom: else let city handle what it wants, it is unclear that going early for barracks is the better choice, especially if low on hammer, we won't produce any units with it or barely any units, so leave free choice rather here (e.g. a granary could be better, as we grow faster so more tiles to work so more units indirectly stronger army as we want if we can grow or we'd slow more, or a library could be better so we unlock next offensive or defensive unit that will save us or make us win or gain big advantage or gain a longtemr scientific advantage/gain overall maybe too), so don't always favour barracks-like buildings, except in cases where we expect significant and quite reliable gains in this case at least i mean -->
+				// <!-- custom: Else let city handle what it wants, it is unclear that going early for barracks is the better choice, especially if low on hammer, we won't produce any units with it or barely any units, so leave free choice rather here (e.g. a granary could be better, as we grow faster so more tiles to work so more units indirectly stronger army as we want if we can grow or we'd slow more.
+				// Or a library could be better so we unlock next offensive or defensive unit that will save us or make us win or gain big advantage or gain a longtemr scientific advantage/gain overall maybe too), so don't always favour barracks-like buildings, except in cases where we expect significant and quite reliable gains in this case at least i mean -->
 			}
 
-			// --- Hard rule: don't build Stables without horses/camels <!-- custom: or elephants as it noticed and suggested itself while i had forgotten as in overlooked it rather as i didn't think of it at all xd in this case -->--------------------
+			// <!-- custom: Don't build the configured specialized unit-experience building without a unit that can use it. (GPT-5.6-Sol) -->
 			static const BuildingClassTypes eBuildingClassStable = (BuildingClassTypes)GC.getInfoTypeForString(GC.getDefineSTRING("SAS_AI_BUILDING_VALUE_MOUNTED_UNITS_EXP_BUILDINGCLASS_NAME"));
 
 			const bool bBuildingClassStable = (eBuildingClassStable != NO_BUILDINGCLASS && eBuildingClass == eBuildingClassStable);
 
 			if (bBuildingClassStable)
 			{
-				static const BonusTypes B_HORSE  = (BonusTypes)GC.getInfoTypeForString(GC.getDefineSTRING("SAS_MOUNTED_UNITS_BONUS_NAME_1"));
-				static const BonusTypes B_CAMEL  = (BonusTypes)GC.getInfoTypeForString(GC.getDefineSTRING("SAS_MOUNTED_UNITS_BONUS_NAME_2"));
-				static const BonusTypes B_ELEPHANTS  = (BonusTypes)GC.getInfoTypeForString(GC.getDefineSTRING("SAS_MOUNTED_UNITS_BONUS_NAME_3"));
-				// <!-- custom: note: using city's `hasBonus(` instead of `getNumAvailableBonuses(` in other places in the code, as recommended by chatgpt 5, check if accurate -->
-				//
-				// pCity->hasBonus(eBonus)
-				// - City-level connectivity: “Is this specific city’s plot-group connected to ≥1 of eBonus?"
-				// - Internally this is essentially city.plot().getOwnerPlotGroup()->getNumBonuses(eBonus) > 0 (null-safe).
-				// - Use this to gate a building in this city (e.g., Stable in this city).
-				//
-				// kOwner.hasBonus(eBonus)
-				// - Any connected city: loops all cities and returns true if any city’s plot-group has the bonus.
-				// - Good for empire-level boolean (“can we build mounted somewhere?"), but not for a specific city gate.
-				//
-				// kOwner.getNumAvailableBonuses(eBonus)
-				// - Capital plot-group only: counts copies on the capital’s network.
-				// - Fast O(1), but misses disconnected networks (overseas before Sailing, blockades, pillaged roads, etc.).
-				// - Don’t use this to decide if “the empire has it somewhere"; it will false-negative when a non-capital network has the resource.
-				//
-				const bool bCityHasHorse = (B_HORSE != NO_BONUS && hasBonus(B_HORSE));
-				const bool bCityHasCamel = (B_CAMEL != NO_BONUS && hasBonus(B_CAMEL));
-				const bool bCityHasElephants = (B_ELEPHANTS != NO_BONUS && hasBonus(B_ELEPHANTS));
-
-				// Mounted line tech gate (simple + cheap).
-				static const TechTypes eTechMountedCombat = (TechTypes)GC.getInfoTypeForString(GC.getDefineSTRING("SAS_MOUNTED_UNITS_TECH_NAME"));
-
-				if (eTechMountedCombat != NO_TECH && kTeam.isHasTech(eTechMountedCombat))
+				// <!-- custom: The prior Stable gate named Horse, Camel, Elephants and one mounted technology, so XML changes or civilization-specific units could make it reject a useful building or accept a useless one.
+				// Check this civilization's units against the building's actual UnitCombat experience and call canTrain only for matching units; this derives all technology, resource, obsolescence and local-network requirements from the normal rules. (GPT-5.6-Sol) -->
+				bool bCanTrainBenefitingUnit = false;
+				CvCivilization const& kCiv = getCivilization();
+				for (int i = 0; i < kCiv.getNumUnits(); i++)
 				{
-					// No mounts<!-- custom: -unlocking bonuses -->connected to this city ⇒ Stable is wasted; skip it.
-					if (!bCityHasHorse && !bCityHasCamel && !bCityHasElephants)
-					{
-						return 0;
-					}
-					else
-					{
-						if (bEnemyStrong)
-						{
-							// <!-- custom: even if we can build advanced mounted units like the horse archer or such, we probably don't have the hammer to spare and simply don't want to die, go for short term immediate units / benefits in this case, at least value lowly such a building(i hope this is interpreted elsewhere as not building it rather than last else may be worse xd) -->
-							return 0;
-						}
-						else if (bAtWarAndEnemyWeak || bWarPlan)
-						{
-							// <!-- custom: if we're strong (i.e. if ennemy(ies) is weak) and we can build advanced mounted units like the horse archer or the war elephant (if not more advanced ones, maybe a check on has tech tech_mounted_combat is simplest?), consider urgently/strongly going/to gofor a stable first, we can afford to spend the time doing so, and can expect higher benefits short-mid and long term, should be much better than not building it -->
-							return AI_BUILDING_ALWAYS_PICK_FIRST;
-						}
-					}
+					UnitTypes const eUnit = kCiv.unitAt(i);
+					UnitCombatTypes const eUnitCombat = GC.getInfo(eUnit).getUnitCombatType();
+					if (eUnitCombat == NO_UNITCOMBAT || kBuilding.getUnitCombatFreeExperience(eUnitCombat) <= 0 || !canTrain(eUnit))
+						continue;
+					bCanTrainBenefitingUnit = true;
+					break;
 				}
-				// <!-- custom: no point to build it at least not yet, reevaluate later in this caseand use the hammer for more meaningful or relevant tasks -->
-				else
-				{
+
+				// <!-- custom: No currently trainable unit receives this building's specialized experience, so spend the hammers elsewhere and reevaluate when the city's technology or connected resources change. (GPT-5.6-Sol) -->
+				if (!bCanTrainBenefitingUnit)
 					return 0;
+				if (bEnemyStrong)
+				{
+					// <!-- custom: Even when a matching unit is available, a city facing a stronger enemy needs immediate units rather than delayed experience. (GPT-5.6-Sol) -->
+					return 0;
+				}
+				if (bAtWarAndEnemyWeak || bWarPlan)
+				{
+					// <!-- custom: When preparing a war or already winning one, build the specialized experience building first because repeated production of matching units can repay the delay. (GPT-5.6-Sol) -->
+					return AI_BUILDING_ALWAYS_PICK_FIRST;
 				}
 			}
 
@@ -14925,9 +14931,20 @@ bool CvCityAI::AI_chooseUnit(UnitTypes eUnit, UnitAITypes eUnitAI, bool* pbRetry
 
 					static const bool bNoExcessTrebuchetsLike = GC.getDefineBOOL("SAS_NO_EXCESS_TREBUCHETS_LIKE");
 
-					static const int iSAS_NO_EXCESS_SIEGES_PRE_RENAISSANCE_NO_KEY_EARLY_STRATEGIC_BONUS_MODIFIER = GC.getDefineINT("SAS_NO_EXCESS_SIEGES_PRE_RENAISSANCE_NO_KEY_EARLY_STRATEGIC_BONUS_MODIFIER");
+					static const int iNoUsefulNonSiegeAttackerModifier = GC.getDefineINT("SAS_NO_EXCESS_SIEGES_PRE_RENAISSANCE_NO_USEFUL_NON_SIEGE_ATTACKER_MODIFIER");
+					static const int iUsefulNonSiegeMinStrengthPercent = GC.getDefineINT("SAS_NO_EXCESS_SIEGES_USEFUL_NON_SIEGE_MIN_STRENGTH_PERCENT");
 
 					static const bool bNoExcessSiegesAll = GC.getDefineBOOL("SAS_AI_CHOOSE_UNIT_NO_EXCESS_SIEGES_ALL");
+					bool const bNeedEarlySiegeAlternative = (!bRenaissancePlus && iNoUsefulNonSiegeAttackerModifier != 0 && ((bTrebuchetLike && bNoExcessTrebuchetsLike) || bNoExcessSiegesAll));
+					int iUsefulNonSiegeStrength = 0;
+					UnitTypes const eUsefulNonSiegeUnit = (bNeedEarlySiegeAlternative ? SAS_bestUsefulNonSiegeLandAttacker(*this, eUnitCombatSiege, pUnitInfo->getCombat(), iUsefulNonSiegeMinStrengthPercent, &iUsefulNonSiegeStrength) : NO_UNIT);
+					bool const bHaveUsefulNonSiegeAttacker = (!bNeedEarlySiegeAlternative || eUsefulNonSiegeUnit != NO_UNIT);
+					if (bLogDetailedMilitaryProduction && bNeedEarlySiegeAlternative)
+					{
+						logBBAI("MILITARY_PRODUCTION_SIEGE_ALTERNATIVE turn=%d player=%d %S city=%S cityId=%d siege=%s siegeStrength=%d usefulNonSiege=%s usefulNonSiegeStrength=%d minStrengthPercent=%d",
+							GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(), GC.getInfo(eChangedUnit).getType(), pUnitInfo->getCombat(),
+							(bHaveUsefulNonSiegeAttacker ? GC.getInfo(eUsefulNonSiegeUnit).getType() : "-"), iUsefulNonSiegeStrength, iUsefulNonSiegeMinStrengthPercent);
+					}
 
 					// Trebuchet-like stricter rule
 					if (bTrebuchetLike && bNoExcessTrebuchetsLike)
@@ -14962,12 +14979,9 @@ bool CvCityAI::AI_chooseUnit(UnitTypes eUnit, UnitAITypes eUnitAI, bool* pbRetry
 
 						if (!bRenaissancePlus)
 						{
-							// <!-- custom: save some computation by computing this in this sub scope rather (in later eras we don't check this anymore as of now, plus we start to have many unit orders and cities, so save some computation if we can; ideally should refactor this a bit but hopefully maybe also not too bad as such i mean)-->
-							const bool bHaveAnyKeyEarlyStrategicBonuses = kPlayer.getNumAvailableBonusesHaveAnyKeyEarlyStrategicBonuses();
-
-							if (!bHaveAnyKeyEarlyStrategicBonuses)
+							if (!bHaveUsefulNonSiegeAttacker)
 							{
-								iCapTrebs += (iCapTrebs * iSAS_NO_EXCESS_SIEGES_PRE_RENAISSANCE_NO_KEY_EARLY_STRATEGIC_BONUS_MODIFIER) / 100;
+								iCapTrebs += (iCapTrebs * iNoUsefulNonSiegeAttackerModifier) / 100;
 							}
 						}
 
@@ -15007,12 +15021,9 @@ bool CvCityAI::AI_chooseUnit(UnitTypes eUnit, UnitAITypes eUnitAI, bool* pbRetry
 								iCapSiegesAll = 10; // <!-- custom: avoid adding too much--> narrow-purpose siege when not stronger
 							}
 
-							// <!-- custom: save some computation by computing this in this sub scope rather (in later eras we don't check this anymore as of now, plus we start to have many unit orders and cities, so save some computation if we can; ideally should refactor this a bit but hopefully maybe also not too bad as such i mean)-->
-							const bool bHaveAnyKeyEarlyStrategicBonuses = kPlayer.getNumAvailableBonusesHaveAnyKeyEarlyStrategicBonuses();
-
-							if (!bHaveAnyKeyEarlyStrategicBonuses)
+							if (!bHaveUsefulNonSiegeAttacker)
 							{
-								iCapSiegesAll += (iCapSiegesAll * iSAS_NO_EXCESS_SIEGES_PRE_RENAISSANCE_NO_KEY_EARLY_STRATEGIC_BONUS_MODIFIER) / 100;
+								iCapSiegesAll += (iCapSiegesAll * iNoUsefulNonSiegeAttackerModifier) / 100;
 							}
 
 							// <!-- custom: pre renaissance, be wary to not overproduce siege, they are not useful at defense for AIs -->

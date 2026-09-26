@@ -1225,9 +1225,9 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 
 
 
-	<!-- custom: value iAIObjective bonuses especially more to settle on first, could be critical for our life and death (ideally check if obsolete too). Not having copper or iron may make us die, so really value it more; Long_Comments_XML.txt #158 -->
+	<!-- custom: Multiplier for the candidate owner's cached dynamic bonus value in non-home BFC settlement scoring. Unlike the former iAIObjective multiplier, this follows civilization-specific units/buildings/projects/routes, era relevance, obsolescence and substitutes. (GPT-5.6-Sol) -->
 	<Define>
-		<DefineName>SAS_EVALUATE_EXTRA_VALUE_NOT_HOME_BONUS_IAIOBJECTIVE_MULTIPLIER</DefineName>
+		<DefineName>SAS_EVALUATE_EXTRA_VALUE_NOT_HOME_BONUS_DYNAMIC_VALUE_MULTIPLIER</DefineName>
 		<iDefineIntVal>50</iDefineIntVal>
 	</Define>
 
@@ -1647,6 +1647,11 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_BBAI_DEAL_CANCEL_LOG_LEVEL</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
+	<!-- custom: Shared dynamic bonus-value and resource-trade diagnostics. Level 2 logs changed happiness/health, unit, building, project and route component totals; level 3 also identifies the XML assets contributing to those totals and traces the active multi-effect and market-pricing stages. Worker and Found logs retain their consumer-specific plot decisions. (GPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_BBAI_BONUS_LOG_LEVEL</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
 	<!-- custom: BBAI player score-detail log interval in turns. Only used when SAS_BBAI_PLAYER_LOG_LEVEL > 0; clamped to at least 1 to avoid invalid modulo. Base AdvCiv BBAILog.h default: LOG_AI enabled 100; disabled fallback effectively 10000; advc.007 says this was hardcoded to 25 in CvPlayer::onTurnLogging before BBAILog.h. (GPT-5.5?) -->
 	<Define>
 		<DefineName>SAS_BBAI_SCORE_LOG_INTERVAL_TURNS_UNSCALED_GAMESPEED</DefineName>
@@ -1884,6 +1889,11 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_AI_WORKER_CITY_JOB_PATH_TURN_VALUE_PENALTY</DefineName>
 		<iDefineIntVal>25</iDefineIntVal>
 	</Define>
+	<!-- custom: Multiplier converting a candidate bonus's marginal dynamic value to the cross-city Worker-job score scale. First copies and civilization-specific unlocks receive priority; substitutes and extra copies naturally reduce it. (GPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_AI_WORKER_CITY_JOB_BONUS_DYNAMIC_VALUE_MULTIPLIER</DefineName>
+		<iDefineIntVal>15000</iDefineIntVal>
+	</Define>
 	<!-- custom: maximum city population where workers may leave a city early just because it already has population + buffer improved BFC tiles. This keeps the original anti-overimprove behavior for small/early cities, but prevents medium and large cities from being declared "done" while useful blank BFC plots remain available for food/hammer/commerce flexibility. Set to 0 to disable this early-leave shortcut. (ChatGPT-5.5) -->
 	<Define>
 		<DefineName>SAS_AI_WORKER_OVERIMPROVE_SKIP_MAX_CITY_POPULATION</DefineName>
@@ -1924,7 +1934,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_WORKER_AI_PHASE0_PRODUCTIVE_FEATURE_CHOP_CORE_FOOD_UNIT_MIN_REMAINING_TURNS_NORMAL_GAMESPEED</DefineName>
 		<iDefineIntVal>6</iDefineIntVal>
 	</Define>
-	<!-- custom: Bonus worker scoring mostly used by CvUnitAI::AI_bestCityBuild. These values preserve previous AdvCiv-SAS bonus-branch behavior while making the custom priorities tunable from XML. FEATURE_STEP_VALUE covers a feature-preserving bonus Build or a pure XML-discovered removal step before the final bonus-specific Build; harmful-feature urgency is added dynamically from the feature's yields, health, happiness, turn damage, removal production and Worker time. SPECIFIC_BUILD_BASE_VALUE is the base priority once the bonus-specific Build is available. Yield and AIObjective values then order high-food, strategic/production, commerce, and XML-marked critical bonuses against each other. IMPROVE_BONUS_AI_OBJECTIVE_VALUE_PER_POINT is for CvUnitAI::AI_improveBonus target selection across the map, so it keeps the larger previous AdvCiv-SAS scale. FOOD_FALLBACK lets the Worker select any legal XML improvement that immediately raises a bonus plot to the minimum resulting food; by default it applies only when the real bonus improvement unlocks in Medieval or later eras (2 = ERA_MEDIEVAL), so Workers do not spend early turns on temporary improvements when the real one is close. (GPT-5.5 + GPT-5.6-Sol) -->
+	<!-- custom: Bonus worker scoring mostly used by CvUnitAI::AI_bestCityBuild. FEATURE_STEP_VALUE covers feature-preserving Builds or XML-discovered removal before the final bonus Build; harmful-feature urgency is derived from its effects, removal production and Worker time. SPECIFIC_BUILD_BASE_VALUE applies once the bonus Build is available. Yield and dynamic bonus values then order plot output and strategic importance without resource labels; IMPROVE_BONUS_DYNAMIC_VALUE_MULTIPLIER adapts that value to AI_improveBonus's larger scale. FOOD_FALLBACK permits any legal improvement that immediately reaches the minimum food when the real bonus Build unlocks in Medieval or later eras by default (2 = ERA_MEDIEVAL). (GPT-5.5 + GPT-5.6-Sol) -->
 	<Define>
 		<DefineName>SAS_WORKER_AI_BONUS_FEATURE_STEP_VALUE</DefineName>
 		<iDefineIntVal>19000</iDefineIntVal>
@@ -1946,16 +1956,16 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<iDefineIntVal>1000</iDefineIntVal>
 	</Define>
 	<Define>
-		<DefineName>SAS_WORKER_AI_BONUS_AI_OBJECTIVE_APPLY_MIN_VALUE</DefineName>
+		<DefineName>SAS_WORKER_AI_BONUS_DYNAMIC_VALUE_APPLY_MIN_VALUE</DefineName>
 		<iDefineIntVal>10000</iDefineIntVal>
 	</Define>
 	<Define>
-		<DefineName>SAS_WORKER_AI_BONUS_AI_OBJECTIVE_VALUE_PER_POINT</DefineName>
-		<iDefineIntVal>2000</iDefineIntVal>
+		<DefineName>SAS_WORKER_AI_BONUS_DYNAMIC_VALUE_MULTIPLIER</DefineName>
+		<iDefineIntVal>1250</iDefineIntVal>
 	</Define>
 	<Define>
-		<DefineName>SAS_WORKER_AI_IMPROVE_BONUS_AI_OBJECTIVE_VALUE_PER_POINT</DefineName>
-		<iDefineIntVal>20000</iDefineIntVal>
+		<DefineName>SAS_WORKER_AI_IMPROVE_BONUS_DYNAMIC_VALUE_MULTIPLIER</DefineName>
+		<iDefineIntVal>12500</iDefineIntVal>
 	</Define>
 	<Define>
 		<DefineName>SAS_WORKER_AI_BONUS_FOOD_FALLBACK_MIN_RESULT_FOOD</DefineName>
@@ -2033,37 +2043,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_WORKER_AI_IRRIGATION_CHAIN_OTHER_IMPROVEMENT_OVERWRITE_PENALTY</DefineName>
 		<iDefineIntVal>2200</iDefineIntVal>
 	</Define>
-	<Define>
-		<DefineName>SAS_KEY_STRATEGIC_METAL_BONUS_NAME_1</DefineName>
-		<DefineTextVal>BONUS_COPPER</DefineTextVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_KEY_STRATEGIC_METAL_BONUS_NAME_2</DefineName>
-		<DefineTextVal>BONUS_IRON</DefineTextVal>
-	</Define>
-
-
-
-	<!-- custom: used in various places in the advciv-sas added AI code, adjust as per your XML -->
-	<Define>
-		<DefineName>SAS_MOUNTED_UNITS_BONUS_NAME_1</DefineName>
-		<DefineTextVal>BONUS_HORSE</DefineTextVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_MOUNTED_UNITS_BONUS_NAME_2</DefineName>
-		<DefineTextVal>BONUS_CAMEL</DefineTextVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_MOUNTED_UNITS_BONUS_NAME_3</DefineName>
-		<DefineTextVal>BONUS_ELEPHANTS</DefineTextVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_MOUNTED_UNITS_TECH_NAME</DefineName>
-		<DefineTextVal>TECH_MOUNTED_COMBAT</DefineTextVal>
-	</Define>
-
-
-
 	<!-- custom: Long_Comments_XML.txt #198 -->
 	<Define>
 		<DefineName>SAS_AI_BUILDING_VALUE_OPTIMIZE</DefineName>
@@ -2504,10 +2483,15 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_AI_CHOOSE_UNIT_NO_EXCESS_SIEGES</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
-	<!-- custom: we need more siege units early if we don't have key strategic bonuses; Long_Comments_XML.txt #181 -->
+	<!-- custom: Percent by which to raise the pre-Renaissance siege-share caps when the producing city has no currently trainable non-siege main attacker meeting the relative-strength floor below. The former Copper/Iron/Horse/Camel/Elephants test could miss civilization-specific, mod-added, and no-resource alternatives while treating an inaccessible capital-network resource as universally useful. 100 doubles the ordinary cap; 0 gives no exception. Long_Comments_XML.txt #181. (GPT-5.6-Sol) -->
 	<Define>
-		<DefineName>SAS_NO_EXCESS_SIEGES_PRE_RENAISSANCE_NO_KEY_EARLY_STRATEGIC_BONUS_MODIFIER</DefineName>
+		<DefineName>SAS_NO_EXCESS_SIEGES_PRE_RENAISSANCE_NO_USEFUL_NON_SIEGE_ATTACKER_MODIFIER</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<!-- custom: Minimum combat strength of a currently trainable non-siege main attacker, as percent of the candidate siege unit's strength, for keeping the ordinary early siege cap. 80 counts a strength-4 Spearman against a strength-5 Catapult, matching the useful alternatives recognized by the former named-resource test, while an obsolete strength-2 Warrior cannot suppress the no-alternative exception. Minimum 1. (GPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_NO_EXCESS_SIEGES_USEFUL_NON_SIEGE_MIN_STRENGTH_PERCENT</DefineName>
+		<iDefineIntVal>80</iDefineIntVal>
 	</Define>
 	<!-- custom: general toggle for trebuchet-like units (any siege unit that has as of now >= 50% city attack modifier is guessed to be weak in other areas and so to be a trebuchet for us). -->
 	<Define>
@@ -2737,138 +2721,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	<Define>
 		<DefineName>SAS_AI_BONUS_TRADE_VAL_VALUE_MORE_MULTI_EFFECT_BONUSES</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
-
-
-
-	<!-- custom: enable hard "do not buy dominated or equivalent strategic bonus" rules; Long_Comments_XML.txt #362. (GPT-5.3-Codex) -->
-	<Define>
-		<DefineName>SAS_AI_BONUS_TRADE_ZERO_DOMINATED_STRATEGIC_BUYS</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
-
-
-
-	<!-- custom: Long_Comments_XML.txt #206 -->
-	<Define>
-		<DefineName>SAS_AI_BONUS_TRADE_VAL_VALUE_MORE_AI_OBJECTIVE_BONUSES</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_BONUS_TRADE_AI_OBJECTIVE_PER_POINT_PERCENT</DefineName>
-		<iDefineIntVal>10</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_BONUS_TRADE_AI_OBJECTIVE_MAX_PERCENT</DefineName>
-		<iDefineIntVal>200</iDefineIntVal>
-	</Define>
-	<!--
-	// - 2) Simple substitute multipliers for key strategics (edge rules) -
-	-->
-	<Define>
-		<DefineName>SAS_AI_BONUS_TRADE_VAL_VALUE_MORE_IRON_COPPER_HORSE_CAMEL_RELATIVELY</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
-	<!-- custom: here is the logic i drafted (updated bit but refer to below code comments per define rather for clarity with updated values there as well) to chatgpt 5 after some back and forth and consideration: -->
-	<!-- custom: Long_Comments_XML.txt #109 -->
-	<!-- Pre-Medieval: boost mounts if you have NO Horse/Camel/Elephants. 100=off, 150=+50%. -->
-	<Define>
-		<DefineName>SAS_AI_BONUS_TRADE_VAL_RELATIVE_BONUSES_PREMED_NO_MOUNT_PCT</DefineName>
-		<iDefineIntVal>150</iDefineIntVal>
-	</Define>
-	<!-- Pre-Medieval: boost metals if you have NO Iron/Copper. 100=off, 150=+50%. -->
-	<Define>
-		<DefineName>SAS_AI_BONUS_TRADE_VAL_RELATIVE_BONUSES_PREMED_NO_METAL_PCT</DefineName>
-		<iDefineIntVal>150</iDefineIntVal>
-	</Define>
-
-
-
-	<!-- Medieval: if you LACK mounts but HAVE metals, how much to boost mounts (Knights). 200=+100%. -->
-	<Define>
-		<DefineName>SAS_AI_BONUS_TRADE_VAL_RELATIVE_BONUSES_MED_NO_MOUNT_WITH_METAL_PCT</DefineName>
-		<iDefineIntVal>200</iDefineIntVal>
-	</Define>
-	<!-- Medieval: if you LACK mounts and LACK metals, mounts are weaker (Knights blocked). 75=−25%. -->
-	<Define>
-		<DefineName>SAS_AI_BONUS_TRADE_VAL_RELATIVE_BONUSES_MED_NO_MOUNT_NO_METAL_PCT</DefineName>
-		<iDefineIntVal>75</iDefineIntVal>
-	</Define>
-	<!-- Medieval: if you LACK metals but HAVE mounts, how much to boost IRON. 200=+100%. -->
-	<Define>
-		<DefineName>SAS_AI_BONUS_TRADE_VAL_RELATIVE_BONUSES_MED_NO_METAL_WITH_MOUNT_IRON_PCT</DefineName>
-		<iDefineIntVal>200</iDefineIntVal>
-	</Define>
-	<!-- Medieval: if you LACK metals but HAVE mounts, how much to value COPPER. 75=−25%. -->
-	<Define>
-		<DefineName>SAS_AI_BONUS_TRADE_VAL_RELATIVE_BONUSES_MED_NO_METAL_WITH_MOUNT_COPPER_PCT</DefineName>
-		<iDefineIntVal>75</iDefineIntVal>
-	</Define>
-	<!-- Medieval: if you LACK metals AND LACK mounts, IRON baseline. 100=no change. -->
-	<Define>
-		<DefineName>SAS_AI_BONUS_TRADE_VAL_RELATIVE_BONUSES_MED_NO_METAL_NO_MOUNT_IRON_PCT</DefineName>
-		<iDefineIntVal>100</iDefineIntVal>
-	</Define>
-	<!-- Medieval: if you LACK metals AND LACK mounts, COPPER is low. 50=−50%. -->
-	<Define>
-		<DefineName>SAS_AI_BONUS_TRADE_VAL_RELATIVE_BONUSES_MED_NO_METAL_NO_MOUNT_COPPER_PCT</DefineName>
-		<iDefineIntVal>50</iDefineIntVal>
-	</Define>
-	<!-- Medieval+: Elephants are basically for buildings only. 50=−50% from Medieval onward. -->
-	<Define>
-		<DefineName>SAS_AI_BONUS_TRADE_VAL_RELATIVE_BONUSES_MED_PLUS_ELEPHANT_PCT</DefineName>
-		<iDefineIntVal>50</iDefineIntVal>
-	</Define>
-	<!-- Medieval+: Copper loses military relevance. 50=−50% from Medieval onward. -->
-	<Define>
-		<DefineName>SAS_AI_BONUS_TRADE_VAL_RELATIVE_BONUSES_MED_PLUS_COPPER_PCT</DefineName>
-		<iDefineIntVal>50</iDefineIntVal>
-	</Define>
-
-
-
-	<!-- custom: note: as of now copper exception (alternative bonus to iron) for Holy Roman Empire's new HOLY_ROMAN_HOUFNICE is not handled to simplify and as is bit tedious, may or not do so in the future -->
-	<!-- Renaissance: LACK mounts + HAVE IRON → modest mount boost (Cuirassiers path) -->
-	<Define>
-		<DefineName>SAS_AI_BONUS_TRADE_VAL_RELATIVE_BONUSES_REN_NO_MOUNT_WITH_IRON_PCT</DefineName>
-		<iDefineIntVal>150</iDefineIntVal>
-	</Define>
-	<!-- Renaissance: LACK mounts + LACK IRON → small mount discount -->
-	<Define>
-		<DefineName>SAS_AI_BONUS_TRADE_VAL_RELATIVE_BONUSES_REN_NO_MOUNT_NO_IRON_PCT</DefineName>
-		<iDefineIntVal>75</iDefineIntVal>
-	</Define>
-	<!-- Renaissance: LACK IRON + HAVE mounts → push IRON (Cannons + Cuirassiers path) -->
-	<Define>
-		<DefineName>SAS_AI_BONUS_TRADE_VAL_RELATIVE_BONUSES_REN_NO_IRON_WITH_MOUNT_IRON_PCT</DefineName>
-		<iDefineIntVal>200</iDefineIntVal>
-	</Define>
-	<!-- custom: cannons could use iron, if we don't have mounts and not yet muskets, this is a great option, even if we can, not too bad to have as well for our attacks -->
-	<!-- Renaissance: LACK IRON + LACK mounts → still push IRON (Cannons path) -->
-	<Define>
-		<DefineName>SAS_AI_BONUS_TRADE_VAL_RELATIVE_BONUSES_REN_NO_IRON_NO_MOUNT_IRON_PCT</DefineName>
-		<iDefineIntVal>150</iDefineIntVal>
-	</Define>
-
-
-
-	<!-- Industrial+: Camel fades (no relevant units). 50=−50%. -->
-	<Define>
-		<DefineName>SAS_AI_BONUS_TRADE_VAL_RELATIVE_BONUSES_IND_PLUS_CAMEL_PCT</DefineName>
-		<iDefineIntVal>50</iDefineIntVal>
-	</Define>
-	<!-- Industrial: Horse still matters (Cavalry). 100=no change. -->
-	<Define>
-		<DefineName>SAS_AI_BONUS_TRADE_VAL_RELATIVE_BONUSES_IND_HORSE_BASE_PCT</DefineName>
-		<iDefineIntVal>100</iDefineIntVal>
-	</Define>
-
-
-
-	<!-- Modern+: Horse fades (no relevant units). 50=−50%. -->
-	<Define>
-		<DefineName>SAS_AI_BONUS_TRADE_VAL_RELATIVE_BONUSES_MOD_PLUS_HORSE_PCT</DefineName>
-		<iDefineIntVal>50</iDefineIntVal>
 	</Define>
 
 
@@ -3357,20 +3209,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 
 
 
-	<!-- custom: whichever XML name is for the water food building class (in advciv-sas the harbor buildings give +1 food on water tile, adjust based on your building info xml to prioritize building this if low food and coastal if you want to) -->
-	<Define>
-		<DefineName>SAS_WATER_FOOD_BUILDING_BUILDINGCLASS_FULL_NAME</DefineName>
-		<DefineTextVal>BUILDINGCLASS_HARBOR</DefineTextVal>
-	</Define>
-	<!-- custom: similarly, XML name of the water hammer building class, adjust based on your xml names/assets (e.g. if it's no longer the port class in your mod) -->
-	<Define>
-		<DefineName>SAS_WATER_HAMMER_BUILDING_BUILDINGCLASS_FULL_NAME</DefineName>
-		<DefineTextVal>BUILDINGCLASS_PORT</DefineTextVal>
-	</Define>
-
-
-
-	<!-- custom: water food building (as of now building_harbor) emergency/force production choice for a city if it is low food and coastal. Set to 1 to enable (recommended, fixes AI cities in autoplay stagnant for dozen turns while being coastal and surrounded by tundra, but never building a harbor (or whatever building the water food building is)), 0 to disable it -->
+	<!-- custom: Emergency/force the most hammer-efficient currently constructible building with a positive sea-plot food change when a coastal city has low food. Set to 1 to enable; this fixed coastal tundra AI cities that otherwise remained stagnant for dozens of turns. The building is discovered from civilization-specific XML rather than a configured class name. (GPT-5.6-Sol) -->
 	<Define>
 		<DefineName>SAS_DO_TURN_FORCE_WATER_FOOD_BUILDING</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
@@ -3380,7 +3219,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_DO_TURN_FORCE_WATER_FOOD_BUILDING_FOOD_THRESHOLD</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
-	<!-- custom: force the water hammer building class above (Port in AdvCiv-SAS) for non-human coastal cities that are big enough but still have low production or low food surplus. Port can take significant time, but these cities are not likely to contribute much short-term production anyway; if not in immediate danger, making their water tiles produce hammer first should make them much more useful later. Defense emergencies still run earlier in CvCity::doTurn, so Castle/defense can still go before Port when needed. (GPT-5.5) -->
+	<!-- custom: Force the most hammer-efficient currently constructible building with a positive sea-plot production change for non-human coastal cities that are big enough but still have low production or low food surplus. Such a building can take significant time, but these cities are not likely to contribute much short-term production anyway; if not in immediate danger, making their water plots produce hammers first should make them much more useful later. Defense emergencies still run earlier in CvCity::doTurn. The building is discovered from civilization-specific XML rather than a configured class name. (GPT-5.5 + GPT-5.6-Sol) -->
 	<Define>
 		<DefineName>SAS_DO_TURN_FORCE_WATER_HAMMER_BUILDING</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>

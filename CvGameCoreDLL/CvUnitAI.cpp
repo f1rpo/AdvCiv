@@ -3819,7 +3819,8 @@ static SASWorkerCityYieldAnalysis SAS_getWorkerCityYieldAnalysis(CvUnitAI const&
 			BonusTypes const eBonus = kBFCPlot.getNonObsoleteBonusType(kUnit.getTeam());
 			if (eBonus != NO_BONUS)
 			{
-				kResult.iMineFoodSupportPressure += std::min(3, std::max(0, GC.getBonusInfo(eBonus).getAIObjective()) / 4);
+				// <!-- custom: A dynamically valuable hill bonus makes its food-consuming improvement more likely to matter; use the owning player's cached value instead of a timeless XML AIObjective label. (GPT-5.6-Sol) -->
+				kResult.iMineFoodSupportPressure += std::min(3, std::max(0, GET_PLAYER(kUnit.getOwner()).AI_baseBonusVal(eBonus)) / 4);
 				kResult.iMineFoodSupportPressure += std::max(0, GC.getBonusInfo(eBonus).getYieldChange(YIELD_PRODUCTION));
 			}
 		}
@@ -4178,8 +4179,8 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 	static const int iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_FOOD = GC.getDefineINT("SAS_WORKER_AI_BONUS_YIELD_VALUE_PER_FOOD");
 	static const int iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_PRODUCTION = GC.getDefineINT("SAS_WORKER_AI_BONUS_YIELD_VALUE_PER_PRODUCTION");
 	static const int iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_COMMERCE = GC.getDefineINT("SAS_WORKER_AI_BONUS_YIELD_VALUE_PER_COMMERCE");
-	static const int iSAS_WORKER_AI_BONUS_AI_OBJECTIVE_APPLY_MIN_VALUE = GC.getDefineINT("SAS_WORKER_AI_BONUS_AI_OBJECTIVE_APPLY_MIN_VALUE");
-	static const int iSAS_WORKER_AI_BONUS_AI_OBJECTIVE_VALUE_PER_POINT = GC.getDefineINT("SAS_WORKER_AI_BONUS_AI_OBJECTIVE_VALUE_PER_POINT");
+	static const int iSAS_WORKER_AI_BONUS_DYNAMIC_VALUE_APPLY_MIN_VALUE = GC.getDefineINT("SAS_WORKER_AI_BONUS_DYNAMIC_VALUE_APPLY_MIN_VALUE");
+	static const int iSAS_WORKER_AI_BONUS_DYNAMIC_VALUE_MULTIPLIER = GC.getDefineINT("SAS_WORKER_AI_BONUS_DYNAMIC_VALUE_MULTIPLIER");
 	static const int iSAS_WORKER_AI_BONUS_FOOD_FALLBACK_MIN_RESULT_FOOD = GC.getDefineINT("SAS_WORKER_AI_BONUS_FOOD_FALLBACK_MIN_RESULT_FOOD");
 	static const int iSAS_WORKER_AI_BONUS_FOOD_FALLBACK_VALUE = GC.getDefineINT("SAS_WORKER_AI_BONUS_FOOD_FALLBACK_VALUE");
 	static const int iSAS_WORKER_AI_FEATURE_REMOVAL_FOLLOWUP_MIN_VALUE = GC.getDefineINT("SAS_WORKER_AI_FEATURE_REMOVAL_FOLLOWUP_MIN_VALUE");
@@ -4618,16 +4619,11 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 				}
 			}
 
-			// <!-- custom: i have noticed we improve bonuses in an order that is not optimal to us (e.g. stone before copper, wasting critical 5-10 turns that would have helped us a lot), so add logic to improve them first (if we can). To not hardcode it all, use <iAIObjective> xml field that we added to some bonuses as well. The critical ones are as of now copper, iron, horse, camel, aluminium. If we have the choice between 2 bonuses, one of which is in the <iAIObjective> valued ones, we should really try to improve it first rather (e.g. iron before stone no matter what); code provided by chatgpt 5, check if accurate -->
-			const int iAIObjectiveBonus = GC.getBonusInfo(eBonus).getAIObjective(); // e.g. 10 for iron
-
-			// <!-- custom: if current iValue is high enough, most likely it means that we are improving this bonus, if so, increase value if it's one of the iAIObjective bonuses -->
-			// <!-- custom: avoid 1 just in case it creates weird issues -->
-			if (iValue >= iSAS_WORKER_AI_BONUS_AI_OBJECTIVE_APPLY_MIN_VALUE)
-			{
-				// <!-- custom: make sure we improve it first before anything else -->
-				iValue += iSAS_WORKER_AI_BONUS_AI_OBJECTIVE_VALUE_PER_POINT * iAIObjectiveBonus;
-			}
+			// <!-- custom: Prioritize useful bonus Builds through the owner's marginal dynamic value rather than a static BonusInfo AIObjective.
+			// First copies therefore reflect this civilization's currently relevant units/buildings/projects/routes, while available substitutes and extra copies naturally reduce urgency. (GPT-5.6-Sol) -->
+			int const iDynamicBonusValue = GET_PLAYER(getOwner()).AI_bonusVal(eBonus, 1, true);
+			if (iValue >= iSAS_WORKER_AI_BONUS_DYNAMIC_VALUE_APPLY_MIN_VALUE)
+				iValue += iSAS_WORKER_AI_BONUS_DYNAMIC_VALUE_MULTIPLIER * iDynamicBonusValue;
 
 			// <!-- custom: Level 3 exposes bonus-build availability and both the current raw-BonusInfo yield score and the actual improved-plot yield score.
 			// This notably distinguishes a true priority problem from a near-tech scheduling case; e.g. the Cuzco Tiny Islands run mined Gold while Animal Husbandry was still one turn away, then Pastured Pig immediately after it unlocked. (ChatGPT-5.6-Sol) -->
@@ -4653,7 +4649,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 					iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_FOOD * aiPotentialResultYields[YIELD_FOOD] +
 					iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_PRODUCTION * aiPotentialResultYields[YIELD_PRODUCTION] +
 					iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_COMMERCE * aiPotentialResultYields[YIELD_COMMERCE];
-				logBBAI("    WORKER_BONUS_CANDIDATE turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) worked=%d bonus=%S specificBuild=%S canBuildNow=%d buildTech=%S buildTechKnown=%d buildTechTurnsIfCurrent=%d featureTech=%S featureTechKnown=%d currentResearch=%S rawBonusYields=(%d,%d,%d) potentialResultYields=(%d,%d,%d) weights=(%d,%d,%d) rawYieldValue=%d potentialResultYieldValue=%d aiObjective=%d selectedBuild=%S selectedValue=%d",
+				logBBAI("    WORKER_BONUS_CANDIDATE turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) worked=%d bonus=%S specificBuild=%S canBuildNow=%d buildTech=%S buildTechKnown=%d buildTechTurnsIfCurrent=%d featureTech=%S featureTechKnown=%d currentResearch=%S rawBonusYields=(%d,%d,%d) potentialResultYields=(%d,%d,%d) weights=(%d,%d,%d) rawYieldValue=%d potentialResultYieldValue=%d dynamicBonusValue=%d selectedBuild=%S selectedValue=%d",
 					GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getID(), kCity.getName().GetCString(),
 					kPlot.getX(), kPlot.getY(), kCity.isWorkingPlot(kPlot), kBonusInfo.getDescription(),
 					(eBonusSpecificBuild == NO_BUILD ? L"-" : GC.getInfo(eBonusSpecificBuild).getDescription()), bCanBuildBonusSpecific,
@@ -4663,7 +4659,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 					kBonusInfo.getYieldChange(YIELD_FOOD), kBonusInfo.getYieldChange(YIELD_PRODUCTION), kBonusInfo.getYieldChange(YIELD_COMMERCE),
 					aiPotentialResultYields[YIELD_FOOD], aiPotentialResultYields[YIELD_PRODUCTION], aiPotentialResultYields[YIELD_COMMERCE],
 					iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_FOOD, iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_PRODUCTION, iSAS_WORKER_AI_BONUS_YIELD_VALUE_PER_COMMERCE,
-					iRawYieldValue, iPotentialResultYieldValue, iAIObjectiveBonus,
+					iRawYieldValue, iPotentialResultYieldValue, iDynamicBonusValue,
 					(eBestSupposedBuild == NO_BUILD ? L"-" : GC.getInfo(eBestSupposedBuild).getDescription()), iValue);
 			}
 		}
@@ -17461,9 +17457,8 @@ bool CvUnitAI::AI_guardBonus(int iMinValue)
 			{
 				continue;
 			}
-			int iTmpVal = // </advc.028b>
-					GET_PLAYER(getOwner()).AI_bonusVal(eBonus, /* K-Mod: */ 0);
-			iTmpVal += std::max(0, 200 * GC.getInfo(eBonus).getAIObjective());
+			// <!-- custom: The ordinary dynamic value already distinguishes strategically useful bonuses by current civilization, era and substitutes; the former static AIObjective addition overwhelmed that information. (GPT-5.6-Sol) -->
+			int iTmpVal = GET_PLAYER(getOwner()).AI_bonusVal(eBonus, /* K-Mod: */ 0); // </advc.028b>
 			if (apGuardPlots[i]->getPlotGroupConnectedBonus(getOwner(), eBonus) == 1)
 				iTmpVal *= 2;
 			iValue += iTmpVal; // advc.028b
@@ -25154,8 +25149,11 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity const* pCity) // advc: const param
             continue;
 		}
 
-		// <!-- custom: Workers heavily improved unused Dortmund tundra while Cologne/Chengdu lacked valuable Grass Hill Mines until very late. Rank work across all cities by the shared per-plot build value, scaled proportionally only while a city lacks enough completed or already-assigned improvements for its population; counting assigned workers prevents dogpiling while preserving one-worker-per-plot reservations. This avoids both the old high-population penalty and arbitrary additive/working-plot bonuses, while leaving candidate valuation responsible for Food-vs-Production tradeoffs. Distance remains a modest efficiency cost. (GPT-5.5) -->
+		// <!-- custom: Workers heavily improved unused Dortmund tundra while Cologne/Chengdu lacked valuable Grass Hill Mines until very late.
+		// Rank work across all cities by the shared per-plot build value, scaled proportionally only while a city lacks enough completed or already-assigned improvements for its population; counting assigned workers prevents dogpiling while preserving one-worker-per-plot reservations.
+		// This avoids both the old high-population penalty and arbitrary additive/working-plot bonuses, while leaving candidate valuation responsible for Food-vs-Production tradeoffs. Distance remains a modest efficiency cost. (GPT-5.5) -->
 		static const int iPathTurnValuePenalty = GC.getDefineINT("SAS_AI_WORKER_CITY_JOB_PATH_TURN_VALUE_PENALTY");
+		static const int iBonusDynamicValueMultiplier = GC.getDefineINT("SAS_AI_WORKER_CITY_JOB_BONUS_DYNAMIC_VALUE_MULTIPLIER");
 		bool const bWorkedPlot = pLoopCity->isWorkingPlot(*pPlot);
 		int const iImprovedPlots = countImprovedTiles(pLoopCity);
 		int const iAssignedWorkers = std::max(0, pLoopCity->AI_getWorkersHave() - (pLoopCity == pCity ? 1 : 0));
@@ -25165,17 +25163,10 @@ bool CvUnitAI::AI_nextCityToImprove(CvCity const* pCity) // advc: const param
         int const pathTurns = pf.getPathTurns();
         score -= iPathTurnValuePenalty * pathTurns;
 
-        // If this target is on a bonus, fold in <iAIObjective>
-        BonusTypes eB = pPlot->getNonObsoleteBonusType(getTeam());
-        if (eB != NO_BONUS)
-        {
-            const int obj = GC.getBonusInfo(eB).getAIObjective(); // XML dial
-            if (obj > 0)
-            {
-				// <!-- custom: note: if we already have it, no need to rush to it ideally, but maybe fine as a simplification to go for them first, we could trade it, or lose our copy of it, etc. Valuable to have first and to simplify accurately enough -->
-				score += (obj * 25000);
-			}
-		}
+		// <!-- custom: Compare cross-city bonus jobs through the owner's marginal dynamic value rather than a fixed XML objective, so first copies and civilization-specific unlocks receive priority without eternally favoring obsolete resources. (GPT-5.6-Sol) -->
+		BonusTypes eB = pPlot->getNonObsoleteBonusType(getTeam());
+		if (eB != NO_BONUS)
+			score += GET_PLAYER(getOwner()).AI_bonusVal(eB, 1, true) * iBonusDynamicValueMultiplier;
 
         if (bLogWorkerCityTarget)
         {
@@ -25553,7 +25544,7 @@ bool CvUnitAI::AI_fortTerritory(bool bCanal, bool bAirbase)
 }
 
 // <!-- custom: Earlier SAS experiments tried disabling this path for land Workers because its separate improvement scoring could conflict with AI_bestCityBuild, but doing so also lost useful bonus-connection/route behavior and interfered with Work Boats; keep AI_improveBonus as the strategic bonus-target/connection path.
-// Workable BFC bonus Builds now reuse the shared city-aware Food/Production/Commerce transition from ordinary Worker valuation, while resource value, AIObjective, pathing/routing, outside-BFC targets and sea-Worker responsibilities remain deliberately separate. See KI#30. (ChatGPT-5.6-Sol) -->
+// Workable BFC bonus Builds now reuse the shared city-aware Food/Production/Commerce transition from ordinary Worker valuation, while dynamic resource value, pathing/routing, outside-BFC targets and sea-Worker responsibilities remain deliberately separate. See KI#30. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 //bool CvUnitAI::AI_improveBonus(int iMinValue, CvPlot** ppBestPlot, BuildTypes* peBestBuild, int* piBestValue)
 // K-Mod. (all that junk wasn't being used anyway.) <!-- custom: hoisted from multiline signature before `iMissingWorkersInArea` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvUnitAI::AI_improveBonus(int iMissingWorkersInArea) // advc.121
@@ -25567,7 +25558,7 @@ bool CvUnitAI::AI_improveBonus(int iMissingWorkersInArea) // advc.121
 	CvPlot const* pBestPlot = NULL;
 	int iBestValue = 0;
 	bool bCanRoute = canBuildRoute();
-	static const int iSAS_WORKER_AI_IMPROVE_BONUS_AI_OBJECTIVE_VALUE_PER_POINT = GC.getDefineINT("SAS_WORKER_AI_IMPROVE_BONUS_AI_OBJECTIVE_VALUE_PER_POINT");
+	static const int iSAS_WORKER_AI_IMPROVE_BONUS_DYNAMIC_VALUE_MULTIPLIER = GC.getDefineINT("SAS_WORKER_AI_IMPROVE_BONUS_DYNAMIC_VALUE_MULTIPLIER");
 	bool const bDetailedBonusLogging = (gWorkerLogLevel >= 3);
 	std::map<int,SASWorkerCityYieldAnalysis> akCityYieldAnalysis;
 	for (int iI = 0; iI < GC.getMap().numPlots(); iI++)
@@ -25761,10 +25752,9 @@ bool CvUnitAI::AI_improveBonus(int iMissingWorkersInArea) // advc.121
 				iValue += iOutsideBFCImprovementFoodValue + iOutsideBFCNatureFoodValue;
 			}
 		}
-		// <!-- custom: improve iron before stone -->
-		// iValue += std::max(0, 100 * GC.getInfo(eNonObsoleteBonus).getAIObjective());
-		int const iAIObjectiveValue = std::max(0, iSAS_WORKER_AI_IMPROVE_BONUS_AI_OBJECTIVE_VALUE_PER_POINT * GC.getInfo(eNonObsoleteBonus).getAIObjective());
-		iValue += iAIObjectiveValue;
+		// <!-- custom: Scale the already-computed marginal dynamic value into AI_improveBonus's much larger pre-path score instead of layering a static AIObjective on top. (GPT-5.6-Sol) -->
+		int const iDynamicBonusPriorityValue = std::max(0, iSAS_WORKER_AI_IMPROVE_BONUS_DYNAMIC_VALUE_MULTIPLIER * iBaseBonusValue);
+		iValue += iDynamicBonusPriorityValue;
 
 		bool const bNoTradeableBonus = (kOwner.getNumTradeableBonuses(eNonObsoleteBonus) == 0);
 		if(bNoTradeableBonus)
@@ -25810,7 +25800,7 @@ bool CvUnitAI::AI_improveBonus(int iMissingWorkersInArea) // advc.121
 				if(kPlot.isCityRadius())
 					iValue *= 2;
 				if (bDetailedBonusLogging)
-					logBBAI("    WORKER_IMPROVE_BONUS_CANDIDATE turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) bonus=%S build=%S baseBonusValue=%d outsideBFCImprovementFoodValue=%d outsideBFCNatureFoodValue=%d economicCurrentYields=(%d,%d,%d) economicResultYields=(%d,%d,%d) economicWeights=(%d,%d,%d) economicBuildValue=%d economicYieldValue=%d economicGain=%d economicReplacementMargin=%d aiObjectiveValue=%d noTradeableBonus=%d valueBeforePath=%d pathTurns=%d cityRadius=%d finalValue=%d",
+					logBBAI("    WORKER_IMPROVE_BONUS_CANDIDATE turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) bonus=%S build=%S baseBonusValue=%d outsideBFCImprovementFoodValue=%d outsideBFCNatureFoodValue=%d economicCurrentYields=(%d,%d,%d) economicResultYields=(%d,%d,%d) economicWeights=(%d,%d,%d) economicBuildValue=%d economicYieldValue=%d economicGain=%d economicReplacementMargin=%d dynamicBonusPriorityValue=%d noTradeableBonus=%d valueBeforePath=%d pathTurns=%d cityRadius=%d finalValue=%d",
 						GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getID(),
 						(kPlot.getWorkingCity() == NULL ? L"-" : kPlot.getWorkingCity()->getName().GetCString()),
 						kPlot.getX(), kPlot.getY(), GC.getInfo(eNonObsoleteBonus).getDescription(), GC.getInfo(eBestTempBuild).getDescription(),
@@ -25818,7 +25808,7 @@ bool CvUnitAI::AI_improveBonus(int iMissingWorkersInArea) // advc.121
 						aiEconomicCurrentYields[YIELD_FOOD], aiEconomicCurrentYields[YIELD_PRODUCTION], aiEconomicCurrentYields[YIELD_COMMERCE],
 						aiEconomicResultYields[YIELD_FOOD], aiEconomicResultYields[YIELD_PRODUCTION], aiEconomicResultYields[YIELD_COMMERCE],
 						kEconomicWeights.iFood, kEconomicWeights.iProduction, kEconomicWeights.iCommerce,
-						iEconomicBuildValue, iEconomicYieldValue, iEconomicGain, iEconomicReplacementMargin, iAIObjectiveValue, bNoTradeableBonus,
+						iEconomicBuildValue, iEconomicYieldValue, iEconomicGain, iEconomicReplacementMargin, iDynamicBonusPriorityValue, bNoTradeableBonus,
 						iValueBeforePath, iPathTurns, kPlot.isCityRadius(), iValue);
 				if (iValue > iBestValue)
 				{

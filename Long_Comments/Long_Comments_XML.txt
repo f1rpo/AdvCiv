@@ -2405,6 +2405,8 @@ Applied in the DLL (CvDLLWidgetData::parseHelp) and Python (updateHelpStrings). 
 	Below code comments by chatgpt 5, check if accurate
 	-->
 
+update: since then removed as part of the dynamic ai bonus refactor/rework
+
 ===== \Assets/XML/GlobalDefines_advciv_sas.xml =====
 ----- Comment #110 -----
 
@@ -3033,6 +3035,8 @@ fVisibilityPriority	Used to give certain buildings priority when drawing them on
 
 See Sevopedia or XML for value. For example if iAIObjective is 10, and multiplier is 50, then the value of this candidate site that has this iAIObjective valued bonus (as of now copper, iron, horse, camel, aluminium, uranium with various values for each if i'm not mistaken) would be for example 10 * 50 = 500 extra value added to this candidate city site which is quite big, but if iAIObjective is 6, then with same 50 multiplier extra value would be 6 * 50 = 300 more points, which is still significant although bit less. Adjust as you see fit to help settlers value more or a lot more (i think negative values would devalue site but i don't know how negative values are handled by XML so better stick with positive ones unless you know what you're doing or want to test or whatever (i am not responsible of what may happen xd then although should be safe but disclaimer i am not responsible test at your own risk and make sure you can use a negative value if you still want it despite this discouragement/caution i gave))
 
+update: since then removed as part of the dynamic ai bonus refactor/rework
+
 ===== \Assets/XML/GlobalDefines_advciv_sas.xml =====
 ----- Comment #159 -----
 
@@ -3215,6 +3219,8 @@ After we have implemented a tentative fix to this, now also encourage vassal(s)<
 	<!-- custom: note: it seems this only checks main capital network (as per getNumAvailableBonuses it seems and as chatgpt 5 confirms it as well but check if accurate), so use it with that intent in mind or if you don't mind xd, else the hasBonus or possibly other functions might be used instead but check to be sure -->
 	<!-- custom: example of calculation: if you set this value to for example x=200, and max sieges is calculated to be a=5, then the new threshold will be a=5 + ((a=5 * x=200) / 100) = 5 + (5 * 2) = 5 + 10 = 15 (i.e. +200% which is the same as value multiplied by 3); note: 0 would nullify this effect as any a * 0 = 0 so value stays the same
 
+update: since then removed as part of the dynamic ai bonus refactor/rework
+
 ===== \Assets/XML/GlobalDefines_advciv_sas.xml =====
 ----- Comment #182 -----
 
@@ -3381,6 +3387,8 @@ code added with the help of chatgpt 5.1 and with claude sonnet 4.5's review as w
 	// Each AIObjective point adds X%, capped at Y%
 	-->
 	<!-- custom: e.g. if iAIObjective is 6, per point percent is 10(%), and max is 200(%), new value of the iAIObjectiveBonus (1 + ((6 / 100) * 10)) * value = 1 + (6 * 0.10) = 1.60 meaning it is worth 60% more (if its value was 10 gold per turn before, it would now be 16 gold per turn for example). -->
+
+update: since then removed as part of the dynamic ai bonus refactor/rework
 
 ===== \Assets/XML/GlobalDefines_advciv_sas.xml =====
 ----- Comment #207 -----
@@ -4880,6 +4888,8 @@ Note: we include ObsoleteTech on every UnitInfo (default NONE) to make edits con
 ----- Comment #362 -----
 
 . Examples: Classical metals vs mounts are substitutes (if we have Iron/Copper, don't buy Horse/Camel/Elephants; if we have Horse/Camel/Elephants, don't buy Iron/Copper). Classical-Medieval-Renaissance: if we have Horse, don't buy Camel (and vice versa). Industrial (pre-Modern): if we have Horse, don't buy Camel. Medieval+: don't buy Elephants. Modern+: don't buy Horse/Camel. Set to 0 to disable only these hard blocks while keeping relative multipliers active
+
+update: since then removed as part of the dynamic ai bonus refactor/rework
 
 ===== \Assets\XML\Units\CIV4PromotionInfos.xml =====
 ----- Comment #363 -----

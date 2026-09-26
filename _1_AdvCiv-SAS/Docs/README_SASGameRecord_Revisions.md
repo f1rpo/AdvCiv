@@ -27,7 +27,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=127 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=128 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -53,10 +53,20 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
+### Revision 128 - SAS practical 6577
+
+- **Date:** 2026-09-26
+- **Git commit:** pending
+- **Change:** Replaced named metal/mount context in AI bonus-trade and tribute decisions with the buyer's shared player-specific ordinary and short-term trade marginal bonus values, while retaining `iAIObjective` as explicit manual XML-policy context.
+
+The new fields follow current civilization unlocks, technology readiness, substitutes, obsolescence, health and happiness instead of assuming fixed Copper/Iron/Horse/Camel/Elephants families.
+
+The obsolete named-resource configuration was removed after its final gameplay consumer became XML-driven too; `iAIObjective` remains visible because nonzero values now provide an additive shared author/mod-mod override.
+
 ### Revision 127 - SAS practical 6576
 
 - **Date:** 2026-09-25
-- **Git commit:** pending
+- **Git commit:** `cbdc0dd36c778c694fa8eb5faf62210981c89bb9`
 - **Change:** Added compact per-player/per-turn completed Worker-build history so improvement churn and irrigation outcomes remain reconstructible between periodic territory snapshots.
 
 At level 2+, `GAME_RECORD_WORKER_BUILDS_COMPLETED` aggregates the exact realized Builds and improvement transitions, separating new improvements, outright removals and replacements, with replacements also split into worked versus unworked plots.

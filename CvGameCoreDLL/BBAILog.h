@@ -37,6 +37,7 @@ struct SASBBAILogSettings
 	int iWorkerSeaLogLevel;
 	int iMapLogLevel;
 	int iDealCancelLogLevel;
+	int iBonusLogLevel;
 	int iCultureLogLevel;
 };
 extern SASBBAILogSettings gSASBBAILogSettings;
@@ -47,6 +48,7 @@ int getSASBBAIScoreLogInterval();
 void startSASBBAILogForNewGame(); // <!-- custom: Roll to a new timestamped BBAI diagnostic file before new-game map generation can log. (GPT-5.5 + GPT-5.5) -->
 void logSASBBAINewGameStarted(); // <!-- custom: Log complete new-game identification after map and player initialization. (GPT-5.5) -->
 void startSASBBAILogForLoadedSave(); // <!-- custom: Roll and identify a loaded save after its complete game state is read. (GPT-5.5) -->
+int getSASBBAILogSessionSequence(); // <!-- custom: Let high-volume diagnostic categories discard change-dedup state whenever a new/load BBAI session begins. (GPT-5.6-Sol) -->
 #define gLogBBAI (gSASBBAILogSettings.bEnabled) // advc.007: So that BBAI logging can be checked in FAssert; <!-- custom: startup-cached direct read. (ChatGPT-5.6-Sol) -->
 #define gPlayerLogLevel (gSASBBAILogSettings.iPlayerLogLevel)
 #define gScoreLogInterval getSASBBAIScoreLogInterval() // advc.007: was hardcoded to 25 in CvPlayer::onTurnLogging; only reached when PLAYER logging is enabled.
@@ -69,6 +71,7 @@ void startSASBBAILogForLoadedSave(); // <!-- custom: Roll and identify a loaded 
 #define gWorkerSeaLogLevel (gSASBBAILogSettings.iWorkerSeaLogLevel) // <!-- custom: Separate Work Boat / WORKER_SEA diagnostics from general UNIT and land-Worker logging. (ChatGPT-5.5 + GPT-5.5 review) -->
 #define gMapLogLevel (gSASBBAILogSettings.iMapLogLevel) // K-Mod
 #define gDealCancelLogLevel (gSASBBAILogSettings.iDealCancelLogLevel) // advc.133
+#define gBonusLogLevel (gSASBBAILogSettings.iBonusLogLevel) // <!-- custom: Shared bonus valuation, trade, and strategic-resource diagnostics independent of their Worker/Settler consumers. (GPT-5.6-Sol) -->
 #define gCultureLogLevel (gSASBBAILogSettings.iCultureLogLevel) // <!-- custom: Separate culture-victory diagnostics from general PLAYER and CITY logging. (ChatGPT-5.5) -->
 
 void logBBAI(TCHAR* format, ... );
