@@ -996,7 +996,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#877 - (Provisional Pending AdvCiv-SAS building-prefilter defect) Maintenance classification uses the wrong sign](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-877)\
 [KI#878 - (Provisional Pending AdvCiv-SAS building-prefilter defect) Miscellaneous wartime tail is attached too broadly](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-878)\
 [KI#879 - (Provisional Pending inherited building-value defect) Overseas domestic trade is treated as foreign trade](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-879)\
-[KI#880 - (Provisional Pending AdvCiv sign regression) Immediate anger reverses building value](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-880)\
+[KI#880 - (Fixed inherited AdvC sign regression) Immediate anger reversed building value](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-880)\
 [KI#881 - (Provisional Pending AdvCiv-SAS handicap-scope defect) Regular-building skew reads the AI handicap](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-881)\
 [KI#882 - (Provisional Pending inherited production-upgrade defect) Destination hammers are overwritten](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-882)\
 [KI#883 - (Provisional Pending AdvCiv/BULL decay-preview defect) Fractional thresholds are one turn late](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-883)\
@@ -18076,11 +18076,19 @@ Found as F556 during ChatGPT-5.6-Sol's C031-WIP331 audit; reconciled into Known 
 
 <a id="ki-880"></a>
 
-## KI#880 - (Provisional Pending AdvCiv sign regression) Immediate anger reverses building value
+## KI#880 - (Fixed inherited AdvC sign regression) Immediate anger reversed building value
 
-An AdvC sign change in `AI_buildingValue` reverses the immediate anger effect of building happiness, so relieving anger can reduce value and worsening it can add value. Restore the runtime-consistent sign.
+An AdvC sign change in `AI_buildingValue` had changed K-Mod's post-building anger expression from `-(iHappinessLevel + iBuildingActualHappiness)` to `-iHappinessLevel + iBuildingActualHappiness`.
 
-Found as F557 during ChatGPT-5.6-Sol's C031-WIP333 audit; reconciled into Known Issues with the help of GPT-5.6-Sol, thanks.
+Positive building happiness could therefore increase the computed anger delta; the following subtraction then reduced the value of relieving anger and could reward worsening it.
+
+Restore K-Mod's runtime-consistent grouping/sign so positive happiness reduces anger before the immediate-anger and growth-bias terms are applied.
+
+This became especially visible after disabling the AdvCiv-SAS regular-building hard prefilter: the inherited evaluator once again became authoritative for ordinary happiness buildings instead of being masked by SAS's force/reject rules.
+
+Keeping this as a separate correction lets the next comparison run measure the inherited evaluator with its intended happiness arithmetic before adding any new urgency heuristic.
+
+Found as F557 during ChatGPT-5.6-Sol's C031-WIP333 audit; reconciled into Known Issues with the help of GPT-5.6-Sol, thanks. Fixed during the inherited-versus-SAS building-valuation rework.
 
 <a id="ki-881"></a>
 

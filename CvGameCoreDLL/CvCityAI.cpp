@@ -8592,8 +8592,8 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 			int iBuildingActualHappiness = getAdditionalHappinessByBuilding(
 					eBuilding,iGood,iBad);
 			// K-Mod
-			int iAngerDelta = std::max(0, -iHappinessLevel + iBuildingActualHappiness)
-					-std::max(0, -iHappinessLevel);
+			// <!-- custom: AdvC accidentally lost the negation around the post-building happiness level, so positive happiness could increase computed anger and reduce building value; restore K-Mod's runtime-consistent sign. See KI#880. (ChatGPT-5.6-Sol) -->
+			int iAngerDelta = std::max(0, -(iHappinessLevel + iBuildingActualHappiness)) - std::max(0, -iHappinessLevel);
 			// High value for any immediate change in anger.
 			iValue -= iAngerDelta * 4 * iCitizenValue;
 			// some extra value if we are still growing (this is a positive change bias)
