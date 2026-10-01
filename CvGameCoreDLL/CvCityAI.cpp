@@ -6801,7 +6801,9 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 				{
 					if (pLoopCity->canConstruct(eLoopBuilding))
 					{
-						int iLoopValue = pLoopCity->AI_buildingValue(eLoopBuilding, 0, 0, bAsync);
+						// <!-- custom: Cross-city limited-building placement is speculative: do not prime another city's mutable construction-value cache merely because this city compares the same limited building there.
+						// Existing cache entries may still be read; a miss stays side-effect free. See KI#48.15 and KI#821. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+						int iLoopValue = pLoopCity->AI_buildingValue(eLoopBuilding, 0, 0, true);
 						if (kBuilding.isNationalWonder() && iMaxNumWonders != -1)
 						{
 							iLoopValue *= iMaxNumWonders + 1 - pLoopCity->getNumNationalWonders();
@@ -9500,9 +9502,11 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 							"This is a minor flaw in the AI.") */
 							pLoopCity->canConstruct(eLoopBuilding, false, true))
 						{
+							// <!-- custom: Keep cross-city recursive value on current-state semantics; the candidate technology applies only to the directly evaluated building.
+							// This is a speculative cross-city prerequisite-value probe, so a cache miss in another city must stay side-effect free. See KI#821. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 							iHighestValue = std::max(
 									pLoopCity->AI_buildingValue(
-									eLoopBuilding, 0, 0, bConstCache, false),
+									eLoopBuilding, 0, 0, true, false),
 									iHighestValue);
 						}
 					}

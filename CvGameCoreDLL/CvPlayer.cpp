@@ -3110,6 +3110,11 @@ void CvPlayer::doTurn()
 	doResearch();
 	doEspionagePoints();
 
+	// <!-- custom: Research valuation can populate neutral construction values before AI_doCommerce/AI_doCivics/AI_doReligion change their inputs, and doResearch above can complete the newly valued technology.
+	// Establish a fresh cache boundary immediately before city turns so production cannot consume those earlier values.
+	// This intentionally supplements rather than replaces K-Mod's pre-research clear. See KI#821. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	AI().AI_ClearConstructionValueCache();
+
 	// <!-- custom: Manual human cities are sampled before end-turn production processing, after the player had the opportunity to choose; sampling afterward would misclassify a normal item completed during doProduction while its new popup awaits input.
 	// AI-controlled and production-automated cities are sampled afterward so their chooser and emergency-building logic get their opportunity first.
 	// Both phases feed one broad SASGameRecord outcome and one dedicated BBAI diagnostic without duplicate same-city rows. See KI#51. (GPT-5.6-Sol) -->

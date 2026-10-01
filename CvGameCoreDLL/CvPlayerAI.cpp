@@ -430,8 +430,15 @@ void CvPlayerAI::AI_doTurnPre()
 	AI_updateCommerceWeights();
 	/*	GP weights can take a little bit of time,
 		so lets only do it once every 3 turns. */
-	if ((GC.getGame().getGameTurn() + AI_getStrategyRand(0))%3 == 0)
+	bool const bUpdateGreatPersonWeights = ((GC.getGame().getGameTurn() + AI_getStrategyRand(0))%3 == 0);
+	if (bUpdateGreatPersonWeights)
+	{
+		// <!-- custom: City production and other late-turn callers can leave neutral construction values cached into the next player turn.
+		// Great-Person weights run before K-Mod's ordinary pre-research clear, so clear first when that periodic consumer is about to run.
+		// Keep the existing clear below as the separate fresh boundary for research valuation. See KI#821. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		AI_ClearConstructionValueCache();
 		AI_updateGreatPersonWeights();
+	}
 	// K-Mod end
 
 	AI_doEnemyUnitData();
