@@ -15,6 +15,7 @@ Always review diffs before committing generated source changes.
 
 ## Menu
 
+- [Inherited map-script reference sources](#inherited-map-script-reference-sources)
 - [Python source cleanup helpers](#python-source-cleanup-helpers)
   - [`collapse_multiline_calls.py`](#collapse_multiline_callspy)
   - [`collapse_multiline_calls2.py`](#collapse_multiline_calls2py)
@@ -25,10 +26,11 @@ Always review diffs before committing generated source changes.
   - [`collapse_multiline_brackets.py`](#collapse_multiline_bracketspy)
   - [`fix_line_endings.py`](#fix_line_endingspy)
 - [C++ source cleanup helpers](#c-source-cleanup-helpers)
+  - [`reflow_cpp_logging_calls.py`](#reflow_cpp_logging_callspy)
+  - [`find_cpp_dead_code_candidates.py`](#find_cpp_dead_code_candidatespy)
   - [`collapse_cpp_signatures.py`](#collapse_cpp_signaturespy)
   - [`collapse_cpp_inline_returns.py`](#collapse_cpp_inline_returnspy)
   - [`collapse_cpp_inline_statements.py`](#collapse_cpp_inline_statementspy)
-  - [`find_cpp_dead_code_candidates.py`](#find_cpp_dead_code_candidatespy)
 - [CvMainInterface cleanup reference scripts](#cvmaininterface-cleanup-reference-scripts)
   - [`singleline_pass.py`](#singleline_passpy)
   - [`singleline_pass_comments.py`](#singleline_pass_commentspy)
@@ -36,6 +38,8 @@ Always review diffs before committing generated source changes.
   - [`comment_cleanup_pass_v2.py`](#comment_cleanup_pass_v2py)
   - [Comparison with Base AdvCiv 1.12's Main Interface processed similarly](#comparison-with-base-advciv-112s-main-interface-processed-similarly)
   - [Notes](#notes)
+    - [ChatGPT sandbox path note](#chatgpt-sandbox-path-note)
+    - [Safety rule for source-rewrite helpers](#safety-rule-for-source-rewrite-helpers)
 - [Game speed helper scripts](#game-speed-helper-scripts)
   - [`compare_speed_summaries.py`](#compare_speed_summariespy)
   - [`autotune_speed_from_xml.py`](#autotune_speed_from_xmlpy)
@@ -53,7 +57,6 @@ Always review diffs before committing generated source changes.
 - [Source packaging and generated-history helpers](#source-packaging-and-generated-history-helpers)
   - [`make_light_source_zip.py`](#make_light_source_zippy)
   - [`refresh_commit_diffs.py`](#refresh_commit_diffspy)
-- [Inherited map-script reference sources](#inherited-map-script-reference-sources)
 - [Workflow rule for timeline tuning](#workflow-rule-for-timeline-tuning)
 - [General notes for future LLM helpers](#general-notes-for-future-llm-helpers)
 
@@ -792,6 +795,7 @@ python LLM_Helpers\expand_sasgamerecord_city_deltas.py SASGameRecord.log SASGame
 - Repeated XML collections such as `Goodies`, `FreeTechs`, and `AIFreeTechs` are compared as compact counted lists instead of noisy index-by-index rows.
 - Writes timestamped output to `LLM_Helpers\outputs\handicap_compare_<UTC-ISO>.md` by default; this folder is git-ignored.
 - `--example-output` writes to `LLM_Helpers\examples\handicap_infos_compared.md` instead, useful when publishing a stable hosted example URL.
+- CI reproduces the published example using the pinned [`handicap_infos_baseline.xml`](/LLM_Helpers/examples/handicap_infos_baseline.xml); use `python .github/workflows/build/generated_docs.py --refresh-handicap` after changing current handicap XML. This needs no sibling AdvCiv installation.
 - The report includes its UTC run time, output path, and full input paths because XML assets can change between analysis runs.
 - The same Markdown file includes a tab-separated spreadsheet matrix: one row per field, and grouped file 1/file 2/delta columns for each compared row. For changed-field reports, unchanged cells are still filled when they belong to a shown field, so a row such as `iFreeUnits` shows the full handicap curve. Empty cells mean no matching value on that side.
 - Optional `--file1-label`/`--file2-label` labels make published examples clearer while the defaults stay generic.
@@ -1012,6 +1016,7 @@ git diff -- "_0_Common_Docs/AdvCiv_Base_Doc/manual.txt"
 ```
 
 - When base AdvCiv updates `manual.odt`, refresh `manual.txt` in the same merge/release-preparation batch so the searchable copy does not lag behind the binary manual.
+- CI validates this conversion through the reusable `TEXT_CONVERSIONS` registry in [generated_docs.py](/.github/workflows/build/generated_docs.py). Future source-to-text conversions can register their own source, output and converter there; the AdvCiv manual is currently the only entry. Related `manual.pdf` edits also require a paired text refresh in the complete PR/push range.
 - Added with help of ChatGPT-5.6-Sol.
 
 ## Source packaging and generated-history helpers

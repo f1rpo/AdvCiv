@@ -45,29 +45,56 @@ For license and reuse terms, including project-specific restrictions and express
 [Main Changes Guide](/README.md#main-changes-guide)\
 [UI (Main Menu)](/README.md#ui-main-menu)\
 &emsp;[Home page](/README.md#home-page)\
+&emsp;[Multiple random Main Menu Musics](#multiple-random-main-menu-musics)\
 &emsp;[Simple Game rework](/README.md#simple-game-rework)\
 [UI (Ingame)](/README.md#ui-ingame)\
 &emsp;[Main Advisors reworks](/README.md#main-advisors-reworks)\
 &emsp;&emsp;[New Advisors (e.g., Overview tabs (Domestic Advisor); Summary Tab, Battles Tab, Composition Tab (Military Advisor); new World Advisor; Score Tab and Timeline Tab (Info Screen))](/README.md#new-advisors-eg-overview-tabs-domestic-advisor-summary-tab-battles-tab-composition-tab-military-advisor-new-world-advisor-score-tab-and-timeline-tab-info-screen)\
+&emsp;&emsp;&emsp;[Overview tabs (Domestic Advisor)](#overview-tabs-domestic-advisor)\
+&emsp;&emsp;&emsp;[Summary tab (Military Advisor)](#summary-tab-military-advisor)\
+&emsp;&emsp;&emsp;[Battles tab (Military Advisor)](#battles-tab-military-advisor)\
+&emsp;&emsp;&emsp;[Compostion tab (Military Advisor)](#compostion-tab-military-advisor)\
+&emsp;&emsp;&emsp;[World Advisor](#world-advisor)\
+&emsp;&emsp;&emsp;[Timeline Tab (in the Info Screen Advisor)](#timeline-tab-in-the-info-screen-advisor)\
+&emsp;&emsp;&emsp;[Score Tab (in the Info Screen Advisor)](#score-tab-in-the-info-screen-advisor)\
 &emsp;&emsp;[Advisors adjustments](/README.md#advisors-adjustments)\
 &emsp;["Willing to become a vassal" and vassal icons in foreign advisor's glance tab](/README.md#willing-to-become-a-vassal-and-vassal-icons-in-foreign-advisors-glance-tab)\
 &emsp;[Inverted BUG options](/README.md#inverted-bug-options)\
 &emsp;[Diplomacy Screen](/README.md#diplomacy-screen)\
 &emsp;[Miscellaneous screens](/README.md#miscellaneous-screens)\
-&emsp;[Main interface rework](/README.md#city-screen-rework)\
+&emsp;[Main Interface rework](#main-interface-rework)\
 &emsp;&emsp;[City Screen rework](/README.md#city-screen-rework)\
 &emsp;&emsp;[Map view rework (e.g., Scoreboard Toggle and Scroll buttons, Map Annotations Toggle button)](/README.md#map-view-rework-eg-scoreboard-toggle-and-scroll-buttons-map-annotations-toggle-button)\
+&emsp;&emsp;&emsp;[Scoreboard](#scoreboard)\
+&emsp;&emsp;&emsp;[Map annotations](#map-annotations)\
 [UI (Main Sevopedia reworks)](/README.md#ui-main-sevopedia-reworks)\
 &emsp;[Some lower level Sevopedia reworks (e.g., Item grouping, Search Bar, Keyboard UP/DOWN (category items) and LEFT/RIGHT (BACK/NEXT page visited) navigation, Index as category, Movies (with audio support), Music with ~1750 audio scripts that can be listened to in Sevopedia), Expanded Text Panels, Expanded Content (Non-text; e.g., Animation) Panels, Expanded leaderhead Panel](/README.md#some-lower-level-sevopedia-reworks-eg-item-grouping-search-bar-keyboard-updown-category-items-and-leftright-backnext-page-visited-navigation-index-as-category-movies-with-audio-support-music-with-1750-audio-scripts-that-can-be-listened-to-in-sevopedia-expanded-text-panels-expanded-content-non-text-eg-animation-panels-expanded-leaderhead-panel)\
+&emsp;&emsp;[Items grouping](#items-grouping)\
+&emsp;&emsp;[Search Bar](#search-bar)\
+&emsp;&emsp;[Keyboard Navigation with the UP/DOWN and LEFT/RIGHT arrows](#keyboard-navigation-with-the-updown-and-leftright-arrows)\
+&emsp;&emsp;[Index As Category](#index-as-category)\
+&emsp;&emsp;[Media File playing (e.g. Movies with audio support, Music with ~1750 audio scripts that can be listened to in Sevopedia)](#media-file-playing-eg-movies-with-audio-support-music-with-1750-audio-scripts-that-can-be-listened-to-in-sevopedia)\
+&emsp;&emsp;&emsp;[Media player](#media-player)\
+&emsp;&emsp;&emsp;[Movies](#movies)\
+&emsp;&emsp;&emsp;[Music](#music)\
+&emsp;&emsp;[Expanded Panels](#expanded-panels)\
 &emsp;[Other new categories](/README.md#other-new-categories)\
 &emsp;&emsp;[Widget Python 6798 to link (e.g. for Builds, for Traits)](/README.md#widget-python-6798-to-link-eg-for-builds-for-traits)\
 &emsp;&emsp;[Charts (e.g. Handicap Chart, Game Speed Chart, World Sizes Chart, Eras Chart)](/README.md#charts-eg-handicap-chart-game-speed-chart-world-sizes-chart-eras-chart)\
 &emsp;[Some higher level reworks (e.g. AI Personality Panel, Traits Charts, Starting and Untradeable Techs Charts, Improvement Weights (Leaders) Chart)](/README.md#some-higher-level-reworks-eg-ai-personality-panel-traits-charts-starting-and-untradeable-techs-charts-improvement-weights-leaders-chart)\
+&emsp;&emsp;[Notes about the Sevopedia Leader's AI Personality Panel and Sevopedia Traits' Tables](#notes-about-the-sevopedia-leaders-ai-personality-panel-and-sevopedia-traits-tables)\
 &emsp;[Some other Sevopedia reworks](/README.md#some-other-sevopedia-reworks)\
+&emsp;&emsp;[Concepts (as of now in the "Outdated" Sevopedia category)](#concepts-as-of-now-in-the-outdated-sevopedia-category)\
+&emsp;&emsp;[Mods Info](#mods-info)\
+&emsp;&emsp;&emsp;[Info about Other mods](#info-about-other-mods)\
+&emsp;&emsp;&emsp;[Legends](#legends)\
 [UI (Common)](/README.md#ui-common)\
 &emsp;[Emojis](/README.md#emojis)\
 &emsp;[Untradeable techs (bTrade) display information](/README.md#untradeable-techs-btrade-display-information)\
 [New optional XML fields (e.g. ObsoleteTech for units, Button for eras, EraArtDefineTags and EraArtDefineTag for leaderhead era art)](/README.md#new-optional-xml-fields-eg-obsoletetech-for-units-button-for-eras-eraartdefinetags-and-eraartdefinetag-for-leaderhead-era-art)\
+&emsp;[ObsoleteTech for units](#obsoletetech-for-units)\
+&emsp;[Button for eras](#button-for-eras)\
+&emsp;[EraArtDefineTags and EraArtDefineTag for leaderhead era art](#eraartdefinetags-and-eraartdefinetag-for-leaderhead-era-art)\
 [AI-generated images](/README.md#ai-generated-images)\
 [Less Generic unit names or combat types](/README.md#less-generic-unit-names-or-combat-types)\
 [Civs you can expect in this mod](/README.md#civs-you-can-expect-in-this-mod)\
@@ -78,7 +105,11 @@ For license and reuse terms, including project-specific restrictions and express
 &emsp;[How to use](/README.md#how-to-use)\
 &emsp;[New AdvCiv-SAS World Sizes (SAS24, SAS32, SAS40, SAS48; Arena) (Recommended to use with the 48 Civs DLL)](/README.md#new-advciv-sas-world-sizes-sas24-sas32-sas40-sas48-arena-recommended-to-use-with-the-48-civs-dll)\
 [Mapscripts](/README.md#mapscripts)\
-&emsp;[AdvCiv-SAS original mapscripts (e.g., SAS_Large_Facing_Islands, SAS_Longworld, SAS_Parallel_Lines, SAS_Spiky_Avenues)](/README.md#advciv-sas-original-mapscripts-eg-sas_simple_flat_grass-sas_large_facing_islands-sas_longworld-sas_parallel_lines-sas_spiky_avenues)\
+&emsp;[AdvCiv-SAS original mapscripts (e.g., SAS_Simple_Flat_Grass, SAS_Large_Facing_Islands, SAS_Longworld, SAS_Parallel_Lines, SAS_Spiky_Avenues)](/README.md#advciv-sas-original-mapscripts-eg-sas_simple_flat_grass-sas_large_facing_islands-sas_longworld-sas_parallel_lines-sas_spiky_avenues)\
+&emsp;&emsp;[SAS_Longworld](#sas_longworld)\
+&emsp;&emsp;[SAS_Spiky_Avenues](#sas_spiky_avenues)\
+&emsp;&emsp;[SAS_Large_Facing_Islands](#sas_large_facing_islands)\
+&emsp;&emsp;[SAS_Parallel_Lines](#sas_parallel_lines)\
 &emsp;[New Maps (e.g., BTG_Cross, BTG_Lagoon)](/README.md#new-maps-eg-btg_cross-btg_lagoon)\
 &emsp;[New .dds for mapscripts in Simple Game](/README.md#new-dds-for-mapscripts-in-simple-game)\
 [Change from short to int the Found value pipeline](/README.md#change-from-short-to-int-the-found-value-pipeline)\
@@ -90,14 +121,21 @@ For license and reuse terms, including project-specific restrictions and express
 &emsp;[Light-source ZIP](/README.md#light-source-zip)\
 [DLL Logging](/README.md#dll-logging)\
 &emsp;[Versioning](/README.md#versioning)\
+&emsp;[If .git does exist (dev)](#if-git-does-exist-dev)\
+&emsp;[If .git does not exist (regular users or download ZIP from GitHub)](#if-git-does-not-exist-regular-users-or-download-zip-from-github)\
 &emsp;[BBAI logging and head example](/README.md#bbai-logging-and-head-example)\
 &emsp;[SASGameRecord log](/README.md#sasgamerecord-log)\
-[CuCuGS](/README.md#external-file-access-in-civ4-ingame-on-windows)\
+[CuCuGS](#cucugs)\
 [LLM-assisted source analysis](/README.md#llm-assisted-source-analysis)\
-[Known issues that may or may not be fixed, in base AdvCiv or Civ4](/README.md#known-issues-that-may-be-fixed-or-not-fixed-in-base-advciv-or-civ4)\
+&emsp;[Light-source analysis](#light-source-analysis)\
+&emsp;[Historical source archaeology](#historical-source-archaeology)\
+&emsp;[C++ File Audit Album](#c-file-audit-album)\
+[Known issues that may be fixed or not fixed in base AdvCiv or Civ4](/README.md#known-issues-that-may-be-fixed-or-not-fixed-in-base-advciv-or-civ4)\
 ["Temporary" crashes](/README.md#temporary-crashes)\
 [Not supported in AdvCiv-SAS](/README.md#not-supported-in-advciv-sas)\
 [Mod name and Version number](/README.md#mod-name-and-version-number)\
+&emsp;[Mod name](#mod-name)\
+&emsp;[Version number](#version-number)\
 [Copyright and Disclaimer](/README.md#copyright-and-disclaimer)\
 [Credits](/README.md#credits)\
 [Some Useful tools while doing this](/README.md#some-useful-tools-while-doing-this)\
@@ -106,6 +144,39 @@ For license and reuse terms, including project-specific restrictions and express
 &emsp;[Expressly permitted RFC Dawn of Civilization derivatives](/LICENSE.md#expressly-permitted-rfc-dawn-of-civilization-derivatives)\
 &emsp;[Requests, exceptions, and future terms](/LICENSE.md#requests-exceptions-and-future-terms)\
 [Authors](/README.md#authors)\
+&emsp;[me, wonderingabout](#me-wonderingabout)\
+&emsp;[chatgpt web](#chatgpt-web)\
+&emsp;&emsp;[4o](#4o)\
+&emsp;&emsp;[o3](#o3)\
+&emsp;&emsp;[5](#5)\
+&emsp;&emsp;[5.1](#51)\
+&emsp;&emsp;[5.2](#52)\
+&emsp;&emsp;&emsp;[RedX new art button](#redx-new-art-button)\
+&emsp;[GPT-Codex (VS Code extension)](#gpt-codex-vs-code-extension)\
+&emsp;&emsp;[Create a new Sevopedia category (e.g. Handicap Chart)](#create-a-new-sevopedia-category-eg-handicap-chart)\
+&emsp;&emsp;[Long_Comments extracting](#long_comments-extracting)\
+&emsp;&emsp;[5.3](#53)\
+&emsp;&emsp;&emsp;[add Irish Empire end to end (with Youtube video)](#add-irish-empire-end-to-end-with-youtube-video)\
+&emsp;&emsp;&emsp;[add and use LLM_Helpers for speeds calibration and autotuning](#add-and-use-llm_helpers-for-speeds-calibration-and-autotuning)\
+&emsp;&emsp;[5.4](#54)\
+&emsp;[Claude AI](#claude-ai)\
+&emsp;&emsp;[Claude (web chat)](#claude-web-chat)\
+&emsp;&emsp;[Claude code (VS Code extension)](#claude-code-vs-code-extension)\
+&emsp;&emsp;&emsp;[CuCuGS implementation](#cucugs-implementation)\
+&emsp;&emsp;&emsp;[Speeds calibration (with autotuner and compare scripts)](#speeds-calibration-with-autotuner-and-compare-scripts)\
+&emsp;&emsp;&emsp;[Other tasks: e.g. performance optimizations](#other-tasks-eg-performance-optimizations)\
+&emsp;[Gemini AI](#gemini-ai)\
+&emsp;&emsp;[2.5 Flash](#25-flash)\
+&emsp;&emsp;[2.5 Pro](#25-pro)\
+&emsp;&emsp;[3 Pro](#3-pro)\
+&emsp;&emsp;[Nano Banana Pro](#nano-banana-pro)\
+&emsp;[DeepSeek AI](#deepseek-ai)\
+&emsp;&emsp;[V3 if i'm not mistaken](#v3-if-im-not-mistaken)\
+&emsp;&emsp;[V3.1](#v31)\
+&emsp;[Grok AI](#grok-ai)\
+&emsp;[Kimi AI](#kimi-ai)\
+&emsp;&emsp;[K2](#k2)\
+&emsp;&emsp;[K2.5](#k25)\
 
 ## Tech Tree
 

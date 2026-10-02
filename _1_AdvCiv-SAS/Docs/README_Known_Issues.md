@@ -19,68 +19,68 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 ## Menu
 
 [KI#1 - Redundant attribute values for all AI Civs](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-1)\
-[KI#2 - (now fixed) Gandhi's base leaderheadinfo's xml had nowarattitudeprob pleased(110)/pleased(115) duplicated instead of pleased(110)/friendly(115)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-2)\
-[KI#3 - (now fixed with a DLL patch) Barbarians (cities) building wonders](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-3)\
-[KI#4 - (now fixed) Sevopedia Unit's placeRequires's Religion button not redirecting](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-4)\
-[KI#5 - (seemingly worked around now) player name same as Windows username causes new game screen freeze](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-5)\
-[KI#6 - (now worked around) Too long XML code comments cause errors/crashes](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-6)\
-[KI#7 - Screenshots on multi screen display don't work unless taken in primary screen](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-7)\
-[KI#8 - Do not edit python files while running the game](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-8)\
-[KI#9 - Art (and maybe other assets) XML silently causing crash during load instead of error](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-9)\
-[KI#10 - Some text characters in XML TXT_KEY tags not displayed correctly](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-10)\
-[KI#11 - In Debug mode, map view shows wrong colors for improvements on unexplored tiles](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-11)\
-[KI#11.2 - In Debug mode, another weird bug in wonder list](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-11.2)\
-[KI#12 - (now fixed) Monastery button inconsistency](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-12)\
-[KI#13 - (now fixed/reworked) Shrines now also appear in tech tree](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-13)\
-[KI#14 - (now removed/fixed) Duplicate ArtRef for Lighthouse, Harbor, Cothon](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-14)\
-[KI#15 - (now fixed) Missing tech "Cannot be traded" info in Sevopedia & tech advisor](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-15)\
-[KI#16 - (now fixed) Missing info in Sevopedia outside ingame load](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-16)\
-[KI#17 - (now fixed) Missing BBAI getters for Sevopedia leader info](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-17)\
-[KI#17.5 - (now fixed) Missing AdvCiv-specific XML fields in Sevopedia leader](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-17.5)\
+[KI#2 - (now fixed) Gandhi's base leaderheadinfo's xml had nowarattitudeprob pleased(110)/pleased(115) duplicated instead of (as i suspect it should be) pleased(110)/friendly(115)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-2)\
+[KI#3 - (now fixed with a DLL patch) Barbarians (cities) building wonders, in particular now fixed i.e. disabled for world wonders](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-3)\
+[KI#4 - (now fixed) Sevopedia Unit's placeRequires's Religion button (for example any religious missionary unit) not redirecting to Sevopedia religion (nothing happens on click)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-4)\
+[KI#5 - (seemingly worked around now) player name same as windows (10's for example) username causes new game screen to be stuck unless a custom name is chosen, if/after/while DLL has been fastdep compiled](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-5)\
+[KI#6 - (now worked around) Too long XML code comments cause errors or game crashes](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-6)\
+[KI#7 - Screenshots on multi screen display (if playing civ4 with "windowed" and not fullscreen as well) don't work if not taken in primary screen](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-7)\
+[KI#8 - Do not edit python files while running the game, even modifying unused/unreached code may cause weird errors](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-8)\
+[KI#9 - Art (and maybe other assets too or not) XML assets silently causing a game crash during init/game load/startup instead of telling us which asset was missing (no error)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-9)\
+[KI#10 - some text characters in XML TXT_KEY tags are not displayed correctly ingame (as `?` or causing other arti(e?)facts maybe too indeed for example), while some like `&` cause an XML error and asset failing to load entirely](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-10)\
+[KI#11 - In Debug mode, in map view, unexplored tile by the active player if improved, shows as red for example "with Road" or "with Pasture", even though a road is already there and text should be white instead or removed entirely; and other weird debug mode display issue(s)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-11)\
+[KI#11.2 - In debug mode, another weird bug is at wonder list while world wonder has not been built in said civs at least not all](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-11.2)\
+[KI#12 - (now fixed) Special/generic building monastery's button inconsistently using (uses/was using rather) the hindu specific monastery button instead of a generic button like the (abstract? / generic) generic temple and generic cathedral were](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-12)\
+[KI#13 - (now fixed/reworked) As an appendix to 12 - just before, shrines now also appear in tech tree at their religion's tech requirement unlike in base advciv / civ4 too](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-13)\
+[KI#14 - (now removed/fixed if it is a fix) duplicate ArtRef Name="building:BUILDING_LIGHTHOUSE" and same for ArtRef Name="building:BUILDING_HARBOR" and ArtRef Name="building:BUILDING_CARTHAGE_COTHON" in CIV4CityLSystem.xml](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-14)\
+[KI#15 - (now fixed) Missing this technology "Cannot be traded" (bTrade) information in Sevopedia tech and tech advisor](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-15)\
+[KI#16 - (now fixed) some info is missing in Sevopedia outside of/if not loaded from an ingame load for example "Can build research" not in Sevopedia main menu but in Sevopedia ingame (after map is loaded)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-16)\
+[KI#17 - (now fixed) missing BBAI getters expose them to Sevopedia leader info in gc too for display](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-17)\
+[KI#17.5 - (now fixed) similarly missing base advcivspecific xml fields in gc of Sevopedia leader, now exposed there as well these new getCityRefuseAttitudeThreshold and getNativeCityRefuseAttitudeThreshold](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-17.5)\
 [KI#18 - Very inconsistent naming in some assets](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-18)\
 [KI#19 - Unused or unclearly named art assets (e.g., _ASIAN/_CHINESE/_EURASIAN mixed up), and some are used while others are not](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-19)\
-[KI#20 - Negative/inconsistent DLL-adjusted nowarattitudeprobs for some leaders](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-20)\
-[KI#21 - (now fixed) Missing "Cannot enter" terrain/feature info in map view of unit effects](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-21)\
-[KI#21.5 - (Addressed / fixed) Removed giant configobj docstring in python code](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-21.5)\
-[KI#21.6 - (Addressed) Old python code not optimized, many Ruff errors in VS Code](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-21.6)\
-[KI#22 - (now fixed) Obsolete bonuses in tech advisor failing to redirect](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-22)\
-[KI#22.5 - (Addressed) Fixed weird flavors or XML fields](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-22.5)\
+[KI#20 - Negative and inconsistent DLL ajusted nowarattitudeprobs for some leaders, like leader_alexander that/who has nowarattitude prob furious of -2 lower than furious 0 and lower than cautious 14](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-20)\
+[KI#21 - (Now fixed) missing "Cannot enter" terrain or feature info in map view of unit effects, unlike in Sevopedia (where it is also not clear enough about restrictions (cultural borders + not affected by roads, now added this info as well))](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-21)\
+[KI#21.5 - (Addressed / fixed) - Removed the giant configobj docstring very inefficiently in the python code, and commented out most if not all as well](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-21.5)\
+[KI#21.6 - (Addressed) Old python code not being optimized, with many ruff linter (that we added) VS Code errors that don't allow to read the files](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-21.6)\
+[KI#22 - (Now fixed) Obsolete bonuses (such as BONUS_ELEPHANTS) in tech advisor (i.e. tech tree view) failing to redirect to Sevopedia bonus with id none causing an error, unlike obsolete buildings (like BUILDING_SPIRAL_MINARET for example) successfully showing the building item's page](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-22)\
+[KI#22.5 - (Addressed) Seemingly fixed weird flavors or XML fields: Mistakes?](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-22.5)\
 [KI#22.6 - (Addressed) XML tweaks and fixes](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-22.6)\
 [KI#22.7 - (Fixed/Prevented) Redundant XML default/list entries that add noise without changing effective values](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-22.7)\
-[KI#23 - (Seemingly now fixed) Major bug of AI cities being stuck in a loop of producing a workboat and instantly scrapping it](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-23)\
-[KI#23.2 - (Attemptingly partially addressed/reduced) AI players producing more workboats than needed which then stay parked in city or go explore](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-23.2)
-[KI#24 - (Attemptingly fixed) AI Workers often build forts on bonuses](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-24)\
-[KI#25 - (Seemingly fixed) AIs settling too much/often on bonuses](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-25)\
-[KI#26 - (Attemptingly fixed/addressed) Tell AI settlers which terrains/features are best to settle near](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-26)\
+[KI#23 - (Seemingly now fixed) Major bug of AI cities being stuck in a loop of producing a workboat and instantly scrapping it (so without producing a new unit if i'm not mistaken) then producing a new one endlessly for dozen turns until it somehow solved itself but way too late](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-23)\
+[KI#23.2 - (Attemptingly partially addressed/reduced) AI players producing more workboats than needed which then stay parked in city or go explore](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-23.2)\
+[KI#24 - (Attemptingly fixed) AI Workers often build forts on bonuses, even if they already have an existing improvement (very inefficient and not immersive)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-24)\
+[KI#25 - (Seemingly fixed) AIs settling too much and too often on bonuses, especially food bonuses (!!!) and metals and other high production bonuses or also commerce bonuses to a lesser extent](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-25)\
+[KI#26 - (Enhanced; fixed terrain tables superseded by XML-driven valuation) tell AI settlers which non-home environments are productive and which home plots are efficient to consume](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-26)\
 [KI#26.2 - (Enhanced) AI settlers not devaluing very bad non home tiles (peak, ice cap, non hill desert without a bonus, non hill snow without a bonus) if we have enough of them in BFC](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-26.2)\
-[KI#27 - (now fixed) Some promotions missing in Sevopedia unit's placePromotions](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-27)\
-[KI#28 - (now fixed) Custom wallpaper stretched vertically at 1920x1080](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-28)\
-[KI#29 - (workaround) Clicking a specific spot in tech advisor at Transhumanism causes crash](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-29)\
-[KI#30 - (Attemptingly fixed) AI workers not prioritizing bonuses to improve](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-30)\
-[KI#31 - (Attemptingly fixed) Deprioritize routes for AI workers in favour of yields first](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-31)\
-[KI#32 - (now seemingly fixed) Prioritize settling on coast when food environment is low](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-32)\
-[KI#33 - Tremendously improved/fixed/enhanced AI worker build/improvement logic](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-33)\
-[KI#33.2 - (Candidate AdvCiv-SAS regression recovery / enhancement) productive feature hammers are preserved too long or spent too late after the custom Worker rewrite](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-33.2)\
-[KI#33.3 - (Candidate AdvCiv-SAS tech-tree/AI interaction) productive feature-removal technologies can be researched far too late on feature-heavy low-production starts](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-33.3)\
-[KI#34 - (Seemingly fixed/tweaked) Major K-Mod suboptimal food plot AI city allocation](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-34)\
-[KI#35 - (Attemptingly fixed/addressed) AI building too many military naval units then gets invaded on land](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-35)\
-[KI#36 - (Attemptingly fixed/addressed) AI building settlers at critical time when war is likely](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-36)\
-[KI#37 - (Workaround/rebalanced) AI building 2 settlers inefficiently, now settler is a national unit](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-37)\
-[KI#38 - (No idea why) Compile sometimes fails then succeeds with same source](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-38)\
-[KI#38.2 - (Weird DLL XML errors at launch, solved by recompiling) The exact same DLL (cosmic ray 2? Or something else maybe or whatever)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-38.2)\
+[KI#27 - (now fixed) Some promotions are missing in Sevopedia unit's placePromotions](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-27)\
+[KI#28 - (now fixed) Wallpaper of our mod's custom being stretched vertically while some of the top of the wallpaper is not shown at all, at 1920 x 1080 game resolution](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-28)\
+[KI#29 - (as of now with a workaround) clicking on a specific spot in tech advisor at tech transhumanism's blue box causes a crash](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-29)\
+[KI#30 - (Improved) AI workers not prioritizing bonuses to improve, especially food bonuses, and other AI workers optimizations or changes](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-30)\
+[KI#31 - (Improved) Deprioritize routes for AI workers in favour of yields first, except in some rare cases](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-31)\
+[KI#32 - (now seemingly fixed) Prioritize settling on coast when food environment is low (many tundra or plains or desert or snow (or peak although i assume is not counted but to be safe)) (the "Corinth screenshot")](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-32)\
+[KI#33 - Tremendously improved and fixed and enhanced AI worker build/improvement logic in `CvUnitAI::AI_bestCityBuild`](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-33)\
+[KI#33.2 - (Improved) AdvCiv-SAS Worker rewrite could preserve legal productive-feature hammers too long after bypassing inherited contextual chop valuation](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-33.2)\
+[KI#33.3 - (Improved) AdvCiv-SAS tech-tree/AI interaction could research productive feature-removal technologies too late on feature-heavy low-production starts](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-33.3)\
+[KI#34 - (Seemingly fixed/tweaked) Major K-Mod suboptimal food plot AI city allocation: starving or stagnant cities prefer 1 hammer over 4 food plots that are unallocated to any population ("Ulundi screenshots", "Prague Screenshots", and others) + food not being valued when food is production (e.g. worker, settler, etc if any more) when it is in fact the exact same and probably more reliable to set rather than production](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-34)\
+[KI#35 - (Attemptingly fixed or addressed) AI building too many military naval units then gets invaded on land and can't defend (10+ galleons and barely any land defender) + do not prioritize water military units if city is landlocked (i assume it means stuck in a lake or something)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-35)\
+[KI#36 - (Attemptingly fixed or addressed) AI building settlers at critical time when war is likely, instead of preparing for war: very bad as the few more units with the hammer saved could make us gain or not lose the war, while the extra city makes all our empire thinner and our units split, on top of having less units overall as well](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-36)\
+[KI#37 - (Workaround and rebalanced) AI building 2 settlers very inefficiently at same time or when a settler unit already exists - now settler is a national unit (only 1 allowed per player)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-37)\
+[KI#38 - (No idea why) Sometimes compile mysteriously/strangely/inconsistently fails, and recompiling succeeds under/withexact same source files](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-38)\
+[KI#38.2 - (Weird DLL XML errors at launch, solved by recompiling) The exact same DLL (cosmic ray 2? Or something else maybe or whatever maybe)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-38.2)\
 [KI#38.3 - (Improved) Parallel Debug-opt compilation used excessive CPU for a small time saving](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-38.3)\
 [KI#38.4 - (Fixed XML launch failure; confirmed the previous SAS define sentinel/guard is validated) UTF-8 BOM prevented SAS GlobalDefines from loading](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-38.4)\
-[KI#39 - (Seemingly fixed/enhanced) AI workers move sooner between cities that need improvements](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-39)\
-[KI#40 - (Seemingly fixed/addressed) Plot allocation improvement 2: high happiness → favour food tiles](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-40)\
-[KI#41 - (Seemingly fixed) Tremendously improved AI worker mobility/flexibility/reliability](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-41)\
-[KI#42 - (Enhanced/Addressed) Tune AI's preferred UNITAI based on war status & other factors](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-42)\
-[KI#43 - (Attemptingly improved/enhanced) AI settlers, for the first city found (i.e. at turn 0), settling too soon instead of digging a bit for better sites](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-43)\
+[KI#39 - (Seemingly fixed or enhanced) Make AI workers move sooner to City B or City C or such, and vice versa, if current city is already improved enough and don't need to be over improved, while other cities are not improved enough and would much rather need it](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-39)\
+[KI#40 - (Seemingly fixed / addressed) Tremendous/Major Plot allocation improvement 2: If we are high in happiness, favour food tiles much more, and hammer tiles much less if happiness is really high (favour growth dynamically and plot allocation of these the more we can afford it), even if production is slightly reduced short term as a result, it auto corrects at high happiness, with seemingly much stronger AI and developped cities as a result (excluded if food is production (e.g. worker, settler, etc))](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-40)\
+[KI#41 - (Seemingly fixed) Beyond Tremendously Improved AI worker mobility, flexibility, and reliability, now favouring minimal big city improvement (come back to it later but don't delay improving smaller ones), quick moving to smaller ones, and spending longer to improve smaller ones as they grow fast, as well as being braver in our own cultural borders or moving to other cities needing improvements rather than being parked in current city and such other changes to increase AI efficiency reliably, and other changes if any thanks to chatgpt 5 and me too](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-41)\
+[KI#42 - (Enhanced/Addressed) Tune AI's preferred based UNITAI based on war status (offense mode, defense mode, combined power ratios of ennemies, etc if any other), general sanity checks and efficiency, city size, map type (land heavy vs water heavy vs other if any for example), general suicide or such tendencies, etc](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-42)\
+[KI#43 - (Attemptingly improved/enhanced) AI settlers, for the first city found (i.e. at turn 0), settling too soon instead of digging a bit for better sites, and other related changes](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-43)\
 [KI#44 - (Enhanced) Make/Encourage AI settlers walk away from bad starting sites](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-44)\
 [KI#44.5 - (Fixed SAS citizen-assignment regression) Citizen specialist could be impossible even when absolutely necessary](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-44.5)\
 [KI#44.6 - Disable auto citizen specialists for the human player as well](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-44.6)\
 [KI#45 - (Addressed / Patched / Worked around) AI cities assigning too soon or too often specialists, resulting in early stagnation very inefficiently: now added sanity rules to not go for a specialist](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-45)\
 [KI#46 - (Cleaned up) Very big messy old uiFlag code in the DLL, seemingly to support savegame compatibility, which i don't care about, especially considering how complicated the code is as a result](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-46)\
-[KI#47 - (Fixed / Addressed / Enhanced) AI choosing poorly promotions for its units: now added a set of hard rules in which case some promotions are not good and to ignore as is most efificient in most times, and rarely cases where some promotions are best to always go first](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-47)\
+[KI#47 - (Fixed / Addressed / Enhanced) AI choosing poorly promotions for its units: now added a set of hard rules in which case some promotions are not good and to ignore as is most efificient in most times, and rarely cases where some promotions are best to always go first for (e.g. as of no city_garrison first for unitai_city_defense, city_raider first for unitai_attack_city, etc if any more)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-47)\
 [KI#48 - (Enhanced/Reworked) AI building walls when they are stronger and don't need it, or wonders when they are weaker or in danger (don't build wonders for our neighbours when they capture us), and overall added a lot of extra buildingValue reject or always build first logic depending on building type or such; and reworked as well the ditching wonders logic to be seemingly stricter and more war/danger focused](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48)\
 [KI#48.2 - (Greatly Enhanced and Fixed) Kish city of gilgamesh AI building a theatre instead of a hindu temple despite having unhappy citizens (and health room to grow otherwise), and theatre not giving any reliable happiness (almost anything else would have been much better), fixed by fixed by correcting the happiness building formula in our pre-check in CvCityAI::AI_buildingValue, and in particular replacing the too broad and unreliable CvCity::getAdditionalHappinessByBuilding with our own AI_strictAdditionalHappy](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.2)\
 [KI#48.3 - (Fixed AdvCiv-SAS bug) Building prefilter double-counted unhealthy food loss](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.3)\
@@ -89,7 +89,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#50 - (Tremendously improved/fixed/enhanced) Excessive AI worker retreat logic causing worker parking in cities in rare cases: now added a wake from retreat and other changes if any other change](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-50)\
 [KI#51 - (Cleanup validated; human tripwire retained) Old AI no-production fallback was obsolete: four broad controls found only intentional disorder returns, with no normal AI_chooseProduction final fall-through or non-disorder turn-boundary stall](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-51)\
 [KI#52 - (Beyond Tremendously improved) Remove AI scrapping of military land units, as way too many units are scrapped early, yet we really need them to defend against barbarians or our rivals or such](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-52)\
-[KI#53 - (Beyond Tremendously Improved) Naval dementia of producing privateers/galleons then seemingly scrapping them and repeat, or of more importantly building galleons and privateers in droves and excess, despite enemy threatening cities of land capture for 20+ turns, and losing capital as a result](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-53)\
+[KI#53 - (Beyond Tremendously Improved) Naval dementia of producing privateers/galleons then seemingly scrapping them and repeat, or of more importantly building galleons and privateers in droves and excess, despite enemy threatening cities of land capture for 20+ turns, and losing capital as a result: fixed/addressed by now managing production of each unitai with max by type in CvCityAI::AI_chooseUnit, as well as disallowing scrapping and managing it by unitai type globally as well in CvUnit::canScrap by type as well with max and such other conditions for some units like as of now workers](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-53)\
 [KI#53.2 - (Fixed and enhanced) Joao AI building way too many defenders (36 longbowmen at turn 130!! Almost all with UNITAI_CITY_DEFENSE or similar) while being boxed in with only 3 cities, instead of making about half of these offense units or versatile ones to punish overextending thin neighbour, fixed by having an early phase "we have expectedly too few cities at this stage of the game, no need to overbuild anymore denders at this stage of the game, switch to offense or versatile UNITAI rather" and "our military composition has way too many defender UNITAIs, switch to offense or versatile UNITAIs", which seemingly fix the issue](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-53.2)\
 [KI#53.2.2 - (Seemingly greatly enhanced) AI overproducing defenders early on, especially longbowmen but not only, replaced with an early produce more versatile units especially civ-specific ones when defended enough (at least in theory) in CvCityAI::AI_chooseUnit](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-53.2.2)\
 [KI#53.3 - (Fixed AdvCiv-SAS regression after major SAS improvement) A concrete siege veto suppressed a legal same-role alternative](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-53.3)\
@@ -97,20 +97,12 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#53.5 - (Greatly Improved) Peaceful dominant AIs can keep producing fresh land military after their primary landmass is already heavily saturated](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-53.5)\
 [KI#53.6 - (Improved) Strong island AIs can retain large armies and assault fleets while UWAI declines plausible nearby overseas wars](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-53.6)\
 [KI#54 - (Fixed) Major Base Advciv +/- civ4 bug in AIFoundValue::adjustToCivSurroundings causing AI settlers to value midgame (turn 50+ for example here) settling on camel desert; worked around and disabled this function entirely, now inline a very simplified version of it inline in its only caller](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-54)\
-[55 to 60 -](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#55-to-60--)\
-
-<details>
-<summary>Mostly reverted due to causing issues, minus some safeties or very conservative tweaks</summary>
-
 [KI#55 - (To keep in mind if you have a game crash in AdvCiv-SAS) One of the culprits could be AI_bestCityBuild (after we rewrote it entirely more or less) sometimes firing not null or whatever (there are lines to uncomment in its callers that may fix it)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-55)\
 [KI#56 - (Fixed) Most likely base advciv +/- civ4 crash at turn 156 fixed by commenting out the !getPlot().isSamePlotGroup(*pBestPlot, getOwner()) check in CvUnitAI::AI_nextCityToImprove else block (old code)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-56)\
 [KI#57 - (Not reproducible) Unknown game crash at turn 94](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-57)\
 [KI#58 - (Fixed/Enhanced) Reproducible crash at turn 95 in another map, related to the else block in CvUnitAI::AI_nextCityToImprove, by rewriting the else block based on the (more?) code at CvUnitAI::AI_connectPlot](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-58)\
 [KI#59 - (Partially improved) some AI cities are not improved enough and totally neglected for dozen turns](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-59)\
 [KI#60 - (Fixed) Seemingly rare reproducible crash at turn 283 in CvUnitAI::AI_nextCityToImprove, by adding a bunch of seemingly conservative safeties (as chatgpt 5 did, check if accurate)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-60)\
-</details>
-<br>
-
 [KI#61 - (Seemingly Tremendously Improved) AIs getting baited to attack faraway rivals, leaving their core cities mostly defenseless, and oftentimes dying shortly after to an opportunistic rivals. Changed by adding a pre-filter reject in war risk assessment based on distance to us in Risk::preEvaluate in WarUtilityAspect.cpp](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-61)\
 [KI#62 - (Extremely better/stronger) AI almost not evacuating at all doomed cities (2 swordsmen in an 11 unit defending stack vs a 22+ attacking unit stack), fixed by always and 100% evacuating city doomed city regardless of land unit type, in CvUnitAI::AI_evacuateCity](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-62)\
 [KI#63 - (Possibly prevented and possibly fixed) Weird / very inefficient back and forth of going to attack a city stack, and then going back after seeing enemy stack is too strong. I don't know if this change fixes it since the issue was solved without it (2+ autoplay turns were needed at least it seems not 1), but maybe this change in CvUnitAI::AI_attackCityMove helps a lot](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-63)\
@@ -221,7 +213,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#162.3 - (Tentatively Seemingly Fixed) Reproducible T259 `CvCity::getProductionBarPercentages+0x522` invalid-pointer crash exposed during AI military-production testing](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-162.3)\
 [KI#163 - (Tentatively Addressed and Hardened) Rare non-reproducible autoplay crash variant related to `CvSelectionGroup::deleteUnitNode` and `CvSelectionGroup::clearUnits`](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-163)\
 [KI#164 - (Fixed) Base Civ4 Oasis map script had shadowed Python callbacks (found by the Python Ruff GitHub Actions Workflow)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-164)\
-[KI#165 - (Fixed) Base AdvCiv bug: Dormant RectLayout `upperLeft` helper returned undefined `Point` instead of `PointLayout` (found by Python Ruff GitHub Actions Workflow)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-165)
+[KI#165 - (Fixed) Base AdvCiv bug: Dormant RectLayout `upperLeft` helper returned undefined `Point` instead of `PointLayout` (found by Python Ruff GitHub Actions Workflow)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-165)\
 [KI#166 - (Fixed/Addressed) Base AdvCiv issue of trying to support reading mod (e.g., AdvCiv/AdvCiv-SAS) replay/Hall of Fame data in unmodded BTS, or unmodded BTS replay/Hall of Fame data in the mod (e.g., AdvCiv/AdvCiv-SAS): replays no longer try to use vanilla BtS-compatible replay storage after shifted XML enum order](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-166)\
 [KI#167 - (Fixed) Incorrect BBAI logging argument check of `MISSIONAI_TRADE` instead of `MISSIONAI_GREAT_WORK` near `if (AI_doGreatWork(pBestCulturePlot))` (and gate the old `eOldMission` behind a logging guard for per opt)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-167)\
 [KI#168 - (Fixed) K-Mod bug: Great Person Join and direct Construct target selection did not preserve the nearest-path tie-breaker (Bug Found During BBAI Logging Investigation/Code Review)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-168)\
@@ -487,7 +479,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#382.2 - (Fixed AdvCiv-SAS diagnostic regression) Loading after another game crashed while fingerprinting the closing session](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-382.2)\
 [KI#383 - (Fixed AdvCiv-SAS UI regression) Leader Glance lost its War Trades hover explanation](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-383)\
 [KI#384 - (Fixed inherited AdvCiv Pedia regression) Opening-menu right clicks formed a NULL civilization reference](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-384)\
-[KI#385 - (Pending Architectural inherited/SAS diagnostic drift) Scoreboard cheat war predictions duplicate stale AI_doWar logic](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-385)\
+[KI#385 - (Pending Architectural inherited AdvCiv/K-Mod diagnostic drift widened by SAS) Scoreboard cheat war predictions duplicate stale AI_doWar logic](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-385)\
 [KI#386 - (Fixed inherited BtS tooltip defect) Great Spy Infiltration omitted its espionage yield](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-386)\
 [KI#387 - (Rejected false positive) GET_TEAM(PlayerTypes) already converts the player to the correct team](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-387)\
 [KI#388 - (Fixed AdvCiv-SAS UI state defect) Info Screen Score hovers triggered scoreboard expansion](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-388)\
@@ -638,7 +630,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#524.3 - (Fixed AdvCiv-SAS WAR diagnostic crash) Military-posture logging inspected an unplaced unit](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-524.3)\
 [KI#524.4 - (Fixed inherited AdvCiv AI-upgrade crash) Post-turn upgrade candidates included an unplaced unit](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-524.4)\
 [KI#524.5 - (Fixed inherited BtS/K-Mod/AdvCiv crash) Enemy-glow rendering inspected an unplaced unit](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-524.5)\
-[KI#524.6 - (Fixed inherited BtS/K-Mod/AdvCiv Partisans crash chain and AdvCiv-SAS SASGameRecord crash) applyPartisans1 initUnit(NO_UNIT) poisoned the unit container](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-524.6)\
+[KI#524.6 - (Fixed inherited BtS/K-Mod/AdvCiv Partisans crash chain and AdvCiv-SAS SASGameRecord crash) `applyPartisans1` `initUnit(NO_UNIT)` poisoned the unit container](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-524.6)\
 [KI#525 - (Fixed AdvCiv-SAS KI#319 regression) Consumed queued group attack was mistaken for no progress](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-525)\
 [KI#526 - (Fixed AdvCiv-SAS KI#319 regression) Non-head immediate movement was mistaken for no progress](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-526)\
 [KI#527 - (Fixed inherited AdvCiv debug diagnostic defect) Air combat Shift-hover called a land/sea-only stack comparison](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-527)\
@@ -707,7 +699,6 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#590 - (Fixed inherited original UWAI graph-state defect) Partial third-party city loss did not stop the defender's own offensive](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-590)\
 [KI#591 - (Fixed inherited original UWAI route-representation defect) Faster sea travel was used as land-invasion distance](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-591)\
 [KI#592 - (Fixed inherited AdvCiv/UWAI spatial-state defect) Conquered cities remained in simulated per-area Army and garrison counts](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-592)\
-
 [KI#593 - (Fixed inherited K-Mod/AdvCiv combat-AI defect) Local collateral strength used the wrong attacker team](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-593)\
 [KI#594 - (Fixed inherited BtS/K-Mod/AdvCiv calendar defect) Negative fractional BC years truncated toward AD](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-594)\
 [KI#595 - (Fixed inherited AdvCiv replay-compatibility defect) Foreign replay colors wrapped into the skipped system-color prefix](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-595)\

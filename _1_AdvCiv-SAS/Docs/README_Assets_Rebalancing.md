@@ -6,13 +6,47 @@ Some of the asset rebalancing is shown here (not exhaustive)
 
 [How to](/_1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md#how-to)\
 [Civs' starting techs rework](/_1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md#civs-starting-techs-rework)\
+&emsp;[before most recent as of now rework](#before-most-recent-as-of-now-rework)\
+&emsp;&emsp;[main table (chatgpt 5 written) - before change](#main-table-chatgpt-5-written---before-change)\
+&emsp;[after most recent as of now rework](#after-most-recent-as-of-now-rework)\
+&emsp;&emsp;[main table (chatgpt 5 written with some tweaks from me)](#main-table-chatgpt-5-written-with-some-tweaks-from-me)\
+&emsp;&emsp;[Global tech totals](#global-tech-totals)\
+&emsp;&emsp;[Starting pair counts (canonicalized; order-insensitive)](#starting-pair-counts-canonicalized-order-insensitive)\
 [Tech quote swaps rework](/_1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md#tech-quote-swaps-rework)\
 [Civ-specific buildings rework](/_1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md#civ-specific-buildings-rework)\
 [Unit terrain and feature combat modifiers](/_1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md#unit-terrain-and-feature-combat-modifiers)\
+&emsp;[Animals](#animals)\
+&emsp;[Generic units](#generic-units)\
+&emsp;[Civ-specific units](#civ-specific-units)\
 [Civ-specific units rework](/_1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md#civ-specific-units-rework)\
 [Leaders' traits rework](/_1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md#leaders-traits-rework)\
+&emsp;[previous state](#previous-state)\
+&emsp;&emsp;[main table before changes to traits](#main-table-before-changes-to-traits)\
+&emsp;&emsp;[raw traits assignment count](#raw-traits-assignment-count)\
+&emsp;&emsp;[pairs count](#pairs-count)\
+&emsp;[new state after rework with rationale or such](#new-state-after-rework-with-rationale-or-such)\
+&emsp;&emsp;[main table after changes to traits](#main-table-after-changes-to-traits)\
+&emsp;&emsp;[new traits total count](#new-traits-total-count)\
+&emsp;&emsp;[new pairs total count](#new-pairs-total-count)\
 [Leaders' favourite civics rework](/_1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md#leaders-favourite-civics-rework)\
+&emsp;[before changes favourite civics per leader](#before-changes-favourite-civics-per-leader)\
+&emsp;[before changes favourite civics count per civic](#before-changes-favourite-civics-count-per-civic)\
+&emsp;[after changes favourite civics per leader](#after-changes-favourite-civics-per-leader)\
+&emsp;[after changes favourite civics count per civic](#after-changes-favourite-civics-count-per-civic)\
 [Leaders' Favourite religions rework](/_1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md#leaders-favourite-religions-rework)\
+&emsp;[notes_about_religious_design](#notes_about_religious_design)\
+&emsp;&emsp;[Brennus](#brennus)\
+&emsp;&emsp;[Churchill](#churchill)\
+&emsp;&emsp;[Cyrus](#cyrus)\
+&emsp;&emsp;[Darius](#darius)\
+&emsp;&emsp;[Ewuare](#ewuare)\
+&emsp;&emsp;[Frederick](#frederick)\
+&emsp;&emsp;[Genghis Khan](#genghis-khan)\
+&emsp;&emsp;[Lincoln](#lincoln)\
+&emsp;&emsp;[Pericles](#pericles)\
+&emsp;&emsp;[Wang Kon](#wang-kon)\
+&emsp;[Other leaders](#other-leaders)\
+&emsp;[Summary of the favourite religion leaders' changes in advciv-sas](#summary-of-the-favourite-religion-leaders-changes-in-advciv-sas)\
 
 ## How to
 

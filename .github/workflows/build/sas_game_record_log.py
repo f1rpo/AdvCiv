@@ -13,6 +13,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lib"))
 
 from xml_defines import get_default_repo_root, read_global_define_ints, require_int_values
+from markdown_links import without_fenced_code
 
 
 REVISION_HEADER = Path("CvGameCoreDLL/SASGameRecordLog.h")
@@ -51,7 +52,26 @@ def check_revision(repo_root: Path) -> list[str]:
 	revision = int(revision_matches[0])
 
 	history_text = (repo_root / REVISION_HISTORY).read_text(encoding="utf-8", errors="replace")
-	history_revisions = [int(value) for value in re.findall(r"^### Revision (\d+) - SAS practical ", history_text, flags=re.MULTILINE)]
+	# <!-- custom: Check every revision heading, not only well-formed ones; the earlier regex silently skipped malformed additional entries. Require the latest entry's date, commit field and change description as well as matching revision numbers, so an empty entry cannot satisfy documentation maintenance. (GPT-6.1-Sol) -->
+	history_revisions = []
+	# <!-- custom: The fenced Revision N entry template was incorrectly rejected as a malformed historical entry in the first regression run. Scan headings and metadata outside fenced examples; inspect the emitted revision example separately in the original text. (GPT-6.1-Sol) -->
+	history_scan = without_fenced_code(history_text)
+	heading_matches = list(re.finditer(r"^### Revision\b[^\r\n]*", history_scan, flags=re.MULTILINE))
+	for heading in heading_matches:
+		parsed = re.fullmatch(r"### Revision (\d+) - SAS practical (\d+)(?: .*)?", heading.group(0))
+		if parsed is None:
+			failures.append(f"{REVISION_HISTORY}: malformed revision heading: {heading.group(0)}")
+		else:
+			history_revisions.append(int(parsed.group(1)))
+	if heading_matches:
+		latest_end = heading_matches[1].start() if len(heading_matches) > 1 else len(history_scan)
+		latest_entry = history_scan[heading_matches[0].end():latest_end]
+		for field in ("Date", "Git commit", "Change"):
+			entry = re.search(rf"^- \*\*{field}:\*\* ([^\r\n]+)$", latest_entry, flags=re.MULTILINE)
+			if entry is None or entry.group(1).strip().strip("`").lower() in ("", "todo", "tbd"):
+				failures.append(f"{REVISION_HISTORY}: latest revision lacks a completed {field} field")
+			elif field == "Change" and entry.group(1).strip().lower() == "pending":
+				failures.append(f"{REVISION_HISTORY}: latest revision Change description is still pending")
 	if not history_revisions:
 		failures.append(f"{REVISION_HISTORY}: no revision-history headings found")
 	else:

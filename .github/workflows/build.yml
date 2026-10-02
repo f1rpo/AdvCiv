@@ -14,15 +14,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v7
         with:
           python-version: "3.x"
       - run: python .github/workflows/build/temp_files.py
+      - run: python -m unittest discover -s .github/workflows/tests
+      - run: python .github/workflows/build/repository_hygiene.py
+      - run: python .github/workflows/build/generated_docs.py --base-ref "$BASE_REF" --event-name "$EVENT_NAME"
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+          EVENT_NAME: ${{ github.event_name }}
       - run: python .github/workflows/build/line_endings.py
       - run: python .github/workflows/build/assets_dlls.py
       - run: python .github/workflows/build/art_button_paths.py
       - run: python .github/workflows/build/markdown_images.py
       - run: python .github/workflows/build/markdown_links.py
+      - run: python .github/workflows/build/markdown_structure.py
       - run: python .github/workflows/build/global_defines_nonempty.py
       - run: python .github/workflows/build/version_metadata.py
       - run: python .github/workflows/build/launch_guard.py
@@ -30,6 +39,7 @@ jobs:
       - run: python .github/workflows/build/turn_define_gamespeed.py
       - run: python .github/workflows/build/xml_comments.py
       - run: python .github/workflows/build/xml_element_only_content.py
+      - run: python .github/workflows/build/art_define_structure.py
       - run: python .github/workflows/build/xml_suspicious_angle_tags.py
       - run: python .github/workflows/build/xml_suspicious_text_chars.py
       - run: python .github/workflows/build/xml_civ4_text_characters.py
@@ -43,6 +53,7 @@ jobs:
       - run: python .github/workflows/build/wonder_cost_columns.py
       - run: python .github/workflows/build/wonder_culture_gpp_columns.py
       - run: python .github/workflows/build/asset_tech_prereq_redundancy.py
+      - run: python .github/workflows/build/asset_primary_tech.py
       - run: python .github/workflows/build/civ_specific_assets.py
       - run: python .github/workflows/build/civ_specific_not_weaker.py
       - run: python .github/workflows/build/define_tag_refs.py
@@ -53,6 +64,7 @@ jobs:
       - run: python .github/workflows/build/diagnostic_log_safety.py
       - run: python .github/workflows/build/bbai_log.py
       - run: python .github/workflows/build/sas_game_record_log.py
+      - run: python .github/workflows/build/sas_revision_history.py
       - run: python .github/workflows/build/fonts.py
       - run: python .github/workflows/build/detail_manager.py
       - run: python .github/workflows/build/aip.py

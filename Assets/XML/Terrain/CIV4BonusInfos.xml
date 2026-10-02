@@ -331,7 +331,8 @@
 			<BonusClassType>BONUSCLASS_WONDER</BonusClassType>
 			<ArtDefineTag>ART_DEF_BONUS_MARBLE</ArtDefineTag>
 			<TechReveal>NONE</TechReveal>
-			<TechCityTrade>TECH_MASONRY</TechCityTrade>
+			<!-- custom: Align trade activation with the XML-defined reveal and connecting Build prerequisites, so an available resource improvement is not held behind a separate technology. (GPT-6.1-Sol) -->
+			<TechCityTrade>TECH_MINING</TechCityTrade>
 			<TechObsolete>NONE</TechObsolete>
 			<YieldChanges>
 				<iYieldChange>0</iYieldChange>
@@ -466,7 +467,8 @@
 			<BonusClassType>BONUSCLASS_WONDER</BonusClassType>
 			<ArtDefineTag>ART_DEF_BONUS_STONE</ArtDefineTag>
 			<TechReveal>NONE</TechReveal>
-			<TechCityTrade>TECH_MASONRY</TechCityTrade>
+			<!-- custom: Align trade activation with the XML-defined reveal and connecting Build prerequisites, so an available resource improvement is not held behind a separate technology. (GPT-6.1-Sol) -->
+			<TechCityTrade>TECH_MINING</TechCityTrade>
 			<TechObsolete>NONE</TechObsolete>
 			<YieldChanges>
 				<iYieldChange>0</iYieldChange>
@@ -523,7 +525,8 @@
 			<ArtDefineTag>ART_DEF_BONUS_URANIUM</ArtDefineTag>
 			<!-- custom: was TECH_PHYSICS -->
 			<TechReveal>TECH_RADIO</TechReveal>
-			<TechCityTrade>TECH_FISSION</TechCityTrade>
+			<!-- custom: Align trade activation with the XML-defined reveal and connecting Build prerequisites, so an available resource improvement is not held behind a separate technology. (GPT-6.1-Sol) -->
+			<TechCityTrade>TECH_RADIO</TechCityTrade>
 			<TechObsolete>NONE</TechObsolete>
 			<YieldChanges>
 				<iYieldChange>0</iYieldChange>
@@ -620,7 +623,8 @@
 			<BonusClassType>BONUSCLASS_GENERAL</BonusClassType>
 			<ArtDefineTag>ART_DEF_BONUS_BANANA</ArtDefineTag>
 			<TechReveal>NONE</TechReveal>
-			<TechCityTrade>TECH_CALENDAR</TechCityTrade>
+			<!-- custom: Match the Plantation Build's Agriculture unlock; Calendar is a separate same-column technology, so requiring it kept an improved resource unavailable for trade. (GPT-6.1-Sol) -->
+			<TechCityTrade>TECH_AGRICULTURE</TechCityTrade>
 			<TechObsolete>NONE</TechObsolete>
 			<YieldChanges>
 				<iYieldChange>1</iYieldChange>
@@ -1244,7 +1248,8 @@
 			<BonusClassType>BONUSCLASS_GENERAL</BonusClassType>
 			<ArtDefineTag>ART_DEF_BONUS_DYE</ArtDefineTag>
 			<TechReveal>NONE</TechReveal>
-			<TechCityTrade>TECH_CALENDAR</TechCityTrade>
+			<!-- custom: Match the Plantation Build's Agriculture unlock; Calendar is a separate same-column technology, so requiring it kept an improved resource unavailable for trade. (GPT-6.1-Sol) -->
+			<TechCityTrade>TECH_AGRICULTURE</TechCityTrade>
 			<TechObsolete>NONE</TechObsolete>
 			<YieldChanges>
 				<iYieldChange>0</iYieldChange>
@@ -1516,7 +1521,8 @@
 			<BonusClassType>BONUSCLASS_GENERAL</BonusClassType>
 			<ArtDefineTag>ART_DEF_BONUS_INCENSE</ArtDefineTag>
 			<TechReveal>NONE</TechReveal>
-			<TechCityTrade>TECH_CALENDAR</TechCityTrade>
+			<!-- custom: Match the Plantation Build's Agriculture unlock; Calendar is a separate same-column technology, so requiring it kept an improved resource unavailable for trade. (GPT-6.1-Sol) -->
+			<TechCityTrade>TECH_AGRICULTURE</TechCityTrade>
 			<TechObsolete>NONE</TechObsolete>
 			<!-- custom: incense increases productivity theme, helps with focus or such. -->
 			<YieldChanges>
@@ -1638,7 +1644,8 @@
 			<BonusClassType>BONUSCLASS_GENERAL</BonusClassType>
 			<ArtDefineTag>ART_DEF_BONUS_SILK</ArtDefineTag>
 			<TechReveal>NONE</TechReveal>
-			<TechCityTrade>TECH_CALENDAR</TechCityTrade>
+			<!-- custom: Match the Plantation Build's Agriculture unlock; Calendar is a separate same-column technology, so requiring it kept an improved resource unavailable for trade. (GPT-6.1-Sol) -->
+			<TechCityTrade>TECH_AGRICULTURE</TechCityTrade>
 			<TechObsolete>NONE</TechObsolete>
 			<YieldChanges>
 				<iYieldChange>0</iYieldChange>
@@ -1767,7 +1774,8 @@
 			<BonusClassType>BONUSCLASS_GENERAL</BonusClassType>
 			<ArtDefineTag>ART_DEF_BONUS_SPICES</ArtDefineTag>
 			<TechReveal>NONE</TechReveal>
-			<TechCityTrade>TECH_CALENDAR</TechCityTrade>
+			<!-- custom: Match the Plantation Build's Agriculture unlock; Calendar is a separate same-column technology, so requiring it kept an improved resource unavailable for trade. (GPT-6.1-Sol) -->
+			<TechCityTrade>TECH_AGRICULTURE</TechCityTrade>
 			<TechObsolete>NONE</TechObsolete>
 			<!-- custom: bonus increases productivity theme -->
 			<YieldChanges>
@@ -1833,7 +1841,8 @@
 			<BonusClassType>BONUSCLASS_GENERAL</BonusClassType>
 			<ArtDefineTag>ART_DEF_BONUS_SUGAR</ArtDefineTag>
 			<TechReveal>NONE</TechReveal>
-			<TechCityTrade>TECH_CALENDAR</TechCityTrade>
+			<!-- custom: Match the Plantation Build's Agriculture unlock; Calendar is a separate same-column technology, so requiring it kept an improved resource unavailable for trade. (GPT-6.1-Sol) -->
+			<TechCityTrade>TECH_AGRICULTURE</TechCityTrade>
 			<TechObsolete>NONE</TechObsolete>
 			<!-- custom: bonus increases productivity theme -->
 			<YieldChanges>

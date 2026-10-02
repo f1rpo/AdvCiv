@@ -297,7 +297,11 @@ Verifies BBAI logging is disabled by default in `Assets/XML/GlobalDefines_advciv
 
 ### `build/sas_game_record_log.py`
 
-Verifies the independent `SASGameRecord` report is disabled by default in `Assets/XML/GlobalDefines_advciv_sas.xml`. `SAS_GAME_RECORD_LOG_LEVEL` must stay `0`; the snapshot interval, timestamped filenames, default-on anonymous performance metrics, and default level-2 display/runtime context are also checked because they configure how enabled records behave but do not enable record logging themselves. It also checks that the public `SAS_GAME_RECORD_REVISION` matches the newest contiguous entry in the maintained revision history, that the history's current emitted `recordRevision` example is not stale, and that the emitted `GAME_RECORD_SOURCE_CONTEXT recordRevision` field remains wired to that constant.
+Verifies the independent `SASGameRecord` report is disabled by default in `Assets/XML/GlobalDefines_advciv_sas.xml`. `SAS_GAME_RECORD_LOG_LEVEL` must stay `0`; the snapshot interval, timestamped filenames, default-on anonymous performance metrics, and default level-2 display/runtime context are also checked because they configure how enabled records behave but do not enable record logging themselves.
+
+It also checks that the public `SAS_GAME_RECORD_REVISION` matches the newest contiguous entry in the maintained revision history, that the history's current emitted `recordRevision` example is not stale, and that the emitted `GAME_RECORD_SOURCE_CONTEXT recordRevision` field remains wired to that constant.
+
+Every revision heading must follow the documented format; the newest entry must also contain its Date, Git commit field (latest-entry `pending` is allowed), and a completed Change description. Regression tests reject a source-only revision bump, a missing latest entry, a stale example, malformed extra headings and missing metadata.
 
 The same check keeps readable AI-strategy diagnostics synchronized with `AIStrategies.h`: the enum must remain the contiguous power-of-two bitfield used by the recorder's shift scans, every `AIStrategy` value must map to its identical canonical raw token in `getSASAIStrategyType`, and the complete CORE/snapshot/transition scans must still reach the enum's current final strategy. This makes a future `AI_STRATEGY_*` addition or incompatible bit-layout change fail CI instead of silently disappearing from `GAME_RECORD_AI_STRATEGIES` or transition history.
 
@@ -352,6 +356,44 @@ Verifies every playable `PrivateMaps/*.py` script is listed exactly once across 
 ### `build/python24_compile.py`
 
 Compile-checks runtime Civ4 Python files under `Assets/Python` and `PrivateMaps` with CPython 2.4 through [`python24-compile.yml`](/.github/workflows/python24-compile.yml). It uses `py_compile` on each source file but redirects bytecode to a temporary directory so the workflow catches real Python 2.4 parser/bytecode errors without writing `.pyc` files into the mounted repository. This check complements Ruff: Ruff gives modern static diagnostics, while this workflow confirms the old parser still accepts the files Civ4 can load.
+
+### `build/repository_hygiene.py`
+
+Rejects UTF-8, UTF-16 and UTF-32 BOM signatures in Git-tracked files, including inherited references. Visual Studio `.sln` and `.vcxproj` files may retain UTF-8 BOMs for launcher compatibility; UTF-16/32 BOMs remain rejected everywhere. For example, `CvGameCoreDLL/Project/AdvCiv.sln` and `AdvCiv.vcxproj` already contain UTF-8 BOMs in the unmodified `AdvCiv_base_1.14_renamed` comparison snapshot. Their inherited BOMs are preserved after the SAS project shortcut stopped opening following their removal. It also checks installed file paths against the standard Steam Civ4 `Mods/AdvCiv-SAS` anchor: at most 259 UTF-16 units for a file path, and 247 for parent directories. The default mod-folder name is derived from the repository root. `--install-root` can validate another installation path or longer mod name. Only leading signatures are read; binary assets are not decoded.
+
+### `build/generated_docs.py`
+
+Validates registered source-to-text conversions in `TEXT_CONVERSIONS`: each entry declares its canonical source, generated text output, converter, refresh command and optional related source artifacts. CI regenerates each output into a temporary directory and compares its text with the tracked copy; missing sources or outputs fail. Add future conversions to this registry with their appropriate converter. The base AdvCiv manual is currently the only entry: `manual.odt` is the canonical source, `manual.txt` is the output and `manual.pdf` is a related artifact.
+
+For PRs and pushes, the workflow passes the complete change-range base through `--base-ref`: a registered source or related artifact changing without its corresponding text output changing fails. For the manual, this also catches PDF-only edits while ODT content remains authoritative for exact text verification. Manual dispatch has no change-range base and still verifies all current converted text content.
+
+The workflow also supplies `--event-name`. After an amended/force-pushed commit, the push event's previous SHA can be absent even from a full-history checkout. For pushes only, the checker first tries fetching that exact commit from `origin`. If it is no longer served, a visible notice reports that paired source/text change-range validation cannot run; all current text-conversion and handicap-report content checks still run and can fail normally. Missing PR or ordinary local bases fail with a clear diagnostic instead of a Git traceback. Available bases always retain the complete-range check.
+
+Rebuilds the published handicap comparison from current `CIV4HandicapInfo.xml` and the pinned [`handicap_infos_baseline.xml`](/LLM_Helpers/examples/handicap_infos_baseline.xml). The baseline was copied from the local base AdvCiv comparison tree only after verifying every published left-side TSV cell; reproducing the entire existing report also confirmed its unchanged fields and totals. The historical "Base AdvCiv 1.12" report label is retained. No sibling mod checkout is needed in CI. Display labels are read from the report title. Only report timestamp and absolute source/output paths are ignored; tables, values, deltas, entry ordering and summary counts must match.
+
+To refresh, run `python LLM_Helpers/convert_advciv_manual_to_txt.py` or `python .github/workflows/build/generated_docs.py --refresh-handicap`. The checker uses temporary output files and does not overwrite reports unless explicitly asked to refresh the handicap report.
+
+### `build/markdown_structure.py`
+
+Checks maintained Markdown docs in the root, `LLM_Helpers/README.md`, this workflow README, and `_1_AdvCiv-SAS/Docs`. Files declaring a Menu/Contents section must index each following body heading once, in body order, with the same rendered title and indentation: one `&emsp;` or two bullet-list spaces per heading level. Known Issues indexes numbered level-2 KI entries; internal investigation subheadings remain outside its menu. Standalone links to other documents and menu introductions are retained. Existing `markdown_links.py` continues to validate destinations and stable KI anchors.
+
+Also rejects unpaired `**` bold markers within a paragraph, excluding fenced code, inline code, HTML comments and escaped literal stars. This is a targeted Markdown guard rather than a full CommonMark parser. Refresh declared menus with `python .github/workflows/build/markdown_structure.py --refresh-menus`; the refresh keeps existing destinations, external-document links, body content and dominant line endings.
+
+### `build/art_define_structure.py`
+
+Checks all mod-local `CIV4ArtDefines_*.xml` files for the `Civ4ArtDefines` root, exactly one recognized ArtInfos collection, the required ArtInfo wrapper around each entry, one nonempty Type per entry, and no stray collection/root text. Missing the Tipi's BuildingArtInfo wrapper caused a startup crash even though its loose child tags were valid XML; this check covers that gap alongside `xml_element_only_content.py`.
+
+### `build/asset_primary_tech.py`
+
+Requires the effective primary unit/building prerequisite to be in the latest required `iGridX` column. Religious buildings and Bomb Shelters may use their shared SpecialBuilding prerequisite; direct `PrereqTech=NONE` is valid there. Both units and buildings store additional prerequisites in `TechTypes`. Equal-column alternatives remain allowed for display timing.
+
+For resource-specific connecting improvements, checks that the resource's `TechCityTrade` is guaranteed by its reveal and Build prerequisite paths. This catches the six plantation resources retaining Calendar after the Build moved to Agriculture, even though Calendar and Agriculture share a column. City-like Forts are excluded. The rule applies to every resource with an XML-defined connecting improvement, without named resource exceptions; unknown or unguaranteed trade requirements fail. Trade unlocks were aligned to the current reveal/Build prerequisites, including the former Marble, Stone and Uranium delays. Changing or renaming resources, builds or technologies needs no checker allowlist update.
+
+### `build/sas_revision_history.py`
+
+Requires full Git history and validates every finalized SASGameRecord revision hash against HEAD ancestry. A stale amended/rebased commit can still exist as a Git object, so mere existence is insufficient. From revision 69 onward, the referenced source header must also contain that entry's exact revision marker. Only the newest entry may say `pending`: a commit cannot store its own final hash, but older entries must be finalized. This complements the existing contiguous-revision/current-marker check and requires `actions/checkout` `fetch-depth: 0`.
+
+Regression fixtures live in [`.github/workflows/tests/test_ci_backlog.py`](/.github/workflows/tests/test_ci_backlog.py). Run `python -m unittest discover -s .github/workflows/tests` locally. Fixtures use isolated temporary repositories; they do not commit or modify the development checkout.
 
 ## Run Locally
 

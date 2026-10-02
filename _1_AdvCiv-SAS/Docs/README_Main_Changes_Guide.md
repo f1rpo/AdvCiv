@@ -17,14 +17,15 @@ Note: The main changes guide serves as an index that covers concisely most AdvCi
 &emsp;[Renaming](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#renaming)\
 &emsp;[Mod Name/Version](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#mod-nameversion)\
 &emsp;[Tooling](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#tooling)\
-&emsp;[Code/Performance optimizations](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#codeperformance-optimizations)\
 &emsp;[System - Misc](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#system---misc)\
+&emsp;[Code/Performance optimizations](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#codeperformance-optimizations)\
 &emsp;[Logging](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#logging)\
 &emsp;&emsp;[Logging (Common)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#logging-common)\
 &emsp;&emsp;[BBAI log](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#bbai-log)\
 &emsp;&emsp;[SASGameRecord log](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#sasgamerecord-log)\
 &emsp;[48 Civs DLL](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#48-civs-dll)\
-&emsp;[AI](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#ai)\
+[AI](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#ai)\
+&emsp;[AI — General behaviour](#ai--general-behaviour)\
 &emsp;&emsp;[General changes (AI)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#general-changes-ai)\
 &emsp;&emsp;[Victories (AI)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#victories-ai)\
 &emsp;&emsp;[Bonuses (AI)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#bonuses-ai)\
@@ -46,42 +47,42 @@ Note: The main changes guide serves as an index that covers concisely most AdvCi
 &emsp;&emsp;[Military - Common (AI)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#military---common-ai)\
 &emsp;&emsp;[Military - Land (AI)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#military---land-ai)\
 &emsp;&emsp;[Military - Naval (AI)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#military---naval-ai)\
-&emsp;[UI](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#ui)\
-&emsp;&emsp;[UI (Main Menu)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#ui-main-menu)\
-&emsp;&emsp;[UI (Common)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#ui-common)\
-&emsp;&emsp;[UI (Sevopedia)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#ui-sevopedia)\
-&emsp;&emsp;[UI (In-game)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#ui-in-game)\
-&emsp;[General changes](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#general-changes)\
-&emsp;[Game Speeds](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#game-speeds)\
-&emsp;[World Size/Scaling](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#world-sizescaling)\
-&emsp;[Map Generation (Common)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#map-generation-common)\
-&emsp;[Mapscripts](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#mapscripts)\
-&emsp;[Handicaps](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#handicaps)\
-&emsp;[Terrains / Features](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#terrains--features)\
-&emsp;[Bonuses](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#bonuses)\
-&emsp;[Improvements](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#improvements)\
-&emsp;[Builds](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#builds)\
-&emsp;[Specialists](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#specialists)\
-&emsp;[Traits](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#traits)\
-&emsp;[Civics](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#civics)\
-&emsp;[Technologies](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#technologies)\
-&emsp;[Eras](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#eras)\
-&emsp;[Culture](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#culture)\
-&emsp;[Religions](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#religions)\
-&emsp;[Corporations](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#corporations)\
-&emsp;[Votes](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#votes)\
-&emsp;[Event Triggers and Events](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#event-triggers-and-events)\
-&emsp;[Barbarians](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#barbarians)\
-&emsp;[Civilizations](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#civilizations)\
-&emsp;[Leaders](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#leaders)\
-&emsp;[Diplomacy](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#diplomacy)\
-&emsp;[Buildings](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#buildings)\
-&emsp;[Units (Common)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#units-common)\
-&emsp;[Civilian Units](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#civilian-units)\
-&emsp;[Military - Common](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#military---common)\
-&emsp;[Military - Land](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#military---land)\
-&emsp;[Military - Naval](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#military---naval)\
-&emsp;[Military - Air](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#military---air)\
+[UI](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#ui)\
+&emsp;[UI (Main Menu)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#ui-main-menu)\
+&emsp;[UI (Common)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#ui-common)\
+&emsp;[UI (Sevopedia)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#ui-sevopedia)\
+&emsp;[UI (In-game)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#ui-in-game)\
+[General changes](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#general-changes)\
+[Game Speeds](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#game-speeds)\
+[World Size/Scaling](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#world-sizescaling)\
+[Map Generation (Common)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#map-generation-common)\
+[Mapscripts](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#mapscripts)\
+[Handicaps](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#handicaps)\
+[Terrains / Features](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#terrains--features)\
+[Bonuses](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#bonuses)\
+[Improvements](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#improvements)\
+[Builds](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#builds)\
+[Specialists](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#specialists)\
+[Traits](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#traits)\
+[Civics](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#civics)\
+[Technologies](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#technologies)\
+[Eras](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#eras)\
+[Culture](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#culture)\
+[Religions](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#religions)\
+[Corporations](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#corporations)\
+[Votes](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#votes)\
+[Event Triggers and Events](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#event-triggers-and-events)\
+[Barbarians](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#barbarians)\
+[Civilizations](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#civilizations)\
+[Leaders](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#leaders)\
+[Diplomacy](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#diplomacy)\
+[Buildings](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#buildings)\
+[Units (Common)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#units-common)\
+[Civilian Units](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#civilian-units)\
+[Military - Common](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#military---common)\
+[Military - Land](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#military---land)\
+[Military - Naval](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#military---naval)\
+[Military - Air](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#military---air)\
 [Fixes](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#fixes)\
 
 ## Full code diff (very long)
@@ -129,6 +130,9 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 
 ### Tooling
 
+- (Requires AdvCiv-SAS 6581+) **Repository encoding and Windows-path CI:** checks tracked files for unsupported BOMs and paths too long for the standard Steam installation. Visual Studio project/solution UTF-8 BOMs are preserved for launcher compatibility: [`AdvCiv.sln`](/CvGameCoreDLL/Project/AdvCiv.sln) and [`AdvCiv.vcxproj`](/CvGameCoreDLL/Project/AdvCiv.vcxproj) are examples inherited from the unmodified AdvCiv 1.14 comparison snapshot, rather than SAS-added BOMs. Removing them was followed by the SAS project shortcut no longer opening; the original BOMs were restored. Civ4 source/data BOMs remain rejected. See [repository hygiene CI](/.github/workflows/README.md#buildrepository_hygienepy).
+- (Requires AdvCiv-SAS 6581+) **Generated documentation CI:** regenerates registered source-to-text conversions and the published handicap XML comparison to detect stale tracked outputs. The AdvCiv manual is the first registered conversion; future conversions can supply their own source, output and converter. Complete PR/push ranges also require paired text updates when a registered source or related artifact changes. See [generated documentation CI](/.github/workflows/README.md#buildgenerated_docspy).
+- (Requires AdvCiv-SAS 6581+) **Broader XML, Markdown and revision-history CI:** checks ArtDefine collection/entry structure, unit/building primary technology ordering, all resource trade prerequisites, Markdown menu coverage/order and bold formatting, and SASGameRecord revision/history synchronization and committed-history provenance. Refreshed existing document menus to match their body headings. See [current build checks](/.github/workflows/README.md#current-build-checks).
 - **Markdown links/images CI:** added GitHub workflow checks for repository-local Markdown images and links, including `#heading` anchors. They catch missing/moved local targets and stale renamed section/KI links automatically; external web links are intentionally not checked. See [build/markdown_images (Readme)](/.github/workflows/README.md#buildmarkdown_imagespy) and [build/markdown_links (Readme)](/.github/workflows/README.md#buildmarkdown_linkspy).
 - **AIP predump refresh bot:** added [`aip-predump-refresh.yml`](/.github/workflows/aip-predump-refresh.yml), a tested GitHub Actions bot workflow for the Sevopedia Leader AI Personality predump cache. The existing checker still fails when the committed predump is stale, but the refresh workflow can now run `aip_predump_values.py --write` outside Civ4 and open/update a bot PR containing only `SevoPediaLeaderCachePredumped.py` when real generated AIP data or display-label drift is detected. It runs automatically after pushes to known AIP predump dependency files. Tested in [PR #31](https://github.com/wonderingabout/AdvCiv-SAS/pull/31) with no-op, XML comment-only, numeric Leader XML, and Python label/display drift cases, so harmless comments do not refresh the cache while real generated predump changes do.
 - **Python Ruff GitHub workflow:** added [`python-ruff.yml`](/.github/workflows/python-ruff.yml), which prints a full Ruff report and fails on a practical critical gate for syntax/parse errors and Pyflakes bug checks. This helped spot shadowed duplicate callbacks in base Civ4 `Oasis.py` (see [KI#164](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-164)) and a Base AdvCiv bug of dormant undefined `Point` (instead of using `PointLayout`) helper in `RectLayout.py` (see [KI#165](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-165)).
@@ -620,7 +624,7 @@ Note: UWAI means Utility-Based War AI, Base AdvCiv's system for deciding when to
 - XML **DefaultUnitAI / UnitAIs / NotUnitAIs**: align roles with efficiency (e.g., swordsmen primarily offensive even if versatile; longbows defensive unless explicitly set otherwise).
 - Promotions logic in `CvUnitAI::AI_promotionValue`: add **hard rules** so AIs pick context-appropriate promotions (e.g., City Garrison for `UNITAI_CITY_DEFENSE`, City Raider for `UNITAI_ATTACK_CITY`; avoid Woodsman/Medic on front-line attackers unless context justifies). Rules apply per **UnitAI** (not just by unit type); with exceptions like recon. See **[KI#47](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-47)**.
 - **War target selection — distance guard**: added a **distance-based pre-filter** in `Risk::preEvaluate` (WarUtilityAspect.cpp) so the AI **rejects faraway rivals** during war-risk evaluation. This curbs "bait" wars that leave cores under-defended and keeps armies concentrated near relevant fronts. See [KI#61](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-61) and [KI#183](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-183).
-- **War target selection — distance guard** - Update: **Faraway-war Risk reject no longer inflates UWAI war utility: a follow-up BBAI test in save file 450 showed the older AdvCiv-SAS KI#61 hard reject could also fire in the recursive peace scenario. Since UWAI scores war as `war scenario - peace scenario`, this could turn a mediocre war into an absurdly attractive one, e.g. `warScenarioUtility=-220`, `peaceScenarioUtility=-105386`, `finalUtility=105166`. The hard reject no longer applies to the recursive peace scenario; retesting removed all huge positive final-utility artifacts (`positive final: 0`) while preserving the intended negative reject for bad faraway/unreachable war plans. See [KI#183](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-183).
+- **War target selection — distance guard** - Update: **Faraway-war Risk reject no longer inflates UWAI war utility:** a follow-up BBAI test in save file 450 showed the older AdvCiv-SAS KI#61 hard reject could also fire in the recursive peace scenario. Since UWAI scores war as `war scenario - peace scenario`, this could turn a mediocre war into an absurdly attractive one, e.g. `warScenarioUtility=-220`, `peaceScenarioUtility=-105386`, `finalUtility=105166`. The hard reject no longer applies to the recursive peace scenario; retesting removed all huge positive final-utility artifacts (`positive final: 0`) while preserving the intended negative reject for bad faraway/unreachable war plans. See [KI#183](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-183).
 - Update 2 : later BBAI logging showed that the guard was too invasive after war had already begun. In save file 450, it forced Sumer to make peace after only 2 turns despite capturing New York with twice Lincoln's power, merely because the next enemy city was beyond the distance limit. It is now restricted to pre-war evaluations, leaving normal UWAI logic to decide when an ongoing war should end.
 - Update 3: the pre-war contact-distance guard is now substantially less restrictive and XML-tunable at a current, to address the issue, for example in save file 459, AIs having an overwhelming military advantage but not attacking much weaker rivals. The previous `SAS_UWAI_WAR_TARGET_MAX_LAND_CONTACT_TURNS_UNSCALED_GAMESPEED` 3-turn land limit could hard-reject otherwise worthwhile reachable wars before normal UWAI evaluation simply because the army's estimated path to the nearest target city took slightly longer. To fix this, `SAS_UWAI_WAR_TARGET_MAX_LAND_CONTACT_TURNS_UNSCALED_GAMESPEED` / `SAS_UWAI_WAR_TARGET_MAX_SEA_CONTACT_TURNS_UNSCALED_GAMESPEED` are now changed to much higher defaults of 15 (vs 3 before) approximate path turns for land-reachable wars and 20 (vs 12 before to match this change too) for genuinely naval wars. The wider limits preserve a sanity bound for very remote targets while allowing ordinary UWAI power, utility, diplomacy, closeness and war-state logic to decide whether a reachable target is actually worth attacking. See [KI#61](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-61).
 - **UWAI target choice avoids faraway wars:** Following [KI#61](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-61)'s related fix, BBAI war-target logging in save file 450 showed the AI could still prepare some avoidable faraway wars: for example, on turn 182, Arabia (Team 0) could ignore closer Holy Rome (Team 6) at distance 5, attitudeValue -2, and targetPowerPercent 64, then prepare against the farther Netherlands (Team 5) at distance 10, attitudeValue +1, and targetPowerPercent 92. That is dangerous because a faraway war can split armies from the core, slow reinforcements, expose cities to opportunistic invasions, or make captures harder to hold. The new guard only optionally promotes a nearby land-war target, not an island/naval target, when it is close enough, weak enough, disliked/neutral enough, and has minimal UWAI drive; With the current distance threshold, it only steps in when the alternative target is at least 2 tiles farther away; targets at the same distance or closer are left to normal UWAI. This is intentionally a narrow blunder-fix rather than a war-logic overhaul, so UWAI choices do not become too bland or broadly overridden. In the confirming BBAI run, the guard found 32 valid closer targets and blocked 17 farther alternatives, leaving usual UWAI logic to either pick these closer targets or continue normally if no suitable target remained. See [KI#182](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-182).
@@ -884,6 +888,7 @@ Note: The shipped stable example [`handicap_infos_compared.md`](/LLM_Helpers/exa
 
 ## Bonuses
 
+- (Requires AdvCiv-SAS 6581+) **Resource trade unlocks follow resource availability:** aligned stale `TechCityTrade` requirements with the current XML reveal and resource-improvement Build prerequisites. For example, Plantation resources such as Banana and Dye become usable/tradable at Agriculture instead of separately requiring Calendar; Marble and Stone follow their Mining unlock, and Uranium follows its Radio reveal instead of waiting for Fission. This brings forward connected-resource benefits and access for assets whose own technologies are already available; units and buildings still require their own technologies. A general CI prerequisite-graph check now covers every resource, including separate same-column technologies, without named resource exceptions.
 - **Grapes**: now improved by **Plantation** (not Winery). Happiness moved to **Grocer** (Grapes and Sugar both give happiness via Grocer). See Sevopedia/XML.
 - **Hit bonuses** functionally disabled (kept late in tree, obsolete on reveal) to avoid LSystem issues; dependent assets rebalanced or left as‑is where appropriate.
 - **Animal livestock Bonuses** (as of now `BONUS_CATTLE`, `BONUS_SHEEP`, `BONUS_PIG`): increase the number of assets that are strengthened or rebalanced with these Bonuses, which are otherwise weak for example as compared to food stapple bonuses like Maize Rice or Wheat that scale for example with ubiquitous Granaries, or for example to Mount Animal Bonuses that have a strong military purpose. As of now they now notably are in early assets like **Temple of Artemis** (happiness from each bonus), Summeria's **Ziggurat** (health from Sheep), Rome's **Forum** (happiness from Pig), and Mongolia's **Ger** (happiness from Cattle (Pastoral Economy Theme)). This also increases the strategic importance of these bonuses.

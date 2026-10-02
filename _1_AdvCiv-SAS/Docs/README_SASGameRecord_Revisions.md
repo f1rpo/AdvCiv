@@ -27,7 +27,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=128 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=129 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -53,10 +53,20 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
+### Revision 129 - SAS practical 6581 (CI revision-history provenance checks)
+
+- **Date:** 2026-10-02
+- **Git commit:** pending
+- **Change:** Added a full-history CI check that recorded revision commit hashes remain ancestors of the checked source, and that hashes from the explicit-marker era identify a source with the matching revision.
+
+Only the latest entry may remain pending, since a commit cannot contain its own final hash; finalized older entries must resolve after amend/rebase.
+
+Strengthened the existing revision/documentation check to reject malformed headings and incomplete latest-entry metadata, with regression tests for a source-only bump, a missing history entry and a stale emitted revision example.
+
 ### Revision 128 - SAS practical 6577
 
 - **Date:** 2026-09-26
-- **Git commit:** pending
+- **Git commit:** `f48b79828be7be2ea0e6832d066ea7da4bda6c82`
 - **Change:** Replaced named metal/mount context in AI bonus-trade and tribute decisions with the buyer's shared player-specific ordinary and short-term trade marginal bonus values, while retaining `iAIObjective` as explicit manual XML-policy context.
 
 The new fields follow current civilization unlocks, technology readiness, substitutes, obsolescence, health and happiness instead of assuming fixed Copper/Iron/Horse/Camel/Elephants families.

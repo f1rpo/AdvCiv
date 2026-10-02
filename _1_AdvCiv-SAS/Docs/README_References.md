@@ -3,6 +3,11 @@
 ## Menu
 
 [Copyright and Disclaimer](/_1_AdvCiv-SAS/Docs/README_References.md#copyright-and-disclaimer)\
+&emsp;[Leaders](#leaders)\
+&emsp;[Main Menu](#main-menu)\
+&emsp;[Eras](#eras)\
+&emsp;&emsp;[6 - Future](#6---future)\
+&emsp;&emsp;[Movies](#movies)\
 [Note about the audio in main menu](/_1_AdvCiv-SAS/Docs/README_References.md#note-about-the-audio-in-main-menu)\
 [Credits](/_1_AdvCiv-SAS/Docs/README_References.md#credits)\
 &emsp;[Game Mods](/_1_AdvCiv-SAS/Docs/README_References.md#game-mods)\
