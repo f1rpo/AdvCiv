@@ -77,6 +77,7 @@ This is intentionally a syntax/compile compatibility check only: it does not lau
 - [`build/launch_guard.py`](#buildlaunch_guardpy)
 - [`build/define_int_bounds.py`](#builddefine_int_boundspy)
 - [`build/turn_define_gamespeed.py`](#buildturn_define_gamespeedpy)
+- [`build/sas_define_usage.py`](#buildsas_define_usagepy)
 - [`build/xml_comments.py`](#buildxml_commentspy)
 - [`build/xml_element_only_content.py`](#buildxml_element_only_contentpy)
 - [`build/xml_suspicious_angle_tags.py`](#buildxml_suspicious_angle_tagspy)
@@ -196,6 +197,18 @@ Verifies turn-valued integer `SAS_*` defines make their game-speed semantics exp
 
 This naming rule was added after auditing turn gates while implementing non-combat food-production allocation: the new production gate correctly needed `TrainPercent` scaling, nearby UWAI contact limits correctly represented unscaled movement/path turns, and the victory-denial countdown windows were found to need `VictoryDelayPercent` scaling.
 The checker intentionally validates naming/declared intent rather than trying to infer the correct scaling formula from C++: code review still decides whether a Normal-speed value should use `TrainPercent`, `ConstructPercent`, `VictoryDelayPercent`, or another game-speed field. The explicit names make that audit grep-friendly and prevent ambiguous raw turn gates from being added silently.
+
+### `build/sas_define_usage.py`
+
+Checks both directions between `SAS_*` declarations of every value type in `Assets/XML/GlobalDefines_advciv_sas.xml` and runtime define lookups in `Assets/Python/**/*.py`, `PrivateMaps/**/*.py`, and `CvGameCoreDLL/**/*.cpp` / `**/*.h`. Missing declarations and declarations without a lookup fail with file/name diagnostics.
+
+Comments, documentation, tests, compiled DLLs and generated `temp_files` are not runtime consumers; unrelated SAS constants, widget names, enums and log labels are not XML lookups.
+
+The scanner follows string aliases and discovers functions forwarding a name parameter to a define getter, including font and BBAI helpers. Integer `%d` name families are expanded from explicit lower/upper guards with an immediate return, so all four current billboard font settings are checked, including missing family members.
+
+Unsupported SAS name expressions fail and require extending the scanner rather than silently accepting a prefix. This is a static reference check: it does not prove a function executes, evaluate arbitrary Python/C++ expressions, resolve every possible cross-file alias, or preprocess C++ conditional compilation.
+
+One existing declaration is intentionally coverage-only metadata: `SAS_MAP_SCRIPT_NAMES_HEAVINESS_UNSPECIFIED` is consumed by `build/mapscripts.py`, not by game code. Its explicit exception is reported separately and its documented consumer is verified. Other unused declarations are errors. This checker does not change configuration values or require a SASGameRecord revision bump.
 
 ### `build/xml_comments.py`
 

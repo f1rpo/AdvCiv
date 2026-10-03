@@ -37,6 +37,7 @@ jobs:
       - run: python .github/workflows/build/launch_guard.py
       - run: python .github/workflows/build/define_int_bounds.py
       - run: python .github/workflows/build/turn_define_gamespeed.py
+      - run: python .github/workflows/build/sas_define_usage.py
       - run: python .github/workflows/build/xml_comments.py
       - run: python .github/workflows/build/xml_element_only_content.py
       - run: python .github/workflows/build/art_define_structure.py
