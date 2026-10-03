@@ -3424,8 +3424,10 @@ void CvCityAI::AI_chooseProduction()
 				// advc.131:
 				findBaseYieldRateRank(YIELD_PRODUCTION) <= iNumCities / 2))
 			{
-				int iOdds = 3 * kArea.getCitiesPerPlayer(getOwner()); // advc.131: was 15 flat
-				if (AI_chooseBuilding(BUILDINGFOCUS_CAPITAL, iOdds))
+				// <!-- custom: AdvC advc.131 named this local iOdds after replacing K-Mod's flat 15-turn limit, but the value is passed as AI_chooseBuilding's iMaxTurns while the actual odds argument defaults to -1.
+				// Name the completion-time limit accurately so this deterministic Palace choice is not mistaken for a probability. See KI#768.2. (GPT-5.6-Sol) -->
+				int const iMaxPalaceTurns = 3 * kArea.getCitiesPerPlayer(getOwner()); // advc.131: was 15 flat
+				if (AI_chooseBuilding(BUILDINGFOCUS_CAPITAL, iMaxPalaceTurns))
 					return;
 			}
 		}

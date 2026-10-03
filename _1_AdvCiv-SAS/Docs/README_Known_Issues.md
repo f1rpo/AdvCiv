@@ -876,6 +876,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#766 - (Provisional Pending inherited BtS queue-help defect) Production hover discards the actual queue index](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-766)\
 [KI#767 - (Fixed inherited AdvCiv commerce-rounding defect) Every correction reselected the same remainder](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-767)\
 [KI#768 - (Rejected audit false positive) Capital updates already invalidate yield ranks](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-768)\
+[KI#768.2 - (Fixed inherited AdvCiv naming defect found during the SAS building-value rework) Palace relocation's iOdds local was renamed iMaxPalaceTurns](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-768.2)\
 [KI#769 - (Fixed inherited AdvCiv projection regression) Civilian unit changes also altered projected military upkeep](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-769)\
 [KI#770 - (Provisional Pending inherited BtS colony-lifecycle defect) A dead player on a live team can be revived as a malformed colony](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-770)\
 [KI#771 - (Fixed inherited AdvCiv Rise & Fall cache regression) Controller changes retained the former Settler production cost](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-771)\
@@ -17005,6 +17006,20 @@ Found and documented provisionally during ChatGPT-5.6-Sol's C031-WIP151 `CvPlaye
 Album F445 initially flagged `CvPlayer::setCapital` for changing capital-only yield modifiers without an explicit yield-rank invalidation. The complete callee chain disproves the finding: `setCapital` calls `CvCity::updateCommerce()` on the old and new capitals, and that no-argument function begins by calling the owner's `invalidateYieldRankCache()` for every yield. Bureaucracy capital moves therefore invalidate and recompute Production and other yield rankings correctly.
 
 F445/KI#768 was retracted during ChatGPT-5.6-Sol's C031-WIP159 cross-file review; the false-positive disposition was reconciled with the help of GPT-5.6-Sol so the same incomplete call-chain analysis is not reported again, thanks.
+
+<a id="ki-768.2"></a>
+
+## KI#768.2 - (Fixed inherited AdvCiv naming defect found during the SAS building-value rework) Palace relocation's iOdds local was renamed iMaxPalaceTurns
+
+The KI#48.9 Palace-relocation audit found that AdvC's live `BUILDINGFOCUS_CAPITAL` caller stored `3 * own cities in the candidate area` in a local named `iOdds`.
+
+That name misdescribed the call: the value is passed as `AI_chooseBuilding`'s second argument, `iMaxTurns`, while its fourth `iOdds` argument remains the default `-1`. A Palace that passes the completion-time limit is therefore chosen deterministically rather than through a probability roll.
+
+Archaeology showed that K-Mod passed a flat literal `15` in this same maximum-turn position. AdvC practical 2596 / commit `ed7b9493d1` (`advc.131`) replaced the literal with the area-scaled expression but introduced the misleading `iOdds` local.
+
+The naming error did not itself alter gameplay or synchronized RNG, but it obscured the production rule and caused the building-value investigation to initially read a completion-time limit as selection odds. The local is now named `iMaxPalaceTurns`, preserving the exact expression and call while making the inherited contract explicit.
+
+This is a separate behavior-neutral follow-up to the capital-relocation audit family, not a revival of F445/KI#768's retracted yield-rank theory. Found during the PR #43 AI building-value / Wonder-policy rework and traced and clarified with the help of GPT-5.6-Sol, thanks.
 
 <a id="ki-769"></a>
 
