@@ -1244,6 +1244,12 @@ void logSASGameRecordRngCheckpoint(int iGameTurn, SASGameRecordRngCheckpointReas
 	logSASGameRecordStateCheckpoint(iGameTurn, getSASGameRecordRngCheckpointReason(eReason));
 }
 
+// <!-- custom: Level 3 already has the heavier END_GAME_TURN RNG/state checkpoint; this single cheap row gives levels 1/2 the same unambiguous last-fully-completed-turn boundary after crashes/truncation, while keeping one uniform marker at every enabled level. (ChatGPT-5.6-Sol) -->
+void logSASGameRecordTurnCompleted(int iGameTurn)
+{
+	logSASGameRecord("GAME_RECORD_TURN_COMPLETED turn=%d", iGameTurn);
+}
+
 // <!-- custom: Windows exposes focus separately from minimization. Find Civ4's visible, unowned top-level process window so background-visible and minimized snapshots remain distinguishable.
 // Return -1 if no suitable window exists. (GPT-5.6-Sol) -->
 struct SASGameRecordProcessWindowState

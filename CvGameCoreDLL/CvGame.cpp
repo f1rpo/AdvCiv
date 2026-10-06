@@ -6364,6 +6364,9 @@ void CvGame::doTurn()
 	// <!-- custom: CvEventReporter::endGameTurn fires before autoplay/sync cleanup. Close the old RNG interval here: all work above still belongs to the current turn, while the counter advances below begin new-turn initialization.
 	// This avoids attributing new-turn deal expiry, Rise & Fall setup, votes, player activation, or victory checks to the turn that just ended. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (g_bSASGameRecordRngTrackingActive) logSASGameRecordRngCheckpoint(getGameTurn(), SAS_RNG_CHECKPOINT_END_GAME_TURN);
+	// <!-- custom: Lower recorder levels do not emit the RNG checkpoint above.
+	// Preserve the same authoritative completed-turn boundary with one tiny row at every enabled level, after autoplay/sync cleanup and before the game clock advances. (ChatGPT-5.6-Sol) -->
+	if (isSASGameRecordLogEnabled()) logSASGameRecordTurnCompleted(getGameTurn());
 
 	// <!-- custom: Corporation maintenance is cached after dividing out inflation, but AdvCiv computes inflation on demand.
 	// Preserve each effective rate across the two clock increments and rebuild only players whose rounded rate changed, preventing cached inverse-inflation terms from becoming obsolete. See KI#744. (GPT-5.6-Sol) -->

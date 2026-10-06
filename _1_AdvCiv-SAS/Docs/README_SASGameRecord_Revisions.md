@@ -27,7 +27,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=131 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=132 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -35,6 +35,8 @@ After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REV
 ## Consumer/parser notes
 
 - **Runtime rows are the dynamic game record, not an exhaustive static schema manifest.** The build's exact revision/source identity and `GAME_RECORD_LOG_SETTINGS` tell a consumer which implementation/settings produced the file; loaded-XML/rules rows preserve runtime-dependent mappings. An exhaustive per-run list of every row type the source *could* emit would repeat gameplay-independent implementation metadata and still require maintenance for conditional/dynamic `GAME_RECORD_ACTION type=...` families. Keep such schema/consumer guidance in source/docs/checkers rather than enlarging every record with a static manifest unless a concrete downstream consumer later proves that worthwhile.
+- **Interpret evidence according to how the row is produced.** Exact/realized action or transition rows are emitted at the live mutation/decision boundary and mean that event actually happened; snapshot/checkpoint rows are observations at the stated boundary and do not imply that unrecorded intermediate state was unchanged; derived/diagnostic fields are explanatory calculations from live state and are not necessarily separately stored gameplay state or causal chooser inputs unless the row/documentation says so. AI-decision rows intentionally preserve selected/realized provenance without promising an exhaustive dump of every rejected candidate.
+- **`GAME_RECORD_TURN_COMPLETED` is the authoritative cheap turn-completeness marker from revision 132 onward.** It is emitted once at every enabled log level after `CvEventReporter::endGameTurn`, autoplay/synchronization cleanup and the optional level-3 `END_GAME_TURN` RNG/state checkpoint, but before the game clock advances. In a truncated record, the highest such `turn` is therefore the last game turn known to have reached that boundary; level-3 consumers can additionally use the preceding RNG/state checkpoint for deterministic comparison.
 - **Object IDs are namespace-local unless a row explicitly says otherwise.** In particular, Civ4 `cityId` and `unitId` values are player-local; trace them as `(player, cityId)` and `(player, unitId)`, not as globally unique integers. Team/player slot IDs remain their ordinary game slot identities.
 - **Missing-value interpretation is field-specific.** `-` is the common textual/not-applicable token, while numeric `-1` is also used by native Civ4 `NO_*` IDs and by some unavailable numeric fields. Do not globally rewrite every `-1` as null; parse the documented field meaning/context.
 - **Text-map body rows deliberately remain raw pipe-framed art.** Structured `BEGIN`, `LEGEND`, `LAYER_BEGIN`, `LAYER_END`, and `END` framing rows carry the parseable metadata; revision 122 makes every structured legend/layer frame self-locating by repeating `turn`, while the fixed-width `|...|` drawing rows remain undecorated.
@@ -53,10 +55,20 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
-### Revision 131 - SAS practical 6585
+### Revision 132 - SAS practical 6587
 
 - **Date:** 2026-10-06
 - **Git commit:** pending
+- **Change:** Added one cheap authoritative completed-turn marker at every enabled level and clarified recorder evidence semantics after a full backlog audit.
+
+`GAME_RECORD_TURN_COMPLETED` is emitted once at the end of each fully processed game turn, after autoplay/synchronization cleanup and the level-3 RNG/state checkpoint when present, but before `incrementGameTurn`. This gives level 1/2 truncated or crashed records the same unambiguous last-completed-turn boundary without adding a snapshot, state scan, pathfinding, RNG, or other expensive work; level 3 keeps the uniform marker beside its richer checkpoint.
+
+Consumer guidance now explicitly distinguishes exact/realized rows from snapshots/checkpoints and derived diagnostic context rather than widening every runtime row with repeated metadata. The corresponding build check pins the completion marker to its authoritative `CvGame::doTurn` position.
+
+### Revision 131 - SAS practical 6585
+
+- **Date:** 2026-10-06
+- **Git commit:** `fdcd91c772f0038430f64288a8d04cc0c9aa5a8f`
 - **Change:** Added compact Great-Merchant trade provenance and tightened recurring C++ GlobalDefine caching.
 
 Level-2 Great Person decision rows now preserve the winning Trade Mission city's raw gold, full path length, final target versus current waypoint, and the already-used commerce/continuation/random factors behind the transformed Trade score. Completed Trade Missions additionally record the live trade-profit and unit-formula components needed to explain the final gold payout.

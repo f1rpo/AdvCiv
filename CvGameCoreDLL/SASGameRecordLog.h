@@ -26,7 +26,7 @@ int getSASGameRecordTurnInterval();
 // This is deliberately not a compatibility/schema promise: increment it for every intentional change to SASGameRecord implementation code, relevant bridges/call sites/configuration/checkers, or their code comments, even when emitted semantics are unchanged.
 // Standalone docs/example-log/package refreshes do not require a bump. Keep the matching revision-history entry in the same commit.
 // An anonymous enum keeps this a C++03 compile-time integer without a separate storage/linkage definition. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-enum { SAS_GAME_RECORD_REVISION = 131 };
+enum { SAS_GAME_RECORD_REVISION = 132 };
 // <!-- custom: Finalize buffered observations in the old game state before a new game or loaded save resets/replaces it. See KI#382. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 void finalizeSASGameRecordLogSession();
 void startSASGameRecordLogForNewGame();
@@ -58,6 +58,9 @@ void noteSASGameRecordRandomCall(CvRandom const* pRandom, unsigned short usRange
 void noteSASGameRecordExternalRandomCall(CvRandom const* pRandom);
 void noteSASGameRecordRandomSeedSet(CvRandom const* pRandom, unsigned int uiOldState, unsigned int uiNewState, bool bReseed);
 void logSASGameRecordRngCheckpoint(int iGameTurn, SASGameRecordRngCheckpointReason eReason);
+// <!-- custom: Emit one tiny authoritative completion marker after all current-turn gameplay/autoplay/sync cleanup and before the game clock advances.
+// This remains available at levels 1/2 where the level-3 END_GAME_TURN RNG/state checkpoint is absent. Caller pre-gates at level 1+. (ChatGPT-5.6-Sol) -->
+void logSASGameRecordTurnCompleted(int iGameTurn);
 
 class CvCity;
 class CvCityAI; // <!-- custom: Realized AI building-choice hooks accept a CvCityAI reference; forward-declare it so this lightweight recorder header does not pull CvCityAI.h into every caller. (GPT-5.6-Sol) -->

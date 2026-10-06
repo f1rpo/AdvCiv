@@ -3,7 +3,7 @@
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
 # Build check: SASGameRecord report logging must be disabled by default, the public revision/current history marker must stay synchronized.
-# Canonical readable AI-strategy/AreaAI/contact diagnostics must match their native enums, exact AI target-city provenance/checkpoints must cover every writer/effective clear, periodic AI-attitude provenance must stay synchronized with AI_updateAttitude, and strategic/vote/contact/Great-Person decision schemas must remain present.
+# Canonical readable AI-strategy/AreaAI/contact diagnostics must match their native enums, the authoritative completed-turn marker must remain at the final old-turn boundary, exact AI target-city provenance/checkpoints must cover every writer/effective clear, periodic AI-attitude provenance must stay synchronized with AI_updateAttitude, and strategic/vote/contact/Great-Person decision schemas must remain present.
 
 from pathlib import Path
 import argparse
@@ -119,6 +119,42 @@ def check_context_consumer_contracts(repo_root: Path) -> list[str]:
 	if 'GAME_RECORD_MAP_ASCII_CONFIG_ERROR turn=%d' not in record_text:
 		failures.append(f"{REVISION_SOURCE}: text-map config-error row must remain self-locating with turn")
 	return failures
+
+def check_turn_completion_contract(repo_root: Path) -> list[str]:
+	failures = []
+	for relative_path in (REVISION_HEADER, REVISION_SOURCE, GAME_SOURCE):
+		if not (repo_root / relative_path).is_file():
+			failures.append(f"missing SASGameRecord turn-completion file: {relative_path}")
+	if failures:
+		return failures
+	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	game_text = (repo_root / GAME_SOURCE).read_text(encoding="utf-8", errors="replace")
+	if "void logSASGameRecordTurnCompleted(int iGameTurn);" not in header_text:
+		failures.append(f"{REVISION_HEADER}: missing public completed-turn marker bridge")
+	if 'GAME_RECORD_TURN_COMPLETED turn=%d' not in record_text:
+		failures.append(f"{REVISION_SOURCE}: missing compact completed-turn row")
+	m = re.search(r"void\s+CvGame::doTurn\(\)\s*\{(?P<body>.*?)^\}", game_text, flags=re.DOTALL | re.MULTILINE)
+	if m is None:
+		return failures + [f"{GAME_SOURCE}: could not locate CvGame::doTurn"]
+	body = m.group("body")
+	completion = "if (isSASGameRecordLogEnabled()) logSASGameRecordTurnCompleted(getGameTurn());"
+	if body.count(completion) != 1:
+		failures.append(f"{GAME_SOURCE}: expected exactly one level-1-pre-gated completed-turn bridge")
+	positions = {
+		"event endGameTurn": body.find("CvEventReporter::getInstance().endGameTurn(getGameTurn());"),
+		"END_GAME_TURN RNG checkpoint": body.find("logSASGameRecordRngCheckpoint(getGameTurn(), SAS_RNG_CHECKPOINT_END_GAME_TURN)"),
+		"completed-turn marker": body.find("logSASGameRecordTurnCompleted(getGameTurn())"),
+		"game-turn increment": body.find("incrementGameTurn();"),
+	}
+	if any(pos < 0 for pos in positions.values()):
+		for label, pos in positions.items():
+			if pos < 0:
+				failures.append(f"{GAME_SOURCE}: CvGame::doTurn missing expected {label}")
+	elif not (positions["event endGameTurn"] < positions["END_GAME_TURN RNG checkpoint"] < positions["completed-turn marker"] < positions["game-turn increment"]):
+		failures.append(f"{GAME_SOURCE}: completed-turn marker must remain after endGameTurn/autoplay cleanup and the optional RNG checkpoint, but before incrementGameTurn")
+	return failures
+
 
 def check_city_delta_contracts(repo_root: Path) -> list[str]:
 	failures = []
@@ -2164,6 +2200,7 @@ def main() -> int:
 	failures = require_int_values(defines, EXPECTED_GAME_RECORD_DEFAULTS)
 	failures.extend(check_revision(args.repo_root))
 	failures.extend(check_context_consumer_contracts(args.repo_root))
+	failures.extend(check_turn_completion_contract(args.repo_root))
 	failures.extend(check_city_delta_contracts(args.repo_root))
 	failures.extend(check_broad_settlement_vassal_battle_contracts(args.repo_root))
 	failures.extend(check_ai_strategy_diagnostics(args.repo_root))
@@ -2200,7 +2237,7 @@ def main() -> int:
 		for failure in failures:
 			print(f"  - {failure}")
 		return 1
-	print(f"PASS SASGameRecord report/revision checks: logging defaults={len(EXPECTED_GAME_RECORD_DEFAULTS)}, revision history/current marker/context-consumer-contracts/city-delta/settlement-vassal-battle/AI-strategy/AreaAI/AI-target-city/AI-attitude/strategic-trade/UWAI-war-plan/AI-vote/AI-contact/AI-help-tribute/AI-give-help/AI-tech-trade/AI-deal-cancel/deal-invalidation/AI-city-trade/AI-embargo/AI-joint-war/AI-vassalage/AI-colony-split/AI-spaceship-launch/AI-religion-spread-target/AI-map-trade/unit-completion-sources/AI-vassal-resource-tribute/AI-draft/AI-hurry/AI-war-trade/AI-conquer-city/AI-Great-Person/AI-Great-General diagnostics synchronized")
+	print(f"PASS SASGameRecord report/revision checks: logging defaults={len(EXPECTED_GAME_RECORD_DEFAULTS)}, revision history/current marker/context-consumer-contracts/turn-completion/city-delta/settlement-vassal-battle/AI-strategy/AreaAI/AI-target-city/AI-attitude/strategic-trade/UWAI-war-plan/AI-vote/AI-contact/AI-help-tribute/AI-give-help/AI-tech-trade/AI-deal-cancel/deal-invalidation/AI-city-trade/AI-embargo/AI-joint-war/AI-vassalage/AI-colony-split/AI-spaceship-launch/AI-religion-spread-target/AI-map-trade/unit-completion-sources/AI-vassal-resource-tribute/AI-draft/AI-hurry/AI-war-trade/AI-conquer-city/AI-Great-Person/AI-Great-General diagnostics synchronized")
 	return 0
 
 
