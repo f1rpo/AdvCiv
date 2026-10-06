@@ -37,7 +37,7 @@ This is a living release checklist for the user and AI/LLM helpers working on Ad
 - Follow the tested [DLL Compilation Guide](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md). Before every full compile attempt, delete that configuration's exact `CvGameCoreDLL/Project/temp_files/<target>` folder. A retained ignored Debug-opt target is useful for its matching PDB and does not affect a clean Release build, but it must be deleted before rebuilding Debug-opt.
 - Build the Release DLL from the final candidate source. Do not accept a DLL resumed from partial intermediates after a failed compile.
 - Copy/verify the generated DLL as described by the compilation guide, then clean `temp_files` back to `.gitkeep`.
-- Rebuild or refresh alternate DLL variants that are part of the distributed release when their source changed, for example the default 48-civilization DLL and any maintained 18-civilization fallback.
+- AdvCiv-SAS distributes only `Assets/CvGameCoreDLL.dll`, compiled for the supported 48-civilization-player cap. Do not maintain alternate player-cap DLL variants as release artifacts; modders who want another `MAX_CIV_PLAYERS` value can compile it from source.
 - Check `git status --short`, the staged diff, and relevant generated/cache files after compilation so that the committed DLL corresponds to the final source.
 - Run the repository's relevant local/GitHub checks. See [the workflow documentation](/.github/workflows/README.md). Pay particular attention to launch/debug guards, disabled default logging, XML validation, Python 2.4 compatibility, AIP predump freshness, world-size alignment, map-script coverage, and DLL/temp-file checks.
 - Perform at least a practical Civ4 smoke test of the release candidate. For substantial AI/gameplay changes, use relevant autoplay/save-file regression tests rather than relying only on successful compilation.
@@ -102,7 +102,7 @@ This is a living release checklist for the user and AI/LLM helpers working on Ad
 
 - Confirm the intended practical version number and exact HEAD SHA.
 - Confirm the working tree is clean except for intentionally uncommitted local files that are excluded from the release.
-- Confirm the committed DLL and any distributed alternate DLLs are current.
+- Confirm the committed `Assets/CvGameCoreDLL.dll` is current.
 - Confirm default debug/BBAI/SASGameRecord settings are release-safe.
 - Confirm regenerated/predumped data is current.
 - Confirm the Main Changes Guide, install/setup docs, release changelog draft, manual text copy, and important screenshots are current enough for this release.

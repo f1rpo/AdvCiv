@@ -8743,11 +8743,9 @@ File changed:
 
 Screenshots/files for this issue: [google drive folder link](https://drive.google.com/drive/folders/1sglSFxWnZ31_bl_Q5l8iVUmR-lVwUfUl?usp=sharing).
 
-If players start a game on larger world sizes (as of now SAS24 or higher) while using the 18 civs DLL, player count is capped at 18 even if world size has a default player count of e.g., 24 on SAS24 world size.
+If a DLL is compiled with `MAX_CIV_PLAYERS` below the selected world size's default player count, the game can start with too few players for that map size and become extremely sparse. AdvCiv-SAS now ships only its 48-civilization-player `CvGameCoreDLL.dll`, so the stock install covers every currently supported SAS world size; the mismatch can still occur with custom lower-cap DLL builds.
 
-Also, players were not notified of this, so they may engage unawarely in a game where world size would never be fully populated most likely (extreme example as of now: 18 players on SAS48 worldsize).
-
-To work around this issue, added a popup at game start with the very nice help of Claude code Opus 4.7 thanks.
+A one-time game-start popup warns when the active DLL's player cap is below the selected world size's default player count and recommends starting a new game with a sufficiently high-cap DLL. This safeguard remains useful for custom builds even though the old prebuilt 18-civ alternative is no longer shipped.
 
 Change in `onGameStart` in [CvEventManager.py](/Assets/Python/CvEventManager.py).
 

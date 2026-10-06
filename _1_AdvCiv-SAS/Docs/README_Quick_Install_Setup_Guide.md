@@ -51,11 +51,9 @@ To download the development version, go to the [mod's github main page](https://
 
 <img src="../Images/tools/0.250_download-zip-github.png" alt="0.250_download-zip-github.png" width="250"></img>
 
-Note: the 18 civs DLL may often not be updated in this version as it is tedious to do so at every development version change, but the as of now default 48 civs DLL should be; see [README.md#48-civs-dll](/README.md#48-civs-dll) for details and to be sure.
+Note: if you want to modify AdvCiv-SAS, this player development version is missing some files, see [Modify the mod (its development version)](/_1_AdvCiv-SAS/Docs/README_Quick_Install_Setup_Guide.md#modify-the-mod-its-development-version) for details.
 
-Note 2: if you want to modify AdvCiv-SAS, this player development version is missing some files, see [Modify the mod (its development version)](/_1_AdvCiv-SAS/Docs/README_Quick_Install_Setup_Guide.md#modify-the-mod-its-development-version) for details.
-
-Update: now that i now seemingly know how to use .pdb files with WindDbg to inspect crashes or code issues precisely (it tells the line that crashed it seems), as was used to successfully resolve [KI#475.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-475.2) and [KI#475.3](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-475.3), i may not update as often the Release DLL if it is too tedious, as i may have an already compiled locally Debug-opt DLL, but that seems inconvenient to share for legal or sth reason (check if accurate as i don't know much about these) according to ChatGPT or Codex so i may not share it, meaning i may update not the Release DLL even for the 48 civs DLL as often as well.
+Update: now that i now seemingly know how to use .pdb files with WindDbg to inspect crashes or code issues precisely (it tells the line that crashed it seems), as was used to successfully resolve [KI#475.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-475.2) and [KI#475.3](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-475.3), i may not update as often the Release DLL if it is too tedious, as i may have an already compiled locally Debug-opt DLL, but that seems inconvenient to share for legal or sth reason (check if accurate as i don't know much about these) according to ChatGPT or Codex so i may not share it, meaning i may not update the shipped Release DLL as often as well.
 
 ### Any version
 

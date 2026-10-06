@@ -2133,19 +2133,19 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_WORLD_SAS24_HELP</Tag>
-		<English>An extra-large World Size sized for about 24 civs. Requires the 48 civs DLL for default player counts.</English>
+		<English>An extra-large World Size sized for about 24 civs.</English>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_WORLD_SAS32_HELP</Tag>
-		<English>A massive World Size sized for about 32 civs. Requires the 48 civs DLL for default player counts.</English>
+		<English>A massive World Size sized for about 32 civs.</English>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_WORLD_SAS40_HELP</Tag>
-		<English>A huge World Size sized for about 40 civs. Requires the 48 civs DLL for default player counts.</English>
+		<English>A huge World Size sized for about 40 civs.</English>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_WORLD_SAS48_HELP</Tag>
-		<English>A huge World Size sized for about 48 civs. Requires the 48 civs DLL for default player counts.</English>
+		<English>A huge World Size sized for about 48 civs.</English>
 	</TEXT>
 
 

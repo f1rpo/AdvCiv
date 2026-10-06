@@ -9589,7 +9589,7 @@ Author: wonderingabout <hidden>
 Date:   2026-02-03 16:11:26 +0100
 
 Modify Highlands map so it supports Huge and higher and 48 players; update 48 civs DLL
-- Modify **Highlands** so it supports AdvCiv-SAS's new world sizes. Also increase its players supported from 18 to 48+ (for the 48 civs DLL). Change in the new [Highlands.py](/PrivateMaps/Highlands.py).
+- Modify **Highlands** so it supports AdvCiv-SAS's new world sizes. Also increase its players supported from 18 to civilization capacity (currently 48). Change in the new [Highlands.py](/PrivateMaps/Highlands.py).
 - update 48 civs DLL
 
 commit d9e8051723393d41e88479d9624dd13d524383e7

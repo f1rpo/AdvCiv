@@ -311,7 +311,8 @@ class CvEventManager:
 
 		CvAdvisorUtils.resetNoLiberateCities()
 
-		# <!-- custom: One-time notice when active DLL's max players < world size's recommended (e.g. SAS48 on 18-civ DLL). PyPopup was avoided here as it triggers in-game Python error popups; CyPopupInfo with BUTTONPOPUP_TEXT renders cleanly instead. See KI#127. (Claude code Opus 4.7) -->
+		# <!-- custom: One-time notice when active DLL's max players < the world size's default-player count (e.g. a custom lower-cap DLL on SAS48).
+		# PyPopup was avoided here as it triggers in-game Python error popups; CyPopupInfo with BUTTONPOPUP_TEXT renders cleanly instead. See KI#127. (Claude code Opus 4.7 + ChatGPT-5.6-Sol) -->
 		if not getattr(self, '_sas_dll_capacity_warned', False):
 			iRecommended = gc.getWorldInfo(CyMap().getWorldSize()).getDefaultPlayers()
 			iMaxCivs = gc.getMAX_CIV_PLAYERS()
@@ -319,7 +320,7 @@ class CvEventManager:
 				self._sas_dll_capacity_warned = True
 				popupInfo = CyPopupInfo()
 				popupInfo.setButtonPopupType(ButtonPopupTypes.BUTTONPOPUP_TEXT)
-				popupInfo.setText(u"Notice: this map's world size recommends %d players but the active DLL only supports %d - the world map may never be fully populated given low player count.\n\nIt is recommended to switch to a higher player count DLL (e.g., from the 18 civs DLL to the 48 civs DLL) and play a new game instead (saves are NOT compatible with DLL type change).\n\nSee Sevopedia World Sizes for the recommended DLL depending on world size. This message is shown once per session only to avoid redundancy and tedium." % (iRecommended, iMaxCivs))
+				popupInfo.setText(u"Notice: this map's world size recommends %d players but the active DLL only supports %d - the world map may never be fully populated given the lower player cap.\n\nUse or compile a DLL whose player cap is at least as high as this world size, then start a new game. Changing the DLL's player-slot layout can break save compatibility.\n\nThis message is shown once per session only to avoid redundancy and tedium." % (iRecommended, iMaxCivs))
 				popupInfo.addPopup(gc.getGame().getActivePlayer())
 
 	def onGameEnd(self, argsList):

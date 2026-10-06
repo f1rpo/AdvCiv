@@ -935,6 +935,7 @@ void StartingPositionIteration::SpaceEvaluator::computeSpaceValue(PlayerTypes eP
 			militarily (except in Always Peace games; see rMaxClaimExp above).
 			So let's not quite square the proportion. */
 		// Not worth the extra time on super-huge maps
+		// <!-- custom: Maintenance note: the #if and its inline comment below are inherited from base AdvCiv. AdvCiv-SAS is removing its own separately bundled 18-civ DLL, but leaves this code unchanged: builds capped at 25 civilizations or fewer still skip the iCivsAlive > 25 branch. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 		#if MAX_CIV_PLAYERS > 25 // Make sure not to branch here w/ the 18-civ DLL
 		if (iCivsAlive > 25)
 		{

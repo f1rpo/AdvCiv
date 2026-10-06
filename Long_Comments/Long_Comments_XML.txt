@@ -2859,7 +2859,7 @@ AdvCiv or other mods, at least it's cleanly separated -->
 
 <!-- custom: The Mod XXL World (https://forums.civfanatics.com/resources/xxl-world-bts.6708/) is as of now now implemented into AdvCiv-SAS, with the help of GPT-5.2-Codex thanks. These are where TXT KEYs that are most relevant to XXL World Mod are located in AdvCiv-SAS.
 Note: AdvCiv-SAS uses a modified version of the XXL World with different World Size names (adjusted by GPT-Codex-5.2 for AdvCiv-SAS thanks).
-Note 2 : XLL and bigger world sizes are recommended to be played with the 48 civs DLL, and they require the a > MAX_CIV_PLAYERS civs DLL to be able able to play with all players the world size supports. Since we only provided the 48 civs DLL (as of now CvGameCoreDLL_48_civs_DLL.dll, see docs for details on how to use it) in AdvCiv-SAS, to simplify, we explain it as requiring the 48 civs DLL for SAS24+ world sizes, but a 24 civs DLL or 96 civs DLL could just as well respectively for SAS24 or SAS40 world sizes for example. -->
+Note 2: SAS24 and larger world sizes need an active DLL whose MAX_CIV_PLAYERS is at least their intended player count. AdvCiv-SAS ships a single CvGameCoreDLL.dll configured for up to 48 civilization players, covering all current SAS world sizes without DLL swapping. Modders can still compile different lower or higher player caps from source if desired. -->
 <!-- custom: Assets imported from Rise Of Mankind (291) mod (with some modifications or not for AdvCiv-SAS):
 C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\Rise of Mankind\
 which may be modified or not for AdvCiv-SAS -->

@@ -57,7 +57,7 @@ def _getBalancerBonusTypeIDs():
 	return _balancerBonusTypeIDs
 
 def getDescription():
-	return "Each game generates a different island, but all players in that game get the exact same (very good) island. It is recommended to play on largest world sizes (e.g., SAS48) with the 48 Civs DLL to have larger islands. Based on Equal Islands V2 beta from Argonath. Modified for AdvCiv-SAS: supports SAS upscaling/high player counts and bug fixes."
+	return "Each game generates a different island, but all players in that game get the exact same (very good) island. It is recommended to play on the largest world sizes (e.g., SAS48) to have larger islands. Based on Equal Islands V2 beta from Argonath. Modified for AdvCiv-SAS: supports SAS upscaling/high player counts and bug fixes."
 
 def isAdvancedMap():
 	# <!-- custom: Keep Equal Islands visible in Simple Game; this script is now SAS-adapted and stable enough for normal map selection flow. (GPT-5.3-Codex) -->

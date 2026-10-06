@@ -192,7 +192,7 @@ def _interline_gap():
 def _effective_line_and_gap(iLines):
 	iLinePlots = _line_thickness()
 	iBandPlots = _interline_gap()
-	# <!-- custom: This hard-cap fixed a reproducible startup crash on SAS48 world size with the 48 Civs DLL (SAS_Parallel_Lines only).
+	# <!-- custom: This hard-cap fixed a reproducible startup crash on SAS48 world size at the full 48-player setup (SAS_Parallel_Lines only).
 	# Root cause was extreme vertical map dimensions from many lines + wide inter-line gaps. Preserve configured line thickness and reduce
 	# only inter-line water gap when necessary so normal sizes keep their original layout. (GPT-5.3-Codex) -->
 	iMaxLateralSpanPlots = 192
@@ -220,7 +220,7 @@ def getGridSize(argsList):
 	if argsList[0] == -1:
 		return []
 
-	# <!-- custom: Redesign for stability on extreme sizes (e.g., SAS48 with 48 Civs DLL): scaling vertically caused startup crashes,
+	# <!-- custom: Redesign for stability on extreme sizes (e.g., SAS48 with 48 players): scaling vertically caused startup crashes,
 	# while SAS40 still worked. Keep lines parallel but scale line count laterally (X) and place players top-to-bottom within each line. (GPT-5.3-Codex) -->
 	iPPL = _players_per_line()
 	iTopBottomMarginPlots = 6

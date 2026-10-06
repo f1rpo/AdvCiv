@@ -150,7 +150,7 @@ But it passed on [GitHub Actions test](https://github.com/wonderingabout/AdvCiv-
 
 ### `build/assets_dlls.py`
 
-Recursively verifies `Assets` contains only the two expected DLL files (`Assets/CvGameCoreDLL.dll` for the main/48-civ DLL and `Assets/CvGameCoreDLL_18_civs_DLL.dll` for the 18-civ DLL), and verifies the 18-civ DLL is not larger than the main DLL by byte size.
+Recursively verifies that `Assets` contains only the one shipped game-core DLL, `Assets/CvGameCoreDLL.dll`. This catches accidentally committed backup, test, Debug-opt, or other DLL variants anywhere under `Assets`.
 
 ### `build/dll_commit_message.py`
 

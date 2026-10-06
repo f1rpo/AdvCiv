@@ -163,7 +163,6 @@ class SevoPediaWorldSizeChart:
 			("iCorporationMaintenancePercent", None,                        "getCorporationMaintenancePercent", "glyph:gold"),
 			("iNumCitiesAnarchyPercent",       None,                        "getNumCitiesAnarchyPercent",       "btn:fire"),
 			("iAdvancedStartPointsMod",        "Advanced Start Points Mod", "getAdvancedStartPointsMod",        "glyph:defense"),
-			("RecommendedDLL",                 "Recommended DLL*",          None,                               "glyph:defense"),
 		)
 
 		field_getters_list = []
@@ -317,17 +316,6 @@ class SevoPediaWorldSizeChart:
 				parsed_data[world_type]["CellsPerDefaultPlayer"] = str(int(round(float(iCells) / float(iDefaultPlayers))))
 			else:
 				parsed_data[world_type]["CellsPerDefaultPlayer"] = ""
-
-		# Recommended DLL: show "48 civs" when iDefaultPlayers exceeds the base DLL cap (18).
-		for world_type in world_types:
-			try:
-				iDefaultPlayers = int(parsed_data.get(world_type, {}).get("iDefaultPlayers", "0"))
-			except:
-				iDefaultPlayers = 0
-			if iDefaultPlayers > 18:
-				parsed_data[world_type]["RecommendedDLL"] = "48 civs"
-			else:
-				parsed_data[world_type]["RecommendedDLL"] = "Either"
 
 		header = []
 		if self.IS_SAS_SEVOPEDIA_WORLD_SIZE_CHART_HEADER_ICONS:

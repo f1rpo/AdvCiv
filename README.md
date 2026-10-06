@@ -101,9 +101,7 @@ For license and reuse terms, including project-specific restrictions and express
 &emsp;[World map with civs](/README.md#world-map-with-civs)\
 &emsp;[Other map(s) i used for terrain modifiers for civ-specific units](/README.md#other-maps-i-used-for-terrain-modifiers-for-civ-specific-units)\
 [Assets Rebalancing](/README.md#assets-rebalancing)\
-[48 Civs DLL](/README.md#48-civs-dll)\
-&emsp;[How to use](/README.md#how-to-use)\
-&emsp;[New AdvCiv-SAS World Sizes (SAS24, SAS32, SAS40, SAS48; Arena) (Recommended to use with the 48 Civs DLL)](/README.md#new-advciv-sas-world-sizes-sas24-sas32-sas40-sas48-arena-recommended-to-use-with-the-48-civs-dll)\
+[New AdvCiv-SAS World Sizes (SAS24, SAS32, SAS40, SAS48; Arena)](/README.md#new-advciv-sas-world-sizes-sas24-sas32-sas40-sas48-arena)\
 [Mapscripts](/README.md#mapscripts)\
 &emsp;[AdvCiv-SAS original mapscripts (e.g., SAS_Simple_Flat_Grass, SAS_Large_Facing_Islands, SAS_Longworld, SAS_Parallel_Lines, SAS_Spiky_Avenues)](/README.md#advciv-sas-original-mapscripts-eg-sas_simple_flat_grass-sas_large_facing_islands-sas_longworld-sas_parallel_lines-sas_spiky_avenues)\
 &emsp;&emsp;[SAS_Longworld](#sas_longworld)\
@@ -253,7 +251,7 @@ Very cool clarification idea by chatgpt 5.2 (web) as part of adding new game spe
 
 Change in [Civ4Theme_Button.thm](/Resource/Civ4Theme_Button.thm) and [Civ4Theme_Common.thm](/Resource/Civ4Theme_Common.thm). Commit: [commit/d194577b3bf54364637817d767ccf607b5480325](https://github.com/wonderingabout/AdvCiv-SAS/commit/d194577b3bf54364637817d767ccf607b5480325)
 
-Note: Also features the `SAS24`, `SAS32`, `SAS40`, and `SAS48` bigger than Huge, as well as the `Arena` new World sizes (that are based on the XXL World's world sizes). See [New AdvCiv-SAS World Sizes (SAS24, SAS32, SAS40, SAS48; Arena) (Recommended to use with the 48 Civs DLL)](/README.md#new-advciv-sas-world-sizes-sas24-sas32-sas40-sas48-arena-recommended-to-use-with-the-48-civs-dll).
+Note: Also features the `SAS24`, `SAS32`, `SAS40`, and `SAS48` bigger than Huge, as well as the `Arena` new World sizes (that are based on the XXL World's world sizes). See [New AdvCiv-SAS World Sizes (SAS24, SAS32, SAS40, SAS48; Arena)](/README.md#new-advciv-sas-world-sizes-sas24-sas32-sas40-sas48-arena).
 
 Note 2: notably also features the new maps we added in AdvCiv-SAS such as the [BTG_Cross.py](/PrivateMaps/BTG_Cross.py), new .dds for maps, etc. See [Readme.md: Mapscripts](/README.md#mapscripts).
 
@@ -564,7 +562,7 @@ Also added a new "LOG" button to print to `PythonDbg.log` the tables output, and
 
 Also Added with the help of GPT-5.3-Codex and Claude code Opus 4.6, notably with new calibration tools ([compare_speed_summaries.py](/LLM_Helpers/compare_speed_summaries.py) and [autotune_speed_from_xml.py](/LLM_Helpers/autotune_speed_from_xml.py) in [LLM_Helpers](/LLM_Helpers/) for finer LLM-enhanced tuning.
 
-Charts overall also notably add fields that do not are not direct XML info fields, such as `Ratio to Standard*` (e.g. "3.640" for SAS24 World Size), `Ratio to Largest*` (e.g. "0.502" for SAS24 World Size), `Recommended DLL*` (e.g. "48 Civs" for the SAS24 World Size), `Cells Per Default Player*` (e.g. 158 for World Size Huge), `Total Turns*` (e.g. "165" (turns) for the Game Speed Nitro). They are marked with an `*` at the end of their tail for clarity. WorldInfo grid dimensions are terrain-cell units rather than final playable-plot dimensions, which depend on the map script. See [KI#305](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-305).
+Charts overall also notably add fields that do not are not direct XML info fields, such as `Ratio to Standard*` (e.g. "3.640" for SAS24 World Size), `Ratio to Largest*` (e.g. "0.502" for SAS24 World Size), `Cells Per Default Player*` (e.g. 158 for World Size Huge), `Total Turns*` (e.g. "165" (turns) for the Game Speed Nitro). They are marked with an `*` at the end of their tail for clarity. WorldInfo grid dimensions are terrain-cell units rather than final playable-plot dimensions, which depend on the map script. See [KI#305](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-305).
 
 Also, the Eras Chart page also features optional era buttons.
 
@@ -801,23 +799,11 @@ Heavy historical corrections and gameplay balance have been made, such as as of 
 
 The changes before/after with rationale tables are synthethized in .md tables in [README_Assets_Rebalancing.md](/_1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md).
 
-## 48 Civs DLL
+## New AdvCiv-SAS World Sizes (SAS24, SAS32, SAS40, SAS48; Arena)
 
-### How to use
+AdvCiv-SAS ships one `Assets/CvGameCoreDLL.dll`, compiled for up to 48 civilization players so the larger SAS24/SAS32/SAS40/SAS48 world sizes work without swapping DLL variants. The former prebuilt 18-civ DLL is no longer shipped; modders who want a different `MAX_CIV_PLAYERS` limit can compile one from source. Because changing the player-slot layout can break save compatibility, keep the same DLL build for an existing game.
 
-48 Civs DLL is provided and is now the default DLL in AdvCiv-SAS, because we it allows to support the new larger SAS world sizes (e.g., SAS24/SAS32/SAS40/SAS48) that use such higher player counts, and using the old 18 civs DLL would result in map never being populated due to player count being capped at 18. It is also easier to maintain than pivotting between 18 and 48 civs DLLs during testing or playing.
-
-For compatibility or performance or such, a 18 civs DLL is also available and provided in this mod. ([CvGameCoreDLL_18_civs_DLL.dll](/Assets/CvGameCoreDLL_18_civs_DLL.dll)).
-
-To use it, rename current base 48 `MAX_CIV_PLAYERS` DLL file named `CvGameCoreDLL.dll` to any name as long as it's another name, for example to `CvGameCoreDLL_48_civs_dll.dll`, and rename the `CvGameCoreDLL_18_civs_dll.dll` to `CvGameCoreDLL.dll` (vice versa to revert to old 48 players DLL).
-
-Note: it seems that savegames are not compatible when switching from 48 civ DLL to 18 civ DLL (or vice versa i assume) though based on the [related code comments in CvEnums.h](https://github.com/wonderingabout/AdvCiv-SAS/blob/2a453a1f3f0a8eb4ca9be538ec9553c12d49cc1c/CvGameCoreDLL/CvEnums.h#L24-L27), so make sure you finish the games you started using the same DLL, and switch back or forth whichever xd only after you want to play a new game (i.e. don't switch DLLs then reload same save file/map based on this code comment but i don't know and am only reporting what the base advciv code comment says, check if in doubt some other source).
-
-Note 2: in the [development version](/_1_AdvCiv-SAS/Docs/README_Quick_Install_Setup_Guide.md#development-version), i don't update the 18 civs DLL as often after each change i make, because it is bit more tedious to do it and test the DLL to make sure it runs well or well enough (no compile error or crash or weird stuff or error at a glance), so i you want latest features in the development version, consider using the default (i.e. not 18 civs DLL) DLL.
-
-### New AdvCiv-SAS World Sizes (SAS24, SAS32, SAS40, SAS48; Arena) (Recommended to use with the 48 Civs DLL)
-
-This DLL is the recommended DLL for the new World Sizes (SAS24, SAS32, SAS40, SAS48; Arena) added in AdvCiv-SAS based on the XXL World mod's world sizes. For the larger than huge world sizes, as their Default Player number is higher than the 18 `MAX_CIV_PLAYERS` in the old base 18 DLL, it is recommended to use the 48 civs DLL to play them (else the Map may never get populated with too few players relative to world size).
+These new World Sizes are based on the XXL World mod's world sizes and are tuned around their listed default player counts.
 
 The adjustment of the XXL World Mod's World sizes was made by GPT-5.2-Codex. For information, here is a comparative .md table showing how the XXL World's World Sizes compare to the AdvCiv-SAS' new World Sizes, and notes, by GPT-5.2-Codex as well.
 
@@ -857,7 +843,7 @@ Like all mapscripts in AdvCiv-SAS as of now, it supports SAS48 worldsize and pla
 
 Similarly we also added our new original SAS_Spiky_Avenues mapscript with the help of GPT-5.3-Codex and Claude code Opus 4.6 thanks. We took some ideas from SAS_Longworld but with a different concept:
 
->Compact tactical map with repeated streets: each street has facing houses (spikes), a central avenue, and bridges on left/right edges to connect streets. One player starts per house. Bigger world sizes increase street/spike counts (not house size). Examples: in Large worldsize (11 default players), 3 spikes per street (6 houses) and 2 streets (12 houses total); in SAS48 (48 Civs DLL) worldsize (48 default players), 6 spikes per street (12 houses) and 4 streets (48 houses total). Recommended to play this map on SAS48. This is an AdvCiv-SAS original map.
+>Compact tactical map with repeated streets: each street has facing houses (spikes), a central avenue, and bridges on left/right edges to connect streets. One player starts per house. Bigger world sizes increase street/spike counts (not house size). Examples: in Large worldsize (11 default players), 3 spikes per street (6 houses) and 2 streets (12 houses total); in SAS48 worldsize (48 default players), 6 spikes per street (12 houses) and 4 streets (48 houses total). Recommended to play this map on SAS48. This is an AdvCiv-SAS original map.
 
 <img src="./_1_AdvCiv-SAS/Images/mapscript_previews/0.3203_maps_sas_spiky_avenues (1).JPG" alt="0.3203_maps_sas_spiky_avenues (1).JPG" width="250"></img>
 <img src="./_1_AdvCiv-SAS/Images/mapscript_previews/0.3203_maps_sas_spiky_avenues (2).JPG" alt="0.3203_maps_sas_spiky_avenues (2).JPG" width="250"></img>
@@ -930,7 +916,7 @@ With the help of GPT-5.2-Codex, we changed in AdvCiv-SAS a common overflow/under
 
 From what i understand, this should heavily increase reliability, as well as possibly performance since an older version of ChatGPT told me that int may be faster than short and GPT-5.2 Code seemingly said so too from what i understood of its explanation, thanks a lot for help!
 
-Runs fine end to end on the usual 18 civs DLL, and from T0 to T100 on a SAS 48 World size without any obvious issue, so looks good to merge (again check if accurate)!
+Historical testing at the time ran end to end on the then-used 18-civ build, and from T0 to T100 on a SAS48 World Size without any obvious issue, so it looked good to merge (again check if accurate)!
 
 Below is the recap by GPT-5.2-Codex thanks.
 

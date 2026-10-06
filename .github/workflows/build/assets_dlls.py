@@ -2,13 +2,11 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
-# Build check: the Assets folder should contain only the expected DLL files,
-# and the 18-civ DLL should not be larger than the main/48-civ DLL.
+# Build check: the Assets folder should contain only the shipped game-core DLL.
 #
 # <!-- custom: Search recursively under Assets so accidentally shipped backup or
-# test DLLs in subfolders are caught too. Compare byte size (`stat().st_size`),
-# equivalent to Windows Explorer "Size", not allocated "Size on disk". Disk
-# allocation can match even when the real file byte sizes differ. (ChatGPT-5.5) -->
+# test DLLs in subfolders are caught too. Report the shipped DLL byte size for
+# convenient release verification. (ChatGPT-5.5; ChatGPT-5.6-Sol) -->
 
 from pathlib import Path
 import argparse
@@ -21,11 +19,7 @@ from xml_defines import get_default_repo_root
 
 ASSETS_REL_PATH = Path("Assets")
 MAIN_DLL_REL_PATH = ASSETS_REL_PATH / "CvGameCoreDLL.dll"
-EIGHTEEN_CIVS_DLL_REL_PATH = ASSETS_REL_PATH / "CvGameCoreDLL_18_civs_DLL.dll"
-EXPECTED_DLL_REL_PATHS = (
-	MAIN_DLL_REL_PATH,
-	EIGHTEEN_CIVS_DLL_REL_PATH,
-)
+EXPECTED_DLL_REL_PATHS = (MAIN_DLL_REL_PATH,)
 
 
 def byte_size(path: Path) -> int:
@@ -71,27 +65,14 @@ def check_assets_dlls(repo_root: Path) -> tuple[list[str], dict[Path, int]]:
 		failures.append("unexpected DLL file(s) under Assets: " + ", ".join(path.as_posix() for path in unexpected_rel_paths))
 
 	main_dll = repo_root / MAIN_DLL_REL_PATH
-	eighteen_civs_dll = repo_root / EIGHTEEN_CIVS_DLL_REL_PATH
-
 	if main_dll.is_file():
 		sizes[MAIN_DLL_REL_PATH] = byte_size(main_dll)
-	if eighteen_civs_dll.is_file():
-		sizes[EIGHTEEN_CIVS_DLL_REL_PATH] = byte_size(eighteen_civs_dll)
-
-	if main_dll.is_file() and eighteen_civs_dll.is_file():
-		main_size = sizes[MAIN_DLL_REL_PATH]
-		eighteen_civs_size = sizes[EIGHTEEN_CIVS_DLL_REL_PATH]
-		if eighteen_civs_size > main_size:
-			failures.append(
-				f"{EIGHTEEN_CIVS_DLL_REL_PATH.as_posix()} is larger than {MAIN_DLL_REL_PATH.as_posix()}: "
-				f"{eighteen_civs_size} bytes > {main_size} bytes"
-			)
 
 	return failures, sizes
 
 
 def main() -> int:
-	parser = argparse.ArgumentParser(description="Check expected Assets DLL files recursively and DLL byte-size ordering.")
+	parser = argparse.ArgumentParser(description="Check the expected shipped Assets DLL recursively.")
 	parser.add_argument("--repo-root", type=Path, default=get_default_repo_root(), help="repository root; defaults to the root containing .github/")
 	args = parser.parse_args()
 

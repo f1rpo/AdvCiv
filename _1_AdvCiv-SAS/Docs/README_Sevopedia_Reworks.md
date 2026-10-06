@@ -211,7 +211,7 @@ Also added with the help of GPT-5.3-Codex and Claude code Opus 4.6, notably with
 
 Extending on the Handicap Chart similarly, with the help of GPT-Codex-5.2, i also added a World Sizes Sevopedia category.
 
-Note: computed or manually added fields such as `Ratio to Standard*` (e.g. "3.640" for the SAS24 World Size), `Ratio to Largest*` (e.g. "0.502" for SAS24 World Size), `Recommended DLL*` (e.g. "48 Civs" for the SAS24 World Size), that don't exist in XML are provided for convenience. They are marked with an `*` at the end of the field name (e.g. `Ratio to Standard*` or `Recommended DLL*`).
+Note: computed or manually added fields such as `Ratio to Standard*` (e.g. "3.640" for the SAS24 World Size), `Ratio to Largest*` (e.g. "0.502" for SAS24 World Size), and `Cells Per Default Player*` that don't exist in XML are provided for convenience. They are marked with an `*` at the end of the field name (e.g. `Ratio to Standard*`).
 
 Note 2: similarly to how the handicap chart does, in the game speed chart you also need to expose the DLL getters to python or you'll get an error message notifying you of such.
 
