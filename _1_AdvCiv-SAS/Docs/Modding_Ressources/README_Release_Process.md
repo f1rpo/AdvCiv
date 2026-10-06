@@ -1,6 +1,6 @@
 # AdvCiv-SAS Release Preparation and Release Checklist
 
-This is a living release checklist for the user and LLM/AI helpers working on AdvCiv-SAS. It is intended to reduce release tedium and forgotten maintenance, not to force every step when it is irrelevant. Prefer verifying the current repository state over mechanically following stale version numbers or examples in this document.
+This is a living release checklist for the user and AI/LLM helpers working on AdvCiv-SAS. It is intended to reduce release tedium and forgotten maintenance, not to force every step when it is irrelevant. Prefer verifying the current repository state over mechanically following stale version numbers or examples in this document.
 
 ## General principles
 

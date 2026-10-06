@@ -1396,7 +1396,8 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		self.list = self.getSpecialistList()
 		self.placeItems(WidgetTypes.WIDGET_PEDIA_JUMP_TO_SPECIALIST, gc.getSpecialistInfo)
 
-	# Helper to group specialists by type (e.g. Engineer vs Great Engineer). Great specialists are identified by "GREAT_" in SpecialistInfo.getType(), matching RFC DoC's convention.
+	# <!-- custom: Helper to group specialists by type (e.g. Engineer vs Great Engineer).
+	# Great specialists are identified by "GREAT_" in SpecialistInfo.getType(). (ChatGPT-5.6-Sol) -->
 	def SAS_getSpecialistsGroupedByType(self):
 		return SAS_MainGroupings.SAS_getSpecialistsGroupedByType(self.isSortLists())
 
@@ -2274,10 +2275,11 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 				if not bSAS_hasCustomData2:
 					data2 = 1
 
-				# <!-- custom: in sevopedia civics, order civics by civic type (e.g. Government, Economy, etc.), as RFC DOC mod does and that this code is based on, with the help of chatgpt 5.2 thanks -->
-				# Step 1 (required): Teach your SevoPediaMain.placeItems() to handle headers. Right now your placeItems() always does info(item[1]).getButton(), so any header rows like ("Government", -1) would crash. RFC DoC fixes this by treating item[1] == -1 as a non-clickable, highlighted header row.
+				# <!-- custom: order Sevopedia civics by civic type (e.g. Government, Economy, etc.).
+				# The earlier implementation was derived from RFC Dawn of Civilization and adapted with ChatGPT 5.2. (ChatGPT-5.6-Sol) -->
+				# <!-- custom: Header rows such as ("Government", -1) must be handled separately because placeItems() otherwise calls info(item[1]).getButton(); the adopted grouping logic represents these as non-clickable highlighted rows. (ChatGPT-5.6-Sol) -->
 				# <!-- custom: similarly, in sevopedia techs, group techs by era (e.g. Ancient Era, Classical Era, etc.) instead of one long list. Also did similarly for sevopedia buildings and similar pages. Code added with the help of chatgpt 5.2 thanks -->
-				# (That is basically the DoC approach, adapted to your variable names.). After this, your item lists can safely contain (..., -1) headers and blank separators.
+				# <!-- custom: (That is basically the DoC approach, adapted to your variable names.). After this, your item lists can safely contain (..., -1) headers and blank separators. (ChatGPT-5.2) -->
 				if item[1] == -1:
 					sTitlePlaceItems = CyTranslator().changeTextColor(item[0], self.COLOR_HIGHLIGHT_TEXT)
 					widgetPlaceItems = WidgetTypes.WIDGET_GENERAL

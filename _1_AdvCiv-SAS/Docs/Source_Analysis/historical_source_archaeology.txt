@@ -1,6 +1,6 @@
 AdvCiv / K-Mod / AdvCiv-SAS historical bug archaeology progress
 Created 2026-08-19
-Maintained by wonderingabout + LLM/AI helpers
+Maintained by wonderingabout + AI/LLM helpers
 
 Purpose
 -------

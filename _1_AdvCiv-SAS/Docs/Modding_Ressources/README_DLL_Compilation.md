@@ -1,8 +1,8 @@
 # AdvCiv-SAS DLL Compilation Guide
 
-This documents the tested local command-line Release-build workflow primarily for LLM/AI helpers operating through a terminal. Human modders can usually open [`AdvCiv.vcxproj`](/CvGameCoreDLL/Project/AdvCiv.vcxproj) directly with tools like Visual C++ 2010 Express and build the Release configuration through the IDE instead, as used for AdvCiv-SAS development. The clean-target, output-verification, installation, testing and symbol-retention rules below still apply to either approach.
+This documents the tested local command-line Release-build workflow primarily for AI/LLM helpers operating through a terminal. Human modders can usually open [`AdvCiv.vcxproj`](/CvGameCoreDLL/Project/AdvCiv.vcxproj) directly with tools like Visual C++ 2010 Express and build the Release configuration through the IDE instead, as used for AdvCiv-SAS development. The clean-target, output-verification, installation, testing and symbol-retention rules below still apply to either approach.
 
-By default, AI helpers should let the user compile unless compilation is needed or the user agrees that the helper may do it.
+By default, AI/LLM helpers should let the user compile unless compilation is needed or the user agrees that the helper may do it.
 
 ## Toolchain layout
 

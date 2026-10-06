@@ -7,7 +7,7 @@ Purpose: keep XML files readable by moving very long comments into this file.
 Note: Python long comments may be consolidated into a separate file later.
 Initial consolidation and formatting by GPT-5.2-Codex (VS Code extension).
 
-Try to keep them lean and more so in the future so our AI helpers can easily read the SAS defines, as well as help readability and possibly perf if any gain.
+Try to keep them lean and more so in the future so our AI/LLM helpers can easily read the SAS defines, as well as help readability and possibly perf if any gain.
 
 
 
@@ -2536,12 +2536,12 @@ Applied in the DLL (CvDLLWidgetData::parseHelp) and Python (updateHelpStrings). 
 ===== \Assets/XML/Art/CIV4ArtDefines_Unit.xml =====
 ----- Comment #122 -----
 
-<!-- custom: art import from rfc doc mod's very very nice fpk (unlike in some other mods... see in readme for details xd... which helped me in other ways but still their of other mods fpk and unlike for example in mods like rfc doc, so in these other mods than rfc doc mod for example, were shit, big big shit, despite their other good things, so i am thankful some mods if i may or at least maybe rather i can use rfc doc mod's or some other nicely one fpk for all or similar design cleanly ordered and named assets and such) ART_DEF_UNIT_ZOROASTRIAN_MISSIONARY -->
+<!-- custom: art asset imported from RFC Dawn of Civilization's ART_DEF_UNIT_ZOROASTRIAN_MISSIONARY. (ChatGPT-5.6-Sol) -->
 
 ===== \Assets/XML/Art/CIV4ArtDefines_Unit.xml =====
 ----- Comment #123 -----
 
-		<!-- custom: new unit CAMEL_KNIGHT based on the KNIGHT camel version of it, art import from RFC DOC mod's ART_DEF_UNIT_CAMEL_RIDER (is in "C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\RFC Dawn of Civilization\Assets\Units.fpk") with their very very nice and very very tidy and ordered and works-functions at first try FPK!!!! Thanks a lot!!! I had issues with other mods assets scattered across several fpks or and hardcoded paths in nif not worth debugging at least not quick, this one all in one fpk so nice and tidy thanks a lot -->
+		<!-- custom: CAMEL_KNIGHT art asset imported from RFC Dawn of Civilization's ART_DEF_UNIT_CAMEL_RIDER in its Units.fpk. (ChatGPT-5.6-Sol) -->
 
 ===== \Assets/XML/Art/CIV4ArtDefines_Unit.xml =====
 ----- Comment #124 -----
@@ -2847,9 +2847,7 @@ to this file, but only for AdvCiv-SAS specific changes (for example
 a new civ, a new leader, etc) that are lengthy.
 Hopefully more readable now, and perhaps exportable if some wish,
 AdvCiv or other mods, at least it's cleanly separated -->
-<!-- custom: Lengthy part of the assets imported from RFC Dawn of Civilization mod, as we are using some of their code for our Sevopedia categories (with some modifications). Assets imported from this file (possibly from other ones too):
-C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\RFC Dawn of Civilization\Assets\XML\Text\Interface.xml
-and modified for our needs if needed. -->
+<!-- custom: Some Sevopedia text assets were imported from RFC Dawn of Civilization's Assets/XML/Text/Interface.xml alongside earlier derived Sevopedia code, then modified for AdvCiv-SAS. (ChatGPT-5.6-Sol) -->
 <!-- custom: imported from m-e mod (see main readme for mod abbreviation details in as of now credits section) (in (adjust to your mod path) C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\Middle-earth\Assets\Modules\Platypedia\AdditionalText_CIV4GameText.xml) (but i also found them later in c2c mod and they are seemingly the same but the file is sadly/unfortunately way too bloated so going for the m-e mod one) -->
 
 ===== \Assets/XML/Text/AdvCiv-SAS_Main.xml =====
@@ -2861,9 +2859,7 @@ Note 2 : XLL and bigger world sizes are recommended to be played with the 48 civ
 <!-- custom: Assets imported from Rise Of Mankind (291) mod (with some modifications or not for AdvCiv-SAS):
 C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\Rise of Mankind\
 which may be modified or not for AdvCiv-SAS -->
-<!-- custom: Assets imported from RFC Dawn of Civilization mod, as we are using some of their code for our Sevopedia categories (with
-some modifications). Assets imported from files (possibly from other ones too) C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\RFC Dawn of Civilization\Assets\XML\Text\Interface.xml and C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\RFC Dawn of Civilization\Assets\XML\Text\Resources.xml
-and modified or not for our needs in advciv-sas -->
+<!-- custom: Some Sevopedia text assets were imported from RFC Dawn of Civilization's Assets/XML/Text/Interface.xml and Assets/XML/Text/Resources.xml alongside earlier derived Sevopedia code, then modified for AdvCiv-SAS. (ChatGPT-5.6-Sol) -->
 
 ===== \Assets/XML/Text/AdvCiv-SAS_Core.xml =====
 ----- Comment #153 -----

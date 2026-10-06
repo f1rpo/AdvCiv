@@ -418,7 +418,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 
 
 
-	<!-- custom: in sevopedia civics, order civics by civic type (e.g. Government, Economy, etc.) instead of an alphabetical unordered very long list, as RFC DOC mod does and that this code is based on, with the help of chatgpt 5.2 thanks -->
+	<!-- custom: in Sevopedia civics, order civics by civic type (e.g. Government, Economy, etc.) instead of one long alphabetical list. The earlier implementation was derived from RFC Dawn of Civilization and adapted with ChatGPT 5.2. (ChatGPT-5.6-Sol) -->
 	<Define>
 		<DefineName>SAS_SEVOPEDIA_MAIN_CIVICS_GROUP_BY_CIVIC_TYPES</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>

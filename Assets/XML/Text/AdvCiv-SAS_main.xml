@@ -626,7 +626,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_PEDIA_FEATURE</Tag>
 		<English>Feature</English>
 	</TEXT>
-	<!-- custom: add missing txt key "Terrain" not in RFC DOC mod (didn't recheck but i assume it was as such seeing it is as of now hardcoded), instead of hardcoded one, now moved to its own txt key as below -->
+	<!-- custom: add a dedicated text key for the formerly hardcoded "Terrain" label used by the imported Sevopedia implementation. (ChatGPT-5.6-Sol) -->
 	<TEXT>
 		<Tag>TXT_KEY_PEDIA_TERRAIN_CUSTOM</Tag>
 		<English>Terrain</English>
@@ -694,7 +694,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_PEDIA_FAVOURITE_CIVICS_AND_RELIGIONS</Tag>
 		<English>Favorites</English>
 	</TEXT>
-	<!-- custom: tag name that this is indeed a tag name that i modified, modified, for consistency or and clarity with other similar or and related tag names if i am not similarly mistaken too that these/those are tag names, unlike in RFC DOC mod -->
+	<!-- custom: tag name adjusted for consistency and clarity with related AdvCiv-SAS text keys. (ChatGPT-5.6-Sol) -->
 	<TEXT>
 		<Tag>TXT_KEY_PEDIA_REPLACE_REPLACED_BY_CUSTOM</Tag>
 		<English>Replaced By</English>

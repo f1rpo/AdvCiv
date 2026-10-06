@@ -327,7 +327,7 @@
 			<Button>,Art/Interface/Buttons/WorldBuilder/Music.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,4,16</Button>
 			<FontButtonIndex>33</FontButtonIndex>
 		</BonusArtInfo>
-		<!-- custom: replace BONUS_MOVIES with BONUS_CAMEL, nif and button import from rfc doc mod's ART_DEF_BONUS_CAMEL -->
+		<!-- custom: replace BONUS_MOVIES with BONUS_CAMEL; NIF and button assets imported from RFC Dawn of Civilization's ART_DEF_BONUS_CAMEL. (ChatGPT-5.6-Sol) -->
 		<BonusArtInfo>
 			<Type>ART_DEF_BONUS_CAMEL</Type>
 			<fScale>1.2</fScale>

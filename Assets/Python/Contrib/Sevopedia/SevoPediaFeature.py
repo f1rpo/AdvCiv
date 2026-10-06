@@ -1,7 +1,7 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
-# <!-- custom: imported from RFC Dawn of Civilization mod  C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\RFC Dawn of Civilization\Assets\Python\Pedia\CvPediaFeature.py then adjusted for AdvCiv-SAS; for example renamed placeDetails to placeSpecial for consistency with our other special effect method names in other sevopedia classes -->
+# <!-- custom: originally derived from RFC Dawn of Civilization's CvPediaFeature.py; subsequently adjusted for AdvCiv-SAS, including renaming placeDetails to placeSpecial for consistency with other Sevopedia classes. (ChatGPT-5.6-Sol) -->
 
 from CvPythonExtensions import *
 from SASMagicNumbers import *

@@ -141,7 +141,7 @@ def SAS_isSpecialMapImprovement(iImprovement):
 	return info.getPillageGold() <= 0 and not info.isRequiresFeature() and not info.isOutsideBorders()
 
 # Helper: get ALL improvements that make a bonus tradable (i.e. "improve/connect" it).
-# This is used for Sevopedia Main list grouping, similar to RFC DoC's Resource grouping.
+# Shared Sevopedia Main list-grouping helpers; some earlier grouping logic was derived from RFC Dawn of Civilization. (ChatGPT-5.6-Sol)
 # Unlike a "primary improvement" heuristic, we keep multi-improvement cases exhaustive by using
 # a combined header like: "Well, Offshore Platform".
 def SAS_getTradingImprovementsForBonus(iBonus):
@@ -166,7 +166,9 @@ def SAS_getTradingImprovementsForBonus(iBonus):
 #   Farm -> Corn/Wheat/...
 #   Pasture -> Sheep/Horse/...
 # For multi-improvement bonuses (e.g. Oil: Well + Offshore Platform), we use a combined header.
-# <!-- custom: we did this change because RFC DOC used another water/land tie breaker logic that would display Oil only under "Well", but the player needs to know too that "Offshore Platform" is another improvement trades for Oil. Also, if some mod mod added another improvement trades on land (e.g. Farm + Pasture for Milk (imaginary example)) then the water/land tie breaking would not be effective as well, and we'd miss the info that both improvements support this. This is the only case in our mod (Oil) that has more than one improvement trades., so we don't need to complicate the logic further, while hopefully providing this logic in a bit cleaner or more relevant way to us than in RFC DOC mod (although their code helps lot and with chatgpt 5.2's help too and my help too xd i mean thanks to them and me xd as well) -->
+# <!-- custom: keep every improvement that can trade a bonus instead of using a water/land tie-breaker.
+# This ensures Oil lists both Well and Offshore Platform and remains correct if a future bonus can be traded by multiple land improvements.
+# The earlier implementation was derived from RFC Dawn of Civilization and reworked for AdvCiv-SAS with ChatGPT 5.2. (ChatGPT-5.6-Sol) -->
 
 def SAS_getTerrainsGroupedByLandWater_fromBaseList(baseList, bSortLists, highIds):
 	r = []
@@ -284,7 +286,9 @@ def SAS_getFeaturesGroupedByLandWater_fromBaseList(baseList, bSortLists, graphic
 #   Farm -> Corn/Wheat/...
 #   Pasture -> Sheep/Horse/...
 # For multi-improvement bonuses (e.g. Oil: Well + Offshore Platform), we use a combined header.
-# <!-- custom: we did this change because RFC DOC used another water/land tie breaker logic that would display Oil only under "Well", but the player needs to know too that "Offshore Platform" is another improvement trades for Oil. Also, if some mod mod added another improvement trades on land (e.g. Farm + Pasture for Milk (imaginary example)) then the water/land tie breaking would not be effective as well, and we'd miss the info that both improvements support this. This is the only case in our mod (Oil) that has more than one improvement trades., so we don't need to complicate the logic further, while hopefully providing this logic in a bit cleaner or more relevant way to us than in RFC DOC mod (although their code helps lot and with chatgpt 5.2's help too and my help too xd i mean thanks to them and me xd as well) -->
+# <!-- custom: keep every improvement that can trade a bonus instead of using a water/land tie-breaker.
+# This ensures Oil lists both Well and Offshore Platform and remains correct if a future bonus can be traded by multiple land improvements.
+# The earlier implementation was derived from RFC Dawn of Civilization and reworked for AdvCiv-SAS with ChatGPT 5.2. (ChatGPT-5.6-Sol) -->
 def SAS_getBonusesGroupedByImprovement_fromBaseList(baseList, bSortLists):
 	bonusesList = []
 
@@ -1156,7 +1160,8 @@ def SAS_getCorporationsGroupedByEra_fromBaseList(baseList, bSortLists, getCorpor
 
 	return corpsList
 
-# <!-- custom: in sevopedia specialists, group specialists by type: regular specialists vs great specialists (those whose <Type> contains "GREAT_"), based on RFC DOC mod's code thanks. Added with the help of chatgpt 5.2 thanks -->
+# <!-- custom: in Sevopedia specialists, group regular and great specialists (those whose <Type> contains "GREAT_").
+# The earlier grouping implementation was derived from RFC Dawn of Civilization and adapted with ChatGPT 5.2. (ChatGPT-5.6-Sol) -->
 # Notes (kept conservative)
 # 	- "Great specialists" detection is exactly RFC’s convention: getType().find("GREAT_") > -1. 
 # 	- I reused TXT_KEY_PEDIA_CATEGORY_SPECIALIST for the regular header (so it’s localized), and I used the literal string "Great Specialists" for the great header (since your mod likely doesn’t have RFC’s TXT_KEY_PEDIA_HEADER_GREAT_SPECIALIST). If you want, you can later add your own TXT_KEY and swap that line to localText.getText("TXT_KEY_PEDIA_HEADER_GREAT_SPECIALIST", ()).
@@ -1201,10 +1206,11 @@ def SAS_getSpecialistsGroupedByType(bSortLists):
 
 	return outList
 
-# <!-- custom: in sevopedia civics, order civics by civic type (e.g. Government, Economy, etc.), as RFC DOC mod does and that this code is based on, with the help of chatgpt 5.2 thanks -->
+# <!-- custom: in Sevopedia civics, order civics by civic type (e.g. Government, Economy, etc.).
+# The earlier implementation was derived from RFC Dawn of Civilization and adapted with ChatGPT 5.2. (ChatGPT-5.6-Sol) -->
 # Step 2: Replace getCivicList() with "category + era tiers" (behind a SAS define)
 # Right now your civics list is just getSortedList(gc.getNumCivicInfos(), gc.getCivicInfo) (optionally alphabetical via BUG).
-# In RFC DoC, placeCivics() at least groups by civic option category using header rows. They also show how they do era tier grouping for other lists (e.g., wonders/buildings grouped by prereq tech era).
+# The adopted grouping approach uses non-clickable header rows for civic-option categories and related grouped lists. (ChatGPT-5.6-Sol)
 def SAS_getCivicsGroupedByCivicOption(bSortLists):
 	civicsList = []
 	iNumCivics = gc.getNumCivicInfos()

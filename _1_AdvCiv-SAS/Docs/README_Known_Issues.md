@@ -204,7 +204,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#150 - (Fixed) Base AdvCiv issue (and some AdvCiv-SAS): Priority duplicate XML child/list entries found by new GitHub workflow check](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-150)\
 [KI#151 - (Fixed) Base AdvCiv issue: Suspicious malformed-looking XML angle tags found by new GitHub workflow check](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-151)\
 [KI#152 - (Fixed) Suspicious replacement question marks in lengthy Sevopedia XML found by new GitHub workflow check](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-152)\
-[KI#153 - (Fixed) RFC DOC bug: Sevopedia Hill page did not show improvements valid through underlying terrain, feature, or hill-eligible bonus rules](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-153)\
+[KI#153 - (Fixed) Sevopedia Hill bug in an RFC DoC-derived implementation adopted for AdvCiv-SAS: page did not show improvements valid through underlying terrain, feature, or hill-eligible bonus rules](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-153)\
 [KI#154 - (Fixed) Base AdvCiv issue: Great People could wait too long for Golden Age partners instead of using lower but useful actions](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-154)\
 [KI#154.2 - (Investigated/Rebalanced) Great Artist settlement versus immediate Great Work timing during Culture-victory pushes](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-154.2)\
 [KI#155 - (Fixed) Base AdvCiv issue: remote captured-city attack stacks could park for many turns because upgrade waiting overrode a ready offensive target](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-155)\
@@ -1353,7 +1353,7 @@ Thanks to chatgpt's help, and following recent as of now DLL changes such as in 
 
 Now fixed: by replacing, in Sevopediaunit py file, in placeRequires function/method (of this file), `WidgetTypes.WIDGET_HELP_RELIGION` with `WidgetTypes.WIDGET_PEDIA_JUMP_TO_RELIGION`(,) as is done already by base advciv and successfully in Sevopedia building.
 
-This is a bug i have noticed in AdvCiv and after checking, many other mods, among those (few i tried): ROM 291, RFC DOC, Neoteric World (since i have it too (to check their Sevopedia content or such or other or not anyways) even though i did not use anything from it at least but may be useful some day or not), History Rewritten too.
+This is a bug i have noticed in AdvCiv and, after checking, in several other mods as well, including ROM 291, Neoteric World, and History Rewritten.
 
 But clicking in AdvCiv in Sevopediabuilding for example on any religious temple's placeRequires's religious icon/button successfully redirects to the Sevopedia's religion page.
 
@@ -4789,7 +4789,7 @@ Update 2: now added to a helper (`CvDLLWidgetData::parseVassalWillingnessHelp`) 
 
 Screenshots/files for this issue: [google drive folder link](https://drive.google.com/drive/folders/1cg05BVD4Jrs4hnbaaniNpitdgRIrfSHL?usp=sharing).
 
-In [CvTechChooser.py](/Assets/Python/Screens/CvTechChooser.py), base advciv disables the BUG's tech bulbing indicators (that come from RFC DOC's mod btw according to base advciv comments as well if i understood it correctly, and if there weren't, i was going to take them from RFC DOC as well as they look nice there as well thanks! I mean.) at turn 0 with the following rationale:
+In [CvTechChooser.py](/Assets/Python/Screens/CvTechChooser.py), base advciv disables the BUG's tech bulbing indicators (identified in base AdvCiv comments as originating from RFC Dawn of Civilization) at turn 0 with the following rationale:
 
 ```py
 		# advc.004a: Adding this guard b/c the new code somehow can't handle calls via preGameStart (CvAppInterface) if the map is very large. Still seems to get updated properly if the player opens the Tech Advisor on turn 0.
@@ -7432,11 +7432,17 @@ After these changes, `python .github/workflows/build/xml_suspicious_text_chars.p
 
 <a id="ki-153"></a>
 
-## KI#153 - (Fixed) RFC DOC bug: Sevopedia Hill page did not show improvements valid through underlying terrain, feature, or hill-eligible bonus rules
+## KI#153 - (Fixed) Sevopedia Hill bug in an RFC DoC-derived implementation adopted for AdvCiv-SAS: page did not show improvements valid through underlying terrain, feature, or hill-eligible bonus rules
 
 Screenshots/files for this issue: [google drive folder link](https://drive.google.com/drive/folders/17-N_e5lsVtNOIE3TrRs9OnNyjX_Q-oQG?usp=sharing).
 
-In the Sevopedia Terrain category, the Hill page showed only improvements that directly set `bHillsMakesValid`, such as Mine and Windmill. This was inaccurate in-game. For example, a plains hill Grapes tile can build a Plantation because `BONUS_GRAPES` is hill-eligible and Plantation trades/improves Grapes. Hills can also host terrain-valid Forts because a hill tile still has an underlying real terrain such as Plains, Grassland, Desert, Tundra, or Snow. The same problem was observed in RFC Dawn of Civilization's pedia screenshot and source: its `CvPediaTerrain.py` Hill branch also only accepted improvements with `isHillsMakesValid`, which matches the code we had imported from RFC DoC before adapting it for AdvCiv-SAS.
+In the Sevopedia Terrain category, the Hill page showed only improvements that directly set `bHillsMakesValid`, such as Mine and Windmill. This was inaccurate in-game.
+
+For example, a plains hill Grapes tile can build a Plantation because `BONUS_GRAPES` is hill-eligible and Plantation trades/improves Grapes.
+
+Hills can also host terrain-valid Forts because a hill tile still has an underlying real terrain such as Plains, Grassland, Desert, Tundra, or Snow.
+
+The same problem existed in the RFC Dawn of Civilization source from which an earlier AdvCiv-SAS terrain-pedia implementation was deliberately adopted and then adapted: its `CvPediaTerrain.py` Hill branch accepted only improvements with `isHillsMakesValid`.
 
 The DLL already had the correct rule in `CvPlot::canHaveImprovement`: Hill is a plot shape layered over real terrain, not a normal terrain by itself like Plains or Tundra. A hill tile is effectively a combination such as:
 
@@ -11636,7 +11642,7 @@ The imported Unit Chart displayed only `getFirstStrikes()`. Units with chance fi
 
 The fix leaves the cell blank only when both values are zero. It displays the guaranteed value alone when no chance first strikes exist, or the guaranteed-to-maximum range when they do; for example, zero guaranteed plus one chance is shown as `0-1`, while one guaranteed plus one chance is shown as `1-2`. Runtime testing confirmed the new ranges, and the column title is now `1st Strike Range` so their meaning is explicit. The final compiled build ran without an observed issue at a glance.
 
-This Unit Chart omission is inherited from RFC Dawn of Civilization. Found and investigated through the systematic archaeology with the help of ChatGPT-5.6-Sol; fixed and documented with the help of GPT-5.6-Sol and runtime-tested with the help of wonderingabout, thanks.
+This Unit Chart omission was present in an RFC Dawn of Civilization-derived implementation adopted for AdvCiv-SAS. Found and investigated through the systematic archaeology with the help of ChatGPT-5.6-Sol; fixed and documented with the help of GPT-5.6-Sol and runtime-tested with the help of wonderingabout, thanks.
 
 <a id="ki-324"></a>
 

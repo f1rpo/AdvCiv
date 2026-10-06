@@ -704,7 +704,7 @@
 				<AudioRunTypeEnd/>
 			</AudioRunSounds>
 		</UnitArtInfo>
-		<!-- custom: immortal reworked now based on the swordsman at least as of now; art import from RFC DOC mod's very very nice really fpk, art def based on RFC DOC's ART_DEF_UNIT_PERSIAN_IMMORTAL in particular; kfm is base civ4 one's -->
+		<!-- custom: Immortal reworked from the Swordsman; art asset imported from RFC Dawn of Civilization's ART_DEF_UNIT_PERSIAN_IMMORTAL, with the base Civ4 KFM. (ChatGPT-5.6-Sol) -->
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_PERSIA_IMMORTAL</Type>
 			<Button>Art/AdvCiv_SAS/Units/Persia_Immortal/button_immortal.dds</Button>
@@ -1977,7 +1977,7 @@
 				<AudioRunTypeEnd/>
 			</AudioRunSounds>
 		</UnitArtInfo>
-		<!-- custom: new unit CAMEL_CUIRASSIER based on the cuirassier camel version of it, art import similarly from RFC DOC mod's ART_DEF_UNIT_CAMEL_GUNNER. -->
+		<!-- custom: CAMEL_CUIRASSIER art asset imported from RFC Dawn of Civilization's ART_DEF_UNIT_CAMEL_GUNNER. (ChatGPT-5.6-Sol) -->
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_CAMEL_CUIRASSIER</Type>
 			<Button>Art/AdvCiv_SAS/Units/Camel_Cuirassier/camelgunner_btn.dds</Button>
@@ -2003,7 +2003,7 @@
 				<AudioRunTypeEnd/>
 			</AudioRunSounds>
 		</UnitArtInfo>
-		<!-- custom: art import from RFC DOC mod's ART_DEF_UNIT_DRAGOON thanks. Note: .kfm is base advciv +/- civ4's one as per rfc doc mod's unitartinfo in xml -->
+		<!-- custom: art asset imported from RFC Dawn of Civilization's ART_DEF_UNIT_DRAGOON; the KFM is inherited from base AdvCiv/Civ4. (ChatGPT-5.6-Sol) -->
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_DRAGOON</Type>
 			<Button>Art/AdvCiv_SAS/Units/Dragoon/Dragoon.dds</Button>
@@ -2052,7 +2052,7 @@
 				<AudioRunTypeEnd/>
 			</AudioRunSounds>
 		</UnitArtInfo>
-		<!-- custom: "GERMAN_PANZER" removed and replaced with the "GERMAN_HUSSAR", art import from RFC DOC mod'sART_DEF_UNIT_HUSSAR; note: some assets like kfm or such being base civ4 ones -->
+		<!-- custom: GERMAN_PANZER replaced with GERMAN_HUSSAR; art asset imported from RFC Dawn of Civilization's ART_DEF_UNIT_HUSSAR, with some supporting assets inherited from base Civ4. (ChatGPT-5.6-Sol) -->
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_GERMAN_HUSSAR</Type>
 			<Button>Art/AdvCiv_SAS/Units/German_Hussar/Hussar.dds</Button>

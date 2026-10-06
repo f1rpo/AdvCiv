@@ -5082,7 +5082,7 @@
 			<bShiftDown>0</bShiftDown>
 			<bCtrlDown>0</bCtrlDown>
 			<iHotKeyPriority>0</iHotKeyPriority>
-			<!-- custom: made with paint.net by myself hehe from rfc doc atlas's (wherever i found it the fastest) air intercept button-->
+			<!-- custom: edited in paint.net by wonderingabout from an air-intercept button sourced from the RFC Dawn of Civilization atlas. (ChatGPT-5.6-Sol) -->
 			<Button>Art/AdvCiv_SAS/Promotions/Air_Interception_3/air_interception_3.dds</Button>
 		</PromotionInfo>
 		<PromotionInfo> <!-- custom: PROMOTION_AIR_INTERCEPTION4 -->
@@ -5150,7 +5150,7 @@
 			<bShiftDown>0</bShiftDown>
 			<bCtrlDown>0</bCtrlDown>
 			<iHotKeyPriority>0</iHotKeyPriority>
-			<!-- custom: made with paint.net by myself hehe from rfc doc atlas's (wherever i found it the fastest) air intercept button-->
+			<!-- custom: edited in paint.net by wonderingabout from an air-intercept button sourced from the RFC Dawn of Civilization atlas. (ChatGPT-5.6-Sol) -->
 			<Button>Art/AdvCiv_SAS/Promotions/Air_Interception_4/air_interception_4.dds</Button>
 		</PromotionInfo>
 		<PromotionInfo> <!-- custom: PROMOTION_AIR_EVASION -->

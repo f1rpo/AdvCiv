@@ -46,7 +46,7 @@
 /_1_AdvCiv-SAS/Docs/Modding_Ressources/changelogs_web/    export-ignore
 /_1_AdvCiv-SAS/Docs/Modding_Ressources/changelogs_web/**  export-ignore
 
-# <!-- custom: Keep source-analysis progress and albums tracked so future clones and LLM/AI helpers can resume them, but exclude the whole development-analysis folder from player/download archives.
+# <!-- custom: Keep source-analysis progress and albums tracked so future clones and AI/LLM helpers can resume them, but exclude the whole development-analysis folder from player/download archives.
 # Future C++/Python/XML or other analyses need no individual export-ignore entry. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 /_1_AdvCiv-SAS/Docs/Source_Analysis/    export-ignore
 /_1_AdvCiv-SAS/Docs/Source_Analysis/**  export-ignore

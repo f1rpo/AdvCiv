@@ -223,7 +223,7 @@
 			<KFM/>
 			<Button>Art/AdvCiv_SAS/Buildings/KoB_Impluvium/Impluvium.dds</Button>
 		</BuildingArtInfo>
-		<!-- custom: art from RFC DOC mod's Noria, thanks. -->
+		<!-- custom: art asset imported from RFC Dawn of Civilization's Noria. (ChatGPT-5.6-Sol) -->
 		<BuildingArtInfo>
 			<Type>ART_DEF_BUILDING_IRELAND_MUILEANN_UISCE</Type>
 			<LSystem>LSYSTEM_2x2</LSystem>
@@ -1020,7 +1020,7 @@
 			<KFM/>
 			<Button>,Art/Interface/Buttons/Buildings/Shrine_Buddhist.dds,Art/Interface/Buttons/Buildings_Atlas.dds,3,13</Button>
 		</BuildingArtInfo>
-		<!-- custom: art import for the pagan (i.e. religious) buildings from RFC DOC mod zoroastrian buildings's art assets such as ART_DEF_BUILDING_ZOROASTRIAN_TEMPLE. -->
+		<!-- custom: pagan-building art assets imported from RFC Dawn of Civilization's Zoroastrian building art, such as ART_DEF_BUILDING_ZOROASTRIAN_TEMPLE. (ChatGPT-5.6-Sol) -->
 		<BuildingArtInfo>
 			<Type>ART_DEF_BUILDING_PAGAN_TEMPLE</Type>
 			<LSystem>LSYSTEM_2x2</LSystem>

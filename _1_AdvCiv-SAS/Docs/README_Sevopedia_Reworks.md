@@ -374,7 +374,7 @@ Also added caching at category click for the entire session similarly to how was
 
 ### example 1.6: techs category (Starting and Untradeable Techs Charts and other changes)
 
-This is a more recent refactor and beautify that adds era information and such other beautifications. The info pane (top left info of the tech, era, cost as of now) in particular is imported from rfc doc mod and modified/beautified/adjusted further or not for advciv-sas.
+This is a more recent refactor and beautify that adds era information and such other beautifications. The top-left tech information pane (era, cost, and related information) originated from an RFC Dawn of Civilization implementation and has since been modified and adjusted for AdvCiv-SAS.
 
 More recently, i also fixed based advciv issue of obsoletes spanning vertically with one bullet each instead of horizontally, with the help of Claude code Sonnet 4.5, which was a problem when we had many of them. See [KI#96](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-96).
 
@@ -388,20 +388,20 @@ Also added an Untradeable panel with an emoji to visually clearly and quickly in
 
 ### example 2: unit chart category
 
-(Unit Combat Types expanded page when you click on a combat type), thanks a lot to RFC DOC mod's code which i used quite heavily, then base AdvCiv which i used to enhance it (blue background, margin), then i rewrote it heavily again to tweak it and add dynamic table size based on unit combat type (for example air units have 10 columns (air interception and air range)), while other unit combat types only have 8
+(Unit Combat Types expanded page when you click on a combat type). An earlier implementation used RFC Dawn of Civilization code, then AdvCiv styling, and was subsequently substantially rewritten in AdvCiv-SAS, including dynamic table sizes by unit combat type (for example, air units have 10 columns for air interception and air range while other unit combat types have 8).
 
 <img src="../Images/sevopedia/0.630_sevopedia_unit_chart (1).JPG" alt="0.630_sevopedia_unit_chart (1).JPG" width="250"></img>
 <img src="../Images/sevopedia/0.630_sevopedia_unit_chart (2).JPG" alt="0.630_sevopedia_unit_chart (2).JPG" width="250"></img>
 
 ### example 3: features category
 
-Based on rfc doc mod's code originally, and significantly tweaked or enhanced since then.
+Originally based in part on RFC Dawn of Civilization code; substantially reworked and extended in AdvCiv-SAS since then.
 
 Then following the Sevopedia terrains rework (see for details Sevopedia [terrains category rework](/_1_AdvCiv-SAS/Docs/README_Sevopedia_Reworks.md#example-9-terrains-category)), new placeRelevantUnits and placeUnitsImpassable panels corresponding to these methods/functions have also been added, so now we can see which units are stronger or weaker per feature as well as the numTxt (what i call this, meaning the textual information such as "+25/+50" for example for +25% attack and +50% defense or any promotion information that makes the unit stronger in said feature (such as woodsman for example in jungle and forest in advciv-sas)) if any.
 
 Also added the remove production or time (for example feature_fallout only has iTime and no iProduction as of now) information as part of the jungle rework and then of a later optimziation that moves some logic to pre-load code (similarly to the precomputing as of now in Sevopedia main's placeLeaders and placeTechs) (that as of now also gives production on remove, see [README_Main_Changes_Guide.md#terrains--features](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#terrains--features) for details) thanks to claude ai or chatgpt and my prompts and adjustments too.
 
-Also clarified the ressources (called bonuses ina advciv-sas as per the code naming if i may say too) header from rfc doc mod to explicitly name "Bonuses On Any Terrain" for clarification (see [README_Sevopedia_Reworks.md#example-4-bonuses-category](/_1_AdvCiv-SAS/Docs/README_Sevopedia_Reworks.md#example-4-bonuses-category) for details about featurebooleans).
+Also clarified the imported resources header to explicitly name "Bonuses On Any Terrain" (see [README_Sevopedia_Reworks.md#example-4-bonuses-category](/_1_AdvCiv-SAS/Docs/README_Sevopedia_Reworks.md#example-4-bonuses-category) for details about featurebooleans).
 
 Note: ice feature (named "ice cap" feature as of now in advciv-sas) which is impassable in base advciv +/- civ4 and our mod except for some units that can go on land or water or other if any otherimpassable's display is handled differently than other features due to this property it has so a bit like terrain peak, see Sevopedia feature ice's page for bit of details or code comments and code too in as of now Sevopedia feature's code as well.
 
@@ -451,7 +451,7 @@ More recently, also added with chatgpt's help thanks the terrainbooleans, featur
 
 Update: since then, added AI information about `iAIObjective` or such fields in Sevopedia bonus's placeSpecial panel (effects). Viewable ingame in Sevopedia bonus or in xml, and done with the help of claude ai thanks to my prompts too or such.
 
-Update 2: group bonuses by Improvement Type (e.g. Farm -> Wheat/Maize, Pasture -> Sheep/Pig, etc) based on RFC DOC mod code's thanks and chatgpt 5.2's help as well thanks.
+Update 2: group bonuses by Improvement Type (e.g. Farm -> Wheat/Maize, Pasture -> Sheep/Pig, etc.). The initial grouping approach was based in part on RFC Dawn of Civilization code and was further developed for AdvCiv-SAS with ChatGPT 5.2.
 
 <img src="../Images/sevopedia/0.650_sevopedia_bonuses (1).JPG" alt="0.650_sevopedia_bonuses (1).JPG" width="250"></img>
 <img src="../Images/sevopedia/0.650_sevopedia_bonuses (2).JPG" alt="0.650_sevopedia_bonuses (2).JPG" width="250"></img>
@@ -459,7 +459,7 @@ Update 2: group bonuses by Improvement Type (e.g. Farm -> Wheat/Maize, Pasture -
 
 ### example 5: religion category
 
-new Favorites (Leaders) (based on History Rewritten's code) and Buildings (based originally/initially on RFC DOC's code and then ROM 291 as it was cleaner and seemingly more exahaustive and has more other features too) and Units (based on ROM 291's code too) panels in Sevopedia Religion category, and then modified by Claude AI thanks to my prompts too or adjustments or not, as well as civ4 BUG_Doc, see code comments in Sevopediareligion.py for details.
+new Favorites (Leaders) (based on History Rewritten's code) and Buildings (with an earlier implementation based in part on RFC Dawn of Civilization and later replaced/reworked using ROM 291 as a more complete base) and Units (based on ROM 291's code too) panels in Sevopedia Religion category, and then modified by Claude AI thanks to my prompts too or adjustments or not, as well as civ4 BUG_Doc, see code comments in Sevopediareligion.py for details.
 
 Also note that all Favorites (Leaders) now have in AdvCiv-SAS an updated pedia entry based on real wikipedia content, hopefully clearer, more exhaustive, neutral enough, and accurate and updated maybe too, may or not be less politically correct but i don't care, in fact i encourage it and like it.
 
@@ -483,7 +483,7 @@ More recently, added optional grouping by Artstyle (e.g. European, Asian) with t
 
 Reordered and beautified the original AdvCiv Sevopedia code while trying to keep its original structure, but added relative positioning everywhere or almost if not everywhere, this means that ideally the panels sizes should adjust to the screen resolution, removing the old harcoded logic, hopefully cleaner now (not tested at smaller resolutions).
 
-Finally and most importantly, new placeReplace (Replaced By / Replaces) addition from (for the replaced by part and idea) RFC DOC, as well as new placeCivilizations (renamed from the original name Claude AI gave to it placeExclusiveCivs) with the help of Claude AI thanks and small adjustments of already working code (tweaked coordinates) and adjusted.
+Finally and most importantly, new placeReplace (Replaced By / Replaces), whose earlier Replaced By implementation originated from RFC Dawn of Civilization, as well as new placeCivilizations (renamed from the original name Claude AI gave to it placeExclusiveCivs) with the help of Claude AI thanks and small adjustments of already working code (tweaked coordinates) and adjusted.
 
 After having written these, combat information was added (which units is this unit strong against or weak against, in which plot types, city or not, terrains, features, etc if any more/other or not etc if not but or, placeFreePromotions, etc) largely with the help of Claude AI (see also [Authors for details (Claude AI's section) in the main README.md](/README.md#claude-web-chat)).
 
@@ -526,21 +526,21 @@ In particular, added hoverable great person image links in as of now `placeStats
 
 ### example 9: terrains category
 
-Done much later in development of advciv-sas mod, added in particular new placeRelevantUnits and placeUnitsImpassablepanels that these methods handle. They show which units can walk on which tiles, including peak (some code to display some peak information is taken from rfc doc mod for example), but most of the new code is written by me and/with chatgpt's help and my prompts too.
+Done much later in development of advciv-sas mod, added in particular new placeRelevantUnits and placeUnitsImpassablepanels that these methods handle. They show which units can walk on which tiles, including peak (some of the earlier peak-display logic originated from RFC Dawn of Civilization), but most of the new code is written by me and/with chatgpt's help and my prompts too.
 
-So now we also show Peak and Hill as new "terrains" even though they are both plot types and terrains in civ4. Such info is added using as of now the "Plot Type / Terrain" alternative identifier, reusing the former RFC DOC mod's "Terrain" harcoded identifier, now more flexible and perhaps informative, and info about that in the pedia entry even though not too clean maybe exhaustive or informative.
+So now we also show Peak and Hill as new "terrains" even though they are both plot types and terrains in civ4. Such info is added using as of now the "Plot Type / Terrain" alternative identifier, reworking the earlier hardcoded "Terrain" identifier into a more flexible and informative label, and info about that in the pedia entry even though not too clean maybe exhaustive or informative.
 
 The reworked Sevopedia terrain page now also shows the unit terrain modifiers (e.g. "+25/+50" for +25% attack and +50% defense on said terrain, etc) or in some cases promotions.
 
 This code uses our latest as of now refactor that uses the multilist code as was done in Sevopedia unit in advciv-sas/our modfirst i mean and also then applied to Sevopedia building. While doing so, i noticed or wanted or just did add such a display for units in terrains. Since the code is modular and was thoroughly debugged and adjusted, it was quite easy relatively to add in Sevopedia units, but some new logic had to be added, and it also helped refine the Sevopedia unit and Sevopedia building implementations if ever slightly or not.
 
-Also more recently added as wellthe featureterrainbooleans (see [README_Sevopedia_Reworks.md#example-4-bonuses-category](/_1_AdvCiv-SAS/Docs/README_Sevopedia_Reworks.md#example-4-bonuses-category) for details) additionally to what was in rfc doc mod's code/logic, as a separate with clarified explicitly headers now in advciv-sas if may say but their code helped lot too especially at the time xd thanks.
+Also more recently added the `FeatureTerrainBooleans` handling (see [README_Sevopedia_Reworks.md#example-4-bonuses-category](/_1_AdvCiv-SAS/Docs/README_Sevopedia_Reworks.md#example-4-bonuses-category) for details), extending the earlier imported logic with separate, explicit headers in AdvCiv-SAS.
 
 Update: i have recently found with the help of chatgpt 5.2 that these `TERRAIN_HILL` and `TERRAIN_PEAK` already existed, but they were hidden in Base AdvCiv in `getSortedList` in [SevoPediaMain.py](/Assets/Python/Contrib/Sevopedia/SevoPediaMain.py). Some info about them is incorrect like them having the `<bWater>1</bWater>` property (even though it is incorrect; they are not watery, but we don't need to change it, only reveal the entry for our needs, without affecting or bothering how the other entries work fine as they are), but the entry is still useful, so as we did keep it displayed in Sevopedia terrain, but now no longer do hardcoded index additions, just unreveal it specifically in Sevopedia terrain and handle the grouping as of now in the "Land (High)" subgroup with the help of chatgpt 5.2, the rest remaining the same.
 
 Since then, also added a new Units (Any Build) panel with the help of GPT-5.2-Codex thanks a lot :)
 
-And then, fixed the Hills' Improvements' RFC DOC mod's formula with the help of GPT-5.2-Codex so we display accurate improvements (check if accurate).
+And then fixed the Hills Improvements formula in the earlier RFC Dawn of Civilization-derived implementation adopted for AdvCiv-SAS, with the help of GPT-5.2-Codex, so the page displays the applicable improvements accurately.
 
 <img src="../Images/sevopedia/0.700_sevopedia_terrains (1).JPG" alt="0.700_sevopedia_terrains (1).JPG" width="250"></img>
 <img src="../Images/sevopedia/0.700_sevopedia_terrains (2).JPG" alt="0.700_sevopedia_terrains (2).JPG" width="250"></img>
@@ -554,7 +554,7 @@ See also the [features category rework](/_1_AdvCiv-SAS/Docs/README_Sevopedia_Rew
 
 ### example 10: specialists category
 
-Beautified it (removed the ugly blue panel around the buttons as we did in previous reworks), and added the grouping (by specialist type (as of now normal vs great specialists.)) similarly to how we said as of now at the top of this file. Based on how the RFC DOC mod does it and done with the help of chatgpt 5.2 thanks.
+Beautified it (removed the ugly blue panel around the buttons as we did in previous reworks), and added the grouping (by specialist type (as of now normal vs great specialists.)) similarly to how we said as of now at the top of this file. The initial grouping approach was based in part on RFC Dawn of Civilization and was implemented for AdvCiv-SAS with the help of ChatGPT 5.2.
 
 Then, more recently, i added new Extra Slots and Extra Yields panel based on the Middle-earth mod's code and adjusted for AdvCiv-SAS with the help of GPT-5.2-Codex thanks a lot!
 

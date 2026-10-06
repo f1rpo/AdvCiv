@@ -12,17 +12,7 @@
 
 ## Copyright and Disclaimer
 
-Written with the help of chatgpt 5.2 thanks:
-
-> This mod for Sid Meier's Civilization IV: Beyond the Sword is a fan-made, non-commercial project created for entertainment and educational purposes.
->
-> Civilization IV, its original assets, and all related trademarks are the property of Firaxis Games and 2K. This mod is not affiliated with, endorsed by, or supported by Firaxis or 2K.
->
-> Any original code or assets created specifically for AdvCiv-SAS are shared under the terms described in this repository (see the License section), unless otherwise noted.
->
-> This mod may include third-party assets (music, images, code, etc.). Where possible, these are used under their respective licenses and/or with attribution. If you are a rights holder and would like attribution updated or content removed, please contact us and we will address it.
->
-> This mod is provided "as is" without warranty. The authors are not liable for any damage, data loss, or issues arising from its use.
+See [Copyright and Disclaimer](/LICENSE.md#copyright-and-disclaimer).
 
 Note: about why i used so much music from Nicholas Panek (/ Nicholas John Panek too is the same? But check to be sure): is because i like this artist's music so much, although of course not all but i found many nice ones in various genres or such or whatever i simply enjoyed it.
 
@@ -81,7 +71,7 @@ Sound seems strangely louder at first game launch, but then accesing main menu a
 - BASE 6.4 mod, for art like the the Spanish's Lonja in AdvCiv-SAS, thanks.
 - Thomas' War mod, for art like the German's Forge in AdvCiv-SAS thanks.
 - thecowwarrior's Variety Mod mod, for art like the Portuguese grocer in AdvCiv-SAS thanks.
-- RFC Dawn Of Civilization (which i refer to as RFC DOC sometimes hopefully accurate), while this mod is not my favourite somehow, i must admit they have some very nice content, in particular the Sevopedia categories i could take entirely for/in AdvCiv-SAS without barely any modification needed (for example the Sevopedia Terrain Page), thanks a lot!; update: i must revise my judgment/opinion (rereading myself after writing next part of the sentence here, their content is even more amazing for the parts i need or among the ones i looked at!!! Thanks a lot!!!), their FPKs are incredibly tidy and nicely ordered and efficient and work at first try!!! For example i could get the camel_rider's art assets all very easily with one extract with dragon unpacker and it just worked. Also no hardcoded paths that i didn't bother sadly or not updating fixing so far, just put assets and it works, so nice, thanks a lot!!!
+- RFC Dawn of Civilization (also referred to as RFC DoC in some older AdvCiv-SAS comments): source of certain Sevopedia implementations and art assets that were imported into earlier AdvCiv-SAS versions and subsequently modified, extended, or replaced to varying degrees. Relevant source comments retain concise provenance where needed.
 - Cavemen2Cosmos (also know as C2C): i took a bit of content from there, such as the advciv-sas's tech_seafaring (based on c2c mod's tech_boat building's) button (i.e. image of the tech ingame); also their fpks and asset naming are very clean as far as i can tell from what i looked at (only a few fpks not tons like other mods, and easy to find files from asset names, even filenames are generally clean and direct, thanks a lot), it was also inspiring, for example i was hesitating to rename "_WARRIOR" to "_ANCIENT_MACEMAN" as tedious but would be much cleaner doing so, thanks a lot!
 - Fall from Heaven II (also know as FFH2): i took quite a bit of content from there, thanks
 too too, thanks,

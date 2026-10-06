@@ -5,8 +5,8 @@ This is a non-exhaustive page containing some ressources i found helpful and gen
 ## Menu
 
 [Modding disclaimer and general information](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#modding-disclaimer-and-general-information)\
-[DLL compilation guide (command-line workflow primarily for LLM/AI helpers)](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md)\
-[Release preparation/checklist (for user + LLM/AI helpers)](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_Release_Process.md)\
+[DLL compilation guide (command-line workflow primarily for AI/LLM helpers)](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md)\
+[Release preparation/checklist (for user + AI/LLM helpers)](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_Release_Process.md)\
 [LLM-assisted source analysis](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#llm-assisted-source-analysis)\
 [A few useful tips](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#a-few-useful-tips)\
 &emsp;[Insert a google drive image link in an html tag](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#insert-a-google-drive-image-link-in-an-html-tag)\
@@ -674,7 +674,7 @@ Sometimes the differences are small, sometimes the differences are huge as here,
 
 In this case i guess they changed the way old code worked or split it among other files or did some massive change that would explain the difference, but check if accurate as these are also just guesses of mine that may be accurate but i don't know for sure.
 
-Also as a corollary of this, if you see many versions of an asset, say `UNIT_WARRIOR` in different versions of unit infos, and you want to import it in your mod and modify it if not already there, generally i would say import latest version of it (so the BTS one), or you could even fetch it / steal it xd from other mods if they are okay with it (generally are but check as this is also just a guess, as for my mod generally fine too but read copyright and license section if you are in doubt or as the absolute reference despite what i said here in [README.md#license-and-reuse](/README.md#license-and-reuse) for the assets or any form of content i added or modified (or removed too but then you can't steal it xd if i may say unless you steal the idea then same applies maybe as removing maybe doesn't require asking as weird as it is maybe check if accurate too in license section of this mod's main readme if in doubt or to be sure)).
+When importing assets or code from another mod, check that project's applicable rights and reuse terms rather than assuming permission. For AdvCiv-SAS content, the canonical and controlling project policy is [License and reuse](/LICENSE.md#license-and-reuse); this modding guide does not grant additional permission.
 
 Hopefully helpful.
 
@@ -886,7 +886,7 @@ In the note 2 example, increasing size to for example 1024 also works, we get a 
 
 note 3: atlas linking buttons such as `szPowerButton = u"<img=,Art/Interface/Buttons/TechTree/Physics.dds,Art/Interface/Buttons/Warlords_Atlas_1.dds,1,15 size=32></img>"` (as part of changing tech_physics 's button as part of our tech rework in advciv-sas) also seems to work quite well, we see the button successfully even though a bit excentered if that is a word in english (not centered around the text), but hopefully good enoughat least as proof of concept further, see the great person button code in place Stats of Sevopedia building as well for a cleaner or rather more centered implementation, is just to show/test how it successfully works here; also for our needs this seems to work very well (whoaaa!!!! If i may say indeed too), see screenshot(s) in drive link above for details
 
-note 4: we later also used this approach for emojis in our Sevopedia leader's ai personality panel category headers, with the revived chatgpt's inputs as well, reusing old emojis in our code with the help of AI helpers. See as of now screenshot 5846 in same google drive or ingame in Sevopedia leader for an example.
+note 4: we later also used this approach for emojis in our Sevopedia leader's ai personality panel category headers, with the revived chatgpt's inputs as well, reusing old emojis in our code with the help of AI/LLM helpers. See as of now screenshot 5846 in same google drive or ingame in Sevopedia leader for an example.
 
 ## Import a nif art asset from another mod (example with how we added the impluvium's nif as an import from FFH2 mod's Adventurer's guild building)
 

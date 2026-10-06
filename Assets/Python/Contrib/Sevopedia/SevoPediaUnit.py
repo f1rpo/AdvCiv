@@ -821,7 +821,7 @@ class SevoPediaUnit:
 		iAnimX, iAnimY, iAnimW, iAnimH = draw_expandable_content_panel_container(screen, self.top, u"", self.X_UNIT_ANIMATION, self.Y_UNIT_ANIMATION, self.W_UNIT_ANIMATION, self.H_UNIT_ANIMATION, self.bContentExpanded, SAS_MAGIC_PEDIA_PYTHON_CONTENT_EXPAND, SAS_MAGIC_PEDIA_PYTHON_CONTENT_RELOAD)
 		screen.addUnitGraphicGFC(self.top.getNextWidgetName(), self.iUnit, iAnimX, iAnimY, iAnimW, iAnimH, WidgetTypes.WIDGET_GENERAL, -1, -1, X_ROTATION_ANIMATION, Z_ROTATION_ANIMATION, self.SCALE_ANIMATION, True)
 
-	# <!-- custom: placeReplace (renamed from placeReplacements) in particular is imported from RFC DOC mod's CvPediaUnit.py -->
+	# <!-- custom: placeReplace (renamed from placeReplacements) was originally derived from RFC Dawn of Civilization's CvPediaUnit.py and subsequently adapted for AdvCiv-SAS. (ChatGPT-5.6-Sol) -->
 	def placeReplace(self):
 		xPanel = self.X_REPLACE
 		yPanel = self.Y_REPLACE

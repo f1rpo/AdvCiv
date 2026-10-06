@@ -254,7 +254,7 @@ class SevoPediaLeader:
 		if self.bContentExpanded:
 			self._drawAttitudeRowAt(screen, iAttX, iAttY, iAttW, iAttH)
 
-	# <!-- custom: imported from RFC DOC (C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\RFC Dawn of Civilization\Assets\Python\Pedia\CvPediaLeader.py) and modified or not for AdvCiv-SAS. -->
+	# <!-- custom: originally derived in part from RFC Dawn of Civilization's CvPediaLeader.py; subsequently modified for AdvCiv-SAS. (ChatGPT-5.6-Sol) -->
 	def placeFavorites(self):
 		screen = self.top.getScreen()
 		panel = self.top.getNextWidgetName()

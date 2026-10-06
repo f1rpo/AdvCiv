@@ -2,7 +2,7 @@
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
 
-Similar purpose than in the XML equivalent of this file, but for .py file! Make it leaner so our AI helpers can read it easier and to improve readability and efficiency when possible and relevant!
+Similar purpose than in the XML equivalent of this file, but for .py file! Make it leaner so our AI/LLM helpers can read it easier and to improve readability and efficiency when possible and relevant!
 
 
 

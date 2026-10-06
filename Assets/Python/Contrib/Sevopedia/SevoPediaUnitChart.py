@@ -1,9 +1,8 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
-# <!-- custom: imported from RFC Dawn of Civilization mod:
-# C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\RFC Dawn of Civilization\Assets\Python\Pedia\CvPediaUnitChart.py then adjusted for AdvCiv-SAS
-# 
+# <!-- custom: originally derived from RFC Dawn of Civilization's CvPediaUnitChart.py; subsequently adjusted and extended for AdvCiv-SAS. (ChatGPT-5.6-Sol) -->
+#
 # parts of this code have also been imported from base advciv:
 # https://github.com/f1rpo/AdvCiv/blob/master/Assets/Python/Contrib/Sevopedia/SevoPediaUnitChart.py
 # and modified or not for AdvCiv-SAS -->
@@ -213,7 +212,7 @@ class SevoPediaUnitChart:
 
 	def placeTableFirstStrike(self, screen, table, iCol, iRow, UnitInfo):
 		# First Strikes
-		# <!-- custom: The inherited RFC/DoC chart did not include chance first strikes, leaving chance-only units blank and understating mixed units.
+		# <!-- custom: The RFC/DoC chart implementation adopted by AdvCiv-SAS did not include chance first strikes, leaving chance-only units blank and understating mixed units.
 		# Match DLL help: show guaranteed strikes alone, or guaranteed-to-maximum when chance strikes exist. See KI#323. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		iFirstStrikes = UnitInfo.getFirstStrikes()
 		iChanceFirstStrikes = UnitInfo.getChanceFirstStrikes()

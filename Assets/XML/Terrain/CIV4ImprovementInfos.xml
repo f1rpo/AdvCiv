@@ -615,7 +615,7 @@
 			<FeatureMakesValids/>
 			<ImprovementPillage/>
 			<ImprovementUpgrade/>
-			<!-- custom: nerf the workshop a bit as it was a bit too op, was as of now first PrereqTech TECH_GUILDS (now removed) and TECH_CHEMISTRY; also add more hammer at fusion or similar tech, idea i got from rfc doc mod -->
+			<!-- custom: nerf the Workshop by removing the earlier TECH_GUILDS prerequisite and retaining TECH_CHEMISTRY; the later Fusion hammer increase was initially inspired by RFC Dawn of Civilization. (ChatGPT-5.6-Sol) -->
 			<TechYieldChanges>
 				<TechYieldChange>
 					<PrereqTech>TECH_MACHINERY</PrereqTech>

@@ -39,7 +39,7 @@
 			<CreateSound/>
 			<MovieDefineTag>ART_DEF_MOVIE_MANHATTAN_PROJECT</MovieDefineTag>
 		</ProjectInfo>
-		<!-- custom: button import from RFC DOC mod's internet.dds, as for button in our xml -->
+		<!-- custom: button asset imported from RFC Dawn of Civilization's internet.dds. (ChatGPT-5.6-Sol) -->
 		<ProjectInfo>
 			<Type>PROJECT_THE_INTERNET</Type>
 			<Description>TXT_KEY_PROJECT_THE_INTERNET</Description>

@@ -1,7 +1,7 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
-# <!-- custom: imported with almost no modification from RFC Dawn of Civilization mod C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\RFC Dawn of Civilization\Assets\Python\Pedia\CvPediaTerrain.py then adjusted for AdvCiv-SAS -->
+# <!-- custom: originally derived from RFC Dawn of Civilization's CvPediaTerrain.py; subsequently substantially adjusted and extended for AdvCiv-SAS. (ChatGPT-5.6-Sol) -->
 #
 
 from CvPythonExtensions import *
@@ -129,7 +129,7 @@ class SevoPediaTerrain:
 		screen.enableSelect(panel, False)
 		screen.appendListBoxString(panel, SASTextScale.titleText(info.getDescription()), WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
 
-		# <!-- custom: add missing txt key "Terrain" not in RFC DOC mod (didn't recheck but i assume it was as such seeing it is as of now hardcoded), instead of hardcoded one, now moved to its own txt key -->
+		# <!-- custom: replace the earlier hardcoded "Terrain" label with a dedicated text key. (ChatGPT-5.6-Sol) -->
 		# <!-- custom: also display some terrains as plot types / terrains, see xml txt key code comment for details. -->
 		if self.iTerrain == self.I_TERRAIN_PEAK or self.iTerrain == self.I_TERRAIN_HILL or self.iTerrain == self.I_TERRAIN_OCEAN:
 			txtKeyTerrainPlotTypeLabel = "TXT_KEY_PEDIA_PLOT_TYPE_TERRAIN_CUSTOM"
@@ -214,7 +214,7 @@ class SevoPediaTerrain:
 
 		screen.addPanel(panel, localText.getText("TXT_KEY_PEDIA_SPECIAL_ABILITIES", ()), "", True, True, xPanel, yPanel, wPanel, hPanel, PanelStyles.PANEL_STYLE_BLUE50)
 
-		# <!-- custom: the entry seems garbage or info about terrain_peak perhaps? But/so leaving it as rfc doc mod did just with minor refactor of iHill above as of now; the peak info is also incomplete, not mentioning for example the impassable info so also not displaying it for peak in doing so-->
+		# <!-- custom: preserve the earlier adopted peak-entry behavior for now, with only the iHill refactor above; peak information remains incomplete (for example, impassability is not covered here). (ChatGPT-5.6-Sol) -->
 		if self.iTerrain == self.I_TERRAIN_PEAK or self.iTerrain == self.I_TERRAIN_HILL:
 			txtKeyNoDisplay = "TXT_KEY_PEDIA_TERRAIN_EXCLUDED_FROM_DISPLAY_PLOT_TYPE_WITH_EXPLANATION"
 			textName = self.top.getNextWidgetName()
@@ -329,7 +329,7 @@ class SevoPediaTerrain:
 		screen = self.top.getScreen()
 		panel = self.top.getNextWidgetName()
 
-		# <!-- custom: refactor/tweak/change to test for the existence of terrain_hill 's id explicitly else raise an error not silently pass as is also done in several other parts of the sevopedia reworked/refactored code, and or such other tweaks to rfc doc mod's code for peak -->
+		# <!-- custom: explicitly require the TERRAIN_HILL id instead of silently continuing when it is missing; this also refactors the earlier adopted peak handling. (ChatGPT-5.6-Sol) -->
 		txtKeyPanel = "TXT_KEY_PEDIA_TERRAIN_BONUSES_WITH_NO_FEATURE"
 		if self.iTerrain == self.I_TERRAIN_PEAK:
 			txtKeyPanel = "TXT_KEY_PEDIA_TERRAIN_BONUSES_NOT_APPLICABLE_FOR_THIS_PLOT_TYPE"
@@ -348,7 +348,7 @@ class SevoPediaTerrain:
 				bonusInfo = gc.getBonusInfo(iBonus)
 				if bonusInfo.isGraphicalOnly():
 					continue
-				# <!-- custom: minor refactor fromr rfc doc mod since output seems to be the same, check for both all terrains and then specifically for hill (with the more general check first so it is executed faster even if a micro bit in this case (but still! If i may say too (reference to baten kaitos's kalas line...))) -->
+				# <!-- custom: refactor the earlier adopted condition without changing output: check the general all-terrains case before the hill-specific case. (ChatGPT-5.6-Sol) -->
 				elif (bonusInfo.isTerrain(self.iTerrain)) or (self.iTerrain == self.I_TERRAIN_HILL and bonusInfo.isHills()):
 					screen.attachImageButton(panel, "", bonusInfo.getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, iBonus, 1, False)
 

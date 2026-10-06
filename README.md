@@ -30,7 +30,7 @@ All in all, this simplifies gameplay to some extent, but greatly increases depth
 
 Also most importantly LLMs like GPT Thinking (i.e. ChatGPT), GPT Codex, Claude code, Gemini AI, Deepseek AI, Grok AI, have helped me a lot to do this, and i probably would not have completed (or extremely harder) without them and all i mean so thanks again and thanks a lot!
 
-For License and Reuse, see [License and reuse](/README.md#license-and-reuse).
+For license and reuse terms, including project-specific restrictions and expressly permitted derivatives, see [License and reuse](/LICENSE.md#license-and-reuse).
 
 <a href="https://www.youtube.com/watch?v=ipSdRP7HcFs"><img src="./_1_AdvCiv-SAS/Images/LLM/gpt_5_3_codex_youtube_demo.png" alt="gpt_5_3_codex_youtube_demo.png" width="640"></a>
 
@@ -102,6 +102,9 @@ For License and Reuse, see [License and reuse](/README.md#license-and-reuse).
 [Credits](/README.md#credits)\
 [Some Useful tools while doing this](/README.md#some-useful-tools-while-doing-this)\
 [License and reuse](/README.md#license-and-reuse)\
+&emsp;[RFC Dawn of Civilization and Leoreth-controlled project restrictions](/LICENSE.md#rfc-dawn-of-civilization-and-leoreth-controlled-project-restrictions)\
+&emsp;[Expressly permitted RFC Dawn of Civilization derivatives](/LICENSE.md#expressly-permitted-rfc-dawn-of-civilization-derivatives)\
+&emsp;[Requests, exceptions, and future terms](/LICENSE.md#requests-exceptions-and-future-terms)\
 [Authors](/README.md#authors)\
 
 ## Tech Tree
@@ -503,7 +506,7 @@ One of the main and most significant Sevopedia changes in AdvCiv-SAS is the new 
 
 As always, ChatGPT is a key co-author and main code contributor and with the help of other AIs (See [Authors](/README.md#authors)) thanks.
 
-Another significant contribution from our AI helpers is the new Traits Charts, that are 2 sortable Traits Charts that show all trait pairs and their representation among all leaders, using as of now a "++++" kind of ranking and clickable leader buttons in the charts. Also, the Leaders'panel's header has been enhanced with similar info, as of now for example "Leader 12/53 (22%)", and other enhancements such as new txt keys that are fairly mod-agnostic (added with the help of ChatGPT 5.2 thanks a lot). Implementation with the help of Claude code Opus 4.5 and GPT-5.2-Codex thanks a lot. Also added similar charts such as the Starting and Untradeable Techs Charts (pairs and combinations).
+Another significant contribution from our AI/LLM helpers is the new Traits Charts, that are 2 sortable Traits Charts that show all trait pairs and their representation among all leaders, using as of now a "++++" kind of ranking and clickable leader buttons in the charts. Also, the Leaders'panel's header has been enhanced with similar info, as of now for example "Leader 12/53 (22%)", and other enhancements such as new txt keys that are fairly mod-agnostic (added with the help of ChatGPT 5.2 thanks a lot). Implementation with the help of Claude code Opus 4.5 and GPT-5.2-Codex thanks a lot. Also added similar charts such as the Starting and Untradeable Techs Charts (pairs and combinations).
 
 Based on it, we notably also made, in Sevopedia Improvement, a new sortable Improvement Weights (Leaders) Chart, showing Weights, Count per Weight, and clickable Leader buttons for each weight and improvement.
 
@@ -1222,7 +1225,7 @@ This keeps the same CFC/GitHub download link for the corrected stable build whil
 
 ## Copyright and Disclaimer
 
-See [Copyright and Disclaimer](/_1_AdvCiv-SAS/Docs/README_References.md#copyright-and-disclaimer).
+See [Copyright and Disclaimer](/LICENSE.md#copyright-and-disclaimer).
 
 ## Credits
 
@@ -1234,21 +1237,13 @@ See [Some Useful tools while doing this](/_1_AdvCiv-SAS/Docs/README_References.m
 
 ## License and reuse
 
-You can reuse our work in your projects on the condition that you credit us. Example of credit:
-
-```txt
-the AdvCiv-SAS mod by wonderingabout and AI helpers
-```
-
-The original authors are listed in the [README authors section](/README.md#authors), including myself, ChatGPT, and Claude AI, and other AI helpers.
+See [License and reuse](/LICENSE.md#license-and-reuse).
 
 ## Authors
 
 Here are a short info about the authors.
 
 Note: may not list all versions of such models/ais used.
-
-Note 2: for crediting us or reusing our work, see [License and reuse](/README.md#license-and-reuse).
 
 ### me, wonderingabout
 
