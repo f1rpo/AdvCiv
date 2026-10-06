@@ -706,6 +706,9 @@ def check_ai_great_person_provenance(repo_root: Path) -> list[str]:
 		"GAME_RECORD_AI_GREAT_PERSON_DECISION", "action=%s", "choiceRank=%d", "selectedValue=%d", "threshold=%d",
 		"slow=%d", "slowBaseValue=%d", "slowPathTurns=%d", "slowMissionAI=%d", "slowCityId=%d",
 		"specialist=%s", "building=%s", "discover=%d", "discoverTech=%s", "goldenAge=%d", "trade=%d", "culture=%d",
+		"tradeTargetPlayer=%d", "tradeTargetCityId=%d", "tradeTargetCity=%S", "tradeTargetX=%d", "tradeTargetY=%d",
+		"tradeGold=%d", "tradePathTurns=%d", "tradeGoldWeight=%d", "tradeResearchMultiplier=%d", "tradeGoldMultiplier=%d",
+		"tradeFlexPercent=%d", "tradeContinuationPercent=%d", "tradeStrategyRandPercent=%d", "tradeWaypointX=%d", "tradeWaypointY=%d",
 		"targetX=%d", "targetY=%d", "previousMissionAI=%d", "previousTargetX=%d", "previousTargetY=%d",
 	):
 		if required not in record_text:
@@ -719,6 +722,17 @@ def check_ai_great_person_provenance(repo_root: Path) -> list[str]:
 		failures.append(f"{UNIT_AI_SOURCE}: Great Person provenance must retain the cached level-2 gate")
 	if "if (bLogCultureGreatArtistDecision || bLogSASGreatPersonDecision)" not in unit_text:
 		failures.append(f"{UNIT_AI_SOURCE}: previous Great Person mission state must remain shared/gated between Artist diagnostics and SASGameRecord")
+	for required in (
+		"SASGreatMerchantTradeChoiceContext* pSASTradeChoice = (bLogSASGreatPersonDecision ? &kSASTradeChoice : NULL)",
+		"AI_tradeMissionValue(pBestTradePlot, (rDiscoverValue / 2).round(), pSASTradeChoice)",
+		"pSASChoice->pTargetCity = pLoopCity", "pSASChoice->pWaypointPlot = pBestPlot",
+		"pSASChoice->iGold = iValue", "pSASChoice->iPathTurns = iPathTurns",
+		"pSASTradeChoice->iGoldWeight = iTradeGoldWeight", "pSASTradeChoice->iResearchMultiplier = iTradeResearchMultiplier",
+		"pSASTradeChoice->iGoldMultiplier = iTradeGoldMultiplier", "pSASTradeChoice->iFlexPercent = iTradeFlexPercent",
+		"pSASTradeChoice->iContinuationPercent = iTradeContinuationPercent", "pSASTradeChoice->iStrategyRandPercent = iTradeStrategyRandPercent",
+	):
+		if required not in unit_text:
+			failures.append(f"{UNIT_AI_SOURCE}: missing live Great-Merchant trade-choice provenance bridge {required}")
 	for token in expected_actions:
 		if token not in unit_text:
 			failures.append(f"{UNIT_AI_SOURCE}: no AI_greatPersonMove path references {token}")
@@ -754,6 +768,15 @@ def check_ai_great_person_provenance(repo_root: Path) -> list[str]:
 		failures.append(f"{UNIT_AI_SOURCE}: could not locate separate AI_generalMove Great-General path")
 	elif "logSASGameRecordAIGreatPersonDecision" in general_function.group("body"):
 		failures.append(f"{UNIT_AI_SOURCE}: ordinary Great Person provenance must not be bridged into AI_generalMove")
+	for required in (
+		"use=TRADE_MISSION", "targetPop=%d", "ownerCapitalId=%d", "ownerCapitalPop=%d", "distance=%d",
+		"targetConnectedToCapital=%d", "foreign=%d", "overseas=%d", "baseProfitTimes100=%d",
+		"tradeRouteModifier=%d", "populationTradeModifier=%d", "capitalTradeModifier=%d", "overseasTradeModifier=%d",
+		"foreignTradeRouteModifier=%d", "peaceTradeModifier=%d", "totalTradeModifier=%d", "tradeProfitTimes100=%d",
+		"tradeProfit=%d", "unitBaseTrade=%d", "unitTradeMultiplier=%d", "unitTradePercent=%d", "gold=%d",
+	):
+		if required not in record_text:
+			failures.append(f"{REVISION_SOURCE}: missing realized Great-Merchant trade-mission anatomy token {required}")
 	return failures
 
 

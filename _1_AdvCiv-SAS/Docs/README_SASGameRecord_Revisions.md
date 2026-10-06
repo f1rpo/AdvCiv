@@ -27,7 +27,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=130 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=131 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -53,10 +53,22 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
-### Revision 130 - SAS practical 6584
+### Revision 131 - SAS practical 6585
 
 - **Date:** 2026-10-06
 - **Git commit:** pending
+- **Change:** Added compact Great-Merchant trade provenance and tightened recurring C++ GlobalDefine caching.
+
+Level-2 Great Person decision rows now preserve the winning Trade Mission city's raw gold, full path length, final target versus current waypoint, and the already-used commerce/continuation/random factors behind the transformed Trade score. Completed Trade Missions additionally record the live trade-profit and unit-formula components needed to explain the final gold payout.
+
+The recorder reuses the existing AI scan and computed values: no candidate dump, repeated valuation/pathfinding, or additional synchronized RNG is introduced, and realized payout anatomy is gathered only for completed level-2+ missions.
+
+Recurring recorder paths now cache stable string-backed GlobalDefine lookups when repeated name lookup would otherwise be paid for each city/action (including `TEMP_HAPPY` and `CAPITAL_TRADE_MODIFIER`). Enum-backed `CvGlobals` define reads remain direct because that overload already uses the global integer cache; one-shot or intentionally mutable reads remain uncached.
+
+### Revision 130 - SAS practical 6584
+
+- **Date:** 2026-10-06
+- **Git commit:** `bc01b185a11cb546696af3904d459dd454c74d8c`
 - **Change:** Added compact realized AI building-choice history after the building-value and production-policy audit replaced broad hard gates with inherited valuation plus targeted cures.
 
 At level 2+, `GAME_RECORD_PRODUCTION_FLOW` now aggregates actual AI building commitments by loaded building type, chooser origin, regular/National/Team/World-Wonder category, stored/required production and a compact overlapping `aiBuildingChoiceEffects` vocabulary.

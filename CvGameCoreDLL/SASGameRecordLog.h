@@ -26,7 +26,7 @@ int getSASGameRecordTurnInterval();
 // This is deliberately not a compatibility/schema promise: increment it for every intentional change to SASGameRecord implementation code, relevant bridges/call sites/configuration/checkers, or their code comments, even when emitted semantics are unchanged.
 // Standalone docs/example-log/package refreshes do not require a bump. Keep the matching revision-history entry in the same commit.
 // An anonymous enum keeps this a C++03 compile-time integer without a separate storage/linkage definition. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-enum { SAS_GAME_RECORD_REVISION = 130 };
+enum { SAS_GAME_RECORD_REVISION = 131 };
 // <!-- custom: Finalize buffered observations in the old game state before a new game or loaded save resets/replaces it. See KI#382. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 void finalizeSASGameRecordLogSession();
 void startSASGameRecordLogForNewGame();
@@ -153,9 +153,38 @@ enum SASGameRecordAIGreatPersonAction
 	SAS_AI_GREAT_PERSON_SAFETY,
 	SAS_AI_GREAT_PERSON_SKIP
 };
+// <!-- custom: Recorder-only output from the existing Great-Merchant trade-target scan.
+// AI_tradeMissionValue fills the final city, raw mission gold, full path length and this-turn waypoint only when level-2 provenance requests it; no second city scan, valuation or pathfinding is permitted for logging. (ChatGPT-5.6-Sol) -->
+struct SASGreatMerchantTradeChoiceContext
+{
+	CvCity const* pTargetCity;
+	CvPlot const* pWaypointPlot;
+	int iGold;
+	int iPathTurns;
+	int iGoldWeight;
+	int iResearchMultiplier;
+	int iGoldMultiplier;
+	int iFlexPercent;
+	int iContinuationPercent;
+	int iStrategyRandPercent;
+	void reset()
+	{
+		pTargetCity = NULL;
+		pWaypointPlot = NULL;
+		iGold = 0;
+		iPathTurns = -1;
+		iGoldWeight = -1;
+		iResearchMultiplier = -1;
+		iGoldMultiplier = -1;
+		iFlexPercent = -1;
+		iContinuationPercent = -1;
+		iStrategyRandPercent = -1;
+	}
+};
 // <!-- custom: Record one realized ordinary Great Person decision/continuation from AI_greatPersonMove.
-// Scores, slow-action details and movement state are values gameplay already computed; callers pre-gate at GameRecord level 2+ and never repeat valuation, candidate search, pathfinding or RNG for logging. (ChatGPT-5.6-Sol) -->
-void logSASGameRecordAIGreatPersonDecision(CvUnitAI const& kUnit, CvPlot const* pDecisionPlot, SASGameRecordAIGreatPersonAction eAction, int iChoiceRank, int iSelectedValue, int iScoreThreshold, int iSlowValue, int iSlowBaseValue, int iSlowPathTurns, MissionAITypes eSlowMissionAI, CvCity const* pSlowCity, SpecialistTypes eSpecialist, BuildingTypes eBuilding, int iDiscoverValue, TechTypes eDiscoverTech, int iGoldenAgeValue, int iTradeValue, int iCultureValue, CvPlot const* pTargetPlot, MissionAITypes ePreviousMissionAI, CvPlot const* pPreviousMissionPlot);
+// Scores, slow-action details and movement state are values gameplay already computed; callers pre-gate at GameRecord level 2+ and never repeat valuation, candidate search, pathfinding or RNG for logging.
+// Great-Merchant fields preserve the winning raw city/path result behind the already-recorded transformed Trade score. (ChatGPT-5.6-Sol) -->
+void logSASGameRecordAIGreatPersonDecision(CvUnitAI const& kUnit, CvPlot const* pDecisionPlot, SASGameRecordAIGreatPersonAction eAction, int iChoiceRank, int iSelectedValue, int iScoreThreshold, int iSlowValue, int iSlowBaseValue, int iSlowPathTurns, MissionAITypes eSlowMissionAI, CvCity const* pSlowCity, SpecialistTypes eSpecialist, BuildingTypes eBuilding, int iDiscoverValue, TechTypes eDiscoverTech, int iGoldenAgeValue, int iTradeValue, int iCultureValue, SASGreatMerchantTradeChoiceContext const* pTradeChoice, CvPlot const* pTargetPlot, MissionAITypes ePreviousMissionAI, CvPlot const* pPreviousMissionPlot);
 
 // <!-- custom: Closed recorder-only policy stages for AI_generalMove. The stage names preserve the actual ordered fallback chain rather than inventing a cross-action score that Great-General AI does not compute. (ChatGPT-5.6-Sol) -->
 enum SASGameRecordAIGreatGeneralStage
@@ -903,6 +932,7 @@ void logSASGameRecordGreatPersonJoined(CvUnit const* pUnit, CvCity const* pCity,
 void logSASGameRecordGreatPersonConstructed(CvUnit const* pUnit, CvCity const* pCity, BuildingTypes eBuilding);
 void logSASGameRecordGreatPersonDiscovered(CvUnit const* pUnit, TechTypes eTech, int iResearch);
 void logSASGameRecordGreatPersonHurried(CvUnit const* pUnit, CvCity const* pCity, BuildingTypes eBuilding, int iProduction);
+// <!-- custom: Realized Great-Merchant missions include the exact compact trade-profit anatomy so unusual payouts remain explainable without candidate dumps or replaying AI search; caller remains level-2 gated. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordGreatPersonTradeMission(CvUnit const* pUnit, CvCity const* pCity, int iGold);
 void logSASGameRecordGreatPersonGreatWork(CvUnit const* pUnit, CvCity const* pCity, int iCulture);
 void logSASGameRecordGreatPersonInfiltrated(CvUnit const* pUnit, CvCity const* pCity, int iEspionage);

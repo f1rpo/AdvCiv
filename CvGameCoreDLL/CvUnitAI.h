@@ -40,6 +40,8 @@ struct SASEspionageChoiceContext
 // <!-- custom: Great-General helper signatures use an opaque optional SASGameRecord output context; the recorder owns its fields/schema.
 // AI_generalMove passes NULL unless level 2+ recording is active, so ordinary helper calls keep their legacy candidate/search work only. (ChatGPT-5.6-Sol) -->
 struct SASGreatGeneralChoiceContext;
+// <!-- custom: Opaque optional SASGameRecord output for the existing Great-Merchant trade-target scan; definition stays recorder-owned in SASGameRecordLog.h. (ChatGPT-5.6-Sol) -->
+struct SASGreatMerchantTradeChoiceContext;
 
 class CvUnitAI : public CvUnit
 {
@@ -310,7 +312,8 @@ protected:
 
 	bool AI_nuke(); // advc.650: Merged AI_nukeRange into this
 	//bool AI_trade(int iValueThreshold); // deleted by K-Mod
-	int AI_tradeMissionValue(CvPlot*& pBestPlot, int iThreshold = 0); // K-Mod
+	// <!-- custom: Add optional recorder output; no extra scan/pathfinding. (ChatGPT-5.6-Sol) -->
+	int AI_tradeMissionValue(CvPlot*& pBestPlot, int iThreshold = 0, SASGreatMerchantTradeChoiceContext* pSASChoice = NULL); // K-Mod
 	bool AI_doTradeMission(CvPlot* pTradePlot); // K-Mod
 	int AI_greatWorkValue(CvPlot*& pBestPlot, int iThreshold = 0); // K-Mod
 	// <!-- custom: KI#154.2 diagnostic: find the reachable Great Work that saves the most projected Culture-victory turns; ordinary Great Work valuation and action scoring remain unchanged. See KI#154.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->

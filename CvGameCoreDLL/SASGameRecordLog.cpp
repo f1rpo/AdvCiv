@@ -9144,6 +9144,8 @@ static CvString getSASGameRecordCityHappySources(CvCity const& kCity)
 {
 	CvString szList;
 	CvPlayer const& kOwner = GET_PLAYER(kCity.getOwner());
+	// <!-- custom: Unlike recorder setup/configuration rows that run only once, this helper runs for every recorded city snapshot; cache the stable gameplay define instead of repeating its string lookup for each city. (GPT-5.6-Sol) -->
+	static int const iTemporaryHappiness = GC.getDefineINT("TEMP_HAPPY");
 	appendSASGameRecordPositiveValue(szList, "largestCity", std::max(0, kCity.getLargestCityHappiness()));
 	appendSASGameRecordPositiveValue(szList, "military", std::max(0, kCity.getMilitaryHappiness()));
 	appendSASGameRecordPositiveValue(szList, "stateReligion", std::max(0, kCity.getCurrentStateReligionHappiness()));
@@ -9158,7 +9160,7 @@ static CvString getSASGameRecordCityHappySources(CvCity const& kCity)
 	appendSASGameRecordPositiveValue(szList, "extra", std::max(0, kCity.getExtraHappiness() + kOwner.getExtraHappiness()));
 	appendSASGameRecordPositiveValue(szList, "handicap", std::max(0, GC.getInfo(kCity.getHandicapType()).getHappyBonus()));
 	appendSASGameRecordPositiveValue(szList, "vassal", std::max(0, kCity.getVassalHappiness()));
-	appendSASGameRecordPositiveValue(szList, "temporary", kCity.getHappinessTimer() > 0 ? GC.getDefineINT("TEMP_HAPPY") : 0);
+	appendSASGameRecordPositiveValue(szList, "temporary", kCity.getHappinessTimer() > 0 ? iTemporaryHappiness : 0);
 	return getSASDiagnosticOrDash(szList);
 }
 
@@ -13310,12 +13312,14 @@ static char const* getSASGameRecordAIGreatPersonAction(SASGameRecordAIGreatPerso
 // <!-- custom: Compact all-type Great Person action provenance.
 // The five action scores and slow candidate metadata are the exact values produced by AI_greatPersonMove before sorting; target is the already-selected current waypoint/action plot and previousMission* preserves continuity from the group's pre-decision state.
 // Fallback actions deliberately use choiceRank/selectedValue=-1: danger discovery, recon, retreat, stranded handling and safety are later fallback helpers, not winners of the earlier sorted score comparison. (ChatGPT-5.6-Sol) -->
-void logSASGameRecordAIGreatPersonDecision(CvUnitAI const& kUnit, CvPlot const* pDecisionPlot, SASGameRecordAIGreatPersonAction eAction, int iChoiceRank, int iSelectedValue, int iScoreThreshold, int iSlowValue, int iSlowBaseValue, int iSlowPathTurns, MissionAITypes eSlowMissionAI, CvCity const* pSlowCity, SpecialistTypes eSpecialist, BuildingTypes eBuilding, int iDiscoverValue, TechTypes eDiscoverTech, int iGoldenAgeValue, int iTradeValue, int iCultureValue, CvPlot const* pTargetPlot, MissionAITypes ePreviousMissionAI, CvPlot const* pPreviousMissionPlot)
+void logSASGameRecordAIGreatPersonDecision(CvUnitAI const& kUnit, CvPlot const* pDecisionPlot, SASGameRecordAIGreatPersonAction eAction, int iChoiceRank, int iSelectedValue, int iScoreThreshold, int iSlowValue, int iSlowBaseValue, int iSlowPathTurns, MissionAITypes eSlowMissionAI, CvCity const* pSlowCity, SpecialistTypes eSpecialist, BuildingTypes eBuilding, int iDiscoverValue, TechTypes eDiscoverTech, int iGoldenAgeValue, int iTradeValue, int iCultureValue, SASGreatMerchantTradeChoiceContext const* pTradeChoice, CvPlot const* pTargetPlot, MissionAITypes ePreviousMissionAI, CvPlot const* pPreviousMissionPlot)
 {
 	CvGame const& kGame = GC.getGame();
 	int const iAge = kGame.getGameTurn() - kUnit.getGameTurnCreated();
 	int const iAgeNormal = 100 * iAge / std::max(1, kGame.getSpeedPercent());
-	logSASGameRecord("GAME_RECORD_AI_GREAT_PERSON_DECISION turn=%d player=%d team=%d unitId=%d unit=%s unitAI=%s x=%d y=%d age=%d ageNormal=%d action=%s choiceRank=%d selectedValue=%d threshold=%d slow=%d slowBaseValue=%d slowPathTurns=%d slowMissionAI=%d slowCityId=%d slowCity=%S slowCityX=%d slowCityY=%d specialist=%s building=%s discover=%d discoverTech=%s goldenAge=%d trade=%d culture=%d targetX=%d targetY=%d previousMissionAI=%d previousTargetX=%d previousTargetY=%d",
+	CvCity const* pTradeCity = (pTradeChoice == NULL ? NULL : pTradeChoice->pTargetCity);
+	CvPlot const* pTradeWaypoint = (pTradeChoice == NULL ? NULL : pTradeChoice->pWaypointPlot);
+	logSASGameRecord("GAME_RECORD_AI_GREAT_PERSON_DECISION turn=%d player=%d team=%d unitId=%d unit=%s unitAI=%s x=%d y=%d age=%d ageNormal=%d action=%s choiceRank=%d selectedValue=%d threshold=%d slow=%d slowBaseValue=%d slowPathTurns=%d slowMissionAI=%d slowCityId=%d slowCity=%S slowCityX=%d slowCityY=%d specialist=%s building=%s discover=%d discoverTech=%s goldenAge=%d trade=%d culture=%d tradeTargetPlayer=%d tradeTargetCityId=%d tradeTargetCity=%S tradeTargetX=%d tradeTargetY=%d tradeGold=%d tradePathTurns=%d tradeGoldWeight=%d tradeResearchMultiplier=%d tradeGoldMultiplier=%d tradeFlexPercent=%d tradeContinuationPercent=%d tradeStrategyRandPercent=%d tradeWaypointX=%d tradeWaypointY=%d targetX=%d targetY=%d previousMissionAI=%d previousTargetX=%d previousTargetY=%d",
 		kGame.getGameTurn(), kUnit.getOwner(), kUnit.getTeam(), kUnit.getID(), getSASGameRecordUnitType(kUnit.getUnitType()),
 		getSASGameRecordUnitAIType(kUnit.AI_getUnitAIType()), (pDecisionPlot == NULL ? kUnit.getX() : pDecisionPlot->getX()),
 		(pDecisionPlot == NULL ? kUnit.getY() : pDecisionPlot->getY()), iAge, iAgeNormal,
@@ -13324,6 +13328,14 @@ void logSASGameRecordAIGreatPersonDecision(CvUnitAI const& kUnit, CvPlot const* 
 		(pSlowCity == NULL ? L"-" : pSlowCity->getName().GetCString()), (pSlowCity == NULL ? -1 : pSlowCity->getX()),
 		(pSlowCity == NULL ? -1 : pSlowCity->getY()), getSASGameRecordSpecialistType(eSpecialist), getSASGameRecordBuildingType(eBuilding),
 		iDiscoverValue, getSASGameRecordTechType(eDiscoverTech), iGoldenAgeValue, iTradeValue, iCultureValue,
+		(pTradeCity == NULL ? NO_PLAYER : pTradeCity->getOwner()), (pTradeCity == NULL ? -1 : pTradeCity->getID()),
+		(pTradeCity == NULL ? L"-" : pTradeCity->getName().GetCString()), (pTradeCity == NULL ? -1 : pTradeCity->getX()),
+		(pTradeCity == NULL ? -1 : pTradeCity->getY()), (pTradeChoice == NULL ? 0 : pTradeChoice->iGold),
+		(pTradeChoice == NULL ? -1 : pTradeChoice->iPathTurns), (pTradeChoice == NULL ? -1 : pTradeChoice->iGoldWeight),
+		(pTradeChoice == NULL ? -1 : pTradeChoice->iResearchMultiplier), (pTradeChoice == NULL ? -1 : pTradeChoice->iGoldMultiplier),
+		(pTradeChoice == NULL ? -1 : pTradeChoice->iFlexPercent), (pTradeChoice == NULL ? -1 : pTradeChoice->iContinuationPercent),
+		(pTradeChoice == NULL ? -1 : pTradeChoice->iStrategyRandPercent),
+		(pTradeWaypoint == NULL ? -1 : pTradeWaypoint->getX()), (pTradeWaypoint == NULL ? -1 : pTradeWaypoint->getY()),
 		(pTargetPlot == NULL ? -1 : pTargetPlot->getX()), (pTargetPlot == NULL ? -1 : pTargetPlot->getY()), ePreviousMissionAI,
 		(pPreviousMissionPlot == NULL ? -1 : pPreviousMissionPlot->getX()), (pPreviousMissionPlot == NULL ? -1 : pPreviousMissionPlot->getY()));
 }
@@ -14757,9 +14769,34 @@ void logSASGameRecordGreatPersonTradeMission(CvUnit const* pUnit, CvCity const* 
 {
 	if (pUnit == NULL || pCity == NULL)
 		return;
-	logSASGameRecord("GAME_RECORD_ACTION turn=%d type=GREAT_PERSON_USED use=TRADE_MISSION player=%d unitId=%d unit=%s targetPlayer=%d cityId=%d city=%S gold=%d",
+	CvCity const* pCapital = GET_PLAYER(pUnit->getOwner()).getCapital();
+	bool const bHasCapital = (pCapital != NULL);
+	bool const bForeign = (bHasCapital && pCity->getTeam() != pCapital->getTeam());
+	bool const bOverseas = (bHasCapital && !pCity->sameArea(*pCapital));
+	bool const bConnectedToCapital = pCity->isConnectedToCapital();
+	// <!-- custom: Unlike recorder setup/configuration rows that run only once, this action emitter can record multiple Great Person trade missions; cache the stable string-backed capital modifier instead of repeating name lookup for each mission.
+	// The CvGlobals enum overload already reads the global integer define cache, so keep the overseas modifier direct rather than layering another function-local cache on it. (GPT-5.6-Sol) -->
+	static int const iCapitalTradeModifierDefine = GC.getDefineINT("CAPITAL_TRADE_MODIFIER");
+	int const iTradeRouteModifier = (bHasCapital ? pCity->getTradeRouteModifier() : -1);
+	int const iPopulationTradeModifier = (bHasCapital ? pCity->getPopulationTradeModifier() : -1);
+	int const iCapitalTradeModifier = (bHasCapital && bConnectedToCapital ? iCapitalTradeModifierDefine : (bHasCapital ? 0 : -1));
+	int const iOverseasTradeModifier = (bHasCapital && bOverseas ? GC.getDefineINT(CvGlobals::OVERSEAS_TRADE_MODIFIER) : (bHasCapital ? 0 : -1));
+	int const iForeignTradeRouteModifier = (bHasCapital && bForeign ? pCity->getForeignTradeRouteModifier() : (bHasCapital ? 0 : -1));
+	int const iPeaceTradeModifier = (bHasCapital && bForeign ? pCity->getPeaceTradeModifier(pCapital->getTeam()) : (bHasCapital ? 0 : -1));
+	int const iBaseProfitTimes100 = (bHasCapital ? pCity->getBaseTradeProfit(pCapital) : 0);
+	int const iTotalTradeModifier = (bHasCapital ? pCity->totalTradeModifier(pCapital) : -1);
+	int const iTradeProfitTimes100 = (bHasCapital ? pCity->calculateTradeProfitTimes100(pCapital) : 0);
+	int const iTradeProfit = iTradeProfitTimes100 / 100;
+	CvUnitInfo const& kUnitInfo = pUnit->getUnitInfo();
+	int const iUnitTradePercent = GC.getInfo(GC.getGame().getGameSpeedType()).getUnitTradePercent();
+	logSASGameRecord("GAME_RECORD_ACTION turn=%d type=GREAT_PERSON_USED use=TRADE_MISSION player=%d unitId=%d unit=%s targetPlayer=%d cityId=%d city=%S targetPop=%d ownerCapitalId=%d ownerCapitalPop=%d distance=%d targetConnectedToCapital=%d foreign=%d overseas=%d baseProfitTimes100=%d tradeRouteModifier=%d populationTradeModifier=%d capitalTradeModifier=%d overseasTradeModifier=%d foreignTradeRouteModifier=%d peaceTradeModifier=%d totalTradeModifier=%d tradeProfitTimes100=%d tradeProfit=%d unitBaseTrade=%d unitTradeMultiplier=%d unitTradePercent=%d gold=%d",
 		GC.getGame().getGameTurn(), pUnit->getOwner(), pUnit->getID(), getSASGameRecordUnitType(pUnit->getUnitType()), pCity->getOwner(),
-		pCity->getID(), getSASGameRecordQuotedCityName(pCity).GetCString(), iGold);
+		pCity->getID(), getSASGameRecordQuotedCityName(pCity).GetCString(), pCity->getPopulation(),
+		(bHasCapital ? pCapital->getID() : -1), (bHasCapital ? pCapital->getPopulation() : -1),
+		(bHasCapital ? plotDistance(pCity->getX(), pCity->getY(), pCapital->getX(), pCapital->getY()) : -1),
+		bConnectedToCapital ? 1 : 0, bForeign ? 1 : 0, bOverseas ? 1 : 0, iBaseProfitTimes100, iTradeRouteModifier,
+		iPopulationTradeModifier, iCapitalTradeModifier, iOverseasTradeModifier, iForeignTradeRouteModifier, iPeaceTradeModifier,
+		iTotalTradeModifier, iTradeProfitTimes100, iTradeProfit, kUnitInfo.getBaseTrade(), kUnitInfo.getTradeMultiplier(), iUnitTradePercent, iGold);
 }
 
 void logSASGameRecordGreatPersonGreatWork(CvUnit const* pUnit, CvCity const* pCity, int iCulture)
