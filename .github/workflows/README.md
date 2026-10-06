@@ -68,6 +68,7 @@ This is intentionally a syntax/compile compatibility check only: it does not lau
 - [`build/temp_files.py`](#buildtemp_filespy)
 - [`build/line_endings.py`](#buildline_endingspy)
 - [`build/assets_dlls.py`](#buildassets_dllspy)
+- [`build/dll_commit_message.py`](#builddll_commit_messagepy)
 - [`build/art_button_paths.py`](#buildart_button_pathspy)
 - [`build/markdown_images.py`](#buildmarkdown_imagespy)
 - [`build/markdown_links.py`](#buildmarkdown_linkspy)
@@ -150,6 +151,25 @@ But it passed on [GitHub Actions test](https://github.com/wonderingabout/AdvCiv-
 ### `build/assets_dlls.py`
 
 Recursively verifies `Assets` contains only the two expected DLL files (`Assets/CvGameCoreDLL.dll` for the main/48-civ DLL and `Assets/CvGameCoreDLL_18_civs_DLL.dll` for the 18-civ DLL), and verifies the 18-civ DLL is not larger than the main DLL by byte size.
+
+### `build/dll_commit_message.py`
+
+Local test DLLs have accidentally been committed with source work, including a Debug-opt build replacing the intentionally shipped Release DLL. Source changes and local test builds happen more often than deliberate distributed Release DLL updates. A changed installed DLL should therefore remain unstaged unless its inclusion is intentional.
+
+The commit-message marker makes that decision explicit and catches accidental binary staging in CI. CI runs after pushing; it does not stop local staging or Git pushes, so inspect the staged file list before committing as well.
+
+Requires the exact, case-sensitive phrase `Update DLL` in the title or body of every checked commit that adds, modifies, deletes or renames a tracked `.dll` file anywhere in the repository. The extension is case-insensitive. For example, use `- Update DLL: install the tested Release build` in the commit body. Source-only commits need no marker. A later marked commit cannot excuse an earlier unmarked DLL update; each message is checked separately. Merge commits are compared against their first parent, and root commits include additions.
+
+On pushes, inspect all commit identities supplied by the GitHub push event and read the actual paths/messages from Git. This avoids depending on a discarded push-before object after an amendment. If the payload may be truncated, require the complete Git range instead; missing history produces a clear failure rather than silently passing.
+
+On PRs, inspect commits reachable from the PR head but not its base, using the actual head SHA rather than GitHub's synthetic merge commit. Manual/local runs check the selected head commit by default. The existing full-history checkout supplies parents and PR history. This checks the currently selected push/PR range, not every old repository commit retroactively. GitHub documents its [push payload and commit-array limit](https://docs.github.com/en/webhooks/webhook-events-and-payloads#push).
+
+This is an explicit-intent marker, not proof that a DLL was compiled in Release mode, corresponds to the current source or was authorized by the user. Preserve the existing rule that compiled binaries require explicit user approval. When a squash or merge introduces a DLL, its resulting commit message must also contain `Update DLL`; CI checks that committed message on push. This check does not rebuild DLLs, require binaries for source changes, or install a local hook.
+
+```sh
+python .github/workflows/build/dll_commit_message.py
+python .github/workflows/build/dll_commit_message.py --base-ref HEAD~3 --head-ref HEAD
+```
 
 ### `build/art_button_paths.py`
 

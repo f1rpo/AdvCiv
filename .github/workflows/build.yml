@@ -28,6 +28,9 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
       - run: python .github/workflows/build/line_endings.py
       - run: python .github/workflows/build/assets_dlls.py
+      - run: python .github/workflows/build/dll_commit_message.py --event-name "$EVENT_NAME" --event-path "$GITHUB_EVENT_PATH"
+        env:
+          EVENT_NAME: ${{ github.event_name }}
       - run: python .github/workflows/build/art_button_paths.py
       - run: python .github/workflows/build/markdown_images.py
       - run: python .github/workflows/build/markdown_links.py
