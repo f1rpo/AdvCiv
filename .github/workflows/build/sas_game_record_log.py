@@ -172,60 +172,55 @@ def check_ai_strategy_diagnostics(repo_root: Path) -> list[str]:
 		failures.append(f"{AI_STRATEGIES_HEADER}: duplicate AIStrategy enumerator names found")
 	if enum_tokens[0] != "NO_AI_STRATEGY" or len(enum_tokens) < 2 or enum_tokens[1] != "AI_DEFAULT_STRATEGY":
 		failures.append(f"{AI_STRATEGIES_HEADER}: expected NO_AI_STRATEGY then AI_DEFAULT_STRATEGY at the start of enum AIStrategy")
-	for iEntry, (token, expression) in enumerate(enum_entries):
+	seen_bits = set()
+	for token, expression in enum_entries:
 		normalized_expression = re.sub(r"\s+", "", expression)
 		if token == "NO_AI_STRATEGY":
 			if normalized_expression != "0":
-				failures.append(f"{AI_STRATEGIES_HEADER}: NO_AI_STRATEGY must remain 0 for complete bit scans")
+				failures.append(f"{AI_STRATEGIES_HEADER}: NO_AI_STRATEGY must remain 0")
 			continue
 		bit_match = re.fullmatch(r"\(?1<<(?P<bit>\d+)\)?", normalized_expression)
-		expected_bit = iEntry - 1
-		if bit_match is None or int(bit_match.group("bit")) != expected_bit:
-			failures.append(
-				f"{AI_STRATEGIES_HEADER}: {token} must remain the contiguous bit (1 << {expected_bit}); "
-				f"complete SASGameRecord scans advance with iStrategy <<= 1")
+		if bit_match is None:
+			failures.append(f"{AI_STRATEGIES_HEADER}: {token} must remain a single (1 << n) bit")
+			continue
+		bit = int(bit_match.group("bit"))
+		if bit in seen_bits:
+			failures.append(f"{AI_STRATEGIES_HEADER}: duplicate AIStrategy bit {bit}")
+		seen_bits.add(bit)
 	strategy_tokens = [token for token in enum_tokens if token.startswith("AI_STRATEGY_")]
 	if not strategy_tokens:
 		failures.append(f"{AI_STRATEGIES_HEADER}: no non-default AI_STRATEGY_* enumerators found")
 		return failures
-	last_strategy = strategy_tokens[-1]
-
 	utils_text = (repo_root / GAME_CORE_UTILS_SOURCE).read_text(encoding="utf-8", errors="replace")
-	helper_match = re.search(
-		r"char\s+const\*\s+getSASAIStrategyType\s*\([^)]*\)\s*\{(?P<body>.*?)^\}",
+	descriptor_match = re.search(
+		r"aSASAIStrategyDescriptors\s*\[\]\s*=\s*\{(?P<body>.*?)^\};",
 		utils_text, flags=re.DOTALL | re.MULTILINE)
-	if helper_match is None:
-		failures.append(f"{GAME_CORE_UTILS_SOURCE}: missing getSASAIStrategyType definition")
+	if descriptor_match is None:
+		failures.append(f"{GAME_CORE_UTILS_SOURCE}: missing aSASAIStrategyDescriptors definition")
 	else:
-		case_pairs = re.findall(r'case\s+(NO_AI_STRATEGY|AI_DEFAULT_STRATEGY|AI_STRATEGY_[A-Z0-9_]+)\s*:\s*return\s+"([^"]+)"\s*;', helper_match.group("body"))
-		case_tokens = [token for token, _ in case_pairs]
-		if len(case_tokens) != len(set(case_tokens)):
-			failures.append(f"{GAME_CORE_UTILS_SOURCE}: duplicate getSASAIStrategyType case(s) found")
-		missing = [token for token in enum_tokens if token not in case_tokens]
-		extra = [token for token in case_tokens if token not in enum_tokens]
+		descriptor_pairs = re.findall(r'\{\s*(AI_DEFAULT_STRATEGY|AI_STRATEGY_[A-Z0-9_]+)\s*,\s*"([^"]+)"\s*\}', descriptor_match.group("body"))
+		descriptor_tokens = [token for token, _ in descriptor_pairs]
+		if len(descriptor_tokens) != len(set(descriptor_tokens)):
+			failures.append(f"{GAME_CORE_UTILS_SOURCE}: duplicate AIStrategy descriptor(s) found")
+		expected_descriptors = [token for token in enum_tokens if token != "NO_AI_STRATEGY"]
+		missing = [token for token in expected_descriptors if token not in descriptor_tokens]
+		extra = [token for token in descriptor_tokens if token not in expected_descriptors]
 		if missing:
-			failures.append(f"{GAME_CORE_UTILS_SOURCE}: getSASAIStrategyType missing {', '.join(missing)}")
+			failures.append(f"{GAME_CORE_UTILS_SOURCE}: AIStrategy descriptors missing {', '.join(missing)}")
 		if extra:
-			failures.append(f"{GAME_CORE_UTILS_SOURCE}: getSASAIStrategyType has non-enum case(s): {', '.join(extra)}")
-		for token, label in case_pairs:
+			failures.append(f"{GAME_CORE_UTILS_SOURCE}: AIStrategy descriptors contain non-enum values: {', '.join(extra)}")
+		for token, label in descriptor_pairs:
 			if token != label:
 				failures.append(f"{GAME_CORE_UTILS_SOURCE}: {token} maps to {label!r}, expected identical raw enum token")
+	if "getSASAIStrategyType(AIStrategy eStrategy)" not in utils_text or 'return "NO_AI_STRATEGY";' not in utils_text:
+		failures.append(f"{GAME_CORE_UTILS_SOURCE}: shared AIStrategy lookup must retain explicit NO_AI_STRATEGY support")
 
 	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
-	loop_matches = re.findall(
-		r"for\s*\(\s*int\s+iStrategy\s*=\s*(AI_DEFAULT_STRATEGY|AI_STRATEGY_DAGGER)\s*;\s*"
-		r"iStrategy\s*<=\s*(AI_STRATEGY_[A-Z0-9_]+)\s*;\s*iStrategy\s*<<=\s*1\s*\)",
-		record_text, flags=re.DOTALL)
-	if len(loop_matches) != 3:
-		failures.append(f"{REVISION_SOURCE}: expected 3 complete AIStrategy scans (CORE/snapshot/transitions), found {len(loop_matches)}")
-	else:
-		starts = [start for start, _ in loop_matches]
-		if starts.count("AI_DEFAULT_STRATEGY") != 1 or starts.count("AI_STRATEGY_DAGGER") != 2:
-			failures.append(f"{REVISION_SOURCE}: expected one CORE scan from AI_DEFAULT_STRATEGY and two readable scans from AI_STRATEGY_DAGGER")
-		for start, end in loop_matches:
-			if end != last_strategy:
-				failures.append(f"{REVISION_SOURCE}: strategy scan starting at {start} ends at {end}, current enum ends at {last_strategy}")
-	for required in ("GAME_RECORD_AI_STRATEGIES", "GAME_RECORD_AI_STRATEGY_CHANGE", "getSASAIStrategyType"):
+	if record_text.count("getSASAIStrategyDescriptorCount()") != 3 or record_text.count("getSASAIStrategyDescriptor(iI)") != 3:
+		failures.append(f"{REVISION_SOURCE}: CORE hash, strategy checkpoint and transition rows must all iterate the shared AIStrategy descriptors")
+	if record_text.count("if (eStrategy == AI_DEFAULT_STRATEGY)") != 2:
+		failures.append(f"{REVISION_SOURCE}: readable strategy checkpoint and transition scans must both exclude AI_DEFAULT_STRATEGY")
+	for required in ("GAME_RECORD_AI_STRATEGIES", "GAME_RECORD_AI_STRATEGY_CHANGE", "SASAIStrategyDescriptor"):
 		if required not in record_text:
 			failures.append(f"{REVISION_SOURCE}: missing AI-strategy diagnostic token {required}")
 	return failures

@@ -9,6 +9,7 @@
 class CvPlot;
 class CvCity;
 class CvCityAI; // advc.003u
+class CvTeamAI; // <!-- custom: SASWarPowerContext accepts a team-AI reference; forward-declare it instead of making this widely included utility header pull in the full CvTeamAI definition. (GPT-5.6-Sol) -->
 class CvUnit;
 class CvUnitAI; // advc.003u
 class CvSelectionGroup;
@@ -115,7 +116,10 @@ CvWString getSASDiagnosticQuoted(wchar const* szValue);
 CvString getSASDiagnosticOrDash(CvString const& szValue);
 // <!-- custom: Serialize one integer for shared diagnostic fields without recorder-specific wrappers. (ChatGPT-5.6-Sol) -->
 CvString getSASDiagnosticIntText(int iValue);
-// <!-- custom: Append one integer to a comma-separated diagnostic list without duplicating list plumbing across logs. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Append one already-decoded diagnostic token with a caller-selected separator.
+// Keep semantic translators near the subsystem that owns their enum/bit layout; only this generic list plumbing belongs in shared GameCoreUtils. (ChatGPT-5.6-Sol) -->
+void appendSASDiagnosticListValue(CvString& szList, char const* szValue, char const* szSeparator = ",");
+// <!-- custom: Append one integer to a comma-separated diagnostic list through the shared token-list helper. (ChatGPT-5.6-Sol) -->
 void appendSASDiagnosticIntListValue(CvString& szList, int iValue);
 // <!-- custom: Construct the common timestamp/context/active-player diagnostic filename while each log retains its own rollover/session state. (ChatGPT-5.6-Sol) -->
 CvString getSASDiagnosticLogName(char const* szBaseName, CvString const& szTimestamp, CvString const& szContext, bool bTimestamped);
@@ -179,6 +183,24 @@ namespace hotkeyDescr
 
 bool atWar(TeamTypes eTeamA, TeamTypes eTeamB);												// Exposed to Python
 //isPotentialEnemy(TeamTypes eOurTeam, TeamTypes eTheirTeam); // advc: Use CvTeamAI::AI_mayAttack instead
+// <!-- custom: Share the XML thresholds, classifications and current/chosen-enemy snapshot used by SAS military-pressure policies across city, player, team and unit AI.
+// AI_getEnemyPowerPercent(true) is an aggregate comparison against known current/chosen enemies and returns 0 when none applies; a raw weak result therefore includes that sentinel, while relative-superiority callers must use the nonzero or at-war forms.
+// Keep player-level focus-war state and city/area danger separate because they are different strategic/tactical signals and have different scopes. (ChatGPT-5 + ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+struct SASWarPowerContext
+{
+	explicit SASWarPowerContext(CvTeamAI const& kTeam);
+	static int enemyStrongThreshold();
+	static int enemyWeakThreshold();
+	static bool isEnemyStrong(int iEnemyPowerPercent);
+	static bool isEnemyWeak(int iEnemyPowerPercent);
+
+	int iEnemyPowerPercent;
+	bool bAtWar;
+	bool bEnemyStrong;
+	bool bEnemyWeakRaw;
+	bool bEnemyWeakNonZero;
+	bool bAtWarAndEnemyWeak;
+};
 char const* getSASDiploEventType(DiploEventTypes eDiploEvent); // <!-- custom: Shared raw enum-token text for DiploEventTypes because static enum values have no CvInfo type strings; use user-facing text helpers for translated/prose labels. (GPT-5.5) -->
 char const* getSASContactType(ContactTypes eContact); // <!-- custom: Shared raw enum-token text for ContactTypes so diplomacy diagnostics can describe proactive contact classes without opaque enum integers. (ChatGPT-5.6-Sol) -->
 char const* getSASTradeItemType(TradeableItems eItem); // <!-- custom: Shared raw enum-token text for TradeableItems because static enum values have no CvInfo type strings; use user-facing text helpers for translated/prose labels. (GPT-5.5) -->
@@ -191,6 +213,14 @@ char const* getSASTechAcquisitionCause(TechAcquisitionCause eCause); // <!-- cus
 char const* getSASResearchTargetChangeCause(ResearchTargetChangeCause eCause); // <!-- custom: Shared stable labels for factual research-target redirection causes so SASGameRecord and later diagnostics can reuse one vocabulary. (ChatGPT-5.6-Sol) -->
 char const* getSASAutoPlayEndCause(SASAutoPlayEndCause eCause); // <!-- custom: Shared stable labels for explicit AI Auto Play completion causes so later diagnostics can reuse the enum without depending on SASGameRecord. See KI#203. (GPT-5.6-Sol) -->
 char const* getSASMemoryType(MemoryTypes eMemory); // <!-- custom: Shared raw enum-token text for diplomatic memories because static enum values have no CvInfo type strings. (GPT-5.6-Sol) -->
+// <!-- custom: One shared iterable AIStrategy value/name vocabulary replaces both preprocessor/range-based iteration and duplicated diagnostic naming; friendly UI prose remains separate. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
+struct SASAIStrategyDescriptor
+{
+	AIStrategy eStrategy;
+	char const* szType;
+};
+int getSASAIStrategyDescriptorCount();
+SASAIStrategyDescriptor const& getSASAIStrategyDescriptor(int iIndex);
 char const* getSASAIStrategyType(AIStrategy eStrategy); // <!-- custom: Shared raw enum-token text for AIStrategy because the static bitfield enum has no CvInfo type strings; BBAI and SASGameRecord use one diagnostic vocabulary without preprocessor stringification. (ChatGPT-5.6-Sol) -->
 char const* getSASAreaAIType(AreaAITypes eAreaAI); // <!-- custom: Shared raw enum-token text for AreaAITypes so SASGameRecord and detailed AI diagnostics can describe theater posture without opaque enum integers. (ChatGPT-5.6-Sol) -->
 int getSASVictoryStageLevel(AIVictoryStage eVictoryStageHash, AIVictoryStage eStage1, AIVictoryStage eStage2, AIVictoryStage eStage3, AIVictoryStage eStage4); // <!-- custom: Shared victory-stage bitfield helper for compact AI victory diagnostics without repeating AI_atVictoryStage checks. (GPT-5.5) -->

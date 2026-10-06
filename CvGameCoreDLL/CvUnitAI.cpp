@@ -15405,7 +15405,7 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		static const PromotionTypes ePromotionRetreat1 = (PromotionTypes)GC.getInfoTypeForString("PROMOTION_RETREAT1", true);
 		static const PromotionTypes ePromotionRetreat2 = (PromotionTypes)GC.getInfoTypeForString("PROMOTION_RETREAT2", true);
 
-		// Situation read
+		// <!-- custom: Situation read (ChatGPT-5) -->
 		// <!-- custom: note: sometimes AI_isFocusWar is used with, sometimes without in cvcityai.cpp, going for the larger one and chatgpt 5 suggests to do as such despite not knowing all our code but should be fine, and maybe we handle more cases this way, check if accurate -->
 		// bool const bWarPlan = kOwner.AI_isFocusWar();
 
@@ -15414,18 +15414,15 @@ int CvUnitAI::AI_promotionValue(PromotionTypes ePromotion)
 		CvCityAI const* pCity = getPlot().AI_getPlotCity();
 		bool const bDanger = ((pCity != NULL) && pCity->AI_isDanger());	// method lives on CvCityAI <!-- custom: see as of now above code comment for details -->
 		// <!-- custom: it seems to me guessedly more reliable than the old AI_isLandWar check, chatgpt 5 advises for this as well when looking at the function's code when i asked it about it, check if accurate -->
-		const bool bAtWar = (GET_TEAM(getTeam()).getNumWars() > 0);
-		const int iEnemyPowerPercent = GET_TEAM(getTeam()).AI_getEnemyPowerPercent(true);
-		static const int iSAS_ENEMY_STRONG_POWER_THRESHOLD = GC.getDefineINT("SAS_ENEMY_STRONG_POWER_THRESHOLD"); // e.g. 120
-		const bool bEnemyStrong = (iEnemyPowerPercent >= iSAS_ENEMY_STRONG_POWER_THRESHOLD);
+		SASWarPowerContext const kWarPower(GET_TEAM(getTeam()));
+		const bool bAtWar = kWarPower.bAtWar;
+		const bool bEnemyStrong = kWarPower.bEnemyStrong;
 		// Practical use in your siege gate
 		// Don’t use iEnemyPowPct<=90 to mean “we’re stronger" when you aren’t at war or actively preparing one, because you’ll read 0% and green-light trebuchets in peacetime.
 		// This way:
 		// - In peacetime, you won’t accidentally treat “0" as “we totally dominate" and overbuild siege.
-		static const int iSAS_ENEMY_WEAK_POWER_THRESHOLD = GC.getDefineINT("SAS_ENEMY_WEAK_POWER_THRESHOLD"); // e.g. 80
-		//const bool bEnemyWeak = (iEnemyPowerPercent <= iSAS_ENEMY_WEAK_POWER_THRESHOLD);
 		// <!-- custom: modified version i guessedly made without checking relevant function's code, hopefully more accurate but check to be sure as is just a guess from me-->
-		const bool bEnemyWeakNotZero = ((iEnemyPowerPercent > 0) && (iEnemyPowerPercent <= iSAS_ENEMY_WEAK_POWER_THRESHOLD));
+		const bool bEnemyWeakNotZero = kWarPower.bEnemyWeakNonZero;
 
 		// <!-- custom: if we are strict city offense units / unitais but anywayse city, city raider would be the best or among to go for first and foremost at least in most cases for AIs -->
 		if (bStrictAttackCityLandUnitAI || bMostlyOffensiveLandUnitAI)

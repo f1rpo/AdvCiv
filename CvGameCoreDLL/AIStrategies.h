@@ -8,7 +8,8 @@
 #define DEFAULT_PLAYER_CLOSENESS 7
 
 #define AI_DAGGER_THRESHOLD 100  // higher is a lower chance
-#define MAX_AI_STRATEGIES 32 // advc: for iteration
+// <!-- custom: The removed MAX_AI_STRATEGIES was a 32-bit scan bound, not the number of defined strategies; it brute-forced nonexistent bit values and provided no canonical iterable value/name registry for shared callers.
+// Iterable UI/diagnostic callers now use the shared SASAIStrategyDescriptor table, whose exact enum coverage and raw names are enforced by CI. (GPT-5.6-Sol) -->
 enum AIStrategy // advc.enum: To avoid mixup with victory strategies (was #define)
 {
 	NO_AI_STRATEGY					=	0, // advc.enum

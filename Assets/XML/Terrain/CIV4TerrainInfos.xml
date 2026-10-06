@@ -4,7 +4,6 @@
 <!-- Copyright Firaxis Games 2005 -->
 <!-- -->
 <!-- Terrain Infos -->
-<!-- custom: note: be careful when/if renaming some of these terrains, as they are now also hardcoded in advciv-sas in the DLL as part of AI settling/founding/planting cities optimization, as well as optimizing AI worker improvement choice, if you want to rename it, rename it there as well and recompile the DLL -->
 <Civ4TerrainInfos xmlns="x-schema:CIV4TerrainSchema.xml">
 	<TerrainInfos>
 		<TerrainInfo>

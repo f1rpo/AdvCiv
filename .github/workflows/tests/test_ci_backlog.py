@@ -369,7 +369,7 @@ class RevisionDocumentationTests(unittest.TestCase):
 
 
 class RevisionHistoryTests(unittest.TestCase):
-    def test_amended_commit_survives_as_object_but_is_rejected(self):
+    def test_feature_rewrite_does_not_replace_default_branch_commit(self):
         with tempfile.TemporaryDirectory() as temp:
             repo = Path(temp)
             fixture_git(repo)
@@ -379,22 +379,35 @@ class RevisionHistoryTests(unittest.TestCase):
             git(repo, 'add', '.')
             git(repo, 'commit', '-qm', 'original fixture revision')
             original = git(repo, 'rev-parse', 'HEAD')
+            git(repo, 'branch', 'main')
+            git(repo, 'switch', '-qc', 'feature')
             git(repo, 'commit', '--amend', '-qm', 'amended fixture revision')
             amended = git(repo, 'rev-parse', 'HEAD')
             target = repo / history.HISTORY
             target.parent.mkdir(parents=True)
             def record(commit):
                 target.write_text('### Revision 70 - fixture\n- **Git commit:** pending\n\n### Revision 69 - fixture\n- **Git commit:** `' + commit + '`\n', 'utf-8')
+            record(original)
+            self.assertEqual(history.check(repo, "main"), [])
             record(amended)
-            self.assertEqual(history.check(repo), [])
+            git(repo, 'cat-file', '-e', amended)
+            self.assertTrue(any('ancestry' in e for e in history.check(repo, "main")))
             record(original)
             git(repo, 'cat-file', '-e', original)
-            self.assertTrue(any('ancestry' in e for e in history.check(repo)))
             record('pending')
-            self.assertTrue(any('latest entry' in e for e in history.check(repo)))
-            record(amended)
+            self.assertTrue(any('latest entry' in e for e in history.check(repo, "main")))
+            record(original)
             target.write_text(target.read_text().replace('Revision 69', 'Revision 71'))
-            self.assertTrue(any('matching explicit source marker' in e for e in history.check(repo)))
+            self.assertTrue(any('matching explicit source marker' in e for e in history.check(repo, "main")))
+
+    def test_missing_default_branch_abstains_from_ancestry(self):
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            fixture_git(repo)
+            target = repo / history.HISTORY
+            target.parent.mkdir(parents=True)
+            target.write_text('### Revision 68 - fixture\n- **Git commit:** `0000000000000000000000000000000000000000`\n', 'utf-8')
+            self.assertEqual(history.check(repo, "refs/remotes/origin/missing"), [])
 
 
 if __name__ == '__main__':

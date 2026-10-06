@@ -399,6 +399,187 @@ static int SAS_getHighestKnownFreeRivalBlocPower(CvPlayerAI const& kPlayer)
 	return iHighestRivalPower;
 }
 
+// <!-- custom: KI#48.9 Palace-relocation audit: compact geometric centrality context for the inherited BUILDINGFOCUS_CAPITAL path.
+// Sum plot distance from one candidate city to every own city.
+// This is diagnostic context only, not a maintenance formula or gameplay heuristic; the follow-up audit uses it beside area population, production rank, output and actual Palace build time before deciding whether inherited relocation needs any cure. See KI#48.9. (ChatGPT-5.6-Sol) -->
+static int SAS_getOwnCityDistanceSum(CvCity const& kCity)
+{
+	CvPlayerAI const& kOwner = GET_PLAYER(kCity.getOwner());
+	int iDistanceSum = 0;
+	FOR_EACH_CITY(pLoopCity, kOwner)
+		iDistanceSum += plotDistance(kCity.plot(), pLoopCity->plot());
+	return iDistanceSum;
+}
+
+// <!-- custom: KI#48.9 Palace-relocation audit: project the maintenance effect of moving, rather than adding, the Palace.
+// Replace the current Palace as a government center with the candidate, preserve any other government centers, and reproduce the inherited distance + colony-maintenance arithmetic without mutating game state.
+// This is diagnostic-only and is evaluated only for candidates that already pass the inherited war/area-population/production-rank gates. (ChatGPT-5.6-Sol) -->
+static int SAS_getPalaceRelocationMaintenanceDistance(CvCity const& kCity, CvCity const& kCandidate, CvCity const* pCurrentCapital)
+{
+	CvPlayerAI const& kOwner = GET_PLAYER(kCity.getOwner());
+	int iLongestDist = 0;
+	int iShortestGovernment = MAX_INT;
+	FOR_EACH_CITY(pLoopCity, kOwner)
+	{
+		int const iDist = plotDistance(kCity.plot(), pLoopCity->plot());
+		iLongestDist = std::max(iLongestDist, iDist);
+		int iGovernmentCenters = pLoopCity->getGovernmentCenterCount();
+		if (pLoopCity == pCurrentCapital)
+			iGovernmentCenters--;
+		if (pLoopCity == &kCandidate)
+			iGovernmentCenters++;
+		if (iGovernmentCenters > 0)
+			iShortestGovernment = std::min(iShortestGovernment, iDist);
+	}
+	int const iDistance = std::min(iLongestDist, iShortestGovernment);
+	return std::min(iDistance, GC.getMap().maxMaintenanceDistance());
+}
+
+static int SAS_getDistanceMaintenanceTimes100ForDistance(CvCity const& kCity, int iMaintenanceDistance, bool bNoPlayerModifiers)
+{
+	CvPlayerAI const& kOwner = GET_PLAYER(kCity.getOwner());
+	int iMaintenance = 100 * GC.getDefineINT(CvGlobals::MAX_DISTANCE_CITY_MAINTENANCE) * iMaintenanceDistance;
+	iMaintenance *= kCity.getPopulation() + 7;
+	iMaintenance /= 10;
+	if (!bNoPlayerModifiers)
+	{
+		iMaintenance *= std::max(0, kOwner.getDistanceMaintenanceModifier() + 100);
+		iMaintenance /= 100;
+		iMaintenance *= GC.getInfo(kOwner.getHandicapType()).getDistanceMaintenancePercent();
+		iMaintenance /= 100;
+	}
+	iMaintenance *= GC.getInfo(GC.getMap().getWorldSize()).getDistanceMaintenancePercent();
+	iMaintenance /= 100;
+	iMaintenance /= GC.getMap().maxTypicalDistance();
+	return iMaintenance;
+}
+
+static int SAS_getPalaceRelocationColonyMaintenanceTimes100(CvCity const& kCity, CvCity const& kCandidate, int iProjectedMaintenanceDistance)
+{
+	CvPlayerAI const& kOwner = GET_PLAYER(kCity.getOwner());
+	if (GC.getGame().isOption(GAMEOPTION_NO_VASSAL_STATES) || kCity.isArea(kCandidate.getArea()))
+		return 0;
+	HandicapTypes const eOwnerHandicap = kOwner.getHandicapType();
+	int iNumCitiesPercent = 100;
+	iNumCitiesPercent *= kCity.getPopulation() + 17;
+	iNumCitiesPercent /= 18;
+	iNumCitiesPercent *= GC.getInfo(GC.getMap().getWorldSize()).getColonyMaintenancePercent();
+	iNumCitiesPercent /= 100;
+	iNumCitiesPercent *= GC.getInfo(eOwnerHandicap).getColonyMaintenancePercent();
+	iNumCitiesPercent /= 100;
+	int const iNumCities = (kCity.getArea().getCitiesPerPlayer(kCity.getOwner()) - 1) * iNumCitiesPercent;
+	int iMaintenance = SQR(iNumCities) / 100;
+	int iMaintenanceCap = GC.getDefineINT(CvGlobals::MAX_DISTANCE_CITY_MAINTENANCE) *
+			SAS_getDistanceMaintenanceTimes100ForDistance(kCity, iProjectedMaintenanceDistance, true);
+	iMaintenanceCap *= GC.getInfo(eOwnerHandicap).getMaxColonyMaintenance();
+	iMaintenanceCap /= 100;
+	iMaintenanceCap *= std::max(0, kOwner.getColonyMaintenanceModifier() + 100);
+	iMaintenanceCap /= 100;
+	return std::min(iMaintenance, iMaintenanceCap);
+}
+
+static int SAS_getProjectedPalaceMaintenanceSavingsTimes100(CvCity const& kCandidate, CvCity const* pCurrentCapital, int& iDistanceSavingsTimes100, int& iColonySavingsTimes100, int& iCandidateAreaColonySavingsTimes100, int& iOldCapitalAreaColonyCostTimes100)
+{
+	CvPlayerAI const& kOwner = GET_PLAYER(kCandidate.getOwner());
+	iDistanceSavingsTimes100 = 0;
+	iColonySavingsTimes100 = 0;
+	iCandidateAreaColonySavingsTimes100 = 0;
+	iOldCapitalAreaColonyCostTimes100 = 0;
+	FOR_EACH_CITY(pLoopCity, kOwner)
+	{
+		int const iProjectedDistance = SAS_getPalaceRelocationMaintenanceDistance(*pLoopCity, kCandidate, pCurrentCapital);
+		int const iCurrentDistanceMaintenance = pLoopCity->calculateDistanceMaintenanceTimes100();
+		int const iProjectedDistanceMaintenance = SAS_getDistanceMaintenanceTimes100ForDistance(*pLoopCity, iProjectedDistance, false);
+		int const iCurrentColonyMaintenance = pLoopCity->calculateColonyMaintenanceTimes100();
+		int const iProjectedColonyMaintenance = SAS_getPalaceRelocationColonyMaintenanceTimes100(*pLoopCity, kCandidate, iProjectedDistance);
+		int const iMaintenanceModifier = std::max(0, 100 + pLoopCity->getMaintenanceModifier());
+		int const iDistanceSaving = ((iCurrentDistanceMaintenance - iProjectedDistanceMaintenance) * iMaintenanceModifier) / 100;
+		int const iColonySaving = ((iCurrentColonyMaintenance - iProjectedColonyMaintenance) * iMaintenanceModifier) / 100;
+		iDistanceSavingsTimes100 += iDistanceSaving;
+		iColonySavingsTimes100 += iColonySaving;
+		if (pLoopCity->isArea(kCandidate.getArea()))
+			iCandidateAreaColonySavingsTimes100 += iColonySaving;
+		if (pCurrentCapital != NULL && pLoopCity->isArea(pCurrentCapital->getArea()))
+			iOldCapitalAreaColonyCostTimes100 -= iColonySaving;
+	}
+	return iDistanceSavingsTimes100 + iColonySavingsTimes100;
+}
+
+// <!-- custom: Shared factual local-area rival snapshot for callers that need the same geography/power facts but intentionally apply different policy thresholds.
+// Do not collapse this into an "area safe" boolean: AI_isAreaAlone is a narrower knowledge-sensitive isolation test, while AI_feelsSafe answers a broader/global strategic question; KI#53.5 land-unit saturation requires overwhelming local security, whereas World-Wonder investment only needs to judge whether local exposure makes the opportunity cost reckless.
+// The global-rival fields are retained only as comparison context beside the local bloc data. Barbarians, city danger/defenders, land-unit stock and other caller-specific facts remain outside this snapshot. See KI#48.9. See also KI#53.5. (ChatGPT-5.6-Sol) -->
+struct SASLocalAreaRivalContext
+{
+	int iIndependentRivalTeams;
+	int iUnknownIndependentRivalTeams;
+	int iIndependentRivalCities;
+	int iCombinedKnownLocalRivalBlocPower;
+	int iHighestKnownLocalRivalBlocPower;
+	int iOurBlocPower;
+	int iLocalPowerAdvantagePercent;
+	int iHighestLocalPowerAdvantagePercent;
+	int iHighestKnownGlobalRivalBlocPower;
+	int iGlobalPowerAdvantagePercent;
+
+	SASLocalAreaRivalContext(CvPlayerAI const& kPlayer, CvArea const& kArea, bool bIncludeGlobalRivalContext = true)
+	{
+		iIndependentRivalCities = 0;
+		iUnknownIndependentRivalTeams = 0;
+		iCombinedKnownLocalRivalBlocPower = 0;
+		iHighestKnownLocalRivalBlocPower = 0;
+		iIndependentRivalTeams = SAS_countIndependentRivalTeamsInArea(kPlayer, kArea, iIndependentRivalCities,
+				&iUnknownIndependentRivalTeams, &iCombinedKnownLocalRivalBlocPower, &iHighestKnownLocalRivalBlocPower);
+		iOurBlocPower = GET_TEAM(kPlayer.getTeam()).getPower(true);
+		// <!-- custom: Preserve both local comparisons explicitly: KI#53.5 asks whether our army is excessive against the whole remaining local rival set, while KI#48.20 asks whether any single local rival is strong enough to make fresh World-Wonder investment strategically expensive. (ChatGPT-5.6-Sol) -->
+		iLocalPowerAdvantagePercent = (iCombinedKnownLocalRivalBlocPower <= 0 ? -1 :
+				(100 * iOurBlocPower) / iCombinedKnownLocalRivalBlocPower);
+		iHighestLocalPowerAdvantagePercent = (iHighestKnownLocalRivalBlocPower <= 0 ? -1 :
+				(100 * iOurBlocPower) / iHighestKnownLocalRivalBlocPower);
+		// <!-- custom: Some gameplay consumers need only landmass-local facts; let them skip the separate global-rival scan while retaining the historical default for existing diagnostics/consumers. (ChatGPT-5.6-Sol) -->
+		iHighestKnownGlobalRivalBlocPower = (bIncludeGlobalRivalContext ? SAS_getHighestKnownFreeRivalBlocPower(kPlayer) : -1);
+		iGlobalPowerAdvantagePercent = (iHighestKnownGlobalRivalBlocPower <= 0 ? -1 :
+				(100 * iOurBlocPower) / iHighestKnownGlobalRivalBlocPower);
+	}
+};
+
+// <!-- custom: World-Wonder eagerness belongs in actual constructible-building selection rather than AI_buildingValue, where the retired FORCE_CHEAP_SAFE sentinel proved that a production override can pollute technology planning long before a real build opportunity exists.
+// The global percentage is a simple player-facing tuning knob even on secure islands; the local-exposure percentage is applied only when this landmass still contains an independent rival and we are not clearly dominant over the strongest known local rival.
+// Unknown local rival blocs deliberately prevent the dominance exemption.
+// Keep this as a smooth candidate-value multiplier rather than another return-0 gate. Existing completion-time scoring, normal unit/Settler/building competition and stored-production continuation remain authoritative. See KI#48.20. (ChatGPT-5.6-Sol) -->
+static int SAS_getWorldWonderSelectionValuePercent(CvCityAI const& kCity, int* piLocalExposurePercent = NULL, bool* pbLocalExposureApplies = NULL)
+{
+	static int const iEagernessPercent = std::max(0, std::min(200, GC.getDefineINT("SAS_AI_BEST_BUILDING_THRESHOLD_WORLD_WONDER_EAGERNESS_PERCENT")));
+	static bool const bLocalExposureOptimize = GC.getDefineBOOL("SAS_AI_BEST_BUILDING_THRESHOLD_WORLD_WONDER_LOCAL_EXPOSURE_OPTIMIZE");
+	static int const iLocalExposurePercent = std::max(0, std::min(100, GC.getDefineINT("SAS_AI_BEST_BUILDING_THRESHOLD_WORLD_WONDER_LOCAL_EXPOSURE_VALUE_PERCENT")));
+	static int const iDominanceMinPowerPercent = std::max(0, GC.getDefineINT("SAS_AI_BEST_BUILDING_THRESHOLD_WORLD_WONDER_LOCAL_DOMINANCE_MIN_POWER_PERCENT"));
+
+	int iAppliedLocalExposurePercent = 100;
+	bool bLocalExposureApplies = false;
+	CvPlayerAI const& kOwner = GET_PLAYER(kCity.getOwner());
+	// <!-- custom: These knobs tune AI production policy only; do not alter human manual/advisor/governor valuation or special players. (ChatGPT-5.6-Sol) -->
+	if (kOwner.isHuman() || kOwner.isBarbarian() || kOwner.isMinorCiv())
+	{
+		if (piLocalExposurePercent != NULL) *piLocalExposurePercent = 100;
+		if (pbLocalExposureApplies != NULL) *pbLocalExposureApplies = false;
+		return 100;
+	}
+	if (bLocalExposureOptimize)
+	{
+		SASLocalAreaRivalContext const kLocalRivals(kOwner, kCity.getArea(), false);
+		bool const bClearlyDominant = (kLocalRivals.iIndependentRivalTeams <= 0 ||
+				(kLocalRivals.iUnknownIndependentRivalTeams == 0 && kLocalRivals.iHighestLocalPowerAdvantagePercent >= iDominanceMinPowerPercent));
+		if (!bClearlyDominant)
+		{
+			bLocalExposureApplies = true;
+			iAppliedLocalExposurePercent = iLocalExposurePercent;
+		}
+	}
+
+	if (piLocalExposurePercent != NULL) *piLocalExposurePercent = iAppliedLocalExposurePercent;
+	if (pbLocalExposureApplies != NULL) *pbLocalExposureApplies = bLocalExposureApplies;
+	return (iEagernessPercent * iAppliedLocalExposurePercent) / 100;
+}
+
 // <!-- custom: Rank naval-floor roles for the relevant water area; the CvCityAI member caller performs the protected AI_chooseUnit call. AI_totalWaterAreaUnitAIs includes ships at sea, in ports and queued there. (ChatGPT-5.6-Sol) -->
 static void SAS_rankNavalProductionUnitAIs(CvPlayerAI const& kPlayer, CvArea const& kWaterArea, int iAssaultWeight, int iEscortWeight, int iAttackWeight, std::vector<UnitAITypes>& aeUnitAIs)
 {
@@ -1485,30 +1666,19 @@ int CvCityAI::AI_permanentSpecialistValue(SpecialistTypes eSpecialist, int* piYi
 		if (iProductionRank <= iSAS_GREAT_GENERAL_AS_MILITARY_INSTRUCTOR_TOP_N_HAMMER_CITY_THRESHOLD)
 		{
 			static const int iSAS_GREAT_GENERAL_AS_MILITARY_INSTRUCTOR_TOP_N_HAMMER_EXTRA_VALUING = GC.getDefineINT("SAS_GREAT_GENERAL_AS_MILITARY_INSTRUCTOR_TOP_N_HAMMER_EXTRA_VALUING");
-
-			// <!-- custom: performance optimization: compute this only once if i'm not mistaken; e.g. "BUILDINGCLASS_HARBOR", check defines for string value -->
-			static const BuildingClassTypes eHeroicEpicEffectBuildingClass = (BuildingClassTypes)GC.getInfoTypeForString(GC.getDefineSTRING("SAS_GREAT_GENERAL_AS_MILITARY_INSTRUCTOR_TOP_N_HAMMER_EXTRA_VALUING_BUILDINGCLASS_FULL_NAME"));
-			static const int iSAS_GREAT_GENERAL_AS_MILITARY_INSTRUCTOR_TOP_N_HAMMER_EXTRA_VALUING_BUILDINGCLASS_FULL_NAME_EXTRA_VALUING = GC.getDefineINT("SAS_GREAT_GENERAL_AS_MILITARY_INSTRUCTOR_TOP_N_HAMMER_EXTRA_VALUING_BUILDINGCLASS_FULL_NAME_EXTRA_VALUING");
-			const CvCivilizationInfo& kCivInfo = GC.getInfo(kPlayer.getCivilizationType());
-			BuildingTypes eHeroicEpicEffectBuilding = NO_BUILDING;
-			if (eHeroicEpicEffectBuildingClass != NO_BUILDINGCLASS)
-			{
-				eHeroicEpicEffectBuilding = (BuildingTypes)kCivInfo.getCivilizationBuildings(eHeroicEpicEffectBuildingClass);
-			}
-			int iHeroicEffectBuildingExtraAddedExtraValue = 0;
-			if (eHeroicEpicEffectBuilding != NO_BUILDING)
-			{
-				const bool bHasHeroicEffectBuilding = (getNumBuilding(eHeroicEpicEffectBuilding) > 0);
-				const bool bBuildingHeroicEffectBuilding = (getProductionBuilding() == eHeroicEpicEffectBuilding);
-				if (bHasHeroicEffectBuilding || bBuildingHeroicEffectBuilding)
-				{
-					iHeroicEffectBuildingExtraAddedExtraValue = iSAS_GREAT_GENERAL_AS_MILITARY_INSTRUCTOR_TOP_N_HAMMER_EXTRA_VALUING_BUILDINGCLASS_FULL_NAME_EXTRA_VALUING;
-				}
-			}
+			static const int iSAS_GREAT_GENERAL_AS_MILITARY_INSTRUCTOR_TOP_N_HAMMER_MILITARY_PRODUCTION_MODIFIER_EXTRA_VALUING = GC.getDefineINT("SAS_GREAT_GENERAL_AS_MILITARY_INSTRUCTOR_TOP_N_HAMMER_MILITARY_PRODUCTION_MODIFIER_EXTRA_VALUING");
+			const BuildingTypes eProductionBuilding = getProductionBuilding();
+			const int iProductionBuildingMilitaryModifier = (eProductionBuilding == NO_BUILDING ? 0 : std::max(0, GC.getInfo(eProductionBuilding).getMilitaryProductionModifier()));
+			const int iMilitaryProductionBuildingModifier = std::max(0, getMilitaryProductionModifier()) + iProductionBuildingMilitaryModifier;
+			// <!-- custom: The old rule named Heroic Epic through a SAS string define, so XML replacements or additional military-production buildings received no proportional recognition.
+			// Derive the synergy from the city's active building modifier plus a positive modifier on its currently constructed building instead.
+			// This reuses CvCity's maintained aggregate rather than rescanning BuildingInfos whenever specialist value is queried.
+			// At current XML values, Heroic Epic's +50 and the per-point value 10 preserve the old +500 bonus, while smaller, stacked, or mod-added effects scale naturally. (GPT-5.6-Sol) -->
+			const int iMilitaryProductionBuildingExtraValue = iMilitaryProductionBuildingModifier * iSAS_GREAT_GENERAL_AS_MILITARY_INSTRUCTOR_TOP_N_HAMMER_MILITARY_PRODUCTION_MODIFIER_EXTRA_VALUING;
 
 			// <!-- custom: the higher the rank the more we value it -->
-			// <!-- custom: extra value if city has or is building the heroic epic, it will be top hammer for military anyway -->
-			const int iMilitaryInstructorExtraValue = (iSAS_GREAT_GENERAL_AS_MILITARY_INSTRUCTOR_TOP_N_HAMMER_EXTRA_VALUING - (10 * iProductionRank) + iHeroicEffectBuildingExtraAddedExtraValue);
+			// <!-- custom: Extra value for built or currently constructed military-production buildings, which make a top-hammer city an efficient place to concentrate Military Instructors. (GPT-5.6-Sol) -->
+			const int iMilitaryInstructorExtraValue = (iSAS_GREAT_GENERAL_AS_MILITARY_INSTRUCTOR_TOP_N_HAMMER_EXTRA_VALUING - (10 * iProductionRank) + iMilitaryProductionBuildingExtraValue);
 			iTempValue += 100 * iExperience * iMilitaryInstructorExtraValue;
 		}
 		iTempValue += (getMilitaryProductionModifier() * iExperience * 6); // was * 8
@@ -1588,24 +1758,80 @@ static int SAS_getMinimumSpaceshipComponentContinuityRank(CvCityAI const& kCity,
 	return iRank;
 }
 
-#define BUILDINGFOCUS_FOOD					(1 << 1)
-#define BUILDINGFOCUS_PRODUCTION			(1 << 2)
-#define BUILDINGFOCUS_GOLD					(1 << 3)
-#define BUILDINGFOCUS_RESEARCH				(1 << 4)
-#define BUILDINGFOCUS_CULTURE				(1 << 5)
-#define BUILDINGFOCUS_DEFENSE				(1 << 6)
-#define BUILDINGFOCUS_HAPPY					(1 << 7)
-#define BUILDINGFOCUS_HEALTHY				(1 << 8)
-#define BUILDINGFOCUS_EXPERIENCE			(1 << 9)
-#define BUILDINGFOCUS_MAINTENANCE			(1 << 10)
-#define BUILDINGFOCUS_SPECIALIST			(1 << 11)
-#define BUILDINGFOCUS_ESPIONAGE				(1 << 12)
-#define BUILDINGFOCUS_BIGCULTURE			(1 << 13)
-//#define BUILDINGFOCUS_WORLDWONDER			(1 << 14)
-#define BUILDINGFOCUS_WORLDWONDER			(1 << 14 | 1 << 16) // K-Mod (WORLDWONDER implies WONDEROK)
-#define BUILDINGFOCUS_DOMAINSEA				(1 << 15)
-#define BUILDINGFOCUS_WONDEROK				(1 << 16)
-#define BUILDINGFOCUS_CAPITAL				(1 << 17)
+// <!-- custom: While adding exact SASGameRecord building-choice provenance, replace the inherited BUILDINGFOCUS_* preprocessor constants with an ordinary local enum, paralleling the earlier AI-strategy diagnostic cleanup that replaced log_strat macros with type-safe C++.
+// Preserve every inherited bit exactly, including K-Mod's composite WORLDWONDER request, while the distinct internal bit lets multi-focus formatting name WORLDWONDER without mislabeling an ordinary WONDEROK request.
+// Keep the type local because no subsystem outside CvCityAI owns or consumes this building-specific request mask. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
+enum BuildingFocusTypes
+{
+	BUILDINGFOCUS_FOOD = (1 << 1),
+	BUILDINGFOCUS_PRODUCTION = (1 << 2),
+	BUILDINGFOCUS_GOLD = (1 << 3),
+	BUILDINGFOCUS_RESEARCH = (1 << 4),
+	BUILDINGFOCUS_CULTURE = (1 << 5),
+	BUILDINGFOCUS_DEFENSE = (1 << 6),
+	BUILDINGFOCUS_HAPPY = (1 << 7),
+	BUILDINGFOCUS_HEALTHY = (1 << 8),
+	BUILDINGFOCUS_EXPERIENCE = (1 << 9),
+	BUILDINGFOCUS_MAINTENANCE = (1 << 10),
+	BUILDINGFOCUS_SPECIALIST = (1 << 11),
+	BUILDINGFOCUS_ESPIONAGE = (1 << 12),
+	BUILDINGFOCUS_BIGCULTURE = (1 << 13),
+	BUILDINGFOCUS_WORLDWONDER_DISTINCT = (1 << 14),
+	BUILDINGFOCUS_DOMAINSEA = (1 << 15),
+	BUILDINGFOCUS_WONDEROK = (1 << 16),
+	BUILDINGFOCUS_WORLDWONDER = (BUILDINGFOCUS_WORLDWONDER_DISTINCT | BUILDINGFOCUS_WONDEROK),
+	BUILDINGFOCUS_CAPITAL = (1 << 17)
+};
+
+struct BuildingFocusDescriptor
+{
+	BuildingFocusTypes eFocus;
+	char const* szName;
+};
+
+// <!-- custom: C++ cannot reflect over this private bitmask; keep its diagnostic iteration order and canonical names in one table so a future focus requires one new row rather than synchronized switch and array edits. (GPT-5.6-Sol) -->
+static BuildingFocusDescriptor const aBuildingFocusDescriptors[] =
+{
+	{ BUILDINGFOCUS_FOOD, "FOOD" },
+	{ BUILDINGFOCUS_PRODUCTION, "PRODUCTION" },
+	{ BUILDINGFOCUS_GOLD, "GOLD" },
+	{ BUILDINGFOCUS_RESEARCH, "RESEARCH" },
+	{ BUILDINGFOCUS_CULTURE, "CULTURE" },
+	{ BUILDINGFOCUS_DEFENSE, "DEFENSE" },
+	{ BUILDINGFOCUS_HAPPY, "HAPPY" },
+	{ BUILDINGFOCUS_HEALTHY, "HEALTHY" },
+	{ BUILDINGFOCUS_EXPERIENCE, "EXPERIENCE" },
+	{ BUILDINGFOCUS_MAINTENANCE, "MAINTENANCE" },
+	{ BUILDINGFOCUS_SPECIALIST, "SPECIALIST" },
+	{ BUILDINGFOCUS_ESPIONAGE, "ESPIONAGE" },
+	{ BUILDINGFOCUS_BIGCULTURE, "BIGCULTURE" },
+	{ BUILDINGFOCUS_WORLDWONDER_DISTINCT, "WORLDWONDER" },
+	{ BUILDINGFOCUS_DOMAINSEA, "DOMAINSEA" },
+	{ BUILDINGFOCUS_WONDEROK, "WONDEROK" },
+	{ BUILDINGFOCUS_CAPITAL, "CAPITAL" }
+};
+
+static char const* SAS_getBuildingFocusType(int iFocusFlag)
+{
+	for (int iI = 0; iI < (int)(sizeof(aBuildingFocusDescriptors) / sizeof(aBuildingFocusDescriptors[0])); iI++)
+	{
+		if (iFocusFlag == aBuildingFocusDescriptors[iI].eFocus)
+			return aBuildingFocusDescriptors[iI].szName;
+	}
+	return "-";
+}
+
+// <!-- custom: Decode combined focus requests through the canonical local descriptor table; shared GameCoreUtils owns only generic token-list assembly. (GPT-5.6-Sol) -->
+static CvString SAS_getBuildingFocusNames(int iFocusFlags)
+{
+	CvString szFocus;
+	for (int iI = 0; iI < (int)(sizeof(aBuildingFocusDescriptors) / sizeof(aBuildingFocusDescriptors[0])); iI++)
+	{
+		if (iFocusFlags & aBuildingFocusDescriptors[iI].eFocus)
+			appendSASDiagnosticListValue(szFocus, aBuildingFocusDescriptors[iI].szName, "|");
+	}
+	return (szFocus.empty() ? CvString("NONE") : szFocus);
+}
 
 // <!-- custom: Diagnostic-only representative contemporary land-military cost for building-vs-unit opportunity analysis.
 // Sample the best trainable unit for several common combat roles, deduplicate units that serve multiple roles, and average their city-specific production costs.
@@ -1778,6 +2004,401 @@ static BuildingTypes SAS_findCheapHighReturnInfrastructureForUnit(CvCityAI const
 
 // <!-- custom: Level-3 building diagnostics inspect focused alternatives without changing production.
 // Const-cache evaluation keeps the diagnostic scans out of mutable AI caches; AI_bestBuildingThreshold randomization is explicitly disabled so diagnostics add no RNG calls. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Shared Walls/Castle-style fortification threat predicate.
+// Keep the proactive trigger restricted to visible hostile land attackers that can actually capture a city; this avoids treating animals, naval transports or unrelated visible enemies as a land-fortification approach.
+// Use the same predicate in the detailed timing scan so the trigger and logged attacker counts share one definition. (ChatGPT-5.6-Sol) -->
+static bool SAS_isVisibleEnemyLandCityAttackerForFortification(CvCityAI const& kCity, CvUnit const& kUnit, CvPlot const& kUnitPlot)
+{
+	// <!-- custom: Keep isAnimal separate from isNoCityCapture: BtS/AdvC animal XML can use bAnimal=1 with bNoCapture=0 (e.g. Bears), even though animal movement cannot capture cities. Do not let fog animals create false proactive fortification approaches. (ChatGPT-5.6-Sol) -->
+	if (kUnit.getDomainType() != DOMAIN_LAND || !kUnit.canAttack() || kUnit.isAnimal() || kUnit.isNoCityCapture() ||
+		kUnit.getUnitInfo().isMostlyDefensive())
+		return false;
+	if (kUnit.isInvisible(kCity.getTeam(), false))
+		return false;
+	return kUnit.isEnemy(kCity.getTeam(), kUnitPlot);
+}
+
+static bool SAS_hasVisibleEnemyLandCityAttackerForFortification(CvCityAI const& kCity, int iRange)
+{
+	for (SquareIter itPlot(kCity.getPlot(), iRange); itPlot.hasNext(); ++itPlot)
+	{
+		CvPlot const& kLoopPlot = *itPlot;
+		if (!kLoopPlot.isVisible(kCity.getTeam()))
+			continue;
+		FOR_EACH_UNITAI_IN(pLoopUnit, kLoopPlot)
+		{
+			if (SAS_isVisibleEnemyLandCityAttackerForFortification(kCity, *pLoopUnit, kLoopPlot))
+				return true;
+		}
+	}
+	return false;
+}
+
+// <!-- custom: The inherited BUILDINGFOCUS_DEFENSE pool also contains late air/nuclear-defense infrastructure such as Bunkers, Airports and Bomb Shelters.
+// For the land-invasion follow-up, separately shadow the best constructible <=20-turn building with an actual city-fortification effect (city defense floor/modifier or bombard resistance), i.e. Walls/Castle-style defenses.
+// Score deterministically with the inherited focused value and its usual time preference; the same helper is shared by the level-3 shadow audit and the evidence-driven proactive production opportunity below.
+// The diagnostic's inherited-style max-turn window is game-speed scaled; the runtime urgency window is already expressed in actual map turns and must not be scaled a second time. (ChatGPT-5.6-Sol) -->
+static BuildingTypes SAS_findBestFortification(CvCityAI const& kCity, int iMaxTurns, bool bScaleMaxTurns)
+{
+	CvCivilization const& kCiv = kCity.getCivilization();
+	int const iEffectiveMaxTurns = (bScaleMaxTurns ? GC.AI_getGame().AI_turnsPercent(iMaxTurns, GC.getInfo(GC.getGame().getGameSpeedType()).getConstructPercent()) : iMaxTurns);
+	int iBestScore = 0;
+	BuildingTypes eBestBuilding = NO_BUILDING;
+	for (int i = 0; i < kCiv.getNumBuildings(); i++)
+	{
+		BuildingClassTypes const eLoopClass = kCiv.buildingClassAt(i);
+		if (GC.getInfo(eLoopClass).isLimited())
+			continue;
+		BuildingTypes const eLoopBuilding = kCiv.buildingAt(i);
+		CvBuildingInfo const& kBuilding = GC.getInfo(eLoopBuilding);
+		if (kBuilding.getDefenseModifier() <= 0 && kBuilding.getBombardDefenseModifier() <= 0 &&
+			kBuilding.get(CvBuildingInfo::RaiseDefense) <= 0)
+		{
+			continue;
+		}
+		if (!kCity.canConstruct(eLoopBuilding))
+			continue;
+		int const iTurnsLeft = kCity.getProductionTurnsLeft(eLoopBuilding, 0);
+		if (iTurnsLeft == MAX_INT || iTurnsLeft > iEffectiveMaxTurns)
+			continue;
+		int iValue = kCity.AI_buildingValue(eLoopBuilding, BUILDINGFOCUS_DEFENSE, 0, true);
+		if (iValue <= 0)
+			continue;
+		iValue += kCity.getBuildingProduction(eLoopBuilding) / 4;
+		int const iScore = (iValue * 1000) / std::max(1, iTurnsLeft + 3);
+		if (iScore > iBestScore)
+		{
+			iBestScore = iScore;
+			eBestBuilding = eLoopBuilding;
+		}
+	}
+	return eBestBuilding;
+}
+
+
+struct SASProactiveFortificationThreat
+{
+	SASProactiveFortificationThreat() : iNearestAttackerDistance(-1), iVisibleAttackers(0), iVisibleSlowAttackers(0), iVisibleBombarders(0), iAffectedByBuildingDefense(0), iIgnoreBuildingDefense(0) {}
+	int iNearestAttackerDistance;
+	int iVisibleAttackers;
+	int iVisibleSlowAttackers;
+	int iVisibleBombarders;
+	int iAffectedByBuildingDefense;
+	int iIgnoreBuildingDefense;
+};
+
+// <!-- custom: Compact runtime counterpart to the detailed defense shadow logger; scan only the visible city-capturing land attackers needed to decide whether a Walls/Castle-style building deserves an early production opportunity; do not run pathfinding or invent an ETA. (ChatGPT-5.6-Sol) -->
+static bool SAS_getProactiveFortificationThreat(CvCityAI const& kCity, int iRange, SASProactiveFortificationThreat& kThreat)
+{
+	for (SquareIter itPlot(kCity.getPlot(), iRange); itPlot.hasNext(); ++itPlot)
+	{
+		CvPlot const& kLoopPlot = *itPlot;
+		if (!kLoopPlot.isVisible(kCity.getTeam()))
+			continue;
+		int const iDistance = stepDistance(kCity.plot(), &kLoopPlot);
+		FOR_EACH_UNITAI_IN(pLoopUnit, kLoopPlot)
+		{
+			if (!SAS_isVisibleEnemyLandCityAttackerForFortification(kCity, *pLoopUnit, kLoopPlot))
+				continue;
+			kThreat.iVisibleAttackers++;
+			if (kThreat.iNearestAttackerDistance < 0 || iDistance < kThreat.iNearestAttackerDistance)
+				kThreat.iNearestAttackerDistance = iDistance;
+			if (pLoopUnit->baseMoves() <= 1)
+				kThreat.iVisibleSlowAttackers++;
+			if (pLoopUnit->bombardRate() > 0)
+				kThreat.iVisibleBombarders++;
+			if (pLoopUnit->ignoreBuildingDefense())
+				kThreat.iIgnoreBuildingDefense++;
+			else kThreat.iAffectedByBuildingDefense++;
+		}
+	}
+	return (kThreat.iVisibleAttackers > 0);
+}
+
+// <!-- custom: Evidence-driven replacement for the removed post-doProduction Walls/Castle force.
+// The old layer rewrote the queue after hammers were already spent and repeatedly displaced invested/high-value production; the Pangaea shadow audit instead found many genuine multi-turn fortification windows before bombard/capture.
+// Give a real fortification one deterministic early opportunity only after ordinary current-production continuity has already released the queue and after the no-defender/strike emergencies below.
+// Immediate danger must be locally serious; proactive range-5 approaches require a valuable city plus a meaningful visible stack or bombarder.
+// Actual-turn completion is compared with actual map-distance pressure, so this intentionally is not game-speed scaled. See KI#48.8. (ChatGPT-5.6-Sol) -->
+static BuildingTypes SAS_getProactiveFortification(CvCityAI const& kCity, bool bImmediateDanger, int iCityDefenders, int iNeededDefenders, int& iMaxUsefulTurns, SASProactiveFortificationThreat& kThreat)
+{
+	static const bool bOptimize = GC.getDefineBOOL("SAS_AI_CHOOSE_PRODUCTION_PROACTIVE_FORTIFICATION_OPTIMIZE");
+	// <!-- custom: Keep these tactical windows explicitly named UNSCALED_GAMESPEED: the turn-define CI caught the initially ambiguous names, and scaling them would grant more map turns even though invading units do not move more slowly on longer game speeds. (GPT-5.6-Sol) -->
+	static const int iConfiguredMaxTurns = std::max(0, GC.getDefineINT("SAS_AI_CHOOSE_PRODUCTION_PROACTIVE_FORTIFICATION_MAX_TURNS_UNSCALED_GAMESPEED"));
+	static const int iTurnsPerDistance = std::max(1, GC.getDefineINT("SAS_AI_CHOOSE_PRODUCTION_PROACTIVE_FORTIFICATION_TURNS_UNSCALED_GAMESPEED_PER_DISTANCE"));
+	static const int iMinCityValuePercent = std::max(0, GC.getDefineINT("SAS_AI_CHOOSE_PRODUCTION_PROACTIVE_FORTIFICATION_MIN_CITY_VALUE_PERCENT"));
+	static const int iMinVisibleAttackers = std::max(1, GC.getDefineINT("SAS_AI_CHOOSE_PRODUCTION_PROACTIVE_FORTIFICATION_MIN_VISIBLE_ATTACKERS"));
+	if (!bOptimize || iConfiguredMaxTurns <= 0)
+		return NO_BUILDING;
+	// <!-- custom: Avoid the range-5 unit scan in ordinary peace. Immediate local danger still allows barbarian/other non-player threats; proactive range-5 scanning is reserved for an actual player war. (ChatGPT-5.6-Sol) -->
+	if (!bImmediateDanger && GET_TEAM(kCity.getTeam()).getNumWars() <= 0)
+		return NO_BUILDING;
+
+	CitySafetyTypes const eSafety = kCity.AI_getSafety();
+	bool const bSeriousImmediateThreat = (bImmediateDanger && eSafety <= CITYSAFETY_THREATENED);
+	bool const bValuableCity = (kCity.isCapital() || kCity.AI_getCityValPercent() >= iMinCityValuePercent);
+	// <!-- custom: Raw bDanger can be raised by a weak/barbarian contact even when inherited city safety still says SAFE/PERFECT. Only THREATENED/EVACUATING bypass the city-value gate; otherwise require the same valuable-city + meaningful-stack evidence as a proactive approach. Besides avoiding overreaction (e.g. the turn-70 Timbuktu two-barbarian case), this cheap gate skips the range-5 scan for low-value safe cities. (ChatGPT-5.6-Sol) -->
+	if (!bSeriousImmediateThreat && !bValuableCity)
+		return NO_BUILDING;
+	if (!SAS_getProactiveFortificationThreat(kCity, 5, kThreat))
+		return NO_BUILDING;
+
+	// <!-- custom: If most visible attackers ignore building defense, a fortification is the wrong emergency response. (ChatGPT-5.6-Sol) -->
+	if (kThreat.iAffectedByBuildingDefense <= kThreat.iIgnoreBuildingDefense)
+		return NO_BUILDING;
+
+	bool const bUnderDefended = (iCityDefenders < iNeededDefenders);
+	// <!-- custom: A visible bombarder lowers the ordinary stack-size threshold, but matching the current defender count alone was still too permissive (e.g. turn-129 Damascus: 2 attackers vs 2 defenders, locally very safe). Require at least 3 attackers and a numerical attacker advantage before the siege shortcut can trigger. (ChatGPT-5.6-Sol) -->
+	bool const bMeaningfulApproach = (kThreat.iVisibleAttackers >= std::max(iMinVisibleAttackers, 2 * iCityDefenders) ||
+		(kThreat.iVisibleBombarders > 0 && kThreat.iVisibleAttackers >= std::max(3, iCityDefenders + 1)));
+	if (!bSeriousImmediateThreat && !bMeaningfulApproach)
+		return NO_BUILDING;
+
+	iMaxUsefulTurns = std::min(iConfiguredMaxTurns,
+		std::max(1, iTurnsPerDistance * std::max(1, kThreat.iNearestAttackerDistance)));
+	// <!-- custom: A stack without visible slow/bombard components can hit faster; do not grant it a speculative siege-time buffer. (ChatGPT-5.6-Sol) -->
+	if (kThreat.iVisibleSlowAttackers <= 0 && kThreat.iVisibleBombarders <= 0)
+		iMaxUsefulTurns = std::min(iMaxUsefulTurns, std::max(1, kThreat.iNearestAttackerDistance));
+	// <!-- custom: When defenders themselves are already short, allow only a nearly-complete fortification before returning to unit priorities. (ChatGPT-5.6-Sol) -->
+	if (bUnderDefended)
+		iMaxUsefulTurns = std::min(iMaxUsefulTurns, 2);
+	// <!-- custom: EVACUATING means the assault is already too advanced for a slow construction project. (ChatGPT-5.6-Sol) -->
+	if (eSafety == CITYSAFETY_EVACUATING)
+		iMaxUsefulTurns = std::min(iMaxUsefulTurns, 1);
+
+	return SAS_findBestFortification(kCity, iMaxUsefulTurns, false);
+}
+
+// <!-- custom: Diagnostic-only shadow audit for the post-emergency-layer defense follow-up.
+// When a city is in immediate danger or has a visible hostile land city-attacker within 5 plots, snapshot the current production target before AI_chooseProduction's continuity returns and shadow the best <=20-turn Walls/Castle-style fortification using inherited BUILDINGFOCUS_DEFENSE value.
+// Keep the later inherited generic BUILDINGFOCUS_DEFENSE stage logged separately for comparison; all shadow scans are deterministic and const-cache. See KI#48.8. (ChatGPT-5.6-Sol) -->
+static void SAS_logDefenseProductionOpportunity(CvCityAI const& kCity, BuildingTypes eDefenseBuilding, HurryTypes ePopHurry, int iPopHurryPopulation, int iPopHurryAngerLength, HurryTypes eGoldHurry, int iGoldHurryCost, bool bImmediateDanger, bool bVisibleApproachThreat)
+{
+
+	char const* szCurrentKind = "-";
+	char const* szCurrentTarget = "-";
+	int iCurrentStored = 0;
+	int iCurrentNeeded = 0;
+	int iCurrentTurnsLeft = -1;
+	UnitTypes const eCurrentUnit = kCity.getProductionUnit();
+	BuildingTypes const eCurrentBuilding = kCity.getProductionBuilding();
+	ProjectTypes const eCurrentProject = kCity.getProductionProject();
+	ProcessTypes const eCurrentProcess = kCity.getProductionProcess();
+	if (eCurrentUnit != NO_UNIT)
+	{
+		szCurrentKind = "UNIT";
+		szCurrentTarget = GC.getInfo(eCurrentUnit).getType();
+		iCurrentStored = kCity.getUnitProduction(eCurrentUnit);
+		iCurrentNeeded = kCity.getProductionNeeded(eCurrentUnit);
+		iCurrentTurnsLeft = kCity.getProductionTurnsLeft(eCurrentUnit, 0);
+	}
+	else if (eCurrentBuilding != NO_BUILDING)
+	{
+		szCurrentKind = "BUILDING";
+		szCurrentTarget = GC.getInfo(eCurrentBuilding).getType();
+		iCurrentStored = kCity.getBuildingProduction(eCurrentBuilding);
+		iCurrentNeeded = kCity.getProductionNeeded(eCurrentBuilding);
+		iCurrentTurnsLeft = kCity.getProductionTurnsLeft(eCurrentBuilding, 0);
+	}
+	else if (eCurrentProject != NO_PROJECT)
+	{
+		szCurrentKind = "PROJECT";
+		szCurrentTarget = GC.getInfo(eCurrentProject).getType();
+		iCurrentStored = kCity.getProjectProduction(eCurrentProject);
+		iCurrentNeeded = kCity.getProductionNeeded(eCurrentProject);
+		iCurrentTurnsLeft = kCity.getProductionTurnsLeft(eCurrentProject, 0);
+	}
+	else if (eCurrentProcess != NO_PROCESS)
+	{
+		szCurrentKind = "PROCESS";
+		szCurrentTarget = GC.getInfo(eCurrentProcess).getType();
+	}
+	if (iCurrentTurnsLeft == MAX_INT) iCurrentTurnsLeft = -1;
+
+	char const* szDefenseBuilding = "-";
+	int iDefenseNeutralValue = 0;
+	int iDefenseFocusValue = 0;
+	int iDefenseStored = 0;
+	int iDefenseNeeded = 0;
+	int iDefenseTurnsLeft = -1;
+	int iDefenseModifier = 0;
+	int iBombardDefenseModifier = 0;
+	int iRaiseDefense = 0;
+	if (eDefenseBuilding != NO_BUILDING)
+	{
+		CvBuildingInfo const& kDefenseBuilding = GC.getInfo(eDefenseBuilding);
+		szDefenseBuilding = kDefenseBuilding.getType();
+		iDefenseNeutralValue = kCity.AI_buildingValue(eDefenseBuilding, 0, 0, true);
+		iDefenseFocusValue = kCity.AI_buildingValue(eDefenseBuilding, BUILDINGFOCUS_DEFENSE, 0, true);
+		iDefenseStored = kCity.getBuildingProduction(eDefenseBuilding);
+		iDefenseNeeded = kCity.getProductionNeeded(eDefenseBuilding);
+		iDefenseTurnsLeft = kCity.getProductionTurnsLeft(eDefenseBuilding, 0);
+		if (iDefenseTurnsLeft == MAX_INT) iDefenseTurnsLeft = -1;
+		iDefenseModifier = kDefenseBuilding.getDefenseModifier();
+		iBombardDefenseModifier = kDefenseBuilding.getBombardDefenseModifier();
+		iRaiseDefense = kDefenseBuilding.get(CvBuildingInfo::RaiseDefense);
+	}
+
+	CvPlayerAI const& kOwner = GET_PLAYER(kCity.getOwner());
+	CvTeamAI const& kTeam = GET_TEAM(kCity.getTeam());
+	int const iCityDefenders = kCity.getPlot().getNumDefenders(kCity.getOwner());
+	int const iNeededDefenders = kCity.AI_neededDefenders();
+
+	// <!-- custom: A threatened city's useful defense window can be longer than one turn: an offensive stack may still be several plots away, may be waiting for one-move/siege units, and may need time to bombard city defenses.
+	// Record only visible/local timing context rather than trying to predict the battle: K-Mod plot-danger/local-strength measures, current city-defense damage, visible hostile attacker/bombarder distances, whether those attackers ignore building defense, slow-unit presence, and whether adjacent attack plots cross a river.
+	// These are diagnostic clues for comparing defenseBuildingTurnsLeft and hurry options against the plausible attack/bombard window; they deliberately do not create a synthetic ETA or alter pathfinding/RNG. (ChatGPT-5.6-Sol) -->
+	int iLocalAttackersR1 = 0;
+	int iLocalAttackersR3 = 0;
+	int const iLocalAttackStrengthR1 = kOwner.AI_localAttackStrength(kCity.plot(), NO_TEAM, DOMAIN_LAND, 1, true, false, false, &iLocalAttackersR1);
+	int const iLocalAttackStrengthR3 = kOwner.AI_localAttackStrength(kCity.plot(), NO_TEAM, DOMAIN_LAND, 3, true, false, false, &iLocalAttackersR3);
+	int const iLocalDefenseStrengthR3 = kOwner.AI_localDefenceStrength(kCity.plot(), kCity.getTeam(), DOMAIN_LAND, 3, true, true, false, true);
+	int const iPlotDangerR1 = kOwner.AI_getPlotDanger(kCity.getPlot(), 1, false);
+	int const iPlotDangerR2 = kOwner.AI_getPlotDanger(kCity.getPlot(), 2, false);
+	int const iPlotDangerR3 = kOwner.AI_getPlotDanger(kCity.getPlot(), 3, false);
+
+	int iNearestVisibleAttackerDistance = -1;
+	int iNearestVisibleBombarderDistance = -1;
+	int iNearestVisibleSlowAttackerDistance = -1;
+	int iVisibleAttackersR1 = 0, iVisibleAttackersR2 = 0, iVisibleAttackersR3 = 0, iVisibleAttackersR5 = 0;
+	int iVisibleAttackersIgnoreBuildingDefenseR3 = 0, iVisibleAttackersIgnoreBuildingDefenseR5 = 0;
+	int iVisibleAttackersAffectedByBuildingDefenseR3 = 0, iVisibleAttackersAffectedByBuildingDefenseR5 = 0;
+	int iVisibleBombardersR1 = 0, iVisibleBombardersR2 = 0, iVisibleBombardersR3 = 0, iVisibleBombardersR5 = 0;
+	int iVisibleSlowAttackersR3 = 0, iVisibleSlowAttackersR5 = 0;
+	int iVisibleBombardRateR1 = 0, iVisibleBombardRateR3 = 0;
+	int iAdjacentEnemyAttackPlots = 0, iAdjacentNoRiverAttackPlots = 0, iAdjacentRiverAttackPlots = 0;
+	for (SquareIter itPlot(kCity.getPlot(), 5); itPlot.hasNext(); ++itPlot)
+	{
+		CvPlot const& kEnemyPlot = *itPlot;
+		if (!kEnemyPlot.isVisible(kCity.getTeam()))
+			continue;
+		int const iDistance = stepDistance(kCity.plot(), &kEnemyPlot);
+		bool bAttackPlot = false;
+		FOR_EACH_UNITAI_IN(pEnemyUnit, kEnemyPlot)
+		{
+			if (!SAS_isVisibleEnemyLandCityAttackerForFortification(kCity, *pEnemyUnit, kEnemyPlot))
+				continue;
+			bAttackPlot = true;
+			if (iNearestVisibleAttackerDistance < 0 || iDistance < iNearestVisibleAttackerDistance)
+				iNearestVisibleAttackerDistance = iDistance;
+			if (iDistance <= 1) iVisibleAttackersR1++;
+			if (iDistance <= 2) iVisibleAttackersR2++;
+			if (iDistance <= 3) iVisibleAttackersR3++;
+			iVisibleAttackersR5++;
+			if (pEnemyUnit->ignoreBuildingDefense())
+			{
+				if (iDistance <= 3) iVisibleAttackersIgnoreBuildingDefenseR3++;
+				iVisibleAttackersIgnoreBuildingDefenseR5++;
+			}
+			else
+			{
+				if (iDistance <= 3) iVisibleAttackersAffectedByBuildingDefenseR3++;
+				iVisibleAttackersAffectedByBuildingDefenseR5++;
+			}
+
+			if (pEnemyUnit->baseMoves() <= 1)
+			{
+				if (iNearestVisibleSlowAttackerDistance < 0 || iDistance < iNearestVisibleSlowAttackerDistance)
+					iNearestVisibleSlowAttackerDistance = iDistance;
+				if (iDistance <= 3) iVisibleSlowAttackersR3++;
+				iVisibleSlowAttackersR5++;
+			}
+
+			int const iBombardRate = pEnemyUnit->bombardRate();
+			if (iBombardRate > 0)
+			{
+				if (iNearestVisibleBombarderDistance < 0 || iDistance < iNearestVisibleBombarderDistance)
+					iNearestVisibleBombarderDistance = iDistance;
+				if (iDistance <= 1)
+				{
+					iVisibleBombardersR1++;
+					iVisibleBombardRateR1 += iBombardRate;
+				}
+				if (iDistance <= 2) iVisibleBombardersR2++;
+				if (iDistance <= 3)
+				{
+					iVisibleBombardersR3++;
+					iVisibleBombardRateR3 += iBombardRate;
+				}
+				iVisibleBombardersR5++;
+			}
+		}
+		if (iDistance == 1 && bAttackPlot)
+		{
+			iAdjacentEnemyAttackPlots++;
+			if (kEnemyPlot.isRiverCrossing(directionXY(kEnemyPlot, kCity.getPlot())))
+				iAdjacentRiverAttackPlots++;
+			else iAdjacentNoRiverAttackPlots++;
+		}
+	}
+
+	// <!-- custom: A defense building's ordinary turns-to-completion can be misleading in an emergency if it can be hurried now.
+	// Record the real current-civic population/gold hurry feasibility for the shadow candidate, and separately expose whether a legal zero-anarchy civic switch could enable population rushing this turn.
+	// Actual hurries and civic switches are already preserved by SASGameRecord; this row supplies only the missing counterfactual opportunity context. Diagnostic only. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Current-civic shadow hurry feasibility/costs are precomputed by AI_chooseProduction, where CvCityAI may legally access the inherited protected CvCity hurry helpers.
+	// Pass the resulting diagnostic values into this free logger instead of widening CvCity's API or duplicating hurry formulas here. (ChatGPT-5.6-Sol) -->
+
+	CivicTypes eZeroAnarchyPopRushCivic = NO_CIVIC;
+	int iZeroAnarchyPopRushCivicValueDelta = 0;
+	if (!kOwner.canPopRush())
+	{
+		CivicMap aeCurrentCivics;
+		kOwner.getCivics(aeCurrentCivics);
+		FOR_EACH_ENUM2(Civic, eCivic)
+		{
+			CvCivicInfo const& kCivic = GC.getInfo(eCivic);
+			bool bEnablesPopRush = false;
+			FOR_EACH_ENUM2(Hurry, eHurry)
+			{
+				if (kCivic.isHurry(eHurry) && GC.getInfo(eHurry).getProductionPerPopulation() > 0)
+				{
+					bEnablesPopRush = true;
+					break;
+				}
+			}
+			if (!bEnablesPopRush || !kOwner.canDoCivics(eCivic))
+				continue;
+			CivicOptionTypes const eOption = kCivic.getCivicOptionType();
+			CivicTypes const eCurrentCivic = aeCurrentCivics.get(eOption);
+			if (eCurrentCivic == eCivic)
+				continue;
+			CivicMap aeTestCivics(aeCurrentCivics);
+			aeTestCivics.set(eOption, eCivic);
+			if (kOwner.getCivicAnarchyLength(aeTestCivics) != 0 || !kOwner.canRevolution(aeTestCivics))
+				continue;
+			int const iValueDelta = kOwner.AI_civicValue(eCivic) - kOwner.AI_civicValue(eCurrentCivic);
+			if (eZeroAnarchyPopRushCivic == NO_CIVIC || iValueDelta > iZeroAnarchyPopRushCivicValueDelta)
+			{
+				eZeroAnarchyPopRushCivic = eCivic;
+				iZeroAnarchyPopRushCivicValueDelta = iValueDelta;
+			}
+		}
+	}
+
+	logBBAI("BUILDING_PRODUCTION_DEFENSE_URGENCY turn=%d player=%d %S city=%S cityId=%d x=%d y=%d stage=ENTRY currentKind=%s currentTarget=%s currentStored=%d currentNeeded=%d currentTurnsLeft=%d defenseBuilding=%s defenseNeutralValue=%d defenseFocusValue=%d defenseStored=%d defenseNeeded=%d defenseTurnsLeft=%d cityNaturalDefense=%d cityTotalDefense=%d cityBombardDefense=%d buildingDefenseModifier=%d buildingBombardDefenseModifier=%d buildingRaiseDefense=%d cityDefenders=%d neededDefenders=%d underDefended=%d population=%d happyBalance=%d hurryAngerTimer=%d canPopRushNow=%d popHurry=%s popHurryPopulation=%d popHurryAngerLength=%d goldHurry=%s goldHurryCost=%d zeroAnarchyPopRushCivic=%s zeroAnarchyPopRushCivicValueDelta=%d civicTimer=%d revolutionTimer=%d goldenAgeTurns=%d maxAnarchyTurns=%d atWar=%d warPlan=%d landWar=%d enemyPowerPercent=%d immediateDanger=%d visibleApproachThreat=%d",
+		GC.getGame().getGameTurn(), kCity.getOwner(), kOwner.getCivilizationDescription(0), kCity.getName().GetCString(), kCity.getID(), kCity.getX(), kCity.getY(),
+		szCurrentKind, szCurrentTarget, iCurrentStored, iCurrentNeeded, iCurrentTurnsLeft, szDefenseBuilding,
+		iDefenseNeutralValue, iDefenseFocusValue, iDefenseStored, iDefenseNeeded, iDefenseTurnsLeft,
+		kCity.getNaturalDefense(), kCity.getTotalDefense(false), kCity.getBuildingBombardDefense(), iDefenseModifier, iBombardDefenseModifier, iRaiseDefense,
+		iCityDefenders, iNeededDefenders, iCityDefenders < iNeededDefenders, kCity.getPopulation(), kCity.happyLevel() - kCity.unhappyLevel(),
+		kCity.getHurryAngerTimer(), kCity.canPopRush(), (ePopHurry == NO_HURRY ? "-" : GC.getInfo(ePopHurry).getType()), iPopHurryPopulation, iPopHurryAngerLength,
+		(eGoldHurry == NO_HURRY ? "-" : GC.getInfo(eGoldHurry).getType()), iGoldHurryCost,
+		(eZeroAnarchyPopRushCivic == NO_CIVIC ? "-" : GC.getInfo(eZeroAnarchyPopRushCivic).getType()), iZeroAnarchyPopRushCivicValueDelta,
+		kOwner.AI_getCivicTimer(), kOwner.getRevolutionTimer(), kOwner.getGoldenAgeTurns(), kOwner.getMaxAnarchyTurns(),
+		kTeam.getNumWars() > 0, kOwner.AI_isFocusWar(), kOwner.AI_isLandWar(kCity.getArea()), kTeam.AI_getEnemyPowerPercent(true), bImmediateDanger, bVisibleApproachThreat);
+
+	logBBAI("BUILDING_PRODUCTION_DEFENSE_TIMING turn=%d player=%d %S city=%S cityId=%d x=%d y=%d defenseBuilding=%s defenseTurnsLeft=%d citySafety=%d cityValuePercent=%d capital=%d cityTotalDefense=%d cityDefenseModifier=%d cityDefenseDamage=%d cityLastDefenseDamage=%d cityBombardDefense=%d cityBombarded=%d plotDangerR1=%d plotDangerR2=%d plotDangerR3=%d localAttackStrengthR1=%d localAttackersR1=%d localAttackStrengthR3=%d localAttackersR3=%d localDefenseStrengthR3=%d nearestVisibleAttackerDistance=%d nearestVisibleSlowAttackerDistance=%d nearestVisibleBombarderDistance=%d visibleAttackersR1=%d visibleAttackersR2=%d visibleAttackersR3=%d visibleAttackersR5=%d visibleAttackersIgnoreBuildingDefenseR3=%d visibleAttackersIgnoreBuildingDefenseR5=%d visibleAttackersAffectedByBuildingDefenseR3=%d visibleAttackersAffectedByBuildingDefenseR5=%d visibleSlowAttackersR3=%d visibleSlowAttackersR5=%d visibleBombardersR1=%d visibleBombardersR2=%d visibleBombardersR3=%d visibleBombardersR5=%d visibleBombardRateR1=%d visibleBombardRateR3=%d adjacentEnemyAttackPlots=%d adjacentNoRiverAttackPlots=%d adjacentRiverAttackPlots=%d maxHurryPopulation=%d",
+		GC.getGame().getGameTurn(), kCity.getOwner(), kOwner.getCivilizationDescription(0), kCity.getName().GetCString(), kCity.getID(), kCity.getX(), kCity.getY(),
+		szDefenseBuilding, iDefenseTurnsLeft, kCity.AI_getSafety(), kCity.AI_getCityValPercent(), kCity.isCapital(),
+		kCity.getTotalDefense(false), kCity.getDefenseModifier(false), kCity.getDefenseDamage(), kCity.getLastDefenseDamage(), kCity.getBuildingBombardDefense(), kCity.isBombarded(),
+		iPlotDangerR1, iPlotDangerR2, iPlotDangerR3, iLocalAttackStrengthR1, iLocalAttackersR1, iLocalAttackStrengthR3, iLocalAttackersR3, iLocalDefenseStrengthR3,
+		iNearestVisibleAttackerDistance, iNearestVisibleSlowAttackerDistance, iNearestVisibleBombarderDistance,
+		iVisibleAttackersR1, iVisibleAttackersR2, iVisibleAttackersR3, iVisibleAttackersR5,
+		iVisibleAttackersIgnoreBuildingDefenseR3, iVisibleAttackersIgnoreBuildingDefenseR5, iVisibleAttackersAffectedByBuildingDefenseR3, iVisibleAttackersAffectedByBuildingDefenseR5,
+		iVisibleSlowAttackersR3, iVisibleSlowAttackersR5,
+		iVisibleBombardersR1, iVisibleBombardersR2, iVisibleBombardersR3, iVisibleBombardersR5, iVisibleBombardRateR1, iVisibleBombardRateR3,
+		iAdjacentEnemyAttackPlots, iAdjacentNoRiverAttackPlots, iAdjacentRiverAttackPlots, kCity.maxHurryPopulation());
+}
+
 static void SAS_logBuildingProductionFocusCandidate(CvCityAI const& kCity, int iFocusFlags, char const* szFocus)
 {
 	BuildingTypes const eBuilding = kCity.AI_bestBuildingThreshold(iFocusFlags, 0, 0, true, NO_ADVISOR, false);
@@ -1828,7 +2449,21 @@ public:
 		int iTurnsLeft = kCity.getProductionTurnsLeft(eBestBuilding, 0);
 		if (iTurnsLeft == MAX_INT) iTurnsLeft = -1;
 		int const iMaxUnitSpending = kPlayer.AI_maxUnitCostPerMil(&kCity.getArea(), iBuildUnitProb);
-		logBBAI("BUILDING_PRODUCTION_OPPORTUNITY turn=%d player=%d %S city=%S cityId=%d era=%d pop=%d baseProd=%d bestBuilding=%s rawValue=%d adjustedValue=%d stored=%d needed=%d remaining=%d turnsLeft=%d buildingToMilitaryAvgPercent=%d remainingToMilitaryAvgPercent=%d buildingToMilitaryAvgTurnsPercent=%d militaryAvgCost=%d militaryMinCost=%d militaryMaxCost=%d militaryAvgTurns=%d militaryUniqueUnits=%d happySurplus=%d healthSurplus=%d foodSurplus=%d maintenanceTimes100=%d danger=%d atWar=%d warPlan=%d landWar=%d assault=%d warPrep=%d financialTrouble=%d buildUnitProb=%d unitSpending=%d maxUnitSpending=%d spendingGap=%d limited=%d worldWonder=%d nationalWonder=%d",
+		// <!-- custom: Cross-category military-pressure audit: put the best inherited building beside the actual strategic pressure and local defensive stock before AI_chooseProduction's later branches decide whether to keep it or switch to units/processes.
+		// Keep every added query inside this already-armed BUILDING_PRODUCTION diagnostic scope so ordinary gameplay pays no cost.
+		// This is intended to test whether the old per-category and unclassified strong-enemy vetoes should be replaced by one central opportunity-cost rule, or removed entirely if the inherited chooser already reacts well enough. (ChatGPT-5.6-Sol) -->
+		SASWarPowerContext const kWarPower(kTeam);
+		int const iEnemyPowerPercent = kWarPower.iEnemyPowerPercent;
+		bool const bEnemyStrong = kWarPower.bEnemyStrong;
+		int const iCityDefenders = kCity.getPlot().getNumDefenders(kCity.getOwner());
+		int const iNeededDefenders = kCity.AI_neededDefenders();
+		int const iAreaMilitaryStock = SAS_getMainLandMilitaryStock(kPlayer, kCity.getArea());
+		int const iProductionRank = kCity.findYieldRateRank(YIELD_PRODUCTION);
+		int const iNumCities = kPlayer.getNumCities();
+		bool const bAtWar = kWarPower.bAtWar;
+		bool const bWarPlan = kPlayer.AI_isFocusWar();
+		bool const bOldSASMilitaryPressureCore = (bDanger || bAtWar || bEnemyStrong || bWarPlan);
+		logBBAI("BUILDING_PRODUCTION_OPPORTUNITY turn=%d player=%d %S city=%S cityId=%d era=%d pop=%d baseProd=%d bestBuilding=%s rawValue=%d adjustedValue=%d stored=%d needed=%d remaining=%d turnsLeft=%d buildingToMilitaryAvgPercent=%d remainingToMilitaryAvgPercent=%d buildingToMilitaryAvgTurnsPercent=%d militaryAvgCost=%d militaryMinCost=%d militaryMaxCost=%d militaryAvgTurns=%d militaryUniqueUnits=%d happySurplus=%d healthSurplus=%d foodSurplus=%d maintenanceTimes100=%d danger=%d atWar=%d warPlan=%d landWar=%d assault=%d warPrep=%d enemyPowerPercent=%d enemyStrong=%d cityDefenders=%d neededDefenders=%d underDefended=%d areaMilitaryStock=%d productionRank=%d numCities=%d areaAI=%d oldSASMilitaryPressureCore=%d financialTrouble=%d buildUnitProb=%d unitSpending=%d maxUnitSpending=%d spendingGap=%d limited=%d worldWonder=%d nationalWonder=%d",
 			GC.getGame().getGameTurn(), kCity.getOwner(), kPlayer.getCivilizationDescription(0), kCity.getName().GetCString(), kCity.getID(),
 			kPlayer.getCurrentEra(), kCity.getPopulation(), kCity.getBaseYieldRate(YIELD_PRODUCTION), kBuilding.getType(), iRawValue,
 			iAdjustedValue, iStored, iNeeded, std::max(0, iNeeded - iStored), iTurnsLeft,
@@ -1837,7 +2472,9 @@ public:
 			iRepresentativeMilitaryTurns <= 0 || iTurnsLeft < 0 ? -1 : (100 * iTurnsLeft) / iRepresentativeMilitaryTurns,
 			iRepresentativeMilitaryCost, iMilitaryMinCost, iMilitaryMaxCost, iRepresentativeMilitaryTurns, iMilitaryUniqueUnits,
 			kCity.happyLevel() - kCity.unhappyLevel(), kCity.goodHealth() - kCity.badHealth(), kCity.foodDifference(false, true),
-			kCity.getMaintenanceTimes100(), bDanger, kTeam.getNumWars() > 0, kPlayer.AI_isFocusWar(), bLandWar, bAssault, bWarPrep,
+			kCity.getMaintenanceTimes100(), bDanger, bAtWar, bWarPlan, bLandWar, bAssault, bWarPrep,
+			iEnemyPowerPercent, bEnemyStrong, iCityDefenders, iNeededDefenders, iCityDefenders < iNeededDefenders,
+			iAreaMilitaryStock, iProductionRank, iNumCities, kCity.getArea().getAreaAIType(kCity.getTeam()), bOldSASMilitaryPressureCore,
 			bFinancialTrouble, iBuildUnitProb, iUnitSpending, iMaxUnitSpending, iMaxUnitSpending - iUnitSpending, kBuilding.isLimited(),
 			kBuilding.isWorldWonder(), kBuilding.isNationalWonder());
 	}
@@ -1894,9 +2531,14 @@ void CvCityAI::AI_chooseProduction()
 {
 	PROFILE_FUNC();
 
+	int const iSASGameRecordLogLevel = gGameRecordLogLevel;
+	bool const bLogSASBuildingChoices = (iSASGameRecordLogLevel >= 2 && !isHuman() && !isBarbarian());
+	bool const bLogDetailedSASBuildingChoices = (bLogSASBuildingChoices && iSASGameRecordLogLevel >= 3);
+	// <!-- custom: SASGameRecord building-choice emitters intentionally trust caller-side log-level gating: level 0/1 pays no focus formatting or recorder call, and the readable focus list is built only for level 3.
+	// Keep this explicit contract rather than hiding a second log-level check/assert inside the emitter. (ChatGPT-5.6-Sol) -->
 	// <!-- custom: One scope observes the authoritative entry/final head target across every early return.
 	// Only civilization AI cities at SASGameRecord level 2+ capture state; ordinary completion -> fresh next selection is suppressed as non-churn. (ChatGPT-5.6-Sol) -->
-	SASGameRecordAIProductionChoiceScope kSASGameRecordProductionChoiceScope(*this, gGameRecordLogLevel >= 2 && !isHuman() && !isBarbarian());
+	SASGameRecordAIProductionChoiceScope kSASGameRecordProductionChoiceScope(*this, bLogSASBuildingChoices);
 	SASSpaceProductionReevaluationLogScope kSASSpaceProductionReevaluationLogScope(*this, gSpaceProductionLogLevel >= 2);
 	SASLimitedProjectProductionReevaluationLogScope kSASLimitedProjectProductionReevaluationLogScope(*this, gLimitedProjectProductionLogLevel >= 2);
 	bool bWasFoodProduction = isFoodProduction();
@@ -1905,7 +2547,7 @@ void CvCityAI::AI_chooseProduction()
 	CvPlayerAI& kPlayer = GET_PLAYER(getOwner());
 	// <advc>
 
-	// <!-- custom: cache to kTeam for perf opt if i'm not mistaken. See note at CvCityAI::AI_buildingValue. -->
+	// <!-- custom: Keep this practical-5282 GET_TEAM cache as CvTeamAI: some sibling cache sites compile when narrowed to CvTeam, while others fail because they use AI-only team members or helpers requiring CvTeamAI; retain CvTeamAI across this cache family to avoid tedious per-site type exceptions. See KI#311.2. (ChatGPT-5.6-Sol) -->
 	CvTeamAI const& kTeam = GET_TEAM(kPlayer.getTeam()); // kekm.16
 
 	CvGame const& kGame = GC.getGame();
@@ -1915,6 +2557,50 @@ void CvCityAI::AI_chooseProduction()
 
 	// <!-- custom: performance optimizations -->
 	CvPlot const& kPlot = getPlot();
+
+	// <!-- custom: Shadow urgent/proactive fortification opportunities before current-production continuity can return.
+	// Immediate bDanger covers the close threat; visible hostile land city attackers within 5 plots cover the multi-turn approach/bombard window documented; logging only; no pathfinding or synthetic ETA. See KI#48.8. (ChatGPT-5.6-Sol) -->
+	bool const bLogDefenseProductionBase = (gBuildingProductionLogLevel >= 3 && !isHuman() && !isBarbarian());
+	bool const bVisibleApproachThreat = (bLogDefenseProductionBase && SAS_hasVisibleEnemyLandCityAttackerForFortification(*this, 5));
+	bool const bLogDefenseUrgencyProduction = (bLogDefenseProductionBase && (bDanger || bVisibleApproachThreat));
+	if (bLogDefenseUrgencyProduction)
+	{
+		BuildingTypes const eShadowDefenseBuilding = SAS_findBestFortification(*this, 20, true);
+		HurryTypes eShadowPopHurry = NO_HURRY;
+		HurryTypes eShadowGoldHurry = NO_HURRY;
+		int iShadowPopHurryPopulation = -1;
+		int iShadowPopHurryAngerLength = -1;
+		int iShadowGoldHurryCost = -1;
+		// <!-- custom: CvCity hurry-cost helpers are protected. Compute the shadow candidate's hurry feasibility here in CvCityAI member context, then pass only the resulting diagnostic values to the free logger.
+		// This keeps the audit behavior-neutral without widening CvCity's public API solely for logging. (ChatGPT-5.6-Sol) -->
+		if (eShadowDefenseBuilding != NO_BUILDING)
+		{
+			FOR_EACH_ENUM2(Hurry, eHurry)
+			{
+				CvHurryInfo const& kHurry = GC.getInfo(eHurry);
+				if (kHurry.getProductionPerPopulation() > 0 && canHurryBuilding(eHurry, eShadowDefenseBuilding, false))
+				{
+					int const iPopulation = getHurryPopulation(eHurry, getHurryCost(true, eShadowDefenseBuilding, false));
+					if (eShadowPopHurry == NO_HURRY || iPopulation < iShadowPopHurryPopulation)
+					{
+						eShadowPopHurry = eHurry;
+						iShadowPopHurryPopulation = iPopulation;
+						iShadowPopHurryAngerLength = hurryAngerLength(eHurry);
+					}
+				}
+				if (kHurry.getGoldPerProduction() > 0 && canHurryBuilding(eHurry, eShadowDefenseBuilding, false))
+				{
+					int const iGold = getHurryGold(eHurry, getHurryCost(false, eShadowDefenseBuilding, false));
+					if (eShadowGoldHurry == NO_HURRY || iGold < iShadowGoldHurryCost)
+					{
+						eShadowGoldHurry = eHurry;
+						iShadowGoldHurryCost = iGold;
+					}
+				}
+			}
+		}
+		SAS_logDefenseProductionOpportunity(*this, eShadowDefenseBuilding, eShadowPopHurry, iShadowPopHurryPopulation, iShadowPopHurryAngerLength, eShadowGoldHurry, iShadowGoldHurryCost, bDanger, bVisibleApproachThreat);
+	}
 
 	if (isProduction())
 	{
@@ -2025,111 +2711,32 @@ void CvCityAI::AI_chooseProduction()
 						return;
 				}
 			}
-			// // if we are building a wonder, do not cancel, keep building it (if no danger)
-			// /*BuildingTypes eProductionBuilding = getProductionBuilding();
-			// if (!bDanger && eProductionBuilding != NO_BUILDING && CvBuildingInfo::isLimited(eProductionBuilding))
-			// 	return;*/ // BtS
-			// <!-- custom: we definitely want to tighten this, if we are weak, don't build wonders for our ennemies when they conquer us, ditch current building production and try to produce a few longbowmen or such rather, and if strong and at war, maybe urgency is not world wonders as well but making sure we are effective in our war, so adjust thresholds for this; code written by chatgpt 5 with my adjustments or such, check if accurate -->
-			// // K-Mod. same idea, but with a few more conditions
-			BuildingTypes eProductionBuilding = getProductionBuilding();
+			BuildingTypes const eProductionBuilding = getProductionBuilding();
 			if (eProductionBuilding != NO_BUILDING && GC.getInfo(eProductionBuilding).isLimited())
-			// {
-			// 	int iCompletion = 100*getBuildingProduction(eProductionBuilding) /
-			// 			std::max(1, getProductionNeeded(eProductionBuilding));
-			// 	int iThreshold = 25;
-			// 	iThreshold += kPlayer.AI_isLandWar(kArea) ? 40 : 0;
-			// 	iThreshold += kPlayer.AI_isDoStrategy(AI_STRATEGY_TURTLE) ? 25 : 0; // (in addition to land war)
-			// 	iThreshold += !GC.getInfo(eProductionBuilding).isWorldWonder() ? 10 : 0;
-			// 	if (iCompletion >= iThreshold)
-			// 		return;
-			// }
-			// // K-Mod end
 			{
-				// % complete of the current wonder
-				const int iCompletion = 100 * getBuildingProduction(eProductionBuilding) /
-					std::max(1, getProductionNeeded(eProductionBuilding));
-
-				// Situation read
-				bool const bWarPlan = kPlayer.AI_isFocusWar();
-				// <!-- custom: it seems to me guessedly more reliable than the old AI_isLandWar check, chatgpt 5 advises for this as well when looking at the function's code when i asked it about it, check if accurate -->
-				const bool bAtWar = (kTeam.getNumWars() > 0);
-				const int iEnemyPowerPercent = kTeam.AI_getEnemyPowerPercent(true);
-				static const int iSAS_ENEMY_STRONG_POWER_THRESHOLD = GC.getDefineINT("SAS_ENEMY_STRONG_POWER_THRESHOLD"); // e.g. 120
-				const bool bEnemyStrong = (iEnemyPowerPercent >= iSAS_ENEMY_STRONG_POWER_THRESHOLD);
-				// <!-- custom: note: if i remember it correctly, chatgpt 5 said this applies also if not at war. I guessedly thought this maybe would or could return 0 if we are not at war with any ennemy, faslifying formula and defeating the purpose. In some places, i have added bAtWarAndEnemyWeak, while in some other places i may have left it as bEnemyWeak (check to be sure, i didn't check too much). I don't know which is more correct as of now and didn't dig too deep into it, so left as such, hopefully accurate enough, thankfully at this part of the code the difference wouldn't be too big regardless, and most importantly it already pre-checks bAtWar before so no issue there but ideally figure out how it works to decide if we should merge the weak with an at war check to be safe or if uneeded and be more flexible and accurate with only a weak check, but left as such -->
-				static const int iSAS_ENEMY_WEAK_POWER_THRESHOLD = GC.getDefineINT("SAS_ENEMY_WEAK_POWER_THRESHOLD"); // e.g. 80
-				const bool bEnemyWeak = (iEnemyPowerPercent <= iSAS_ENEMY_WEAK_POWER_THRESHOLD);
-				// <!-- custom: redundant given below checks but for clarity (ideally should apply it elsewhere it is used but didn't do so so far as bit tedious and would need to test it to be sure if better results as such or if relevant for relevant parts of the code although not checking war seems a mistake based on the info i found while solving known issue as of now 53.3 but check to be sure and left as such at least as of now in other places) -->
-				const bool bAtWarAndEnemyWeak = (bAtWar && bEnemyWeak);
-
-				// Keep a baseline threshold so peaceful wonder builds don’t auto-stick at 0%. 
-				int iThreshold = 25;
-
-				if (GC.getInfo(eProductionBuilding).isWorldWonder())
+				// <!-- custom: BtS kept any invested limited building when the city was safe.
+				// K-Mod replaced that blanket rule with completion thresholds raised by land war, Turtle strategy and non-World-Wonder status.
+				// An A/B restored this inherited rule after the old SAS danger/war/power matrix interrupted Beijing's safe 47%-complete, four-turn Oracle for a Longbowman and Worker; inherited continuation completed it seven turns earlier without a safety failure. See KI#48.9. (GPT-5.6-Sol) -->
+				CvBuildingInfo const& kProductionBuilding = GC.getInfo(eProductionBuilding);
+				int const iStored = getBuildingProduction(eProductionBuilding);
+				int const iNeeded = getProductionNeeded(eProductionBuilding);
+				int const iCompletionPercent = 100 * iStored / std::max(1, iNeeded);
+				bool const bLandWar = kPlayer.AI_isLandWar(kArea);
+				bool const bTurtle = kPlayer.AI_isDoStrategy(AI_STRATEGY_TURTLE);
+				int const iInheritedThreshold = 25 + (bLandWar ? 40 : 0) + (bTurtle ? 25 : 0) + (!kProductionBuilding.isWorldWonder() ? 10 : 0);
+				bool const bInheritedWouldKeep = (iCompletionPercent >= iInheritedThreshold);
+				if (gBuildingProductionLogLevel >= 3)
 				{
-					if (bAtWar)
-					{
-						// <!-- custom: don't build the world wonder for our enemy when they conquer us (as for national wonders, more generally read after bracket as well), attempt to build a few longbowmen with the hammer rather or anything else -->
-						if (bEnemyStrong)
-						{
-							iThreshold = 80;
-						}
-						else if (bAtWarAndEnemyWeak)
-						{
-							iThreshold = 50;
-						}
-						else
-						{
-							iThreshold = 60;
-						}
-					}
-					// <!-- custom: similar reasoning than if at war and enemy is strong -->
-					else if (bDanger)
-					{
-						iThreshold = 70;
-					}
-					// <!-- custom: this assumes we're strong i guess, but not sure this is just a guess from me, check if accurate; in all cases we don't want to build too long a world wonder if we're plotting an invasion, consider ditching it quite strongly -->
-					else if (bWarPlan)
-					{
-						iThreshold = 50;
-					}
+					int iTurnsLeft = getProductionTurnsLeft(eProductionBuilding, 0);
+					if (iTurnsLeft == MAX_INT)
+						iTurnsLeft = -1;
+					logBBAI("INVESTED_WONDER_CONTINUATION turn=%d player=%d %S city=%S cityId=%d building=%s worldWonder=%d nationalWonder=%d stored=%d needed=%d completionPercent=%d turnsLeft=%d danger=%d landWar=%d turtle=%d inheritedThreshold=%d inheritedWouldKeep=%d",
+						kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(), kProductionBuilding.getType(),
+						kProductionBuilding.isWorldWonder(), kProductionBuilding.isNationalWonder(), iStored, iNeeded,
+						iCompletionPercent, iTurnsLeft, bDanger, bLandWar, bTurtle, iInheritedThreshold, bInheritedWouldKeep);
 				}
-				// <!-- custom: be a more lenient towards national wonders, they should cost a bit less, and finish a bit faster expectedly -->
-				else if (GC.getInfo(eProductionBuilding).isNationalWonder())
-				{
-					if (bAtWar)
-					{
-						// <!-- custom: don't build the world wonder for our enemy when they conquer us (as for national wonders, more generally read after bracket as well), attempt to build a few longbowmen with the hammer rather or anything else -->
-						if (bEnemyStrong)
-						{
-							iThreshold = 65;
-						}
-						else if (bAtWarAndEnemyWeak)
-						{
-							iThreshold = 35;
-						}
-						else
-						{
-							iThreshold = 45;
-						}
-					}
-					// <!-- custom: similar reasoning than if at war and enemy is strong -->
-					else if (bDanger)
-					{
-						iThreshold = 55;
-					}
-					// <!-- custom: this assumes we're strong i guess, but not sure this is just a guess from me, check if accurate; in all cases we don't want to build too long a world wonder if we're plotting an invasion, consider ditching it quite strongly -->
-					else if (bWarPlan)
-					{
-						iThreshold = 35;
-					}
-				}
-
-				// If we’ve already invested at least the threshold, keep building; else allow switch.
-				if (iCompletion >= iThreshold)
-				{
+				if (bInheritedWouldKeep)
 					return;
-				}
 			}
 		}
 		if (gLimitedProjectProductionLogLevel >= 2)
@@ -2189,6 +2796,10 @@ void CvCityAI::AI_chooseProduction()
 	bool const bLogDetailedMilitaryProduction = (gMilitaryProductionLogLevel >= 3);
 	bool const bLogOverseasTransport = (gOverseasTransportLogLevel >= 2);
 	bool const bLogDetailedOverseasTransport = (gOverseasTransportLogLevel >= 3);
+	// <!-- custom: Cache the stable team-wide enemy-power/active-war snapshot once for this chooser call, and cache player-level AI_isFocusWar separately.
+	// bDanger is already cached at function entry, while bLandWar and other area-local modes stay separate because their scope/semantics differ. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	SASWarPowerContext const kWarPower(kTeam);
+	bool const bWarPlan = kPlayer.AI_isFocusWar();
 
 	CvArea* pWaterArea = waterArea(true);
 	bool bMaybeWaterArea = false;
@@ -2227,7 +2838,7 @@ void CvCityAI::AI_chooseProduction()
 	int const iCultureVictoryInvestmentPercent = AI_getCultureVictoryInvestmentPercent();
 
 	int const iWarSuccessRating = kTeam.AI_getWarSuccessRating();
-	int iEnemyPowerPerc = kTeam.AI_getEnemyPowerPercent(true);
+	int iEnemyPowerPerc = kWarPower.iEnemyPowerPercent;
 	// <cdtw> (comment by Dave_uk:)
 	/*  if we are the weaker part of a team, and have a land war in our primary
 		area, increase enemy power percent so we aren't overconfident due to a
@@ -2514,6 +3125,7 @@ void CvCityAI::AI_chooseProduction()
 			if (bLogDetailedMilitaryProduction) logBBAI("MILITARY_PRODUCTION_NONUNIT_GATE turn=%d player=%d %S city=%S stage=BORDER_CULTURE_SWIFT building=%s buildingValue=%d turns=%d chosen=1",
 				kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), sCityName, GC.getInfo(eBestBuilding).getType(),
 				iBestBuildingValue, iProductionTurns);
+			if (bLogSASBuildingChoices) logSASGameRecordAIBuildingChoice(*this, eBestBuilding, SAS_AI_BUILDING_CHOICE_BORDER_CULTURE_SWIFT, BUILDINGFOCUS_CULTURE, bLogDetailedSASBuildingChoices, bLogDetailedSASBuildingChoices ? SAS_getBuildingFocusNames(BUILDINGFOCUS_CULTURE).GetCString() : NULL, -1, -1, iBestBuildingValue, -1, -1);
 			pushOrder(ORDER_CONSTRUCT, eBestBuilding);
 			return;
 		} // K-Mod end
@@ -2529,6 +3141,7 @@ void CvCityAI::AI_chooseProduction()
 			if (bLogDetailedMilitaryProduction) logBBAI("MILITARY_PRODUCTION_NONUNIT_GATE turn=%d player=%d %S city=%S stage=BORDER_CULTURE_SLOW building=%s buildingValue=%d turns=%d pop=%d chosen=1",
 				kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), sCityName, GC.getInfo(eBestBuilding).getType(),
 				iBestBuildingValue, iProductionTurns, iCityPopulation);
+			if (bLogSASBuildingChoices) logSASGameRecordAIBuildingChoice(*this, eBestBuilding, SAS_AI_BUILDING_CHOICE_BORDER_CULTURE_SLOW, BUILDINGFOCUS_CULTURE, bLogDetailedSASBuildingChoices, bLogDetailedSASBuildingChoices ? SAS_getBuildingFocusNames(BUILDINGFOCUS_CULTURE).GetCString() : NULL, -1, -1, iBestBuildingValue, -1, -1);
 			pushOrder(ORDER_CONSTRUCT, eBestBuilding);
 			return;
 		} // </advc.192>
@@ -2602,6 +3215,31 @@ void CvCityAI::AI_chooseProduction()
 		if (AI_chooseBuilding())
 		{
 			if ((gCityLogLevel >= 2 || gMilitaryProductionLogLevel >= 2)) logBBAI("      City %S uses strike building (w/o flags)", sCityName);
+			return;
+		}
+	}
+
+
+	// <!-- custom: Proactive fortification opportunity after current-target continuity, no-defender production and strike recovery have already had priority.
+	// This is intentionally before the ordinary economic/military branches that almost always prevented the inherited late BUILDINGFOCUS_DEFENSE stage from being reached in the Pangaea audit.
+	// Unlike the removed CvCity::doTurn emergency layer, this choice happens inside normal AI production before the turn's hammers are applied. See KI#48.8. (ChatGPT-5.6-Sol) -->
+	{
+		int const iNeededDefenders = AI_neededDefenders();
+		int iMaxUsefulFortificationTurns = 0;
+		SASProactiveFortificationThreat kFortificationThreat;
+		BuildingTypes const eFortification = SAS_getProactiveFortification(*this, bDanger, iCityDefenders, iNeededDefenders, iMaxUsefulFortificationTurns, kFortificationThreat);
+		if (eFortification != NO_BUILDING)
+		{
+			if (gBuildingProductionLogLevel >= 2 || gMilitaryProductionLogLevel >= 2)
+				logBBAI("BUILDING_PRODUCTION_PROACTIVE_FORTIFICATION turn=%d player=%d %S city=%S cityId=%d building=%s turnsLeft=%d maxUsefulTurns=%d immediateDanger=%d citySafety=%d cityValuePercent=%d defenders=%d neededDefenders=%d visibleAttackers=%d visibleSlowAttackers=%d visibleBombarders=%d affectedByBuildingDefense=%d ignoreBuildingDefense=%d nearestAttackerDistance=%d enemyPowerPercent=%d",
+					kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(),
+					GC.getInfo(eFortification).getType(), getProductionTurnsLeft(eFortification, 0), iMaxUsefulFortificationTurns,
+					bDanger, AI_getSafety(), AI_getCityValPercent(), iCityDefenders, iNeededDefenders,
+					kFortificationThreat.iVisibleAttackers, kFortificationThreat.iVisibleSlowAttackers, kFortificationThreat.iVisibleBombarders,
+					kFortificationThreat.iAffectedByBuildingDefense, kFortificationThreat.iIgnoreBuildingDefense,
+					kFortificationThreat.iNearestAttackerDistance, kWarPower.iEnemyPowerPercent);
+			if (bLogSASBuildingChoices) logSASGameRecordAIBuildingChoice(*this, eFortification, SAS_AI_BUILDING_CHOICE_PROACTIVE_FORTIFICATION, BUILDINGFOCUS_DEFENSE, bLogDetailedSASBuildingChoices, bLogDetailedSASBuildingChoices ? SAS_getBuildingFocusNames(BUILDINGFOCUS_DEFENSE).GetCString() : NULL, -1, -1, -1, -1, -1);
+			pushOrder(ORDER_CONSTRUCT, eFortification);
 			return;
 		}
 	}
@@ -3344,7 +3982,7 @@ void CvCityAI::AI_chooseProduction()
 				perhaps it was intended to, if so, I think it's far off the mark.
 				It might be helpful for giving the AI an appetite for warfare, so
 				I'm going to keep it. Now, to at least sometimes conquer Barbarians: */
-			if (!kPlayer.AI_isFocusWar())
+			if (!bWarPlan)
 			{
 				int iNeededCityAtt = (kPlayer.AI_neededCityAttackersVsBarbarians()
 						/*	Safety margin; some may well be guarding cities or
@@ -3414,6 +4052,45 @@ void CvCityAI::AI_chooseProduction()
 	if (!bDanger && !bCapitalArea &&
 		kArea.getCitiesPerPlayer(getOwner()) > iNumCapitalAreaCities)
 	{
+		// <!-- custom: KI#48.9 Palace-relocation audit: the retired SAS AI_buildingValue Palace policy never controlled real relocation; trace the inherited BUILDINGFOCUS_CAPITAL gate itself before changing it.
+		// After the initial safe/non-capital/larger-area filter passes, record the remaining area-population inertia, production-rank and war gates, the actual second-argument max-turn threshold, current/candidate output and simple geometric centrality; diagnostic-only; no RNG or selection changes. See KI#48.9. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		if (gBuildingProductionLogLevel >= 3)
+		{
+			int const iCandidateAreaCities = kArea.getCitiesPerPlayer(getOwner());
+			int const iCandidateAreaPopulation = kArea.getPopulationPerPlayer(getOwner());
+			int const iCapitalAreaPopulation = (pCapital == NULL ? -1 : pCapital->getArea().getPopulationPerPlayer(getOwner()));
+			int const iProductionRank = findBaseYieldRateRank(YIELD_PRODUCTION);
+			int const iProductionRankLimit = iNumCities / 2;
+			int const iMaxPalaceTurns = 3 * iCandidateAreaCities;
+			bool const bPassWar = (!bLandWar || iWarSuccessRating > -30);
+			bool const bPassAreaPopulation = (pCapital == NULL || 4 * iCandidateAreaPopulation > 5 * iCapitalAreaPopulation);
+			bool const bPassProductionRank = (pCapital == NULL || iProductionRank <= iProductionRankLimit);
+			logBBAI("PALACE_RELOCATION_GATE_AUDIT turn=%d player=%d %S city=%S cityId=%d numCities=%d candidateArea=%d candidateAreaCities=%d capitalAreaCities=%d candidateAreaPopulation=%d capitalAreaPopulation=%d areaPopulationRatioX100=%d productionRank=%d productionRankLimit=%d baseProduction=%d beakers=%d cityDistanceSum=%d maxPalaceTurns=%d landWar=%d warSuccess=%d passWar=%d passAreaPopulation=%d passProductionRank=%d currentCapitalCityId=%d capitalBaseProduction=%d capitalBeakers=%d capitalDistanceSum=%d",
+				GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(), iNumCities,
+				kArea.getID(), iCandidateAreaCities, iNumCapitalAreaCities, iCandidateAreaPopulation, iCapitalAreaPopulation,
+				(iCapitalAreaPopulation <= 0 ? -1 : (100 * iCandidateAreaPopulation) / iCapitalAreaPopulation),
+				iProductionRank, iProductionRankLimit, getBaseYieldRate(YIELD_PRODUCTION), getCommerceRate(COMMERCE_RESEARCH),
+				SAS_getOwnCityDistanceSum(*this), iMaxPalaceTurns, bLandWar, iWarSuccessRating, bPassWar, bPassAreaPopulation, bPassProductionRank,
+				(pCapital == NULL ? -1 : pCapital->getID()), (pCapital == NULL ? -1 : pCapital->getBaseYieldRate(YIELD_PRODUCTION)),
+				(pCapital == NULL ? -1 : pCapital->getCommerceRate(COMMERCE_RESEARCH)), (pCapital == NULL ? -1 : SAS_getOwnCityDistanceSum(*pCapital)));
+			if (pCapital != NULL && bPassWar && bPassAreaPopulation && bPassProductionRank)
+			{
+				int iDistanceSavingsTimes100 = 0;
+				int iColonySavingsTimes100 = 0;
+				int iCandidateAreaColonySavingsTimes100 = 0;
+				int iOldCapitalAreaColonyCostTimes100 = 0;
+				int const iMaintenanceSavingsTimes100 = SAS_getProjectedPalaceMaintenanceSavingsTimes100(*this, pCapital, iDistanceSavingsTimes100, iColonySavingsTimes100, iCandidateAreaColonySavingsTimes100, iOldCapitalAreaColonyCostTimes100);
+				int const iInflatedMaintenanceSavingsTimes100 =
+					(iMaintenanceSavingsTimes100 * (100 + kPlayer.calculateInflationRate())) / 100;
+				logBBAI("PALACE_RELOCATION_MAINTENANCE_AUDIT turn=%d player=%d %S city=%S cityId=%d currentCapitalCityId=%d distanceSavingsTimes100=%d colonySavingsTimes100=%d totalSavingsTimes100=%d inflatedSavingsTimes100=%d candidateAreaColonySavingsTimes100=%d oldCapitalAreaColonyCostTimes100=%d inflationRate=%d capitalProductionModifier=%d capitalCommerceYieldModifier=%d capitalResearchModifier=%d candidateBaseCommerce=%d capitalBaseCommerce=%d",
+					GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(), pCapital->getID(),
+					iDistanceSavingsTimes100, iColonySavingsTimes100, iMaintenanceSavingsTimes100, iInflatedMaintenanceSavingsTimes100,
+					iCandidateAreaColonySavingsTimes100, iOldCapitalAreaColonyCostTimes100, kPlayer.calculateInflationRate(),
+					kPlayer.getCapitalYieldRateModifier(YIELD_PRODUCTION), kPlayer.getCapitalYieldRateModifier(YIELD_COMMERCE),
+					kPlayer.getCapitalCommerceRateModifier(COMMERCE_RESEARCH), getBaseYieldRate(YIELD_COMMERCE), pCapital->getBaseYieldRate(YIELD_COMMERCE));
+			}
+		}
+
 		// BBAI TODO: Should be handled by CvPlayer, not CvCity. And optimize placement.
 		// If losing badly in war, don't build big things.
 		if (!bLandWar || iWarSuccessRating > -30)
@@ -3426,8 +4103,53 @@ void CvCityAI::AI_chooseProduction()
 			{
 				// <!-- custom: AdvC advc.131 named this local iOdds after replacing K-Mod's flat 15-turn limit, but the value is passed as AI_chooseBuilding's iMaxTurns while the actual odds argument defaults to -1.
 				// Name the completion-time limit accurately so this deterministic Palace choice is not mistaken for a probability. See KI#768.2. (GPT-5.6-Sol) -->
+				// <!-- custom: Retain the inherited 3 * candidate-area-city limit: raising the minimum 2-city allowance from 6 to 9 turns let Snaketown start an economically attractive Palace, but deteriorating war/production context abandoned it at 58/144 hammers four turns later. See KI#48.18. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 				int const iMaxPalaceTurns = 3 * kArea.getCitiesPerPlayer(getOwner()); // advc.131: was 15 flat
-				if (AI_chooseBuilding(BUILDINGFOCUS_CAPITAL, iMaxPalaceTurns))
+
+				// <!-- custom: The inherited area-population heuristic relocated the Palace to San Francisco despite a projected +2.44 GPT raw maintenance cost (about +5.12 GPT after inflation), with no capital-specific yield/commerce modifier to justify accepting that loss.
+				// An isolated Tiny-Islands A/B blocked that move and later still allowed Boston, whose relocation projected +1.92 GPT raw savings and had stronger production/centrality.
+				// Preserve every inherited geography, war, production-rank and completion-time gate; only when capital-specific player modifiers do not make maintenance an incomplete proxy, require the projected distance + colony maintenance change to be strictly beneficial before entering BUILDINGFOCUS_CAPITAL. See KI#48.18. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				bool bProjectedMaintenanceAllowsRelocation = true;
+				if (pCapital != NULL)
+				{
+					bool bHasCapitalSpecificModifier = false;
+					FOR_EACH_ENUM(Yield)
+					{
+						if (kPlayer.getCapitalYieldRateModifier(eLoopYield) != 0)
+						{
+							bHasCapitalSpecificModifier = true;
+							break;
+						}
+					}
+					if (!bHasCapitalSpecificModifier)
+					{
+						FOR_EACH_ENUM(Commerce)
+						{
+							if (kPlayer.getCapitalCommerceRateModifier(eLoopCommerce) != 0)
+							{
+								bHasCapitalSpecificModifier = true;
+								break;
+							}
+						}
+					}
+					if (!bHasCapitalSpecificModifier)
+					{
+						int iDistanceSavingsTimes100 = 0;
+						int iColonySavingsTimes100 = 0;
+						int iCandidateAreaColonySavingsTimes100 = 0;
+						int iOldCapitalAreaColonyCostTimes100 = 0;
+						int const iMaintenanceSavingsTimes100 = SAS_getProjectedPalaceMaintenanceSavingsTimes100(*this, pCapital, iDistanceSavingsTimes100, iColonySavingsTimes100, iCandidateAreaColonySavingsTimes100, iOldCapitalAreaColonyCostTimes100);
+						bProjectedMaintenanceAllowsRelocation = (iMaintenanceSavingsTimes100 > 0);
+						if (gBuildingProductionLogLevel >= 3)
+						{
+							logBBAI("PALACE_RELOCATION_MAINTENANCE_GUARD turn=%d player=%d %S city=%S cityId=%d currentCapitalCityId=%d maintenanceSavingsTimes100=%d distanceSavingsTimes100=%d colonySavingsTimes100=%d pass=%d maxPalaceTurns=%d",
+								GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(), pCapital->getID(),
+								iMaintenanceSavingsTimes100, iDistanceSavingsTimes100, iColonySavingsTimes100,
+								bProjectedMaintenanceAllowsRelocation, iMaxPalaceTurns);
+						}
+					}
+				}
+				if (bProjectedMaintenanceAllowsRelocation && AI_chooseBuilding(BUILDINGFOCUS_CAPITAL, iMaxPalaceTurns))
 					return;
 			}
 		}
@@ -3599,9 +4321,7 @@ void CvCityAI::AI_chooseProduction()
 
 		// CvArea* pWaterArea = waterArea(true);
 
-		// <!-- custom: note: sometimes AI_isFocusWar is used with, sometimes without in cvcityai.cpp, going for the larger one and chatgpt 5 suggests to do as such despite not knowing all our code but should be fine, and maybe we handle more cases this way, check if accurate -->
-		bool const bWarPlan = GET_PLAYER(getOwner()).AI_isFocusWar(); // advc.105
-				//(kTeam.getAnyWarPlanCount(true) > 0);
+		// <!-- custom: AI_isFocusWar is a player-level strategic focus, distinct from team chosen-war/preparation flags below; reuse the chooser's cached bWarPlan snapshot rather than querying it again. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		bool const bDefense = (getArea().getAreaAIType(getTeam()) == AREAAI_DEFENSIVE);
 		bLandWar = (bDefense || (getArea().getAreaAIType(getTeam()) == AREAAI_OFFENSIVE) || (getArea().getAreaAIType(getTeam()) == AREAAI_MASSING));
 		// bool const bLandWar = kOwner.AI_isLandWar(getArea()); // K-Mod
@@ -3627,20 +4347,13 @@ void CvCityAI::AI_chooseProduction()
 		bool const bAnyPlannedWar = kTeam.AI_isAnyChosenWar();
 		//bool const bPeaceAloneLikely = (bAreaAlone || iHasMetCount <= 0);
 		// <!-- custom: note: according to chatgpt 5 from it reading the function's code there, if we have 2 ennemies that have 80% vs us, then iEnemyPowerPercent would be 160 if i understood it correctly, and if at peace it would be 0, check to be sure if accurate but as for me i'll use this as an assumption to be true i mean (i didn't check too much if at all but fed it the actual real function and a few other bits of code if i may say in this case) -->
-		// <!-- custom: moudo faitou!!! xd, cambio forma in an anime i watched long ago... if an AI (or even human is reading this), can you guess which... (note: no need to tell me is general question you may or not tell me but not sure i want to hear...) -->
 		// <!-- custom: note: seems redundant to do (a & b) || a, which it is, but testing just b (e.g. >= 130) results in this always being true even at peace, as AIs don't build any settlers at all due to bOffenseMode <= 70 being always true, didn't seem necessary from the >=130 check that was false in the first 100 turns it seems for most if not all civs so not added -->
-		int const iEnemyPowerPercent = kTeam.AI_getEnemyPowerPercent(true);
 
-		// <!-- custom: if i may say... difensu moudo!!... -->
 		// <!-- custom: test to reduce this a bit more as recommended by chatgpt 5 but done in my own way/own values, as it's a bit too late to defend when too behind maybe indeed-->
-		static const int iSAS_ENEMY_STRONG_POWER_THRESHOLD = GC.getDefineINT("SAS_ENEMY_STRONG_POWER_THRESHOLD"); // e.g. 120
-		int const iDefenseModeThreshold = iSAS_ENEMY_STRONG_POWER_THRESHOLD;
-		bool const bDefenseMode = ((iEnemyPowerPercent >= iDefenseModeThreshold) || /* bWarPossible || */ bAnyPlannedWar || bAnyRealWar || bDanger || bDefense /* && !bPeaceAloneLikely */);
+		bool const bDefenseMode = (kWarPower.bEnemyStrong || /* bWarPossible || */ bAnyPlannedWar || bAnyRealWar || bDanger || bDefense /* && !bPeaceAloneLikely */);
 		// bool const bOffenseMode = (((!bAnyRealWar && iEnemyPowerPercent <= 70) || bWarPlan || bAnyPlannedWar || bAnyRealWar || bAssault || (!bDefense && bLandWar) /* && !bPeaceAloneLikely */));
-		// <!-- custom: test to increase this a bit more as recommended by chatgpt 5 but done in my own way/own values, as it's a bit too late to defend when too behind maybe indeed-->
-		static const int iSAS_ENEMY_WEAK_POWER_THRESHOLD = GC.getDefineINT("SAS_ENEMY_WEAK_POWER_THRESHOLD"); // e.g. 80
-		int const iOffenseModeThreshold = iSAS_ENEMY_WEAK_POWER_THRESHOLD;
-		bool const bOffenseMode = ((bAnyRealWar && iEnemyPowerPercent <= iOffenseModeThreshold) || bWarPlan || bAnyPlannedWar || bAnyRealWar || bAssault || (!bDefense && bLandWar) /* && !bPeaceAloneLikely */);
+		// <!-- custom: Preserve the old bAnyRealWar guard around weak power: raw 0% means no current/chosen enemy, not military superiority. (ChatGPT-5.6-Sol) -->
+		bool const bOffenseMode = ((bAnyRealWar && kWarPower.bEnemyWeakRaw) || bWarPlan || bAnyPlannedWar || bAnyRealWar || bAssault || (!bDefense && bLandWar) /* && !bPeaceAloneLikely */);
 
 		// int const iNumCities = kOwner.getNumCities();
 		// <!-- custom: A blocked early Settler used to be replaced with a second Worker because this check independently allowed 2 Workers per city. Defer to the shared SAS area minimum; ordinary Worker-demand logic can still choose Workers beyond that floor. (GPT-5.5) -->
@@ -4143,8 +4856,9 @@ void CvCityAI::AI_chooseProduction()
 	int iNavalCapacityPercent = 0;
 	if ((bProductionCapacityBaseContextEligible && iLandTargetPercent > 0) || bLogDetailedMilitaryProduction) iLandCapacityPercent = SAS_getMilitaryProductionCapacityPercent(kPlayer, NULL, iLandBaseProduction, iLandTotalBaseProduction, iLandProductionCities, iLandProductiveCities);
 	if ((bProductionCapacityBaseContextEligible && iNavalTargetPercent > 0) || bLogDetailedMilitaryProduction) iNavalCapacityPercent = SAS_getMilitaryProductionCapacityPercent(kPlayer, pWaterArea, iNavalBaseProduction, iNavalTotalBaseProduction, iNavalProductionCities, iNavalProductiveCities);
-	// <!-- custom: The naval floor is a production-share minimum, not a reason for a peaceful secured empire to accumulate ships forever. Cap only this forced floor when no war/assault preparation is active; ordinary AI logic can still build beyond the stock guard. See KI#197.11. (ChatGPT-5.6-Sol) -->
-	bool const bNavalProjectionActive = (bWarPrep || bAssault || bTotalWar || kPlayer.AI_isFocusWar());
+	// <!-- custom: The naval floor is a production-share minimum, not a reason for a peaceful secured empire to accumulate ships forever.
+	// Cap only this forced floor when no war/assault preparation is active; ordinary AI logic can still build beyond the stock guard. See KI#197.11. (ChatGPT-5.6-Sol) -->
+	bool const bNavalProjectionActive = (bWarPrep || bAssault || bTotalWar || bWarPlan);
 	int iNavalPortCities = 0;
 	int iNavalTrackedStock = 0;
 	if (pWaterArea != NULL && (bUseSecuredNavalProfile || bLogDetailedMilitaryProduction))
@@ -4244,6 +4958,7 @@ void CvCityAI::AI_chooseProduction()
 				if (eBestWonder != NO_BUILDING && iBestWonderValue >= iBestBuildingValue)
 				{
 					if ((gCityLogLevel >= 2 || gMilitaryProductionLogLevel >= 2)) logBBAI("      City %S uses opportunistic wonder build 2", sCityName);
+					if (bLogSASBuildingChoices) logSASGameRecordAIBuildingChoice(*this, eBestWonder, SAS_AI_BUILDING_CHOICE_OPPORTUNISTIC_WONDER, BUILDINGFOCUS_WORLDWONDER, bLogDetailedSASBuildingChoices, bLogDetailedSASBuildingChoices ? SAS_getBuildingFocusNames(BUILDINGFOCUS_WORLDWONDER).GetCString() : NULL, -1, -1, iBestWonderValue, -1, -1);
 					pushOrder(ORDER_CONSTRUCT, eBestWonder);
 					return;
 				} // K-Mod end
@@ -5339,7 +6054,17 @@ void CvCityAI::AI_chooseProduction()
 			}
 		}
 
-		if (AI_chooseBuilding(BUILDINGFOCUS_DEFENSE, 20, 0, bDanger ? -1 : 3 * iCityPopulation))
+		// <!-- custom: Retain the inherited late generic defense-building opportunity as an ordinary fallback.
+		// Documented why narrowly qualified Walls/Castle-style fortifications also receive an earlier normal-production opportunity during visible land invasions. See KI#48.8. (ChatGPT-5.6-Sol) -->
+		bool const bDefenseBuildingChosen = AI_chooseBuilding(BUILDINGFOCUS_DEFENSE, 20, 0, bDanger ? -1 : 3 * iCityPopulation);
+		if (bLogDefenseUrgencyProduction)
+		{
+			BuildingTypes const eChosenDefenseBuilding = (bDefenseBuildingChosen ? getProductionBuilding() : NO_BUILDING);
+			logBBAI("BUILDING_PRODUCTION_DEFENSE_URGENCY turn=%d player=%d %S city=%S cityId=%d x=%d y=%d stage=REACHED chosen=%d building=%s",
+				kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(), getX(), getY(), bDefenseBuildingChosen,
+				(eChosenDefenseBuilding == NO_BUILDING ? "-" : GC.getInfo(eChosenDefenseBuilding).getType()));
+		}
+		if (bDefenseBuildingChosen)
 		{
 			if ((gCityLogLevel >= 2 || gMilitaryProductionLogLevel >= 2)) logBBAI("      City %S uses special BUILDINGFOCUS_DEFENSE", sCityName); // advc
 			return;
@@ -5611,7 +6336,7 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner()); // K-Mod
 
-	// <!-- custom: cache to kTeam for perf opt if i'm not mistaken. See note at CvCityAI::AI_buildingValue. -->
+	// <!-- custom: Keep this practical-5282 GET_TEAM cache as CvTeamAI: some sibling cache sites compile when narrowed to CvTeam, while others fail because they use AI-only team members or helpers requiring CvTeamAI; retain CvTeamAI across this cache family to avoid tedious per-site type exceptions. See KI#311.2. (ChatGPT-5.6-Sol) -->
 	CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam()); // kekm.16
 
 	// <!-- custom: performance optimizations -->
@@ -5998,19 +6723,13 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 		bool const bAnyPlannedWar = kTeam.AI_isAnyChosenWar();
 		bool const bPeaceAloneLikely = (bAreaAlone || iHasMetCount <= 0);
 		// <!-- custom: note: according to chatgpt 5 from it reading the function's code there, if we have 2 ennemies that have 80% vs us, then iEnemyPowerPercent would be 160 if i understood it correctly, and if at peace it would be 0, check to be sure if accurate but as for me i'll use this as an assumption to be true i mean (i didn't check too much if at all but fed it the actual real function and a few other bits of code if i may say in this case) -->
-		// <!-- custom: moudo faitou!!! xd, cambio forma in an anime i watched long ago... if an AI (or even human is reading this), can you guess which... (note: no need to tell me is general question you may or not tell me but not sure i want to hear...) -->
 		// <!-- custom: note: seems redundant to do (a & b) || a, which it is, but testing just b (e.g. >= 130) results in this always being true even at peace, as AIs don't build any settlers at all due to bOffenseMode <= 70 being always true, didn't seem necessary from the >=130 check that was false in the first 100 turns it seems for most if not all civs so not added -->
-		int const iEnemyPowerPercent = kTeam.AI_getEnemyPowerPercent(true);
+		SASWarPowerContext const kWarPower(kTeam);
 
-		// <!-- custom: if i may say... difensu moudo!!... -->
 		// <!-- custom: test to reduce this a bit more as recommended by chatgpt 5 but done in my own way/own values, as it's a bit too late to defend when too behind maybe indeed-->
-		static const int iSAS_ENEMY_STRONG_POWER_THRESHOLD = GC.getDefineINT("SAS_ENEMY_STRONG_POWER_THRESHOLD"); // e.g. 120
-		int const iDefenseModeThreshold = iSAS_ENEMY_STRONG_POWER_THRESHOLD;
-		bool const bDefenseMode = (((iEnemyPowerPercent >= iDefenseModeThreshold) /*||  bWarPossible ||*/ || bAnyPlannedWar || bAnyRealWar || bDanger || bDefense) && !bPeaceAloneLikely);
-		// <!-- custom: test to increase this a bit more as recommended by chatgpt 5 but done in my own way/own values, as it's a bit too late to defend when too behind maybe indeed-->
-		static const int iSAS_ENEMY_WEAK_POWER_THRESHOLD = GC.getDefineINT("SAS_ENEMY_WEAK_POWER_THRESHOLD"); // e.g. 80
-		int const iOffenseModeThreshold = iSAS_ENEMY_WEAK_POWER_THRESHOLD;
-		bool const bOffenseMode = (((bAnyRealWar && iEnemyPowerPercent <= iOffenseModeThreshold) || bWarPlan || bAnyPlannedWar || bAnyRealWar || bAssault || (!bDefense && bLandWar)) && !bPeaceAloneLikely);
+		bool const bDefenseMode = ((kWarPower.bEnemyStrong /*||  bWarPossible ||*/ || bAnyPlannedWar || bAnyRealWar || bDanger || bDefense) && !bPeaceAloneLikely);
+		// <!-- custom: Preserve the old bAnyRealWar guard around weak power: raw 0% means no current/chosen enemy, not military superiority. (ChatGPT-5.6-Sol) -->
+		bool const bOffenseMode = (((bAnyRealWar && kWarPower.bEnemyWeakRaw) || bWarPlan || bAnyPlannedWar || bAnyRealWar || bAssault || (!bDefense && bLandWar)) && !bPeaceAloneLikely);
 
 		// <!-- custom: note: use these map checks with else if to make sure both are not true according to chatgpt 5 and so to not run both corresponding blocks in case we made a mistake somehow (even though if so our priority should rather be to fix code but this is just in theory and as a less worse solution if it were o be true which i think isn't even with 2 if but check to be sure, and if -> else if -> else is preferable anyway for clarity or performance as well) -->
 		// <!-- custom: trying to save some computing power by condtionally checking naval maps only if not land map (which also btw in most cases shouldn't be for players i think) -->
@@ -6649,6 +7368,10 @@ UnitTypes CvCityAI::AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync, AdvisorTypes
 	return eBestUnit;
 }
 
+// <!-- custom: AI_bestBuildingThreshold's National-Park placement audit is above the shared diagnostic helper definition.
+// Declare it here because VC++ 2003 otherwise reports the early call as unknown and then misdiagnoses the later definition as a redefinition. (GPT-5.6-Sol) -->
+static bool SAS_shouldLogBuildingValueGateChange(CvCityAI const& kCity, BuildingTypes eBuilding, char const* szGate, CvString const& szSignature);
+
 
 BuildingTypes CvCityAI::AI_bestBuilding(int iFocusFlags, int iMaxTurns, bool bAsync, AdvisorTypes eIgnoreAdvisor) const
 {
@@ -6656,14 +7379,20 @@ BuildingTypes CvCityAI::AI_bestBuilding(int iFocusFlags, int iMaxTurns, bool bAs
 }
 
 // <!-- custom: bRandomize=true retains AI_bestBuildingThreshold's inherited random wonder bonus and final value multiplier.
-// Deterministic callers pass false so logging and production vetoes neither depend on non-synchronized ASyncRand nor perturb the synchronized game RNG stream. See KI#197.13. (ChatGPT-5.6-Sol) -->
-BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns, int iMinThreshold, bool bAsync, AdvisorTypes eIgnoreAdvisor, bool bRandomize) const
+// Deterministic callers pass false so logging and production vetoes neither depend on non-synchronized ASyncRand nor perturb the synchronized game RNG stream.
+// piBestValue optionally exposes the same-pass post-turn winning score without repeating valuation or RNG; the distinct fastest-capital path has no comparable score and leaves -1. See KI#197.13. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns, int iMinThreshold, bool bAsync, AdvisorTypes eIgnoreAdvisor, bool bRandomize, int* piBestValue) const
 {
 	PROFILE_FUNC(); // advc.opt
+	if (piBestValue != NULL) *piBestValue = -1;
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner()); // K-Mod
 
 	bool bAreaAlone = kOwner.AI_isAreaAlone(getArea());
 	int iProductionRank = findYieldRateRank(YIELD_PRODUCTION);
+	// <!-- custom: Compute the KI#48.20 World-Wonder selection multiplier lazily only if a constructible World Wonder reaches this chooser; most AI_bestBuildingThreshold calls therefore pay no local-rival scan. (ChatGPT-5.6-Sol) -->
+	int iWorldWonderSelectionValuePercent = -1;
+	int iWorldWonderLocalExposurePercent = 100;
+	bool bWorldWonderLocalExposureApplies = false;
 
 	int iBestValue = 0;
 	BuildingTypes eBestBuilding = NO_BUILDING;
@@ -6671,6 +7400,8 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 	if (iFocusFlags & BUILDINGFOCUS_CAPITAL)
 	{
 		int iBestTurnsLeft = (iMaxTurns > 0 ? iMaxTurns : MAX_INT);
+		BuildingTypes eFastestCapitalBuilding = NO_BUILDING;
+		int iFastestCapitalTurns = MAX_INT;
 		CvCivilization const& kCiv = getCivilization(); // advc.003w
 		for (int i = 0; i < kCiv.getNumBuildings(); i++)
 		{
@@ -6680,6 +7411,11 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 				if (canConstruct(eLoopBuilding))
 				{
 					int iTurnsLeft = getProductionTurnsLeft(eLoopBuilding, 0);
+					if (gBuildingProductionLogLevel >= 3 && iTurnsLeft < iFastestCapitalTurns)
+					{
+						eFastestCapitalBuilding = eLoopBuilding;
+						iFastestCapitalTurns = iTurnsLeft;
+					}
 					if (iTurnsLeft <= iBestTurnsLeft)
 					{
 						eBestBuilding = eLoopBuilding;
@@ -6687,6 +7423,26 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 					}
 				}
 			}
+		}
+
+		// <!-- custom: Retain level-3 diagnostics for the live inherited Palace-relocation route after KI#48.9 retired the separate old SAS AI_buildingValue policy.
+		// This focus bypasses ordinary building valuation, so these rare rows are the direct evidence for which Palace passes the completion-time limit; the follow-up audit adds output and geometric-centrality context without changing selection. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		if (gBuildingProductionLogLevel >= 3)
+		{
+			CvCityAI const* pCapitalForLog = kOwner.AI_getCapital();
+			// <!-- custom: Expose the fastest constructible Palace even when advc.131's inherited max-turn limit rejects it.
+			// This distinguished maintenance-positive 9-turn candidates from a later 16-turn case and remains diagnostic-only with no selection or RNG change. See KI#48.18. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			logBBAI("PALACE_CAPITAL_FOCUS_AUDIT turn=%d player=%d %S city=%S cityId=%d selected=%s selectedTurns=%d maxTurns=%d uncapped=%s uncappedTurns=%d rejectedOnlyByTurnLimit=%d minThreshold=%d baseProduction=%d beakers=%d cityDistanceSum=%d cityArea=%d currentCapitalCityId=%d capitalBaseProduction=%d capitalBeakers=%d capitalDistanceSum=%d currentCapitalArea=%d",
+				GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
+				(eBestBuilding == NO_BUILDING ? "-" : GC.getInfo(eBestBuilding).getType()), (eBestBuilding == NO_BUILDING ? -1 : iBestTurnsLeft),
+				iMaxTurns, (eFastestCapitalBuilding == NO_BUILDING ? "-" : GC.getInfo(eFastestCapitalBuilding).getType()),
+				(eFastestCapitalBuilding == NO_BUILDING ? -1 : iFastestCapitalTurns),
+				(eBestBuilding == NO_BUILDING && eFastestCapitalBuilding != NO_BUILDING && iMaxTurns > 0 && iFastestCapitalTurns > iMaxTurns),
+				iMinThreshold, getBaseYieldRate(YIELD_PRODUCTION), getCommerceRate(COMMERCE_RESEARCH), SAS_getOwnCityDistanceSum(*this), getArea().getID(),
+				(pCapitalForLog == NULL ? -1 : pCapitalForLog->getID()), (pCapitalForLog == NULL ? -1 : pCapitalForLog->getBaseYieldRate(YIELD_PRODUCTION)),
+				(pCapitalForLog == NULL ? -1 : pCapitalForLog->getCommerceRate(COMMERCE_RESEARCH)),
+				(pCapitalForLog == NULL ? -1 : SAS_getOwnCityDistanceSum(*pCapitalForLog)),
+				(pCapitalForLog == NULL ? -1 : pCapitalForLog->getArea().getID()));
 		}
 
 		return eBestBuilding;
@@ -6762,11 +7518,17 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 
 		int const iTurnsLeft = getProductionTurnsLeft(eLoopBuilding, 0);
 
+		if (kBuilding.isWorldWonder() && iWorldWonderSelectionValuePercent < 0)
+		{
+			iWorldWonderSelectionValuePercent = SAS_getWorldWonderSelectionValuePercent(*this, &iWorldWonderLocalExposurePercent, &bWorldWonderLocalExposureApplies);
+		}
+
 		// K-Mod
 		/*	Block construction of limited buildings in bad places
 			(the value check is just for efficiency.
 			1250 accounts for the possible +25 random boost) */
-		if (iFocusFlags == 0 && /* advc.004x: */ iTurnsLeft < MAX_INT &&
+		bool const bWorldWonderPlacementFocus = ((iFocusFlags & BUILDINGFOCUS_WORLDWONDER) != 0);
+		if ((iFocusFlags == 0 || bWorldWonderPlacementFocus) && /* advc.004x: */ iTurnsLeft < MAX_INT &&
 			iValue * 1250 / std::max(1, iTurnsLeft + 3) >= iBestValue)
 		{
 			int iLimit = GC.getInfo(eLoopClass).getLimit();
@@ -6799,6 +7561,13 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 					iValue *= iMaxNumWonders + 1 - getNumNationalWonders();
 					iValue /= iMaxNumWonders + 1;
 				}
+				// <!-- custom: Expose inherited National-Wonder placement for National-Park-style buildings without recomputing candidate-city values only for logging; collect the best values while the existing cross-city loop already evaluates them. See KI#48.9. (GPT-5.6-Sol) -->
+				const bool bLogNationalParkPlacementAudit = (gBuildingProductionLogLevel >= 3 && kBuilding.isNationalWonder() && kBuilding.getUnhealthyPopulationModifier() <= -50);
+				const int iNationalParkCurrentPlacementValue = iValue;
+				CvCityAI const* pNationalParkBestPlacementCity = this;
+				int iNationalParkBestPlacementValue = iValue;
+				int iNationalParkBestPlacementTurns = iTurnsLeft;
+				bool bNationalParkRejectedForBetterCity = false;
 				FOR_EACH_CITYAI(pLoopCity, kOwner)
 				{
 					if (pLoopCity->canConstruct(eLoopBuilding))
@@ -6811,14 +7580,80 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 							iLoopValue *= iMaxNumWonders + 1 - pLoopCity->getNumNationalWonders();
 							iLoopValue /= iMaxNumWonders + 1;
 						}
-						if (80 * iLoopValue > 100 * iValue)
+						if (bLogNationalParkPlacementAudit && iLoopValue > iNationalParkBestPlacementValue)
+						{
+							pNationalParkBestPlacementCity = pLoopCity;
+							iNationalParkBestPlacementValue = iLoopValue;
+							iNationalParkBestPlacementTurns = pLoopCity->getProductionTurnsLeft(eLoopBuilding, 0);
+						}
+						bool bBetterPlacement = false;
+						int iThisPlacementValue = -1;
+						int iLoopPlacementValue = -1;
+						int iLoopTurnsLeft = -1;
+						if (kBuilding.isWorldWonder())
+						{
+							// <!-- custom: World-Wonder race placement should compare the same value-per-completion-time shape used by the inherited final building chooser, not raw intrinsic value alone.
+							// KI#48.20 additionally applies each candidate city's own World-Wonder eagerness/local-exposure percentage here, so an exposed fast city does not automatically disqualify a somewhat slower secure city before the final chooser sees the same opportunity-cost policy.
+							// Stored production remains handled later by the inherited final selection path. See also KI#48.15. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+							iLoopTurnsLeft = pLoopCity->getProductionTurnsLeft(eLoopBuilding, 0);
+							if (iLoopTurnsLeft < MAX_INT)
+							{
+								int const iLoopWorldWonderSelectionValuePercent = (pLoopCity->getArea().getID() == getArea().getID() ?
+										iWorldWonderSelectionValuePercent : SAS_getWorldWonderSelectionValuePercent(*pLoopCity));
+								// <!-- custom: Preserve inherited nonpositive values exactly.
+								// The first KI#48.20 test used max(1, ...) unconditionally for a positive percentage, which turned raw zero-value Wonders into 1 before the inherited completion-time normalization and could therefore make them more attractive than the control.
+								// Only positive values may receive the minimum-1 rounding floor. (ChatGPT-5.6-Sol) -->
+								int const iThisPlacementRawValue = (iValue <= 0 ? iValue :
+										(iWorldWonderSelectionValuePercent <= 0 ? 0 : std::max(1, (iValue * iWorldWonderSelectionValuePercent) / 100)));
+								int const iLoopPlacementRawValue = (iLoopValue <= 0 ? iLoopValue :
+										(iLoopWorldWonderSelectionValuePercent <= 0 ? 0 : std::max(1, (iLoopValue * iLoopWorldWonderSelectionValuePercent) / 100)));
+								FAssert(MAX_INT / 1000 > iThisPlacementRawValue);
+								FAssert(MAX_INT / 1000 > iLoopPlacementRawValue);
+								iThisPlacementValue = iThisPlacementRawValue * 1000 / std::max(1, iTurnsLeft + 3);
+								iLoopPlacementValue = iLoopPlacementRawValue * 1000 / std::max(1, iLoopTurnsLeft + 3);
+								bBetterPlacement = (80 * iLoopPlacementValue > 100 * iThisPlacementValue);
+							}
+						}
+						else
+						{
+							bBetterPlacement = (80 * iLoopValue > 100 * iValue);
+						}
+						if (bBetterPlacement)
 						{
 							if (--iLimit <= 0)
 							{
+								if (bLogNationalParkPlacementAudit)
+									bNationalParkRejectedForBetterCity = true;
+								if (gBuildingProductionLogLevel >= 3 && kBuilding.isWorldWonder())
+								{
+									logBBAI("WORLD_WONDER_INHERITED_PLACEMENT turn=%d player=%d %S city=%S cityId=%d building=%s action=REJECT_FOR_BETTER_CITY currentRawValue=%d currentTurns=%d currentPlacementValue=%d betterCity=%S betterCityId=%d betterRawValue=%d betterTurns=%d betterPlacementValue=%d",
+										GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(), kBuilding.getType(),
+										iValue, iTurnsLeft, iThisPlacementValue, pLoopCity->getName().GetCString(), pLoopCity->getID(),
+										iLoopValue, iLoopTurnsLeft, iLoopPlacementValue);
+								}
 								iValue = 0;
 								break;
 							}
 						}
+					}
+				}
+				if (bLogNationalParkPlacementAudit)
+				{
+					const int iBestVsCurrentPercent = (iNationalParkCurrentPlacementValue <= 0 ? -1 :
+							(100 * iNationalParkBestPlacementValue) / iNationalParkCurrentPlacementValue);
+					CvString szNationalParkPlacementSignature;
+					szNationalParkPlacementSignature.Format("%d|%d|%d|%d|%d|%d|%d",
+						iNationalParkCurrentPlacementValue, iTurnsLeft, pNationalParkBestPlacementCity->getID(),
+						iNationalParkBestPlacementValue, iNationalParkBestPlacementTurns, iBestVsCurrentPercent,
+						bNationalParkRejectedForBetterCity);
+					if (SAS_shouldLogBuildingValueGateChange(*this, eLoopBuilding, "NATIONAL_PARK_INHERITED_PLACEMENT", szNationalParkPlacementSignature))
+					{
+						logBBAI("NATIONAL_PARK_INHERITED_PLACEMENT_AUDIT turn=%d player=%d %S city=%S cityId=%d building=%s currentValue=%d currentTurns=%d bestCity=%S bestCityId=%d bestValue=%d bestTurns=%d bestVsCurrentPercent=%d rejectedForBetterCity=%d limit=%d",
+							GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
+							kBuilding.getType(), iNationalParkCurrentPlacementValue, iTurnsLeft,
+							pNationalParkBestPlacementCity->getName().GetCString(), pNationalParkBestPlacementCity->getID(),
+							iNationalParkBestPlacementValue, iNationalParkBestPlacementTurns, iBestVsCurrentPercent,
+							bNationalParkRejectedForBetterCity, GC.getInfo(eLoopClass).getLimit());
 					}
 				}
 				// Subtract some points from wonder value, just to stop us from wasting it
@@ -6881,6 +7716,45 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 			}
 		}
 
+		if (kBuilding.isWorldWonder())
+		{
+			if (iWorldWonderSelectionValuePercent < 0)
+				iWorldWonderSelectionValuePercent = SAS_getWorldWonderSelectionValuePercent(*this, &iWorldWonderLocalExposurePercent, &bWorldWonderLocalExposureApplies);
+			int const iValueBeforeSASWorldWonderOpportunityCost = iValue;
+			// <!-- custom: Preserve inherited zero/negative candidate value instead of promoting it to 1 merely because the percentage is positive. This also makes eagerness=100 + local optimize=0 an exact value-preserving control. See the first KI#48.20 A/B correction in the Known Issues entry. (ChatGPT-5.6-Sol) -->
+			if (iValue > 0)
+			{
+				if (iWorldWonderSelectionValuePercent <= 0)
+					iValue = 0;
+				else
+					iValue = std::max(1, (iValue * iWorldWonderSelectionValuePercent) / 100);
+			}
+
+			if (gBuildingProductionLogLevel >= 3)
+			{
+				SASLocalAreaRivalContext const kLocalRivals(kOwner, getArea(), false);
+				static int const iEagernessPercent = std::max(0, std::min(200, GC.getDefineINT("SAS_AI_BEST_BUILDING_THRESHOLD_WORLD_WONDER_EAGERNESS_PERCENT")));
+				static int const iDominanceMinPowerPercent = std::max(0, GC.getDefineINT("SAS_AI_BEST_BUILDING_THRESHOLD_WORLD_WONDER_LOCAL_DOMINANCE_MIN_POWER_PERCENT"));
+				CvString szSignature;
+				szSignature.Format("%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d",
+					iValueBeforeSASWorldWonderOpportunityCost, iValue, iWorldWonderSelectionValuePercent, iWorldWonderLocalExposurePercent,
+					bWorldWonderLocalExposureApplies, kLocalRivals.iIndependentRivalTeams, kLocalRivals.iUnknownIndependentRivalTeams,
+					kLocalRivals.iOurBlocPower, kLocalRivals.iCombinedKnownLocalRivalBlocPower, kLocalRivals.iHighestKnownLocalRivalBlocPower,
+					kLocalRivals.iLocalPowerAdvantagePercent, kLocalRivals.iHighestLocalPowerAdvantagePercent);
+				if (SAS_shouldLogBuildingValueGateChange(*this, eLoopBuilding, "WORLD_WONDER_LOCAL_OPPORTUNITY_COST", szSignature))
+				{
+					logBBAI("WORLD_WONDER_LOCAL_OPPORTUNITY_COST turn=%d player=%d %S city=%S cityId=%d building=%s valueBefore=%d valueAfter=%d selectionPercent=%d eagernessPercent=%d localExposurePercent=%d localExposureApplies=%d dominanceMinPowerPercent=%d area=%d areaAlone=%d independentRivalTeamsInArea=%d unknownIndependentRivalTeamsInArea=%d independentRivalCitiesInArea=%d ourBlocPower=%d combinedKnownLocalRivalBlocPower=%d highestKnownLocalRivalBlocPower=%d combinedLocalPowerAdvantagePercent=%d highestLocalPowerAdvantagePercent=%d stored=%d needed=%d turnsLeft=%d",
+						GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(), kBuilding.getType(),
+						iValueBeforeSASWorldWonderOpportunityCost, iValue, iWorldWonderSelectionValuePercent, iEagernessPercent, iWorldWonderLocalExposurePercent,
+						bWorldWonderLocalExposureApplies, iDominanceMinPowerPercent, getArea().getID(), bAreaAlone, kLocalRivals.iIndependentRivalTeams,
+						kLocalRivals.iUnknownIndependentRivalTeams, kLocalRivals.iIndependentRivalCities, kLocalRivals.iOurBlocPower,
+						kLocalRivals.iCombinedKnownLocalRivalBlocPower, kLocalRivals.iHighestKnownLocalRivalBlocPower, kLocalRivals.iLocalPowerAdvantagePercent,
+						kLocalRivals.iHighestLocalPowerAdvantagePercent, getBuildingProduction(eLoopBuilding), getProductionNeeded(eLoopBuilding),
+						(iTurnsLeft == MAX_INT ? -1 : iTurnsLeft));
+				}
+			}
+		}
+
 		//iValue += getBuildingProduction(eLoopBuilding);
 		iValue += getBuildingProduction(eLoopBuilding) / 4; // K-Mod
 
@@ -6918,6 +7792,7 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 			}
 		}
 	}
+	if (piBestValue != NULL) *piBestValue = iBestValue;
 	return eBestBuilding;
 }
 
@@ -6970,6 +7845,1296 @@ static int AI_strictAdditionalHappy(CvCity const& c, BuildingTypes eB)
     return iHappy;
 }
 
+// <!-- custom: Deduplicate unchanged level-3 Wonder-policy and inherited-valuation diagnostics so long autoplays retain decision changes without repeating identical rows.
+// This helper is called only behind the cached Building Production logging gate, so ordinary gameplay adds no signature construction or map work. (GPT-5.6-Sol) -->
+static bool SAS_shouldLogBuildingValueGateChange(CvCityAI const& kCity, BuildingTypes eBuilding, char const* szGate, CvString const& szSignature)
+{
+	static int iSessionSequence = -1;
+	static std::map<CvString, CvString> aLastSignatures;
+	if (iSessionSequence != getSASBBAILogSessionSequence())
+	{
+		iSessionSequence = getSASBBAILogSessionSequence();
+		aLastSignatures.clear();
+	}
+	CvString szKey;
+	szKey.Format("%d|%d|%d|%s", kCity.getOwner(), kCity.getID(), eBuilding, szGate);
+	std::map<CvString, CvString>::iterator it = aLastSignatures.find(szKey);
+	if (it != aLastSignatures.end() && it->second == szSignature)
+		return false;
+	aLastSignatures[szKey] = szSignature;
+	return true;
+}
+
+// <!-- custom: Expose every hard SAS building-prefilter return through one compact level-3 row so we can audit which policy overrides inherited adaptive valuation and whether the final production result justifies it.
+// Call only behind the level/focus gate at each return site; this helper is therefore entirely absent from ordinary disabled-logging work and adds no RNG calls. (GPT-5.6-Sol) -->
+static void SAS_logBuildingValuePolicyDecision(CvCityAI const& kCity, BuildingTypes eBuilding, char const* szGate, char const* szResult, int iReturnValue)
+{
+	CvPlayerAI const& kOwner = GET_PLAYER(kCity.getOwner());
+	CvTeamAI const& kTeam = GET_TEAM(kCity.getTeam());
+	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+	int iTurnsLeft = kCity.getProductionTurnsLeft(eBuilding, 0);
+	if (iTurnsLeft == MAX_INT)
+		iTurnsLeft = -1;
+	int const iHealthSurplus = kCity.goodHealth() - kCity.badHealth() + kCity.getEspionageHealthCounter() / 2;
+	int const iHappySurplus = kCity.happyLevel() - kCity.unhappyLevel();
+	int const iFoodSurplus = kCity.foodDifference(false, true);
+	bool const bAtWar = (kTeam.getNumWars() > 0);
+	bool const bWarPlan = kOwner.AI_isFocusWar();
+	bool const bDanger = kCity.AI_isDanger();
+	int const iEnemyPowerPercent = kTeam.AI_getEnemyPowerPercent(true);
+	CvString szSignature;
+	szSignature.Format("%s|%d|%d|%d|%d|%d|%d|%d|%d|%d", szResult, iReturnValue, iHealthSurplus, iHappySurplus, iFoodSurplus, iTurnsLeft, bAtWar, bWarPlan, bDanger, iEnemyPowerPercent);
+	if (!SAS_shouldLogBuildingValueGateChange(kCity, eBuilding, szGate, szSignature))
+		return;
+	int const iStored = kCity.getBuildingProduction(eBuilding);
+	int const iNeeded = kCity.getProductionNeeded(eBuilding);
+	int iHealthGood = 0, iHealthBad = 0;
+	int const iHealthGain = kCity.getAdditionalHealthByBuilding(eBuilding, iHealthGood, iHealthBad, true);
+	int const iHappyGain = AI_strictAdditionalHappy(kCity, eBuilding);
+	logBBAI("BUILDING_VALUE_SAS_POLICY turn=%d player=%d %S city=%S cityId=%d building=%s gate=%s result=%s returnValue=%d era=%d pop=%d healthSurplus=%d happySurplus=%d foodSurplus=%d baseProduction=%d stored=%d needed=%d remaining=%d turnsLeft=%d atWar=%d warPlan=%d danger=%d enemyPowerPercent=%d healthGain=%d happyGain=%d foodKept=%d defenseModifier=%d maintenanceModifier=%d productionModifier=%d seaFood=%d tradeRoutes=%d goldFlat=%d goldModifier=%d researchFlat=%d researchModifier=%d cultureFlat=%d cultureModifier=%d espionageFlat=%d espionageModifier=%d limited=%d worldWonder=%d nationalWonder=%d",
+		GC.getGame().getGameTurn(), kCity.getOwner(), kOwner.getCivilizationDescription(0), kCity.getName().GetCString(), kCity.getID(), kBuilding.getType(), szGate, szResult, iReturnValue,
+		kOwner.getCurrentEra(), kCity.getPopulation(), iHealthSurplus, iHappySurplus, iFoodSurplus, kCity.getBaseYieldRate(YIELD_PRODUCTION), iStored, iNeeded,
+		std::max(0, iNeeded - iStored), iTurnsLeft, bAtWar, bWarPlan, bDanger, iEnemyPowerPercent, iHealthGain, iHappyGain, kBuilding.getFoodKept(), kBuilding.getDefenseModifier(),
+		kBuilding.getMaintenanceModifier(), kBuilding.getYieldModifier(YIELD_PRODUCTION), kBuilding.getSeaPlotYieldChange(YIELD_FOOD), kBuilding.getTradeRoutes(),
+		kBuilding.getCommerceChange(COMMERCE_GOLD) + kBuilding.getObsoleteSafeCommerceChange(COMMERCE_GOLD), kBuilding.getCommerceModifier(COMMERCE_GOLD),
+		kBuilding.getCommerceChange(COMMERCE_RESEARCH) + kBuilding.getObsoleteSafeCommerceChange(COMMERCE_RESEARCH), kBuilding.getCommerceModifier(COMMERCE_RESEARCH),
+		kBuilding.getCommerceChange(COMMERCE_CULTURE) + kBuilding.getObsoleteSafeCommerceChange(COMMERCE_CULTURE), kBuilding.getCommerceModifier(COMMERCE_CULTURE),
+		kBuilding.getCommerceChange(COMMERCE_ESPIONAGE) + kBuilding.getObsoleteSafeCommerceChange(COMMERCE_ESPIONAGE), kBuilding.getCommerceModifier(COMMERCE_ESPIONAGE),
+		kBuilding.isLimited(), kBuilding.isWorldWonder(), kBuilding.isNationalWonder());
+}
+
+// <!-- custom: Keep strategic exposure separate from the old World-Wonder policy knobs.
+// The September 2026 audit needs to distinguish a globally warring empire from a Wonder city that is locally secure on an isolated/dominant landmass.
+// SASGameRecord caught deterministic game-state/RNG divergence after an earlier "logging-only" version added extra AI evaluators here; merely switching one suspected cache call did not restore equivalence, while reducing the row to factual getters/shared helpers plus parent-computed war context restored exact core-state and actual RNG-stream equivalence to the clean control.
+// Keep future audit/refactor additions similarly observational. (ChatGPT-5.6-Sol) -->
+static void SAS_logWorldWonderStrategicAudit(CvCityAI const& kCity, BuildingTypes eBuilding, SASWarPowerContext const& kWarPower, bool bWarPlan, bool bDanger)
+{
+	CvPlayerAI const& kOwner = GET_PLAYER(kCity.getOwner());
+	CvTeamAI const& kTeam = GET_TEAM(kCity.getTeam());
+	CvGame const& kGame = GC.getGame();
+	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+	if (!kBuilding.isWorldWonder())
+		return;
+
+	CvArea const& kArea = kCity.getArea();
+	bool const bAreaAlone = kOwner.AI_isAreaAlone(kArea);
+	bool const bPrimaryArea = kOwner.AI_isPrimaryArea(kArea);
+	int const iAreaAI = kArea.getAreaAIType(kCity.getTeam());
+	bool const bLandWar = (iAreaAI == AREAAI_OFFENSIVE || iAreaAI == AREAAI_MASSING || iAreaAI == AREAAI_DEFENSIVE);
+	int const iOwnCitiesInArea = kArea.getCitiesPerPlayer(kCity.getOwner());
+	int const iAreaTiles = kArea.getNumTiles();
+	int const iRevealedAreaTiles = kArea.getNumRevealedTiles(kCity.getTeam());
+	int const iUnrevealedAreaTiles = kArea.getNumUnrevealedTiles(kCity.getTeam());
+
+	SASLocalAreaRivalContext const kLocalRivals(kOwner, kArea);
+
+	bool abCountedEnemyMasterTeams[MAX_TEAMS] = { false };
+	int iEnemyTeamsInArea = 0;
+	int iEnemyCitiesInArea = 0;
+	for (PlayerIter<MAJOR_CIV> itRival; itRival.hasNext(); ++itRival)
+	{
+		if (!kTeam.isAtWar(itRival->getTeam()))
+			continue;
+		int const iCities = kArea.getCitiesPerPlayer(itRival->getID());
+		if (iCities <= 0)
+			continue;
+		iEnemyCitiesInArea += iCities;
+		TeamTypes const eEnemyMaster = itRival->getMasterTeam();
+		int const iMasterIndex = (int)eEnemyMaster;
+		if (iMasterIndex >= 0 && iMasterIndex < MAX_TEAMS && !abCountedEnemyMasterTeams[iMasterIndex])
+		{
+			abCountedEnemyMasterTeams[iMasterIndex] = true;
+			iEnemyTeamsInArea++;
+		}
+	}
+
+	int const iMainLandMilitaryStock = SAS_getMainLandMilitaryStock(kOwner, kArea);
+	int const iMainLandMilitaryPerCityX100 = (100 * iMainLandMilitaryStock) / std::max(1, iOwnCitiesInArea);
+	int const iCityDefenders = kCity.getPlot().getNumDefenders(kCity.getOwner());
+	int const iCitySafety = kCity.AI_getSafety();
+
+	int const iBarbarianAreaCities = kArea.getCitiesPerPlayer(BARBARIAN_PLAYER);
+	int const iBarbarianAreaUnits = kArea.getUnitsPerPlayer(BARBARIAN_PLAYER);
+	bool const bNoBarbarians = kGame.isOption(GAMEOPTION_NO_BARBARIANS);
+	bool const bAreaBorderObstacle = kBuilding.isAreaBorderObstacle();
+
+	logBBAI("BUILDING_VALUE_WORLD_WONDER_STRATEGIC_AUDIT turn=%d player=%d %S city=%S cityId=%d building=%s landHeavyMap=%d navalHeavyMap=%d area=%d areaTiles=%d revealedAreaTiles=%d unrevealedAreaTiles=%d areaAlone=%d primaryArea=%d areaAI=%d landWar=%d ownCitiesInArea=%d independentRivalTeamsInArea=%d unknownIndependentRivalTeamsInArea=%d independentRivalCitiesInArea=%d enemyTeamsInArea=%d enemyCitiesInArea=%d ourBlocPower=%d combinedKnownLocalRivalBlocPower=%d highestKnownLocalRivalBlocPower=%d localPowerAdvantagePercent=%d highestKnownGlobalRivalBlocPower=%d globalPowerAdvantagePercent=%d mainLandMilitaryStock=%d mainLandMilitaryPerCityX100=%d citySafety=%d cityDefenders=%d atWar=%d warPlan=%d danger=%d enemyPowerPercent=%d enemyStrong=%d areaBorderObstacle=%d noBarbarians=%d barbarianAreaCities=%d barbarianAreaUnits=%d",
+		kGame.getGameTurn(), kCity.getOwner(), kOwner.getCivilizationDescription(0), kCity.getName().GetCString(), kCity.getID(), kBuilding.getType(),
+		kGame.isLandHeavyMapnameCached(), kGame.isNavalHeavyMapnameCached(), kArea.getID(), iAreaTiles,
+		iRevealedAreaTiles, iUnrevealedAreaTiles, bAreaAlone, bPrimaryArea, iAreaAI, bLandWar, iOwnCitiesInArea,
+		kLocalRivals.iIndependentRivalTeams, kLocalRivals.iUnknownIndependentRivalTeams, kLocalRivals.iIndependentRivalCities,
+		iEnemyTeamsInArea, iEnemyCitiesInArea, kLocalRivals.iOurBlocPower, kLocalRivals.iCombinedKnownLocalRivalBlocPower, kLocalRivals.iHighestKnownLocalRivalBlocPower,
+		kLocalRivals.iLocalPowerAdvantagePercent, kLocalRivals.iHighestKnownGlobalRivalBlocPower, kLocalRivals.iGlobalPowerAdvantagePercent, iMainLandMilitaryStock,
+		iMainLandMilitaryPerCityX100, iCitySafety, iCityDefenders, kWarPower.bAtWar,
+		bWarPlan, bDanger, kWarPower.iEnemyPowerPercent, kWarPower.bEnemyStrong, bAreaBorderObstacle,
+		bNoBarbarians, iBarbarianAreaCities, iBarbarianAreaUnits);
+}
+
+// <!-- custom: Wonder-policy audit inputs are logged separately for World and National Wonders so the retired SAS prefilter can be reviewed gate-by-gate without coupling the permanent BBAI vocabulary to one giant retired-policy row.
+// Its thresholds are local constants because they are immutable historical comparators, not live XML policy. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+static void SAS_logWonderPolicyAudit(CvCityAI const& kCity, BuildingTypes eBuilding)
+{
+	CvPlayerAI const& kOwner = GET_PLAYER(kCity.getOwner());
+	CvTeamAI const& kTeam = GET_TEAM(kCity.getTeam());
+	CvGame const& kGame = GC.getGame();
+	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+	bool const bWorldWonder = kBuilding.isWorldWonder();
+	bool const bNationalWonder = kBuilding.isNationalWonder();
+	if (!bWorldWonder && !bNationalWonder)
+		return;
+	// <!-- custom: These values reproduce retired SAS Wonder gates only in this pre-gated level-3 counterfactual logger.
+	// Keeping immutable historical comparators in XML made them look like live player-facing tuning; the era caps are ordered Ancient through Future, and later modmod eras retain the retired Future fallback. See KI#48.9. (GPT-5.6-Sol) -->
+	bool const bRetiredSASAntiBarbarianLateVetoEnabled = true;
+	int const iRetiredSASAntiBarbarianLateMaxEra = 2;
+	int const aiRetiredSASCheapWorldWonderCostCapNormal[] = { 60, 90, 150, 200, 250, 300, 350 };
+	int const iRetiredSASWorldWonderMinBaseHammers = 6;
+	int const iRetiredSASWorldWonderMinExtraHammersPerEra = 3;
+	int const iRetiredSASNationalWonderMinBaseHammers = 6;
+	int const iRetiredSASNationalWonderMinExtraHammersPerEra = 2;
+	int const iRetiredSASWorldWonderExpansionPhaseTurnNormal = 0;
+	int const iRetiredSASWorldWonderHotRaceThreshold = 3;
+	int const iRetiredSASWonderSoftTurnCapNormal = 20;
+
+	int const iEra = kOwner.getCurrentEra();
+	int const iBaseHpt = kCity.getBaseYieldRate(YIELD_PRODUCTION);
+	int const iStored = kCity.getBuildingProduction(eBuilding);
+	int const iNeeded = kCity.getProductionNeeded(eBuilding);
+	int const iRemaining = std::max(0, iNeeded - iStored);
+	int iTurnsLeft = kCity.getProductionTurnsLeft(eBuilding, 0);
+	if (iTurnsLeft == MAX_INT)
+		iTurnsLeft = -1;
+	int const iBuildTimeModifier = kCity.getProductionModifier(eBuilding);
+	int const iBuildMul100 = std::max(1, 100 + iBuildTimeModifier);
+	int const iEstimatedTurns = (iNeeded * 100 + std::max(1, iBaseHpt) * iBuildMul100 - 1) /
+			(std::max(1, iBaseHpt) * iBuildMul100);
+	int const iGameSpeedMultiplier = GC.getInfo(kGame.getGameSpeedType()).getConstructPercent();
+
+	CvHandicapInfo const& hGame = GC.getInfo(kGame.getHandicapType());
+	int iSoftTurnCapNormal = iRetiredSASWonderSoftTurnCapNormal;
+	int const iConstructGap = 100 - (hGame.getAIWorldConstructPercent() + kGame.AIHandicapAdjustment());
+	if (iConstructGap >= 20)
+		iSoftTurnCapNormal = (iSoftTurnCapNormal * 9) / 10;
+	int const iSoftTurnCap = iSoftTurnCapNormal * iGameSpeedMultiplier / 100;
+	int const iMinBaseHpt = (bWorldWonder ?
+			iRetiredSASWorldWonderMinBaseHammers + iEra * iRetiredSASWorldWonderMinExtraHammersPerEra :
+			iRetiredSASNationalWonderMinBaseHammers + iEra * iRetiredSASNationalWonderMinExtraHammersPerEra);
+
+	int iBestHpt = 0, iSecondBestHpt = 0, iThirdBestHpt = 0, iProductionRank = 1;
+	int iSecondBestPop = 0, iBestPop = 0;
+	int iCoastalCities = 0;
+	FOR_EACH_CITY(pLoopCity, kOwner)
+	{
+		int const iLoopHpt = pLoopCity->getBaseYieldRate(YIELD_PRODUCTION);
+		if (iLoopHpt > iBaseHpt)
+			++iProductionRank;
+		if (iLoopHpt > iBestHpt) { iThirdBestHpt = iSecondBestHpt; iSecondBestHpt = iBestHpt; iBestHpt = iLoopHpt; }
+		else if (iLoopHpt > iSecondBestHpt) { iThirdBestHpt = iSecondBestHpt; iSecondBestHpt = iLoopHpt; }
+		else if (iLoopHpt > iThirdBestHpt) iThirdBestHpt = iLoopHpt;
+
+		int const iLoopPop = pLoopCity->getPopulation();
+		if (iLoopPop > iBestPop) { iSecondBestPop = iBestPop; iBestPop = iLoopPop; }
+		else if (iLoopPop > iSecondBestPop) iSecondBestPop = iLoopPop;
+
+		if (pLoopCity->isCoastal()) ++iCoastalCities;
+	}
+
+	bool const bEnoughHammersVsTop1 = (iBaseHpt * 100 > iBestHpt * 70);
+	bool const bTop2HammerLeeway = (iBaseHpt + 5 >= iSecondBestHpt || bEnoughHammersVsTop1);
+	bool const bTop3HammerLeeway = (iBaseHpt + 5 >= iThirdBestHpt || bEnoughHammersVsTop1);
+	bool const bTop2HammerRank = (iProductionRank <= 2);
+
+	int iTotalBonusHammersModifier = 0;
+	FOR_EACH_ENUM(Bonus)
+		iTotalBonusHammersModifier += kBuilding.getBonusYieldModifier(eLoopBonus, YIELD_PRODUCTION);
+	int const iPostBuildProductionModifier = kBuilding.getYieldModifier(YIELD_PRODUCTION) + iTotalBonusHammersModifier;
+	bool const bProductionWonder = (iPostBuildProductionModifier >= 20);
+	bool const bLandUnitsWonder = (kBuilding.getFreeExperience() >= 2 ||
+			kBuilding.getDomainFreeExperience(DOMAIN_LAND) >= 2 ||
+			kBuilding.getMilitaryProductionModifier() >= 20 ||
+			kBuilding.getDomainProductionModifier(DOMAIN_LAND) >= 20);
+
+	SASWarPowerContext const kWarPower(kTeam);
+	bool const bDanger = kCity.AI_isDanger();
+	bool const bWarPlan = kOwner.AI_isFocusWar();
+	int const iHealthLevel = kCity.goodHealth() - kCity.badHealth() + kCity.getEspionageHealthCounter() / 2;
+	bool const bUnhealthinessReducer = (kBuilding.getUnhealthyPopulationModifier() <= -50);
+
+	CvString szSignature;
+	szSignature.Format("%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d",
+		iBaseHpt, iStored, iNeeded, iTurnsLeft, iBuildTimeModifier, iEstimatedTurns, iSoftTurnCap,
+		iProductionRank, iBestHpt, iSecondBestHpt, iThirdBestHpt, kWarPower.iEnemyPowerPercent,
+		kWarPower.bAtWar, bWarPlan, bDanger);
+	char const* szAuditKey = (bWorldWonder ? "WORLD_WONDER_POLICY_AUDIT" : "NATIONAL_WONDER_POLICY_AUDIT");
+	if (!SAS_shouldLogBuildingValueGateChange(kCity, eBuilding, szAuditKey, szSignature))
+		return;
+
+	// <!-- custom: Strategic World-Wonder context shares the already-existing World-Wonder policy audit emission gate instead of maintaining a second diagnostic state map.
+	// This keeps the logs separate/easy to grep while minimizing observational work and heap/state perturbation risk. (ChatGPT-5.6-Sol) -->
+	if (bWorldWonder)
+		SAS_logWorldWonderStrategicAudit(kCity, eBuilding, kWarPower, bWarPlan, bDanger);
+
+	if (bWorldWonder)
+	{
+		int const iLastRetiredSASWonderEra = (int)(sizeof(aiRetiredSASCheapWorldWonderCostCapNormal) / sizeof(aiRetiredSASCheapWorldWonderCostCapNormal[0])) - 1;
+		int const iCheapWWCapNormal = aiRetiredSASCheapWorldWonderCostCapNormal[std::min(iLastRetiredSASWonderEra, std::max(0, iEra))];
+		int const iCheapWWCap = iCheapWWCapNormal * iGameSpeedMultiplier / 100;
+		bool const bCheapWorldWonder = (iNeeded <= iCheapWWCap);
+		bool const bCoastalScalingWonder = (kBuilding.getCoastalTradeRoutes() > 0 ||
+				kBuilding.getGlobalSeaPlotYieldChange(YIELD_FOOD) > 0 ||
+				kBuilding.getGlobalSeaPlotYieldChange(YIELD_PRODUCTION) > 0 ||
+				kBuilding.getGlobalSeaPlotYieldChange(YIELD_COMMERCE) > 0);
+		int iRivalsWithAndTech = 0;
+		TechTypes const eAndTech = kBuilding.getPrereqAndTech();
+		if (eAndTech != NO_TECH)
+		{
+			for (TeamIter<CIV_ALIVE,KNOWN_TO> it(kCity.getTeam()); it.hasNext(); ++it)
+			{
+				TeamTypes const eLoopTeam = it->getID();
+				if (eLoopTeam != kCity.getTeam() && GET_TEAM(eLoopTeam).isHasTech(eAndTech))
+					++iRivalsWithAndTech;
+			}
+		}
+		int const iExpansionPhaseTurn = iRetiredSASWorldWonderExpansionPhaseTurnNormal * iGameSpeedMultiplier / 100;
+		bool const bExpansionPhase = (kGame.getElapsedGameTurns() < iExpansionPhaseTurn);
+		bool const bNoBarbarians = kGame.isOption(GAMEOPTION_NO_BARBARIANS);
+		bool const bAreaBorderObstacle = kBuilding.isAreaBorderObstacle();
+		bool const bRetiredSASAntiBarbarianLateReject = (!bNoBarbarians && bRetiredSASAntiBarbarianLateVetoEnabled &&
+				bAreaBorderObstacle && iEra > iRetiredSASAntiBarbarianLateMaxEra);
+		int const iUnrevealedAreaTiles = kCity.getArea().getNumUnrevealedTiles(kCity.getTeam());
+		int const iBarbarianAreaCities = kCity.getArea().getCitiesPerPlayer(BARBARIAN_PLAYER);
+		int const iBarbarianAreaUnits = kCity.getArea().getUnitsPerPlayer(BARBARIAN_PLAYER);
+
+		logBBAI("BUILDING_VALUE_WORLD_WONDER_POLICY_AUDIT turn=%d player=%d %S city=%S cityId=%d building=%s era=%d pop=%d baseProduction=%d productionRank=%d numCities=%d stored=%d needed=%d remaining=%d turnsLeft=%d buildTimeModifier=%d estimatedTurns=%d softTurnCap=%d minBaseHammers=%d lowProduction=%d cheapWWCap=%d cheapWorldWonder=%d atWar=%d warPlan=%d danger=%d enemyPowerPercent=%d enemyStrong=%d landUnitsWonder=%d productionWonder=%d postBuildProductionModifier=%d bestHpt=%d secondBestHpt=%d thirdBestHpt=%d top2HammerRank=%d top2HammerLeeway=%d top3HammerLeeway=%d expansionPhase=%d lowBuildTimeModifier=%d coastalScalingWonder=%d coastalCities=%d fewCoastalCities=%d prereqAndTech=%d rivalsWithAndTech=%d retiredSASHotRaceThreshold=%d retiredSASHotRace=%d areaBorderObstacle=%d noBarbarians=%d retiredSASAntiBarbarianLateVetoEnabled=%d retiredSASAntiBarbarianLateMaxEra=%d retiredSASAntiBarbarianLateReject=%d unrevealedAreaTiles=%d barbarianAreaCities=%d barbarianAreaUnits=%d unhealthinessReducer=%d healthSurplus=%d top2Population=%d",
+			kGame.getGameTurn(), kCity.getOwner(), kOwner.getCivilizationDescription(0), kCity.getName().GetCString(), kCity.getID(), kBuilding.getType(),
+			iEra, kCity.getPopulation(), iBaseHpt, iProductionRank, kOwner.getNumCities(), iStored, iNeeded, iRemaining,
+			iTurnsLeft, iBuildTimeModifier, iEstimatedTurns, iSoftTurnCap, iMinBaseHpt, iBaseHpt < iMinBaseHpt, iCheapWWCap, bCheapWorldWonder,
+			kWarPower.bAtWar, bWarPlan, bDanger, kWarPower.iEnemyPowerPercent, kWarPower.bEnemyStrong, bLandUnitsWonder, bProductionWonder,
+			iPostBuildProductionModifier, iBestHpt, iSecondBestHpt, iThirdBestHpt, bTop2HammerRank, bTop2HammerLeeway, bTop3HammerLeeway,
+			bExpansionPhase, (!bExpansionPhase && iBuildTimeModifier < 25), bCoastalScalingWonder, iCoastalCities,
+			(bCoastalScalingWonder && iCoastalCities < 3), eAndTech, iRivalsWithAndTech, iRetiredSASWorldWonderHotRaceThreshold,
+			(eAndTech != NO_TECH && iRivalsWithAndTech >= iRetiredSASWorldWonderHotRaceThreshold), bAreaBorderObstacle, bNoBarbarians, bRetiredSASAntiBarbarianLateVetoEnabled,
+			iRetiredSASAntiBarbarianLateMaxEra, bRetiredSASAntiBarbarianLateReject, iUnrevealedAreaTiles, iBarbarianAreaCities, iBarbarianAreaUnits,
+			bUnhealthinessReducer, iHealthLevel, kCity.getPopulation() >= iSecondBestPop);
+	}
+	else
+	{
+		bool const bGovernmentCenter = (kBuilding.isGovernmentCenter() && !kBuilding.isCapital());
+		bool const bPalace = kBuilding.isCapital();
+		CvCityAI const* pCapital = kOwner.AI_getCapital();
+		int const iCapitalBaseHpt = (pCapital == NULL ? -1 : pCapital->getBaseYieldRate(YIELD_PRODUCTION));
+		int const iCapitalBeakers = (pCapital == NULL ? -1 : pCapital->getCommerceRate(COMMERCE_RESEARCH));
+		int const iCityBeakers = kCity.getCommerceRate(COMMERCE_RESEARCH);
+		logBBAI("BUILDING_VALUE_NATIONAL_WONDER_POLICY_AUDIT turn=%d player=%d %S city=%S cityId=%d building=%s era=%d pop=%d baseProduction=%d productionRank=%d numCities=%d stored=%d needed=%d remaining=%d turnsLeft=%d buildTimeModifier=%d estimatedTurns=%d softTurnCap=%d minBaseHammers=%d lowProduction=%d atWar=%d warPlan=%d danger=%d enemyPowerPercent=%d enemyStrong=%d atWarEnemyWeak=%d landUnitsWonder=%d productionWonder=%d postBuildProductionModifier=%d bestHpt=%d secondBestHpt=%d thirdBestHpt=%d top2HammerRank=%d top2HammerLeeway=%d top3HammerLeeway=%d unhealthinessReducer=%d healthSurplus=%d top2Population=%d governmentCenter=%d maintenanceTimes100=%d palace=%d cityBeakers=%d capitalBaseProduction=%d capitalBeakers=%d",
+			kGame.getGameTurn(), kCity.getOwner(), kOwner.getCivilizationDescription(0), kCity.getName().GetCString(), kCity.getID(), kBuilding.getType(),
+			iEra, kCity.getPopulation(), iBaseHpt, iProductionRank, kOwner.getNumCities(), iStored, iNeeded, iRemaining,
+			iTurnsLeft, iBuildTimeModifier, iEstimatedTurns, iSoftTurnCap, iMinBaseHpt, iBaseHpt < iMinBaseHpt,
+			kWarPower.bAtWar, bWarPlan, bDanger, kWarPower.iEnemyPowerPercent, kWarPower.bEnemyStrong, kWarPower.bAtWarAndEnemyWeak,
+			bLandUnitsWonder, bProductionWonder, iPostBuildProductionModifier, iBestHpt, iSecondBestHpt, iThirdBestHpt,
+			bTop2HammerRank, bTop2HammerLeeway, bTop3HammerLeeway, bUnhealthinessReducer, iHealthLevel,
+			kCity.getPopulation() >= iSecondBestPop, bGovernmentCenter, kCity.getMaintenanceTimes100(), bPalace, iCityBeakers, iCapitalBaseHpt, iCapitalBeakers);
+	}
+}
+
+// <!-- custom: Domain-applicability audit shared by Wonders and regular buildings.
+// A DomainProductionModifier applies to every unit in that domain, while MilitaryProductionModifier applies only to UnitInfo::isMilitaryProduction units; count both literal and military applicability so a Worker/Settler cannot make a land-military pump look meaningfully usable.
+// Keep this level-3-only and behavior-neutral: it records whether the current city can actually train units affected by LAND/SEA/AIR production or XP effects, plus the same hammer/demand/geography context used by the throughput audits. See KI#48.14. (ChatGPT-5.6-Sol) -->
+static void SAS_logDomainApplicability(CvCityAI const& kCity, BuildingTypes eBuilding, int iProductionRank, int iNumCities, bool bHighProductionCity, int iDomainTotalMilitaryProductionShare, int iDomainWaterWorldPercent, int iLandDemandPercent, int iLandProductionShare, int iSeaProductionShare)
+{
+	CvPlayerAI const& kOwner = GET_PLAYER(kCity.getOwner());
+	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+	int const iLandExperience = kBuilding.getDomainFreeExperience(DOMAIN_LAND);
+	int const iSeaExperience = kBuilding.getDomainFreeExperience(DOMAIN_SEA);
+	int const iAirExperience = kBuilding.getDomainFreeExperience(DOMAIN_AIR);
+	int const iLandProductionModifier = kBuilding.getDomainProductionModifier(DOMAIN_LAND);
+	int const iSeaProductionModifier = kBuilding.getDomainProductionModifier(DOMAIN_SEA);
+	int const iAirProductionModifier = kBuilding.getDomainProductionModifier(DOMAIN_AIR);
+	bool const bHasDomainSpecificEffect = (iLandExperience != 0 || iSeaExperience != 0 || iAirExperience != 0 ||
+			iLandProductionModifier != 0 || iSeaProductionModifier != 0 || iAirProductionModifier != 0);
+	if (!bHasDomainSpecificEffect)
+		return;
+
+	int iUnitCombatExperienceSum = 0;
+	FOR_EACH_NON_DEFAULT_PAIR(kBuilding.getUnitCombatFreeExperience(), UnitCombat, int)
+		iUnitCombatExperienceSum += std::max(0, perUnitCombatVal.second);
+	bool const bHasTrainingXpEffect = (kBuilding.getFreeExperience() > 0 || iUnitCombatExperienceSum > 0 ||
+			iLandExperience > 0 || iSeaExperience > 0 || iAirExperience > 0);
+
+	int iTrainableDomainLand = 0, iTrainableDomainSea = 0, iTrainableDomainAir = 0;
+	int iTrainableDomainMilitaryLand = 0, iTrainableDomainMilitarySea = 0, iTrainableDomainMilitaryAir = 0;
+	int iTrainableXpAffectedUnits = 0;
+	int iTrainableXpAffectedLand = 0, iTrainableXpAffectedSea = 0, iTrainableXpAffectedAir = 0;
+	FOR_EACH_ENUM(Unit)
+	{
+		CvUnitInfo const& kLoopUnit = GC.getInfo(eLoopUnit);
+		if (!kCity.canTrain(eLoopUnit))
+			continue;
+
+		DomainTypes const eUnitDomain = kLoopUnit.getDomainType();
+		if (eUnitDomain == DOMAIN_LAND)
+		{
+			iTrainableDomainLand++;
+			if (kLoopUnit.isMilitaryProduction())
+				iTrainableDomainMilitaryLand++;
+		}
+		else if (eUnitDomain == DOMAIN_SEA)
+		{
+			iTrainableDomainSea++;
+			if (kLoopUnit.isMilitaryProduction())
+				iTrainableDomainMilitarySea++;
+		}
+		else if (eUnitDomain == DOMAIN_AIR)
+		{
+			iTrainableDomainAir++;
+			if (kLoopUnit.isMilitaryProduction())
+				iTrainableDomainMilitaryAir++;
+		}
+
+		if (!bHasTrainingXpEffect)
+			continue;
+		UnitCombatTypes const eCombat = kLoopUnit.getUnitCombatType();
+		int iGrantedExperience = kBuilding.getFreeExperience() + kBuilding.getDomainFreeExperience(eUnitDomain);
+		if (eCombat != NO_UNITCOMBAT)
+			iGrantedExperience += kBuilding.getUnitCombatFreeExperience(eCombat);
+		int const iStrength = std::max(kLoopUnit.getCombat(), kLoopUnit.getAirCombat());
+		if (iGrantedExperience <= 0 || iStrength <= 0)
+			continue;
+		iTrainableXpAffectedUnits++;
+		if (eUnitDomain == DOMAIN_LAND) iTrainableXpAffectedLand++;
+		else if (eUnitDomain == DOMAIN_SEA) iTrainableXpAffectedSea++;
+		else if (eUnitDomain == DOMAIN_AIR) iTrainableXpAffectedAir++;
+	}
+
+	int iTrainableProductionAffectedUnits = 0;
+	int iTrainableProductionAffectedMilitaryUnits = 0;
+	if (iLandProductionModifier != 0)
+	{
+		iTrainableProductionAffectedUnits += iTrainableDomainLand;
+		iTrainableProductionAffectedMilitaryUnits += iTrainableDomainMilitaryLand;
+	}
+	if (iSeaProductionModifier != 0)
+	{
+		iTrainableProductionAffectedUnits += iTrainableDomainSea;
+		iTrainableProductionAffectedMilitaryUnits += iTrainableDomainMilitarySea;
+	}
+	if (iAirProductionModifier != 0)
+	{
+		iTrainableProductionAffectedUnits += iTrainableDomainAir;
+		iTrainableProductionAffectedMilitaryUnits += iTrainableDomainMilitaryAir;
+	}
+	int const iTrainableProductionAffectedNonMilitaryUnits = iTrainableProductionAffectedUnits - iTrainableProductionAffectedMilitaryUnits;
+
+	CvString szSignature;
+	szSignature.Format("%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d",
+		iLandProductionModifier, iSeaProductionModifier, iAirProductionModifier,
+		iLandExperience, iSeaExperience, iAirExperience,
+		iTrainableDomainLand, iTrainableDomainSea, iTrainableDomainAir,
+		iTrainableDomainMilitaryLand, iTrainableDomainMilitarySea, iTrainableDomainMilitaryAir,
+		iTrainableProductionAffectedUnits, iTrainableProductionAffectedMilitaryUnits,
+		iTrainableXpAffectedUnits, iProductionRank);
+	if (!SAS_shouldLogBuildingValueGateChange(kCity, eBuilding, "DOMAIN_APPLICABILITY", szSignature))
+		return;
+
+	int const iApplicabilityAreaAI = kCity.getArea().getAreaAIType(kCity.getTeam());
+	bool const bApplicabilityLandWar = (iApplicabilityAreaAI == AREAAI_OFFENSIVE || iApplicabilityAreaAI == AREAAI_MASSING || iApplicabilityAreaAI == AREAAI_DEFENSIVE);
+	bool const bApplicabilityAssault = (iApplicabilityAreaAI == AREAAI_ASSAULT || iApplicabilityAreaAI == AREAAI_ASSAULT_MASSING || iApplicabilityAreaAI == AREAAI_ASSAULT_ASSIST);
+	SASLocalAreaRivalContext const kLocalRivals(kOwner, kCity.getArea());
+	int const iAreaMilitaryStock = SAS_getMainLandMilitaryStock(kOwner, kCity.getArea());
+	logBBAI("BUILDING_VALUE_DOMAIN_APPLICABILITY turn=%d player=%d city=%S cityId=%d building=%s landProductionModifier=%d seaProductionModifier=%d airProductionModifier=%d landExperience=%d seaExperience=%d airExperience=%d trainableLand=%d trainableSea=%d trainableAir=%d trainableMilitaryLand=%d trainableMilitarySea=%d trainableMilitaryAir=%d trainableProductionAffectedUnits=%d trainableProductionAffectedMilitaryUnits=%d trainableProductionAffectedNonMilitaryUnits=%d hasTrainableProductionAffectedUnit=%d hasTrainableProductionAffectedMilitaryUnit=%d onlyNonMilitaryProductionApplicability=%d trainableXpAffectedUnits=%d trainableXpAffectedLand=%d trainableXpAffectedSea=%d trainableXpAffectedAir=%d coastal=%d baseProduction=%d productionRank=%d numCities=%d highProductionCity=%d totalMilitaryProductionShare=%d waterWorldPercent=%d landDemandPercent=%d landProductionShare=%d seaProductionShare=%d areaAI=%d landWar=%d assault=%d areaCities=%d areaMilitaryStock=%d independentRivalTeamsInArea=%d unknownIndependentRivalTeamsInArea=%d independentRivalCitiesInArea=%d localPowerAdvantagePercent=%d",
+		GC.getGame().getGameTurn(), kCity.getOwner(), kCity.getName().GetCString(), kCity.getID(), kBuilding.getType(),
+		iLandProductionModifier, iSeaProductionModifier, iAirProductionModifier, iLandExperience, iSeaExperience, iAirExperience,
+		iTrainableDomainLand, iTrainableDomainSea, iTrainableDomainAir, iTrainableDomainMilitaryLand, iTrainableDomainMilitarySea, iTrainableDomainMilitaryAir,
+		iTrainableProductionAffectedUnits, iTrainableProductionAffectedMilitaryUnits, iTrainableProductionAffectedNonMilitaryUnits,
+		iTrainableProductionAffectedUnits > 0, iTrainableProductionAffectedMilitaryUnits > 0,
+		(iTrainableProductionAffectedUnits > 0 && iTrainableProductionAffectedMilitaryUnits <= 0),
+		iTrainableXpAffectedUnits, iTrainableXpAffectedLand, iTrainableXpAffectedSea, iTrainableXpAffectedAir,
+		kCity.isCoastal(GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN) * 2), kCity.getBaseYieldRate(YIELD_PRODUCTION),
+		iProductionRank, iNumCities, bHighProductionCity, iDomainTotalMilitaryProductionShare, iDomainWaterWorldPercent,
+		iLandDemandPercent, iLandProductionShare, iSeaProductionShare, iApplicabilityAreaAI, bApplicabilityLandWar, bApplicabilityAssault,
+		kCity.getArea().getCitiesPerPlayer(kCity.getOwner()), iAreaMilitaryStock,
+		kLocalRivals.iIndependentRivalTeams, kLocalRivals.iUnknownIndependentRivalTeams,
+		kLocalRivals.iIndependentRivalCities, kLocalRivals.iLocalPowerAdvantagePercent);
+}
+
+// <!-- custom: Unlike the regular-building attribution, Wonder inherited values need a slim dedicated row.
+// The regular KI#48.5 logger intentionally excludes bWonder and also performs recursive focus probes; this row records only the already-computed neutral inherited result/components, so a master-Wonder-policy-off A/B stays deterministic and cheap enough for level-3 forensic use. (ChatGPT-5.6-Sol) -->
+static void SAS_logInheritedWonderValue(CvCityAI const& kCity, BuildingTypes eBuilding, int iValue, int iPriorityFactor,
+	int iValueBeforePriority, int iValueAfterPriority, int iValueBeforeAIWeight, int iValueAfterAIWeight, int iFlavorMatch, int iValueAfterFlavor,
+	int iDefenseDelta, int iEspionageDefenseDelta, int iHappinessDelta, int iHealthDelta, int iExperienceDelta, int iDomainSeaDelta,
+	int iMaintenanceDelta, int iSpecialistDelta, int iTradeDelta, int iGeneralDelta, int iYieldDelta, int iCommerceGlobalDelta,
+	int iAirCapacityDelta, int iMilitaryProductionDelta, int iDomainProductionDelta, int iGoldDelta, int iResearchDelta,
+	int iCultureDelta, int iEspionageDelta, int iSeaFoodDelta, int iSeaProductionDelta, int iSeaCommerceDelta)
+{
+	CvPlayerAI const& kOwner = GET_PLAYER(kCity.getOwner());
+	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+	int const iStored = kCity.getBuildingProduction(eBuilding);
+	int const iNeeded = kCity.getProductionNeeded(eBuilding);
+	int iTurnsLeft = kCity.getProductionTurnsLeft(eBuilding, 0);
+	TechTypes const eObsoleteTech = kBuilding.getObsoleteTech();
+	TechTypes const eSpecialObsoleteTech = (kBuilding.getSpecialBuildingType() == NO_SPECIALBUILDING ? NO_TECH : GC.getInfo(kBuilding.getSpecialBuildingType()).getObsoleteTech());
+	bool const bResearchingObsoleteTech = ((eObsoleteTech != NO_TECH && kOwner.getCurrentResearch() == eObsoleteTech) ||
+			(eSpecialObsoleteTech != NO_TECH && kOwner.getCurrentResearch() == eSpecialObsoleteTech));
+	int const iComparisonValue = (iTurnsLeft == MAX_INT ? 0 : ((bResearchingObsoleteTech ? iValue / 2 : iValue) + iStored / 4) *
+			1000 / std::max(1, iTurnsLeft + 3));
+	if (iTurnsLeft == MAX_INT)
+		iTurnsLeft = -1;
+
+	char const* szKind = (kBuilding.isWorldWonder() ? "WORLD_WONDER_INHERITED" : "NATIONAL_WONDER_INHERITED");
+	CvString szSignature;
+	szSignature.Format("%d|%d|%d|%d|%d|%d|%d|%d", iValue, iPriorityFactor, iComparisonValue, iTurnsLeft,
+		iStored, iValueBeforePriority, iValueAfterPriority, iValueAfterFlavor);
+	if (!SAS_shouldLogBuildingValueGateChange(kCity, eBuilding, szKind, szSignature))
+		return;
+
+	char const* szRow = (kBuilding.isWorldWonder() ? "BUILDING_VALUE_WORLD_WONDER_INHERITED" : "BUILDING_VALUE_NATIONAL_WONDER_INHERITED");
+	logBBAI("%s turn=%d player=%d %S city=%S cityId=%d building=%s value=%d priorityFactor=%d comparisonValue=%d stored=%d needed=%d remaining=%d turnsLeft=%d researchingObsoleteTech=%d valueBeforePriority=%d valueAfterPriority=%d valueBeforeAIWeight=%d valueAfterAIWeight=%d flavorMatch=%d valueAfterFlavor=%d defense=%d espionageDefense=%d happiness=%d health=%d experience=%d domainSea=%d maintenance=%d specialist=%d trade=%d general=%d yield=%d commerceGlobal=%d airCapacityWithinGeneral=%d militaryProductionWithinGeneral=%d domainProductionWithinGeneral=%d gold=%d research=%d culture=%d espionage=%d seaFood=%d seaProduction=%d seaCommerce=%d",
+		szRow, GC.getGame().getGameTurn(), kCity.getOwner(), kOwner.getCivilizationDescription(0), kCity.getName().GetCString(),
+		kCity.getID(), kBuilding.getType(), iValue, iPriorityFactor, iComparisonValue, iStored, iNeeded, std::max(0, iNeeded - iStored),
+		iTurnsLeft, bResearchingObsoleteTech, iValueBeforePriority, iValueAfterPriority, iValueBeforeAIWeight, iValueAfterAIWeight,
+		iFlavorMatch, iValueAfterFlavor, iDefenseDelta, iEspionageDefenseDelta, iHappinessDelta, iHealthDelta, iExperienceDelta,
+		iDomainSeaDelta, iMaintenanceDelta, iSpecialistDelta, iTradeDelta, iGeneralDelta, iYieldDelta, iCommerceGlobalDelta,
+		iAirCapacityDelta, iMilitaryProductionDelta, iDomainProductionDelta, iGoldDelta, iResearchDelta, iCultureDelta, iEspionageDelta,
+		iSeaFoodDelta, iSeaProductionDelta, iSeaCommerceDelta);
+}
+
+// <!-- custom: The KI#48.5 audit exposed every computed neutral-focus inherited value rather than only the winning focus candidates while the SAS regular-building prefilter was disabled.
+// Retain this attribution after removing that prefilter: include its deterministic turns/progress-adjusted comparison value and the main XML/city inputs, and call only behind the cached level-3 gate. (GPT-5.6-Sol) -->
+static void SAS_logInheritedBuildingValue(CvCityAI const& kCity, BuildingTypes eBuilding, int iValue, int iPriorityFactor, int iDefenseDelta, int iEspionageDefenseDelta, int iHappinessDelta, int iHealthDelta, int iExperienceDelta, int iDomainSeaDelta, int iMaintenanceDelta, int iSpecialistDelta, int iTradeDelta, int iGeneralDelta, int iYieldDelta, int iCommerceGlobalDelta, int iAirCapacityDelta, int iMilitaryProductionDelta, int iDomainProductionDelta, int iHealthSeverityUrgencyBonus, int iHealthStarvationUrgencyBonus, int iMaintenanceCurrentTimes100, int iMaintenanceEstimatedBaseTimes100, int iMaintenanceNewUpkeepTimes100, int iMaintenanceSavedTimes100, int iMaintenancePreInflationValue, int iMaintenanceInflatedValue, int iMaintenanceFinalValue, int iValueBeforePriority, int iValueAfterPriority, int iValueBeforeAIWeight, int iValueAfterAIWeight, int iFlavorMatchExact, int iValueAfterFlavor, int iGoldDelta, int iGoldBeforeWeight, int iGoldAfterWeight, int iResearchDelta, int iResearchBeforeWeight, int iResearchAfterWeight, int iCultureDelta, int iCultureClaimValue, int iCulturePriorityBoost, int iCultureBeforeWeight, int iCultureAfterWeight, int iEspionageDelta, int iEspionageBeforeWeight, int iEspionageAfterWeight, int iSeaFoodDelta, int iSeaProductionDelta, int iSeaCommerceDelta, int iSeaYieldPlotWeight, int iYieldProductionPriorityRaw, int iYieldProductionPriorityApplied)
+{
+	CvPlayerAI const& kOwner = GET_PLAYER(kCity.getOwner());
+	CvTeamAI const& kTeam = GET_TEAM(kCity.getTeam());
+	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+	int const iStored = kCity.getBuildingProduction(eBuilding);
+	int const iNeeded = kCity.getProductionNeeded(eBuilding);
+	int iTurnsLeft = kCity.getProductionTurnsLeft(eBuilding, 0);
+	TechTypes const eObsoleteTech = kBuilding.getObsoleteTech();
+	TechTypes const eSpecialObsoleteTech = (kBuilding.getSpecialBuildingType() == NO_SPECIALBUILDING ? NO_TECH : GC.getInfo(kBuilding.getSpecialBuildingType()).getObsoleteTech());
+	bool const bResearchingObsoleteTech = ((eObsoleteTech != NO_TECH && kOwner.getCurrentResearch() == eObsoleteTech) || (eSpecialObsoleteTech != NO_TECH && kOwner.getCurrentResearch() == eSpecialObsoleteTech));
+	int const iObsolescenceAdjustedValue = (bResearchingObsoleteTech ? iValue / 2 : iValue);
+	int const iComparisonValue = (iTurnsLeft == MAX_INT ? 0 : (iObsolescenceAdjustedValue + iStored / 4) * 1000 / std::max(1, iTurnsLeft + 3));
+	if (iTurnsLeft == MAX_INT)
+		iTurnsLeft = -1;
+	int const iHealthSurplus = kCity.goodHealth() - kCity.badHealth() + kCity.getEspionageHealthCounter() / 2;
+	int const iHappySurplus = kCity.happyLevel() - kCity.unhappyLevel();
+	int const iFoodSurplus = kCity.foodDifference(false, true);
+	bool const bAtWar = (kTeam.getNumWars() > 0);
+	bool const bWarPlan = kOwner.AI_isFocusWar();
+	bool const bDanger = kCity.AI_isDanger();
+	int const iEnemyPowerPercent = kTeam.AI_getEnemyPowerPercent(true);
+	CvString szSignature;
+	szSignature.Format("%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d", iValue, iPriorityFactor, iComparisonValue, iTurnsLeft, iHealthSurplus, iHappySurplus, iFoodSurplus, iStored, bAtWar, bWarPlan, bDanger, iEnemyPowerPercent);
+	if (!SAS_shouldLogBuildingValueGateChange(kCity, eBuilding, "INHERITED_VALUE", szSignature))
+		return;
+	int iHealthGood = 0, iHealthBad = 0;
+	int const iHealthGain = kCity.getAdditionalHealthByBuilding(eBuilding, iHealthGood, iHealthBad, true);
+	int const iHappyGain = AI_strictAdditionalHappy(kCity, eBuilding);
+
+	// <!-- custom: Once a neutral inherited-value row survives deduplication, spend extra level-3-only work to expose how the same candidate scores under each inherited focus and the raw health/happiness need mechanics.
+	// This avoids adding component bookkeeping to ordinary AI_buildingValue calls while giving the building-rework audit enough attribution to distinguish weak need valuation from competing economic/military value. (ChatGPT-5.6-Sol) -->
+	int const iFocusHealth = kCity.AI_buildingValue(eBuilding, BUILDINGFOCUS_HEALTHY, 0, true);
+	int const iFocusHappy = kCity.AI_buildingValue(eBuilding, BUILDINGFOCUS_HAPPY, 0, true);
+	int const iFocusMaintenance = kCity.AI_buildingValue(eBuilding, BUILDINGFOCUS_MAINTENANCE, 0, true);
+	int const iFocusDefense = kCity.AI_buildingValue(eBuilding, BUILDINGFOCUS_DEFENSE, 0, true);
+	int const iFocusExperience = kCity.AI_buildingValue(eBuilding, BUILDINGFOCUS_EXPERIENCE, 0, true);
+	int const iFocusDomainSea = kCity.AI_buildingValue(eBuilding, BUILDINGFOCUS_DOMAINSEA, 0, true);
+	int const iFocusFood = kCity.AI_buildingValue(eBuilding, BUILDINGFOCUS_FOOD, 0, true);
+	int const iFocusProduction = kCity.AI_buildingValue(eBuilding, BUILDINGFOCUS_PRODUCTION, 0, true);
+	int const iFocusGold = kCity.AI_buildingValue(eBuilding, BUILDINGFOCUS_GOLD, 0, true);
+	int const iFocusResearch = kCity.AI_buildingValue(eBuilding, BUILDINGFOCUS_RESEARCH, 0, true);
+	int const iFocusCulture = kCity.AI_buildingValue(eBuilding, BUILDINGFOCUS_CULTURE, 0, true);
+	int const iFocusEspionage = kCity.AI_buildingValue(eBuilding, BUILDINGFOCUS_ESPIONAGE, 0, true);
+	int const iFocusSpecialist = kCity.AI_buildingValue(eBuilding, BUILDINGFOCUS_SPECIALIST, 0, true);
+
+	int const iHappinessLevel = iHappySurplus + kCity.getEspionageHappinessCounter() / 2 - kCity.getMilitaryHappiness() / 2;
+	int iHappyGood = 0, iHappyBad = 0;
+	int const iActualHappyGain = kCity.getAdditionalHappinessByBuilding(eBuilding, iHappyGood, iHappyBad);
+	int const iAngerBefore = std::max(0, -iHappinessLevel);
+	int const iAngerAfter = std::max(0, -(iHappinessLevel + iActualHappyGain));
+	int const iAngerDelta = iAngerAfter - iAngerBefore;
+
+	int const iHealthLevel = iHealthSurplus;
+	int iFutureHealthLevel = iHealthLevel;
+	if (kOwner.getCurrentEra() >= CvEraInfo::AI_getAgeOfPollution() && !kCity.isPower())
+		iFutureHealthLevel += GC.getDefineINT(CvGlobals::POWER_HEALTH_CHANGE) / 2;
+	int const iWasteBefore = std::max(0, -iFutureHealthLevel);
+	int const iWasteAfter = std::max(0, -iFutureHealthLevel - iHealthGain);
+	int const iWasteDelta = iWasteAfter - iWasteBefore;
+	int const iFoodDeficitBefore = std::max(0, -(iFoodSurplus + iFutureHealthLevel - iHealthLevel));
+	int const iFoodDeficitAfter = std::max(0, -(iFoodSurplus - iWasteDelta));
+
+	logBBAI("BUILDING_VALUE_INHERITED_FOCUS turn=%d player=%d city=%S cityId=%d building=%s neutral=%d health=%d happy=%d maintenance=%d defense=%d experience=%d domainSea=%d food=%d production=%d gold=%d research=%d culture=%d espionage=%d specialist=%d happinessLevel=%d actualHappyGain=%d angerBefore=%d angerAfter=%d angerDelta=%d healthLevel=%d futureHealthLevel=%d actualHealthGain=%d wasteBefore=%d wasteAfter=%d wasteDelta=%d foodDeficitBefore=%d foodDeficitAfter=%d maintenanceTimes100=%d freeExperience=%d landExperience=%d seaExperience=%d militaryProductionModifier=%d landProductionModifier=%d seaProductionModifier=%d",
+		GC.getGame().getGameTurn(), kCity.getOwner(), kCity.getName().GetCString(), kCity.getID(), kBuilding.getType(), iValue,
+		iFocusHealth, iFocusHappy, iFocusMaintenance, iFocusDefense, iFocusExperience, iFocusDomainSea, iFocusFood, iFocusProduction,
+		iFocusGold, iFocusResearch, iFocusCulture, iFocusEspionage, iFocusSpecialist, iHappinessLevel, iActualHappyGain, iAngerBefore,
+		iAngerAfter, iAngerDelta, iHealthLevel, iFutureHealthLevel, iHealthGain, iWasteBefore, iWasteAfter, iWasteDelta,
+		iFoodDeficitBefore, iFoodDeficitAfter, kCity.getMaintenanceTimes100(), kBuilding.getFreeExperience(),
+		kBuilding.getDomainFreeExperience(DOMAIN_LAND), kBuilding.getDomainFreeExperience(DOMAIN_SEA), kBuilding.getMilitaryProductionModifier(),
+		kBuilding.getDomainProductionModifier(DOMAIN_LAND), kBuilding.getDomainProductionModifier(DOMAIN_SEA));
+
+	// <!-- custom: Growth-bottleneck audit: expose the exact inherited happiness contribution beside current angry citizens, reliable building happiness, temporary anger timers and the health/food state it competes with.
+	// This tests whether the old SAS reject/force rules or a new severe-unhappiness correction are needed without changing behavior. (ChatGPT-5.6-Sol) -->
+	bool const bHappinessAuditLike = (iHappyGain > 0 || iActualHappyGain > 0 || iHappinessDelta != 0 ||
+			kBuilding.isNoUnhappiness() || kBuilding.getHurryAngerModifier() != 0 || kBuilding.getWarWearinessModifier() != 0);
+	if (bHappinessAuditLike)
+	{
+		int const iFoodPerPop = GC.getFOOD_CONSUMPTION_PER_POPULATION();
+		int const iAngryPopulation = kCity.angryPopulation();
+		int const iStrictCuredAngry = std::min(iAngryPopulation, std::max(0, iHappyGain));
+		int const iEffectiveFood = (iHappySurplus <= 0 ? 0 : std::max(0, iFoodSurplus));
+		int const iEffectiveFoodAfterStrictHappy = iEffectiveFood + iStrictCuredAngry * iFoodPerPop;
+		bool const bOldSASHappinessLike = (iHappyGain > 0);
+		bool const bOldSASRejectNotNeeded = (bOldSASHappinessLike && iHappySurplus > 2 && iFoodSurplus < 2);
+		bool const bOldSASForceAngerRelief = (bOldSASHappinessLike && iHappySurplus < 1 && iEffectiveFoodAfterStrictHappy > 1);
+		bool const bOldSASRejectStrongEnemy = (bOldSASHappinessLike && bAtWar &&
+				SASWarPowerContext::isEnemyStrong(iEnemyPowerPercent));
+		int const iOtherPreFinalWithoutHappiness = iValueBeforePriority - iHappinessDelta;
+		logBBAI("BUILDING_VALUE_INHERITED_HAPPINESS turn=%d player=%d city=%S cityId=%d building=%s final=%d preFinal=%d happinessDelta=%d otherPreFinalWithoutHappiness=%d happyFocus=%d happySurplus=%d happinessLevel=%d happyLevel=%d unhappyLevel=%d angryPopulation=%d strictHappyGain=%d actualHappyGain=%d angerBefore=%d angerAfter=%d angerDelta=%d foodSurplus=%d effectiveFood=%d strictCuredAngry=%d effectiveFoodAfterStrictHappy=%d healthSurplus=%d healthDelta=%d healthSeverityUrgency=%d healthStarvationUrgency=%d population=%d targetPopulation=%d hurryAngerTimer=%d hurryAngerLength=%d conscriptAngerTimer=%d conscriptAngerLength=%d defyAngerTimer=%d defyAngerLength=%d espionageHappinessCounter=%d militaryHappiness=%d warWearinessPercentAnger=%d noUnhappiness=%d hurryAngerModifier=%d warWearinessModifier=%d oldSASHappinessLike=%d oldSASRejectNotNeeded=%d oldSASForceAngerRelief=%d oldSASRejectStrongEnemy=%d stored=%d needed=%d turnsLeft=%d atWar=%d warPlan=%d danger=%d enemyPowerPercent=%d",
+			GC.getGame().getGameTurn(), kCity.getOwner(), kCity.getName().GetCString(), kCity.getID(), kBuilding.getType(),
+			iValue, iValueBeforePriority, iHappinessDelta, iOtherPreFinalWithoutHappiness, iFocusHappy,
+			iHappySurplus, iHappinessLevel, kCity.happyLevel(), kCity.unhappyLevel(), iAngryPopulation,
+			iHappyGain, iActualHappyGain, iAngerBefore, iAngerAfter, iAngerDelta,
+			iFoodSurplus, iEffectiveFood, iStrictCuredAngry, iEffectiveFoodAfterStrictHappy,
+			iHealthSurplus, iHealthDelta, iHealthSeverityUrgencyBonus, iHealthStarvationUrgencyBonus,
+			kCity.getPopulation(), kCity.AI_getTargetPopulation(),
+			kCity.getHurryAngerTimer(), kCity.flatHurryAngerLength(), kCity.getConscriptAngerTimer(), kCity.flatConscriptAngerLength(),
+			kCity.getDefyResolutionAngerTimer(), kCity.flatDefyResolutionAngerLength(), kCity.getEspionageHappinessCounter(), kCity.getMilitaryHappiness(),
+			kOwner.getWarWearinessPercentAnger(), kBuilding.isNoUnhappiness(), kBuilding.getHurryAngerModifier(), kBuilding.getWarWearinessModifier(),
+			bOldSASHappinessLike, bOldSASRejectNotNeeded, bOldSASForceAngerRelief, bOldSASRejectStrongEnemy,
+			iStored, iNeeded, iTurnsLeft, bAtWar, bWarPlan, bDanger, iEnemyPowerPercent);
+	}
+
+	// <!-- custom: Coastal-growth audit: isolate the exact inherited value attributable to local/global sea-tile food, production and commerce, then expose how many water plots are actually worked or available.
+	// This tests whether the old Harbor-style force-first rule should become a smooth urgency boost, and whether sea production deserves similar treatment, before adding any emergency override. (ChatGPT-5.6-Sol) -->
+	bool const bCoastalYieldAuditLike = (
+			kBuilding.getSeaPlotYieldChange(YIELD_FOOD) != 0 || kBuilding.getSeaPlotYieldChange(YIELD_PRODUCTION) != 0 ||
+			kBuilding.getSeaPlotYieldChange(YIELD_COMMERCE) != 0 || kBuilding.getGlobalSeaPlotYieldChange(YIELD_FOOD) != 0 ||
+			kBuilding.getGlobalSeaPlotYieldChange(YIELD_PRODUCTION) != 0 || kBuilding.getGlobalSeaPlotYieldChange(YIELD_COMMERCE) != 0);
+	if (bCoastalYieldAuditLike)
+	{
+		int iWaterPlots = 0, iWorkedWaterPlots = 0, iUnworkedWaterPlots = 0;
+		int iWaterFood = 0, iWaterProduction = 0, iWaterCommerce = 0;
+		int iWorkedWaterFood = 0, iWorkedWaterProduction = 0, iWorkedWaterCommerce = 0;
+		for (WorkablePlotIter it(kCity); it.hasNext(); ++it)
+		{
+			CvPlot const& kPlot = *it;
+			if (!kPlot.isWater()) continue;
+			iWaterPlots++;
+			iWaterFood += kPlot.getYield(YIELD_FOOD);
+			iWaterProduction += kPlot.getYield(YIELD_PRODUCTION);
+			iWaterCommerce += kPlot.getYield(YIELD_COMMERCE);
+			if (kPlot.isBeingWorked())
+			{
+				iWorkedWaterPlots++;
+				iWorkedWaterFood += kPlot.getYield(YIELD_FOOD);
+				iWorkedWaterProduction += kPlot.getYield(YIELD_PRODUCTION);
+				iWorkedWaterCommerce += kPlot.getYield(YIELD_COMMERCE);
+			}
+			else iUnworkedWaterPlots++;
+		}
+		bool const bOldSASWaterFoodBuilding = (kCity.isCoastal() &&
+				(kBuilding.getSeaPlotYieldChange(YIELD_FOOD) > 0 || kBuilding.getGlobalSeaPlotYieldChange(YIELD_FOOD) > 0));
+		bool const bOldSASForceLowFood = (bOldSASWaterFoodBuilding && iFoodSurplus < 2 && !kCity.isFoodProduction());
+		int const iSeaYieldDelta = iSeaFoodDelta + iSeaProductionDelta + iSeaCommerceDelta;
+		int const iOtherPreFinalWithoutSeaYield = iValueBeforePriority - iSeaYieldDelta;
+
+		// <!-- custom: For Port-style sea-production buildings, expose the immediate worked-water hammer gain and a simple remaining-cost payback horizon beside inherited value.
+		// This is diagnostic only: it tests whether hammer-poor water cities already receive enough priority from K-Mod's production-value/priority scaling before adding any new valuation rule. (ChatGPT-5.6-Sol) -->
+		int const iSeaProductionChange = kBuilding.getSeaPlotYieldChange(YIELD_PRODUCTION);
+		int const iImmediateSeaProductionBaseGain = std::max(0, iSeaProductionChange) * iWorkedWaterPlots;
+		int const iPotentialSeaProductionBaseGain = std::max(0, iSeaProductionChange) * iWaterPlots;
+		int const iBaseProduction = kCity.getBaseYieldRate(YIELD_PRODUCTION);
+		int const iBaseProductionModifier = kCity.getBaseYieldRateModifier(YIELD_PRODUCTION);
+		int const iImmediateSeaProductionModifiedGain = (iImmediateSeaProductionBaseGain * iBaseProductionModifier) / 100;
+		int const iImmediateSeaProductionBoostPercent = (100 * iImmediateSeaProductionBaseGain) / std::max(1, iBaseProduction);
+		int const iRemaining = std::max(0, iNeeded - iStored);
+		int const iRemainingPaybackTurns = (iImmediateSeaProductionModifiedGain <= 0 ? -1 :
+			(iRemaining + iImmediateSeaProductionModifiedGain - 1) / iImmediateSeaProductionModifiedGain);
+		int const iFullPaybackTurns = (iImmediateSeaProductionModifiedGain <= 0 ? -1 :
+			(iNeeded + iImmediateSeaProductionModifiedGain - 1) / iImmediateSeaProductionModifiedGain);
+		int const iSimpleBreakEvenTurns = (iTurnsLeft < 0 || iRemainingPaybackTurns < 0 ? -1 :
+			iTurnsLeft + iRemainingPaybackTurns);
+		int const iYieldProductionPriorityClipped = std::max(0, iYieldProductionPriorityRaw - iYieldProductionPriorityApplied);
+
+		logBBAI("BUILDING_VALUE_INHERITED_COASTAL_YIELD turn=%d player=%d city=%S cityId=%d building=%s final=%d preFinal=%d postPriority=%d priorityFactor=%d yieldProductionPriorityRaw=%d yieldProductionPriorityApplied=%d yieldProductionPriorityClipped=%d seaYieldDelta=%d seaFoodDelta=%d seaProductionDelta=%d seaCommerceDelta=%d otherPreFinalWithoutSeaYield=%d foodFocus=%d productionFocus=%d seaYieldPlotWeight=%d seaFoodChange=%d seaProductionChange=%d seaCommerceChange=%d globalSeaFoodChange=%d globalSeaProductionChange=%d globalSeaCommerceChange=%d waterPlots=%d workedWaterPlots=%d unworkedWaterPlots=%d waterFood=%d waterProduction=%d waterCommerce=%d workedWaterFood=%d workedWaterProduction=%d workedWaterCommerce=%d immediateSeaProductionBaseGain=%d potentialSeaProductionBaseGain=%d baseProductionModifier=%d immediateSeaProductionModifiedGain=%d immediateSeaProductionBoostPercent=%d remainingPaybackTurns=%d fullPaybackTurns=%d simpleBreakEvenTurns=%d population=%d targetPopulation=%d foodSurplus=%d healthSurplus=%d happySurplus=%d angryPopulation=%d baseHammersPerTurn=%d isFoodProduction=%d oldSASWaterFoodBuilding=%d oldSASForceLowFood=%d stored=%d needed=%d remaining=%d turnsLeft=%d atWar=%d warPlan=%d danger=%d enemyPowerPercent=%d",
+			GC.getGame().getGameTurn(), kCity.getOwner(), kCity.getName().GetCString(), kCity.getID(), kBuilding.getType(),
+			iValue, iValueBeforePriority, iValueAfterPriority, iPriorityFactor, iYieldProductionPriorityRaw, iYieldProductionPriorityApplied, iYieldProductionPriorityClipped, iSeaYieldDelta, iSeaFoodDelta, iSeaProductionDelta, iSeaCommerceDelta, iOtherPreFinalWithoutSeaYield,
+			iFocusFood, iFocusProduction, iSeaYieldPlotWeight,
+			kBuilding.getSeaPlotYieldChange(YIELD_FOOD), iSeaProductionChange, kBuilding.getSeaPlotYieldChange(YIELD_COMMERCE),
+			kBuilding.getGlobalSeaPlotYieldChange(YIELD_FOOD), kBuilding.getGlobalSeaPlotYieldChange(YIELD_PRODUCTION), kBuilding.getGlobalSeaPlotYieldChange(YIELD_COMMERCE),
+			iWaterPlots, iWorkedWaterPlots, iUnworkedWaterPlots, iWaterFood, iWaterProduction, iWaterCommerce,
+			iWorkedWaterFood, iWorkedWaterProduction, iWorkedWaterCommerce,
+			iImmediateSeaProductionBaseGain, iPotentialSeaProductionBaseGain, iBaseProductionModifier, iImmediateSeaProductionModifiedGain,
+			iImmediateSeaProductionBoostPercent, iRemainingPaybackTurns, iFullPaybackTurns, iSimpleBreakEvenTurns,
+			kCity.getPopulation(), kCity.AI_getTargetPopulation(), iFoodSurplus, iHealthSurplus, iHappySurplus, kCity.angryPopulation(),
+			iBaseProduction, kCity.isFoodProduction(), bOldSASWaterFoodBuilding, bOldSASForceLowFood,
+			iStored, iNeeded, iRemaining, iTurnsLeft, bAtWar, bWarPlan, bDanger, iEnemyPowerPercent);
+	}
+
+	// <!-- custom: Exact before/after deltas from the inherited neutral pass complement the focus probes above.
+	// These measure what each contiguous valuation block actually added before later global scaling/flavour adjustments; residual keeps the unmatched/scaled remainder explicit instead of pretending the buckets are perfectly additive; diagnostic-only. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	int const iAccountedDelta = iDefenseDelta + iEspionageDefenseDelta + iHappinessDelta + iHealthDelta + iExperienceDelta + iDomainSeaDelta + iMaintenanceDelta + iSpecialistDelta + iTradeDelta + iGeneralDelta + iYieldDelta + iCommerceGlobalDelta;
+	int const iResidualDelta = iValue - iAccountedDelta;
+	logBBAI("BUILDING_VALUE_INHERITED_COMPONENTS turn=%d player=%d city=%S cityId=%d building=%s final=%d defense=%d espionageDefense=%d happiness=%d health=%d healthSeverityUrgency=%d healthStarvationUrgency=%d experience=%d domainSea=%d maintenance=%d maintenanceCurrentTimes100=%d maintenanceEstimatedBaseTimes100=%d maintenanceNewUpkeepTimes100=%d maintenanceSavedTimes100=%d maintenancePreInflationValue=%d maintenanceInflatedValue=%d maintenanceFinalValue=%d specialist=%d trade=%d general=%d yield=%d commerceGlobal=%d airCapacityWithinGeneral=%d militaryProductionWithinGeneral=%d domainProductionWithinGeneral=%d accounted=%d residual=%d",
+		GC.getGame().getGameTurn(), kCity.getOwner(), kCity.getName().GetCString(), kCity.getID(), kBuilding.getType(), iValue,
+		iDefenseDelta, iEspionageDefenseDelta, iHappinessDelta, iHealthDelta, iHealthSeverityUrgencyBonus, iHealthStarvationUrgencyBonus,
+		iExperienceDelta, iDomainSeaDelta, iMaintenanceDelta, iMaintenanceCurrentTimes100, iMaintenanceEstimatedBaseTimes100, iMaintenanceNewUpkeepTimes100,
+		iMaintenanceSavedTimes100, iMaintenancePreInflationValue, iMaintenanceInflatedValue, iMaintenanceFinalValue,
+		iSpecialistDelta, iTradeDelta, iGeneralDelta, iYieldDelta, iCommerceGlobalDelta,
+		iAirCapacityDelta, iMilitaryProductionDelta, iDomainProductionDelta, iAccountedDelta, iResidualDelta);
+
+	// <!-- custom: Economy migration audit: isolate inherited gold-commerce value from a multipurpose building's other effects, then expose the core military-pressure and low-city-gold conditions behind SAS's old Market/Bank-style veto.
+	// Log only buildings with a gold modifier, flat gold or Merchant capacity so level-3 BBAI stays focused; keep the prior-category distinction visible through exact component deltas rather than reintroducing the old sequential whole-building classifier. (ChatGPT-5.6-Sol) -->
+	int const iGoldFlat = kBuilding.getCommerceChange(COMMERCE_GOLD) + kBuilding.getObsoleteSafeCommerceChange(COMMERCE_GOLD);
+	int const iGoldModifier = kBuilding.getCommerceModifier(COMMERCE_GOLD);
+	int const iGlobalGoldModifier = kBuilding.getGlobalCommerceModifier(COMMERCE_GOLD);
+	int const iSpecialistExtraGold = kBuilding.getSpecialistExtraCommerce(COMMERCE_GOLD);
+	static const SpecialistTypes eMerchantForAudit = (SpecialistTypes)GC.getInfoTypeForString("SPECIALIST_MERCHANT", true);
+	int const iMerchantSlots = (eMerchantForAudit == NO_SPECIALIST ? 0 : kBuilding.getSpecialistCount(eMerchantForAudit));
+	int const iFreeMerchants = (eMerchantForAudit == NO_SPECIALIST ? 0 : kBuilding.getFreeSpecialistCount(eMerchantForAudit));
+	bool const bOldSASEconomyLike = (iGoldModifier >= 20 || iGoldFlat > 0 || iMerchantSlots > 0 || iFreeMerchants > 0);
+	if (bOldSASEconomyLike)
+	{
+		bool const bOldSASMilitaryPressure = (bAtWar || bDanger || bWarPlan);
+		int const iCityGoldRate = kCity.getCommerceRate(COMMERCE_GOLD);
+		bool const bOldSASLowGoldRateCore = (!bOldSASMilitaryPressure && iGoldModifier >= 20 && iCityGoldRate < 6);
+		int iRepresentativeUnitMinCost = 0, iRepresentativeUnitMaxCost = 0, iRepresentativeUnitAverageTurns = 0, iRepresentativeUnitCount = 0;
+		int const iRepresentativeUnitAverageCost = SAS_getRepresentativeLandMilitaryProductionCost(kCity, iRepresentativeUnitMinCost,
+				iRepresentativeUnitMaxCost, iRepresentativeUnitAverageTurns, iRepresentativeUnitCount);
+		int const iOtherPreFinalWithoutGold = iValueBeforePriority - iGoldDelta;
+		logBBAI("BUILDING_VALUE_INHERITED_ECONOMY turn=%d player=%d city=%S cityId=%d building=%s final=%d preFinal=%d goldDelta=%d otherPreFinalWithoutGold=%d goldFocus=%d goldBeforeWeight=%d goldAfterWeight=%d goldFlat=%d goldModifier=%d globalGoldModifier=%d specialistExtraGold=%d merchantSlots=%d freeMerchants=%d cityGoldRate=%d cityBaseGoldRate=%d goldPercent=%d goldWeight=%d goldRank=%d financialTrouble=%d economyFocus=%d happinessDelta=%d healthDelta=%d maintenanceDelta=%d specialistDelta=%d tradeDelta=%d researchDelta=%d cultureDelta=%d yieldDelta=%d baseHammersPerTurn=%d productionRank=%d representativeUnitAverageCost=%d representativeUnitMinCost=%d representativeUnitMaxCost=%d representativeUnitAverageTurns=%d representativeUnitCount=%d stored=%d needed=%d turnsLeft=%d oldSASMilitaryPressure=%d oldSASLowGoldRateCore=%d atWar=%d warPlan=%d danger=%d enemyPowerPercent=%d",
+			GC.getGame().getGameTurn(), kCity.getOwner(), kCity.getName().GetCString(), kCity.getID(), kBuilding.getType(),
+			iValue, iValueBeforePriority, iGoldDelta, iOtherPreFinalWithoutGold, iFocusGold, iGoldBeforeWeight, iGoldAfterWeight,
+			iGoldFlat, iGoldModifier, iGlobalGoldModifier, iSpecialistExtraGold, iMerchantSlots, iFreeMerchants,
+			iCityGoldRate, kCity.getBaseCommerceRate(COMMERCE_GOLD), kOwner.getCommercePercent(COMMERCE_GOLD),
+			kOwner.AI_commerceWeight(COMMERCE_GOLD, &kCity), kCity.findCommerceRateRank(COMMERCE_GOLD),
+			kOwner.AI_isFinancialTrouble(), kOwner.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS),
+			iHappinessDelta, iHealthDelta, iMaintenanceDelta, iSpecialistDelta, iTradeDelta, iResearchDelta, iCultureDelta, iYieldDelta,
+			kCity.getBaseYieldRate(YIELD_PRODUCTION), kCity.findBaseYieldRateRank(YIELD_PRODUCTION),
+			iRepresentativeUnitAverageCost, iRepresentativeUnitMinCost, iRepresentativeUnitMaxCost, iRepresentativeUnitAverageTurns, iRepresentativeUnitCount,
+			iStored, iNeeded, iTurnsLeft, bOldSASMilitaryPressure, bOldSASLowGoldRateCore,
+			bAtWar, bWarPlan, bDanger, iEnemyPowerPercent);
+	}
+
+	// <!-- custom: Trade-route migration audit: isolate the inherited trade contribution and expose the core conditions behind SAS's old Customs House / route-building vetoes without recreating the sequential whole-building classifier.
+	// Recompute foreign-route availability only inside the deduplicated level-3 path, and log only buildings that actually add routes or trade modifiers so BBAI stays focused. (ChatGPT-5.6-Sol) -->
+	int const iTradeRoutesAdded = kBuilding.getTradeRoutes() + kBuilding.getCoastalTradeRoutes() + kBuilding.getAreaTradeRoutes();
+	int const iTradeRouteModifier = kBuilding.getTradeRouteModifier();
+	int const iForeignTradeRouteModifier = kBuilding.getForeignTradeRouteModifier();
+	bool const bOldSASTradeLike = (iTradeRoutesAdded > 0 || iTradeRouteModifier > 0 || iForeignTradeRouteModifier > 0);
+	if (bOldSASTradeLike)
+	{
+		int const iNumTradeRoutes = kCity.getTradeRoutes();
+		bool bForeignTradeForAudit = false;
+		for (int i = 0; i < iNumTradeRoutes; i++)
+		{
+			CvCity const* pTradeCity = kCity.getTradeCity(i);
+			if (pTradeCity == NULL)
+				continue;
+			if (TEAMID(pTradeCity->getOwner()) != kCity.getTeam() || !kCity.sameArea(*pTradeCity))
+			{
+				bForeignTradeForAudit = true;
+				break;
+			}
+		}
+
+		bool const bTradeRouteAdder = (iTradeRoutesAdded > 0);
+		bool const bHasAnyEffectiveTradeRouteModifier = (iTradeRouteModifier > 0 || (iForeignTradeRouteModifier > 0 && bForeignTradeForAudit));
+		int const iTradeYield = kCity.getTradeYield(YIELD_COMMERCE);
+		bool const bOldSASMilitaryPressure = (bAtWar || bDanger || bWarPlan);
+		bool const bOldSASNoForeignRouteCore = (iForeignTradeRouteModifier > 0 && !bForeignTradeForAudit && !bTradeRouteAdder);
+		int iOldSASRouteBase = iTradeYield;
+		if (bHasAnyEffectiveTradeRouteModifier)
+			iOldSASRouteBase++;
+		int iOldSASRequiredAddedRoutes = 0;
+		if (iTradeYield < 4 && iOldSASRouteBase < 4)
+			iOldSASRequiredAddedRoutes = (iOldSASRouteBase == 3 ? 1 : 2);
+		bool const bOldSASLowRouteGainCore = (iOldSASRequiredAddedRoutes > 0 && iTradeRoutesAdded < iOldSASRequiredAddedRoutes);
+
+		int iRepresentativeUnitMinCost = 0, iRepresentativeUnitMaxCost = 0, iRepresentativeUnitAverageTurns = 0, iRepresentativeUnitCount = 0;
+		int const iRepresentativeUnitAverageCost = SAS_getRepresentativeLandMilitaryProductionCost(kCity, iRepresentativeUnitMinCost,
+				iRepresentativeUnitMaxCost, iRepresentativeUnitAverageTurns, iRepresentativeUnitCount);
+		int const iOtherPreFinalWithoutTrade = iValueBeforePriority - iTradeDelta;
+		logBBAI("BUILDING_VALUE_INHERITED_TRADE turn=%d player=%d city=%S cityId=%d building=%s final=%d preFinal=%d tradeDelta=%d otherPreFinalWithoutTrade=%d tradeRoutesAdded=%d tradeRouteModifier=%d foreignTradeRouteModifier=%d numTradeRoutes=%d tradeYield=%d foreignTrade=%d noForeignTrade=%d coastal=%d coastalCities=%d areaCities=%d financialTrouble=%d baseHammersPerTurn=%d productionRank=%d representativeUnitAverageCost=%d representativeUnitMinCost=%d representativeUnitMaxCost=%d representativeUnitAverageTurns=%d representativeUnitCount=%d stored=%d needed=%d turnsLeft=%d oldSASMilitaryPressure=%d oldSASNoForeignRouteCore=%d oldSASRouteBase=%d oldSASRequiredAddedRoutes=%d oldSASLowRouteGainCore=%d atWar=%d warPlan=%d danger=%d enemyPowerPercent=%d",
+			GC.getGame().getGameTurn(), kCity.getOwner(), kCity.getName().GetCString(), kCity.getID(), kBuilding.getType(),
+			iValue, iValueBeforePriority, iTradeDelta, iOtherPreFinalWithoutTrade,
+			iTradeRoutesAdded, iTradeRouteModifier, iForeignTradeRouteModifier, iNumTradeRoutes, iTradeYield,
+			bForeignTradeForAudit, kOwner.isNoForeignTrade(), kCity.isCoastal(), kOwner.countNumCoastalCities(), kCity.getArea().getCitiesPerPlayer(kCity.getOwner()),
+			kOwner.AI_isFinancialTrouble(), kCity.getBaseYieldRate(YIELD_PRODUCTION), kCity.findBaseYieldRateRank(YIELD_PRODUCTION),
+			iRepresentativeUnitAverageCost, iRepresentativeUnitMinCost, iRepresentativeUnitMaxCost, iRepresentativeUnitAverageTurns, iRepresentativeUnitCount,
+			iStored, iNeeded, iTurnsLeft, bOldSASMilitaryPressure, bOldSASNoForeignRouteCore,
+			iOldSASRouteBase, iOldSASRequiredAddedRoutes, bOldSASLowRouteGainCore,
+			bAtWar, bWarPlan, bDanger, iEnemyPowerPercent);
+	}
+
+
+	// <!-- custom: Espionage migration audit: separate inherited EP output and espionage-defense value from the rest of each building, then expose the war/danger and difficulty-skew conditions behind SAS's old Jail / Intelligence Agency / Security Bureau hard rules.
+	// Retain this contextual attribution after removing the handicap-based force rule; keep all extra state inside the deduplicated level-3 path and log only buildings with actual espionage output, Spy slots or espionage defense. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	int const iEspionageFlat = kBuilding.getCommerceChange(COMMERCE_ESPIONAGE) + kBuilding.getObsoleteSafeCommerceChange(COMMERCE_ESPIONAGE);
+	int const iEspionageModifier = kBuilding.getCommerceModifier(COMMERCE_ESPIONAGE);
+	int const iEspionageDefenseModifier = kBuilding.getEspionageDefenseModifier();
+	static const SpecialistTypes eSpecialistSpyAudit = (SpecialistTypes)GC.getInfoTypeForString("SPECIALIST_SPY", true);
+	int const iSpySlots = (eSpecialistSpyAudit == NO_SPECIALIST ? 0 : kBuilding.getSpecialistCount(eSpecialistSpyAudit));
+	int const iFreeSpies = (eSpecialistSpyAudit == NO_SPECIALIST ? 0 : kBuilding.getFreeSpecialistCount(eSpecialistSpyAudit));
+	bool const bEspionageSourceLike = (iEspionageFlat > 0 || iEspionageModifier >= 20 || iSpySlots > 0 || iFreeSpies > 0);
+	bool const bEspionageDefenseLike = (iEspionageDefenseModifier >= 20);
+	bool const bOldSASEspionageLike = (bEspionageSourceLike || bEspionageDefenseLike);
+	if (bOldSASEspionageLike)
+	{
+		CvHandicapInfo const& kGameHandicap = GC.getInfo(GC.getGame().getHandicapType());
+		int const iHumanResearchPercent = kGameHandicap.getResearchPercent();
+		int const iAIResearchPercent = kGameHandicap.getAIResearchPercent() + GC.getGame().AIHandicapAdjustment();
+		int const iResearchPercentGap = iHumanResearchPercent - iAIResearchPercent;
+		bool const bOldSASDifficultyDefenseCore = (iResearchPercentGap >= 30 && bEspionageDefenseLike);
+		bool const bOldSASDifficultyOutputCore = (iResearchPercentGap <= -20 && bEspionageSourceLike);
+		bool const bOldSASMilitaryPressure = (bAtWar || bDanger || bWarPlan);
+		int iRepresentativeUnitMinCost = 0, iRepresentativeUnitMaxCost = 0, iRepresentativeUnitAverageTurns = 0, iRepresentativeUnitCount = 0;
+		int const iRepresentativeUnitAverageCost = SAS_getRepresentativeLandMilitaryProductionCost(kCity, iRepresentativeUnitMinCost,
+				iRepresentativeUnitMaxCost, iRepresentativeUnitAverageTurns, iRepresentativeUnitCount);
+		int const iOtherPreFinalWithoutEspionage = iValueBeforePriority - iEspionageDelta - iEspionageDefenseDelta;
+		logBBAI("BUILDING_VALUE_INHERITED_ESPIONAGE turn=%d player=%d city=%S cityId=%d building=%s final=%d preFinal=%d espionageDelta=%d espionageDefenseDelta=%d otherPreFinalWithoutEspionage=%d espionageBeforeWeight=%d espionageAfterWeight=%d espionageFlat=%d espionageModifier=%d espionageDefenseModifier=%d spySlots=%d freeSpies=%d cityEspionageRate=%d cityBaseEspionageRate=%d espionagePercent=%d espionageWeight=%d espionageRank=%d noEspionage=%d espionageEconomy=%d humanResearchPercent=%d aiResearchPercent=%d researchPercentGap=%d oldSASSourceLike=%d oldSASDefenseLike=%d oldSASMilitaryPressure=%d oldSASDifficultyDefenseCore=%d oldSASDifficultyOutputCore=%d baseHammersPerTurn=%d productionRank=%d representativeUnitAverageCost=%d representativeUnitMinCost=%d representativeUnitMaxCost=%d representativeUnitAverageTurns=%d representativeUnitCount=%d stored=%d needed=%d turnsLeft=%d atWar=%d warPlan=%d danger=%d enemyPowerPercent=%d",
+			GC.getGame().getGameTurn(), kCity.getOwner(), kCity.getName().GetCString(), kCity.getID(), kBuilding.getType(),
+			iValue, iValueBeforePriority, iEspionageDelta, iEspionageDefenseDelta, iOtherPreFinalWithoutEspionage,
+			iEspionageBeforeWeight, iEspionageAfterWeight, iEspionageFlat, iEspionageModifier, iEspionageDefenseModifier, iSpySlots, iFreeSpies,
+			kCity.getCommerceRate(COMMERCE_ESPIONAGE), kCity.getBaseCommerceRate(COMMERCE_ESPIONAGE), kOwner.getCommercePercent(COMMERCE_ESPIONAGE),
+			kOwner.AI_commerceWeight(COMMERCE_ESPIONAGE, &kCity), kCity.findCommerceRateRank(COMMERCE_ESPIONAGE),
+			GC.getGame().isOption(GAMEOPTION_NO_ESPIONAGE), kOwner.AI_isDoStrategy(AI_STRATEGY_ESPIONAGE_ECONOMY),
+			iHumanResearchPercent, iAIResearchPercent, iResearchPercentGap, bEspionageSourceLike, bEspionageDefenseLike,
+			bOldSASMilitaryPressure, bOldSASDifficultyDefenseCore, bOldSASDifficultyOutputCore,
+			kCity.getBaseYieldRate(YIELD_PRODUCTION), kCity.findBaseYieldRateRank(YIELD_PRODUCTION),
+			iRepresentativeUnitAverageCost, iRepresentativeUnitMinCost, iRepresentativeUnitMaxCost, iRepresentativeUnitAverageTurns, iRepresentativeUnitCount,
+			iStored, iNeeded, iTurnsLeft, bAtWar, bWarPlan, bDanger, iEnemyPowerPercent);
+	}
+
+	// <!-- custom: Science migration audit: isolate the inherited research-commerce contribution and reconstruct SAS's old Library-style whole-building military-pressure veto.
+	// Log only buildings that match that old science classification so level-3 BBAI stays focused; specialist value remains separate because a Scientist slot can matter even when the direct research-commerce delta is small. (ChatGPT-5.6-Sol) -->
+	int const iResearchFlat = kBuilding.getCommerceChange(COMMERCE_RESEARCH) + kBuilding.getObsoleteSafeCommerceChange(COMMERCE_RESEARCH);
+	int const iResearchModifier = kBuilding.getCommerceModifier(COMMERCE_RESEARCH);
+	int const iGlobalResearchModifier = kBuilding.getGlobalCommerceModifier(COMMERCE_RESEARCH);
+	int const iSpecialistExtraResearch = kBuilding.getSpecialistExtraCommerce(COMMERCE_RESEARCH);
+	static const SpecialistTypes eScientistForAudit = (SpecialistTypes)GC.getInfoTypeForString("SPECIALIST_SCIENTIST", true);
+	int const iScientistSlots = (eScientistForAudit == NO_SPECIALIST ? 0 : kBuilding.getSpecialistCount(eScientistForAudit));
+	int const iFreeScientists = (eScientistForAudit == NO_SPECIALIST ? 0 : kBuilding.getFreeSpecialistCount(eScientistForAudit));
+	bool const bOldSASScienceClassified = (iResearchModifier >= 20 || iResearchFlat > 0 || iScientistSlots > 0 || iFreeScientists > 0);
+	if (bOldSASScienceClassified)
+	{
+		bool const bOldSASRejectWar = bAtWar;
+		bool const bOldSASRejectDanger = (!bAtWar && bDanger);
+		bool const bOldSASRejectWarPlan = (!bAtWar && !bDanger && bWarPlan);
+		bool const bOldSASRejectMilitaryPressure = (bOldSASRejectWar || bOldSASRejectDanger || bOldSASRejectWarPlan);
+		int iRepresentativeUnitMinCost = 0, iRepresentativeUnitMaxCost = 0, iRepresentativeUnitAverageTurns = 0, iRepresentativeUnitCount = 0;
+		int const iRepresentativeUnitAverageCost = SAS_getRepresentativeLandMilitaryProductionCost(kCity, iRepresentativeUnitMinCost,
+				iRepresentativeUnitMaxCost, iRepresentativeUnitAverageTurns, iRepresentativeUnitCount);
+		int const iOtherPreFinalWithoutResearch = iValueBeforePriority - iResearchDelta;
+		logBBAI("BUILDING_VALUE_INHERITED_SCIENCE turn=%d player=%d city=%S cityId=%d building=%s final=%d preFinal=%d researchDelta=%d otherPreFinalWithoutResearch=%d specialistDelta=%d researchFocus=%d researchBeforeWeight=%d researchAfterWeight=%d researchFlat=%d researchModifier=%d globalResearchModifier=%d specialistExtraResearch=%d scientistSlots=%d freeScientists=%d cityResearchRate=%d cityBaseResearchRate=%d researchPercent=%d researchWeight=%d researchRank=%d space1=%d economyFocus=%d financialTrouble=%d baseHammersPerTurn=%d productionRank=%d representativeUnitAverageCost=%d representativeUnitMinCost=%d representativeUnitMaxCost=%d representativeUnitAverageTurns=%d representativeUnitCount=%d stored=%d needed=%d turnsLeft=%d oldSASRejectWar=%d oldSASRejectDanger=%d oldSASRejectWarPlan=%d oldSASRejectMilitaryPressure=%d atWar=%d warPlan=%d danger=%d enemyPowerPercent=%d",
+			GC.getGame().getGameTurn(), kCity.getOwner(), kCity.getName().GetCString(), kCity.getID(), kBuilding.getType(),
+			iValue, iValueBeforePriority, iResearchDelta, iOtherPreFinalWithoutResearch, iSpecialistDelta, iFocusResearch,
+			iResearchBeforeWeight, iResearchAfterWeight, iResearchFlat, iResearchModifier, iGlobalResearchModifier, iSpecialistExtraResearch,
+			iScientistSlots, iFreeScientists, kCity.getCommerceRate(COMMERCE_RESEARCH), kCity.getBaseCommerceRate(COMMERCE_RESEARCH),
+			kOwner.getCommercePercent(COMMERCE_RESEARCH), kOwner.AI_commerceWeight(COMMERCE_RESEARCH, &kCity), kCity.findCommerceRateRank(COMMERCE_RESEARCH),
+			kOwner.AI_atVictoryStage(AI_VICTORY_SPACE1), kOwner.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS), kOwner.AI_isFinancialTrouble(),
+			kCity.getBaseYieldRate(YIELD_PRODUCTION), kCity.findBaseYieldRateRank(YIELD_PRODUCTION),
+			iRepresentativeUnitAverageCost, iRepresentativeUnitMinCost, iRepresentativeUnitMaxCost, iRepresentativeUnitAverageTurns, iRepresentativeUnitCount,
+			iStored, iNeeded, iTurnsLeft, bOldSASRejectWar, bOldSASRejectDanger, bOldSASRejectWarPlan, bOldSASRejectMilitaryPressure,
+			bAtWar, bWarPlan, bDanger, iEnemyPowerPercent);
+	}
+
+
+	// <!-- custom: Culture migration audit: separate the inherited culture contribution from a multipurpose building's other value, then log the exact BFC-expansion boost and local culture context that motivated SAS's old early "enough culture" veto.
+	// The old SAS timing flag below intentionally reproduces only that veto's core BFC/turn/rate condition, not its earlier whole-building classification; this keeps the audit effect-based and modmod-safe.
+	// Compute the extra ownership/pressure context only after the level-3 neutral row survives deduplication. (ChatGPT-5.6-Sol) -->
+	int const iCultureFlat = kBuilding.getCommerceChange(COMMERCE_CULTURE) + kBuilding.getObsoleteSafeCommerceChange(COMMERCE_CULTURE);
+	int const iCultureModifier = kBuilding.getCommerceModifier(COMMERCE_CULTURE);
+	int const iGlobalCultureModifier = kBuilding.getGlobalCommerceModifier(COMMERCE_CULTURE);
+	int const iSpecialistExtraCulture = kBuilding.getSpecialistExtraCommerce(COMMERCE_CULTURE);
+	bool const bHasCultureEffect = (iCultureDelta != 0 || iCultureFlat != 0 || iCultureModifier != 0 || iGlobalCultureModifier != 0 || iSpecialistExtraCulture != 0);
+	if (bHasCultureEffect)
+	{
+		bool const bNeedCultureForBFC = kCity.AI_needsCultureToWorkFullRadius();
+		int const iCultureRate = kCity.getCommerceRate(COMMERCE_CULTURE);
+		int const iCultureLevel = kCity.getCultureLevel();
+		int const iNextCultureThreshold = (iCultureLevel + 1 >= GC.getNumCultureLevelInfos() ? -1 : kCity.getCultureThreshold((CultureLevelTypes)(iCultureLevel + 1)));
+		int const iElapsedTurns = GC.getGame().getElapsedGameTurns();
+		int const iEarlyMidTurnsCultureAdjusted = 125 * GC.getInfo(GC.getGame().getGameSpeedType()).getConstructPercent() / 100;
+		bool const bOldSASCultureTimingCondition = (!bNeedCultureForBFC && iElapsedTurns < iEarlyMidTurnsCultureAdjusted && iCultureRate >= 2);
+		int const iCityOwnerCulturePercent = kCity.calculateCulturePercent(kCity.getOwner());
+		int const iPlotOwnerCulturePercent = kCity.getPlot().calculateCulturePercent(kCity.getOwner());
+		int iCityHighestForeignCulturePercent = 0;
+		int iPlotHighestForeignCulturePercent = 0;
+		for (PlayerIter<CIV_ALIVE,NOT_SAME_TEAM_AS> it(kCity.getTeam()); it.hasNext(); ++it)
+		{
+			iCityHighestForeignCulturePercent = std::max(iCityHighestForeignCulturePercent, kCity.calculateCulturePercent(it->getID()));
+			iPlotHighestForeignCulturePercent = std::max(iPlotHighestForeignCulturePercent, kCity.getPlot().calculateCulturePercent(it->getID()));
+		}
+		int iBFCPlots = 0, iOwnedBFCPlots = 0, iForeignOwnedBFCPlots = 0, iUnownedBFCPlots = 0, iContestedCultureBFCPlots = 0;
+		for (CityPlotIter itPlot(kCity, false); itPlot.hasNext(); ++itPlot)
+		{
+			CvPlot const& kPlot = *itPlot;
+			++iBFCPlots;
+			PlayerTypes const ePlotOwner = kPlot.getOwner();
+			if (ePlotOwner == kCity.getOwner())
+				++iOwnedBFCPlots;
+			else if (ePlotOwner == NO_PLAYER)
+				++iUnownedBFCPlots;
+			else
+				++iForeignOwnedBFCPlots;
+			int const iOwnPlotCulturePercent = kPlot.calculateCulturePercent(kCity.getOwner());
+			int iHighestForeignPlotCulturePercent = 0;
+			for (PlayerIter<CIV_ALIVE,NOT_SAME_TEAM_AS> it(kCity.getTeam()); it.hasNext(); ++it)
+				iHighestForeignPlotCulturePercent = std::max(iHighestForeignPlotCulturePercent, kPlot.calculateCulturePercent(it->getID()));
+			if (iHighestForeignPlotCulturePercent > iOwnPlotCulturePercent)
+				++iContestedCultureBFCPlots;
+		}
+		int const iOtherPreFinalValue = iValueBeforePriority - iCultureDelta;
+		logBBAI("BUILDING_VALUE_INHERITED_CULTURE turn=%d player=%d city=%S cityId=%d building=%s final=%d preFinal=%d cultureDelta=%d otherPreFinal=%d cultureFocus=%d cultureBeforeWeight=%d cultureAfterWeight=%d cultureClaimValue=%d culturePriorityBoost=%d priorityFactor=%d cultureFlat=%d cultureModifier=%d globalCultureModifier=%d specialistExtraCulture=%d cultureRate=%d cultureLevel=%d cultureTurnsLeft=%d nextCultureThreshold=%d needCultureForBFC=%d oldSASTimingCondition=%d cultureWeight=%d culturePressure=%d cultureVictoryRank=%d cultureVictoryInvestmentPercent=%d culture1=%d culture2=%d culture3=%d culture4=%d cityOwnerCulturePercent=%d cityHighestForeignCulturePercent=%d plotOwnerCulturePercent=%d plotHighestForeignCulturePercent=%d bfcPlots=%d ownedBFCPlots=%d foreignOwnedBFCPlots=%d unownedBFCPlots=%d contestedCultureBFCPlots=%d turnsLeft=%d limited=%d worldWonder=%d nationalWonder=%d",
+			GC.getGame().getGameTurn(), kCity.getOwner(), kCity.getName().GetCString(), kCity.getID(), kBuilding.getType(),
+			iValue, iValueBeforePriority, iCultureDelta, iOtherPreFinalValue, iFocusCulture, iCultureBeforeWeight, iCultureAfterWeight,
+			iCultureClaimValue, iCulturePriorityBoost, iPriorityFactor, iCultureFlat, iCultureModifier, iGlobalCultureModifier, iSpecialistExtraCulture,
+			iCultureRate, iCultureLevel, kCity.getCultureTurnsLeft(), iNextCultureThreshold, bNeedCultureForBFC, bOldSASCultureTimingCondition,
+			kCity.AI_getCultureWeight(), kCity.AI_culturePressureFactor(), kCity.AI_getCultureVictoryRank(), kCity.AI_getCultureVictoryInvestmentPercent(),
+			kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE1), kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE2),
+			kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE3), kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE4),
+			iCityOwnerCulturePercent, iCityHighestForeignCulturePercent, iPlotOwnerCulturePercent, iPlotHighestForeignCulturePercent,
+			iBFCPlots, iOwnedBFCPlots, iForeignOwnedBFCPlots, iUnownedBFCPlots, iContestedCultureBFCPlots, iTurnsLeft,
+			kBuilding.isLimited(), kBuilding.isWorldWonder(), kBuilding.isNationalWonder());
+	}
+
+
+	// <!-- custom: Food-kept migration audit: mirror the inherited K-Mod Granary-style food-storage term and log the growth / pop-rush context behind it.
+	// SAS's old regular-building layer could reject these buildings solely for low current happiness or force them during fast growth; keep this diagnostic effect-based so we can test whether the inherited target-population and pop-rush scaling already supplies the needed context without hard-gating a multipurpose building.
+	// This runs only after the existing level-3 neutral-value dedup gate. (ChatGPT-5.6-Sol) -->
+	int const iFoodKeptBuilding = kOwner.getFoodKept(eBuilding);
+	if (iFoodKeptBuilding != 0)
+	{
+		int const iPopulation = kCity.getPopulation();
+		int const iTargetPopulation = kCity.AI_getTargetPopulation();
+		bool const bCanPopRush = kCity.canPopRush();
+		int const iGrowthNeedTerm = std::max(0,
+				2 * (std::max(4, iTargetPopulation) - iPopulation) +
+				(bCanPopRush ? 3 : 1));
+		int const iFoodKeptValue = (iFoodSurplus > 0 ?
+				iGrowthNeedTerm * iFoodKeptBuilding / 4 : 0);
+		int const iFoodToGrow = std::max(0, kCity.growthThreshold() - kCity.getFood());
+		int const iApproxTurnsToGrow = (iFoodSurplus > 0 ?
+				(iFoodToGrow + iFoodSurplus - 1) / iFoodSurplus : -1);
+		bool const bOldSASFoodKeptClassified = (iFoodKeptBuilding >= 25);
+		bool const bOldSASRejectLowHappiness = (bOldSASFoodKeptClassified && iHappySurplus < 2);
+		bool const bOldSASForceFastGrowth = (bOldSASFoodKeptClassified &&
+				iHappySurplus > 3 && iFoodSurplus > 3);
+		int const iOtherPreFinalValue = iValueBeforePriority - iFoodKeptValue;
+		logBBAI("BUILDING_VALUE_INHERITED_FOOD_KEPT turn=%d player=%d city=%S cityId=%d building=%s final=%d preFinal=%d foodKeptValue=%d otherPreFinal=%d foodFocus=%d yieldDelta=%d foodKeptBuilding=%d currentFoodKeptPercent=%d population=%d targetPopulation=%d growthNeedTerm=%d foodSurplus=%d healthSurplus=%d happySurplus=%d foodStored=%d growthThreshold=%d foodToGrow=%d approxTurnsToGrow=%d canPopRush=%d hurryAngerTimer=%d oldSASFoodKeptClassified=%d oldSASRejectLowHappiness=%d oldSASForceFastGrowth=%d atWar=%d warPlan=%d danger=%d turnsLeft=%d limited=%d worldWonder=%d nationalWonder=%d",
+			GC.getGame().getGameTurn(), kCity.getOwner(), kCity.getName().GetCString(), kCity.getID(), kBuilding.getType(),
+			iValue, iValueBeforePriority, iFoodKeptValue, iOtherPreFinalValue, iFocusFood, iYieldDelta, iFoodKeptBuilding,
+			kCity.getMaxFoodKeptPercent(), iPopulation, iTargetPopulation, iGrowthNeedTerm, iFoodSurplus, iHealthSurplus, iHappySurplus,
+			kCity.getFood(), kCity.growthThreshold(), iFoodToGrow, iApproxTurnsToGrow, bCanPopRush, kCity.getHurryAngerTimer(),
+			bOldSASFoodKeptClassified, bOldSASRejectLowHappiness, bOldSASForceFastGrowth, bAtWar, bWarPlan, bDanger, iTurnsLeft,
+			kBuilding.isLimited(), kBuilding.isWorldWonder(), kBuilding.isNationalWonder());
+	}
+
+	// <!-- custom: Production-modifier migration audit: expose the inherited production focus / yield contribution and the exact context behind SAS's old early Forge-style veto.
+	// Keep the audit effect-based and after the existing level-3 neutral-value dedup gate, and only emit the dedicated row for candidates that match the old production-building classification; this preserves the evidence while avoiding hundreds of thousands of irrelevant BBAI rows. (ChatGPT-5.6-Sol) -->
+	int const iBaseProductionModifier = kBuilding.getYieldModifier(YIELD_PRODUCTION);
+	int iXMLBonusProductionModifier = 0;
+	int iActiveBonusProductionModifier = 0;
+	FOR_EACH_ENUM(Bonus)
+	{
+		int const iBonusProductionModifier = kBuilding.getBonusYieldModifier(eLoopBonus, YIELD_PRODUCTION);
+		iXMLBonusProductionModifier += iBonusProductionModifier;
+		if (iBonusProductionModifier != 0 && kCity.hasBonus(eLoopBonus))
+			iActiveBonusProductionModifier += iBonusProductionModifier;
+	}
+	int const iOldSASTotalProductionModifier = iBaseProductionModifier + iXMLBonusProductionModifier;
+	int const iActiveProductionModifier = iBaseProductionModifier + iActiveBonusProductionModifier;
+	bool const bOldSASProductionClassified = (iOldSASTotalProductionModifier >= 20);
+	if (bOldSASProductionClassified)
+	{
+		int const iElapsedTurns = GC.getGame().getElapsedGameTurns();
+		int const iConstructPercent = GC.getInfo(GC.getGame().getGameSpeedType()).getConstructPercent();
+		int const iOldSASEarlyTurnsAdjusted = 100 * iConstructPercent / 100;
+		bool const bOldSASEarlyWindow = (iElapsedTurns < iOldSASEarlyTurnsAdjusted);
+		int const iBaseHammersPerTurn = kCity.getBaseYieldRate(YIELD_PRODUCTION);
+		int const iStrictHappinessGain = AI_strictAdditionalHappy(kCity, eBuilding);
+		bool const bOldSASLowHammers = (iBaseHammersPerTurn < 13);
+		bool const bOldSASLowGrowth = (iFoodSurplus < 2 || iHappySurplus < 1);
+		bool const bOldSASWeakHappinessBoost = (iStrictHappinessGain < 3);
+		bool const bOldSASRejectEarlyLowReturn = (bOldSASProductionClassified && bOldSASEarlyWindow &&
+				bOldSASLowHammers && bOldSASLowGrowth && bOldSASWeakHappinessBoost);
+		bool const bEnemyStrongForOldSAS = SASWarPowerContext::isEnemyStrong(iEnemyPowerPercent);
+		bool const bOldSASRejectStrongEnemy = (bOldSASProductionClassified && !bOldSASEarlyWindow &&
+				bAtWar && bEnemyStrongForOldSAS);
+		int const iOtherPreFinalWithoutYield = iValueBeforePriority - iYieldDelta;
+		logBBAI("BUILDING_VALUE_INHERITED_PRODUCTION turn=%d player=%d city=%S cityId=%d building=%s final=%d preFinal=%d productionFocus=%d yieldDelta=%d otherPreFinalWithoutYield=%d militaryProductionDelta=%d domainProductionDelta=%d baseProductionModifier=%d xmlBonusProductionModifier=%d activeBonusProductionModifier=%d oldSASTotalProductionModifier=%d activeProductionModifier=%d baseHammersPerTurn=%d productionRank=%d population=%d targetPopulation=%d foodSurplus=%d healthSurplus=%d happySurplus=%d strictHappinessGain=%d healthGain=%d providesPower=%d cityHasPower=%d powerProductionModifier=%d currentPowerProductionModifier=%d stored=%d needed=%d turnsLeft=%d oldSASProductionClassified=%d oldSASEarlyWindow=%d oldSASLowHammers=%d oldSASLowGrowth=%d oldSASWeakHappinessBoost=%d oldSASRejectEarlyLowReturn=%d oldSASRejectStrongEnemy=%d atWar=%d warPlan=%d danger=%d enemyPowerPercent=%d limited=%d worldWonder=%d nationalWonder=%d",
+			GC.getGame().getGameTurn(), kCity.getOwner(), kCity.getName().GetCString(), kCity.getID(), kBuilding.getType(),
+			iValue, iValueBeforePriority, iFocusProduction, iYieldDelta, iOtherPreFinalWithoutYield, iMilitaryProductionDelta, iDomainProductionDelta,
+			iBaseProductionModifier, iXMLBonusProductionModifier, iActiveBonusProductionModifier, iOldSASTotalProductionModifier, iActiveProductionModifier,
+			iBaseHammersPerTurn, kCity.findBaseYieldRateRank(YIELD_PRODUCTION), kCity.getPopulation(), kCity.AI_getTargetPopulation(),
+			iFoodSurplus, iHealthSurplus, iHappySurplus, iStrictHappinessGain, iHealthGain, kBuilding.isPower(), kCity.isPower(),
+			kBuilding.getPowerYieldModifier(YIELD_PRODUCTION), kCity.getPowerYieldRateModifier(YIELD_PRODUCTION), iStored, iNeeded, iTurnsLeft,
+			bOldSASProductionClassified, bOldSASEarlyWindow, bOldSASLowHammers, bOldSASLowGrowth, bOldSASWeakHappinessBoost,
+			bOldSASRejectEarlyLowReturn, bOldSASRejectStrongEnemy, bAtWar, bWarPlan, bDanger, iEnemyPowerPercent,
+			kBuilding.isLimited(), kBuilding.isWorldWonder(), kBuilding.isNationalWonder());
+	}
+	// <!-- custom: Defense migration audit: log the concrete threat and defensive-effect inputs behind the exact inherited defense delta.
+	// Compute this only after the level-3 neutral row survives deduplication; no defensive heuristic or extra query is added to normal gameplay.
+	// This lets us test SAS's old "already strong / no threat" rationale without rejecting a multipurpose building merely because one of its effects is defensive. (ChatGPT-5.6-Sol) -->
+	int const iRaiseDefense = kBuilding.get(CvBuildingInfo::RaiseDefense);
+	int const iAirDefense = -kBuilding.getAirModifier();
+	int const iNukeDefense = -kBuilding.getNukeModifier();
+	bool const bHasDefenseEffect = (iDefenseDelta != 0 || kBuilding.getDefenseModifier() != 0 || kBuilding.getBombardDefenseModifier() != 0 ||
+		iRaiseDefense > 0 || kBuilding.getAllCityDefenseModifier() != 0 || kBuilding.getAirlift() != 0 || iAirDefense > 0 || iNukeDefense > 0);
+	if (bHasDefenseEffect)
+	{
+		CvTeamAI const& kTeam = GET_TEAM(kCity.getTeam());
+		int const iCityDefenders = kCity.getPlot().getNumDefenders(kCity.getOwner());
+		int const iNeededDefenders = kCity.AI_neededDefenders();
+		UnitTypes const eBestLandUnit = GC.getGame().getBestLandUnit();
+		bool const bBestLandIgnoresBuildingDefense = (eBestLandUnit != NO_UNIT && GC.getInfo(eBestLandUnit).isIgnoreBuildingDefense());
+		logBBAI("BUILDING_VALUE_INHERITED_DEFENSE turn=%d player=%d city=%S cityId=%d building=%s defenseDelta=%d danger=%d warPlan=%d atWar=%d landWar=%d areaAlone=%d cityDefenders=%d neededDefenders=%d underDefended=%d naturalDefense=%d totalDefense=%d buildingBombardDefense=%d ownerCityDefenseModifier=%d buildingDefenseModifier=%d bombardDefenseModifier=%d raiseDefense=%d allCityDefenseModifier=%d airlift=%d airDefense=%d rivalAirPower=%d ownAirPower=%d nukeDefense=%d nukeInterception=%d bestLandIgnoresBuildingDefense=%d",
+			GC.getGame().getGameTurn(), kCity.getOwner(), kCity.getName().GetCString(), kCity.getID(), kBuilding.getType(), iDefenseDelta,
+			bDanger, bWarPlan, bAtWar, kOwner.AI_isLandWar(kCity.getArea()), kOwner.AI_isAreaAlone(kCity.getArea()),
+			iCityDefenders, iNeededDefenders, iCityDefenders < iNeededDefenders, kCity.getNaturalDefense(), kCity.getTotalDefense(false),
+			kCity.getBuildingBombardDefense(), kOwner.getCityDefenseModifier(), kBuilding.getDefenseModifier(), kBuilding.getBombardDefenseModifier(),
+			iRaiseDefense, kBuilding.getAllCityDefenseModifier(), kBuilding.getAirlift(), iAirDefense, kTeam.AI_getRivalAirPower(), kTeam.AI_getAirPower(),
+			iNukeDefense, kTeam.getNukeInterception(), bBestLandIgnoresBuildingDefense);
+
+		// <!-- custom: Nuke-defense sub-audit: mirror the kekm.16 runtime arithmetic after the existing level-3 dedup gate and expose each ingredient separately without changing behavior.
+		// Keep this diagnostic mirror in sync with the runtime formula until the audit is retired. See KI#48.7 and the broader audit in KI#48.5. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		if (iNukeDefense > 0)
+		{
+			int iNukeEvasionProbability = 0;
+			int iNukeUnitTypes = 0;
+			FOR_EACH_ENUM(Unit)
+			{
+				CvUnitInfo const& kLoopUnit = GC.getInfo(eLoopUnit);
+				if (kLoopUnit.isNuke() && kLoopUnit.getProductionCost() > 0)
+				{
+					iNukeEvasionProbability += kLoopUnit.getEvasionProbability();
+					iNukeUnitTypes++;
+				}
+			}
+			iNukeEvasionProbability /= std::max(1, iNukeUnitTypes);
+
+			int const iTargetValue = 10 + (kCity.getYieldRate(YIELD_PRODUCTION) * 5 + kCity.getYieldRate(YIELD_COMMERCE) * 3) / 2;
+			int iAreaTeamPower = 0;
+			for (MemberIter itMember(kCity.getTeam()); itMember.hasNext(); ++itMember)
+				iAreaTeamPower += kCity.getArea().getPower(itMember->getID());
+			int const iTeamCitiesInArea = std::max(1, kTeam.countNumCitiesByArea(kCity.getArea()));
+			int const iOldStackValue = iAreaTeamPower * 7 / 20;
+			int const iStackValue = std::min(iOldStackValue, iAreaTeamPower / iTeamCitiesInArea);
+			int const iRawProtectedValue = iNukeDefense * (iStackValue + iTargetValue) / 100;
+			int const iInterceptionFactorTimes10000 = 10000 - kTeam.getNukeInterception() * (100 - iNukeEvasionProbability);
+			int const iPostInterceptionValue = iRawProtectedValue * iInterceptionFactorTimes10000 / 10000;
+			int const iNukeDangerDivisor = kOwner.AI_nukeDangerDivisor();
+			int const iFinalNukeDefenseValue = iPostInterceptionValue / iNukeDangerDivisor;
+
+			logBBAI("BUILDING_VALUE_INHERITED_NUKE_DEFENSE turn=%d player=%d city=%S cityId=%d building=%s defenseDelta=%d nukeDefense=%d nukesValid=%d noNukes=%d nukeUnitTypes=%d avgNukeEvasion=%d nukeInterception=%d cityProduction=%d cityCommerce=%d targetValue=%d areaTeamPower=%d teamCitiesInArea=%d oldStackValue=%d stackValue=%d rawProtectedValue=%d interceptionFactorTimes10000=%d postInterceptionValue=%d nukeDangerDivisor=%d finalNukeDefenseValue=%d danger=%d warPlan=%d atWar=%d",
+				GC.getGame().getGameTurn(), kCity.getOwner(), kCity.getName().GetCString(), kCity.getID(), kBuilding.getType(), iDefenseDelta,
+				iNukeDefense, GC.getGame().isNukesValid(), GC.getGame().isNoNukes(), iNukeUnitTypes, iNukeEvasionProbability, kTeam.getNukeInterception(),
+				kCity.getYieldRate(YIELD_PRODUCTION), kCity.getYieldRate(YIELD_COMMERCE), iTargetValue, iAreaTeamPower, iTeamCitiesInArea, iOldStackValue, iStackValue, iRawProtectedValue,
+				iInterceptionFactorTimes10000, iPostInterceptionValue, iNukeDangerDivisor, iFinalNukeDefenseValue, bDanger, bWarPlan, bAtWar);
+		}
+	}
+
+	// <!-- custom: Military-infrastructure migration audit: expose the raw training effects, the exact final generic value transforms, and enough strategic context to judge whether SAS's old military-building encouragement should survive as dynamic logic rather than unconditional whole-building priority.
+	// Run only after the existing level-3 neutral row survives deduplication; all canTrain/unit-option scans and force-context queries therefore remain diagnostic-only. (ChatGPT-5.6-Sol) -->
+	int iUnitCombatExperienceSum = 0;
+	FOR_EACH_NON_DEFAULT_PAIR(kBuilding.getUnitCombatFreeExperience(), UnitCombat, int)
+		iUnitCombatExperienceSum += std::max(0, perUnitCombatVal.second);
+	int const iLandExperience = kBuilding.getDomainFreeExperience(DOMAIN_LAND);
+	int const iSeaExperience = kBuilding.getDomainFreeExperience(DOMAIN_SEA);
+	int const iAirExperience = kBuilding.getDomainFreeExperience(DOMAIN_AIR);
+	int const iMilitaryProductionModifier = kBuilding.getMilitaryProductionModifier();
+	int const iLandProductionModifier = kBuilding.getDomainProductionModifier(DOMAIN_LAND);
+	int const iSeaProductionModifier = kBuilding.getDomainProductionModifier(DOMAIN_SEA);
+	int const iAirProductionModifier = kBuilding.getDomainProductionModifier(DOMAIN_AIR);
+	int const iAirUnitCapacity = kBuilding.getAirUnitCapacity();
+	bool const bHasMilitaryInfrastructureEffect =
+			(iExperienceDelta != 0 || iMilitaryProductionDelta != 0 || iDomainProductionDelta != 0 || iAirCapacityDelta != 0 ||
+			kBuilding.getFreeExperience() > 0 || iUnitCombatExperienceSum > 0 || iLandExperience > 0 || iSeaExperience > 0 || iAirExperience > 0 ||
+			iMilitaryProductionModifier > 0 || iLandProductionModifier != 0 || iSeaProductionModifier != 0 || iAirProductionModifier != 0 || iAirUnitCapacity > 0);
+	if (bHasMilitaryInfrastructureEffect)
+	{
+		int const iProductionRank = kCity.findBaseYieldRateRank(YIELD_PRODUCTION);
+		int const iNumCities = kOwner.getNumCities();
+		bool const bHighProductionCity = (iProductionRank <= std::max(3, iNumCities / 2));
+		int const iHasMetCount = kTeam.getHasMetCivCount(true);
+		int const iSettlers = kOwner.AI_getNumAIUnits(UNITAI_SETTLE);
+		int const iNumCitySites = kOwner.AI_getNumCitySites();
+		bool const bSettlerGateReady = (kOwner.isBarbarian() || iNumCities > 1 || iSettlers > 0 || iNumCitySites <= 0);
+		int iExperienceWeight = 12;
+		iExperienceWeight /= (iHasMetCount > 0 ? 1 : 2);
+		iExperienceWeight /= (bWarPlan || (bHighProductionCity && bSettlerGateReady) ? 1 : 4);
+		bool const bCoastal = kCity.isCoastal(GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN) * 2);
+
+		// <!-- custom: Keep the inherited military-infrastructure row's XP applicability scan separate from the shared DOMAIN_APPLICABILITY audit above.
+		// This scan feeds the existing strength/cost/turn diagnostics only; domain production applicability is logged once by SAS_logDomainApplicability for both Wonders and regular buildings. See KI#48.14. (ChatGPT-5.6-Sol) -->
+		int iTrainableXpAffectedUnits = 0;
+		int iTrainableXpAffectedLand = 0, iTrainableXpAffectedSea = 0, iTrainableXpAffectedAir = 0;
+		int iAffectedStrengthMax = 0, iAffectedLandStrengthMax = 0, iBestTrainableLandStrength = 0;
+		int iAffectedCostSum = 0, iAffectedTurnSum = 0, iAffectedTurnSamples = 0, iAffectedMinTurns = MAX_INT;
+		bool const bHasTrainingXpEffect = (kBuilding.getFreeExperience() > 0 || iUnitCombatExperienceSum > 0 || iLandExperience > 0 || iSeaExperience > 0 || iAirExperience > 0);
+		if (bHasTrainingXpEffect)
+		{
+			FOR_EACH_ENUM(Unit)
+			{
+				CvUnitInfo const& kLoopUnit = GC.getInfo(eLoopUnit);
+				if (!kCity.canTrain(eLoopUnit))
+					continue;
+
+				DomainTypes const eUnitDomain = kLoopUnit.getDomainType();
+				int const iStrength = std::max(kLoopUnit.getCombat(), kLoopUnit.getAirCombat());
+				if (eUnitDomain == DOMAIN_LAND && iStrength > 0)
+					iBestTrainableLandStrength = std::max(iBestTrainableLandStrength, iStrength);
+				UnitCombatTypes const eCombat = kLoopUnit.getUnitCombatType();
+				int iGrantedExperience = kBuilding.getFreeExperience() + kBuilding.getDomainFreeExperience(eUnitDomain);
+				if (eCombat != NO_UNITCOMBAT)
+					iGrantedExperience += kBuilding.getUnitCombatFreeExperience(eCombat);
+				if (iGrantedExperience <= 0 || iStrength <= 0)
+					continue;
+				iTrainableXpAffectedUnits++;
+				iAffectedStrengthMax = std::max(iAffectedStrengthMax, iStrength);
+				if (eUnitDomain == DOMAIN_LAND)
+				{
+					iTrainableXpAffectedLand++;
+					iAffectedLandStrengthMax = std::max(iAffectedLandStrengthMax, iStrength);
+				}
+				else if (eUnitDomain == DOMAIN_SEA) iTrainableXpAffectedSea++;
+				else if (eUnitDomain == DOMAIN_AIR) iTrainableXpAffectedAir++;
+				iAffectedCostSum += kCity.getProductionNeeded(eLoopUnit);
+				int const iTurns = kCity.getProductionTurnsLeft(eLoopUnit, 0);
+				if (iTurns > 0 && iTurns < MAX_INT)
+				{
+					iAffectedTurnSum += iTurns;
+					iAffectedTurnSamples++;
+					iAffectedMinTurns = std::min(iAffectedMinTurns, iTurns);
+				}
+			}
+		}
+		int const iAffectedAverageCost = (iTrainableXpAffectedUnits <= 0 ? 0 : iAffectedCostSum / iTrainableXpAffectedUnits);
+		int const iAffectedAverageTurns = (iAffectedTurnSamples <= 0 ? -1 : iAffectedTurnSum / iAffectedTurnSamples);
+		if (iAffectedMinTurns == MAX_INT) iAffectedMinTurns = -1;
+		int const iAffectedLandStrengthPercent = (iBestTrainableLandStrength <= 0 ? 0 : 100 * iAffectedLandStrengthMax / iBestTrainableLandStrength);
+
+		// <!-- custom: Exact final transforms: unlike the old final-minus-components residual, these compare values on the same scale and show how much priority, XML AIWeight and flavour actually added. (ChatGPT-5.6-Sol) -->
+		int const iPriorityDelta = iValueAfterPriority - iValueBeforePriority;
+		int const iAIWeightDelta = iValueAfterAIWeight - iValueBeforeAIWeight;
+		int const iFlavorDelta = iValueAfterFlavor - iValueAfterAIWeight;
+		int const iComponentAccounted = iDefenseDelta + iEspionageDefenseDelta + iHappinessDelta + iHealthDelta + iExperienceDelta + iDomainSeaDelta +
+			iMaintenanceDelta + iSpecialistDelta + iTradeDelta + iGeneralDelta + iYieldDelta + iCommerceGlobalDelta;
+		int const iPreFinalResidual = iValueBeforePriority - iComponentAccounted;
+		int const iMilitaryCoreDelta = iExperienceDelta + iMilitaryProductionDelta + iDomainProductionDelta + iAirCapacityDelta;
+
+		int const iAreaCities = kCity.getArea().getCitiesPerPlayer(kCity.getOwner());
+		int const iAreaTiles = kCity.getArea().getNumTiles();
+		// <!-- custom: Reuse the existing land-area-local military-stock helper from the peaceful saturation gate; it is role-based and includes units already being trained, so this diagnostic measures the same stock the production policy already reasons about. (ChatGPT-5.6-Sol) -->
+		int const iAreaMilitaryStock = SAS_getMainLandMilitaryStock(kOwner, kCity.getArea());
+		bool const bPrimaryArea = kOwner.AI_isPrimaryArea(kCity.getArea());
+		bool const bAreaAlone = kOwner.AI_isAreaAlone(kCity.getArea());
+		int const iUnitSpending = kOwner.AI_unitCostPerMil();
+		CvLeaderHeadInfo const& kPersonality = GC.getInfo(kOwner.getPersonalityType());
+
+		logBBAI("BUILDING_VALUE_INHERITED_MILITARY_INFRA turn=%d player=%d city=%S cityId=%d building=%s final=%d preFinalValue=%d componentAccounted=%d preFinalResidual=%d priorityDelta=%d aiWeight=%d aiWeightDelta=%d flavorMatch=%d flavorDelta=%d postFlavorValue=%d militaryCoreDelta=%d experienceDelta=%d experienceFocus=%d domainSeaFocus=%d militaryProductionDelta=%d domainProductionDelta=%d airCapacityDelta=%d freeExperience=%d unitCombatExperienceSum=%d trainableXpAffectedUnits=%d affectedLand=%d affectedSea=%d affectedAir=%d affectedStrengthMax=%d affectedLandStrengthMax=%d bestTrainableLandStrength=%d affectedLandStrengthPercent=%d affectedAverageCost=%d affectedAverageTurns=%d affectedMinTurns=%d landExperience=%d seaExperience=%d airExperience=%d militaryProductionModifier=%d landProductionModifier=%d seaProductionModifier=%d airProductionModifier=%d airUnitCapacity=%d cityFreeExperience=%d citySpecialistFreeExperience=%d cityProductionExperience=%d cityLandExperience=%d citySeaExperience=%d cityAirExperience=%d cityMilitaryProductionModifier=%d airSpaceAvailable=%d productionRank=%d numCities=%d highProductionCity=%d baseProduction=%d hasMetCount=%d experienceWeight=%d settlerGateReady=%d settlers=%d citySites=%d coastal=%d areaCities=%d areaTiles=%d primaryArea=%d areaAlone=%d areaMilitaryStock=%d playerUnits=%d militarySupportUnits=%d playerPower=%d unitSpending=%d personalityBuildUnitProb=%d economyFocus=%d getBetterUnits=%d dagger=%d crush=%d turtle=%d alert1=%d alert2=%d finalWar=%d warPlan=%d atWar=%d landWar=%d danger=%d enemyPowerPercent=%d areaAI=%d",
+			GC.getGame().getGameTurn(), kCity.getOwner(), kCity.getName().GetCString(), kCity.getID(), kBuilding.getType(), iValue,
+			iValueBeforePriority, iComponentAccounted, iPreFinalResidual, iPriorityDelta, kBuilding.getAIWeight(), iAIWeightDelta, iFlavorMatchExact, iFlavorDelta, iValueAfterFlavor,
+			iMilitaryCoreDelta, iExperienceDelta, iFocusExperience, iFocusDomainSea, iMilitaryProductionDelta, iDomainProductionDelta, iAirCapacityDelta,
+			kBuilding.getFreeExperience(), iUnitCombatExperienceSum, iTrainableXpAffectedUnits, iTrainableXpAffectedLand, iTrainableXpAffectedSea, iTrainableXpAffectedAir,
+			iAffectedStrengthMax, iAffectedLandStrengthMax, iBestTrainableLandStrength, iAffectedLandStrengthPercent, iAffectedAverageCost, iAffectedAverageTurns, iAffectedMinTurns,
+			iLandExperience, iSeaExperience, iAirExperience, iMilitaryProductionModifier, iLandProductionModifier, iSeaProductionModifier, iAirProductionModifier, iAirUnitCapacity,
+			kCity.getFreeExperience(), kCity.getSpecialistFreeExperience(), kCity.getProductionExperience(), kCity.getDomainFreeExperience(DOMAIN_LAND),
+			kCity.getDomainFreeExperience(DOMAIN_SEA), kCity.getDomainFreeExperience(DOMAIN_AIR), kCity.getMilitaryProductionModifier(), kCity.getPlot().airUnitSpaceAvailable(kCity.getTeam()),
+			iProductionRank, iNumCities, bHighProductionCity, kCity.getBaseYieldRate(YIELD_PRODUCTION), iHasMetCount, iExperienceWeight, bSettlerGateReady, iSettlers, iNumCitySites, bCoastal,
+			iAreaCities, iAreaTiles, bPrimaryArea, bAreaAlone, iAreaMilitaryStock, kOwner.getNumUnits(), kOwner.getNumMilitaryUnits(), kOwner.getPower(), iUnitSpending,
+			kPersonality.getBuildUnitProb(), kOwner.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS), kOwner.AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS),
+			kOwner.AI_isDoStrategy(AI_STRATEGY_DAGGER), kOwner.AI_isDoStrategy(AI_STRATEGY_CRUSH), kOwner.AI_isDoStrategy(AI_STRATEGY_TURTLE),
+			kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT1), kOwner.AI_isDoStrategy(AI_STRATEGY_ALERT2), kOwner.AI_isDoStrategy(AI_STRATEGY_FINAL_WAR),
+			bWarPlan, bAtWar, kOwner.AI_isLandWar(kCity.getArea()), bDanger, iEnemyPowerPercent, kCity.getArea().getAreaAIType(kCity.getTeam()));
+	}
+
+
+	logBBAI("BUILDING_VALUE_INHERITED turn=%d player=%d %S city=%S cityId=%d building=%s value=%d priorityFactor=%d researchingObsoleteTech=%d comparisonValue=%d era=%d pop=%d healthSurplus=%d happySurplus=%d foodSurplus=%d baseProduction=%d stored=%d needed=%d remaining=%d turnsLeft=%d atWar=%d warPlan=%d danger=%d enemyPowerPercent=%d financialTrouble=%d healthGain=%d happyGain=%d foodKept=%d defenseModifier=%d maintenanceModifier=%d productionModifier=%d seaFood=%d tradeRoutes=%d goldFlat=%d goldModifier=%d researchFlat=%d researchModifier=%d cultureFlat=%d cultureModifier=%d espionageFlat=%d espionageModifier=%d",
+		GC.getGame().getGameTurn(), kCity.getOwner(), kOwner.getCivilizationDescription(0), kCity.getName().GetCString(), kCity.getID(), kBuilding.getType(), iValue, iPriorityFactor, bResearchingObsoleteTech, iComparisonValue,
+		kOwner.getCurrentEra(), kCity.getPopulation(), iHealthSurplus, iHappySurplus, iFoodSurplus, kCity.getBaseYieldRate(YIELD_PRODUCTION), iStored, iNeeded, std::max(0, iNeeded - iStored), iTurnsLeft,
+		bAtWar, bWarPlan, bDanger, iEnemyPowerPercent, kOwner.AI_isFinancialTrouble(), iHealthGain, iHappyGain, kOwner.getFoodKept(eBuilding), kBuilding.getDefenseModifier(), kBuilding.getMaintenanceModifier(), kBuilding.getYieldModifier(YIELD_PRODUCTION),
+		kBuilding.getSeaPlotYieldChange(YIELD_FOOD), kBuilding.getTradeRoutes(), kBuilding.getCommerceChange(COMMERCE_GOLD) + kBuilding.getObsoleteSafeCommerceChange(COMMERCE_GOLD),
+		kBuilding.getCommerceModifier(COMMERCE_GOLD), kBuilding.getCommerceChange(COMMERCE_RESEARCH) + kBuilding.getObsoleteSafeCommerceChange(COMMERCE_RESEARCH), kBuilding.getCommerceModifier(COMMERCE_RESEARCH),
+		kBuilding.getCommerceChange(COMMERCE_CULTURE) + kBuilding.getObsoleteSafeCommerceChange(COMMERCE_CULTURE), kBuilding.getCommerceModifier(COMMERCE_CULTURE),
+		kBuilding.getCommerceChange(COMMERCE_ESPIONAGE) + kBuilding.getObsoleteSafeCommerceChange(COMMERCE_ESPIONAGE), kBuilding.getCommerceModifier(COMMERCE_ESPIONAGE));
+}
+
+// <!-- custom: Complement the inherited-value rows with named early vetoes; otherwise a missing candidate is indistinguishable from a cache omission during the regular-building policy audit; call only behind the cached level-3 gate. (GPT-5.6-Sol) -->
+static void SAS_logInheritedBuildingValueRejection(CvCityAI const& kCity, BuildingTypes eBuilding, char const* szReason)
+{
+	CvString szSignature(szReason);
+	if (!SAS_shouldLogBuildingValueGateChange(kCity, eBuilding, "INHERITED_REJECT", szSignature))
+		return;
+	CvPlayerAI const& kOwner = GET_PLAYER(kCity.getOwner());
+	logBBAI("BUILDING_VALUE_INHERITED_REJECT turn=%d player=%d %S city=%S cityId=%d building=%s reason=%s",
+		GC.getGame().getGameTurn(), kCity.getOwner(), kOwner.getCivilizationDescription(0), kCity.getName().GetCString(), kCity.getID(), GC.getInfo(eBuilding).getType(), szReason);
+}
+
+// <!-- custom: DomainProductionModifier accelerates every unit in its domain, including civilians.
+// Test the civilization's concrete units through ordinary city legality; ignore only transient air capacity.
+// eAssumeTech lets player-level legality recognize the prospective candidate and its guaranteed prerequisites. See KI#48.14. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+static bool SAS_canTrainDomainUnit(CvCityAI const& kCity, DomainTypes eDomain, TechTypes eAssumeTech)
+{
+	CvCivilization const& kCiv = kCity.getCivilization();
+	for (int i = 0; i < kCiv.getNumUnits(); i++)
+	{
+		UnitTypes const eUnit = kCiv.unitAt(i);
+		if (GC.getInfo(eUnit).getDomainType() == eDomain && kCity.canTrain(eUnit, false, false, false, false, false, NO_BONUS, eAssumeTech))
+			return true;
+	}
+	return false;
+}
+
+
+static bool SAS_isNationalParkStyleWonder(CvBuildingInfo const& kBuilding)
+{
+	if ((!kBuilding.isWorldWonder() && !kBuilding.isNationalWonder()) || kBuilding.getProductionCost() <= 0 || kBuilding.getUnhealthyPopulationModifier() > -50)
+		return false;
+	// <!-- custom: Preserve the historical exclusion for a hypothetical population-unhealthiness-reducing Wonder that is itself major land-military infrastructure. (ChatGPT-5.6-Sol) -->
+	return (kBuilding.getFreeExperience() < 2 && kBuilding.getDomainFreeExperience(DOMAIN_LAND) < 2 &&
+		kBuilding.getMilitaryProductionModifier() < 20 && kBuilding.getDomainProductionModifier(DOMAIN_LAND) < 20);
+}
+
+// <!-- custom: Keep National-Park-style resilience and military-pressure context in one level-3 diagnostic unit rather than interleaving logging with gameplay setup.
+// The retired population, rank and health-gate counterfactuals are documented in KI#48.9; this permanent row retains the live health-food, improvement-specialist and military context needed to interpret inherited and adjusted values. (GPT-5.6-Sol) -->
+static void SAS_logNationalParkStyleWonderContext(CvCityAI const& kCity, BuildingTypes eBuilding)
+{
+	CvPlayerAI const& kOwner = GET_PLAYER(kCity.getOwner());
+	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+	SASWarPowerContext const kWarPower(GET_TEAM(kCity.getTeam()));
+	bool const bDanger = kCity.AI_isDanger();
+	bool const bWarPlan = kOwner.AI_isFocusWar();
+	int const iPopulationRank = kCity.findPopulationRank();
+	int iImprovementFreeSpecialistPlots = 0;
+	int iImprovementFreeSpecialistCount = 0;
+	FOR_EACH_NON_DEFAULT_PAIR(kBuilding.getImprovementFreeSpecialist(), Improvement, int)
+	{
+		int const iImprovedPlots = kCity.countNumImprovedPlots(perImprovementVal.first, true);
+		iImprovementFreeSpecialistPlots += iImprovedPlots;
+		iImprovementFreeSpecialistCount += iImprovedPlots * perImprovementVal.second;
+	}
+	int const iPopulationUnhealth = kCity.unhealthyPopulation();
+	int const iHealthFoodLoss = std::max(0, -kCity.healthRate());
+	int const iPopulationUnhealthFoodRelief = std::min(iPopulationUnhealth, iHealthFoodLoss);
+	int const iFoodDifference = kCity.foodDifference(false, true);
+	CvString szSignature;
+	szSignature.Format("%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d|%d",
+		kCity.getPopulation(), iPopulationRank, kCity.goodHealth() - kCity.badHealth() + kCity.getEspionageHealthCounter() / 2,
+		iPopulationUnhealth, iHealthFoodLoss, iPopulationUnhealthFoodRelief, iFoodDifference, kCity.getFood(),
+		iImprovementFreeSpecialistPlots, iImprovementFreeSpecialistCount, kWarPower.bAtWar, bWarPlan,
+		bDanger, kWarPower.iEnemyPowerPercent, kWarPower.bEnemyStrong);
+	if (!SAS_shouldLogBuildingValueGateChange(kCity, eBuilding, "NATIONAL_PARK_CONTEXT", szSignature))
+		return;
+	logBBAI("NATIONAL_PARK_CONTEXT turn=%d player=%d %S city=%S cityId=%d building=%s pop=%d populationRank=%d healthLevel=%d populationUnhealth=%d healthFoodLoss=%d populationUnhealthFoodRelief=%d foodDifference=%d foodStored=%d growthThreshold=%d improvementFreeSpecialistPlots=%d improvementFreeSpecialistCount=%d atWar=%d warPlan=%d danger=%d enemyPowerPercent=%d enemyStrong=%d turnsLeft=%d baseProduction=%d stored=%d",
+		GC.getGame().getGameTurn(), kCity.getOwner(), kOwner.getCivilizationDescription(0), kCity.getName().GetCString(), kCity.getID(), kBuilding.getType(),
+		kCity.getPopulation(), iPopulationRank, kCity.goodHealth() - kCity.badHealth() + kCity.getEspionageHealthCounter() / 2,
+		iPopulationUnhealth, iHealthFoodLoss, iPopulationUnhealthFoodRelief, iFoodDifference, kCity.getFood(), kCity.growthThreshold(),
+		iImprovementFreeSpecialistPlots, iImprovementFreeSpecialistCount, kWarPower.bAtWar, bWarPlan, bDanger,
+		kWarPower.iEnemyPowerPercent, kWarPower.bEnemyStrong, kCity.getProductionTurnsLeft(eBuilding, 0), kCity.getBaseYieldRate(YIELD_PRODUCTION), kCity.getBuildingProduction(eBuilding));
+}
+
+// <!-- custom: KI#48.19 translates the useful concern behind the last live old-SAS Wonder hard gate into inherited valuation.
+// Apply transient military opportunity cost only to the current National-Park-style value returned to production selection; do not put danger/enemy strength into K-Mod's reusable construction-value cache or prospective technology valuation.
+// In the Pangaea A/B, 660 pressured evaluations produced no pressured National Park among 62 best-building opportunities or 22 final National Park choices; Mayapan naturally switched its 47/270 invested Park to SAM Infantry when enemy strength rose.
+// The discount is deliberately continuous: long, uninvested builds under immediate danger/strong-enemy pressure lose much more value, while short or heavily invested builds retain most of their inherited value and still compete normally. See KI#48.19. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+static int SAS_adjustUnhealthinessReducerWonderForMilitaryPressure(CvCityAI const& kCity, BuildingTypes eBuilding, int iInheritedValue)
+{
+	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+	CvPlayerAI const& kOwner = GET_PLAYER(kCity.getOwner());
+	if (iInheritedValue <= 0 || !SAS_isNationalParkStyleWonder(kBuilding) || kOwner.isBarbarian() || kOwner.isMinorCiv())
+		return iInheritedValue;
+	bool const bDanger = kCity.AI_isDanger();
+	SASWarPowerContext const kWarPower(GET_TEAM(kCity.getTeam()));
+	bool const bEnemyStrong = kWarPower.bEnemyStrong;
+	if (!bDanger && !bEnemyStrong)
+		return iInheritedValue;
+
+	int const iStored = kCity.getBuildingProduction(eBuilding);
+	int const iNeeded = std::max(1, kCity.getProductionNeeded(eBuilding));
+	int const iCompletionPercent = std::min(100, (100 * iStored) / iNeeded);
+	int iTurnsLeft = kCity.getProductionTurnsLeft(eBuilding, 0);
+	int const iTurnsForPressure = (iTurnsLeft == MAX_INT ? 20 : std::max(1, std::min(20, iTurnsLeft)));
+
+	// <!-- custom: Immediate local danger makes each remaining turn more expensive than a merely strong enemy.
+	// A strong enemy also adds a fixed strategic-pressure component; cap below 100 so this can never become another disguised return-0 gate. (ChatGPT-5.6-Sol) -->
+	int iRawPenaltyPercent = (bDanger ? 8 : 4) * iTurnsForPressure;
+	if (bEnemyStrong)
+		iRawPenaltyPercent += 20;
+	iRawPenaltyPercent = std::min(90, iRawPenaltyPercent);
+
+	// <!-- custom: Sunk production softens the opportunity cost: a nearly completed Park should not be abandoned merely because pressure appeared this turn. (ChatGPT-5.6-Sol) -->
+	int const iUnfinishedPercent = 100 - iCompletionPercent;
+	int const iAppliedPenaltyPercent = (iRawPenaltyPercent * iUnfinishedPercent) / 100;
+	// <!-- custom: A sub-100% penalty alone does not preserve a positive integer value: e.g. 5 * 10 / 100 truncates to 0; clamp to 1 so this smooth discount cannot silently recreate the retired hard-zero gate. See KI#48.19. (GPT-5.6-Sol) -->
+	int const iAdjustedValue = std::max(1, (iInheritedValue * (100 - iAppliedPenaltyPercent)) / 100);
+
+	if (gBuildingProductionLogLevel >= 3)
+	{
+		CvString szSignature;
+		szSignature.Format("%d|%d|%d|%d|%d|%d|%d|%d|%d",
+			iInheritedValue, iAdjustedValue, bDanger, bEnemyStrong, kWarPower.iEnemyPowerPercent,
+			iTurnsForPressure, iStored, iCompletionPercent, iAppliedPenaltyPercent);
+		if (SAS_shouldLogBuildingValueGateChange(kCity, eBuilding, "NATIONAL_PARK_PRESSURE_VALUE", szSignature))
+		{
+			logBBAI("NATIONAL_PARK_PRESSURE_VALUE_AUDIT turn=%d player=%d %S city=%S cityId=%d building=%s inheritedValue=%d adjustedValue=%d danger=%d enemyStrong=%d enemyPowerPercent=%d turnsLeft=%d stored=%d needed=%d completionPercent=%d rawPenaltyPercent=%d appliedPenaltyPercent=%d",
+				GC.getGame().getGameTurn(), kCity.getOwner(), GET_PLAYER(kCity.getOwner()).getCivilizationDescription(0),
+				kCity.getName().GetCString(), kCity.getID(), GC.getInfo(eBuilding).getType(),
+				iInheritedValue, iAdjustedValue, bDanger, bEnemyStrong, kWarPower.iEnemyPowerPercent,
+				(iTurnsLeft == MAX_INT ? -1 : iTurnsLeft), iStored, iNeeded, iCompletionPercent,
+				iRawPenaltyPercent, iAppliedPenaltyPercent);
+		}
+	}
+	return iAdjustedValue;
+}
+
+// <!-- custom: Exact level-3 attribution needs many values that ordinary AI_buildingValue calls never read.
+// Allocate and clear one record only for an enabled neutral diagnostic pass; disabled logging pays only for a null owner pointer instead of dozens of zero stores.
+// VC++ Toolkit 2003 still emitted C4701 when a local POD was conditionally reset behind the same gate as every read, so the enabled path must construct an initialized object explicitly. (GPT-5.6-Sol) -->
+struct SASBuildingValueDiagnostics
+{
+	// <!-- custom: Before/delta pairs attribute the inherited evaluator's major additive blocks without changing their order or values. (GPT-5.6-Sol) -->
+	int iDefenseDelta, iEspionageDefenseDelta, iHappinessDelta, iHealthDelta, iExperienceDelta, iDomainSeaDelta;
+	int iMaintenanceDelta, iSpecialistDelta, iTradeDelta, iGeneralDelta, iYieldDelta, iCommerceGlobalDelta;
+	int iAirCapacityDelta, iMilitaryProductionDelta, iDomainProductionDelta;
+	// <!-- custom: Commerce diagnostics retain both the raw component and the inherited weighting stages; culture additionally records city-claim and victory-priority contributions. (GPT-5.6-Sol) -->
+	int iGoldDelta, iGoldBeforeWeight, iGoldAfterWeight;
+	int iResearchDelta, iResearchBeforeWeight, iResearchAfterWeight;
+	int iCultureDelta, iCultureClaimValue, iCulturePriorityBoost, iCultureBeforeWeight, iCultureAfterWeight;
+	int iEspionageDelta, iEspionageBeforeWeight, iEspionageAfterWeight;
+	// <!-- custom: Sea-yield and production-priority fields expose the nested plot weighting that a single top-level yield delta cannot explain. (GPT-5.6-Sol) -->
+	int iSeaFoodDelta, iSeaProductionDelta, iSeaCommerceDelta, iSeaYieldPlotWeight;
+	int iYieldProductionPriorityRaw, iYieldProductionPriorityApplied;
+	// <!-- custom: Health urgency and maintenance stages preserve the inputs needed to distinguish the SAS urgency adjustment from inherited maintenance arithmetic. (GPT-5.6-Sol) -->
+	int iHealthSeverityUrgencyBonus, iHealthStarvationUrgencyBonus;
+	int iMaintenanceCurrentTimes100, iMaintenanceEstimatedBaseTimes100, iMaintenanceNewUpkeepTimes100, iMaintenanceSavedTimes100;
+	int iMaintenancePreInflationValue, iMaintenanceInflatedValue, iMaintenanceFinalValue;
+	// <!-- custom: Final-transform fields show how priority, XML AI weight and flavor turn the accumulated inherited value into the returned value. (GPT-5.6-Sol) -->
+	int iValueBeforePriority, iValueAfterPriority, iValueBeforeAIWeight, iValueAfterAIWeight, iFlavorMatch, iValueAfterFlavor;
+	int iDefenseBefore, iEspionageDefenseBefore, iHappinessBefore, iHealthBefore, iExperienceBefore, iDomainSeaBefore;
+	int iMaintenanceBefore, iSpecialistBefore, iTradeBefore, iGeneralBefore, iYieldBefore, iCommerceGlobalBefore;
+	int iAirCapacityBefore, iMilitaryProductionBefore, iDomainProductionBefore;
+
+	SASBuildingValueDiagnostics()
+	{
+		memset(this, 0, sizeof(*this));
+	}
+};
+
+// <!-- custom: Own the optional diagnostics record with RAII because inherited AI_buildingValue has early returns after diagnostics begin.
+// This avoids both leaks and the VC++ 2003 conditional-initialization warning while keeping allocation and zeroing entirely off the logging-disabled path. (GPT-5.6-Sol) -->
+class SASBuildingValueDiagnosticsScope
+{
+public:
+	explicit SASBuildingValueDiagnosticsScope(bool bEnabled) : m_pDiagnostics(bEnabled ? new SASBuildingValueDiagnostics() : NULL) {}
+	~SASBuildingValueDiagnosticsScope() { delete m_pDiagnostics; }
+	SASBuildingValueDiagnostics* operator->() { FAssert(m_pDiagnostics != NULL); return m_pDiagnostics; }
+
+private:
+	SASBuildingValueDiagnostics* m_pDiagnostics;
+	SASBuildingValueDiagnosticsScope(SASBuildingValueDiagnosticsScope const&);
+	SASBuildingValueDiagnosticsScope& operator=(SASBuildingValueDiagnosticsScope const&);
+};
+
 // (I don't see the point of this function being separate to the "threshold" version)
 /*int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags) const {
 	return AI_buildingValueThreshold(eBuilding, iFocusFlags, 0);
@@ -6982,16 +9147,22 @@ static int AI_strictAdditionalHappy(CvCity const& c, BuildingTypes eB)
 /*	This function has been heavily edited for K-Mod
 	Scale is roughly 4 = 1 commerce / turn */
 // advc.121b <!-- custom: hoisted from multiline signature between `bIgnoreSpecialists` and `bObsolete` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iThreshold, bool bConstCache, bool bAllowRecursion, bool bIgnoreSpecialists, bool bObsolete) const // advc.004c
+// <!-- custom: eAssumeTech is NO_TECH for current production and the candidate technology for AI_techBuildingValue; player-level unit legality also recognizes its guaranteed prerequisites. See KI#48.14. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iThreshold, bool bConstCache, bool bAllowRecursion, bool bIgnoreSpecialists, bool bObsolete, TechTypes eAssumeTech) const // advc.004c
 {
 	PROFILE_FUNC();
 
 	// <!-- custom: cache as eOwner as per chatgpt 5.2's recommendation to avoid reuse (not applied to things like ->getOwner() though as they look like method calls and not variables). -->
 	PlayerTypes const eOwner = getOwner();
 	CvPlayerAI const& kOwner = GET_PLAYER(eOwner);
-	// <!-- custom: use this pattern i found somewhere in the code, in case it is safer, and cache repetitive calls for performance optimization. Note: also cache GET_TEAM(getTeam()) to kTeam. Note 2: we had issues in the past in AdvCiv-SAS when caching these to a CvTeam cast (i don't know too much about these, check if accurate), that were solved using a CvTeamAI cast rather, so preferring this whenever it seems safe enough (check if accurate). I applied this to all GET_TEAM calls i spotted in this file +/- additional kOwner or kPlayer extra caching when needed, and after specifically testing this in autoplay, we get the exact same outcome vs before (t341 win, exact same score at scores it seems as well, so this also looks good to merge) -->
+	// <!-- custom: Keep this practical-5282 GET_TEAM cache as CvTeamAI: some sibling cache sites compile when narrowed to CvTeam, while others fail because they use AI-only team members or helpers requiring CvTeamAI; retain CvTeamAI across this cache family to avoid tedious per-site type exceptions. See KI#311.2. (ChatGPT-5.6-Sol) -->
 	CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam()); // kekm.16
 	CvGame const& kGame = GC.getGame();
+	// <!-- custom: One explicit pre-gate protects both SAS-policy and inherited-value diagnostics; cache the level-3 test once in this hot function so neutral/current and prospective diagnostics do not repeatedly reload the global level.
+	// Logger arguments and strings are evaluated only inside the derived enabled branches. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
+	bool const bLogBuildingProductionLevel3 = (gBuildingProductionLogLevel >= 3);
+	bool const bLogBuildingValueDetails = (bLogBuildingProductionLevel3 && iFocusFlags == 0 && eAssumeTech == NO_TECH);
+	bool const bLogProspectiveDomainApplicability = (bLogBuildingProductionLevel3 && iFocusFlags == 0 && eAssumeTech != NO_TECH);
 
 	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
 	BuildingClassTypes const eBuildingClass = kBuilding.getBuildingClassType();
@@ -7000,6 +9171,179 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 	const bool bWorldWonder = kBuilding.isWorldWonder();
 	const bool bNationalWonder = kBuilding.isNationalWonder();
 	const bool bWonder = (bWorldWonder || bNationalWonder);
+
+	// <!-- custom: Prospective domain applicability can invalidate the ordinary construction-value cache, so this one domain-policy switch must remain available before the cache decision. (ChatGPT-5.6-Sol) -->
+	static const bool bDomainProductionApplicabilityOptimize = GC.getDefineBOOL("SAS_AI_BUILDING_VALUE_DOMAIN_PRODUCTION_MODIFIER_APPLICABILITY_OPTIMIZE");
+
+	// <!-- custom: in autoplay AI doesn't build shrines (Mahabodhi, Pagan Shrine, etc.) until late game after world wonders ASAP fix.
+	// Shrines/corporations have iCost=-1, so no point trying to save hammers.
+	// Skip viability gates for iCost=-1; handle only buildable buildings (iCost>0), similar to CvUnitAI::AI_ChooseUnit.
+	// In autoplay this leads to more wonders by turn 300. Credit: ChatGPT 5.2. (Claude code Sonnet 4.5 (summarized)) -->
+	// <!-- custom: performance optimization - cache iXMLCost for later calls in this function. (Claude code Sonnet 4.5 (summarized)) -->
+	const int iXMLCost = kBuilding.getProductionCost(); // XML base cost (unscaled)
+	// <!-- custom: Keep the inherited obsolete/removal caller invariant before the construction-cache return.
+	// The first cache refactor moved its assertion below that return, which hid invalid cache-hit calls in debug builds; the actual bRemove value remains cache-miss-only below. (GPT-5.6-Sol) -->
+	FAssert(!bObsolete || getNumBuilding(eBuilding) >= GC.getDefineINT(CvGlobals::CITY_MAX_NUM_BUILDINGS));
+	// -1 (GP-built) or weird 0-cost
+	// <!-- custom: Keep diagnostic-only retired-policy and National-Park context together behind one explicit pre-gate; gameplay adjustments remain in the self-contained value postprocessor at the cached and calculated inherited exits below. (GPT-5.6-Sol) -->
+	if (bLogBuildingValueDetails)
+	{
+		if (!bWonder)
+		{
+			bool const bSASLandHeavyNavalInfrastructureLegacyAudit = (isCoastal() && kGame.isLandHeavyMapnameCached() &&
+				(kBuilding.getDomainFreeExperience(DOMAIN_SEA) > 0 || kBuilding.getDomainProductionModifier(DOMAIN_SEA) > 0));
+			if (bSASLandHeavyNavalInfrastructureLegacyAudit)
+				SAS_logBuildingValuePolicyDecision(*this, eBuilding, "NAVAL_EXPERIENCE_LEGACY", "WOULD_REJECT_LAND_HEAVY_MAP", 0);
+		}
+		else if (iXMLCost > 0 && !kOwner.isBarbarian() && !kOwner.isMinorCiv())
+		{
+			SAS_logWonderPolicyAudit(*this, eBuilding);
+			if (SAS_isNationalParkStyleWonder(kBuilding))
+				SAS_logNationalParkStyleWonderContext(*this, eBuilding);
+		}
+	}
+
+	/*	Veto checks: return zero if the building is not suitable.
+		Note: these checks are essentially the same as in the original code,
+		they've just been moved. */
+	if (iFocusFlags & BUILDINGFOCUS_WORLDWONDER)
+	{
+		// <!-- custom: World-Wonder focus delegates placement to K-Mod's limited-building comparison below rather than reviving the old ordinal top-three-production veto. See KI#48.15. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		if (!bWorldWonder)
+			return 0;
+	}
+
+	if (kBuilding.isCapital())
+	{
+		// <!-- custom: Keep this level-3 row after removing the old SAS Palace policy: inherited capital-building rejection remains live for direct/prospective callers and is distinct from actual BUILDINGFOCUS_CAPITAL relocation. (GPT-5.6-Sol) -->
+		if (bLogBuildingProductionLevel3)
+		{
+			logBBAI("PALACE_INHERITED_BUILDING_VALUE_REJECT turn=%d player=%d %S city=%S cityId=%d building=%s focusFlags=%d prospective=%d assumeTech=%s",
+				GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(), kBuilding.getType(),
+				iFocusFlags, eAssumeTech != NO_TECH, (eAssumeTech == NO_TECH ? "-" : GC.getInfo(eAssumeTech).getType()));
+		}
+		if (bLogBuildingValueDetails && !bWonder)
+			SAS_logInheritedBuildingValueRejection(*this, eBuilding, "CAPITAL_BUILDING");
+		return 0;
+	}
+
+	// <advc.014>
+	if(GET_TEAM(eOwner).isCapitulated() && bWorldWonder &&
+		kBuilding.getHolyCity() == NO_RELIGION)
+	{
+		return 0;
+	} // </advc.014>
+	FOR_EACH_NON_DEFAULT_PAIR(kBuilding.
+		getReligionChange(), Religion, int)
+	{
+		if (perReligionVal.second > 0 &&
+			!kTeam.hasHolyCity(perReligionVal.first))
+		{
+			if (bLogBuildingValueDetails && !bWonder)
+				SAS_logInheritedBuildingValueRejection(*this, eBuilding, "MISSING_HOLY_CITY");
+			return 0;
+		}
+	}
+	// Construction value cache.
+	/*	Note: the WONDEROK and WORLDWONDER flags should not affect
+		the final value - and so cache should not be disabled by those flags. */
+	bool const bNeutralFlags = (iFocusFlags &
+			~(BUILDINGFOCUS_WONDEROK | BUILDINGFOCUS_WORLDWONDER)) == 0;
+	bool abDomainProductionApplicable[NUM_DOMAIN_TYPES];
+	bool bProspectiveDomainApplicabilityChange = false;
+	// <!-- custom: Only prospective technology calls need applicability before the cache decision.
+	// Current-state cache hits return without touching this array; current-state cache misses initialize it once below for the actual domain valuation. (GPT-5.6-Sol) -->
+	if (eAssumeTech != NO_TECH)
+	{
+		FOR_EACH_ENUM(Domain)
+		{
+			abDomainProductionApplicable[eLoopDomain] = true;
+			int const iDomainProductionModifier = kBuilding.getDomainProductionModifier(eLoopDomain);
+			if (iDomainProductionModifier == 0 ||
+				(!bDomainProductionApplicabilityOptimize && !bLogProspectiveDomainApplicability))
+			{
+				continue;
+			}
+			bool const bCurrentDomainProductionApplicable = SAS_canTrainDomainUnit(*this, eLoopDomain, NO_TECH);
+			abDomainProductionApplicable[eLoopDomain] = SAS_canTrainDomainUnit(*this, eLoopDomain, eAssumeTech);
+			if (bDomainProductionApplicabilityOptimize &&
+				bCurrentDomainProductionApplicable != abDomainProductionApplicable[eLoopDomain])
+			{
+				bProspectiveDomainApplicabilityChange = true;
+			}
+			if (bLogProspectiveDomainApplicability)
+			{
+				logBBAI("BUILDING_VALUE_DOMAIN_PRODUCTION_PROSPECTIVE_APPLICABILITY turn=%d player=%d city=%S cityId=%d building=%s domain=%d modifier=%d assumedTech=%s currentApplicable=%d prospectiveApplicable=%d",
+					kGame.getGameTurn(), eOwner, getName().GetCString(), getID(), kBuilding.getType(), eLoopDomain, iDomainProductionModifier,
+					GC.getInfo(eAssumeTech).getType(), bCurrentDomainProductionApplicable, abDomainProductionApplicable[eLoopDomain]);
+			}
+		}
+	}
+	// <!-- custom: The first prospective implementation bypassed this cache for every candidate technology.
+	// In validated runs, 1,050 prospective rows contained no applicability change, yet that blanket recomputation diverged from both controls at turns 76/172.
+	// Reuse the authoritative current value unless this building's domain component actually changes; only a real change needs an uncached prospective evaluation. See KI#48.14. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	bool const bUseConstructionValueCache = (bNeutralFlags && iThreshold == 0 && !bProspectiveDomainApplicabilityChange);
+	if (bUseConstructionValueCache && m_aiConstructionValue[eBuildingClass] != -1)
+	{
+		int const iCachedInheritedValue = m_aiConstructionValue[eBuildingClass];
+		// <!-- custom: The cached and calculated exits both use the same self-contained KI#48.19 current-production postprocessor; prospective technology calls deliberately bypass transient military pressure. (GPT-5.6-Sol) -->
+		if (eAssumeTech == NO_TECH)
+			return SAS_adjustUnhealthinessReducerWonderForMilitaryPressure(*this, eBuilding, iCachedInheritedValue);
+		return iCachedInheritedValue;
+	}
+	// </K-Mod>
+
+	// <!-- custom: Construction-cache miss only: all remaining city, empire, victory, ranking, food/health/trade and domain-throughput context is consumed solely by the full inherited calculation below.
+	// The earlier partial move left many unrelated queries above the cache.
+	// Rank helpers only fill deterministic lazy caches and have no gameplay-relevant side effect, so deferring them too avoids needless city sorting on an authoritative cache hit. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	int const iProductionRank = findBaseYieldRateRank(YIELD_PRODUCTION);
+	int const iCitizenValue = AI_citizenValue(); // advc
+	int const iLimitedWonderLimit = GC.getInfo(eBuildingClass).getLimit();
+	bool const bLimitedWonder = (iLimitedWonderLimit >= 0);
+	bool const bProvidesPower = (kBuilding.isPower() ||
+			(kBuilding.getPowerBonus() != NO_BONUS && hasBonus(kBuilding.getPowerBonus())) ||
+			kBuilding.isAreaCleanPower());
+	int const iTotalPopulation = kOwner.getTotalPopulation();
+	int const iNumCities = kOwner.getNumCities();
+	int const iNumCitiesInArea = getArea().getCitiesPerPlayer(eOwner);
+	// <K-Mod>
+	int const iCitiesTarget = GC.getInfo(GC.getMap().getWorldSize()).getTargetNumCities(); // </K-Mod>
+	bool const bHighProductionCity = (iProductionRank <= std::max(3, iNumCities / 2));
+	// <!-- custom: renamed iCultureRank to iCultureRateRank for consistency with other variables in this function -->
+	int const iCultureRateRank = findCommerceRateRank(COMMERCE_CULTURE);
+	// <!-- custom: performance optimizations -->
+	int const iGoldRateRank = findCommerceRateRank(COMMERCE_GOLD);
+	int const iCulturalVictoryNumCultureCities = kGame.culturalVictoryNumCultureCities();
+	bool const bFinancialTrouble = kOwner.AI_isFinancialTrouble();
+	// BETTER_BTS_AI_MOD, Victory Strategy AI, 03/08/10, jdog5000: START
+	bool const bCulturalVictory1 = kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE1);
+	bool const bCulturalVictory2 = kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE2);
+	bool const bCulturalVictory3 = kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE3);
+	bool const bSpaceVictory1 = kOwner.AI_atVictoryStage(AI_VICTORY_SPACE1);
+	// BETTER_BTS_AI_MOD: END
+	bool const bCanPopRush = /*kOwner.*/canPopRush(); // advc.912d
+	// <advc.131>
+	int iTotalBonusYieldMod = 0;
+	int iTotalImprFreeSpecialists = 0;
+	bool bAnySeaPlotYieldChange = false; // </advc.131>
+	// <K-Mod>
+	/*	This new value, iPriorityFactor, is used to boost the value of
+		productivity buildings without overvaluing productivity.
+		The point is to get the AI to build productiviy buildings quickly,
+		but not if they come with large negative side effects.
+		I may use it for other adjustments in the future. */
+	int iPriorityFactor = 100;
+	/*	bRemove means that we're evaluating the cost of losing this building
+		rather than adding it. the definition used here is just a kludge because
+		there currently isn't any other way to tell the difference.
+		Currently, bRemove is only in a few parts of the evaluation
+		where it is particularly important; for example, bRemove is critical for
+		calculating the lost value of obsoleting walls and castles.
+		There are several sections which could, in the future, be improved
+		using bRemove - but I don't see it as a high priority. */
+	bool const bRemove = (getNumBuilding(eBuilding) >= GC.getDefineINT(CvGlobals::CITY_MAX_NUM_BUILDINGS));
+	// advc.004c: bRemove && !bObsolete is OK; that means spy attack.
+	FAssert(!bObsolete || bRemove);
 
 	/*	K-Mod note: I've set this to ignore "food is production"
 		so that building value is not distorted by that effect. */
@@ -7013,21 +9357,14 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 	int const iHealthLevel = goodHealth() - badHealth() + getEspionageHealthCounter()/2;
 	// K-Mod end
 
-	int const iNumCities = kOwner.getNumCities();
-
-	// <!-- custom: note: sometimes AI_isFocusWar is used with, sometimes without in cvcityai.cpp, going for the larger one and chatgpt 5 suggests to do as such despite not knowing all our code but should be fine, and maybe we handle more cases this way, check if accurate -->
-	// bool const bWarPlan = kOwner.AI_isFocusWar(area()); // advc.105
+	// <!-- custom: Use the broader player-wide focus-war test instead of AdvC's area-specific variant.
+	// K-Mod used kTeam.getAnyWarPlanCount(true) > 0. (GPT-5.6-Sol) -->
 	bool const bWarPlan = kOwner.AI_isFocusWar();
-			//kTeam.getAnyWarPlanCount(true) > 0; // K-Mod
 
 	int const iFoodKept = kOwner.getFoodKept(eBuilding); // advc.912d
-	// <!-- custom: foodDifference(false, true) already subtracts health-adjusted foodConsumption, so subtracting negative iHealthLevel again double-counted unhealthiness and could make this growth signal negative. Use the nonnegative net food once, with the existing happiness-cap gate. See KI#48.3. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-	int const iEffectiveFood = (iHappinessSurplus <= 0 ? 0 :
-			std::max(0, iFoodDifference));
-
 	bool bForeignTrade = false;
 
-	// <!-- custom: removed extra scope, and reused it in this function since we do reuse it several times and even outside our advciv-sas added code-->
+	// <!-- custom: Unlike Base AdvC's scoped foreign-trade scan, keep the route count for the later trade-route valuation and avoid a second getTradeRoutes call. (GPT-5.6-Sol) -->
 	int const iNumTradeRoutes = getTradeRoutes();
 	for (int i = 0; i < iNumTradeRoutes; i++)
 	{
@@ -7050,1487 +9387,49 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 	int const iCurrentEra = kOwner.getCurrentEra();
 	// <!-- custom: renamed iExistingUpkeep to iMaintenanceTimes100 -->
 	const int iMaintenanceTimes100 = getMaintenanceTimes100();
-	// <!-- custom: performance optimizations -->
-	// <!-- custom: Preserve whether AdvCiv's authoritative production ranks were invalid before findBaseYieldRateRank refreshes them; the SAS top-three cache must refresh in the same evaluation too. See KI#306. (GPT-5.6-Sol) -->
-	const bool bProductionRankCacheWasValid = m_abBaseYieldRankValid.get(YIELD_PRODUCTION);
-	const int iProductionRank = findBaseYieldRateRank(YIELD_PRODUCTION);
 	const int iFreeExperience = kBuilding.getFreeExperience();
 	const int iBaseHammersPerTurn = getBaseYieldRate(YIELD_PRODUCTION);
 
-	// <!-- custom: add some sanity / optimization rules of when to not build and sometimes when to always build some buildings rather than others. For example, walls are a waste of hammer at peace, or we are stronger than our ennemies, these could be used to produce almost 2 more axemen or half a settler or a worker as of now more or less, and similarly for many buildings there is a time when they are most relevant and other times when they really aren't yet AI inefficiently builds them anyway. Added these rules with chatgpt 5 thanks to my prompts and adjustments too, check if accurate, it somehow seems strongly passionate if i may say in these/its code comments hehe, sometimes mentionning K-Mod when i am not sure it is K-Mod, check if accurate xd and maybe enjoy or not or yes or etc, hopefully this makes AI a lot stronger or sharperwith its best building management, and is similarly done to how we fine-tuned with a set or pre-rules the promotions AI would choose in CvUnitAI::AI_promotionValue -->
-	const bool bMinor = kOwner.isMinorCiv();
-	const bool bBarbarian = kOwner.isBarbarian();
-
-	static const bool bSAS_AI_BUILDING_VALUE_OPTIMIZE = GC.getDefineBOOL("SAS_AI_BUILDING_VALUE_OPTIMIZE");
-
-	// <!-- custom: in autoplay AI doesn't build shrines (Mahabodhi, Pagan Shrine, etc.) until late game after world wonders ASAP fix. Shrines/corporations have iCost=-1, so no point trying to save hammers. Skip viability gates for iCost=-1; handle only buildable buildings (iCost>0), similar to CvUnitAI::AI_ChooseUnit. In autoplay this leads to more wonders by turn 300. Credit: ChatGPT 5.2. (Claude code Sonnet 4.5 (summarized)) -->
-	// <!-- custom: performance optimization - cache iXMLCost for later calls in this function. (Claude code Sonnet 4.5 (summarized)) -->
-	const int iXMLCost = kBuilding.getProductionCost(); // XML base cost (unscaled)
-	// -1 (GP-built) or weird 0-cost
-	// Only apply "hammer/turns/top-hammer-city" viability gates to normal, buildable buildings.
-	if ((iXMLCost > 0) && !bBarbarian && !bMinor && bSAS_AI_BUILDING_VALUE_OPTIMIZE)
+	// <!-- custom: Domain-limited military-production effects share the authoritative AI_buildUnitProb demand estimate and K-Mod water-world context.
+	// Drydock-style sea production/XP keep their validated formulas; DOMAIN_LAND was validated with temporarily land-scoped Heroic Epic laboratory XML. See KI#48.11-KI#48.13. (ChatGPT-5.6-Sol) -->
+	static const bool bLandProductionThroughputOptimize = GC.getDefineBOOL("SAS_AI_BUILDING_VALUE_DOMAIN_LAND_PRODUCTION_MODIFIER_THROUGHPUT_OPTIMIZE");
+	static const bool bSeaProductionThroughputOptimize = GC.getDefineBOOL("SAS_AI_BUILDING_VALUE_DOMAIN_SEA_PRODUCTION_MODIFIER_THROUGHPUT_OPTIMIZE");
+	static const bool bSeaExperienceThroughputOptimize = GC.getDefineBOOL("SAS_AI_BUILDING_VALUE_DOMAIN_SEA_FREE_EXPERIENCE_THROUGHPUT_OPTIMIZE");
+	bool const bNeedLandThroughputContext = (bLandProductionThroughputOptimize && kBuilding.getDomainProductionModifier(DOMAIN_LAND) != 0);
+	bool const bNeedSeaThroughputContext =
+			(bSeaProductionThroughputOptimize && kBuilding.getDomainProductionModifier(DOMAIN_SEA) != 0) ||
+			(bSeaExperienceThroughputOptimize && kBuilding.getDomainFreeExperience(DOMAIN_SEA) != 0);
+	int iDomainTotalMilitaryProductionShare = 0;
+	int iDomainWaterWorldPercent = 0;
+	if (bNeedLandThroughputContext || bNeedSeaThroughputContext)
 	{
-		// <!-- custom: per-player, per-turn cache to avoid recomputing top city scans at every call. In autoplay, leads to exact same outcome vs before (win at 341, same scores at all savepoints). Credit: ChatGPT 5.2. (Claude code Sonnet 4.5 (summarized)) -->
-		// <!-- custom: cache scope limited to bSAS_AI_BUILDING_VALUE_OPTIMIZE block; move to function scope if reused elsewhere. (Claude code Sonnet 4.5 (summarized)) -->
-		// Is this “safe enough"?
-		// 	- For Civ4’s normal single-threaded AI: yes.
-		// 	- If you ever truly run building evaluation in parallel threads: function-static caches are not thread-safe. Your current use of bConstCache strongly suggests “async mode" should not mutate caches anyway, so the pattern above is aligned with that.
-		// --- SAS: per-player, per-turn cache for empire-wide top-production-city scans used in some gates.
-		// Updated only when !bConstCache (async/const-eval stays side-effect free).
-		static bool s_abTopHptValid[MAX_PLAYERS];
-		static int  s_aiTopHptTurn[MAX_PLAYERS];
-		static int  s_aiTopHptNumCities[MAX_PLAYERS];
-		static int  s_aiBestHpt[MAX_PLAYERS];
-		static int  s_aiSecondBestHpt[MAX_PLAYERS];
-		static int  s_aiThirdBestHpt[MAX_PLAYERS];
-
-		// <!-- custom: always pick these first if in this specific case especially relevant-->
-		// <!-- custom: note: previously set to 999999, but seemingly was causing a crash at turn 163, that was fixed strictly and only by changing this to 100000 it seems in autoplay, everything else being the entire/exact same it seems (including at which turn to save and which turn to start from on which save file), check to be sure and don't make this too high i would say, game outcome is preserved as well so no extra value/gain from having 999999 rather than 100000 at t200 it seems at least in large map. (note: was using WinDbg and a normal dump to debug it with a release DLL (then !analyze -v) but i don't know too much about these, although it seems to be as such and as chatgpt 5 explains but again i don't know too much to tell so check if accurate / to be sure) -->
-		// Good news / bad news: your dump is actually screaming “integer blow-up → bogus index" rather than a bad pointer to game data.
-		// Why I’m confident:
-		// - EIP is inside CvGameCoreDLL at +0x4E043 and WinDbg labels it CvCity::cheat+0x15B3, but the instruction is mov eax, [ebp+eax*4]. That pattern is classic for indexing a small local jump/lookup table with eax. Your eax is 0x618063D8 (!), so the index is astronomically out of range → AV.
-		// - Your recent edits introduce sentinel returns like AI_BUILDING_ALWAYS_PICK_FIRST = 999999 and several return AI_BUILDING_ALWAYS_PICK_FIRST +/- …;. Downstream code multiplies building values by weights and divides by small turn counts. With a 32-bit signed int, it’s easy to overflow (wrap negative) and then use the result as an index / size / switch key. The heap frames in your stack (_heap_alloc) are consistent with “someone tried to allocate/size something absurd after overflow".
-		// - This also explains why you can reproduce the crash even after removing the cache: the oversized return path still fires.
-		//
-		// Your giant sentinel (999,999) is overflowing downstream math (multiplied/divided by tiny denominators), producing a wild index that ends up as [ebp+eax*4] → AV. Cap the value (e.g., 50k), clamp the final iValue to ±200k, prefer return iThreshold+1 when you only need to “win", and fix the small inverted world-wonder filter. That should make this crash disappear.*]()
-		static const int AI_BUILDING_ALWAYS_PICK_FIRST = 100000;
-
-		// Quick threat read
-		bool const bDanger = AI_isDanger();
-		bool const bAtWar = (kTeam.getNumWars() > 0);
-
-		// Enemy power percent: sum of enemy power as % of ours.
-		// < 100  => we’re stronger; e.g., 80 means we’re ~125% of them.
-		const int iEnemyPowerPercent = kTeam.AI_getEnemyPowerPercent(true);
-
-		// Tunables
-		static const int iSAS_ENEMY_STRONG_POWER_THRESHOLD = GC.getDefineINT("SAS_ENEMY_STRONG_POWER_THRESHOLD"); // e.g. 120
-		const int iDefenseModeThreshold = iSAS_ENEMY_STRONG_POWER_THRESHOLD; // ≥120 => they’re scary <!-- custom: or strong rather xd, clearer what it means, and weak one can be scary maybe too, is less clear, but funny as in humorous -->; prefer defense
-		static const int iSAS_ENEMY_WEAK_POWER_THRESHOLD = GC.getDefineINT("SAS_ENEMY_WEAK_POWER_THRESHOLD"); // e.g. 80
-		const int iOffenseModeThreshold = iSAS_ENEMY_WEAK_POWER_THRESHOLD; // ≤80 => we’re strong enough to skip walls
-
-		const bool bEnemyStrong  = (iEnemyPowerPercent >= iDefenseModeThreshold);
-		// <!-- custom: note: be careful of enemy weak being true if we're not at war (due to enemy percent being 0, not sure it would happen but better be safe from this false positive by wrapping with an at war check to get actual enemy percent and not 0 by default but this is just a guess, check if accurate) -->
-		const bool bAtWarAndEnemyWeak = (bAtWar && (iEnemyPowerPercent <= iOffenseModeThreshold));
-
-		const bool bLandXp = (
-			(iFreeExperience >= 2) ||
-			(kBuilding.getDomainFreeExperience(DOMAIN_LAND) >= 2)
-		);
-
-		const bool bLandProd = (
-			(iMilitaryProductionModifier >= 20) ||
-			(kBuilding.getDomainProductionModifier(DOMAIN_LAND) >= 20)
-		);
-
-		// <!-- custom: general modifier not significant enough to consider it-->
-		const bool bLandUnitsBuilding = (bLandXp || bLandProd);
-
-		const int iElapsedTurns = kGame.getElapsedGameTurns();
-
-		const int iBeakersPerTurn = getCommerceRate(COMMERCE_RESEARCH);
-
-		// <!-- custom: adjust the AI's building priorities based on handicap -->
-		CvHandicapInfo const& hGame = GC.getInfo(kGame.getHandicapType());       // human’s level
-		CvHandicapInfo const& hAI   = GC.getInfo(kOwner.getHandicapType());     // this AI’s level
-
-		const int iGameSpeedMultiplier = GC.getInfo(kGame.getGameSpeedType()).getConstructPercent(); // 100, 150, 200...
-
-		// <!-- custom: then after considering building time, let's consider our expected gains, hammer modifiers (e.g forge gives +25% hammer after it is built), this is not related to modifiers that reduce time to build the forge for example, but modifiers we gain in city after city is built, as chatgpt 5 explained to me after i made the mistake so i hope this comment is helpful-->
-		// 1) Identify “ironworks-like": sum BonusYieldModifiers for PRODUCTION
-		int iTotalBonusHammersModifier = 0;
-		FOR_EACH_ENUM(Bonus)
-		{
-			int m = kBuilding.getBonusYieldModifier(eLoopBonus, YIELD_PRODUCTION);
-			if (m != 0)
-			{
-				// e.g. Coal +50, Iron +50 => 100 total
-				iTotalBonusHammersModifier += m;
-			}
-		}
-
-		// <!-- custom: also account for the base production modifiers (e.g. that the forge or factory has) to asses the building's worth/value as a production modifier building (here national wonder) type-->
-		const int iTotalHammersModifier = iHammersModifier + iTotalBonusHammersModifier;
-
-		static const bool bSAS_AI_BUILDING_VALUE_REGULAR_BUILDINGS_OPTIMIZE = GC.getDefineBOOL("SAS_AI_BUILDING_VALUE_REGULAR_BUILDINGS_OPTIMIZE");
-		static const bool bSAS_AI_BUILDING_VALUE_WONDERS_OPTIMIZE = GC.getDefineBOOL("SAS_AI_BUILDING_VALUE_WONDERS_OPTIMIZE");
-		// <!-- custom: update: in autoplay, the SAS_AI_BUILDING_VALUE_WORLD_WONDERS_OPTIMIZE check specifically greatly reduces the number of early wonders (0 wonders vs 6 wonders at turn 100 with vs without it, everything else being the same. See SAS defines XML code comments for details about it and its sub options -->
-		static const bool bSAS_AI_BUILDING_VALUE_WORLD_WONDERS_OPTIMIZE = GC.getDefineBOOL("SAS_AI_BUILDING_VALUE_WORLD_WONDERS_OPTIMIZE");
-		static const bool bSAS_AI_BUILDING_VALUE_NATIONAL_WONDERS_OPTIMIZE = GC.getDefineBOOL("SAS_AI_BUILDING_VALUE_NATIONAL_WONDERS_OPTIMIZE");
-		static const bool bSAS_AI_BUILDING_VALUE_UNKNOWN_WONDERS_OPTIMIZE = GC.getDefineBOOL("SAS_AI_BUILDING_VALUE_UNKNOWN_WONDERS_OPTIMIZE");
-
-		static const int iSAS_AI_BUILDING_VALUE_GATE_M100_REGULAR_BUILDINGS = GC.getDefineINT("SAS_AI_BUILDING_VALUE_GATE_M100_REGULAR_BUILDINGS");
-		static const int iSAS_AI_BUILDING_VALUE_GATE_M100_WONDERS = GC.getDefineINT("SAS_AI_BUILDING_VALUE_GATE_M100_WONDERS");
-
-		if (!bWonder && bSAS_AI_BUILDING_VALUE_REGULAR_BUILDINGS_OPTIMIZE)
-		{
-			const bool bCoastalBuilding = isCoastal();
-			// <!-- custom: 0); always build the harbor (or whichever buildings give food) no matter what. I have noticed many cities being stagnant and low food, or even if growing they could greatly benefit from it. Including one tile or 2 tile island cities building a needless worker or such. I don't know if our logic prevents that, but at least in very simple terms, build the harbor or any building (not wonders as hammer costly, at least if we'd add them we'd handle them elsewhere but as of now not handled specifically meaning AI will not reject them with same rules as other wonders as of now) with such an effect asap if city can, don't complicate logic with needless things otherwise. This may help island cities 1-2 tiles in particular quickly reach their potential and not astray in particular if i may say but not only the cities i mean in this case. Also ignore even war checks or conditions as AIs produce too much units as of now which is good but it is also good that this helps them mitigate it even if a bit and to not go bankrupt too soon with unit excess-->
-			// --- Fast path: water-food buildings (Harbor in AdvCiv-SAS) always first ---
-			const bool bWaterFoodBuilding = (
-				bCoastalBuilding &&
-				((kBuilding.getSeaPlotYieldChange(YIELD_FOOD) > 0) ||
-				(kBuilding.getGlobalSeaPlotYieldChange(YIELD_FOOD) > 0))
-			);
-
-			const int iWaterFoodBuildingFirstMinEnoughFood = 2;
-			if (bWaterFoodBuilding && (iFoodDifference < iWaterFoodBuildingFirstMinEnoughFood) && !isFoodProduction())
-			{
-				return AI_BUILDING_ALWAYS_PICK_FIRST;
-			}
-			// --- end fast path ---
-
-			// Is this building primarily defensive in cities (local or global) <!-- custom: e.g. walls, castle, chichen itza of the base civ4 for example too; also use a value threshold of 25 or such to remove false positives, in case a building gives small defense modifier but is not actually a defense building (e.g. not directly related to this but similar: ikhanda gives maybe like 10-15% maintenance reduction but is a military building, and skipping it based on economic criteria may be bad, so using a similar logic here with a quite high base threshold to make sure we flag actually defensive buildings) --> ?
-			const bool bDefenseBuilding = (
-				(kBuilding.getDefenseModifier() >= 25) ||
-				(kBuilding.getBombardDefenseModifier() >= 20) ||
-				(kBuilding.get(CvBuildingInfo::RaiseDefense) >= 15) ||
-				(kBuilding.getAllCityDefenseModifier() >= 10)
-			);
-
-			// 1) Defense-ish buildings: skip in peacetime; also skip in war if we <!-- custom: are stronger -->
-			if (bDefenseBuilding)
-			{
-				// No immediate pressure? Don’t sink hammers into static defense.
-				if (!bAtWar)
-				{
-					return 0;
-				}
-				else
-				{
-					// At war (or danger) but we’re clearly stronger and this city isn’t in danger? Skip.
-					if (bAtWarAndEnemyWeak && !bDanger)
-					{
-						return 0;
-					}
-					// If they’re actually scary (≥120%), <!-- custom: build walls with highest priority, we are likely to get attacked, walls or castle or such would help a lot more than any other building, but not for wonders unfortunately as it is unlikely we complete them on time before war ends or we die or we make any advantage of them (worst case we'd be building it for them, invest that hammer in units or last ditch efforts rather that may help more maybe i would say); note: the else if is a bit redundant hopefully clearer as such maybe or not or yes or etc-->
-					else if (bEnemyStrong)
-					{
-						return AI_BUILDING_ALWAYS_PICK_FIRST;
-					}
-				}
-			}
-
-			// --- Barracks-like (land XP / land production) -------------------------------
-			if (bLandUnitsBuilding)
-			{
-				// Production thresholds
-				const int iPumpGate = 8;  // min hpt to justify Barracks in war/pre-war
-				const bool bLowHammerLandUnits = (iBaseHammersPerTurn < iPumpGate);
-
-				if (!bLowHammerLandUnits)
-				{
-					if (bAtWar)
-					{
-						// <!-- custom: no time or hammer for this, try to build an extra or 2 units rather, may save our city, especially if we build a longbowman rather or such similar defensive unit, pointless to build barracks or such similar building if we're dead anyway -->
-						if (bEnemyStrong)
-						{
-							return 0;
-						}
-						// <!-- custom: i don't know if we can trust this boolean's corresponding function, but assuming it is, if we're threatened, prepare units rather in case or something else, no point if we get surprised attacked while building this and get captured without ever barely any units xd, build units rather in such cases at least simplify as such here, should most often help AI hopefully-->
-						if (bDanger)
-						{
-							return 0;
-						}
-						// <!-- custom: planning war warrants building barrack like buildings as well, since we're going to pump units anyway, and i assume guessedly that we'd only plan war if we're stronger, so build the barracks or similar building first and profit on having stronger units, it shouldn't be too expensive at this stage of the game but should make a big difference -->
-						else if (bWarPlan)
-						{
-							return AI_BUILDING_ALWAYS_PICK_FIRST;
-						}
-						// <!-- custom: spend the time to build this instead of pumping units, we are already strong, and would rather have stronger land units as well as not cripple our unit cost further short term -->
-						else if (bAtWarAndEnemyWeak)
-						{
-							return AI_BUILDING_ALWAYS_PICK_FIRST;
-						}
-					}
-				}
-				// <!-- custom: Else let city handle what it wants, it is unclear that going early for barracks is the better choice, especially if low on hammer, we won't produce any units with it or barely any units, so leave free choice rather here (e.g. a granary could be better, as we grow faster so more tiles to work so more units indirectly stronger army as we want if we can grow or we'd slow more.
-				// Or a library could be better so we unlock next offensive or defensive unit that will save us or make us win or gain big advantage or gain a longtemr scientific advantage/gain overall maybe too), so don't always favour barracks-like buildings, except in cases where we expect significant and quite reliable gains in this case at least i mean -->
-			}
-
-			// <!-- custom: Don't build the configured specialized unit-experience building without a unit that can use it. (GPT-5.6-Sol) -->
-			static const BuildingClassTypes eBuildingClassStable = (BuildingClassTypes)GC.getInfoTypeForString(GC.getDefineSTRING("SAS_AI_BUILDING_VALUE_MOUNTED_UNITS_EXP_BUILDINGCLASS_NAME"));
-
-			const bool bBuildingClassStable = (eBuildingClassStable != NO_BUILDINGCLASS && eBuildingClass == eBuildingClassStable);
-
-			if (bBuildingClassStable)
-			{
-				// <!-- custom: The prior Stable gate named Horse, Camel, Elephants and one mounted technology, so XML changes or civilization-specific units could make it reject a useful building or accept a useless one.
-				// Check this civilization's units against the building's actual UnitCombat experience and call canTrain only for matching units; this derives all technology, resource, obsolescence and local-network requirements from the normal rules. (GPT-5.6-Sol) -->
-				bool bCanTrainBenefitingUnit = false;
-				CvCivilization const& kCiv = getCivilization();
-				for (int i = 0; i < kCiv.getNumUnits(); i++)
-				{
-					UnitTypes const eUnit = kCiv.unitAt(i);
-					UnitCombatTypes const eUnitCombat = GC.getInfo(eUnit).getUnitCombatType();
-					if (eUnitCombat == NO_UNITCOMBAT || kBuilding.getUnitCombatFreeExperience(eUnitCombat) <= 0 || !canTrain(eUnit))
-						continue;
-					bCanTrainBenefitingUnit = true;
-					break;
-				}
-
-				// <!-- custom: No currently trainable unit receives this building's specialized experience, so spend the hammers elsewhere and reevaluate when the city's technology or connected resources change. (GPT-5.6-Sol) -->
-				if (!bCanTrainBenefitingUnit)
-					return 0;
-				if (bEnemyStrong)
-				{
-					// <!-- custom: Even when a matching unit is available, a city facing a stronger enemy needs immediate units rather than delayed experience. (GPT-5.6-Sol) -->
-					return 0;
-				}
-				if (bAtWarAndEnemyWeak || bWarPlan)
-				{
-					// <!-- custom: When preparing a war or already winning one, build the specialized experience building first because repeated production of matching units can repay the delay. (GPT-5.6-Sol) -->
-					return AI_BUILDING_ALWAYS_PICK_FIRST;
-				}
-			}
-
-			const bool bNavalUnitsBuilding = (
-				bCoastalBuilding &&
-				((kBuilding.getDomainFreeExperience(DOMAIN_SEA) > 0) ||
-				(kBuilding.getDomainProductionModifier(DOMAIN_SEA) > 0))
-			);
-
-			if (bNavalUnitsBuilding)
-			{
-				// <!-- custom: be careful to not make this static in case reloads would cause us to treat old pangea map of last save to a pangea in new archipelago loaded or started map but check to be sure -->
-				// <!-- custom: trying to save some computing power by condtionally checking naval maps only if not land map (which also btw in most cases shouldn't be for players i think) -->
-				bool const bLandHeavyMapname = kGame.isLandHeavyMapnameCached();
-				// bool bNavalHeavyMapname = false;
-				// if (!bLandHeavyMapname)
-				// {
-				// 	bNavalHeavyMapname = kGame.isNavalHeavyMapnameCached();
-				// }
-
-				if (bLandHeavyMapname)
-				{
-					// <!-- custom: a coastal check as originally done by chatgpt 5may cause weird issues with maps that are only coast separated from other land parts/pieces, but we still want to block lake drydocks as they should be quite pointless, unless weird map with giant lake. Take a probability approach, let's build it even in lakes to cover most cases, especially giant lakes xd, as for coastal check i assume/hope the function or something handles it so we don't build an impossible building somehow, as for us just skip this check,, check if accurate as this is just a guess from me and is also to simplify, as we cover enough edge cases below to save hammer in most cases anyway, leave some leeway otherwise -->
-
-					// <!-- custom: otherwise super simple check, don't build it, save the hammer, we don't want to wate or spend too much hammer and can just build naval units slower, we want to build less of them on these maps anyway. If map is unclear, assume is not land heavy and proceed normally without this rule instead for versatility and safety, otherwise most maps should be properly excluded if our code works as intended. We'd have +/- 1 extra tank almost or 1.5 rifleman equivalent of extra hammers, in all affected cities, not negligible and nice to have, plus less as in no as of nowunhealthiness which is very important-->
-					return 0;
-				}
-			}
-
-			// <!-- custom: not 0 (but higher value instead) to exclude false positives like ikhanda or such, see as of now above code comments for details -->
-			const bool bCityMaintenanceBuilding = (kBuilding.getMaintenanceModifier() >= 25);
-
-			if (bCityMaintenanceBuilding)
-			{
-				if (iMaintenanceTimes100 < iSAS_AI_BUILDING_VALUE_GATE_M100_REGULAR_BUILDINGS) // < 6 gpt => not worth it yet
-				{
-					return 0;
-				}
-				// <!-- custom: if at war and threatened, no question to stop this -->
-				else if (bAtWar)
-				{
-					if (bEnemyStrong)
-					{
-						return 0;
-					}
-				}
-			}
-
-			// <!-- custom: extra rules in case as we still sometimes do not build much needed health buildings when we need, or build them when we shouldn't or not urgently and should rather invest our hammer elsewhere-->
-			const bool bFoodKeptBuilding = (iFoodKept >= 25);
-
-			if (bFoodKeptBuilding)
-			{
-				// <!-- custom: if we don't have enough happiness reserve, no point to build it, the food stored won't be much used (but be careful to not overdo it as with slavery we still want the combo even if seemingly close to end of city growth due to unhappiness, the granary would still help slave better / faster, but hopefully the rule is narrow enough already as in it applies to so few cities already that this simplification is most likely and hopefully fine; we only want for most to add hard rules, not the full logic, to patch cases where it's in most cases better not to build these or on the contrary highly so to do -->
-				const int iFoodKeptMinLowHappinessSurplus = 2;
-				// <!-- custom: on the contrary, if we expect a high growth, fine to give a nudge towards building it asap -->
-				const int iFoodKeptMaxHighHappinessSurplus = 3;
-				const int iFoodKeptMaxHighHappinessEffectiveFoodSurplus = 3;
-				if (iHappinessSurplus < iFoodKeptMinLowHappinessSurplus)
-				{
-					return 0;
-				}
-				// <!-- custom: if at war and threatened, no question to stop this -->
-				else if (bAtWar)
-				{
-					if (bEnemyStrong)
-					{
-						return 0;
-					}
-					// <!-- custom: else even if enemy is weak, food kept buildings could be useful to slave or grow so we have more tiles to work, either for our military goals, or simply to grow since we have no reason to go hard on war, so no reason to hard reject here in this case -->
-				}
-				else if ((iHappinessSurplus > iFoodKeptMaxHighHappinessSurplus) && iEffectiveFood > iFoodKeptMaxHighHappinessEffectiveFoodSurplus)
-				{
-					return AI_BUILDING_ALWAYS_PICK_FIRST;
-				}
-			}
-
-			// <!-- custom: i have noticed cities low in health, high or medium in happiness so growth potential, overlooking critical happiness buildings for much less relevant things like a customs house or such. To address this, if we have too much health, don't waste time building this and use the hammer for more important and urgent/effective tasks (at least other buildings maybe), and inversely if we badly need the health and can grow or can grow enough at least, rush as in favour heavily as in for us force it as best to simplify, but try to not overdo it to not kill versatility or most importantly versatility in case other strategies (war, etc) are locally better(e.g. aqueduct as of now buffed in our mod so quite good in helping a city grow quite a bit more, grocer, etc if any more) -->
-			// <!-- custom: note: if i'm not mistaken, as per chatgpt 5's explanation, iGood and iBad are returned as outer parameters by the below function, check if accurate -->
-			int iHealthGood = 0, iHealthBad = 0;
-			// NOTE: getAdditionalHealthByBuilding returns the NET health this building would give
-			// *for THIS city*, considering local bonuses, power penalties (bFuture=true), etc.
-			int const iHealthGain = getAdditionalHealthByBuilding(eBuilding, iHealthGood, iHealthBad, /*bFuture=*/true);
-			const bool bHealthBuilding = (iHealthGain > 0);
-
-			if (bHealthBuilding)
-			{
-				// 1) Too healthy (or not growing soon) → skip the health building for now.
-				const int iTooHealthyLevel = 1;
-				const int iHealthLevelEnoughWithFood = -1;
-				const int iHealthLevelEnoughWithFoodMinFood = 2;
-				if (iHealthLevel > iTooHealthyLevel || (iHealthLevel > iHealthLevelEnoughWithFood && iEffectiveFood < iHealthLevelEnoughWithFoodMinFood))
-				{
-					return 0;
-				}
-				// 2) Badly need health OR about to use it → build first (unless it’s a wonder).
-				//   - current unhealth (<= -1) → urgent
-				//   - or we have headroom to grow and the building gives meaningful health (>=2)
-				// <!-- custom: hopefully this is not too strict to be too exxcesive(ly built) nor too lax to not be relevant when needed: we want health when needed, else we don't want it and do something else in short as explained before -->
-				// <!-- custom: if at war and threatened, no question to stop this -->
-				else if (bAtWar)
-				{
-					if (bEnemyStrong)
-					{
-						return 0;
-					}
-				}
-				// <!-- custom: note: the pick first cause is "always" after the return 0, no pun if i may say or maybe yes... -->
-				else if (iHealthLevel <= 1 && iHappinessSurplus >= 2 && iEffectiveFood >= 2)
-				{
-					return AI_BUILDING_ALWAYS_PICK_FIRST;
-				}
-			}
-
-			const bool bProductionBuilding = (
-				iTotalHammersModifier >= 20 // || // Forge/Factory <!-- custom: or weird variants if some mods implement bonus based hammer modifiers in regular buildings (as the ironworks does for example), so account for that as well -->
-				// <!-- custom: for now only tweak the early game as is most important and where most gains can be made i think, later production should be high enough and civilization developped enough to be able to more freely choose without too much consequences -->
-				//kBuilding.isPower() ||                                  // Plant gives power
-				//kBuilding.isAreaCleanPower()
-			);
-
-			// <!-- custom: don't build a theatre instead of a much better hindu temple if city is unhappy (generic theatre (i.e. non-civ-specific ones) doesn't give reliable happiness) see code comment at AI_strictAdditionalHappy for details -->
-			// // Expected local happiness the building would add (includes resource synergies).
-			// int iHappyGood=0, iHappyBad=0;
-			// const int iHappinessGain = getAdditionalHappinessByBuilding(eBuilding, iHappyGood, iHappyBad);
-			//
-			const int iStrictHappinessGain = AI_strictAdditionalHappy(*this, eBuilding);
-
-			// <!-- custom: now also account for unhappy citizens that would become happy after the building is built (inspired from our code in bestcitybuild (with variable as of now named iFoodConsumedBySpecialistOrAngryCitizens) that uncounts food consumed by unhappy citizens), as kish city was unhappy and stagnant so the effective food check as of now >= 2 would block the happiness building being built, even if we'd gain food from freeing unhappiness into more workable happy citizen tiles (not guaranteed to be grass land or 2 food tiles but assumed as such to simplify and favour a bit happiness buildings when relevant at least not prevent it), so remove from food effective food the food consumed by unhappy citizens which would then become happy after the happiness building is built -->
-			// <!-- custom: results: extremely good!!! Now resuming from same save file at turn 100, Kish city of gilgamesh ai is now pop 13 at turn 150 instead of pop 10, and has built walls (that give 1 happiness in our mod since gilgamesh is protective if i'm not mistaken, so it's great AIs can now dynamically (i.e. they adapt to this xml change we made not in hardcoded way hehe super nice) leverage this!!), which is great too because we sent a signal to not build walls if stronger, which gilgamesh ai is (strongest military power at turn 150 so i'd guess so at turn 100 although i didn't check), as well as a colosseum and a market (since gilgamesh has some of the matching bonuses i guess). His military power didn't suffer too much as he is still strongest after these changes now but with more mid and late game potential (so the small short term cost is probably much less important than long term gain), see known issue as of now 48.2 for details -->
-			// ---- Effective food AFTER curing anger with this building -------------------
-			const int iFoodPerPop   = GC.getFOOD_CONSUMPTION_PER_POPULATION();
-			const int iAngryNow     = angryPopulation(); // (= max(0, -iHappinessSurplus)) in practice
-			const int iCuredAngry   = std::min(iAngryNow, iStrictHappinessGain);
-			// Simple regain: give back their food
-			const int iEffectiveFoodAfterBuiltHappy = iEffectiveFood + (iCuredAngry * iFoodPerPop);
-
-			if (bProductionBuilding)
-			{
-				// <!-- custom: don't build a forge early if our city has low hammer and can't be expected to grow, except if a lot of happiness can be gained from it and we have enough food to make it matter; else don't be too strict, this only to prevent early stunting growth builds, and early game is the critical part to best optimize in order to have an as smooth as possible late game; the 3 extra swordsmen and some more hammer can be a matter of life and death, do not give them up unless strong reward otherwise -->
-				// Early window (scaled to speed)
-				const int iEarlyTurnsProductionNormal = 100; // @Normal
-				const int iEarlyTurnsProductionAdjusted = iEarlyTurnsProductionNormal * iGameSpeedMultiplier / 100;
-				const bool bEarlyTurnsProduction = (iElapsedTurns < iEarlyTurnsProductionAdjusted);
-
-				// ✅ Rule:
-				// If the city is low-production (≤12 hpt)
-				// AND it can't really grow soon (food ≤1 OR no happy headroom)
-				// AND the building adds little/no happiness (≤2)
-				// → skip it for now.
-				const int iMinHammerProduction = 13;
-				const int iMinGrowthProductionFoodDiff = 2;
-				const int iMinGrowthProductionHappinessSurplus = 1;
-				const int iMinHappinessBoost = 3;
-				const bool bLowHammerProduction = (iBaseHammersPerTurn < iMinHammerProduction);
-				const bool bLowGrowthProduction = (iFoodDifference < iMinGrowthProductionFoodDiff || iHappinessSurplus < iMinGrowthProductionHappinessSurplus);
-				const bool bWeakHappinessBoost = (iStrictHappinessGain < iMinHappinessBoost);
-
-				if (bEarlyTurnsProduction)
-				{
-					if (bLowHammerProduction && bLowGrowthProduction && bWeakHappinessBoost)
-					{
-						return 0; // let units/settlers/other buildings take priority
-					}
-					// <!-- custom: else/otherwise no strong rule, just prevent city from building it if really not best move -->
-				}
-				// <!-- custom: if at war and threatened, no question to stop this -->
-				else if (bAtWar)
-				{
-					if (bEnemyStrong)
-					{
-						return 0;
-					}
-				}
-			}
-
-			// <!-- custom: if a building gives happiness to all cities, purposely let it slip through our net, perhaps it is good to build it, especially and here only handling it if it is not a wonder (so would be fast to build in this case i mean) -->
-			const bool bHappinessBuilding = (
-				(iStrictHappinessGain > 0)
-			);
-
-			if (bHappinessBuilding)
-			{
-				// If we’re already comfortably happy and not growing fast, skip the extra happy.
-				// (Prevents monuments/temples/colosseums <!-- custom: and etc as really it's a rule we can apply the whole game, always better to have one more rifleman than uneeded happiness building--> when we have plenty of headroom.)
-				const int iHappinessBuildingEnoughHappinessSurplus = 2;
-				const int iHappinessBuildingEnoughFoodDiff = 2;
-				if (iHappinessSurplus > iHappinessBuildingEnoughHappinessSurplus && (iFoodDifference < iHappinessBuildingEnoughFoodDiff))
-				{
-					return 0;
-				}
-				// <!-- custom: a bit harder to tell if short term would unlock us much needed yields, but favour survivability rather, should be better and more efficient for AIs in most cases, but upon further consideration, if we are strong enough we probably don't need it as much and may be fine developping our cities rather as per previous rule of happiness buildings, also not to sink our unit costs xd, however if we're losing it's no question to skip everything else not giga or ultra mandatory if i may say in this caseto build more units ideally so we don't die (at least not more buildings), we can look at / worry about happiness later after the war (if we don't die), else commit all efforts into surviving if i may say in this case, don't build a colosseum xd, hopefully helps AI be more efficient and strategic at handling war if not already done-->
-				else if (bAtWar)
-				{
-					if (bEnemyStrong)
-					{
-						return 0;
-					}
-				}
-				// If we’re at/over the cap and can actually use the happy soon, strongly prefer it
-				// (but don’t force for wonders).
-				const int iHappinessBuildingNeedHappinessSurplus = 1;
-				const int iHappinessBuildingNeedHappinessGain = 0;
-				const int iHappinessBuildingNeedFoodGain = 1;
-				if ((iHappinessSurplus < iHappinessBuildingNeedHappinessSurplus) && (iStrictHappinessGain > iHappinessBuildingNeedHappinessGain) && (iEffectiveFoodAfterBuiltHappy > iHappinessBuildingNeedFoodGain))
-				{
-					return AI_BUILDING_ALWAYS_PICK_FIRST; // optional: comment out if you want “no force"
-				}
-			}
-
-			const int iFlatBeakersPerTurnFromBuilding = (kBuilding.getCommerceChange(COMMERCE_RESEARCH) + kBuilding.getObsoleteSafeCommerceChange(COMMERCE_RESEARCH));
-
-			static const SpecialistTypes eScientist = (SpecialistTypes)GC.getInfoTypeForString("SPECIALIST_SCIENTIST", true);
-
-			// --- Science-like (research %) ------------------------------------------------
-			const bool bScienceBuilding = (
-				(kBuilding.getCommerceModifier(COMMERCE_RESEARCH) >= 20) ||
-				(iFlatBeakersPerTurnFromBuilding > 0) ||
-				(kBuilding.getSpecialistCount(eScientist) > 0) ||
-				(kBuilding.getFreeSpecialistCount(eScientist) > 0)
-			);
-
-			// <!-- custom: science buildings can be very important, and it is hard to gauge how important they can be, maybe we'll gain a longterm science or economic or such advantage, or we'll unlock our most important offensive or defensive unit to save us or help us win, maybe we need the culture as well even though has been reduced as of now in our mod but also indirectly through new buildings or wonders. Do not limit this too hard, as it is unclear if opening with a granary is always better than say a library, let the function or whichever codes is responsible for this choose, but as for us add the edge cases where it's really not the priority, most important of them being being at war (repetition xd but i think it is gramatically correct) or about to be or something similar, then we'd rather have 3 axemen than a library in a city we'd lose anyway, or to help us win our rush
-			if (bScienceBuilding)
-			{
-				if (bAtWar)
-				{
-					// <!-- custom: no time for this, try to survive rather and instead or do whatever is more urgent, and even if we are stronger, still press on other war urgent matters rather although maybe not always best but hopefully often enough for AIs i mean -->
-					return 0;
-				}
-				// <!-- custom: similar reasoning even if out of war, if urgent enough to skip it-->
-				else
-				{
-					if (bDanger)
-					{
-						return 0;
-					}
-					// <!-- custom: else it is hard to tell really but consider delaying, should help especially early let's try that and see how our AI behave, hopefully it would improve early rushing potential at the cos tfo slightly slower science prgoession mid game, but maybe gaining an extra city or not losing one offsets that especially long term, and not just in science gains terms-->
-					else if (bWarPlan)
-					{
-						return 0;
-					}
-				}
-			}
-
-			// <!-- custom: note: among remaining buildings, the effects get more often intertwinned if i may say in this case, so i meanexecute this before last such buildings (but before the final unknown or uncovered buildings tail after it) so that we don't classify other buildings as cultural ones for example (e.g. as of now the spain civ-specific castle) if they happen to have culture in them as many buildings do but it would not be their main function and may interfere with our previous rules, so do these last and excluding previously covered ones just to be safe about this -->
-			const bool bPreviousBuildings = (
-				bWaterFoodBuilding ||
-				bDefenseBuilding ||
-				bCityMaintenanceBuilding ||
-				bFoodKeptBuilding ||
-				bHealthBuilding ||
-				bProductionBuilding ||
-				bHappinessBuilding ||
-				bNavalUnitsBuilding ||
-				bLandUnitsBuilding ||
-				bScienceBuilding ||
-				// <!-- custom: even if is building class we can still check the boolean i think for our purpose of excluding previously processed buildings -->
-				bBuildingClassStable
-			);
-
-			// --- Economic (gold) buildings ------------------------------------------------
-			// Market/Grocer/Bank tier
-
-			const int iFlatGoldPerTurnFromBuilding = kBuilding.getCommerceChange(COMMERCE_GOLD) + kBuilding.getObsoleteSafeCommerceChange(COMMERCE_GOLD);
-
-			const bool bHighEnoughGoldModifier = (kBuilding.getCommerceModifier(COMMERCE_GOLD) >= 20);
-
-			static const SpecialistTypes eSpecialistMerchant = (SpecialistTypes)GC.getInfoTypeForString("SPECIALIST_MERCHANT", true);
-
-			const bool bEconomyBuilding = (
-				bHighEnoughGoldModifier ||
-				(iFlatGoldPerTurnFromBuilding > 0) ||
-				(kBuilding.getSpecialistCount(eSpecialistMerchant) > 0) ||
-				(kBuilding.getFreeSpecialistCount(eSpecialistMerchant) > 0)
-			);
-
-			const bool bEconomyOnlyBuilding = (
-				bEconomyBuilding &&
-				!bPreviousBuildings
-			);
-
-			// <!-- custom: similarly hard to tell long term effects of which, especially if these have nested effects like health or such, but we handled excluding misclassified e.g. health buildings like the grocer that happen to give gold, and we treated them as health buildings to assess their importance to build or reject them, so now for economy buildings not handled before, use an about same logic as for/inscience ones, but with a bit more leeway, as short term is a bit stronger to consider as an alternative vs only more gold right now (unlike vs science which is stronger) -->
-			if (bEconomyOnlyBuilding)
-			{
-				if (bAtWar)
-				{
-					// <!-- custom: no time for this, try to survive rather and instead or do whatever is more urgent, and even if we are stronger, still press on other war urgent matters rather although maybe not always best but hopefully often enough for AIs i mean -->
-					return 0;
-				}
-				// <!-- custom: similar reasoning even if out of war, if urgent enough to skip it-->
-				else
-				{
-					if (bDanger)
-					{
-						return 0;
-					}
-					// <!-- custom: else it is hard to tell really but consider delaying, should help especially early let's try that and see how our AI behave, hopefully it would improve early rushing potential at the cos tfo slightly slower science prgoession mid game, but maybe gaining an extra city or not losing one offsets that especially long term, and not just in science gains terms-->
-					else if (bWarPlan)
-					{
-						return 0;
-					}
-					else
-					{
-						if (bHighEnoughGoldModifier)
-						{
-							// City’s actual gold/turn (slider + tiles + specialists etc.)
-							const int iCityGoldRate = getCommerceRate(COMMERCE_GOLD);
-
-							// <!-- custom: low ROI expected, go for something else at least for now then reevaluate later (note: the happiness part, e.g. of the market, or the health part for example, e.g. of the grocer, have been evaluated before, now we're only evaluating remaining building on economic criteria), let this function or others hadnle more fine-grained cases, as for us we only want to cover most blatant ones but anyways (building a bank with 1 city gold rate for example), hopefully helps the AI while being versatile and reliable, to be stronger and sharper in its building choices-->
-							const int iMinCityGoldRate = 6;
-							if (iCityGoldRate < iMinCityGoldRate)
-							{
-								return 0;
-							}
-						}
-						// <!-- custom: else flat gold per turn is fine if all other/previous conditions don't make it low priority -->
-					}
-				}
-			}
-
-			// --- Trade-route economy (Customs House / <!-- custom: Lighthouse with our changes as of now-->-like) --------------------
-
-			// <!-- custom: a bit weird coding but i think is simple and effective in making sure we don't forget to check previous ones from not being checked again at the ambiguous remaining buildings stage such as below as well-->
-			const bool bPreviousBuildings2 = (
-				// <!-- custom: note: bNot etc... is already a negative boolean, don't renegae it unless needed -->
-				bPreviousBuildings ||
-				bEconomyBuilding
-			);
-
-			const int iTradeYield = getTradeYield(YIELD_COMMERCE); // current trade commerce in THIS city
-
-			const int iTotalTradeRoutesAdded = (kBuilding.getTradeRoutes() + kBuilding.getCoastalTradeRoutes() + kBuilding.getAreaTradeRoutes());
-			const bool bTradeRouteAdder = (iTotalTradeRoutesAdded > 0);
-
-			const bool bTradeRouteModifier = (kBuilding.getTradeRouteModifier() > 0);
-			const bool bHasAnyForeignTradeRouteModifier = (kBuilding.getForeignTradeRouteModifier() > 0);
-			const bool bHasAnyTradeRouteModifier = (
-				bTradeRouteModifier ||
-				bHasAnyForeignTradeRouteModifier
-			);
-
-			const bool bTradeBuilding = (
-				bTradeRouteAdder ||
-				bHasAnyTradeRouteModifier
-			);
-
-			const bool bTradeOnlyBuilding = (
-				bTradeBuilding &&
-				!bPreviousBuildings2
-			);
-
-			if (bTradeOnlyBuilding)
-			{
-				// 0) War / danger: same policy as other econ/science
-				if (bAtWar || bDanger || bWarPlan)
-				{
-					return 0;
-				}
-
-				// 1) Foreign % only helps if we actually have foreign trade in THIS city <!-- custom: and if no routes are added otherwise as chatgpt 5 added after i asked it about it hehe thanks still but really i mean thanks anwyays etc hehe thanks -->
-				// ...but don't veto here if the building ALSO adds routes; let ROI check handle it.
-				// <!-- custom: reuse bForeignTrade as recommended by chatgpt 5 (in another thread but thanks still), as indeed we can know people but not have open borders with them, so no trade then. I'm a bit reluctant to use it in case it is inaccurate, but may as well do so and whatever happens xd, at worse we won't reject the building so shouldn't harm too much ideally -->
-				// Right now you use iHasMetCount > 0. That doesn’t guarantee foreign trade (you still need connection / open borders). You already computed bForeignTrade earlier—use it.
-				if (bHasAnyForeignTradeRouteModifier && !bForeignTrade && !bTradeRouteAdder)
-				{
-					return 0;
-				}
-
-				// 2) Flat “don’t bother if there’s basically no trade here"
-				//    (lets genuine trade cities build them; starved cities skip)
-				bool const bHasAnyEffectiveTradeRouteModifier = (
-					bTradeRouteModifier ||
-					(bHasAnyForeignTradeRouteModifier && bForeignTrade)
-				);
-
-				// <!-- custom: low ROI, better skip -->
-				// pure % mods with tiny base are weak
-				// <!-- custom: update: also take to be added by this building trade yield as part of the ROI calculation as well as recommended nicely thanks by chatgpt 5 (from another thread xd but thanks still, also check if accurate) -->
-				// If the building adds routes (bTradeRouteAdder), a low current iTradeYield is precisely when it can be good.
-				// <!-- custom: small correction, beyond >= 3 (say from 4+), we are already beyond ROI so no need to early reject the building here anymore -->
-				const int iMinTradeYield = 4;
-				if (iTradeYield < iMinTradeYield)
-				{
-					int iBase = iTradeYield;
-					if (bHasAnyEffectiveTradeRouteModifier)
-					{
-						iBase += 1; // ‘virtual’ route from % mods
-					}
-
-					// If base >= 4, ROI is already fine → no veto here.
-					if (iBase < iMinTradeYield)
-					{
-						const int iMinTradeRoutesBase = 3;
-						const int iMinTradeRoutesBaseNeedIfClose = 1;
-						const int iMinTradeRoutesBaseNeedIfFar = 2;
-						int iRequired = ((iBase == iMinTradeRoutesBase) ? iMinTradeRoutesBaseNeedIfClose : iMinTradeRoutesBaseNeedIfFar); // ==3 needs +1, <=2 needs +2
-						if (iTotalTradeRoutesAdded < iRequired)
-						{
-							return 0; // skip for now
-						}
-					}
-				}
-			}
-
-			// --- Espionage (Jail / Intelligence Agency / Security Bureau) ----------------
-
-			const bool bPreviousBuildings3 = (
-				// <!-- custom: note: bNot etc... is already a negative boolean, don't renegae it unless needed -->
-				bPreviousBuildings2 ||
-				bTradeOnlyBuilding
-			);
-
-			const int iFlatEspionagePerTurnFromBuilding = kBuilding.getCommerceChange(COMMERCE_ESPIONAGE) + kBuilding.getObsoleteSafeCommerceChange(COMMERCE_ESPIONAGE);
-
-			const bool bHighEnoughEspionageModifier = (kBuilding.getCommerceModifier(COMMERCE_ESPIONAGE) >= 20);
-
-			static const SpecialistTypes eSpecialistSpy = (SpecialistTypes)GC.getInfoTypeForString("SPECIALIST_SPY", true);
-
-			const bool bMostEspionageSourcesBuilding = (
-				(iFlatEspionagePerTurnFromBuilding > 0) ||
-				(kBuilding.getSpecialistCount(eSpecialistSpy) > 0) ||
-				(kBuilding.getFreeSpecialistCount(eSpecialistSpy) > 0)
-			);
-
-			const bool bEspionageSourceBuilding = (
-				bHighEnoughEspionageModifier ||
-				bMostEspionageSourcesBuilding
-			);
-
-			const bool bHighEnoughEspionageDefenseModifier = (kBuilding.getEspionageDefenseModifier() >= 20);
-
-			const bool bEspionageBuilding = (
-				bEspionageSourceBuilding ||
-				bHighEnoughEspionageDefenseModifier
-			);
-
-			const bool bEspionageOnlyBuilding = (
-				bEspionageBuilding &&
-				!bPreviousBuildings3
-			);
-
-			// <!-- custom: similar reasoning than for economy buildings but with more leeway, as espionage and here espionage buildings are less important relatively, and may be valuable in different times; as for AI at higher difficulties they don't need to spend so much on spying, they can just coast ahead due to their handicap advantages at higher difficulties, but at lower difficulties, they may have to -->
-			if (bEspionageOnlyBuilding)
-			{
-				if (bAtWar)
-				{
-					// <!-- custom: no time for this, try to survive rather and instead or do whatever is more urgent, and even if we are stronger, still press on other war urgent matters rather although maybe not always best but hopefully often enough for AIs i mean -->
-					return 0;
-				}
-				// <!-- custom: similar reasoning even if out of war, if urgent enough to skip it-->
-				else
-				{
-					if (bDanger)
-					{
-						return 0;
-					}
-					else if (bWarPlan)
-					{
-						return 0;
-					}
-					// <!-- custom: at higher difficulties (from say immortal+, as emperor is maybe doable without relying too much if at all (source: me xd) on spying), AIs don't need to worry too much about espionage as they have handicap advantages, but they need to thwart human espionage attempts and perhaps of other AI players to a bigger extent as well maybe too so to have good espionage defense buildings; as for lower difficulties (say chieftain and below), AIs need to engage more in spying to compensate their penalties so no spy defense buildings (nothing to steal xd they should be behind in tech for most at least not urgent or skip entirely to simplify) but spy offensive buildings should help-->
-					else
-					{
-						// --- Difficulty skew (research cost gap: human% - this AI%) --------------------
-						// Positive => AI advantage (human pays more); Negative => AI disadvantage.
-						const int iHumanResearchPercent = hGame.getResearchPercent();
-						const int iAIResearchPercent    = hAI.getAIResearchPercent();
-
-						const int iResearchPercentGap = iHumanResearchPercent - iAIResearchPercent; // +: AI advantage, −: AI disadvantage
-
-						// Tunables
-						const int iEPOffGap = -20; // AI pays ≥20% more → lean into EP offense
-						const int iEPDefGap =  30; // human pays ≥30% more → hedge against human EP (defense)
-
-						// Convenience flags
-						const bool bWePayMuchMoreForResearch = (iResearchPercentGap <= iEPOffGap);
-						const bool bWePayMuchLessForResearch = (iResearchPercentGap >= iEPDefGap);
-
-						// Difficulty-skewed priorities (AI-centric)
-						// Offense: we’re paying more for tech → EP can help compensate.
-						if (bWePayMuchLessForResearch)
-						{
-							if (bHighEnoughEspionageDefenseModifier)
-							{
-								// <!-- custom: in case other buildings are tied e.g. the acqueduct and we need it just as much, then build the acqueduct first -->
-								return AI_BUILDING_ALWAYS_PICK_FIRST - 1000 ;
-							}
-						}
-						else if (bWePayMuchMoreForResearch)
-						{
-							if (bEspionageSourceBuilding)
-							{
-								// <!-- custom: in case other buildings are tied e.g. the acqueduct and we need it just as much, then build the acqueduct first -->
-								return AI_BUILDING_ALWAYS_PICK_FIRST - 1000;
-							}
-						}
-					}
-				}
-			}
-
-			// <!-- custom: then for culture buildings (e.g. monument, theatre, coliseum, etc if any more), we only want to strongly discourage and tell the AI to really not build thme i case it is clearly detrimental to do so. In other cases, being too harsh with these may result in too low culture, or it is uncertain whether other buildings are better. We only want, here, to reserve the hammer for more urgent buildings, and perhaps units incases where it is more urgent to do so, especially early. A collosseum is +/- 3 swordsmen, so if we don't strongly need it, consider ditching it for efficiency for example. If we have have our BFC already, we're about good for the early game, look at other priorities or better use of the hammer when relevant or more urgent to do so -->
-
-			const bool bPreviousBuildings4 = (
-				bPreviousBuildings3 ||
-				bEspionageBuilding
-			);
-
-			const int iFlatCulturePerTurnFromBuilding = kBuilding.getCommerceChange(COMMERCE_CULTURE) + kBuilding.getObsoleteSafeCommerceChange(COMMERCE_CULTURE);
-
-			const bool bCultureBuilding = (
-				(iFlatCulturePerTurnFromBuilding > 0) ||
-				(kBuilding.getCommerceModifier(COMMERCE_CULTURE) > 0)
-			);
-
-			// “Pure" culture (don’t touch if it was already classified elsewhere)
-			const bool bCultureOnlyBuilding = (
-				bCultureBuilding &&
-				!bPreviousBuildings4
-			);
-
-			if (bCultureOnlyBuilding)
-			{
-				// <!-- custom: use a larger window than some previous buildings as culture buildings can be more often and longer in terms of game turns not urgent, and freeing the hammer in such cases may be more important for more turns, especially if we're not chasing a cultural victory, nor are we badly pressed at our borders, consider the short term value of the hammers as well hehe -->
-				const int iEarlyMidTurnsCultureNormal = 125; // @Normal
-				const int iEarlyMidTurnsCultureAdjusted = iEarlyMidTurnsCultureNormal * iGameSpeedMultiplier / 100;
-				const bool bEarlyMidTurnsCulture = (iElapsedTurns < iEarlyMidTurnsCultureAdjusted);
-
-				// Do we still need the BFC? (K-Mod already boosts such buildings later.)
-				const bool bNeedCultureForBFC = AI_needsCultureToWorkFullRadius();
-
-				if (!bNeedCultureForBFC)
-				{
-					if (bEarlyMidTurnsCulture)
-					{
-						const int iEnoughEarlyCulturePerTurn = 2;
-						const bool bEnoughEarlyCulturePerTurn = (getCommerceRate(COMMERCE_CULTURE) >= iEnoughEarlyCulturePerTurn);
-						// delay fluff culture; let units/settlers/other buildings through
-						if (bEnoughEarlyCulturePerTurn)
-						{
-							return 0;
-						}
-					}
-				}
-			}
-			// <!-- custom: unknown or uncovered building (no wonders here, they are below), assume it's a useless building, at least in terms of war, skip it during war or war-like times; note: this doesn't handle previously covered buildings which should have their own war rules for better flexibility (some buildings are very good at war, some not at all, some so so, some depend, so adjust there rather and keep the final war-tail here as chatgpt 5 calls it and which i like the name of xd -->
-			else
-			{
-				// <!-- custom: military rules in particular may even ovveride our BFC needs in times of urgency (being at war, on the defensive in particular, and even more so if we are weaker, but even just being at war is enough to warrant skipping these i would say, strongly redirect towards unit or such, at least do not value this building here if it also excludes it from choosing it at all (i didn't check if it does) -->
-				if (bAtWar || bEnemyStrong || bDanger)
-				{
-					return 0;
-				}
-				else if (bWarPlan)
-				{
-					return 0;
-				}
-			}
-		}
-		// <!-- custom: wonders (i.e. world + national) -->
-		else if (bSAS_AI_BUILDING_VALUE_WONDERS_OPTIMIZE)
-		{
-			// <!-- custom: no great wall or any wonder with the barbarian blocking at borders after a certain era (e.g. medieval or higher, not much barbarians left if at all then, not worth the hammer) feature as it is pointless then -->
-			// Barbarian-barrier WW special-case (Great Wall: bBorderObstacle=1)
-			static const bool bSAS_AI_BUILDING_VALUE_ANTI_BARBARIAN_BORDER_WONDER_LATE_ENABLE = GC.getDefineBOOL("SAS_AI_BUILDING_VALUE_ANTI_BARBARIAN_BORDER_WONDER_LATE_ENABLE");
-			if (!kGame.isOption(GAMEOPTION_NO_BARBARIANS) && !bSAS_AI_BUILDING_VALUE_ANTI_BARBARIAN_BORDER_WONDER_LATE_ENABLE)
-			{
-				if (kBuilding.isAreaBorderObstacle())
-				{
-					static const int iSAS_AI_BUILDING_VALUE_ANTI_BARBARIAN_BORDER_WONDER_LATE_MAX_ERA = GC.getDefineINT("SAS_AI_BUILDING_VALUE_ANTI_BARBARIAN_BORDER_WONDER_LATE_MAX_ERA");
-
-					if (iCurrentEra > iSAS_AI_BUILDING_VALUE_ANTI_BARBARIAN_BORDER_WONDER_LATE_MAX_ERA)
-					{
-						return 0;
-					}
-				}
-			}
-
-			const int iCost = getProductionNeeded(eBuilding);
-
-			// <!-- custom: save some computation by processing this early-on -->
-			// too weak to justify any wonder now
-			// <!-- custom: see SAS defines to specifically tune its suboptions rather. Code added with the help of chatgpt 5.2 thanks -->
-			if (bWorldWonder && bSAS_AI_BUILDING_VALUE_WORLD_WONDERS_OPTIMIZE)
-			{
-				// <!-- custom: update: in autoplay, the SAS_AI_BUILDING_VALUE_WORLD_WONDERS_OPTIMIZE check specifically greatly reduces the number of early wonders (0 wonders vs 6 wonders at turn 100 with vs without it. As for later wonders, thanks to our era based very cheap world wonder checks, we eventually catch up later and build most, just not early when hammer is most valuable).
-				// Default advciv-sas behaviour (enabled) allows to maximize hammer efficiency early, while disabling this or alternatively its sub-knob(s) rather restores a more base AdvCiv-like heavy world wonder building profile. Adjust as you see fit. Code added with the help of chatgpt 5.2 thanks -->
-				// Cheap World Wonder grab policy: per-era Normal-speed iCost caps. getProductionNeeded already scales iCost by ConstructPercent, so scale the Normal-speed cap by the same game-speed factor. See KI#205.
-				// Era index assumed: 0=Ancient, 1=Classical, 2=Medieval, 3=Renaissance, 4=Industrial, 5=Modern, 6=Future. (ChatGPT-5.6-Sol) -->
-
-				static const int iCheapWWCapAncientNormal     = GC.getDefineINT("SAS_AI_BUILDING_VALUE_WORLD_WONDERS_CHEAP_ICOST_CAP_ANCIENT_NORMAL");
-				static const int iCheapWWCapClassicalNormal   = GC.getDefineINT("SAS_AI_BUILDING_VALUE_WORLD_WONDERS_CHEAP_ICOST_CAP_CLASSICAL_NORMAL");
-				static const int iCheapWWCapMedievalNormal    = GC.getDefineINT("SAS_AI_BUILDING_VALUE_WORLD_WONDERS_CHEAP_ICOST_CAP_MEDIEVAL_NORMAL");
-				static const int iCheapWWCapRenaissanceNormal = GC.getDefineINT("SAS_AI_BUILDING_VALUE_WORLD_WONDERS_CHEAP_ICOST_CAP_RENAISSANCE_NORMAL");
-				static const int iCheapWWCapIndustrialNormal  = GC.getDefineINT("SAS_AI_BUILDING_VALUE_WORLD_WONDERS_CHEAP_ICOST_CAP_INDUSTRIAL_NORMAL");
-				static const int iCheapWWCapModernNormal      = GC.getDefineINT("SAS_AI_BUILDING_VALUE_WORLD_WONDERS_CHEAP_ICOST_CAP_MODERN_NORMAL");
-				static const int iCheapWWCapFutureNormal      = GC.getDefineINT("SAS_AI_BUILDING_VALUE_WORLD_WONDERS_CHEAP_ICOST_CAP_FUTURE_NORMAL");
-
-				int iCheapWWCapNormal = iCheapWWCapFutureNormal;
-				switch (iCurrentEra)
-				{
-					case 0: iCheapWWCapNormal = iCheapWWCapAncientNormal; break;
-					case 1: iCheapWWCapNormal = iCheapWWCapClassicalNormal; break;
-					case 2: iCheapWWCapNormal = iCheapWWCapMedievalNormal; break;
-					case 3: iCheapWWCapNormal = iCheapWWCapRenaissanceNormal; break;
-					case 4: iCheapWWCapNormal = iCheapWWCapIndustrialNormal; break;
-					case 5: iCheapWWCapNormal = iCheapWWCapModernNormal; break;
-					default: iCheapWWCapNormal = iCheapWWCapFutureNormal; break; // includes era 6 and any later eras
-				}
-
-				const int iCheapWWCapAdjusted = iCheapWWCapNormal * iGameSpeedMultiplier / 100;
-				// Final flag: cheap enough to consider as "grab it"
-				const bool bCheapWorldWonder = (iCost <= iCheapWWCapAdjusted);
-				// If cheap, push it hard (so it doesn't get ignored by other builds).
-				if (bCheapWorldWonder)
-				{
-					// <!-- custom: minimal danger check since the risk is worth it as the wonder is so cheap -->
-					if (!bDanger)
-					{
-						return AI_BUILDING_ALWAYS_PICK_FIRST + 3000;
-					}
-				}
-
-				static const int iMinBaseHammers = GC.getDefineINT("SAS_AI_BUILDING_VALUE_WORLD_WONDERS_MIN_BASE_HAMMERS");
-				static const int iMinExtraHammersPerEra = GC.getDefineINT("SAS_AI_BUILDING_VALUE_WORLD_WONDERS_MIN_EXTRA_HAMMERS_PER_ERA");
-
-				if (iBaseHammersPerTurn < (iMinBaseHammers + (iCurrentEra * iMinExtraHammersPerEra)))
-				{
-					return 0;
-				}
-			}
-			else if (bNationalWonder && bSAS_AI_BUILDING_VALUE_NATIONAL_WONDERS_OPTIMIZE)
-			{
-				static const int iMinBaseHammers = GC.getDefineINT("SAS_AI_BUILDING_VALUE_NATIONAL_WONDERS_MIN_BASE_HAMMERS");
-				static const int iMinExtraHammersPerEra = GC.getDefineINT("SAS_AI_BUILDING_VALUE_NATIONAL_WONDERS_MIN_EXTRA_HAMMERS_PER_ERA");
-
-				if (iBaseHammersPerTurn < (iMinBaseHammers + (iCurrentEra * iMinExtraHammersPerEra)))
-				{
-					return 0;
-				}
-			}
-			else if (!bWorldWonder && !bNationalWonder && bSAS_AI_BUILDING_VALUE_UNKNOWN_WONDERS_OPTIMIZE)
-			{
-				static const int iMinBaseHammers = GC.getDefineINT("SAS_AI_BUILDING_VALUE_UNKNOWN_WONDERS_MIN_BASE_HAMMERS");
-				static const int iMinExtraHammersPerEra = GC.getDefineINT("SAS_AI_BUILDING_VALUE_UNKNOWN_WONDERS_MIN_EXTRA_HAMMERS_PER_ERA");
-
-				if (iBaseHammersPerTurn < (iMinBaseHammers + (iCurrentEra * iMinExtraHammersPerEra)))
-				{
-					return 0;
-				}
-			}
-
-			// <!-- custom: e.g. building our build 25% faster with stone (not related to yields/hammers gained after building is completed!) -->
-			// Full production modifier (traits, resources, state religion, etc.)
-			const int iProductionModifier = getProductionModifier(eBuilding);
-			// “Can we realistically <!-- custom: build as i assume this is about starting new buildings --> it?" (turn cap)
-			// Use a simple time-to-build gate rather than only a flat hpt cut. It auto-scales with cost and modifiers.
-			int const iWWMul100  = 100 + iProductionModifier; // 100 + (traits/stone/marble/religion/etc.)
-			// Estimated turns (ceil): cost / (hpt * (1+mods))
-			/*
-			Examples:
-			A) cost=300, hpt=10, modifier=+25% (iWWMul100=125)
-			Turns = ceil(300 / (10*1.25)) = ceil(300/12.5) = ceil(24.0) = 24
-			Integer: (300*100 + 10*125 - 1) / (10*125) = (30000+1250-1)/1250 = 31249/1250 = 24
-			//
-			B) cost=275, hpt=8, modifier=0% (iWWMul100=100)
-			Turns = ceil(275 / (8*1.0)) = ceil(34.375) = 35
-			Integer: (27500 + 800 - 1) / (800) = 28300/800 = 35
-			//
-			C) cost=450, hpt=15, modifier=+50% (iWWMul100=150)
-			Turns = ceil(450 / (15*1.5)) = ceil(450/22.5) = 20
-			Integer: (45000 + 15*150 - 1) / (2250) = (45000+2250-1)/2250 = 47249/2250 = 20
-			*/
-			int const iTurnsWW = (iCost * 100 + iBaseHammersPerTurn * iWWMul100 - 1) / (std::max(1, iBaseHammersPerTurn) * iWWMul100);
-			// Window scales by speed a bit
-			// <!-- custom: 20 turns at normal seem fine, any time more and we may spend too much time on it instead of doing something else, or a rival may beat us to it -->
-			static const int iSAS_AI_BUILDING_VALUE_WONDERS_MAX_BASE_TURNS_NORMAL_GAMESPEED_TO_BUILD = GC.getDefineINT("SAS_AI_BUILDING_VALUE_WONDERS_MAX_BASE_TURNS_NORMAL_GAMESPEED_TO_BUILD");  // @Normal
-			int iSoftTurnCapNormal = iSAS_AI_BUILDING_VALUE_WONDERS_MAX_BASE_TURNS_NORMAL_GAMESPEED_TO_BUILD; // @Normal
-			// <!-- custom: adjust based on game difficulty: on lower difficulties, we have penalties, so unlikely we compete with the human players, so use our hammers conservatively and more towards self-preservation, so do not increase turn time allowed to complete this, but at higher difficulties, we have more leeway and enough discounts, unlikely the human can compete with us, however it would be strange that we would spend too much time on wonders despite our discounts, which would mean most likely we are doing something inefficient or wrong, so don't build the wonder with a tighter window if is beyond this window -->
-			// AdvCiv: no human WCP <!-- custom: at least i didn't find it easily with a global search vs code so hopefully accurate enough as such as provided by chatgpt 5 but check if accurate and if my guess of doing as such as well is fine as i didn't check further-->; treat as 100%
-			const int iHumanWCPDefine = 100;
-			int const iHumanWCP = iHumanWCPDefine;
-			int const iAIWCP    = hAI.getAIWorldConstructPercent();
-			// Gap is "human% - ai%". Bigger positive => AI has bigger production edge.
-			int const iConstructGap = iHumanWCP - iAIWCP;
-			// <!-- custom: e.g. iHuman 100, iAI 68, so 32% higher costs for AI (maybe this is immortal or some higher difficulty (imaginary numbers)) -->
-			const int iMaxConstructGap = 20;
-			const int iMaxConstructGapMult = 9;
-			const int iMaxConstructGapDiv = std::max(1, 10);
-			if (iConstructGap >= iMaxConstructGap)
-			{
-				iSoftTurnCapNormal = (iSoftTurnCapNormal * iMaxConstructGapMult) / iMaxConstructGapDiv;
-			}
-			// <!-- custom: then in all cases adjust based on game speed -->
-			int const iSoftTurnCapAdjusted = iSoftTurnCapNormal * iGameSpeedMultiplier / 100;
-			// <!-- custom: note: this also handles turn to build calculation for production bonus based wonders if i'm not mistakensuch as the ironworks -->
-			// If it's going to sit in the queue forever, skip.
-			if (iTurnsWW > iSoftTurnCapAdjusted)
-			{
-				return 0;
-			}
-
-			// <!-- custom: may save a lot of computation by checking this early and forwarding the early rejects (note: make sure to not push ahead / forward the always pick first blocks else it may alter history (unless is as you want it)), since we'll reject anyway later (especialyl for the loop code). -->
-			// <!-- custom: more early checks to save computation before the loop computation -->
-			// <!-- custom: especially if losing, don't build wonder for our ennemies, do something else instead useful to help us survive. Note: there is a code somewhere that i saw that tells the AI to not ditch a wonder being built if >= a certain percentage of completion, which i think is 50%, if i find it heavily tighten it as well, even at 50% completion, we can still produce several longbowmen or such instead that may increase our odds a lot, ideally don't start the wonder at all, but if didn't see it (surprise war, etc), then don't continue building it somewhere as well if i find where again, as for this code only handles new buildings to start, and tightening it heavily here in war or war-related context; update: i found it and tweaked it there as well, it's as of now in CvCityAI::AI_chooseProduction (ctrl+f "completion" to find it xd luckily found it again thankfully maybe rather i should say to myself xd or chatgpt 5 i'm tlaking to in this case) -->
-			// hard skips: don’t throw the game to build a shiny thing
-			if (bWorldWonder && bSAS_AI_BUILDING_VALUE_WORLD_WONDERS_OPTIMIZE)
-			{
-				// <!-- custom: don't be too strict here, we need the heroic epic still even if enemy is strong, so save some computation but not at the cost of worse gameplay or competitiveness. Chatgpt 5 also suggests this or something similar so doing as such -->
-				if (!bLandUnitsBuilding)
-				{
-					if (bAtWar || bDanger || bWarPlan || bEnemyStrong)
-					{
-						return 0;
-					}
-				}
-				else
-				{
-					// <!-- custom: world wonders are generally costlier, so don't build them if danger but also if at war -->
-					if (bAtWar || bDanger)
-					{
-						return 0;
-					}
-				}
-
-				// <!-- custom: even if we don't have bonuses early, we may get a lucky stonehenge if rivals have not connected their stone yet or we got lucky with our start that would have high production maybe so give it a try in these early turns for wonders cases, else don't risk wasting precious early hammer on incompleted wonder vs say units or anything else instead (a granary + barracks + worker for example more or less); note: modifiers are not only bonuses, a civic or religion modifier may be equal or even stronger than the bonus one, even if we don't have the bonus, so look rather at the final modifier no matetr where it comes from -->
-				// Early window (scaled to speed)
-				const int iEarlyTurnsNoModifierNormal = 35; // @Normal
-				const int iEarlyTurnsNoModifierAdjusted = iEarlyTurnsNoModifierNormal * iGameSpeedMultiplier / 100;
-				const bool bEarlyTurnsNoModifier = (iElapsedTurns < iEarlyTurnsNoModifierAdjusted);
-				if (!bEarlyTurnsNoModifier)
-				{
-					// <!-- custom: our rivals will beat us (most likely, but assume so for efficiency) to it, better build something else than end up with a lot of wasted hammer -->
-					if (iProductionModifier < 25) // no stone/marble/trait/religion oomph? skip
-					{
-						return 0;
-					}
-					// <!-- custom: else don't incentivize it either, wonders are not necessarily the better choice, keep as is as per AI selection in other parts of the code wherever it is handled at least as of now-->
-				}
-
-				// <!-- custom: note: cannot try to save computation by checking bCoastalBuilding, as in some weird xml mod mods or such (or maybe we would too or would not), maybe a non-coastal city would give a coastal cities scaling effect, so do not check bCoastalBuilding to avoid overlooking these as chatgpt 5 advised/noted if i understood it correctly -->
-				// --- Naval / Coastal-scaling WW: require a real coastline -----------------
-				// // 1) City-local coastal wonders (benefit tied to THIS city’s water/naval use)
-				// const bool bCoastalLeaningWonder = (
-				// 	(kBuilding.getSeaPlotYieldChange(YIELD_FOOD) > 0) ||
-				// 	(kBuilding.getSeaPlotYieldChange(YIELD_PRODUCTION) > 0) ||
-				// 	(kBuilding.getSeaPlotYieldChange(YIELD_COMMERCE) > 0) ||
-				// 	(kBuilding.getDomainFreeExperience(DOMAIN_SEA) > 0) ||
-				// 	(kBuilding.getDomainProductionModifier(DOMAIN_SEA) > 0)
-				// );
-				// Why this helps
-				// - Colossus-type (city-local): allowed even with a single coastal city, as long as that city really leverages water tiles.
-				// - Great-Lighthouse-type (empire-scaling): requires multiple coastal cities; otherwise it’s usually a trap.
-				// 2) Empire-scaling coastal wonders (benefit grows with # of coastal cities)
-				const bool bCoastalScalingWonder = (
-					((kBuilding.getCoastalTradeRoutes() > 0) ||
-					(kBuilding.getGlobalSeaPlotYieldChange(YIELD_FOOD) > 0) ||
-					(kBuilding.getGlobalSeaPlotYieldChange(YIELD_PRODUCTION) > 0) ||
-					(kBuilding.getGlobalSeaPlotYieldChange(YIELD_COMMERCE) > 0))
-				);
-				// <!-- custom: forwarding this precheck could bypass our bLandUnitsBuilding always priority later, so in case some mod mod or us make a wonder that is bLandUnitsBuilding true, do not reject it so soon even if coastal leaning if i understand it correctly-->
-				if (bCoastalScalingWonder && !bLandUnitsBuilding)
-				{
-					// Flat rule: need at least 3 coastal cities empire-wide <!-- custom: regardless of map size, should be easier as such and covering most cases, although a bit inaccurate for small map sizes but maybe fine as naval wonders should overall be less important in most cases unless we have many naval cities which hopefully overlaps fine or fine enough with this; also in our mod moai or such are not critical anymore at least for moai, as the port replaces this per city as an individual building as of now, and moai appear much later -->.
-					const int iCoastalCities = kOwner.countNumCoastalCities();
-					const int iMinCoastalCitiesCoastalWonder = 3;
-					if (iCoastalCities < iMinCoastalCitiesCoastalWonder)
-					{
-						return 0;
-					}
-				}
-			}
-			else if (bNationalWonder && bSAS_AI_BUILDING_VALUE_NATIONAL_WONDERS_OPTIMIZE)
-			{
-				// <!-- custom: don't be too strict here, we need the heroic epic still even if enemy is strong, so save some computation but not at the cost of worse gameplay or competitiveness. Chatgpt 5 also suggests this or something similar so doing as such -->
-				// <!-- custom: as a side effect, may indirectly reduce early spam in favour of betting on a higher unit production late game, where multipliers help more, economy is stronger to sustain it, tech lead higher to not fall behind if we produce a bit more units maybe, and scaling is important to face rivals. It may also indirectly slightly improve early economy and reduce bankruptcy risk / imrpvoe economical performance. If one AI is running away, it may give it an extra lead while rivals build heroic epics, possibly (i guess and happened in autoplay map i tried it on it seems), however if the game is closer, this should improve mid and late game performance and competitiveness of the AI (i think/guess). And if an AI is running away, not sure avoiding the heroic epic would ultimately help prevent that, although a short term patch-up strategy may help salvage things sometimes possibly, but generally i think encouraging AIs to build more often and earlier heroic epics (or whichever wonder in your xml) should generally, in theory help, but i didn't test it too much to be sure, check if accurate -->
-				// Short version: I agree with the direction. Earlier HE in the right city usually improves mid-/late-game military tempo and doesn’t hurt runaways (your war/danger caps already prevent self-sabotage). I’d just tone down a couple causal claims in the comment.
-				// What I agree with
-				// 	- Tradeoff is real: a short early tempo dip (hammers into HE) for higher sustained unit throughput later. That’s the key benefit.
-				// 	- Economy side-effect: if it replaces early unit spam, upkeep pressure eases a bit. That’s a side-effect, not a guarantee.
-				// 	- Runaway leader: this change won’t stop one; it’s mostly neutral there because of your danger/enemy-strong skips.
-				// 	- Closer games: more AIs placing HE early in real pump cities raises their floor. Net effect: tougher midgame wars.
-				// What I’d soften in the comment
-				// 	- “tech lead higher" and “economy stronger to sustain it" aren’t direct effects of HE; they’re contingent on building fewer early units or getting safer growth windows. I’d state those as may and keep the mechanism explicit: fewer early units → lower upkeep → sometimes more budget for research.
-				// <!-- custom: after testing it ingame, it seems effect is very good and impressive: despite being behind early, we still build an early heroic epic, and stay relevant despite enemy being stronger, until they win, but our empire didnt collapse and bounced back multiple times (they delayed a bit their heroic epics but there are enough among other rivals' empires). I don't know how much randomness influences this, but in this other autoplay map i autoplayed (redundant), it seems to greatly help so left as such, hopefully helps other AIs as well-->
-				if (!bLandUnitsBuilding)
-				{
-					// Don’t invest if we’re about to get rolled
-					if (bEnemyStrong || bDanger)
-					{
-						return 0;
-					}
-				}
-				else
-				{
-					if (bDanger)
-					{
-						return 0;
-					}
-				}
-			}
-			else if (!bWorldWonder && !bNationalWonder && bSAS_AI_BUILDING_VALUE_UNKNOWN_WONDERS_OPTIMIZE)
-			{
-				if (!bLandUnitsBuilding)
-				{
-					// Don’t invest if we’re about to get rolled
-					if (bEnemyStrong || bDanger)
-					{
-						return 0;
-					}
-				}
-				else
-				{
-					if (bDanger)
-					{
-						return 0;
-					}
-				}
-			}
-
-			// <!-- custom: common logic for unhealthiness removing wonders (world + national) -->
-			// --- National Park style (skip when already healthy / too small ) -------------
-			// Detect NP by either “no pop unhealthiness"
-			const bool bUnhealthinessReducerWonder = kBuilding.getUnhealthyPopulationModifier() <= -50;
-
-			// <!-- custom: forwarding this precheck could bypass our bLandUnitsBuilding always priority later, so in case some mod mod or us make a wonder that is bLandUnitsBuilding true, do not reject it so soon even if it is unhealthiness reducer as intended as per this check, if i understand it correctly (so add a bLandUnitsBuilding exclusion i mean to avoid that)-->
-			if (bUnhealthinessReducerWonder && !bLandUnitsBuilding)
-			{
-				// Don’t do this under pressure
-				if (bAtWar || bDanger || bWarPlan || bEnemyStrong)
-				{
-					return 0;
-				}
-
-				// <!-- custom: ideally we could use for some of this computation the `rank(` helpers, as according to grok ai they compare cities in our empire only, and according to which ranking is not shared among all players unlike what chatgpt 5 claimed, check if accurate -->
-				// Research suggests that these rank calculation methods are empire-wide, meaning they compare cities only within the same player's control. It seems likely that this design supports AI decision-making focused on internal empire management rather than global comparisons.
-				const int iPopulationRank = findPopulationRank();
-				const bool bTop2Population = (iPopulationRank <= 2);
-
-				// <!-- custom: worth considering the health gains if city is big enough and has enough unhealthiness from population already; also note: as clarified to chatgpt 5, this logic is a bit too simplistic in case population doesn't provide enough some unheathiness in some mod or scenairo or such to justify building this, but htis should still be a fine approximation, as high enough pop cities should generally have other sources of unheathiness that may make this a recommendable building to build. As for us not suggesting such here, but making sure we don't build it if not efficient, else let other functions handle that -->
-				// <!-- custom: unlikely to have enough gains if we build this in our city size 12 when we have a city size 20 that could build it instead, at least in most cases so go with this; also note: < not <= so if city 3 or city 4 exactly have same pop as city 2 or city 1, then build in any as i clarified to chatgpt 5 hehe, don't reject these cities -->
-				const int iUnhealthinessReducerWonderMinPop = 12;
-				if ((iPop < iUnhealthinessReducerWonderMinPop) || !bTop2Population)
-				{
-					return 0;
-				}
-				const int iUnhealthinessReducerWonderMaxHealthLevel = 1;
-				// <!-- custom: city is healthy enough for now, no need to build this -->
-				if (iHealthLevel > iUnhealthinessReducerWonderMaxHealthLevel)
-				{
-					return 0;
-				}
-				// else: let normal scoring handle it <!-- custom: (don't prioritize here, just make sure we don't build it when inefficient) -->
-			}
-
-			// <!-- custom: ideally we could use for some of this computation the `rank(` helpers, as according to grok ai they compare cities in our empire only, and according to which ranking is not shared among all players unlike what chatgpt 5 claimed, check if accurate -->
-			// Research suggests that these rank calculation methods are empire-wide, meaning they compare cities only within the same player's control. It seems likely that this design supports AI decision-making focused on internal empire management rather than global comparisons.
-			// const bool bTop1Hammer = (iProductionRank == 1);
-			const bool bTop2Hammer = (iProductionRank <= 2);
-			// const bool bTop3Hammer = (iProductionRank <= 3);
-
-			// <!-- custom: add cache to avoid recomputation at every call with the help of chatgpt 5.2 thanks -->
-			const int iCurrentTurn = kGame.getGameTurn();
-
-			int iBestHpt = 0, iSecondBestHpt = 0, iThirdBestHpt = 0;
-
-			const bool bHammerCacheValid =
-				bProductionRankCacheWasValid &&
-				s_abTopHptValid[eOwner] &&
-				s_aiTopHptTurn[eOwner] == iCurrentTurn &&
-				s_aiTopHptNumCities[eOwner] == iNumCities;
-
-			if (bHammerCacheValid)
-			{
-				iBestHpt = s_aiBestHpt[eOwner];
-				iSecondBestHpt = s_aiSecondBestHpt[eOwner];
-				iThirdBestHpt = s_aiThirdBestHpt[eOwner];
-			}
-			else
-			{
-				int b1 = 0, b2 = 0, b3 = 0;
-				FOR_EACH_CITY(pLoopCity, kOwner)
-				{
-					const int h = pLoopCity->getBaseYieldRate(YIELD_PRODUCTION);
-					if (h > b1) { b3 = b2; b2 = b1; b1 = h; }
-					else if (h > b2) { b3 = b2; b2 = h; }
-					else if (h > b3) { b3 = h; }
-				}
-
-				iBestHpt = b1; iSecondBestHpt = b2; iThirdBestHpt = b3;
-
-				if (!bConstCache)
-				{
-					s_abTopHptValid[eOwner] = true;
-					s_aiTopHptTurn[eOwner] = iCurrentTurn;
-					s_aiTopHptNumCities[eOwner] = iNumCities;
-					s_aiBestHpt[eOwner] = b1;
-					s_aiSecondBestHpt[eOwner] = b2;
-					s_aiThirdBestHpt[eOwner] = b3;
-				}
-			}
-			// const bool bTop2Hammer = (iBaseHammersPerTurn >= iSecondBestHpt);
-			// <!-- custom: note: if we have only one city, second best is 0, handle that as per your own logic depending on what you want to do -->
-
-			// <!-- custom: if we have top 1 hammer city at 200 hammers somehow for example, and top 2 city at 90 hammers + top 3 city at 85 hammers, then top 4 city at 84 hammers, then the top 4 city is still good enough, so use the leeway formula of a top as an alternative (frees top city for unit production if it is busy or prioritizing doing so or unavailable for some reason or another (helps versatiltiy i guess / would say)) -->
-			const int iTopHammerLeeway = 5;
-			// <!-- custom: min percent of top1hammer -->
-			const int iMinPercentOfTop1HammerSlack = 70;
-			// <!-- custom: cover the case where cities are less than iHammerLeeway from best to worst, don't reject good cities if they are just 1-2 hammer apart, use an alternative condition for that case as well -->
-			// <!-- custom: e.g. if top city is 60 hammers, then our city candidate needs to have at least 60 hammers * 70 / 100  = 42 hammers (i.e. 70% of best hammer city hammers) strictly, so at least 43 hammers, which is good enough to replace our best cities if previous fail -->
-			const bool bEnoughHammersVsTop1Hammers = ((iBaseHammersPerTurn * 100) > (iBestHpt * iMinPercentOfTop1HammerSlack));
-			const bool bTop2HammerLeeway = ((iBaseHammersPerTurn + iTopHammerLeeway >= iSecondBestHpt) || bEnoughHammersVsTop1Hammers);
-			const bool bTop3HammerLeeway = ((iBaseHammersPerTurn + iTopHammerLeeway >= iThirdBestHpt) || bEnoughHammersVsTop1Hammers);
-
-			// <!-- custom: for production modifier wonders (e.g city increases by +25% hammer or such), only do so in top cities. Note: could handle other yields but would be tedious and we don't necessarily have too many if at all such wonders -->
-			const bool bProductionWonder = (
-				iTotalHammersModifier >= 20 // || // Forge/Factory <!-- custom: or weird variants if some mods implement bonus based hammer modifiers in regular buildings (as the ironworks does for example), so account for that as well -->
-				// <!-- custom: for now only tweak the early game as is most important and where most gains can be made i think, later production should be high enough and civilization developped enough to be able to more freely choose without too much consequences -->
-				//kBuilding.isPower() ||                                  // Plant gives power
-				//kBuilding.isAreaCleanPower()
-			);
-			// <!-- custom: forwarding this precheck could bypass our bLandUnitsBuilding always priority later, so in case some mod mod or us make a wonder that is bLandUnitsBuilding true, do not reject it so soon even if it is unhealthiness reducer as intended as per this check, if i understand it correctly (so add a bLandUnitsBuilding exclusion i mean to avoid that)-->
-			if (bProductionWonder && !bLandUnitsBuilding)
-			{
-				// <!-- custom: for scaling hammer wonders (world and national), pick best or among best hammer cities for best scaling of benefits -->
-				if (!bTop2HammerLeeway)
-				{
-					return 0;
-				}
-			}
-
-			// <!-- custom: note: ideally should handle commerce modifier wonders, but hopefully the hammer minimum requirements filter out most of the cities, still it is possible that a city is low hammer and high gold for example or vice versa, in such case it would be bad to build the wrong of each, but left as is for now if not always or not as bit tedious; there is also a risk they may never be built since we are already restricting enough, hopefully commerce and hammer overlap nicely or nicely enough, else maybe fine all in all considered to leave as such -->
-
-			// <!-- custom: note: cultural wonders (world and national) not handled, let AI decide if it wants them or not; may skew too much the balance or gameplay otherwise, and is less code to code (repetition) too (not that i would mind too much had purpose in this case i mean) -->
-
-			if (bWorldWonder && bSAS_AI_BUILDING_VALUE_WORLD_WONDERS_OPTIMIZE)
-			{
-				// <!-- custom: for world wonders, make sure we win the race, use top 2 as base -->
-				// <!-- custom: update: I thought this was the cause of less wonders but not; still, it is valuable to keep: in our mod as of now only ai capitals build settlers for efficiency, but since they are most likely highest hammer, it means only 1 city can fit, and if it is busy, less wonders i guess. We already have some wonder gates, so maybe we can be more lenient here, at least early. Code added with the help of chatgpt 5.2 thanks (although i did core logic and code myself hehe it helped for review and corrections and talk and such i mean if i may say thanks again xd thanks). -->
-				static const int iSAS_AI_BUILDING_VALUE_WORLD_WONDERS_LOWER_HAMMER_OK_AT_EXPANSION_PHASE_TURN_NORMAL_GAMESPEED = GC.getDefineINT("SAS_AI_BUILDING_VALUE_WORLD_WONDERS_LOWER_HAMMER_OK_AT_EXPANSION_PHASE_TURN_NORMAL_GAMESPEED");
-				const int iTurnExpansionPhaseAdjusted = (iSAS_AI_BUILDING_VALUE_WORLD_WONDERS_LOWER_HAMMER_OK_AT_EXPANSION_PHASE_TURN_NORMAL_GAMESPEED * iGameSpeedMultiplier) / 100;
-				const bool bExpansionPhaseAdjusted = (iElapsedTurns < iTurnExpansionPhaseAdjusted);
-
-				if (!bExpansionPhaseAdjusted && !bTop2HammerLeeway)
-				{
-					return 0;
-				}
-
-				// <!-- custom: skip wonder if many rivals can build it, most likely we won't finish it on time, better assume so in most cases should be efficient and help AI not build unbuildable wonders, if not already handled by code elsewhere but added to be safe and to not check all their code; note: in autoplay i did notice wonder races, i don't know if far from completing them rivals would attempt them or if it's only for close calls, but adding an extra safety to prevent inefficient ones just in case -->
-				// “Race pressure" (how many rivals can build it?)
-				// Super-simple "are rivals eligible already?" gate.
-				// If >=3 MET rival teams have the core (AND) tech, assume a hot race and skip.
-				// <!-- custom: update: I thought this was the cause of less wonders but not; still, it is valuable to keep: in our mod as of now only ai capitals build settlers for efficiency, but since they are most likely highest hammer, it means only 1 city can fit, and if it is busy, less wonders i guess. We already have some wonder gates, so maybe we can be more lenient here, at least early. Code added with the help of chatgpt 5.2 thanks (although i did core logic and code myself hehe it helped for review and corrections and talk and such i mean if i may say thanks again xd thanks). -->
-				static const bool bSAS_AI_BUILDING_VALUE_WORLD_WONDERS_DONT_BUILD_IF_RIVALS_KNOW_TECH = GC.getDefineBOOL("SAS_AI_BUILDING_VALUE_WORLD_WONDERS_DONT_BUILD_IF_RIVALS_KNOW_TECH");
-				if (bSAS_AI_BUILDING_VALUE_WORLD_WONDERS_DONT_BUILD_IF_RIVALS_KNOW_TECH)
-				{
-					TechTypes eAndTech = NO_TECH;
-					eAndTech = kBuilding.getPrereqAndTech();
-
-					if (eAndTech != NO_TECH)
-					{
-						// <!-- custom: to simplify don't check if the or additional prereqs in the XML's TechTypes in tech info is/are met or not, check if accurate or is best or satisfying enough and effective enough approach, it was simplest for me to write with chatgpt 5's help hehe and my limited understanding or rather as well knowledge of this if i may say for most -->
-						int iRivalsWhoCanStart = 0;
-						static const int iSAS_AI_BUILDING_VALUE_WORLD_WONDERS_DONT_BUILD_IF_RIVALS_KNOW_NUM = GC.getDefineINT("SAS_AI_BUILDING_VALUE_WORLD_WONDERS_DONT_BUILD_IF_RIVALS_KNOW_NUM");
-						// Only teams we've actually met (cheap + avoids false positives)
-						for (TeamIter<CIV_ALIVE,KNOWN_TO> it(getTeam()); it.hasNext(); ++it)
-						{
-							TeamTypes eRival = it->getID();
-							if (eRival == getTeam()) continue;            // skip us
-							if (GET_TEAM(eRival).isHasTech(eAndTech))    // has the gate tech
-							{
-								if (++iRivalsWhoCanStart >= iSAS_AI_BUILDING_VALUE_WORLD_WONDERS_DONT_BUILD_IF_RIVALS_KNOW_NUM)            // simple fixed cap
-									return 0;
-							}
-						}
-					}
-				}
-			}
-			else if (bNationalWonder && bSAS_AI_BUILDING_VALUE_NATIONAL_WONDERS_OPTIMIZE)
-			{
-				// <!-- custom: for national wonders, no risk to lose the race, use top 2 or top 3 as base or such depending on if the national wonder is a scaling one or not -->
-				if (!bTop3HammerLeeway)
-				{
-					return 0;
-				}
-
-				// <!-- custom: military national wonders, in particular heroic epic, etc if any more -->
-				if (bLandUnitsBuilding)
-				{
-					// <!-- custom: this is one of the scaling national wonders where we really want top hammer to take best benefits from it, so use tighter requirement with some leeway-->
-					if (!bTop2HammerLeeway)
-					{
-						return 0;
-					}
-
-					if (bWarPlan || bAtWarAndEnemyWeak)
-					{
-						if (bTop2Hammer)
-						{
-							// commit when pressing <!-- custom: with a positive nudge to really motivate for it as we expect nice rewards from it -->
-							return AI_BUILDING_ALWAYS_PICK_FIRST + 1000;
-						}
-					}
-
-					// otherwise, let normal scoring decide
-				}
-
-				// --- Government Center (Forbidden Palace <!-- custom: etc if any more (as of now versailles is a world wonder and does not even have this effect anymore so not included here -->) -----------------------
-				// <!-- custom: cover the one city empire case as chatgpt 5 nicely advised and that i thought of hehe but then forgot xd or didn't know how to easily do or forgot to do itthanks; in that case no need to move our government center since we only have one city and are already at government center unless mod mods change the logic/buildings somehow then they should also change this as well -->
-				if (iNumCities > 1)
-				{
-					const bool bGovCenter = kBuilding.isGovernmentCenter();
-					// <!-- custom: note: this is not the barbarian block so fine but check to be sure -->
-					static const BuildingClassTypes eBuildingClassPalace = (BuildingClassTypes)GC.getInfoTypeForString(GC.getDefineSTRING("SAS_AI_BUILDING_VALUE_GOVERNMENT_CENTER_PALACE_BUILDINGCLASS_NAME"));
-					const bool bPalaceBuildingClass = (eBuildingClass == eBuildingClassPalace);
-
-					if (!bPalaceBuildingClass)
-					{
-						if (bGovCenter)
-						{
-							const int iMinNumCitiesPalace = 7;
-							const int iMinNumCitiesHighM100 = 2;
-							// Empire needs to be somewhat large; tiny empires rarely benefit.
-							if (iNumCities < iMinNumCitiesPalace)
-							{
-								return 0;
-							}
-							// <!-- custom: note since chatgpt 5 asks about it many times: the code seems to not/never at least sometimes not check for null here so we don't, no need to complicate in this case, if there is an error they'll run into it as well, if not fine, and we don't risk causing any weird behavioru as such maybe -->
-							// don’t drop it in the capital; almost no benefit
-							if (isCapital())
-							{
-								return 0;
-							}
-							// still respect pressure gates
-							if (bAtWar || bWarPlan || bDanger)
-							{
-								return 0;
-							}
-
-							// <!-- custom: Maintenance changes immediately when earlier cities grow during the same player's turn, so a turn/city-count cache can become stale before later cities choose production. This government-center gate is rare and already behind strict candidate checks; scan the live city values here. See KI#306. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-							int iBestMaintenanceTimes100 = 0;
-							int iSecondBestMaintenanceTimes100 = 0;
-							int iNumCitiesHighMaintenance = 0;
-							FOR_EACH_CITY(pLoopCity, kOwner)
-							{
-								const int iLoopMaintenanceTimes100 = pLoopCity->getMaintenanceTimes100();
-								if (iLoopMaintenanceTimes100 > iBestMaintenanceTimes100)
-								{
-									iSecondBestMaintenanceTimes100 = iBestMaintenanceTimes100;
-									iBestMaintenanceTimes100 = iLoopMaintenanceTimes100;
-								}
-								else if (iLoopMaintenanceTimes100 > iSecondBestMaintenanceTimes100)
-								{
-									iSecondBestMaintenanceTimes100 = iLoopMaintenanceTimes100;
-								}
-								if (iLoopMaintenanceTimes100 >= iSAS_AI_BUILDING_VALUE_GATE_M100_WONDERS)
-									++iNumCitiesHighMaintenance;
-							}
-
-							if (iNumCitiesHighMaintenance > iMinNumCitiesHighM100)
-							{
-								// <!-- custom: don't build in highest hammer cities, they may already be low maintenance so no need especially if capital, build instead in highest maintenance city -->
-								// <!-- custom: note: capital not in these checks as should be naturally excluded due to having lowest maintenance but just in case, and also as advised by chatgpt 5 as well, we could have handled mods reverting logic (e.g. capital causing higher costs) but maybe tedious, so i hope if some mod someday is based on ours and somehow implements this, they remember to change building picking logic or rather pre-picking logic -->
-								if (iMaintenanceTimes100 >= iSecondBestMaintenanceTimes100)
-								{
-									// <!-- custom: small negative nudge as tie breaker as this is a long to build building (redundant word) -->
-									return AI_BUILDING_ALWAYS_PICK_FIRST - 1000;
-								}
-							}
-						}
-					}
-					// <!-- custom: palace moving logic: if a city has >= 1.5x base hammers per turn or >= 1.5x base beakers per turn, we should maybe move our palace there, but there is a risk of oscillation if city A is higher hammer while city B is higher beaker, so require both conditions rather. To begin with, capital locations are gnerally very good, and if not as of now we told AI settlers to move to a better location even if takes several turns, so the new capital needs to be significantly better on both ends, else probably not so worth it to move anyway (considering the cost of such as well and possible unintended consequences) -->
-					else
-					{
-						if (bAtWar || bWarPlan || bDanger || bEnemyStrong)
-						{
-							return 0; // don’t mess with this under pressure
-						}
-
-						// <!-- custom: don't build palace too early, focus on early invasion or growth rather; also it should be way faster to build later, use the hammer early for something else -->
-						// Early window (scaled to speed)
-						const int iEarlyTurnsPalaceNormal = 100; // @Normal
-						const int iEarlyTurnsPalaceAdjusted = iEarlyTurnsPalaceNormal * iGameSpeedMultiplier / 100;
-						const bool bEarlyTurnsPalace = (iElapsedTurns < iEarlyTurnsPalaceAdjusted);
-
-						const int iEnoughCitiesToConsiderPalace = 4;
-						const bool bEnoughCitiesToConsiderPalace = (iNumCities >= iEnoughCitiesToConsiderPalace);
-
-						if (bEnoughCitiesToConsiderPalace && !bEarlyTurnsPalace)
-						{
-							CvCityAI const* pCapital = kOwner.AI_getCapital();
-
-							if (pCapital != NULL)
-							{
-								// Raw bases (no multipliers)
-								int const iCapitalBaseHammersPerTurn  = pCapital->getBaseYieldRate(YIELD_PRODUCTION);
-								int const iCapitalBeakersPerTurn  = pCapital->getCommerceRate(COMMERCE_RESEARCH);
-
-								// Require BOTH to be clearly better (1.5×). This kills oscillation.
-								const int iPalaceHammersBetterPer100 = 150;
-								const int iPalaceHammersBeakersPer100 = 150;
-								bool const bBeatsCurrentCapitalHammers = ((iBaseHammersPerTurn * 100) >= (iCapitalBaseHammersPerTurn * iPalaceHammersBetterPer100));
-								bool const bBeatsCurrentCapitalBeakers = ((iBeakersPerTurn * 100) >= (iCapitalBeakersPerTurn * iPalaceHammersBeakersPer100));
-
-								if (!bBeatsCurrentCapitalHammers || !bBeatsCurrentCapitalBeakers)
-								{
-									return 0;
-								}
-								else
-								{
-									// Gentle <!-- custom: negative --> nudge so it can win ties without steamrolling urgent stuff
-									return AI_BUILDING_ALWAYS_PICK_FIRST - 500;
-								}
-							}
-						}
-					}
-				}
-
-				// <!-- custom: note: ironworks like buildings (bonus based production modifiers) already handled as part of the generic all wonders (world + national) production modifier calculation as of now above in the common wonder scope/block -->
-				// <!-- custom: note 2: same for national park so not handled here see before/above -->
-			}
-			// <!-- custom: if we somehow still don't know what this unidentified building is, not a normal building that is not a world wonder nor a national wonder, nor a world wonder, nor a national wonder, and somehow still have to decide about this unidentified building, then proceed with base war heuristics just in case i.e. to not build it if in danger or and such, i don't think we should ever land here or extremely rarely if at all, but just in case; i may be mistaken about the need for this as i don't know too much about these, check if accurate. -->
-			else if (!bWorldWonder && !bNationalWonder && bSAS_AI_BUILDING_VALUE_UNKNOWN_WONDERS_OPTIMIZE)
-			{
-				// <!-- custom: don't be too strict here, we need the heroic epic still even if enemy is strong, so save some computation but not at the cost of worse gameplay or competitiveness. Chatgpt 5 also suggests this or something similar so doing as such -->
-				if (!bLandUnitsBuilding)
-				{
-					// <!-- custom: fallback to war heuristics general checks otherwise -->
-					if (bAtWar || bDanger || bWarPlan || bEnemyStrong)
-					{
-						return 0;
-					}
-				}
-				else
-				{
-					// <!-- custom: this code should never be reached if i'm not mistaken, i think, but just in case-->
-					if (bAtWar || bDanger)
-					{
-						return 0;
-					}
-				}
-			}
-		}
+		iDomainTotalMilitaryProductionShare = AI_buildUnitProb();
+		iDomainWaterWorldPercent = AI_calculateWaterWorldPercent();
+	}
+	int iSeaProductionShare = 0;
+	if (bNeedSeaThroughputContext)
+		iSeaProductionShare = (iDomainTotalMilitaryProductionShare * iDomainWaterWorldPercent) / 100;
+
+	int iLandDemandPercent = 0;
+	int iLandProductionShare = 0;
+	int iLandAreaAI = -1;
+	bool bLandWar = false;
+	bool bAssault = false;
+	if (bNeedLandThroughputContext)
+	{
+		iLandAreaAI = getArea().getAreaAIType(getTeam());
+		bLandWar = (iLandAreaAI == AREAAI_OFFENSIVE || iLandAreaAI == AREAAI_MASSING || iLandAreaAI == AREAAI_DEFENSIVE);
+		bAssault = (iLandAreaAI == AREAAI_ASSAULT || iLandAreaAI == AREAAI_ASSAULT_MASSING || iLandAreaAI == AREAAI_ASSAULT_ASSIST);
+		// <!-- custom: AI_calculateWaterWorldPercent is a naval-importance proxy, not a literal partition of military production; using 100-water would incorrectly reduce land demand to zero on strongly insular maps.
+		// Keep a 50% baseline for defenders/expeditionary land forces, while active land war restores full land relevance and assault preparation keeps at least 75%. See KI#48.13. (ChatGPT-5.6-Sol) -->
+		iLandDemandPercent = 100 - iDomainWaterWorldPercent / 2;
+		if (bLandWar)
+			iLandDemandPercent = 100;
+		else if (bAssault)
+			iLandDemandPercent = std::max(75, iLandDemandPercent);
+		iLandProductionShare = (iDomainTotalMilitaryProductionShare * iLandDemandPercent) / 100;
 	}
 
-	// <!-- custom: moved these below our pre-checks / pre-filtering out since we don't use them and they may interfere with our logic or cost performance needlessly -->
-	// <!-- custom: beginning of moved block -->
-	int const iCitizenValue = AI_citizenValue(); // advc
-
-	int const iLimitedWonderLimit = GC.getInfo(eBuildingClass).getLimit();
-	bool const bLimitedWonder = (iLimitedWonderLimit >= 0);
-
-	bool const bProvidesPower = (kBuilding.isPower() ||
-			(kBuilding.getPowerBonus() != NO_BONUS &&
-			hasBonus(kBuilding.getPowerBonus())) ||
-			kBuilding.isAreaCleanPower());
-	int const iTotalPopulation = kOwner.getTotalPopulation();
-
-	int const iNumCitiesInArea = getArea().getCitiesPerPlayer(eOwner);
-	// <K-Mod>
-	int const iCitiesTarget = GC.getInfo(GC.getMap().getWorldSize()).
-			getTargetNumCities(); // </K-Mod>
-
-	bool const bHighProductionCity = (iProductionRank <=
-			std::max(3, iNumCities / 2));
-
-	// <!-- custom: renamed iCultureRank to iCultureRateRank for consistency with other variables in this function -->
-	const int iCultureRateRank = findCommerceRateRank(COMMERCE_CULTURE);
-	// <!-- custom: performance optimizations -->
-	const int iGoldRateRank = findCommerceRateRank(COMMERCE_GOLD);
-
-	int const iCulturalVictoryNumCultureCities = kGame.culturalVictoryNumCultureCities();
-
-	bool const bFinancialTrouble = kOwner.AI_isFinancialTrouble();
-
-	// BETTER_BTS_AI_MOD, Victory Strategy AI, 03/08/10, jdog5000: START
-	bool const bCulturalVictory1 = kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE1);
-	bool const bCulturalVictory2 = kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE2);
-	bool const bCulturalVictory3 = kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE3);
-	bool const bSpaceVictory1 = kOwner.AI_atVictoryStage(AI_VICTORY_SPACE1);
-	// BETTER_BTS_AI_MOD: END
-
-	bool const bCanPopRush = /*kOwner.*/canPopRush(); // advc.912d
-
-	// <advc.131>
-	int iTotalBonusYieldMod = 0;
-	int iTotalImprFreeSpecialists = 0;
-	bool bAnySeaPlotYieldChange = false; // </advc.131>
-
-	// <K-Mod>
-	/*	This new value, iPriorityFactor, is used to boost the value of
-		productivity buildings without overvaluing productivity.
-		The point is to get the AI to build productiviy buildings quickly,
-		but not if they come with large negative side effects.
-		I may use it for other adjustments in the future. */
-	int iPriorityFactor = 100;
-
-	/*	bRemove means that we're evaluating the cost of losing this building
-		rather than adding it. the definition used here is just a kludge because
-		there currently isn't any other way to tell the difference.
-		Currently, bRemove is only in a few parts of the evaluation
-		where it is particularly important; for example, bRemove is critical for
-		calculating the lost value of obsoleting walls and castles.
-		There are several sections which could, in the future, be improved
-		using bRemove - but I don't see it as a high priority. */
-	bool const bRemove = (getNumBuilding(eBuilding) >= GC.getDefineINT(CvGlobals::CITY_MAX_NUM_BUILDINGS));
-	// advc.004c: bRemove && !bObsolete is OK; that means spy attack.
-	FAssert(!bObsolete || bRemove);
-
-	/*	Veto checks: return zero if the building is not suitable.
-		Note: these checks are essentially the same as in the original code,
-		they've just been moved. */
-	if (iFocusFlags & BUILDINGFOCUS_WORLDWONDER)
-	{
-		// <!-- custom: K-Mod 1030 moved the old top-three-production-city World Wonder condition into this early veto but kept the original <= 3 comparison, accidentally rejecting the cities it previously accepted. See KI#205. (ChatGPT-5.6-Sol) -->
-		if (!bWorldWonder || iProductionRank > 3) // advc.001 (from SAS): was <=
-		{
-			/*	Note / TODO: the production condition is from the original BtS code.
-				I intend to remove / change that condition in the future. */
-			return 0;
-		}
-	}
-
-	if (kBuilding.isCapital())
-		return 0;
-
-	// <advc.014>
-	if(GET_TEAM(eOwner).isCapitulated() && bWorldWonder &&
-		kBuilding.getHolyCity() == NO_RELIGION)
-	{
-		return 0;
-	} // </advc.014>
-	FOR_EACH_NON_DEFAULT_PAIR(kBuilding.
-		getReligionChange(), Religion, int)
-	{
-		if (perReligionVal.second > 0 &&
-			!kTeam.hasHolyCity(perReligionVal.first))
-		{
-			return 0;
-		}
-	}
-	// Construction value cache.
-	/*	Note: the WONDEROK and WORLDWONDER flags should not affect
-		the final value - and so cache should not be disabled by those flags. */
-	bool const bNeutralFlags = (iFocusFlags &
-			~(BUILDINGFOCUS_WONDEROK | BUILDINGFOCUS_WORLDWONDER)) == 0;
-	bool const bUseConstructionValueCache = (bNeutralFlags && iThreshold == 0);
-	if (bUseConstructionValueCache && m_aiConstructionValue[eBuildingClass] != -1)
-		return m_aiConstructionValue[eBuildingClass];
-	// </K-Mod>
 
 	ReligionTypes const eStateReligion = kOwner.getStateReligion();
 
@@ -8547,26 +9446,44 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 	// <!-- custom: code/performance optimization: hoist -->
 	static const SpecialistTypes eDefaultSpecialist = (SpecialistTypes)GC.getDEFAULT_SPECIALIST();
 
+	// <!-- custom: Current-state cache misses compute applicability once rather than once in each focus pass; prospective calls already computed both states above to decide whether the ordinary cache remains authoritative.
+	// Buildings without a domain-production modifier perform no unit scan. See KI#48.14. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	if (eAssumeTech == NO_TECH)
+	{
+		FOR_EACH_ENUM(Domain)
+		{
+			bool const bNeedsApplicability = (kBuilding.getDomainProductionModifier(eLoopDomain) != 0 && bDomainProductionApplicabilityOptimize);
+			abDomainProductionApplicable[eLoopDomain] = (!bNeedsApplicability || SAS_canTrainDomainUnit(*this, eLoopDomain, NO_TECH));
+		}
+	}
+
 	int iValue = 0;
+	SASBuildingValueDiagnosticsScope kDiagnostics(bLogBuildingValueDetails);
 	for (int iPass = 0; iPass < 2; iPass++)
 	{
+		bool const bLogBuildingValueDetailsThisPass = (bLogBuildingValueDetails && iPass > 0);
 		/*	K-Mod. This entire block was originally wrapped with the following condition:
 			if ((iFocusFlags == 0) || (iValue > 0) || (iPass == 0))
 			I've moved this condition to the end of the block
 			and tweaked it for better readability. */
 
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iDefenseBefore = iValue;
 		if ((iFocusFlags & BUILDINGFOCUS_DEFENSE) || iPass > 0)
 		{
 			// <advc> Moved into new function
 			iValue += AI_defensiveBuildingValue(eBuilding, bAreaAlone, bWarPlan,
 					iNumCities, iNumCitiesInArea, bRemove, bObsolete); // </advc>
 		}
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iDefenseDelta += iValue - kDiagnostics->iDefenseBefore;
 
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iEspionageDefenseBefore = iValue;
 		if ((iFocusFlags & BUILDINGFOCUS_ESPIONAGE) || iPass > 0)
 		{
 			iValue += kBuilding.getEspionageDefenseModifier() / 8;
 		}
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iEspionageDefenseDelta += iValue - kDiagnostics->iEspionageDefenseBefore;
 
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iHappinessBefore = iValue;
 		if (((iFocusFlags & BUILDINGFOCUS_HAPPY) || iPass > 0) && !isNoUnhappiness())
 		{
 			int iBestHappy = 0;
@@ -8596,7 +9513,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 			int iBuildingActualHappiness = getAdditionalHappinessByBuilding(
 					eBuilding,iGood,iBad);
 			// K-Mod
-			// <!-- custom: AdvC accidentally lost the negation around the post-building happiness level, so positive happiness could increase computed anger and reduce building value; restore K-Mod's runtime-consistent sign. See KI#880. (ChatGPT-5.6-Sol) -->
+			// <!-- custom: AdvC accidentally lost the negation around the post-building happiness level, so positive happiness could increase computed anger and reduce building value; restore K-Mod's runtime-consistent sign. See KI#880 and the broader audit in KI#48.5. (ChatGPT-5.6-Sol) -->
 			int iAngerDelta = std::max(0, -(iHappinessLevel + iBuildingActualHappiness)) - std::max(0, -iHappinessLevel);
 			// High value for any immediate change in anger.
 			iValue -= iAngerDelta * 4 * iCitizenValue;
@@ -8663,7 +9580,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 						kOwner.getBuildingClassCount(perBuildingClassVal.first) * 8);
 			}
 		}
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iHappinessDelta += iValue - kDiagnostics->iHappinessBefore;
 
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iHealthBefore = iValue;
 		if ((iFocusFlags & BUILDINGFOCUS_HEALTHY) || iPass > 0)
 			//&& !isNoUnhealthyPopulation() // K-Mod: commented out
 		{
@@ -8700,6 +9619,30 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 				(this is a positive change bias) */
 			if (iWasteDelta < 0 && iHappinessLevel > 0)
 				iValue -= iCitizenValue * iWasteDelta;
+
+			// <!-- custom: Strengthen only health relief that removes actual unhealthy-food waste: scale it smoothly with current severity, then add one citizen value only for relief that directly closes an existing food deficit.
+			// Keep the building's other effects additive rather than restoring the old whole-building health gate. See KI#48.6 and the broader audit in KI#48.5. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			if (iWasteDelta < 0)
+			{
+				// <!-- custom: These immutable XML weights are cached lazily inside the exercised health-relief path.
+				// The severity percentage applies to the average before/after deficit, while starvation relief is measured as a percentage of one citizen value per food deficit directly closed.
+				// Defaults 10 and 100 exactly preserve the validated KI#48.6 formula; 0 disables the corresponding added urgency without removing inherited health value. (GPT-5.6-Sol) -->
+				static int const iHealthSeverityUrgencyPercent = std::max(0, GC.getDefineINT("SAS_AI_BUILDING_VALUE_HEALTH_RELIEF_AVERAGE_DEFICIT_URGENCY_PERCENT"));
+				static int const iHealthStarvationUrgencyPercent = std::max(0, GC.getDefineINT("SAS_AI_BUILDING_VALUE_HEALTH_RELIEF_STARVATION_CITIZEN_VALUE_PERCENT"));
+				int const iHealthRelief = -iWasteDelta;
+				int const iHealthDeficitBefore = std::max(0, -iFutureHealthLevel);
+				int const iHealthDeficitAfter = std::max(0, -(iFutureHealthLevel + iBuildingActualHealth));
+				int const iHealthSeverityUrgencyBonus = iCitizenValue * iHealthRelief * (iHealthDeficitBefore + iHealthDeficitAfter) * iHealthSeverityUrgencyPercent / 200;
+				int const iStarvationRelief = std::min(iHealthRelief, std::max(0, -iFoodDifference));
+				int const iHealthStarvationUrgencyBonus = iCitizenValue * iStarvationRelief * iHealthStarvationUrgencyPercent / 100;
+				iValue += iHealthSeverityUrgencyBonus + iHealthStarvationUrgencyBonus;
+				if (bLogBuildingValueDetailsThisPass)
+				{
+					kDiagnostics->iHealthSeverityUrgencyBonus += iHealthSeverityUrgencyBonus;
+					kDiagnostics->iHealthStarvationUrgencyBonus += iHealthStarvationUrgencyBonus;
+				}
+			}
+
 			// finally, a little bit of value for health which gives us some padding
 			// advc.001h: Reduced first factor from 10 to 8 (minor balancing)
 			iValue += 8 * iCitizenValue * std::max(0, iBuildingActualHealth)/
@@ -8722,7 +9665,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 			iValue += kBuilding.getAreaHealth() * (iNumCitiesInArea-1) * 4;
 			iValue += kBuilding.getGlobalHealth() * iNumCities * 4;
 		}
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iHealthDelta += iValue - kDiagnostics->iHealthBefore;
 
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iExperienceBefore = iValue;
 		if (iFocusFlags & BUILDINGFOCUS_EXPERIENCE || iPass > 0)
 		{
 			/*	K-Mod (note). currently this new code matches the functionality
@@ -8756,9 +9701,31 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 					// advc.041: No longer guaranteed by the building's MinAreaSize
 					if(isCoastal(GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN) * 2))
 					{
-						/*	special case. Don't use 'iWeight' because, for sea,
-							bHighProductionCity may be too strict. */
-						iDomainXPValue *= 7;
+						if (bSeaExperienceThroughputOptimize && iDomainXPValue != 0)
+						{
+							// <!-- custom: K-Mod/AdvC gives DOMAIN_SEA XP a fixed *7 contribution in every qualifying coastal city.
+							// Tiny-Islands/Pangaea auditing showed the same +21 Drydock sea-XP value despite roughly 41% vs 10% subsequent naval military-production workload.
+							// Reuse the expected sea-production share from KI#48.11 and scale continuously toward the inherited full generic-XP weight of 12.
+							// A city expected to spend half of all production on naval units receives full weight; lower naval shares receive proportionally less, while stronger naval specialization is capped rather than allowed to dominate all other building effects. See KI#48.12. (ChatGPT-5.6-Sol) -->
+							int const iSeaExperience = iDomainXPValue;
+							int const iSeaExperienceWeight = std::min(12, (12 * iSeaProductionShare + 25) / 50);
+							int const iSeaExperienceThroughputValue = iSeaExperience * iSeaExperienceWeight;
+							int const iLegacySeaExperienceValue = iSeaExperience * 7;
+							iDomainXPValue = iSeaExperienceThroughputValue;
+							if (bLogBuildingValueDetailsThisPass)
+							{
+								logBBAI("BUILDING_VALUE_DOMAIN_SEA_FREE_EXPERIENCE_THROUGHPUT turn=%d player=%d city=%S cityId=%d building=%s seaExperience=%d totalMilitaryProductionShare=%d waterWorldPercent=%d seaProductionShare=%d experienceWeight=%d throughputValue=%d legacyValue=%d baseProduction=%d productionRank=%d numCities=%d highProductionCity=%d",
+									kGame.getGameTurn(), eOwner, getName().GetCString(), getID(), kBuilding.getType(), iSeaExperience,
+									iDomainTotalMilitaryProductionShare, iDomainWaterWorldPercent, iSeaProductionShare, iSeaExperienceWeight,
+									iSeaExperienceThroughputValue, iLegacySeaExperienceValue, iBaseHammersPerTurn, iProductionRank, iNumCities, bHighProductionCity);
+							}
+						}
+						else
+						{
+							/*	special case. Don't use 'iWeight' because, for sea,
+								bHighProductionCity may be too strict. */
+							iDomainXPValue *= 7;
+						}
 					}
 					break;
 				default:
@@ -8769,8 +9736,10 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 			}
 			// K-Mod end
 		}
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iExperienceDelta += iValue - kDiagnostics->iExperienceBefore;
 
 		// since this duplicates BUILDINGFOCUS_EXPERIENCE checks, do not repeat on pass 1
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iDomainSeaBefore = iValue;
 		if ((iFocusFlags & BUILDINGFOCUS_DOMAINSEA))
 		{
 			iValue += (iFreeExperience * (iHasMetCount > 0 ? 16 : 8));
@@ -8800,6 +9769,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 				iValue += (kBuilding.getDomainProductionModifier(DOMAIN_SEA) / 4);
 		}
 
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iDomainSeaDelta += iValue - kDiagnostics->iDomainSeaBefore;
+
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iMaintenanceBefore = iValue;
 		if ((iFocusFlags & BUILDINGFOCUS_MAINTENANCE) ||
 			(iFocusFlags & BUILDINGFOCUS_GOLD) || (iPass > 0))
 		{
@@ -8808,6 +9780,8 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 				(note. ideally we'd use "calculateBaseMaintenanceTimes100",
 				and that would a avoid problem caused by "we love the X day".
 				but doing it this way is slightly faster.) */
+			// <!-- custom: SAS regular-building migration audit: full-autoplay diagnostics showed that this inherited K-Mod path already scales maintenance value proportionally with actual savings, inflation and financial trouble.
+			// Small savings stayed small while multipurpose buildings could still be worthwhile for their other effects, so keep this additive valuation unchanged instead of restoring SAS's old whole-building "too soon" maintenance rejection. (ChatGPT-5.6-Sol) -->
 			if (kBuilding.getMaintenanceModifier())
 			{
 				int iBaseMaintenance = 100 * iMaintenanceTimes100 /
@@ -8817,8 +9791,10 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 						kBuilding.getMaintenanceModifier())) / 100;
 				// slightly more then 4x savings, just to accommodate growth.
 				int iTempValue = (iMaintenanceTimes100 - iNewUpkeep) / 22;
+				int const iPreInflationValue = iTempValue;
 				// We want absolute savings, including inflation.
 				iTempValue = iTempValue * (100+kOwner.calculateInflationRate()) / 100;
+				int const iInflatedValue = iTempValue;
 				/*	(note, not just for this particular city -
 					because this isn't direct gold production) */
 				/* iTempValue *= kOwner.AI_commerceWeight(COMMERCE_GOLD, 0);
@@ -8827,11 +9803,25 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 				if (bFinancialTrouble)
 					iTempValue = iTempValue*2;
 
+				if (bLogBuildingValueDetailsThisPass)
+				{
+					// <!-- custom: The audit retained this inherited K-Mod path: across 7,739 candidates, median estimated savings were 1.66 gold per turn and the median maintenance contribution was +10, while savings of at most 0.50 usually contributed only about +1.
+					// Record each valuation stage; the reconstructed base is explicitly labeled estimated because the faster inherited calculation can be distorted by We Love the King Day. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+					kDiagnostics->iMaintenanceCurrentTimes100 = iMaintenanceTimes100;
+					kDiagnostics->iMaintenanceEstimatedBaseTimes100 = iBaseMaintenance;
+					kDiagnostics->iMaintenanceNewUpkeepTimes100 = iNewUpkeep;
+					kDiagnostics->iMaintenanceSavedTimes100 = iMaintenanceTimes100 - iNewUpkeep;
+					kDiagnostics->iMaintenancePreInflationValue = iPreInflationValue;
+					kDiagnostics->iMaintenanceInflatedValue = iInflatedValue;
+					kDiagnostics->iMaintenanceFinalValue = iTempValue;
+				}
 				iValue += iTempValue;
 			}
 			// K-Mod end
 		}
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iMaintenanceDelta += iValue - kDiagnostics->iMaintenanceBefore;
 
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iSpecialistBefore = iValue;
 		if (/* advc.121b: */ !bIgnoreSpecialists &&
 			((iFocusFlags & BUILDINGFOCUS_SPECIALIST) || iPass > 0))
 		{
@@ -8872,7 +9862,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 				iValue += iSpecialistsValue;
 			// K-Mod end
 		}
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iSpecialistDelta += iValue - kDiagnostics->iSpecialistBefore;
 
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iTradeBefore = iValue;
 		if ((iFocusFlags & (BUILDINGFOCUS_GOLD | BUILDINGFOCUS_RESEARCH)) || iPass > 0)
 		{
 			// trade routes
@@ -8941,7 +9933,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 
 			iValue += iTempValue;
 		}
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iTradeDelta += iValue - kDiagnostics->iTradeBefore;
 
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iGeneralBefore = iValue;
 		if (iPass > 0)
 		{
 			/*	K-Mod. The value of golden age buildings.
@@ -9027,12 +10021,35 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 			if (kBuilding.isGovernmentCenter())
 			{
 				FAssert(!kBuilding.isCapital());
-				//iValue += ((calculateDistanceMaintenance() - 3) * iNumCitiesInArea);
-				// K-mod. More bonus for colonies, because it reduces that extra maintenance too.
-				int iTempValue = 2*(calculateDistanceMaintenance() - 2) * iNumCitiesInArea;
-				if (!kOwner.hasCapital() || !sameArea(*kOwner.getCapital()))
-					iTempValue *= 2;
-				iValue += iTempValue;
+				// <!-- custom: KI#48.17 replaces K-Mod's coarse candidate-city distance-maintenance proxy with projected empire-wide distance-maintenance savings; the parent KI#48.9 audit retires SAS's 99000 FORCE_HIGH_MAINTENANCE policy.
+				// For every own city, compare its current distance to the nearest government center with its distance to this candidate, project only the distance-maintenance reduction this new center would cause, and convert that GPT saving through the same /22, inflation and financial-trouble scale used by inherited maintenance-building valuation.
+				// This remains additive, lets ordinary production competition decide timing, and can favor geographically useful cities even when their own current maintenance or hammer rank is unremarkable.
+				// The secondary colony-maintenance-cap benefit is intentionally omitted: Tiny Islands already produced several natural Forbidden Palaces without it, so retaining the conservative measured component avoids adding unvalidated extra value. See KI#48.17. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				int iDistanceMaintenanceSavingsTimes100 = 0;
+				FOR_EACH_CITY(pGovernmentCenterCity, kOwner)
+				{
+					int const iCurrentDistance = CvCity::calculateMaintenanceDistance(pGovernmentCenterCity->plot(), eOwner);
+					if (iCurrentDistance <= 0)
+						continue;
+					int const iCandidateDistance = plotDistance(pGovernmentCenterCity->plot(), plot());
+					if (iCandidateDistance >= iCurrentDistance)
+						continue;
+
+					int const iCurrentDistanceMaintenanceTimes100 = pGovernmentCenterCity->calculateDistanceMaintenanceTimes100();
+					int const iProjectedDistanceMaintenanceTimes100 =
+							(iCurrentDistanceMaintenanceTimes100 * iCandidateDistance) / iCurrentDistance;
+					int iSavedDistanceMaintenanceTimes100 = iCurrentDistanceMaintenanceTimes100 - iProjectedDistanceMaintenanceTimes100;
+					iSavedDistanceMaintenanceTimes100 *= std::max(0, 100 + pGovernmentCenterCity->getMaintenanceModifier());
+					iSavedDistanceMaintenanceTimes100 /= 100;
+					iDistanceMaintenanceSavingsTimes100 += iSavedDistanceMaintenanceTimes100;
+				}
+
+				int iGovernmentCenterValue = iDistanceMaintenanceSavingsTimes100 / 22;
+				iGovernmentCenterValue *= 100 + kOwner.calculateInflationRate();
+				iGovernmentCenterValue /= 100;
+				if (bFinancialTrouble)
+					iGovernmentCenterValue *= 2;
+				iValue += iGovernmentCenterValue;
 				// K-Mod end
 			}
 
@@ -9161,9 +10178,11 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 			iValue += (-(kBuilding.getNukeModifier()) / ((iHasMetCount > 0) ? 10 : 20));*/ // BtS
 			// (This stuff is already counted in the defense section.)
 			// <K-Mod>
+			if (bLogBuildingValueDetailsThisPass) kDiagnostics->iAirCapacityBefore = iValue;
 			iValue += std::max(0, kBuilding.getAirUnitCapacity() -
 					getPlot().airUnitSpaceAvailable(getTeam())/2) *
 					(iPop + 12); // </K-Mod>
+			if (bLogBuildingValueDetailsThisPass) kDiagnostics->iAirCapacityDelta += iValue - kDiagnostics->iAirCapacityBefore;
 
 			/*iValue += (kBuilding.getFreeSpecialist() * 16);
 			iValue += (kBuilding.getAreaFreeSpecialist() * iNumCitiesInArea * 12);
@@ -9196,8 +10215,39 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 			iValue += ((kBuilding.getWorkerSpeedModifier() *
 					kOwner.AI_getNumAIUnits(UNITAI_WORKER)) / 10);
 
-			if (iHasMetCount > 0 && iMilitaryProductionModifier > 0)
+			if (bLogBuildingValueDetailsThisPass) kDiagnostics->iMilitaryProductionBefore = iValue;
+			static const bool bMilitaryProductionThroughputOptimize = GC.getDefineBOOL("SAS_AI_BUILDING_VALUE_MILITARY_PRODUCTION_MODIFIER_THROUGHPUT_OPTIMIZE");
+			if (bMilitaryProductionThroughputOptimize && iMilitaryProductionModifier != 0)
 			{
+				// <!-- custom: K-Mod/AdvC valued a positive MilitaryProductionModifier mostly by modifier size and ordinal production rank, which cannot distinguish nearly equal 100/99/98/97-hammer cities from 100/10/3/1 and also ignores negative modifiers and pre-contact positive value.
+				// Use expected throughput instead: K-Mod's ordinary yield-modifier scale is modifier * (base production + 2) / 25, and AI_buildUnitProb is a percentage, so the combined denominator is 2500 = 25 * 100; the +2 allows near-term growth.
+				// Reuse AI_buildUnitProb because a cheaper proxy correlated only about 0.32 across 5,748 same-turn snapshots; the authoritative estimate already includes financial pressure, XP specialization, era pacing, military power/throttling and SAS under-strength response.
+				// Only buildings with a generic MilitaryProductionModifier pay for that extra evaluation, and a clean Pangaea A/B found no measurable per-turn regression.
+				// Preserve free-experience synergy separately and audit Heroic-Epic/domain placement independently; retain the legacy toggle for comparison. See KI#48.10. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				int const iMilitaryProductionShare = AI_buildUnitProb();
+				// <!-- custom: A one-per-player positive military-production National Wonder is itself a specialization decision, so the empire-wide ordinary unit-production share understates how heavily its chosen city will use the modifier after construction.
+				// The KI#48.16 0/75/100 Pangaea validation found the full-specialization default moved Heroic Epic into useful production cities much earlier while every accepted build remained 1-6 turns and ordinary production competition still rejected most opportunities.
+				// Keep the tested floor XML-tunable and additive rather than reviving the old rank bonus or force-first sentinel. See KI#48.16. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				static const int iMilitaryNationalWonderUnitShareFloorPercent = range(GC.getDefineINT("SAS_AI_BUILDING_VALUE_MILITARY_NATIONAL_WONDER_UNIT_PRODUCTION_SHARE_FLOOR_PERCENT"), 0, 100);
+				int const iEffectiveMilitaryProductionShare = (bNationalWonder && iMilitaryProductionModifier > 0 ? std::max(iMilitaryProductionShare, iMilitaryNationalWonderUnitShareFloorPercent) : iMilitaryProductionShare);
+				// <!-- custom: Mirror K-Mod's ordinary yield-modifier allowance for near-term growth. (ChatGPT-5.6-Sol) -->
+				int const iMilitaryProductionBaseRate = iBaseHammersPerTurn + 2;
+				int const iMilitaryProductionThroughputValue = (iMilitaryProductionModifier * iMilitaryProductionBaseRate * iEffectiveMilitaryProductionShare) / 2500;
+				iValue += iMilitaryProductionThroughputValue;
+				if (iMilitaryProductionModifier > 0)
+				{
+					iValue += (iMilitaryProductionModifier * (getFreeExperience() + getSpecialistFreeExperience())) / 10;
+				}
+				if (bLogBuildingValueDetailsThisPass)
+				{
+					logBBAI("BUILDING_VALUE_MILITARY_PRODUCTION_THROUGHPUT turn=%d player=%d city=%S cityId=%d building=%s modifier=%d baseProduction=%d baseRateWithGrowth=%d unitProductionShare=%d effectiveUnitProductionShare=%d throughputValue=%d productionRank=%d numCities=%d limited=%d nationalWonder=%d hasMetCount=%d",
+						kGame.getGameTurn(), eOwner, getName().GetCString(), getID(), kBuilding.getType(), iMilitaryProductionModifier, iBaseHammersPerTurn,
+						iMilitaryProductionBaseRate, iMilitaryProductionShare, iEffectiveMilitaryProductionShare, iMilitaryProductionThroughputValue, iProductionRank, iNumCities, bLimitedWonder, bNationalWonder, iHasMetCount);
+				}
+			}
+			else if (!bMilitaryProductionThroughputOptimize && iHasMetCount > 0 && iMilitaryProductionModifier > 0)
+			{
+				// <!-- custom: Legacy K-Mod/AdvC valuation retained for controlled A/B testing. (ChatGPT-5.6-Sol) -->
 				// either not a wonder, or a wonder and we are a high production city
 				if (!bLimitedWonder || bHighProductionCity)
 				{
@@ -9229,6 +10279,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 							iProductionRank) / 5;
 				}
 			}
+			if (bLogBuildingValueDetailsThisPass) kDiagnostics->iMilitaryProductionDelta += iValue - kDiagnostics->iMilitaryProductionBefore;
 
 			iValue += (kBuilding.getSpaceProductionModifier() / 5);
 			iValue += ((kBuilding.getGlobalSpaceProductionModifier() * iNumCities) / 20);
@@ -9336,12 +10387,69 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 						perImprovementVal.second;
 				iTotalImprFreeSpecialists += perImprovementVal.second; // advc.131
 			}
+			if (bLogBuildingValueDetailsThisPass) kDiagnostics->iDomainProductionBefore = iValue;
 			FOR_EACH_ENUM(Domain)
 			{
-				iValue += (kBuilding.getDomainProductionModifier(eLoopDomain) / 5);
-				if (bHighProductionCity)
-					iValue += kBuilding.getDomainProductionModifier(eLoopDomain) / 5;
+				int const iDomainProductionModifier = kBuilding.getDomainProductionModifier(eLoopDomain);
+				if (bDomainProductionApplicabilityOptimize && !abDomainProductionApplicable[eLoopDomain])
+				{
+					// <!-- custom: Remove only the unusable domain-production component, not the whole multipurpose building.
+					// AI_techBuildingValue passes its prospective technology and guaranteed prerequisites so a unit unlocked before/by the building technology keeps the component applicable; ordinary production uses current trainability. See KI#48.14. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+					if (bLogBuildingValueDetailsThisPass)
+						logBBAI("BUILDING_VALUE_DOMAIN_PRODUCTION_INAPPLICABLE turn=%d player=%d city=%S cityId=%d building=%s domain=%d modifier=%d assumedTech=%d",
+							kGame.getGameTurn(), eOwner, getName().GetCString(), getID(), kBuilding.getType(), eLoopDomain, iDomainProductionModifier, eAssumeTech);
+					continue;
+				}
+				if (bLandProductionThroughputOptimize && eLoopDomain == DOMAIN_LAND && iDomainProductionModifier != 0)
+				{
+					// <!-- custom: Inherited DOMAIN_LAND valuation is a fixed modifier/5 plus a binary high-production-city bonus.
+					// The Heroic-Epic scope audit showed that this flattens city specialization: e.g. a 15-hammer Pangaea pump with ~67% unit demand fell from generic-throughput value 22 to fixed domain value 20, while a 6-hammer city rose from 10 to the same 20.
+					// Use the same base-throughput scale as generic military production, but only for the contextual land-demand share above. See KI#48.13. (ChatGPT-5.6-Sol) -->
+					int const iLandProductionBaseRate = iBaseHammersPerTurn + 2;
+					int const iLandProductionThroughputValue = (iDomainProductionModifier * iLandProductionBaseRate * iLandProductionShare) / 2500;
+					iValue += iLandProductionThroughputValue;
+					if (bLogBuildingValueDetailsThisPass)
+					{
+						int iLegacyDomainProductionValue = iDomainProductionModifier / 5;
+						if (bHighProductionCity)
+							iLegacyDomainProductionValue += iDomainProductionModifier / 5;
+						SASLocalAreaRivalContext const kLocalRivals(kOwner, getArea());
+						logBBAI("BUILDING_VALUE_DOMAIN_LAND_PRODUCTION_THROUGHPUT turn=%d player=%d city=%S cityId=%d building=%s modifier=%d baseProduction=%d baseRateWithGrowth=%d totalMilitaryProductionShare=%d waterWorldPercent=%d landDemandPercent=%d landProductionShare=%d areaAI=%d landWar=%d assault=%d throughputValue=%d legacyValue=%d productionRank=%d numCities=%d highProductionCity=%d independentRivalTeamsInArea=%d unknownIndependentRivalTeamsInArea=%d independentRivalCitiesInArea=%d localPowerAdvantagePercent=%d",
+							kGame.getGameTurn(), eOwner, getName().GetCString(), getID(), kBuilding.getType(), iDomainProductionModifier,
+							iBaseHammersPerTurn, iLandProductionBaseRate, iDomainTotalMilitaryProductionShare, iDomainWaterWorldPercent,
+							iLandDemandPercent, iLandProductionShare, iLandAreaAI, bLandWar, bAssault, iLandProductionThroughputValue,
+							iLegacyDomainProductionValue, iProductionRank, iNumCities, bHighProductionCity, kLocalRivals.iIndependentRivalTeams,
+							kLocalRivals.iUnknownIndependentRivalTeams, kLocalRivals.iIndependentRivalCities, kLocalRivals.iLocalPowerAdvantagePercent);
+					}
+				}
+				else if (bSeaProductionThroughputOptimize && eLoopDomain == DOMAIN_SEA && iDomainProductionModifier != 0)
+				{
+					// <!-- custom: K-Mod/AdvC values DOMAIN_SEA production as modifier/5, doubled only by a binary high-production-city flag.
+					// Pangaea vs Tiny-Islands audit found almost the same Drydock adoption (~40% vs ~43%) and only a small inherited contribution difference (~13 vs ~15), despite post-Drydock sea units consuming ~10% vs ~41% of military-unit production respectively.
+					// Reuse the generic military-throughput scale, but multiply total military demand by K-Mod's existing AI_calculateWaterWorldPercent estimate so sea-production value follows both actual city hammers and the strategic need to produce naval units.
+					// Preserve other domains except the separately switchable DOMAIN_LAND throughput audit; DOMAIN_SEA XP is valued separately above and remains independently switchable. See KI#48.11. (ChatGPT-5.6-Sol) -->
+					int const iSeaProductionBaseRate = iBaseHammersPerTurn + 2;
+					int const iSeaProductionThroughputValue = (iDomainProductionModifier * iSeaProductionBaseRate * iSeaProductionShare) / 2500;
+					iValue += iSeaProductionThroughputValue;
+					if (bLogBuildingValueDetailsThisPass)
+					{
+						int iLegacyDomainProductionValue = iDomainProductionModifier / 5;
+						if (bHighProductionCity)
+							iLegacyDomainProductionValue += iDomainProductionModifier / 5;
+						logBBAI("BUILDING_VALUE_DOMAIN_SEA_PRODUCTION_THROUGHPUT turn=%d player=%d city=%S cityId=%d building=%s modifier=%d baseProduction=%d baseRateWithGrowth=%d totalMilitaryProductionShare=%d waterWorldPercent=%d seaProductionShare=%d throughputValue=%d legacyValue=%d productionRank=%d numCities=%d highProductionCity=%d",
+							kGame.getGameTurn(), eOwner, getName().GetCString(), getID(), kBuilding.getType(), iDomainProductionModifier,
+							iBaseHammersPerTurn, iSeaProductionBaseRate, iDomainTotalMilitaryProductionShare, iDomainWaterWorldPercent, iSeaProductionShare,
+							iSeaProductionThroughputValue, iLegacyDomainProductionValue, iProductionRank, iNumCities, bHighProductionCity);
+					}
+				}
+				else
+				{
+					iValue += iDomainProductionModifier / 5;
+					if (bHighProductionCity)
+						iValue += iDomainProductionModifier / 5;
+				}
 			}
+			if (bLogBuildingValueDetailsThisPass) kDiagnostics->iDomainProductionDelta += iValue - kDiagnostics->iDomainProductionBefore;
 
 			FOR_EACH_ENUM(Unit)
 			{
@@ -9395,8 +10503,10 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 							other cities will probably build it themselves
 							before they get the freebie!
 							(that's why I reduce the city count below) */
+						// <!-- custom: Prospective domain applicability belongs to the building directly enabled by the valued technology.
+						// Keep recursively valued free buildings on authoritative current-state/cache semantics. See KI#48.14. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 						int iFreeBuildingValue = std::min(
-								AI_buildingValue(eFreeBuilding, 0, 0, bConstCache, false),
+								AI_buildingValue(eFreeBuilding, 0, 0, bConstCache, false, false, false, NO_TECH),
 								kOwner.getProductionNeeded(eFreeBuilding) / 2);
 						iValue += iFreeBuildingValue *
 								(std::max(iCitiesTarget, iNumCities*2/3) -
@@ -9452,8 +10562,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 						if (iXMLCost > 0 &&
 							iLoopXMLCost > 0)
 						{
+						// <!-- custom: Keep recursive prerequisite-building value on current-state/cache semantics; the candidate technology applies only to the directly evaluated building. See KI#48.14. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 							int iTempValue = AI_buildingValue(
-									eLoopBuilding, 0, 0, bConstCache, false);
+									eLoopBuilding, 0, 0, bConstCache, false, false, false, NO_TECH);
 							if (iTempValue > 0)
 							{
 								/*	scale the bonus value by a rough approximation of
@@ -9508,7 +10619,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 							// This is a speculative cross-city prerequisite-value probe, so a cache miss in another city must stay side-effect free. See KI#821. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 							iHighestValue = std::max(
 									pLoopCity->AI_buildingValue(
-									eLoopBuilding, 0, 0, true, false),
+									eLoopBuilding, 0, 0, true, false, false, false, NO_TECH),
 									iHighestValue);
 						}
 					}
@@ -9724,7 +10835,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 				// BETTER_BTS_AI_MOD: END
 			}
 		}
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iGeneralDelta += iValue - kDiagnostics->iGeneralBefore;
 
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iYieldBefore = iValue;
 		if (iPass > 0)
 		{
 			/*	K-Mod, I've moved this from inside the yield types loop;
@@ -9785,6 +10898,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 				/*	(K-Mod)...and now the things that should not depend
 					on whether or not we have a good yield rank */
 				int iRawYieldValue = 0;
+				int iDiagSeaLocalRawValue = 0;
 				/*	K-Mod, don't count trade commerce here, because that has already
 					been counted earlier... (the systme is a mess, I know.) */
 				if (eLoopYield != YIELD_COMMERCE)
@@ -9806,11 +10920,11 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 				// advc.131: was >
 				if (kBuilding.getSeaPlotYieldChange(eLoopYield) != 0)
 				{
-					iRawYieldValue += kBuilding.getSeaPlotYieldChange(eLoopYield) *
-							//AI_buildingSpecialYieldChangeValue(eBuilding, eLoopYield);
-							// <K-Mod>
-							AI_buildingSeaYieldChangeWeight(eBuilding,
-							iFoodDifference > 0 && iHappinessLevel > 0); // </K-Mod>
+					int const iSeaYieldPlotWeight = AI_buildingSeaYieldChangeWeight(eBuilding, iFoodDifference > 0 && iHappinessLevel > 0);
+					iDiagSeaLocalRawValue = kBuilding.getSeaPlotYieldChange(eLoopYield) * iSeaYieldPlotWeight;
+					iRawYieldValue += iDiagSeaLocalRawValue;
+					if (bLogBuildingValueDetailsThisPass)
+						kDiagnostics->iSeaYieldPlotWeight = iSeaYieldPlotWeight;
 					bAnySeaPlotYieldChange = true; // advc.131
 				}
 				// advc.131: was >
@@ -9821,7 +10935,8 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 				}
 				iRawYieldValue += kBuilding.getYieldChange(eLoopYield) * 4; // was 6
 
-				iRawYieldValue *= AI_yieldMultiplier(eLoopYield);
+				int const iYieldMultiplier = AI_yieldMultiplier(eLoopYield);
+				iRawYieldValue *= iYieldMultiplier;
 				iRawYieldValue /= 100;
 				iTempValue += iRawYieldValue;
 				FOR_EACH_NON_DEFAULT_PAIR(kBuilding.
@@ -9830,8 +10945,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 					iTempValue += (perSpecialistVal.second[eLoopYield] *
 							iTotalPopulation) / 5;
 				}
-				iTempValue += kBuilding.getGlobalSeaPlotYieldChange(eLoopYield) *
+				int const iDiagSeaGlobalRawValue = kBuilding.getGlobalSeaPlotYieldChange(eLoopYield) *
 						kOwner.countNumCoastalCities() * 8;
+				iTempValue += iDiagSeaGlobalRawValue;
 				iTempValue += (kBuilding.getAreaYieldModifier(eLoopYield) *
 						iNumCitiesInArea) / 3;
 				iTempValue += (kBuilding.getGlobalYieldModifier(eLoopYield) *
@@ -9845,10 +10961,25 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 					if (eLoopYield == YIELD_PRODUCTION)
 					{
 						// priority += 2.4% per 1% in production increase. roughly. More when at war.
-						iPriorityFactor += std::min(100, (bWarPlan ? 280 : 240) *
-								iTempValue/std::max(1, 4*getYieldRate(YIELD_PRODUCTION)));
+						int const iYieldProductionPriorityRaw = (bWarPlan ? 280 : 240) * iTempValue/std::max(1, 4*getYieldRate(YIELD_PRODUCTION));
+						int const iYieldProductionPriorityApplied = std::min(100, iYieldProductionPriorityRaw);
+						iPriorityFactor += iYieldProductionPriorityApplied;
+						if (bLogBuildingValueDetailsThisPass)
+						{
+							kDiagnostics->iYieldProductionPriorityRaw += iYieldProductionPriorityRaw;
+							kDiagnostics->iYieldProductionPriorityApplied += iYieldProductionPriorityApplied;
+						}
 					} // K-Mod end
-					iTempValue *= kOwner.AI_yieldWeight(eLoopYield, this);
+					int const iYieldWeight = kOwner.AI_yieldWeight(eLoopYield, this);
+					if (bLogBuildingValueDetailsThisPass && (iDiagSeaLocalRawValue != 0 || iDiagSeaGlobalRawValue != 0))
+					{
+						int iDiagSeaValue = iDiagSeaLocalRawValue * iYieldMultiplier / 100 + iDiagSeaGlobalRawValue;
+						iDiagSeaValue = iDiagSeaValue * iYieldWeight / 100;
+						if (eLoopYield == YIELD_FOOD) kDiagnostics->iSeaFoodDelta += iDiagSeaValue;
+						else if (eLoopYield == YIELD_PRODUCTION) kDiagnostics->iSeaProductionDelta += iDiagSeaValue;
+						else if (eLoopYield == YIELD_COMMERCE) kDiagnostics->iSeaCommerceDelta += iDiagSeaValue;
+					}
+					iTempValue *= iYieldWeight;
 					iTempValue /= 100;
 					// (limited wonder condition use to be here. I've moved it. - Karadoc)
 					iValue += iTempValue;
@@ -9946,6 +11077,8 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 				iValue += iTempValue;
 			}
 		}
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iYieldDelta += iValue - kDiagnostics->iYieldBefore;
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iCommerceGlobalBefore = iValue;
 		if (iPass > 0)
 		{
 			FOR_EACH_ENUM(Commerce)
@@ -9997,6 +11130,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 						AI_needsCultureToWorkFullRadius())
 					{
 						iPriorityFactor += 25;
+						if (bLogBuildingValueDetails) kDiagnostics->iCulturePriorityBoost += 25;
 						//iTempValue += 16;
 						/*	<advc.192> (This will execute mostly in the early game.
 							We have time for some computations.) */
@@ -10041,6 +11175,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 							treatment for fast expansion in AI_chooseProduction. */
 						if (!AI_isSwiftBorderExpansion(getProductionTurnsLeft(eBuilding, 0)))
 							iClaimValue /= 2;
+						if (bLogBuildingValueDetails) kDiagnostics->iCultureClaimValue = iClaimValue;
 						iTempValue += iClaimValue;
 						//</advc.192>
 					} // K-Mod end
@@ -10273,6 +11408,10 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 				{
 					if (bFinancialTrouble && eLoopCommerce == COMMERCE_GOLD)
 						iTempValue *= 2;
+					if (bLogBuildingValueDetails && eLoopCommerce == COMMERCE_GOLD) kDiagnostics->iGoldBeforeWeight = iTempValue;
+					if (bLogBuildingValueDetails && eLoopCommerce == COMMERCE_RESEARCH) kDiagnostics->iResearchBeforeWeight = iTempValue;
+					if (bLogBuildingValueDetails && eLoopCommerce == COMMERCE_CULTURE) kDiagnostics->iCultureBeforeWeight = iTempValue;
+					if (bLogBuildingValueDetails && eLoopCommerce == COMMERCE_ESPIONAGE) kDiagnostics->iEspionageBeforeWeight = iTempValue;
 					/*	advc.192: Culture weight doesn't account for additional
 						workable plots. If that's what we're after, we should
 						ignore the weight (which is going to be small). */
@@ -10281,6 +11420,10 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 						iTempValue *= kOwner.AI_commerceWeight(eLoopCommerce, this);
 						iTempValue = intdiv::uceil(iTempValue, 100);
 					}
+					if (bLogBuildingValueDetails && eLoopCommerce == COMMERCE_GOLD) kDiagnostics->iGoldAfterWeight = iTempValue;
+					if (bLogBuildingValueDetails && eLoopCommerce == COMMERCE_RESEARCH) kDiagnostics->iResearchAfterWeight = iTempValue;
+					if (bLogBuildingValueDetails && eLoopCommerce == COMMERCE_CULTURE) kDiagnostics->iCultureAfterWeight = iTempValue;
+					if (bLogBuildingValueDetails && eLoopCommerce == COMMERCE_ESPIONAGE) kDiagnostics->iEspionageAfterWeight = iTempValue;
 					/*	if this is a limited wonder, and we are not in the top 4
 						of this category, subtract the value - we do _not_ want this here
 						(unless the value was small anyway) */
@@ -10318,6 +11461,10 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 							iTempValue *= -1;
 						}
 					} // K-Mod end
+					if (bLogBuildingValueDetails && eLoopCommerce == COMMERCE_GOLD) kDiagnostics->iGoldDelta = iTempValue;
+					if (bLogBuildingValueDetails && eLoopCommerce == COMMERCE_RESEARCH) kDiagnostics->iResearchDelta = iTempValue;
+					if (bLogBuildingValueDetails && eLoopCommerce == COMMERCE_CULTURE) kDiagnostics->iCultureDelta = iTempValue;
+					if (bLogBuildingValueDetails && eLoopCommerce == COMMERCE_ESPIONAGE) kDiagnostics->iEspionageDelta = iTempValue;
 					iValue += iTempValue;
 				}
 			}
@@ -10588,6 +11735,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 				// BETTER_BTS_AI_MOD: END
 			}
 		}
+		if (bLogBuildingValueDetailsThisPass) kDiagnostics->iCommerceGlobalDelta += iValue - kDiagnostics->iCommerceGlobalBefore;
 
 		/*if ((iThreshold > 0) && (iPass == 0))
 		{
@@ -10605,6 +11753,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 	// K-Mod
 	if (iValue > 0)
 	{
+		if (bLogBuildingValueDetails) kDiagnostics->iValueBeforePriority = iValue;
 		// priority factor
 		if (bWorldWonder)
 		{
@@ -10617,11 +11766,18 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 			iValue *= iPriorityFactor;
 			iValue /= 100;
 		}
+		if (bLogBuildingValueDetails)
+		{
+			kDiagnostics->iValueAfterPriority = iValue;
+			kDiagnostics->iValueBeforeAIWeight = iValue;
+			kDiagnostics->iValueAfterAIWeight = iValue;
+		}
 
 		// flavour factor. (original flavour code deleted)
 		if (!isHuman())
 		{
 			iValue += kBuilding.getAIWeight();
+			if (bLogBuildingValueDetails) kDiagnostics->iValueAfterAIWeight = iValue;
 			if (iValue > 0 &&
 				// K-Mod. Only use flavour adjustments for constructing ordinary buildings.
 				iXMLCost > 0 && !bRemove)
@@ -10635,11 +11791,13 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 					iFlavour += std::min(kOwner.AI_getFlavorValue(perFlavorVal.first),
 							perFlavorVal.second); // </K-Mod>
 				}
+				if (bLogBuildingValueDetails) kDiagnostics->iFlavorMatch = iFlavour;
 				// K-Mod. (This will give +100% for 10-10 flavour matchups.)
 				//iValue = iValue * (10 + iFlavour) / 10;
 				iValue = iValue * (8 + iFlavour) / 12; // advc.020
 			}
 		}
+		if (bLogBuildingValueDetails) kDiagnostics->iValueAfterFlavor = iValue;
 	} // <advc.131>
 	if (iValue > 0 &&
 		bNationalWonder && isCapital() &&
@@ -10672,7 +11830,34 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 	if (bUseConstructionValueCache && !bConstCache)
 		m_aiConstructionValue[eBuildingClass] = iValue;
 	// K-Mod end
-
+	if (bLogBuildingValueDetails) SAS_logDomainApplicability(*this, eBuilding, iProductionRank, iNumCities, bHighProductionCity, iDomainTotalMilitaryProductionShare, iDomainWaterWorldPercent, iLandDemandPercent, iLandProductionShare, iSeaProductionShare);
+	if (bLogBuildingValueDetails && bWonder)
+	{
+		SAS_logInheritedWonderValue(*this, eBuilding, iValue, iPriorityFactor,
+			kDiagnostics->iValueBeforePriority, kDiagnostics->iValueAfterPriority, kDiagnostics->iValueBeforeAIWeight, kDiagnostics->iValueAfterAIWeight, kDiagnostics->iFlavorMatch, kDiagnostics->iValueAfterFlavor,
+			kDiagnostics->iDefenseDelta, kDiagnostics->iEspionageDefenseDelta, kDiagnostics->iHappinessDelta, kDiagnostics->iHealthDelta, kDiagnostics->iExperienceDelta, kDiagnostics->iDomainSeaDelta,
+			kDiagnostics->iMaintenanceDelta, kDiagnostics->iSpecialistDelta, kDiagnostics->iTradeDelta, kDiagnostics->iGeneralDelta, kDiagnostics->iYieldDelta, kDiagnostics->iCommerceGlobalDelta,
+			kDiagnostics->iAirCapacityDelta, kDiagnostics->iMilitaryProductionDelta, kDiagnostics->iDomainProductionDelta, kDiagnostics->iGoldDelta, kDiagnostics->iResearchDelta,
+			kDiagnostics->iCultureDelta, kDiagnostics->iEspionageDelta, kDiagnostics->iSeaFoodDelta, kDiagnostics->iSeaProductionDelta, kDiagnostics->iSeaCommerceDelta);
+	}
+	else if (bLogBuildingValueDetails && !bWonder)
+	{
+		SAS_logInheritedBuildingValue(*this, eBuilding, iValue, iPriorityFactor, kDiagnostics->iDefenseDelta, kDiagnostics->iEspionageDefenseDelta,
+			kDiagnostics->iHappinessDelta, kDiagnostics->iHealthDelta, kDiagnostics->iExperienceDelta, kDiagnostics->iDomainSeaDelta, kDiagnostics->iMaintenanceDelta, kDiagnostics->iSpecialistDelta,
+			kDiagnostics->iTradeDelta, kDiagnostics->iGeneralDelta, kDiagnostics->iYieldDelta, kDiagnostics->iCommerceGlobalDelta, kDiagnostics->iAirCapacityDelta, kDiagnostics->iMilitaryProductionDelta,
+			kDiagnostics->iDomainProductionDelta, kDiagnostics->iHealthSeverityUrgencyBonus, kDiagnostics->iHealthStarvationUrgencyBonus,
+			kDiagnostics->iMaintenanceCurrentTimes100, kDiagnostics->iMaintenanceEstimatedBaseTimes100, kDiagnostics->iMaintenanceNewUpkeepTimes100, kDiagnostics->iMaintenanceSavedTimes100,
+			kDiagnostics->iMaintenancePreInflationValue, kDiagnostics->iMaintenanceInflatedValue, kDiagnostics->iMaintenanceFinalValue,
+			kDiagnostics->iValueBeforePriority, kDiagnostics->iValueAfterPriority, kDiagnostics->iValueBeforeAIWeight, kDiagnostics->iValueAfterAIWeight, kDiagnostics->iFlavorMatch, kDiagnostics->iValueAfterFlavor,
+			kDiagnostics->iGoldDelta, kDiagnostics->iGoldBeforeWeight, kDiagnostics->iGoldAfterWeight,
+			kDiagnostics->iResearchDelta, kDiagnostics->iResearchBeforeWeight, kDiagnostics->iResearchAfterWeight,
+			kDiagnostics->iCultureDelta, kDiagnostics->iCultureClaimValue, kDiagnostics->iCulturePriorityBoost, kDiagnostics->iCultureBeforeWeight, kDiagnostics->iCultureAfterWeight,
+			kDiagnostics->iEspionageDelta, kDiagnostics->iEspionageBeforeWeight, kDiagnostics->iEspionageAfterWeight,
+			kDiagnostics->iSeaFoodDelta, kDiagnostics->iSeaProductionDelta, kDiagnostics->iSeaCommerceDelta, kDiagnostics->iSeaYieldPlotWeight,
+			kDiagnostics->iYieldProductionPriorityRaw, kDiagnostics->iYieldProductionPriorityApplied);
+	}
+	if (eAssumeTech == NO_TECH)
+		iValue = SAS_adjustUnhealthinessReducerWonderForMilitaryPressure(*this, eBuilding, iValue);
 	return iValue;
 }
 
@@ -10685,7 +11870,7 @@ int CvCityAI::AI_defensiveBuildingValue(BuildingTypes eBuilding, bool bAreaAlone
 	// <!-- custom: performance optimization: cache repetitive calls -->
 	CvGame const& kGame = GC.getGame();
 
-	// <!-- custom: cache to kTeam for perf opt if i'm not mistaken. See note at CvCityAI::AI_buildingValue. -->
+	// <!-- custom: Keep this practical-5282 GET_TEAM cache as CvTeamAI: some sibling cache sites compile when narrowed to CvTeam, while others fail because they use AI-only team members or helpers requiring CvTeamAI; retain CvTeamAI across this cache family to avoid tedious per-site type exceptions. See KI#311.2. (ChatGPT-5.6-Sol) -->
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 	CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam()); // kekm.16
 
@@ -10767,6 +11952,8 @@ int CvCityAI::AI_defensiveBuildingValue(BuildingTypes eBuilding, bool bAreaAlone
 	}
 	//r += -kBuilding.getNukeModifier() / (g.isNukesValid() && !g.isNoNukes() ? 4 : 40);
 	// K-Mod end
+	// <!-- custom: September 2026 audit confirmed inherited conventional-defense value is already modest/contextual outside real danger, so do not restore SAS's old whole-building safe-city rejection.
+	// See KI#48.5 for the audit and KI#48.7 for the separate nuclear-defense outlier/fix. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	// <kekm.16> Replacing the line above.
 	// DarkLunaPhantom - "Bomb Shelters should be of much higher value, I copied and adjusted rough estimates from AI_projectValue()."
 	int iNukeDefense = -kBuilding.getNukeModifier();
@@ -10788,13 +11975,16 @@ int CvCityAI::AI_defensiveBuildingValue(BuildingTypes eBuilding, bool bAreaAlone
 		int iTargetValue = AI_nukeEplosionValue();
 		/*  "Lazy attempt to estimate the value of the strongest
 			unit stack this shelter might defend." */
-		int iStackValue = 0;
+		// <!-- custom: kekm.16 credited each city with 35% of all team power in the area, repeatedly making every Bomb Shelter act as though it protected the same continental army.
+		// Keep that estimate as an upper bound but cap the protected stack at average team power per team city in the area; generic by actual area power/city count. See KI#48.7 and the broader audit in KI#48.5. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		int iAreaTeamPower = 0;
 		for (MemberIter itMember(getTeam()); itMember.hasNext(); ++itMember)
 		{
-				iStackValue += getArea().getPower(itMember->getID());
+			iAreaTeamPower += getArea().getPower(itMember->getID());
 		}
-		iStackValue *= 7;
-		iStackValue /= 20;
+		int const iTeamCitiesInArea = std::max(1, kTeam.countNumCitiesByArea(getArea()));
+		int const iOldStackValue = iAreaTeamPower * 7 / 20;
+		int const iStackValue = std::min(iOldStackValue, iAreaTeamPower / iTeamCitiesInArea);
 		int iTempValue = iNukeDefense * (iStackValue + iTargetValue);
 		iTempValue /= 100;
 		iTempValue *= 10000 - kTeam.getNukeInterception() *
@@ -10809,8 +11999,8 @@ int CvCityAI::AI_defensiveBuildingValue(BuildingTypes eBuilding, bool bAreaAlone
 // This function has been significantly modified for K-Mod
 ProjectTypes CvCityAI::AI_bestProject(int* piBestValue, /* advc.001n: */ bool bAsync) /* advc: */ const
 {
-	// <!-- custom: cache to kTeam for perf opt if i'm not mistaken. See note at CvCityAI::AI_buildingValue. -->
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
+	// <!-- custom: Keep this practical-5282 GET_TEAM cache as CvTeamAI: some sibling cache sites compile when narrowed to CvTeam, while others fail because they use AI-only team members or helpers requiring CvTeamAI; retain CvTeamAI across this cache family to avoid tedious per-site type exceptions. See KI#311.2. (ChatGPT-5.6-Sol) -->
 	CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam()); // kekm.16
 
 	// <advc.014>
@@ -11038,7 +12228,7 @@ ProjectTypes CvCityAI::AI_bestProject(int* piBestValue, /* advc.001n: */ bool bA
 int CvCityAI::AI_projectValue(ProjectTypes eProject) /* advc: */ const
 {
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
-	// <!-- custom: cache to kTeam for perf opt if i'm not mistaken. See note at CvCityAI::AI_buildingValue. -->
+	// <!-- custom: Keep this practical-5282 GET_TEAM cache as CvTeamAI: some sibling cache sites compile when narrowed to CvTeam, while others fail because they use AI-only team members or helpers requiring CvTeamAI; retain CvTeamAI across this cache family to avoid tedious per-site type exceptions. See KI#311.2. (ChatGPT-5.6-Sol) -->
 	CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam());
 	CvProjectInfo const& kProject = GC.getInfo(eProject);
 	// <!-- custom: performance optimization: cache repetitive calls -->
@@ -11654,7 +12844,7 @@ int CvCityAI::AI_neededDefenders(/* advc.139: */ bool bIgnoreEvac, bool bConstCa
 	CvGameAI const& kGame = GC.AI_getGame();
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 
-	// <!-- custom: cache to kTeam for perf opt if i'm not mistaken. See note at CvCityAI::AI_buildingValue. -->
+	// <!-- custom: Keep this practical-5282 GET_TEAM cache as CvTeamAI: some sibling cache sites compile when narrowed to CvTeam, while others fail because they use AI-only team members or helpers requiring CvTeamAI; retain CvTeamAI across this cache family to avoid tedious per-site type exceptions. See KI#311.2. (ChatGPT-5.6-Sol) -->
 	CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam()); // kekm.16
 
 	int iDefenders = 1;
@@ -11996,7 +13186,6 @@ void CvCityAI::AI_updateSafety(bool bUpdatePerfectSafety)
 	if(kOwner.getNumCities() <= 1)
 		return;
 
-	// <!-- custom: cache to kTeam for perf opt if i'm not mistaken. See note at CvCityAI::AI_buildingValue. -->
 	CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam()); // kekm.16
 
 	/*  iRange = 1 b/c I want to be sure that an attack is imminent. Won't work
@@ -12410,7 +13599,6 @@ int CvCityAI::AI_clearFeatureValue(CityPlotTypes ePlot) const
 	CvPlot const& kPlot = *plotCity(getX(), getY(), ePlot);
 	CvFeatureInfo const& kFeature = GC.getInfo(kPlot.getFeatureType());
 
-	// <!-- custom: cache to kTeam for perf opt if i'm not mistaken. See note at CvCityAI::AI_buildingValue. -->
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 	CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam()); // kekm.16
 
@@ -12918,7 +14106,7 @@ int CvCityAI::AI_getImprovementValue(CvPlot const& kPlot, ImprovementTypes eImpr
 	// <!-- custom: performance optimization: cache repetitive calls -->
 	CvGame const& kGame = GC.getGame();
 
-	// <!-- custom: cache to kTeam for perf opt if i'm not mistaken. See note at CvCityAI::AI_buildingValue. -->
+	// <!-- custom: Keep this practical-5282 GET_TEAM cache as CvTeamAI: some sibling cache sites compile when narrowed to CvTeam, while others fail because they use AI-only team members or helpers requiring CvTeamAI; retain CvTeamAI across this cache family to avoid tedious per-site type exceptions. See KI#311.2. (ChatGPT-5.6-Sol) -->
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner()); // K-Mod
 	CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam()); // kekm.16
 
@@ -13908,8 +15096,7 @@ void CvCityAI::AI_doDraft(bool bForce)
 		}
 	}
 
-	// // <!-- custom: cache to kTeam for perf opt if i'm not mistaken. See note at CvCityAI::AI_buildingValue. -->
-	// CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam()); // kekm.16
+	// <!-- custom: If this disabled cache is restored, keep CvTeamAI because the draft code calls AI_getOurPlotStrength. See KI#311.2. (ChatGPT-5.6-Sol) -->
 
 	if (bWait && bDanger)
 	{
@@ -14842,7 +16029,7 @@ bool CvCityAI::AI_chooseUnit(UnitTypes eUnit, UnitAITypes eUnitAI, bool* pbRetry
 
 			// <!-- custom: not sure if we should exclude barbarian (e.g. if we someday add land units rules here (e.g. more defenders if in dangers based on total unitais, on top of what is done in bestunitai (so maybe redundant but to be safe about short circuits or such as well))) but just in case -->
 			CvPlayerAI const& kPlayer = GET_PLAYER(getOwner());
-			// <!-- custom: cache to kTeam for perf opt if i'm not mistaken. See note at CvCityAI::AI_buildingValue. -->
+			// <!-- custom: Keep this practical-5282 GET_TEAM cache as CvTeamAI: some sibling cache sites compile when narrowed to CvTeam, while others fail because they use AI-only team members or helpers requiring CvTeamAI; retain CvTeamAI across this cache family to avoid tedious per-site type exceptions. See KI#311.2. (ChatGPT-5.6-Sol) -->
 			CvTeamAI const& kTeam = GET_TEAM(kPlayer.getTeam()); // kekm.16
 
 			// <!-- custom: performance optimization: cache repetitive calls -->
@@ -14878,40 +16065,16 @@ bool CvCityAI::AI_chooseUnit(UnitTypes eUnit, UnitAITypes eUnitAI, bool* pbRetry
 				const int iCurrentEra = static_cast<int>(eCurrentEra);
 				static const int iERA_RENAISSANCE  = static_cast<int>(eERA_RENAISSANCE);
 
-				// Situation read
-				// <!-- custom: note: sometimes AI_isFocusWar is used with, sometimes without in cvcityai.cpp, going for the larger one and chatgpt 5 suggests to do as such despite not knowing all our code but should be fine, and maybe we handle more cases this way, check if accurate -->
+				// <!-- custom: Situation read (ChatGPT-5) -->
+				SASWarPowerContext const kWarPower(kTeam);
 				bool const bWarPlan = kPlayer.AI_isFocusWar();
 				bool const bDanger = AI_isDanger();
-				// <!-- custom: it seems to me guessedly more reliable than the old AI_isLandWar check, chatgpt 5 advises for this as well when looking at the function's code when i asked it about it, check if accurate -->
-				const bool bAtWar = (kTeam.getNumWars() > 0);
-				const int iEnemyPowerPercent = kTeam.AI_getEnemyPowerPercent(true);
-				static const int iSAS_ENEMY_STRONG_POWER_THRESHOLD = GC.getDefineINT("SAS_ENEMY_STRONG_POWER_THRESHOLD"); // e.g. 120
-				const bool bEnemyStrong = (iEnemyPowerPercent >= iSAS_ENEMY_STRONG_POWER_THRESHOLD);
-				// <!-- custom: note: if i remember it correctly, chatgpt 5 said this applies also if not at war. I guessedly thought this maybe would or could return 0 if we are not at war with any ennemy, faslifying formula and defeating the purpose. In some places, i have added bAtWarAndEnemyWeak, while in some other places i may have left it as bEnemyWeak (check to be sure, i didn't check too much). I don't know which is more correct as of now and didn't dig too deep into it, so left as such, hopefully accurate enough, thankfully at this part of the code the difference wouldn't be too big regardless, and most importantly it already pre-checks bAtWar before so no issue there but ideally figure out how it works to decide if we should merge the weak with an at war check to be safe or if uneeded and be more flexible and accurate with only a weak check, but left as such -->
-				// <!-- custom: update: to be sure i asked chatgpt 5 again about this while implementing known issue as of now 53.3's related fixes or tweaks, if iEnemyPowerPercent is valid/relaible if at peace or if we have an unreliable 0 making us misleadedly think that you potentially strong rivals are very weak, or how it works, here is what it replied (i edited and formatted it a bit but is mostly the same otherwise) when fed the code sample, check if accurate -->
-				// Short answer: it’s solid during war or when a war is already “chosen", but it’s not meaningful in generic peacetime.
-				//
-				// Why:
-				// - It loops only over known potential enemies.
-				// - For each enemy:
-				// 		- If at war, adds a weighted chunk of their getPower(false).
-				// 		- Else if we’ve set a chosen war on them (AI_isChosenWar) and they aren’t a vassal, it adds a weighted chunk of their defensive power vs us.
-				// - It discounts distant enemies (/2 if they have cities in our primary area, else /3) and minor civs (/3).
-				// - If bConsiderOthers is true, it divides by the enemy’s number of current wars so someone already fighting multiple fronts counts less.
-				// - Finally it divides by an averaged notion of our power (our own + master’s, halved).
-				//
-				// So:
-				// - Not at war & no chosen-war plans ⇒ loop adds nothing ⇒ returns 0. That doesn’t mean “we’re stronger"; it means “no active/selected enemy to compare to".
-				// - It’s a sum over applicable enemies, not “the strongest enemy". Nearby-ness is only approximated via the “primary area" discount.
-				//
-				// Practical use in your siege gate
-				// Don’t use iEnemyPowPct<=90 to mean “we’re stronger" when you aren’t at war or actively preparing one, because you’ll read 0% and green-light trebuchets in peacetime.
-				// This way:
-				// - In peacetime, you won’t accidentally treat “0" as “we totally dominate" and overbuild siege.
-				static const int iSAS_ENEMY_WEAK_POWER_THRESHOLD = GC.getDefineINT("SAS_ENEMY_WEAK_POWER_THRESHOLD"); // e.g. 80
-				//const bool bEnemyWeak = (iEnemyPowerPercent <= iSAS_ENEMY_WEAK_POWER_THRESHOLD);
-				// <!-- custom: modified version i guessedly made without checking relevant function's code, hopefully more accurate but check to be sure as is just a guess from me-->
-				const bool bEnemyWeakNotZero = ((iEnemyPowerPercent > 0) && (iEnemyPowerPercent <= iSAS_ENEMY_WEAK_POWER_THRESHOLD));
+				// <!-- custom: Enemy power and active-war state come from the shared team snapshot; AI_isFocusWar remains a separate player-level signal, and city-local danger remains separate again. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				bool const bAtWar = kWarPower.bAtWar;
+				int const iEnemyPowerPercent = kWarPower.iEnemyPowerPercent;
+				bool const bEnemyStrong = kWarPower.bEnemyStrong;
+				// <!-- custom: Keep the established nonzero weak check: peaceful/no-chosen-enemy 0% is not evidence that we are militarily stronger. (ChatGPT-5.6-Sol) -->
+				bool const bEnemyWeakNotZero = kWarPower.bEnemyWeakNonZero;
 
 				const int iNumCities = kPlayer.getNumCities();
 
@@ -14960,7 +16123,7 @@ bool CvCityAI::AI_chooseUnit(UnitTypes eUnit, UnitAITypes eUnitAI, bool* pbRetry
 						// <!-- custom: the war has already started, no time to produce them if we didn't do so already, focus on defense or immediate joining stack units to finalize our offensive stacks, now is not the time to weaken our stacks with trebuchets that are quite likely to be not relevant -->
 						if (bAtWar && bEnemyStrong)
 						{
-							if (bLogDetailedMilitaryProduction) logSASMilitaryProductionConcreteReject(*this, eChangedUnit, eChangedUnitAI, "TREBUCHET_AT_WAR_ENEMY_STRONG", "enemyPowerPercent", iEnemyPowerPercent, "strongThreshold", iSAS_ENEMY_STRONG_POWER_THRESHOLD);
+							if (bLogDetailedMilitaryProduction) logSASMilitaryProductionConcreteReject(*this, eChangedUnit, eChangedUnitAI, "TREBUCHET_AT_WAR_ENEMY_STRONG", "enemyPowerPercent", iEnemyPowerPercent, "strongThreshold", SASWarPowerContext::enemyStrongThreshold());
 							if (pbRetrySameRole != NULL) *pbRetrySameRole = true;
 							return false; // don’t add more narrow-purpose siege when not stronger
 						}
@@ -14978,7 +16141,7 @@ bool CvCityAI::AI_chooseUnit(UnitTypes eUnit, UnitAITypes eUnitAI, bool* pbRetry
 						// <!-- custom: even if not at war, if our enemy is already stronger, don't attempt to build trebuchets that will most likely be useless as enemy will get even stronger over time and we'll be more vulnerable with non versatile or not enough defender units -->
 						if (bEnemyStrong)
 						{
-							if (bLogDetailedMilitaryProduction) logSASMilitaryProductionConcreteReject(*this, eChangedUnit, eChangedUnitAI, "TREBUCHET_ENEMY_STRONG", "enemyPowerPercent", iEnemyPowerPercent, "strongThreshold", iSAS_ENEMY_STRONG_POWER_THRESHOLD);
+							if (bLogDetailedMilitaryProduction) logSASMilitaryProductionConcreteReject(*this, eChangedUnit, eChangedUnitAI, "TREBUCHET_ENEMY_STRONG", "enemyPowerPercent", iEnemyPowerPercent, "strongThreshold", SASWarPowerContext::enemyStrongThreshold());
 							if (pbRetrySameRole != NULL) *pbRetrySameRole = true;
 							return false;
 						}
@@ -15749,10 +16912,11 @@ bool CvCityAI::AI_chooseUnit(UnitTypes eUnit, UnitAITypes eUnitAI, bool* pbRetry
 						// <!-- custom: no time for expansion at war or danger or similar, but the worker is so important we'll be a bit more lenient, we may unlock more hammers for example by producing a worker that would then chop or build a mine or workshop or anything useful so don't be too harsh here as advised by chatgpt 5 thanks-->
 						if (bAtWar && bEnemyStrong)
 						{
-							if (bLogDetailedMilitaryProduction) logSASMilitaryProductionConcreteReject(*this, eChangedUnit, eChangedUnitAI, "LAND_WORKER_AT_WAR_ENEMY_STRONG", "enemyPowerPercent", iEnemyPowerPercent, "strongThreshold", iSAS_ENEMY_STRONG_POWER_THRESHOLD);
+							if (bLogDetailedMilitaryProduction) logSASMilitaryProductionConcreteReject(*this, eChangedUnit, eChangedUnitAI, "LAND_WORKER_AT_WAR_ENEMY_STRONG", "enemyPowerPercent", iEnemyPowerPercent, "strongThreshold", SASWarPowerContext::enemyStrongThreshold());
 							return false;
 						}
-						// <!-- custom: else if planning war and otherwise no danger or such (e.g. enemy is weak or no danger), still continue to grow; as for bDanger and bEnemyStrong and such if any more maybe, they may be a bit too strong signals so we'll ignore them as well here for workers, hopefully AI handles these well and doesn't overproduce them(workers are also not that expensive like wonders that we'd need so bad to avoid them, and benefits may be immediate so go with a more lenient check or rather maybe gate) -->
+						// <!-- custom: else if planning war and otherwise no danger or such (e.g. enemy is weak or no danger), still continue to grow; as for bDanger and bEnemyStrong and such if any more maybe, they may be a bit too strong signals so we'll ignore them as well here for workers.
+						// Hopefully AI handles these well and doesn't overproduce them(workers are also not that expensive like wonders that we'd need so bad to avoid them, and benefits may be immediate so go with a more lenient check or rather maybe gate) -->
 
 						const int iTotalUnitAIs = kPlayer.AI_totalUnitAIs(UNITAI_WORKER);
 
@@ -15927,15 +17091,16 @@ bool CvCityAI::AI_chooseUnit(UnitTypes eUnit, UnitAITypes eUnitAI, bool* pbRetry
 					{
 						iMainLandMilitaryStock = SAS_getMainLandMilitaryStock(kOwner, getArea());
 						iMainLandMilitaryPerCityX100 = (100 * iMainLandMilitaryStock) / std::max(1, iAreaCities);
-						iIndependentRivalCitiesInArea = 0;
-						iUnknownIndependentRivalTeamsInArea = 0;
-						iCombinedKnownLocalRivalBlocPower = 0;
-						iHighestKnownLocalRivalBlocPower = 0;
-						iIndependentRivalTeamsInArea = SAS_countIndependentRivalTeamsInArea(kOwner, getArea(), iIndependentRivalCitiesInArea, &iUnknownIndependentRivalTeamsInArea, &iCombinedKnownLocalRivalBlocPower, &iHighestKnownLocalRivalBlocPower);
-						iHighestKnownGlobalRivalBlocPower = SAS_getHighestKnownFreeRivalBlocPower(kOwner);
-						iOurBlocPower = kOwnerTeam.getPower(true);
-						iLocalPowerAdvantagePercent = (iCombinedKnownLocalRivalBlocPower <= 0 ? -1 : (100 * iOurBlocPower) / iCombinedKnownLocalRivalBlocPower);
-						iGlobalPowerAdvantagePercent = (iHighestKnownGlobalRivalBlocPower <= 0 ? -1 : (100 * iOurBlocPower) / iHighestKnownGlobalRivalBlocPower);
+						SASLocalAreaRivalContext const kLocalRivals(kOwner, getArea());
+						iIndependentRivalCitiesInArea = kLocalRivals.iIndependentRivalCities;
+						iUnknownIndependentRivalTeamsInArea = kLocalRivals.iUnknownIndependentRivalTeams;
+						iCombinedKnownLocalRivalBlocPower = kLocalRivals.iCombinedKnownLocalRivalBlocPower;
+						iHighestKnownLocalRivalBlocPower = kLocalRivals.iHighestKnownLocalRivalBlocPower;
+						iIndependentRivalTeamsInArea = kLocalRivals.iIndependentRivalTeams;
+						iHighestKnownGlobalRivalBlocPower = kLocalRivals.iHighestKnownGlobalRivalBlocPower;
+						iOurBlocPower = kLocalRivals.iOurBlocPower;
+						iLocalPowerAdvantagePercent = kLocalRivals.iLocalPowerAdvantagePercent;
+						iGlobalPowerAdvantagePercent = kLocalRivals.iGlobalPowerAdvantagePercent;
 					}
 					bool const bLocalPowerAdvantage = (iIndependentRivalTeamsInArea == 0 || iCombinedKnownLocalRivalBlocPower <= 0 || iLocalPowerAdvantagePercent >= iMinPowerAdvantagePercent);
 					bool const bWouldReject = (bLocallySafeEligible && iIndependentRivalTeamsInArea <= iMaxIndependentRivalTeamsInArea && iUnknownIndependentRivalTeamsInArea == 0 && iMainLandMilitaryPerCityX100 >= 100 * iMinLandUnitsPerCity && bLocalPowerAdvantage);
@@ -16034,16 +17199,13 @@ bool CvCityAI::AI_chooseUnit(UnitTypes eUnit, UnitAITypes eUnitAI, bool* pbRetry
 					bool const bNeededWouldReject = (eNeededBuilding != NO_BUILDING);
 					if (gBuildingProductionLogLevel >= 2)
 					{
-						char const* szFocus = (iNeededFocusFlags == BUILDINGFOCUS_HEALTHY ? "HEALTH" :
-							iNeededFocusFlags == BUILDINGFOCUS_HAPPY ? "HAPPINESS" :
-							iNeededFocusFlags == BUILDINGFOCUS_MAINTENANCE ? "MAINTENANCE" : "-");
 						logBBAI("BUILDING_PRODUCTION_CHEAP_NEED_GATE turn=%d player=%d %S city=%S cityId=%d enabled=%d wouldReject=%d actualReject=%d unit=%s unitAI=%s unitTurns=%d unitSpending=%d maxUnitSpending=%d spendingGap=%d minSpendingOverMax=%d building=%s focus=%s buildingValue=%d buildingTurns=%d buildingToUnitTurnsPercent=%d maxBuildingToUnitProductionTimePercent=%d happySurplus=%d healthSurplus=%d maintenanceTimes100=%d minMaintenanceTimes100=%d minMaintenanceValue=%d primaryArea=%d areaAI=%d atWar=%d anyWarPlan=%d danger=%d defenders=%d neededDefenders=%d underDefended=%d settlerEscortContext=%d militaryVictoryPush=%d militaryStrategyPush=%d vassal=%d",
 							GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
 							bSASCheapNeededInfrastructureOptimize, bNeededWouldReject,
 							bSASCheapNeededInfrastructureOptimize && bNeededWouldReject, GC.getInfo(eChangedUnit).getType(),
 							GC.getInfo(eChangedUnitAI).getType(), iNeededUnitTurns, iUnitSpending, iMaxUnitSpending,
 							iMaxUnitSpending - iUnitSpending, iNeededMinUnitSpendingOverMax,
-							(eNeededBuilding == NO_BUILDING ? "-" : GC.getInfo(eNeededBuilding).getType()), szFocus, iNeededBuildingValue,
+							(eNeededBuilding == NO_BUILDING ? "-" : GC.getInfo(eNeededBuilding).getType()), SAS_getBuildingFocusType(iNeededFocusFlags), iNeededBuildingValue,
 							iNeededBuildingTurns,
 							(iNeededUnitTurns <= 0 || iNeededBuildingTurns < 0 ? -1 : (100 * iNeededBuildingTurns) / iNeededUnitTurns),
 							iNeededMaxBuildingToUnitProductionTimePercent, happyLevel() - unhappyLevel(), goodHealth() - badHealth(),
@@ -16074,17 +17236,13 @@ bool CvCityAI::AI_chooseUnit(UnitTypes eUnit, UnitAITypes eUnitAI, bool* pbRetry
 					bool const bHighReturnWouldReject = (eHighReturnBuilding != NO_BUILDING);
 					if (gBuildingProductionLogLevel >= 2)
 					{
-						char const* szFocus = (iHighReturnFocusFlags == BUILDINGFOCUS_FOOD ? "FOOD" :
-							iHighReturnFocusFlags == BUILDINGFOCUS_PRODUCTION ? "PRODUCTION" :
-							iHighReturnFocusFlags == BUILDINGFOCUS_GOLD ? "GOLD" :
-							iHighReturnFocusFlags == BUILDINGFOCUS_RESEARCH ? "RESEARCH" : "-");
 						logBBAI("BUILDING_PRODUCTION_CHEAP_HIGH_RETURN_GATE turn=%d player=%d %S city=%S cityId=%d enabled=%d wouldReject=%d actualReject=%d unit=%s unitAI=%s unitTurns=%d unitSpending=%d maxUnitSpending=%d spendingOverMax=%d minSpendingOverMax=%d building=%s focus=%s focusedValue=%d baseValue=%d focusValueGain=%d minFocusedValue=%d minFocusValueGain=%d buildingTurns=%d buildingToUnitTurnsPercent=%d maxBuildingToUnitProductionTimePercent=%d primaryArea=%d areaAI=%d atWar=%d anyWarPlan=%d danger=%d defenders=%d neededDefenders=%d underDefended=%d settlerEscortContext=%d militaryVictoryPush=%d militaryStrategyPush=%d vassal=%d",
 							GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
 							bSASCheapHighReturnInfrastructureOptimize, bHighReturnWouldReject,
 							bSASCheapHighReturnInfrastructureOptimize && bHighReturnWouldReject, GC.getInfo(eChangedUnit).getType(),
 							GC.getInfo(eChangedUnitAI).getType(), iHighReturnUnitTurns, iUnitSpending, iMaxUnitSpending,
 							iUnitSpending - iMaxUnitSpending, iHighReturnMinUnitSpendingOverMax,
-							(eHighReturnBuilding == NO_BUILDING ? "-" : GC.getInfo(eHighReturnBuilding).getType()), szFocus,
+							(eHighReturnBuilding == NO_BUILDING ? "-" : GC.getInfo(eHighReturnBuilding).getType()), SAS_getBuildingFocusType(iHighReturnFocusFlags),
 							iHighReturnFocusedValue, iHighReturnBaseValue, iHighReturnFocusValueGain, iHighReturnMinFocusedBuildingValue,
 							iHighReturnMinFocusValueGain, iHighReturnBuildingTurns,
 							(iHighReturnUnitTurns <= 0 || iHighReturnBuildingTurns < 0 ? -1 : (100 * iHighReturnBuildingTurns) / iHighReturnUnitTurns),
@@ -16398,8 +17556,15 @@ bool CvCityAI::AI_bestSpreadUnit(bool bMissionary, bool bExecutive, int iBaseCha
 bool CvCityAI::AI_chooseBuilding(int iFocusFlags, int iMaxTurns, int iMinThreshold, int iOdds) // BBAI
 {
 	bool const bLogDetailedMilitaryProduction = (gMilitaryProductionLogLevel >= 3 && !isHuman() && !isBarbarian());
+	bool const bLogPalaceFocus = (gBuildingProductionLogLevel >= 3 && (iFocusFlags & BUILDINGFOCUS_CAPITAL) != 0);
+	int const iSASGameRecordLogLevel = gGameRecordLogLevel;
+	bool const bLogSASBuildingChoice = (iSASGameRecordLogLevel >= 2 && !isHuman() && !isBarbarian());
+	bool const bLogDetailedSASBuildingChoice = (bLogSASBuildingChoice && iSASGameRecordLogLevel >= 3);
+	// <!-- custom: Match AI_chooseProduction's recorder contract: level 2 gates the realized-choice hook and optional winning-score output once; only level 3 formats the private BUILDINGFOCUS_* names; the emitter deliberately trusts these caller-side gates. (ChatGPT-5.6-Sol) -->
+	int iBestBuildingSelectionScore = -1;
 	BuildingTypes eBestBuilding = NO_BUILDING; // advc
-	eBestBuilding = AI_bestBuildingThreshold(iFocusFlags, iMaxTurns, iMinThreshold);
+	// <!-- custom: The optional output only stores the winning score from this already-required randomized pass; SASGameRecord never repeats building valuation or RNG. (GPT-5.6-Sol) -->
+	eBestBuilding = AI_bestBuildingThreshold(iFocusFlags, iMaxTurns, iMinThreshold, false, NO_ADVISOR, true, bLogSASBuildingChoice ? &iBestBuildingSelectionScore : NULL);
 	if (eBestBuilding != NO_BUILDING)
 	{
 		// <!-- custom: try to prevent barbarians from building world wonders, their purpose is to fight not to compete for wonders no matter how well they are developped, at least in advciv-sas, increasing iBuildUnitProb to 100 and using NONE in civilizations info xml file seem to be no good or not always reliable/consistent as they still build world wonders in some cases and quite often, so patching the DLL rather hopefully helps reliably solve this, with chatgpt's help thanks. -->
@@ -16424,6 +17589,7 @@ bool CvCityAI::AI_chooseBuilding(int iFocusFlags, int iMaxTurns, int iMinThresho
 			std::max(1, getProductionNeeded(eBestBuilding)))
 		// K-Mod end
 		{
+			if (bLogSASBuildingChoice) logSASGameRecordAIBuildingChoice(*this, eBestBuilding, SAS_AI_BUILDING_CHOICE_HELPER, iFocusFlags, bLogDetailedSASBuildingChoice, bLogDetailedSASBuildingChoice ? SAS_getBuildingFocusNames(iFocusFlags).GetCString() : NULL, iMaxTurns, iMinThreshold, iBestBuildingSelectionScore, iOdds, iRand);
 			if (bLogDetailedMilitaryProduction)
 			{
 				int const iProductionStoredForLog = getBuildingProduction(eBestBuilding);
@@ -16435,6 +17601,13 @@ bool CvCityAI::AI_chooseBuilding(int iFocusFlags, int iMaxTurns, int iMinThresho
 					getID(), iFocusFlags, iMaxTurns, iMinThreshold, GC.getInfo(eBestBuilding).getType(), iOdds, iProductionStoredForLog,
 					iProductionNeededForLog, iProgressOddsBonusForLog, iOdds < 0 ? -1 : iOdds + iProgressOddsBonusForLog,
 					iOdds < 0 ? -1 : iRand, iOdds < 0);
+			}
+			if (bLogPalaceFocus)
+			{
+				logBBAI("PALACE_CAPITAL_FOCUS_CHOICE turn=%d player=%d %S city=%S cityId=%d building=%s chosen=1 maxTurns=%d baseOdds=%d rand=%d productionStored=%d productionNeeded=%d",
+					GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getName().GetCString(), getID(),
+					GC.getInfo(eBestBuilding).getType(), iMaxTurns, iOdds, (iOdds < 0 ? -1 : iRand),
+					getBuildingProduction(eBestBuilding), getProductionNeeded(eBestBuilding));
 			}
 			pushOrder(ORDER_CONSTRUCT, eBestBuilding);
 			return true;
@@ -16449,10 +17622,21 @@ bool CvCityAI::AI_chooseBuilding(int iFocusFlags, int iMaxTurns, int iMinThresho
 				getID(), iFocusFlags, iMaxTurns, iMinThreshold, GC.getInfo(eBestBuilding).getType(), iOdds, iProductionStoredForLog,
 				iProductionNeededForLog, iProgressOddsBonusForLog, iOdds + iProgressOddsBonusForLog, iRand);
 		}
+		if (bLogPalaceFocus)
+		{
+			logBBAI("PALACE_CAPITAL_FOCUS_CHOICE turn=%d player=%d %S city=%S cityId=%d building=%s chosen=0 maxTurns=%d baseOdds=%d rand=%d productionStored=%d productionNeeded=%d",
+				GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getName().GetCString(), getID(),
+				GC.getInfo(eBestBuilding).getType(), iMaxTurns, iOdds, (iOdds < 0 ? -1 : iRand), getBuildingProduction(eBestBuilding), getProductionNeeded(eBestBuilding));
+		}
 	}
 	else if (bLogDetailedMilitaryProduction) logBBAI("MILITARY_PRODUCTION_BUILDING_CHOICE turn=%d player=%d %S city=%S cityId=%d focusFlags=%d maxTurns=%d minThreshold=%d building=- baseOdds=%d productionStored=0 productionNeeded=0 progressBonus=0 effectiveOdds=%d rand=-1 forced=%d chosen=0",
 		GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getName().GetCString(), getID(),
 		iFocusFlags, iMaxTurns, iMinThreshold, iOdds, iOdds, iOdds < 0);
+	if (bLogPalaceFocus && eBestBuilding == NO_BUILDING)
+	{
+		logBBAI("PALACE_CAPITAL_FOCUS_CHOICE turn=%d player=%d %S city=%S cityId=%d building=- chosen=0 maxTurns=%d baseOdds=%d rand=-1 productionStored=0 productionNeeded=0",
+			GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getName().GetCString(), getID(), iMaxTurns, iOdds);
+	}
 
 	return false;
 }
@@ -17502,7 +18686,6 @@ int CvCityAI::AI_yieldValue(int* piYields, int* piCommerceYields, bool bRemove, 
 
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 
-	// <!-- custom: cache to kTeam for perf opt if i'm not mistaken. See note at CvCityAI::AI_buildingValue. -->
 	CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam()); // kekm.16
 
 	//const int iBaseProductionValue = 9; // (K-Mod: was 7 before I removed the averageCommerceExchange factor from the commerce values.)
@@ -18686,7 +19869,6 @@ int CvCityAI::AI_specialPlotImprovementValue(CvPlot const& kPlot) const
 	if (eImprovement == NO_IMPROVEMENT)
 		return 0;
 
-	// <!-- custom: cache to kTeam for perf opt if i'm not mistaken. See note at CvCityAI::AI_buildingValue. -->
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 	CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam()); // kekm.16
 
@@ -18810,7 +19992,9 @@ int CvCityAI::AI_growthValuePerFood() const
 }
 
 
-int CvCityAI::AI_experienceWeight()
+// <!-- custom: inherited military-production valuation: this helper is logically read-only.
+// Mark it const because const AI_buildingValue now reuses the authoritative AI_buildUnitProb demand estimate for generic MilitaryProductionModifier throughput instead of a weaker proxy or const_cast. See KI#48.10. (ChatGPT-5.6-Sol) -->
+int CvCityAI::AI_experienceWeight() const
 {
 	//return ((getProductionExperience() + getDomainFreeExperience(DOMAIN_SEA)) * 2);
 	// K-Mod
@@ -18823,9 +20007,10 @@ int CvCityAI::AI_experienceWeight()
 }
 
 // BBAI / K-Mod // <advc.017> Draft param added; count XP weight only half then.
-int CvCityAI::AI_buildUnitProb(bool bDraft)
+// <!-- custom: inherited military-production valuation: AI_buildUnitProb only reads city/player/team AI state, so make that contract explicit with const and allow const building valuation to reuse this existing dynamic unit-production-demand estimate directly. See KI#48.10. (ChatGPT-5.6-Sol) -->
+int CvCityAI::AI_buildUnitProb(bool bDraft) const
 {
-	// <!-- custom: cache to kTeam for perf opt if i'm not mistaken. See note at CvCityAI::AI_buildingValue. -->
+	// <!-- custom: Keep this practical-5282 GET_TEAM cache as CvTeamAI: some sibling cache sites compile when narrowed to CvTeam, while others fail because they use AI-only team members or helpers requiring CvTeamAI; retain CvTeamAI across this cache family to avoid tedious per-site type exceptions. See KI#311.2. (ChatGPT-5.6-Sol) -->
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 	CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam()); // kekm.16
 	int iHighestRivalPowForLog = -1;
@@ -19713,7 +20898,7 @@ void CvCityAI::AI_barbChooseProduction()
 
 	const CvPlayerAI& kPlayer = GET_PLAYER(getOwner());
 
-	// <!-- custom: cache to kTeam for perf opt if i'm not mistaken. See note at CvCityAI::AI_buildingValue. -->
+	// <!-- custom: Keep this practical-5282 GET_TEAM cache as CvTeamAI: some sibling cache sites compile when narrowed to CvTeam, while others fail because they use AI-only team members or helpers requiring CvTeamAI; retain CvTeamAI across this cache family to avoid tedious per-site type exceptions. See KI#311.2. (ChatGPT-5.6-Sol) -->
 	CvTeamAI const& kTeam = GET_TEAM(kPlayer.getTeam()); // kekm.16
 
 	// <!-- custom: performance optimizations -->
@@ -19934,7 +21119,9 @@ void CvCityAI::AI_barbChooseProduction()
 }
 
 
-int CvCityAI::AI_calculateWaterWorldPercent()
+// <!-- custom: inherited domain-production valuation: this helper is logically read-only.
+// Mark it const so const AI_buildingValue can reuse the existing K-Mod water-world demand estimate for contextual DOMAIN_SEA production/free-experience and DOMAIN_LAND production throughput without a proxy or const_cast. See KI#48.11-48.13. (ChatGPT-5.6-Sol) -->
+int CvCityAI::AI_calculateWaterWorldPercent() const
 {
 	int iFriendlyCities = 0;
 	// <advc> Count sibling vassals too
@@ -20344,7 +21531,7 @@ void CvCityAI::AI_updateSpecialYieldMultiplier()
 
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 
-	// <!-- custom: cache to kTeam for perf opt if i'm not mistaken. See note at CvCityAI::AI_buildingValue. -->
+	// <!-- custom: Keep this practical-5282 GET_TEAM cache as CvTeamAI: some sibling cache sites compile when narrowed to CvTeam, while others fail because they use AI-only team members or helpers requiring CvTeamAI; retain CvTeamAI across this cache family to avoid tedious per-site type exceptions. See KI#311.2. (ChatGPT-5.6-Sol) -->
 	CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam()); // kekm.16
 
 	AreaAITypes const eAreaAIType = getArea().getAreaAIType(getTeam());
@@ -20716,7 +21903,7 @@ int CvCityAI::AI_cityThreat(/*bool bDangerPercent*/) const // advc: param unused
 	// <!-- custom: performance optimization: cache repetitive calls -->
 	CvGame const& kGame = GC.getGame();
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner()); // K-Mod
-	// <!-- custom: cache to kTeam for perf opt if i'm not mistaken. See note at CvCityAI::AI_buildingValue. -->
+	// <!-- custom: Keep this practical-5282 GET_TEAM cache as CvTeamAI: some sibling cache sites compile when narrowed to CvTeam, while others fail because they use AI-only team members or helpers requiring CvTeamAI; retain CvTeamAI across this cache family to avoid tedious per-site type exceptions. See KI#311.2. (ChatGPT-5.6-Sol) -->
 	CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam()); // kekm.16
 
 	int iTotalThreat = 0; // was (iValue)
@@ -20950,8 +22137,7 @@ int CvCityAI::AI_calculateSettlerPriority(int iAreaSites, int iBestAreaFoundValu
 	int iPriority = 20;
 
 	CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
-	// CvTeam const& kTeam = GET_TEAM(getTeam());
-	// <!-- custom: cache to kTeam for perf opt if i'm not mistaken. See note at CvCityAI::AI_buildingValue. -->
+	// <!-- custom: Keep this practical-5282 GET_TEAM cache as CvTeamAI: some sibling cache sites compile when narrowed to CvTeam, while others fail because they use AI-only team members or helpers requiring CvTeamAI; retain CvTeamAI across this cache family to avoid tedious per-site type exceptions. See KI#311.2. (ChatGPT-5.6-Sol) -->
 	CvTeamAI const& kTeam = GET_TEAM(kOwner.getTeam()); // kekm.16
 
 	int iMinFoundValue = std::max(1, kOwner.AI_getMinFoundValue());

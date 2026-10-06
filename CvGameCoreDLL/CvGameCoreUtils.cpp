@@ -590,12 +590,19 @@ CvString getSASInstallContextFields(int iSystemContextLevel)
 }
 
 
+void appendSASDiagnosticListValue(CvString& szList, char const* szValue, char const* szSeparator)
+{
+	FAssert(szValue != NULL && szSeparator != NULL);
+	if (!szList.empty()) szList += szSeparator;
+	szList += szValue;
+}
+
 // <!-- custom: Build comma-separated integer relation/member lists once for shared BBAI/SASGameRecord finalized-initial-state rows. (ChatGPT-5.6-Sol) -->
 void appendSASDiagnosticIntListValue(CvString& szList, int iValue)
 {
 	CvString szItem;
-	szItem.Format(szList.empty() ? "%d" : ",%d", iValue);
-	szList += szItem;
+	szItem.Format("%d", iValue);
+	appendSASDiagnosticListValue(szList, szItem.GetCString());
 }
 
 CvString getSASDiagnosticOrDash(CvString const& szValue)
@@ -1137,6 +1144,37 @@ bool atWar(TeamTypes eTeamA, TeamTypes eTeamB)
 	return (eTeamA != NO_TEAM && eTeamB != NO_TEAM && GET_TEAM(eTeamA).isAtWar(eTeamB));
 }
 
+SASWarPowerContext::SASWarPowerContext(CvTeamAI const& kTeam)
+:	iEnemyPowerPercent(kTeam.AI_getEnemyPowerPercent(true)),
+	bAtWar(kTeam.getNumWars() > 0),
+	bEnemyStrong(isEnemyStrong(iEnemyPowerPercent)),
+	bEnemyWeakRaw(isEnemyWeak(iEnemyPowerPercent)),
+	bEnemyWeakNonZero(iEnemyPowerPercent > 0 && bEnemyWeakRaw),
+	bAtWarAndEnemyWeak(bAtWar && bEnemyWeakRaw)
+{}
+
+int SASWarPowerContext::enemyStrongThreshold()
+{
+	static int const iThreshold = GC.getDefineINT("SAS_ENEMY_STRONG_POWER_THRESHOLD"); // e.g. 120
+	return iThreshold;
+}
+
+int SASWarPowerContext::enemyWeakThreshold()
+{
+	static int const iThreshold = GC.getDefineINT("SAS_ENEMY_WEAK_POWER_THRESHOLD"); // e.g. 80
+	return iThreshold;
+}
+
+bool SASWarPowerContext::isEnemyStrong(int iEnemyPowerPercent)
+{
+	return (iEnemyPowerPercent >= enemyStrongThreshold());
+}
+
+bool SASWarPowerContext::isEnemyWeak(int iEnemyPowerPercent)
+{
+	return (iEnemyPowerPercent <= enemyWeakThreshold());
+}
+
 char const* getSASDiploEventType(DiploEventTypes eDiploEvent)
 {
 	switch (eDiploEvent)
@@ -1395,33 +1433,54 @@ char const* getSASAutoPlayEndCause(SASAutoPlayEndCause eCause)
 	}
 }
 
-// <!-- custom: Keep one canonical machine-readable name for the static AIStrategy bitfield enum.
-// Unlike the separate player-facing widget labels, these raw tokens are intended for diagnostics/provenance and therefore match the C++ enum names exactly. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Keep one iterable source of truth for the static AIStrategy bitfield values and their machine-readable names.
+// SASGameRecord previously repeated a lowest/highest-bit shift range beside this translator; a descriptor table prevents a future strategy addition or gap from silently disappearing from hashes, checkpoints or transition rows.
+// Player-facing widget labels remain separate translated/prose presentation. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
+static SASAIStrategyDescriptor const aSASAIStrategyDescriptors[] =
+{
+	{ AI_DEFAULT_STRATEGY, "AI_DEFAULT_STRATEGY" },
+	{ AI_STRATEGY_DAGGER, "AI_STRATEGY_DAGGER" },
+	{ AI_STRATEGY_CRUSH, "AI_STRATEGY_CRUSH" },
+	{ AI_STRATEGY_ALERT1, "AI_STRATEGY_ALERT1" },
+	{ AI_STRATEGY_ALERT2, "AI_STRATEGY_ALERT2" },
+	{ AI_STRATEGY_TURTLE, "AI_STRATEGY_TURTLE" },
+	{ AI_STRATEGY_LAST_STAND, "AI_STRATEGY_LAST_STAND" },
+	{ AI_STRATEGY_FINAL_WAR, "AI_STRATEGY_FINAL_WAR" },
+	{ AI_STRATEGY_GET_BETTER_UNITS, "AI_STRATEGY_GET_BETTER_UNITS" },
+	{ AI_STRATEGY_FASTMOVERS, "AI_STRATEGY_FASTMOVERS" },
+	{ AI_STRATEGY_LAND_BLITZ, "AI_STRATEGY_LAND_BLITZ" },
+	{ AI_STRATEGY_AIR_BLITZ, "AI_STRATEGY_AIR_BLITZ" },
+	{ AI_STRATEGY_OWABWNW, "AI_STRATEGY_OWABWNW" },
+	{ AI_STRATEGY_PRODUCTION, "AI_STRATEGY_PRODUCTION" },
+	{ AI_STRATEGY_MISSIONARY, "AI_STRATEGY_MISSIONARY" },
+	{ AI_STRATEGY_BIG_ESPIONAGE, "AI_STRATEGY_BIG_ESPIONAGE" },
+	{ AI_STRATEGY_ECONOMY_FOCUS, "AI_STRATEGY_ECONOMY_FOCUS" },
+	{ AI_STRATEGY_ESPIONAGE_ECONOMY, "AI_STRATEGY_ESPIONAGE_ECONOMY" }
+};
+
+int getSASAIStrategyDescriptorCount()
+{
+	return (int)(sizeof(aSASAIStrategyDescriptors) / sizeof(aSASAIStrategyDescriptors[0]));
+}
+
+SASAIStrategyDescriptor const& getSASAIStrategyDescriptor(int iIndex)
+{
+	FAssertBounds(0, getSASAIStrategyDescriptorCount(), iIndex);
+	return aSASAIStrategyDescriptors[iIndex];
+}
+
 char const* getSASAIStrategyType(AIStrategy eStrategy)
 {
-	switch (eStrategy)
+	if (eStrategy == NO_AI_STRATEGY)
+		return "NO_AI_STRATEGY";
+	int const iStrategyCount = getSASAIStrategyDescriptorCount();
+	for (int iI = 0; iI < iStrategyCount; iI++)
 	{
-	case NO_AI_STRATEGY: return "NO_AI_STRATEGY";
-	case AI_DEFAULT_STRATEGY: return "AI_DEFAULT_STRATEGY";
-	case AI_STRATEGY_DAGGER: return "AI_STRATEGY_DAGGER";
-	case AI_STRATEGY_CRUSH: return "AI_STRATEGY_CRUSH";
-	case AI_STRATEGY_ALERT1: return "AI_STRATEGY_ALERT1";
-	case AI_STRATEGY_ALERT2: return "AI_STRATEGY_ALERT2";
-	case AI_STRATEGY_TURTLE: return "AI_STRATEGY_TURTLE";
-	case AI_STRATEGY_LAST_STAND: return "AI_STRATEGY_LAST_STAND";
-	case AI_STRATEGY_FINAL_WAR: return "AI_STRATEGY_FINAL_WAR";
-	case AI_STRATEGY_GET_BETTER_UNITS: return "AI_STRATEGY_GET_BETTER_UNITS";
-	case AI_STRATEGY_FASTMOVERS: return "AI_STRATEGY_FASTMOVERS";
-	case AI_STRATEGY_LAND_BLITZ: return "AI_STRATEGY_LAND_BLITZ";
-	case AI_STRATEGY_AIR_BLITZ: return "AI_STRATEGY_AIR_BLITZ";
-	case AI_STRATEGY_OWABWNW: return "AI_STRATEGY_OWABWNW";
-	case AI_STRATEGY_PRODUCTION: return "AI_STRATEGY_PRODUCTION";
-	case AI_STRATEGY_MISSIONARY: return "AI_STRATEGY_MISSIONARY";
-	case AI_STRATEGY_BIG_ESPIONAGE: return "AI_STRATEGY_BIG_ESPIONAGE";
-	case AI_STRATEGY_ECONOMY_FOCUS: return "AI_STRATEGY_ECONOMY_FOCUS";
-	case AI_STRATEGY_ESPIONAGE_ECONOMY: return "AI_STRATEGY_ESPIONAGE_ECONOMY";
-	default: return "UNKNOWN_AI_STRATEGY";
+		SASAIStrategyDescriptor const& kDescriptor = getSASAIStrategyDescriptor(iI);
+		if (kDescriptor.eStrategy == eStrategy)
+			return kDescriptor.szType;
 	}
+	return "UNKNOWN_AI_STRATEGY";
 }
 
 // <!-- custom: Keep one canonical machine-readable name for AreaAI theater posture; these raw tokens intentionally match the C++ enum rather than player-facing prose. (ChatGPT-5.6-Sol) -->

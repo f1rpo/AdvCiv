@@ -5200,7 +5200,7 @@ Collapse C++ signatures returns statements (#27)
 
 Done with the very nice help of ChatGPT-5.5 and GPT-5.5 (on Codex) thanks.
 
-Ammended commit note:
+Amended commit note:
 
 Example results:
 
@@ -17438,7 +17438,7 @@ Other changes:
 - update docs
 - or other fixes/changes or not
 
-also info about git commit ammend (i didn't know of learned today, very useful ):
+also info about git commit amend (i didn't know of learned today, very useful ):
 https://docs.github.com/en/pull-requests/committing-changes-to-your-project/creating-and-editing-commits/changing-a-commit-message
 
 commit baa641079ba9775b75ba9d1dafa18c27fb1b2cdb

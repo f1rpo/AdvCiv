@@ -665,8 +665,9 @@ static SASGameRecordStateObjectHash getSASGameRecordPlayerStateSignature(CvPlaye
 	{
 		// <!-- custom: The prototype failed to compile because raw AI_getStrategyHash is protected.
 		// Hash each public strategy predicate through the recorder wrapper instead of widening CvPlayerAI solely for diagnostics; this also keeps AI Auto Play and ordinary-human eligibility consistent with readable strategy rows. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-		for (int iStrategy = AI_DEFAULT_STRATEGY; iStrategy <= AI_STRATEGY_ESPIONAGE_ECONOMY; iStrategy <<= 1)
-			updateSASGameRecordStateValue(uiHash, isSASGameRecordAIStrategyActive(kPlayer, (AIStrategy)iStrategy));
+		int const iStrategyCount = getSASAIStrategyDescriptorCount();
+		for (int iI = 0; iI < iStrategyCount; iI++)
+			updateSASGameRecordStateValue(uiHash, isSASGameRecordAIStrategyActive(kPlayer, getSASAIStrategyDescriptor(iI).eStrategy));
 		updateSASGameRecordStateValue(uiHash, kPlayer.AI_getVictoryStageHash());
 		updateSASGameRecordStateValue(uiHash, kPlayer.AI_getPeaceWeight());
 		updateSASGameRecordStateValue(uiHash, kPlayer.AI_getEspionageWeight());
@@ -1886,8 +1887,7 @@ static uint getSASGameRecordSessionWallMilliseconds()
 
 static void appendSASGameRecordType(CvString& szTypes, char const* szType)
 {
-	if (!szTypes.empty()) szTypes += ",";
-	szTypes += szType;
+	appendSASDiagnosticListValue(szTypes, szType);
 }
 
 static void flushSASGameRecordInitializingActions(bool bContextComplete)
@@ -2629,6 +2629,17 @@ struct SASGameRecordPlayerFlow
 	int iAIProductionParked;
 	int iAIProductionTargetResumes;
 	int iAIProductionResumed;
+	// <!-- custom: Realized AI building commitments complement target-switch and completion history. Categories are mutually exclusive; origins and effect families are compact overlapping counts. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
+	int iAIBuildingChoices;
+	int iAIBuildingChoiceRegular;
+	int iAIBuildingChoiceNationalWonders;
+	int iAIBuildingChoiceTeamWonders;
+	int iAIBuildingChoiceWorldWonders;
+	int iAIBuildingChoiceWithStoredProduction;
+	int iAIBuildingChoiceStoredProduction;
+	int iAIBuildingChoiceProductionNeeded;
+	int aiAIBuildingChoiceOrigins[NUM_SAS_AI_BUILDING_CHOICE_ORIGINS];
+	int aiAIBuildingChoiceEffects[NUM_SAS_AI_BUILDING_CHOICE_EFFECTS];
 	int iProductionDecayActions;
 	int iProductionDecayLost;
 	int iProductionInvalidatedActions;
@@ -2664,6 +2675,7 @@ struct SASGameRecordPlayerFlow
 	std::vector<int> aiConscriptedUnitTypes;
 	std::vector<int> aiColonyFreeDefenderUnitTypes;
 	std::vector<int> aiBuildingTypes;
+	std::vector<int> aiAIBuildingChoiceTypes;
 	std::vector<int> aiProjectTypes;
 	std::vector<int> aiPromotionChoices;
 
@@ -2700,6 +2712,16 @@ struct SASGameRecordPlayerFlow
 		iAIProductionParked = 0;
 		iAIProductionTargetResumes = 0;
 		iAIProductionResumed = 0;
+		iAIBuildingChoices = 0;
+		iAIBuildingChoiceRegular = 0;
+		iAIBuildingChoiceNationalWonders = 0;
+		iAIBuildingChoiceTeamWonders = 0;
+		iAIBuildingChoiceWorldWonders = 0;
+		iAIBuildingChoiceWithStoredProduction = 0;
+		iAIBuildingChoiceStoredProduction = 0;
+		iAIBuildingChoiceProductionNeeded = 0;
+		for (int iI = 0; iI < NUM_SAS_AI_BUILDING_CHOICE_ORIGINS; iI++) aiAIBuildingChoiceOrigins[iI] = 0;
+		for (int iI = 0; iI < NUM_SAS_AI_BUILDING_CHOICE_EFFECTS; iI++) aiAIBuildingChoiceEffects[iI] = 0;
 		iProductionDecayActions = 0;
 		iProductionDecayLost = 0;
 		iProductionInvalidatedActions = 0;
@@ -2735,6 +2757,7 @@ struct SASGameRecordPlayerFlow
 		aiConscriptedUnitTypes.assign(GC.getNumUnitInfos(), 0);
 		aiColonyFreeDefenderUnitTypes.assign(GC.getNumUnitInfos(), 0);
 		aiBuildingTypes.assign(GC.getNumBuildingInfos(), 0);
+		aiAIBuildingChoiceTypes.assign(GC.getNumBuildingInfos(), 0);
 		aiProjectTypes.assign(GC.getNumProjectInfos(), 0);
 		aiPromotionChoices.assign(GC.getNumPromotionInfos(), 0);
 	}
@@ -2742,7 +2765,7 @@ struct SASGameRecordPlayerFlow
 	bool hasProduction() const
 	{
 		return (iUnitsCompleted > 0 || iUnitsConscripted > 0 || iColonyFreeDefenders > 0 || iBuildingsCompleted > 0 || iProjectsCompleted > 0 || iOverflowActions > 0 || iFailedInvestedProduction > 0 || iFailGold > 0 ||
-			iAIProductionTargetSwitches > 0 || iAIProductionTargetClears > 0 || iAIProductionTargetResumes > 0 || iProductionDecayActions > 0 || iProductionInvalidatedActions > 0 || iProductionUpgradeTransfers > 0 || iProductionUpgradeOverwritten > 0);
+			iAIProductionTargetSwitches > 0 || iAIProductionTargetClears > 0 || iAIProductionTargetResumes > 0 || iAIBuildingChoices > 0 || iProductionDecayActions > 0 || iProductionInvalidatedActions > 0 || iProductionUpgradeTransfers > 0 || iProductionUpgradeOverwritten > 0);
 	}
 
 	bool hasMilitary() const
@@ -3962,6 +3985,17 @@ void logSASGameRecordBonusChanged(CvPlot const* pPlot, BonusTypes eOldBonus, Bon
 static const char* getSASGameRecordCommerceType(CommerceTypes eCommerce)
 {
 	return (eCommerce == NO_COMMERCE ? "-" : GC.getInfo(eCommerce).getType());
+}
+
+// <!-- custom: YieldTypes also has loaded-XML identities, but SASGameRecord had no yield translator before building-choice effect lists first called getSASGameRecordYieldType and failed compilation. Keep the explicit helper beside the equivalent CommerceTypes translator so future diagnostic code does not repeat that assumption. (GPT-5.6-Sol) -->
+static const char* getSASGameRecordYieldType(YieldTypes eYield)
+{
+	return (eYield == NO_YIELD ? "-" : GC.getInfo(eYield).getType());
+}
+
+static const char* getSASGameRecordDomainType(DomainTypes eDomain)
+{
+	return (eDomain == NO_DOMAIN ? "-" : GC.getInfo(eDomain).getType());
 }
 
 static const char* getSASGameRecordBuildType(BuildTypes eBuild)
@@ -6430,6 +6464,43 @@ static CvString getSASGameRecordAIProductionTransitions(SASGameRecordPlayerFlow 
 	return getSASDiagnosticOrDash(szTransitions);
 }
 
+static char const* getSASGameRecordAIBuildingChoiceOrigin(SASGameRecordAIBuildingChoiceOrigin eOrigin)
+{
+	static char const* const aszOrigins[NUM_SAS_AI_BUILDING_CHOICE_ORIGINS] = {"HELPER", "BORDER_CULTURE_SWIFT", "BORDER_CULTURE_SLOW", "PROACTIVE_FORTIFICATION", "OPPORTUNISTIC_WONDER"};
+	if (eOrigin < 0 || eOrigin >= NUM_SAS_AI_BUILDING_CHOICE_ORIGINS)
+		return "UNKNOWN";
+	return aszOrigins[eOrigin];
+}
+
+static CvString getSASGameRecordAIBuildingChoiceOrigins(SASGameRecordPlayerFlow const& kFlow)
+{
+	CvString szOrigins;
+	for (int iI = 0; iI < NUM_SAS_AI_BUILDING_CHOICE_ORIGINS; iI++)
+		appendSASGameRecordTypeCount(szOrigins, getSASGameRecordAIBuildingChoiceOrigin((SASGameRecordAIBuildingChoiceOrigin)iI), kFlow.aiAIBuildingChoiceOrigins[iI]);
+	return getSASDiagnosticOrDash(szOrigins);
+}
+
+// <!-- custom: Keep overlapping realized-choice effects in one compact vocabulary so adding another building mechanic does not widen every GAME_RECORD_PRODUCTION_FLOW row.
+// These labels describe factual properties/context of buildings actually committed to; rejected-candidate/value-component reasoning remains in BBAI. (ChatGPT-5.6-Sol) -->
+static char const* getSASGameRecordAIBuildingChoiceEffect(SASGameRecordAIBuildingChoiceEffect eEffect)
+{
+	static char const* const aszEffects[NUM_SAS_AI_BUILDING_CHOICE_EFFECTS] = {
+		"HEALTH_FOOD_RELIEF", "STARVATION_PREVENTED_BY_HEALTH", "HAPPINESS_RELIEF", "FOOD_KEPT",
+		"MAINTENANCE_REDUCTION", "TRADE", "PRODUCTION", "GOVERNMENT_CENTER", "CAPITAL", "NATIONAL_PARK_STYLE",
+		"DEFENSE", "MILITARY_PRODUCTION", "DOMAIN_PRODUCTION", "FREE_EXPERIENCE"};
+	if (eEffect < 0 || eEffect >= NUM_SAS_AI_BUILDING_CHOICE_EFFECTS)
+		return "UNKNOWN";
+	return aszEffects[eEffect];
+}
+
+static CvString getSASGameRecordAIBuildingChoiceEffects(SASGameRecordPlayerFlow const& kFlow)
+{
+	CvString szEffects;
+	for (int iI = 0; iI < NUM_SAS_AI_BUILDING_CHOICE_EFFECTS; iI++)
+		appendSASGameRecordTypeCount(szEffects, getSASGameRecordAIBuildingChoiceEffect((SASGameRecordAIBuildingChoiceEffect)iI), kFlow.aiAIBuildingChoiceEffects[iI]);
+	return getSASDiagnosticOrDash(szEffects);
+}
+
 static int getSASGameRecordMaxAIProductionTargetChangesOneCity(SASGameRecordPlayerFlow const& kFlow)
 {
 	int iMax = 0;
@@ -6450,6 +6521,7 @@ static void logSASGameRecordFlowBuckets(int iGameTurn)
 			CvString szConscriptedUnitTypes;
 			CvString szColonyFreeDefenderUnitTypes;
 			CvString szBuildingTypes;
+			CvString szAIBuildingChoiceTypes;
 			CvString szProjectTypes;
 			FOR_EACH_ENUM(Unit)
 			{
@@ -6458,10 +6530,13 @@ static void logSASGameRecordFlowBuckets(int iGameTurn)
 				appendSASGameRecordTypeCount(szColonyFreeDefenderUnitTypes, getSASGameRecordUnitType(eLoopUnit), kFlow.aiColonyFreeDefenderUnitTypes[eLoopUnit]);
 			}
 			FOR_EACH_ENUM(Building)
+			{
 				appendSASGameRecordTypeCount(szBuildingTypes, getSASGameRecordBuildingType(eLoopBuilding), kFlow.aiBuildingTypes[eLoopBuilding]);
+				appendSASGameRecordTypeCount(szAIBuildingChoiceTypes, getSASGameRecordBuildingType(eLoopBuilding), kFlow.aiAIBuildingChoiceTypes[eLoopBuilding]);
+			}
 			FOR_EACH_ENUM(Project)
 				appendSASGameRecordTypeCount(szProjectTypes, getSASGameRecordProjectType(eLoopProject), kFlow.aiProjectTypes[eLoopProject]);
-			logSASGameRecord("GAME_RECORD_PRODUCTION_FLOW turn=%d range=%d-%d player=%d unitsProduced=%d unitProductionNeeded=%d unitTypes=%s unitsConscripted=%d conscriptProductionNeeded=%d conscriptedUnitTypes=%s colonyFreeDefenders=%d colonyFreeDefenderProductionNeeded=%d colonyFreeDefenderUnitTypes=%s buildingsCompleted=%d buildingProductionNeeded=%d buildingTypes=%s projectsCompleted=%d projectProductionNeeded=%d projectTypes=%s overflowActions=%d rawModifiedOverflow=%d unmodifiedOverflow=%d keptOverflow=%d lostProduction=%d unusedOverflowCapacity=%d overflowGold=%d failedInvestedProduction=%d failGold=%d aiTargetSwitches=%d aiTargetClears=%d aiInvestedTargetChanges=%d aiProductionParked=%d aiTargetResumes=%d aiProductionResumed=%d aiTargetChangedCities=%d aiMaxTargetChangesOneCity=%d aiTargetTransitions=%s productionDecayActions=%d productionDecayLost=%d productionInvalidatedActions=%d productionInvalidatedLost=%d productionUpgradeTransfers=%d productionUpgradeTransferred=%d productionUpgradeOverwriteActions=%d productionUpgradeOverwritten=%d",
+			logSASGameRecord("GAME_RECORD_PRODUCTION_FLOW turn=%d range=%d-%d player=%d unitsProduced=%d unitProductionNeeded=%d unitTypes=%s unitsConscripted=%d conscriptProductionNeeded=%d conscriptedUnitTypes=%s colonyFreeDefenders=%d colonyFreeDefenderProductionNeeded=%d colonyFreeDefenderUnitTypes=%s buildingsCompleted=%d buildingProductionNeeded=%d buildingTypes=%s projectsCompleted=%d projectProductionNeeded=%d projectTypes=%s overflowActions=%d rawModifiedOverflow=%d unmodifiedOverflow=%d keptOverflow=%d lostProduction=%d unusedOverflowCapacity=%d overflowGold=%d failedInvestedProduction=%d failGold=%d aiTargetSwitches=%d aiTargetClears=%d aiInvestedTargetChanges=%d aiProductionParked=%d aiTargetResumes=%d aiProductionResumed=%d aiTargetChangedCities=%d aiMaxTargetChangesOneCity=%d aiTargetTransitions=%s aiBuildingChoices=%d aiBuildingChoiceRegular=%d aiBuildingChoiceNationalWonders=%d aiBuildingChoiceTeamWonders=%d aiBuildingChoiceWorldWonders=%d aiBuildingChoiceWithStored=%d aiBuildingChoiceStoredProduction=%d aiBuildingChoiceProductionNeeded=%d aiBuildingChoiceEffects=%s aiBuildingChoiceOrigins=%s aiBuildingChoiceTypes=%s productionDecayActions=%d productionDecayLost=%d productionInvalidatedActions=%d productionInvalidatedLost=%d productionUpgradeTransfers=%d productionUpgradeTransferred=%d productionUpgradeOverwriteActions=%d productionUpgradeOverwritten=%d",
 				iGameTurn, g_iSASGameRecordFlowStartTurn, iGameTurn, ePlayer, kFlow.iUnitsCompleted, kFlow.iUnitProductionNeeded,
 				getSASDiagnosticOrDash(szUnitTypes).GetCString(), kFlow.iUnitsConscripted, kFlow.iConscriptProductionNeeded,
 				getSASDiagnosticOrDash(szConscriptedUnitTypes).GetCString(), kFlow.iColonyFreeDefenders, kFlow.iColonyFreeDefenderProductionNeeded,
@@ -6473,6 +6548,10 @@ static void logSASGameRecordFlowBuckets(int iGameTurn)
 				kFlow.iAIProductionInvestedTargetChanges, kFlow.iAIProductionParked, kFlow.iAIProductionTargetResumes,
 				kFlow.iAIProductionResumed, (int)kFlow.aAIProductionTargetChangesByCity.size(),
 				getSASGameRecordMaxAIProductionTargetChangesOneCity(kFlow), getSASGameRecordAIProductionTransitions(kFlow).GetCString(),
+				kFlow.iAIBuildingChoices, kFlow.iAIBuildingChoiceRegular, kFlow.iAIBuildingChoiceNationalWonders, kFlow.iAIBuildingChoiceTeamWonders,
+				kFlow.iAIBuildingChoiceWorldWonders, kFlow.iAIBuildingChoiceWithStoredProduction, kFlow.iAIBuildingChoiceStoredProduction,
+				kFlow.iAIBuildingChoiceProductionNeeded, getSASGameRecordAIBuildingChoiceEffects(kFlow).GetCString(),
+				getSASGameRecordAIBuildingChoiceOrigins(kFlow).GetCString(), getSASDiagnosticOrDash(szAIBuildingChoiceTypes).GetCString(),
 				kFlow.iProductionDecayActions, kFlow.iProductionDecayLost, kFlow.iProductionInvalidatedActions,
 				kFlow.iProductionInvalidatedLost, kFlow.iProductionUpgradeTransfers, kFlow.iProductionUpgradeTransferred,
 				kFlow.iProductionUpgradeOverwriteActions, kFlow.iProductionUpgradeOverwritten);
@@ -6873,14 +6952,18 @@ static void logSASGameRecordAIStrategies(PlayerTypes ePlayer, int iGameTurn)
 	if (!isSASGameRecordAIStrategyPlayer(kPlayer))
 		return;
 	CvString szStrategies;
-	for (int iStrategy = AI_STRATEGY_DAGGER; iStrategy <= AI_STRATEGY_ESPIONAGE_ECONOMY; iStrategy <<= 1)
+	int const iStrategyCount = getSASAIStrategyDescriptorCount();
+	for (int iI = 0; iI < iStrategyCount; iI++)
 	{
-		AIStrategy const eStrategy = (AIStrategy)iStrategy;
+		SASAIStrategyDescriptor const& kDescriptor = getSASAIStrategyDescriptor(iI);
+		AIStrategy const eStrategy = kDescriptor.eStrategy;
+		if (eStrategy == AI_DEFAULT_STRATEGY)
+			continue;
 		if (!isSASGameRecordAIStrategyActive(kPlayer, eStrategy))
 			continue;
 		if (!szStrategies.empty())
 			szStrategies += ",";
-		szStrategies += getSASAIStrategyType(eStrategy);
+		szStrategies += kDescriptor.szType;
 	}
 	logSASGameRecord("GAME_RECORD_AI_STRATEGIES turn=%d player=%d team=%d strategies=%s",
 		iGameTurn, ePlayer, kPlayer.getTeam(), getSASDiagnosticOrDash(szStrategies).GetCString());
@@ -13057,15 +13140,19 @@ void logSASGameRecordAIStrategyChanges(CvPlayerAI const& kPlayer, AIStrategy eOl
 {
 	if (!isSASGameRecordAIStrategyPlayer(kPlayer))
 		return;
-	for (int iStrategy = AI_STRATEGY_DAGGER; iStrategy <= AI_STRATEGY_ESPIONAGE_ECONOMY; iStrategy <<= 1)
+	int const iStrategyCount = getSASAIStrategyDescriptorCount();
+	for (int iI = 0; iI < iStrategyCount; iI++)
 	{
-		AIStrategy const eStrategy = (AIStrategy)iStrategy;
+		SASAIStrategyDescriptor const& kDescriptor = getSASAIStrategyDescriptor(iI);
+		AIStrategy const eStrategy = kDescriptor.eStrategy;
+		if (eStrategy == AI_DEFAULT_STRATEGY)
+			continue;
 		bool const bWasActive = ((eOldStrategies & eStrategy) != 0);
 		bool const bIsActive = ((eNewStrategies & eStrategy) != 0);
 		if (bWasActive == bIsActive)
 			continue;
 		logSASGameRecord("GAME_RECORD_AI_STRATEGY_CHANGE turn=%d player=%d team=%d strategy=%s activeAfter=%d",
-			GC.getGame().getGameTurn(), kPlayer.getID(), kPlayer.getTeam(), getSASAIStrategyType(eStrategy), bIsActive);
+			GC.getGame().getGameTurn(), kPlayer.getID(), kPlayer.getTeam(), kDescriptor.szType, bIsActive);
 	}
 }
 
@@ -13771,6 +13858,154 @@ static char const* getSASGameRecordAIHurryReason(SASGameRecordAIHurryReason eRea
 	case SAS_AI_HURRY_BUILDING_VALUE: return "BUILDING_VALUE";
 	default: return "UNKNOWN";
 	}
+}
+
+void logSASGameRecordAIBuildingChoice(CvCityAI const& kCity, BuildingTypes eBuilding, SASGameRecordAIBuildingChoiceOrigin eOrigin, int iFocusFlags, bool bDetailed, char const* szFocus, int iHelperMaxTurns, int iHelperMinThreshold, int iDecisionValue, int iHelperBaseOdds, int iHelperRandomRoll)
+{
+	// <!-- custom: Caller-side pre-gating is intentional: every realized-choice hook proves SASGameRecord level 2+ before calling, and passes bDetailed from the same cached level-3 decision.
+	// Do not add a hidden log-level guard/assert here; keeping the contract at call sites makes disabled-path cost and future regressions grep-visible. Only semantic/invariant assertions belong in this emitter. (ChatGPT-5.6-Sol) -->
+	FAssert(eBuilding >= 0 && eBuilding < GC.getNumBuildingInfos());
+	FAssert(!bDetailed || szFocus != NULL);
+	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
+	PlayerTypes const ePlayer = kCity.getOwner();
+	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
+
+	int iHappyGood = 0;
+	int iHappyBad = 0;
+	int iActualHealthGood = 0;
+	int iActualHealthBad = 0;
+	int iAssumedHealthGood = 0;
+	int iAssumedHealthBad = 0;
+	int const iProjectedHappy = kCity.getAdditionalHappinessByBuilding(eBuilding, iHappyGood, iHappyBad);
+	// <!-- custom: The first revision-130 candidate used the AI valuation's assumed-strategic-bonus health for factual health-food-relief/starvation aggregates, which could count a conditional future bonus as immediate relief. Aggregate actual current-bonus relief, while level 3 keeps both projections to explain the AI choice. (GPT-5.6-Sol) -->
+	int const iProjectedActualHealth = kCity.getAdditionalHealthByBuilding(eBuilding, iActualHealthGood, iActualHealthBad, false);
+	int const iProjectedAssumedHealth = (bDetailed ? kCity.getAdditionalHealthByBuilding(eBuilding, iAssumedHealthGood, iAssumedHealthBad, true) : 0);
+	int const iHappySurplus = kCity.happyLevel() - kCity.unhappyLevel();
+	int const iHealthSurplus = kCity.goodHealth() - kCity.badHealth();
+	int const iFoodDifference = kCity.foodDifference(false, true);
+	int const iHealthFoodLoss = std::max(0, -kCity.healthRate());
+	int const iHealthFoodRelief = std::min(std::max(0, iProjectedActualHealth), iHealthFoodLoss);
+	bool bDomainProduction = false;
+	bool bBonusProduction = false;
+	bool bFreeExperience = (kBuilding.getFreeExperience() != 0);
+	FOR_EACH_ENUM(Domain)
+	{
+		bDomainProduction = (bDomainProduction || kBuilding.getDomainProductionModifier(eLoopDomain) != 0);
+		bFreeExperience = (bFreeExperience || kBuilding.getDomainFreeExperience(eLoopDomain) != 0);
+	}
+	FOR_EACH_ENUM(UnitCombat)
+		bFreeExperience = (bFreeExperience || kBuilding.getUnitCombatFreeExperience(eLoopUnitCombat) != 0);
+	FOR_EACH_ENUM(Bonus)
+		bBonusProduction = (bBonusProduction || kBuilding.getBonusYieldModifier(eLoopBonus, YIELD_PRODUCTION) != 0);
+
+	SASGameRecordPlayerFlow& kFlow = g_akSASGameRecordPlayerFlow[ePlayer];
+	kFlow.iAIBuildingChoices++;
+	if (kBuilding.isWorldWonder()) kFlow.iAIBuildingChoiceWorldWonders++;
+	else if (kBuilding.isTeamWonder()) kFlow.iAIBuildingChoiceTeamWonders++;
+	else if (kBuilding.isNationalWonder()) kFlow.iAIBuildingChoiceNationalWonders++;
+	else kFlow.iAIBuildingChoiceRegular++;
+	int const iStored = kCity.getBuildingProduction(eBuilding);
+	int const iNeeded = kCity.getProductionNeeded(eBuilding);
+	if (iStored > 0) kFlow.iAIBuildingChoiceWithStoredProduction++;
+	kFlow.iAIBuildingChoiceStoredProduction += iStored;
+	kFlow.iAIBuildingChoiceProductionNeeded += iNeeded;
+	// <!-- custom: Do not add a separate current-health-relief aggregate here: CvCity::healthRate equals min(0, goodHealth - badHealth), so positive actual health-food relief already means an unhealthy city gains actual current-bonus health.
+	// The first two full revision-130 runs confirmed identical counts in every player/interval bucket (266 and 234 choices respectively); keeping both labels was redundant. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
+	if (iHealthFoodRelief > 0) kFlow.aiAIBuildingChoiceEffects[SAS_AI_BUILDING_EFFECT_HEALTH_FOOD_RELIEF]++;
+	if (iFoodDifference < 0 && iFoodDifference + iHealthFoodRelief >= 0) kFlow.aiAIBuildingChoiceEffects[SAS_AI_BUILDING_EFFECT_STARVATION_PREVENTED_BY_HEALTH]++;
+	if (iHappySurplus < 0 && iProjectedHappy > 0) kFlow.aiAIBuildingChoiceEffects[SAS_AI_BUILDING_EFFECT_HAPPINESS_RELIEF]++;
+	if (kPlayer.getFoodKept(eBuilding) != 0) kFlow.aiAIBuildingChoiceEffects[SAS_AI_BUILDING_EFFECT_FOOD_KEPT]++;
+	if (kBuilding.getMaintenanceModifier() < 0) kFlow.aiAIBuildingChoiceEffects[SAS_AI_BUILDING_EFFECT_MAINTENANCE_REDUCTION]++;
+	if (kBuilding.getTradeRoutes() != 0 || kBuilding.getCoastalTradeRoutes() != 0 || kBuilding.getAreaTradeRoutes() != 0 || kBuilding.getTradeRouteModifier() != 0) kFlow.aiAIBuildingChoiceEffects[SAS_AI_BUILDING_EFFECT_TRADE]++;
+	if (kBuilding.getYieldChange(YIELD_PRODUCTION) != 0 || kBuilding.getYieldModifier(YIELD_PRODUCTION) != 0 || bBonusProduction ||
+		kBuilding.getMilitaryProductionModifier() != 0 || kBuilding.getSpaceProductionModifier() != 0 || bDomainProduction)
+	{
+		kFlow.aiAIBuildingChoiceEffects[SAS_AI_BUILDING_EFFECT_PRODUCTION]++;
+	}
+	if (kBuilding.isGovernmentCenter()) kFlow.aiAIBuildingChoiceEffects[SAS_AI_BUILDING_EFFECT_GOVERNMENT_CENTER]++;
+	if (kBuilding.isCapital()) kFlow.aiAIBuildingChoiceEffects[SAS_AI_BUILDING_EFFECT_CAPITAL]++;
+	if (kBuilding.isNationalWonder() && kBuilding.getUnhealthyPopulationModifier() <= -50) kFlow.aiAIBuildingChoiceEffects[SAS_AI_BUILDING_EFFECT_NATIONAL_PARK_STYLE]++;
+	if (kBuilding.getDefenseModifier() != 0 || kBuilding.getBombardDefenseModifier() != 0) kFlow.aiAIBuildingChoiceEffects[SAS_AI_BUILDING_EFFECT_DEFENSE]++;
+	if (kBuilding.getMilitaryProductionModifier() != 0) kFlow.aiAIBuildingChoiceEffects[SAS_AI_BUILDING_EFFECT_MILITARY_PRODUCTION]++;
+	if (bDomainProduction) kFlow.aiAIBuildingChoiceEffects[SAS_AI_BUILDING_EFFECT_DOMAIN_PRODUCTION]++;
+	if (bFreeExperience) kFlow.aiAIBuildingChoiceEffects[SAS_AI_BUILDING_EFFECT_FREE_EXPERIENCE]++;
+	if (eOrigin >= 0 && eOrigin < NUM_SAS_AI_BUILDING_CHOICE_ORIGINS) kFlow.aiAIBuildingChoiceOrigins[eOrigin]++;
+	if (eBuilding >= 0 && eBuilding < (int)kFlow.aiAIBuildingChoiceTypes.size()) kFlow.aiAIBuildingChoiceTypes[eBuilding]++;
+	if (!bDetailed)
+		return;
+
+	CvString szYieldChanges;
+	CvString szYieldModifiers;
+	CvString szCommerceChanges;
+	CvString szCommerceModifiers;
+	FOR_EACH_ENUM(Yield)
+	{
+		appendSASGameRecordSignedValue(szYieldChanges, getSASGameRecordYieldType(eLoopYield), kBuilding.getYieldChange(eLoopYield));
+		appendSASGameRecordSignedValue(szYieldModifiers, getSASGameRecordYieldType(eLoopYield), kBuilding.getYieldModifier(eLoopYield));
+	}
+	FOR_EACH_ENUM(Commerce)
+	{
+		appendSASGameRecordSignedValue(szCommerceChanges, getSASGameRecordCommerceType(eLoopCommerce), kBuilding.getCommerceChange(eLoopCommerce) + kBuilding.getObsoleteSafeCommerceChange(eLoopCommerce));
+		appendSASGameRecordSignedValue(szCommerceModifiers, getSASGameRecordCommerceType(eLoopCommerce), kBuilding.getCommerceModifier(eLoopCommerce));
+	}
+	CvString szDomainProduction;
+	CvString szDomainExperience;
+	FOR_EACH_ENUM(Domain)
+	{
+		appendSASGameRecordSignedValue(szDomainProduction, getSASGameRecordDomainType(eLoopDomain), kBuilding.getDomainProductionModifier(eLoopDomain));
+		appendSASGameRecordSignedValue(szDomainExperience, getSASGameRecordDomainType(eLoopDomain), kBuilding.getDomainFreeExperience(eLoopDomain));
+	}
+	CvString szUnitCombatExperience;
+	FOR_EACH_ENUM(UnitCombat)
+		appendSASGameRecordSignedValue(szUnitCombatExperience, getSASGameRecordUnitCombatType(eLoopUnitCombat), kBuilding.getUnitCombatFreeExperience(eLoopUnitCombat));
+	CvString szBonusProductionModifiers;
+	FOR_EACH_ENUM(Bonus)
+		appendSASGameRecordSignedValue(szBonusProductionModifiers, getSASGameRecordBonusType(eLoopBonus), kBuilding.getBonusYieldModifier(eLoopBonus, YIELD_PRODUCTION));
+	CvString szImprovementFreeSpecialists;
+	int iImprovementFreeSpecialistExistingPlots = 0;
+	int iImprovementFreeSpecialistExistingCount = 0;
+	int iImprovementFreeSpecialistPotentialPlots = 0;
+	int iImprovementFreeSpecialistPotentialCount = 0;
+	FOR_EACH_NON_DEFAULT_PAIR(kBuilding.getImprovementFreeSpecialist(), Improvement, int)
+	{
+		int const iExistingPlots = kCity.countNumImprovedPlots(perImprovementVal.first, false);
+		int const iPotentialPlots = kCity.countNumImprovedPlots(perImprovementVal.first, true);
+		int const iExistingSpecialists = iExistingPlots * perImprovementVal.second;
+		int const iPotentialSpecialists = iPotentialPlots * perImprovementVal.second;
+		CvString szItem;
+		szItem.Format("%s:%+d@existing=%d/%d@potential=%d/%d", getSASGameRecordImprovementType(perImprovementVal.first), perImprovementVal.second,
+			iExistingPlots, iExistingSpecialists, iPotentialPlots, iPotentialSpecialists);
+		appendSASDiagnosticListValue(szImprovementFreeSpecialists, szItem.GetCString());
+		iImprovementFreeSpecialistExistingPlots += iExistingPlots;
+		iImprovementFreeSpecialistExistingCount += iExistingSpecialists;
+		iImprovementFreeSpecialistPotentialPlots += iPotentialPlots;
+		iImprovementFreeSpecialistPotentialCount += iPotentialSpecialists;
+	}
+	CvCity const* pOldCapital = (kBuilding.isCapital() ? kPlayer.getCapitalCity() : NULL);
+	char const* szCategory = (kBuilding.isWorldWonder() ? "WORLD_WONDER" : kBuilding.isTeamWonder() ? "TEAM_WONDER" : kBuilding.isNationalWonder() ? "NATIONAL_WONDER" : "REGULAR");
+	char const* szDecisionValueKind = (iDecisionValue < 0 ? "-" : eOrigin == SAS_AI_BUILDING_CHOICE_HELPER ? "THRESHOLD_SCORE" : "BUILDING_VALUE");
+	bool const bHelperOrigin = (eOrigin == SAS_AI_BUILDING_CHOICE_HELPER);
+	int const iHelperProgressOdds = (bHelperOrigin && iHelperBaseOdds >= 0 ? (250 * iStored) / std::max(1, iNeeded) : -1);
+	int const iHelperEffectiveOdds = (iHelperProgressOdds < 0 ? -1 : iHelperBaseOdds + iHelperProgressOdds);
+	int const iHelperForced = (bHelperOrigin ? (iHelperBaseOdds < 0 ? 1 : 0) : -1);
+	int iTurnsLeft = kCity.getProductionTurnsLeft(eBuilding, 0);
+	if (iTurnsLeft == MAX_INT) iTurnsLeft = -1;
+	logSASGameRecord("GAME_RECORD_AI_BUILDING_CHOICE turn=%d player=%d team=%d cityId=%d city=%S x=%d y=%d origin=%s focusFlags=%d focus=%s building=%s buildingClass=%s category=%s decisionValue=%d decisionValueKind=%s helperMaxTurns=%d helperMinThreshold=%d helperBaseOdds=%d helperProgressOdds=%d helperEffectiveOdds=%d helperRandomRoll=%d helperForced=%d stored=%d needed=%d completionPercentX100=%d turnsLeft=%d population=%d baseProduction=%d foodDifference=%d happySurplus=%d healthSurplus=%d healthFoodLoss=%d projectedHealthFoodRelief=%d projectedHappy=%d projectedHappyGood=%d projectedHappyBad=%d projectedActualHealth=%d projectedActualHealthGood=%d projectedActualHealthBad=%d projectedAssumedStrategicHealth=%d projectedAssumedStrategicHealthGood=%d projectedAssumedStrategicHealthBad=%d maintenanceTimes100=%d governmentCenter=%d capital=%d oldCapitalCityId=%d oldCapitalCity=%S oldCapitalX=%d oldCapitalY=%d nationalParkStyle=%d defenseModifier=%d bombardDefenseModifier=%d militaryProductionModifier=%d spaceProductionModifier=%d freeExperience=%d foodKept=%d tradeRoutes=%d coastalTradeRoutes=%d areaTradeRoutes=%d tradeRouteModifier=%d maintenanceModifier=%d improvementFreeSpecialistExistingPlots=%d improvementFreeSpecialistExistingCount=%d improvementFreeSpecialistPotentialPlots=%d improvementFreeSpecialistPotentialCount=%d yieldChanges=%s yieldModifiers=%s commerceChanges=%s commerceModifiers=%s domainProductionModifiers=%s domainFreeExperience=%s unitCombatFreeExperience=%s bonusProductionModifiers=%s improvementFreeSpecialists=%s",
+		GC.getGame().getGameTurn(), ePlayer, kCity.getTeam(), kCity.getID(), getSASGameRecordQuotedCityName(&kCity).GetCString(), kCity.getX(), kCity.getY(),
+		getSASGameRecordAIBuildingChoiceOrigin(eOrigin), iFocusFlags, szFocus, getSASGameRecordBuildingType(eBuilding), GC.getInfo(kBuilding.getBuildingClassType()).getType(), szCategory,
+		iDecisionValue, szDecisionValueKind, iHelperMaxTurns, iHelperMinThreshold, bHelperOrigin ? iHelperBaseOdds : -1, iHelperProgressOdds, iHelperEffectiveOdds,
+		(bHelperOrigin && iHelperBaseOdds >= 0 ? iHelperRandomRoll : -1), iHelperForced, iStored, iNeeded, getSASGameRecordPercentX100(iStored, iNeeded), iTurnsLeft,
+		kCity.getPopulation(), kCity.getBaseYieldRate(YIELD_PRODUCTION), iFoodDifference, iHappySurplus, iHealthSurplus, iHealthFoodLoss, iHealthFoodRelief,
+		iProjectedHappy, iHappyGood, iHappyBad, iProjectedActualHealth, iActualHealthGood, iActualHealthBad, iProjectedAssumedHealth, iAssumedHealthGood, iAssumedHealthBad,
+		kCity.getMaintenanceTimes100(), kBuilding.isGovernmentCenter(), kBuilding.isCapital(),
+		pOldCapital == NULL ? -1 : pOldCapital->getID(), getSASGameRecordQuotedCityName(pOldCapital).GetCString(), pOldCapital == NULL ? -1 : pOldCapital->getX(), pOldCapital == NULL ? -1 : pOldCapital->getY(),
+		kBuilding.isNationalWonder() && kBuilding.getUnhealthyPopulationModifier() <= -50, kBuilding.getDefenseModifier(), kBuilding.getBombardDefenseModifier(),
+		kBuilding.getMilitaryProductionModifier(), kBuilding.getSpaceProductionModifier(), kBuilding.getFreeExperience(), kPlayer.getFoodKept(eBuilding), kBuilding.getTradeRoutes(),
+		kBuilding.getCoastalTradeRoutes(), kBuilding.getAreaTradeRoutes(), kBuilding.getTradeRouteModifier(), kBuilding.getMaintenanceModifier(),
+		iImprovementFreeSpecialistExistingPlots, iImprovementFreeSpecialistExistingCount, iImprovementFreeSpecialistPotentialPlots, iImprovementFreeSpecialistPotentialCount,
+		getSASDiagnosticOrDash(szYieldChanges).GetCString(), getSASDiagnosticOrDash(szYieldModifiers).GetCString(), getSASDiagnosticOrDash(szCommerceChanges).GetCString(),
+		getSASDiagnosticOrDash(szCommerceModifiers).GetCString(), getSASDiagnosticOrDash(szDomainProduction).GetCString(), getSASDiagnosticOrDash(szDomainExperience).GetCString(),
+		getSASDiagnosticOrDash(szUnitCombatExperience).GetCString(), getSASDiagnosticOrDash(szBonusProductionModifiers).GetCString(), getSASDiagnosticOrDash(szImprovementFreeSpecialists).GetCString());
 }
 
 void logSASGameRecordAIHurryDecision(CvCity const& kCity, HurryTypes eHurry, SASGameRecordAIHurryReason eReason, UnitAITypes eUnitAI, int iHappyBalance, int iHappyDiff, int iFoodDifference, int iPopCost, int iGoldCost, int iDecisionValue, int iOverflowValue, int iDecisionMargin)

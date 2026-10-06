@@ -81,13 +81,30 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#45 - (Addressed / Patched / Worked around) AI cities assigning too soon or too often specialists, resulting in early stagnation very inefficiently: now added sanity rules to not go for a specialist](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-45)\
 [KI#46 - (Cleaned up) Very big messy old uiFlag code in the DLL, seemingly to support savegame compatibility, which i don't care about, especially considering how complicated the code is as a result](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-46)\
 [KI#47 - (Fixed / Addressed / Enhanced) AI choosing poorly promotions for its units: now added a set of hard rules in which case some promotions are not good and to ignore as is most efificient in most times, and rarely cases where some promotions are best to always go first for (e.g. as of no city_garrison first for unitai_city_defense, city_raider first for unitai_attack_city, etc if any more)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-47)\
-[KI#48 - (Enhanced/Reworked) AI building walls when they are stronger and don't need it, or wonders when they are weaker or in danger (don't build wonders for our neighbours when they capture us), and overall added a lot of extra buildingValue reject or always build first logic depending on building type or such; and reworked as well the ditching wonders logic to be seemingly stricter and more war/danger focused](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48)\
-[KI#48.2 - (Greatly Enhanced and Fixed) Kish city of gilgamesh AI building a theatre instead of a hindu temple despite having unhappy citizens (and health room to grow otherwise), and theatre not giving any reliable happiness (almost anything else would have been much better), fixed by fixed by correcting the happiness building formula in our pre-check in CvCityAI::AI_buildingValue, and in particular replacing the too broad and unreliable CvCity::getAdditionalHappinessByBuilding with our own AI_strictAdditionalHappy](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.2)\
+[KI#48 - (Historical first SAS building-value rework; regular-building hard gates superseded by KI#48.5, Wonder policy rework continued in KI#48.9) AI building walls when already safe/strong, Wonders while weak/in danger, and related hard building-policy rules](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48)\
+[KI#48.2 - (Historical SAS happiness-prefilter enhancement; regular-building hard gate superseded by KI#48.5) Kish built a Theatre instead of immediately useful happiness infrastructure](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.2)\
 [KI#48.3 - (Fixed AdvCiv-SAS bug) Building prefilter double-counted unhealthy food loss](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.3)\
 [KI#48.4 - (Fixed AdvCiv-SAS performance-optimization crash) Corporation HQ valuation used an exhausted commerce-loop index](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.4)\
+[KI#48.5 - (Greatly Reworked/Enhanced; regular-building audit complete) September 2026 AI regular-building valuation: replace hard SAS category gates with audited inherited additive valuation and targeted evidence-backed corrections](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.5)\
+[KI#48.6 - (Improved inherited K-Mod/AdvC AI valuation weakness) Severe unhealthiness did not gain enough relative urgency against ordinary infrastructure](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.6)\
+[KI#48.7 - (Fixed inherited Kek-Mod AI valuation defect) Every Bomb Shelter protected the same continental army](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.7)\
+[KI#48.8 - (Improved inherited K-Mod/AdvC AI production-timing weakness) Walls/Castles could be valued but were considered too late to finish before visible land assaults](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.8)\
+[KI#48.9 - (Improved AdvCiv-SAS Wonder policy) Replaced monolithic World/National Wonder hard gates with audited inherited valuation and evidence-backed safeguards](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.9)\
+[KI#48.10 - (Improved inherited K-Mod/AdvC AI valuation-shape weakness) Generic military-production modifiers were valued mostly by fixed/rank rules instead of expected production throughput](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.10)\
+[KI#48.11 - (Improved inherited K-Mod/AdvC AI valuation-shape weakness) DOMAIN_SEA production modifiers were almost geography-blind instead of following expected naval throughput](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.11)\
+[KI#48.12 - (Improved inherited K-Mod/AdvC AI valuation-shape weakness) DOMAIN_SEA free experience used a fixed coastal multiplier instead of expected naval throughput](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.12)\
+[KI#48.13 - (Improved inherited K-Mod/AdvC AI valuation-shape weakness) DOMAIN_LAND production modifiers were fixed/rank-based instead of following expected land throughput](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.13)\
+[KI#48.14 - (Fixed inherited K-Mod/AdvC AI valuation/applicability defect) Domain-production value could be awarded where the city could not train any affected unit](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.14)\
+[KI#48.15 - (Improved inherited K-Mod/AdvC AI limited-building-placement weakness) World Wonders used raw value and ordinal production gates instead of completion-time-aware placement](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.15)\
+[KI#48.16 - (Improved old SAS/K-Mod/AdvC AI National-Wonder specialization policy) Heroic Epic force-first distorted research; useful specialization migrated into additive throughput](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.16)\
+[KI#48.17 - (Improved inherited K-Mod/AdvC AI Government Center valuation weakness) A local maintenance proxy missed the best empire-wide placement](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.17)\
+[KI#48.18 - (Fixed inherited K-Mod/AdvC AI Palace-relocation economic defect) Area-population heuristics could move the Palace while increasing empire maintenance](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.18)\
+[KI#48.19 - (Improved inherited K-Mod/AdvC AI Wonder opportunity-cost weakness and fixed old-SAS planning defect) National Park military pressure was either ignored or hard-zeroed across current and prospective valuation](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.19)\
+[KI#48.20 - (Improved inherited K-Mod/AdvC AI World-Wonder opportunity-cost weakness) Locally exposed AIs could over-invest in World Wonders after the old hard military-pressure policy was retired](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-48.20)\
 [KI#49 - (Enhanced/Addressed) AI having 4+ defenders in capital city but only 1 defender in city B, that gets captured or razed by barbarians then, now almost always if not always new cities go be founded with 2+ defenders](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-49)\
 [KI#50 - (Tremendously improved/fixed/enhanced) Excessive AI worker retreat logic causing worker parking in cities in rare cases: now added a wake from retreat and other changes if any other change](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-50)\
 [KI#51 - (Cleanup validated; human tripwire retained) Old AI no-production fallback was obsolete: four broad controls found only intentional disorder returns, with no normal AI_chooseProduction final fall-through or non-disorder turn-boundary stall](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-51)\
+[KI#51.2 - (Fixed AdvCiv-SAS post-production override defect; host emergency subsystem later retired) Emergency building rules could override intentional disorder no-production](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-51.2)\
 [KI#52 - (Beyond Tremendously improved) Remove AI scrapping of military land units, as way too many units are scrapped early, yet we really need them to defend against barbarians or our rivals or such](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-52)\
 [KI#53 - (Beyond Tremendously Improved) Naval dementia of producing privateers/galleons then seemingly scrapping them and repeat, or of more importantly building galleons and privateers in droves and excess, despite enemy threatening cities of land capture for 20+ turns, and losing capital as a result: fixed/addressed by now managing production of each unitai with max by type in CvCityAI::AI_chooseUnit, as well as disallowing scrapping and managing it by unitai type globally as well in CvUnit::canScrap by type as well with max and such other conditions for some units like as of now workers](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-53)\
 [KI#53.2 - (Fixed and enhanced) Joao AI building way too many defenders (36 longbowmen at turn 130!! Almost all with UNITAI_CITY_DEFENSE or similar) while being boxed in with only 3 cities, instead of making about half of these offense units or versatile ones to punish overextending thin neighbour, fixed by having an early phase "we have expectedly too few cities at this stage of the game, no need to overbuild anymore denders at this stage of the game, switch to offense or versatile UNITAI rather" and "our military composition has way too many defender UNITAIs, switch to offense or versatile UNITAIs", which seemingly fix the issue](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-53.2)\
@@ -399,8 +416,9 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#308 - (Fixed AdvCiv-SAS bug) City Screen Specialist Breakdown inferred inaccurate Great Person modifiers](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-308)\
 [KI#308.2 - (Fixed AdvCiv-SAS bug) City Screen Culture Breakdown inferred its modifier from a truncated base rate](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-308.2)\
 [KI#309 - (Fixed AdvCiv-SAS bug) AI religion value counted full team and vassal-bloc power once per non-vassal team member](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-309)\
-[KI#310 - (Fixed AdvCiv-SAS bug) Water-heavy AI city fallback could leave production empty](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-310)\
+[KI#310 - (Retired fixed AdvCiv-SAS bug; host no-production fallback later retired under KI#51) Water-heavy AI city fallback could leave production empty](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-310)\
 [KI#311 - (Rejected archaeology finding) GET_TEAM(PlayerTypes) correctly resolves the player's team](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-311)\
+[KI#311.2 - (Documented AdvCiv-SAS source-maintenance pitfall; no gameplay effect) Narrowing cached CvTeamAI references can hide required AI-only team interfaces](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-311.2)\
 [KI#312 - (Fixed AdvCiv-SAS bug) Master/vassal technology preferences treated legally unavailable knowledge as supply](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-312)\
 [KI#312.2 - (Fixed AdvCiv-SAS follow-up bug) Progress-tech purchases bypassed master/vassal cluster-first sourcing](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-312.2)\
 [KI#313 - (Fixed AdvCiv-SAS bug) Human BFC Artist cleanup could remove manually forced Artists](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-313)\
@@ -424,7 +442,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#330 - (Fixed AdvCiv-SAS bug) Master/vassal tech-contact power-bias exemption depended on an unrelated toggle](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-330)\
 [KI#331 - (Fixed AdvCiv-SAS-only scrap-contract regression) Restrictive AI scrapping could veto removal while callers reported success](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-331)\
 [KI#332 - (Fixed inherited BUG/Base AdvCiv UI bug, broadened by AdvCiv-SAS) Leader hovers resolved trait production through Arabia instead of the displayed civilization](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-332)\
-[KI#333 - (Fixed AdvCiv-SAS priority-order regression) Emergency Port could preempt stronger strategic defense](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-333)\
+[KI#333 - (Retired fixed AdvCiv-SAS priority-order regression; host emergency-building subsystem later retired under KI#48.5) Emergency Port could preempt stronger strategic defense](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-333)\
 [KI#334 - (Fixed inherited AdvCiv information leak amplified by AdvCiv-SAS) Great General death reports could reveal an unknown killer civilization](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-334)\
 [KI#335 - (Fixed AdvCiv-SAS bug) Military Advisor Battles vassal perspective could expose hidden battle locations](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-335)\
 [KI#336 - (Fixed AdvCiv-SAS lifecycle bug) Dynamic map heaviness was cached before starting plots existed](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-336)\
@@ -985,11 +1003,11 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#874 - (Provisional Pending AdvCiv-SAS specialist-state defect) Temporary border Artist can remain forced](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-874)\
 [KI#875 - (Provisional Pending inherited production-selection defect) A combat ship can stand in for a land garrison](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-875)\
 [KI#876 - (Provisional Pending AdvCiv-SAS caller-scope regression) City war focus silently uses the capital area](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-876)\
-[KI#877 - (Provisional Pending AdvCiv-SAS building-prefilter defect) Maintenance classification uses the wrong sign](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-877)\
-[KI#878 - (Provisional Pending AdvCiv-SAS building-prefilter defect) Miscellaneous wartime tail is attached too broadly](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-878)\
+[KI#877 - (Retired/Superseded dormant AdvCiv-SAS building-prefilter defect) Maintenance classification uses the wrong sign](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-877)\
+[KI#878 - (Retired/Superseded dormant AdvCiv-SAS building-prefilter defect) Miscellaneous wartime tail is attached too broadly](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-878)\
 [KI#879 - (Provisional Pending inherited building-value defect) Overseas domestic trade is treated as foreign trade](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-879)\
 [KI#880 - (Fixed inherited AdvC sign regression) Immediate anger reversed building value](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-880)\
-[KI#881 - (Provisional Pending AdvCiv-SAS handicap-scope defect) Regular-building skew reads the AI handicap](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-881)\
+[KI#881 - (Retired/Superseded dormant AdvCiv-SAS espionage handicap-force defect) Regular-building espionage strategy was forced from handicap research costs](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-881)\
 [KI#882 - (Provisional Pending inherited production-upgrade defect) Destination hammers are overwritten](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-882)\
 [KI#883 - (Provisional Pending AdvCiv/BULL decay-preview defect) Fractional thresholds are one turn late](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-883)\
 [KI#884 - (Provisional Pending AdvCiv building-preview regression) Trade-yield modifiers truncate before multiplication](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-884)\
@@ -2119,6 +2137,8 @@ Also, skewing too much the values will make us forsake very good sites just to o
 
 Update 2: the very-bad classification no longer hardcodes Peak, Ice Cap, flat Desert, and flat Snow names. Impassable plots always count; other non-home plots without a visible bonus count only when their best natural or XML-valid improved yield remains below a tunable threshold. This preserves the original intent while making terrain and improvement changes automatically affect the result. Visible bonuses on usable plots remain exempt because their specialized value is evaluated separately.
 
+Related implementation/review PR: [#41 - Settler AI yield refactor/rework](https://github.com/wonderingabout/AdvCiv-SAS/pull/41).
+
 Update 3 during the XML-driven Settler site-valuation rework (2026-09-24): the fixed terrain/feature tables documented above are now historical and no longer execute. They had materially improved the observed Base AdvCiv behavior, especially by preserving strong Grass/Hill Grass/Flood Plains plots and consuming weak Desert/Snow/Plains alternatives, but encoded the current XML balance twice and could become wrong when a terrain, feature, improvement, upgrade chain, or yield changed.
 
 The replacement enumerates the plot's real XML-valid Build/Improvement outcomes, retained or removed feature, immediate yield, final upgrade yield, and technology timing. It separately compares guaranteed city-center yield against the best worked-plot opportunity: losing a strong potential plot receives the full configured opportunity cost, while replacing a weak plot receives a smaller reward so one attractive home plot cannot override the complete BFC.
@@ -2212,6 +2232,8 @@ Also not shown but no farms on flatland grass anymore since we're not starving t
 Disabling it entirely throws off workboats that use this too, then they stay parked in city, so updated this to disable it functionally only for land workers as we want them to use our optimized AI worker logic, but as for sea workers, fine if they do as such as long as works-functions
 
 ### Update 4: AdvCiv-SAS 6565 XML-driven Worker valuation (2026-09-23)
+
+Related implementation/review PR: [#40 - Worker AI yield rework](https://github.com/wonderingabout/AdvCiv-SAS/pull/40).
 
 The earlier AdvCiv-SAS rewrite was much stronger than the inherited logic in its motivating games, but its explicit terrain, feature and improvement branches created a maintenance weakness: XML yield changes, newly useful Watermills/Lumbermills/Forest Preserves, or a mod-added terrain/feature could require several matching C++ edits. It could also miss combinations that had never been anticipated when the table was written.
 
@@ -3036,7 +3058,7 @@ Thanks to these, i hope AI is now stronger and i would say saner. I didn't test 
 
 <a id="ki-48"></a>
 
-## KI#48 - (Enhanced/Reworked) AI building walls when they are stronger and don't need it, or wonders when they are weaker or in danger (don't build wonders for our neighbours when they capture us), and overall added a lot of extra buildingValue reject or always build first logic depending on building type or such; and reworked as well the ditching wonders logic to be seemingly stricter and more war/danger focused
+## KI#48 - (Historical first SAS building-value rework; regular-building hard gates superseded by KI#48.5, Wonder policy rework continued in KI#48.9) AI building walls when already safe/strong, Wonders while weak/in danger, and related hard building-policy rules
 
 Screenshots/files for this issue:
 
@@ -3115,7 +3137,7 @@ It only documents logic that exists in the code we just reviewed (no speculation
 | **Science** | Research % ≥20 **or** flat beakers **or** (Scientist slots/free) | If **at war** **or** **danger** **or** **war plan** → **skip**. | — | Don’t pause survival or momentum for beakers. |
 | **Economy (Gold)** | Gold % ≥20 **or** flat gold **or** (Merchant slots/free) and **not** previously classified | Same war/danger/war‑plan **skip**. If %‑only and city **gold rate < 6** → **skip**. | — | ROI gate for early banks/markets. |
 | **Trade‑route econ** | Adds routes **or** has trade route % (incl. foreign) | If war/danger/war‑plan → **skip**. If **foreign %** but **no foreign routes** and **doesn’t add routes** → **skip**. If **tiny base trade** (`iTradeYield ≤3`) then require **+routes**: base 3→ +1, base ≤2→ +2; otherwise **skip**. | Uses current `iTradeYield` in this city; counts "virtual" route when % mods present. | Build CH/Harbor where trade exists or where added routes will matter. |
-| **Espionage** | EP % ≥20 **or** flat EP/Spy slots/free **or** EP defense ≥20 | War/danger/war‑plan → **skip**. Difficulty skew: if **human pays much less for tech** (AI advantage, gap ≥ +30) and **EP defense** → **ALWAYS_PICK_FIRST −1000**. If **AI pays much more** (gap ≤ −20) and **EP source** → **ALWAYS_PICK_FIRST −1000**. | Gap: `iHumanResearchPercent − iAIResearchPercent`. | Hedge vs human EP when ahead; lean EP offense when behind on costs. |
+| **Espionage** | EP % ≥20 **or** flat EP/Spy slots/free **or** EP defense ≥20 | As as of now for the other retired changes in these sections, the retired prefilter skipped these buildings during war/danger/war plans and could force them from handicap research costs. | The removed forces used `iHumanResearchPercent − iAIResearchPercent` thresholds of −20/+30. | Handicap and current strength do not imply one reliable espionage strategy; actual city/empire valuation and `AI_STRATEGY_ESPIONAGE_ECONOMY` now decide. See KI#48.5. |
 | **Culture‑only** | Flat culture **or** culture % (and not classified earlier) | If **BFC not needed** and **early‑mid window** and **existing culture ≥2** → **skip**. | Early‑mid ≈ first ~125 turns @ Normal (scaled). | Don’t overbuild fluff culture once borders are workable. |
 | **Unknown / misc** | Anything not matched above | If **war**/**danger**/**enemy strong** **or** **war plan** → **skip**. | — | Conservative default during pressure. |
 
@@ -3245,9 +3267,29 @@ Thanks to chatgpt 5 for the table again hehe thanks:
 | 100 | 45.3 s | 40.5 s |
 | 150 | 91.2 s | 87.5 s |
 
+### September 2026 update: regular-building hard gates superseded by KI#48.5
+
+This KI remains useful as the historical record of the first major SAS building-policy rework, especially its original gameplay observations and the still-active/pending Wonder-policy rationale. However, the **regular-building** half is no longer the current design.
+
+The original regular-building rules were developed mainly from gross visual/autoplay observations before SASGameRecord and the later level-3 BBAI building-value attribution existed.
+
+Those observations frequently identified real strategic questions, but the solution used a long ordered prefilter of named categories, fixed thresholds, whole-building `return 0` rejections and `AI_BUILDING_ALWAYS_PICK_FIRST`-style forces.
+
+That made the result brittle for multipurpose/unique buildings and could make whichever condition happened to run first dominate unrelated effects.
+
+The September 2026 rework in **KI#48.5** therefore disabled the old regular-building hard prefilter for controlled comparison, audited its concerns one by one against inherited K-Mod/AdvC additive valuation, and removed the prefilter after the audit was complete.
+
+Exact BBAI component deltas and SASGameRecord run comparison were used to retain inherited behavior where the data supported it and add narrower corrections where it did not.
+
+That audit also found distinct inherited issues now tracked separately: the immediate-happiness sign regression in **KI#880**, insufficient relative urgency for severe unhealthiness in **KI#48.6**, the repeated continental-army Bomb Shelter estimate in **KI#48.7**, and the late fortification-production opportunity in **KI#48.8**.
+
+The original Walls/Castle concern therefore was not simply discarded. Detailed logging showed that the old SAS post-production hard force was the wrong implementation, while a narrower inherited timing weakness remained: useful fortifications can be valued correctly yet never receive a timely production opportunity before earlier branches return. KI#48.8 tracks the evidence-driven pre-production replacement.
+
+The **Wonder** half of this KI is not declared superseded yet. It remains enabled and is intentionally scheduled for its own later audit within the still-active KI#48.5 PR.
+
 <a id="ki-48.2"></a>
 
-## KI#48.2 - (Greatly Enhanced and Fixed) Kish city of gilgamesh AI building a theatre instead of a hindu temple despite having unhappy citizens (and health room to grow otherwise), and theatre not giving any reliable happiness (almost anything else would have been much better), fixed by fixed by correcting the happiness building formula in our pre-check in CvCityAI::AI_buildingValue, and in particular replacing the too broad and unreliable CvCity::getAdditionalHappinessByBuilding with our own AI_strictAdditionalHappy
+## KI#48.2 - (Historical SAS happiness-prefilter enhancement; regular-building hard gate superseded by KI#48.5) Kish built a Theatre instead of immediately useful happiness infrastructure
 
 Screenshots/files for this issue: [google drive folder link](https://drive.google.com/drive/folders/1xNaTDpRHsdh4YBG176V6pPtnGnbMvL7D?usp=sharing).
 
@@ -3273,6 +3315,16 @@ Thanks to these it seems, kish city is now pop 13 instead at turn 150 (resuming 
 
 So all in all seems like a very good safe and balanced change that should make AI much stronger especially at middle game and city growing!! But check to be sure.
 
+### September 2026 update: historical prefilter cure superseded by additive valuation
+
+This fix was useful in the old SAS prefilter architecture, but its regular-building force/reject path is now historical together with the rest of that prefilter. KI#48.5 deliberately starts from inherited additive valuation instead of trying to identify a whole building as a `happiness building` and force/reject it as one category.
+
+The new audit first corrected the separate inherited AdvC happiness-sign regression in **KI#880**, then measured the resulting happiness contribution directly. Among selected happiness-like buildings, median inherited happiness value was about **+16 with no angry citizen, +96 with 1-3 angry citizens, +271 with 4+ and +310 with 6+**.
+
+The old force-anger-relief condition occurred **14,372** times; without the old force sentinel, inherited valuation still made the candidate best **1,510** times and it survived to final production **452** times. Conversely, among **103** selected buildings that would have matched the old `happiness not needed` rejection, median happiness value was only about **+7** versus roughly **+71** from their other effects.
+
+So the old Kish observation remains valuable historical evidence, but the current correction is no longer a stricter whole-building happiness classifier. Happiness is now allowed to compete additively with the building's other effects, and after KI#880 the audit found no need for an additional severe-unhappiness multiplier.
+
 <a id="ki-48.3"></a>
 
 ## KI#48.3 - (Fixed AdvCiv-SAS bug) Building prefilter double-counted unhealthy food loss
@@ -3296,6 +3348,2076 @@ A turn-250 full-memory crash dump with matching private symbols failed in `CvCit
 AdvCiv-SAS practical 5086 moved `findCommerceRateRank(eLoopCommerce)` immediately before the corporation-headquarters commerce loop as a performance optimization. At that location, `eLoopCommerce` survived from an earlier completed `FOR_EACH_ENUM(Commerce)` loop and held its terminal sentinel rather than a valid commerce type. The Base AdvCiv implementation correctly performs the rank lookup inside the later loop for its current commerce type.
 
 The fix restores that lookup to the positive headquarters-commerce branch inside the valid loop. This also avoids calculating ranks for commerce types that contribute no headquarters value, while preserving the original corporation valuation formula. The exact dump path and invalid index are resolved by the source correction; the crash did not recur later in the same testing sequence, and a dedicated rebuilt-DLL reproduction was not needed for this rare path. Diagnosed and fixed with the help of GPT-5.6-Sol, thanks.
+
+<a id="ki-48.5"></a>
+
+## KI#48.5 - (Greatly Reworked/Enhanced; regular-building audit complete) September 2026 AI regular-building valuation: replace hard SAS category gates with audited inherited additive valuation and targeted evidence-backed corrections
+
+Current implementation/review PR: [#43 - Codex/building value health rework](https://github.com/wonderingabout/AdvCiv-SAS/pull/43). This follows the September 2026 [Worker AI rework PR #40](https://github.com/wonderingabout/AdvCiv-SAS/pull/40), [Settler AI rework PR #41](https://github.com/wonderingabout/AdvCiv-SAS/pull/41), and [dynamic bonus-value PR #42](https://github.com/wonderingabout/AdvCiv-SAS/pull/42).
+
+### September 2026 second rework: audit the old regular-building policy instead of mechanically translating it
+
+Following the September 2026 Worker AI, Settler AI and bonus-value reworks, regular-building valuation became the next major AdvCiv-SAS AI rework target.
+
+The old SAS building policy had been created for real observed gameplay problems. It tried to stop or force such things as peaceful Walls, Stables without useful mounted units, weak early culture/economic infrastructure, badly timed Forges, unnecessary maintenance buildings, slow science/economy buildings during military pressure, and delayed health, happiness, Granary or coastal infrastructure.
+
+The observations were often reasonable. The main problem was the architecture used to enforce them.
+
+The regular-building layer classified the entire building into sequential categories and then often returned a hard rejection or force-first value. This had several weaknesses:
+
+- A building could be rejected because one effect was weak even when another effect was excellent.
+- A unique or multipurpose building was especially vulnerable: a Stable replacement can also provide health; Walls can provide happiness; Castles combine defense and trade; Markets, Grocers and Supermarkets combine economy with happiness/health; Libraries combine research, culture and specialists.
+- The result could depend on which category happened to claim the building first. A mild earlier condition could therefore end the evaluation before a much more serious later need was considered.
+- Fixed thresholds created cliffs instead of continuously valuing the magnitude of the need and the amount of relief.
+- Named building classes, resources, technologies and assumptions about current SAS balance made some rules brittle against later SAS changes and modmods.
+- `AI_BUILDING_ALWAYS_PICK_FIRST`-style results could overwhelm ordinary opportunity-cost comparison rather than merely strengthen the relevant marginal effect.
+- Some later XML tuning had become implicitly coupled to the hard prefilter around it, so removing only one half of the old policy could expose previously masked overvaluation.
+- The original SAS tuning was empirical but predated SASGameRecord and the much more detailed level-3 BBAI forensic logging now available. We could observe bad outcomes but could not reliably attribute why inherited `AI_buildingValue` had valued a candidate.
+
+The September 2026 rework therefore deliberately did not translate the old SAS table into another equivalent table, and did not blindly revert everything to inherited K-Mod/AdvC behavior either.
+
+Instead, the regular SAS prefilter was disabled and each old rationale was audited against the inherited additive evaluator. Where inherited valuation already handled the concern well, the old SAS rule was removed without replacement. Where the audit found a concrete inherited weakness, the responsible marginal effect was corrected narrowly and generically.
+
+The separate Wonder policy was intentionally kept out of this regular-building migration and is now tracked as its own rework in **KI#48.9**.
+
+### Fixed SAS defect found during migration: missing Wonder classification guard
+
+The first attempted `regular SAS off` candidate immediately exposed a latent AdvCiv-SAS classification bug.
+
+With:
+
+```text
+SAS regular-building optimization = off
+SAS Wonder optimization           = on
+```
+
+ordinary buildings no longer entered the regular branch, but the following `else if` tested only whether Wonder optimization was enabled. It did not require the candidate itself to be a Wonder.
+
+The result was not a clean inherited run: ordinary Granaries, Barracks, Harbors and other buildings entered the Wonder policy and could be rejected as `UNKNOWN_WONDER`.
+
+The diagnostic run recorded this **163,084 times**, including a Granary at turn 0.
+
+This had normally remained silent because, with the regular SAS system enabled, ordinary buildings were caught by the preceding regular-building branch and never reached the faulty Wonder branch.
+
+The fix made the branch explicitly require an actual Wonder:
+
+```cpp
+else if (bWonder && bSAS_AI_BUILDING_VALUE_WONDERS_OPTIMIZE)
+```
+
+The original SAS-on baseline therefore did not need to be rerun. The inherited candidate did need to be recompiled and rerun, after which ordinary buildings reaching the accidental `UNKNOWN_WONDER` path fell to zero.
+
+This is a concrete SAS bug discovered by the migration itself, but it is kept in the parent KI#48 rework history rather than split into another sub-KI because it was a toggle/classification defect exposed while preparing the comparison, not a separate inherited valuation defect.
+
+### Baseline and clean inherited comparison
+
+After the Wonder-branch classification fix, the SAS-on baseline and clean inherited candidate established the broad effect of removing the regular hard prefilter:
+
+- AI production-target switches: **1,611 -> 1,320**
+- invested-production target changes: **855 -> 718**
+- parked production: **45,185 -> 31,012**
+- inherited ordinary-building evaluations: about **179,823**
+- ordinary buildings reaching `UNKNOWN_WONDER`: **0**
+- old `100000` sentinel focus rows: **17,962 -> 0**
+- Colosseums: **93 -> 6**
+- Theatres: **86 -> 6**
+- Granaries: **109 -> 126**
+- Libraries: **62 -> 88**
+- Universities: **20 -> 46**
+- Banks: **44 -> 76**
+- Forges: **82 -> 94**
+- Supermarkets: **25 -> 54**
+
+Two important concerns also appeared and were deliberately investigated instead of being used as reasons to restore the old gates:
+
+- after turn 300, negative-happiness snapshots rose from about **43.6% to 63.1%**, with average happiness surplus moving from about **-0.08 to -1.03**;
+- several military/infrastructure buildings increased sharply, including Airport **39 -> 95**, Drydock **15 -> 64**, Bunker **13 -> 35** and Castle **23 -> 43**.
+
+This became the starting point for the layer-by-layer audit below.
+
+### Diagnostic method: move from category labels to exact inherited attribution
+
+The initial comparison could show that a Hospital, Bank, Airport or Stable had a high inherited score, but not which part of the inherited evaluator had produced it.
+
+Focused `AI_buildingValue` probes were useful for exploration but were not additive components: a HEALTH focus value could still contain unrelated valuation. The audit therefore moved to exact before/after deltas around major inherited valuation blocks.
+
+The level-3 BBAI logger eventually attributed or exposed:
+
+- conventional and nuclear defense;
+- happiness and anger relief;
+- health and unhealthy-food relief;
+- military experience and affected trainable units;
+- maintenance savings;
+- specialist effects;
+- trade;
+- production/yield effects;
+- research, gold, culture and espionage;
+- sea-tile food, production and commerce;
+- air capacity and domain/military production;
+- final priority transform;
+- XML `iAIWeight`;
+- flavour transform;
+- an explicit residual rather than pretending every later transform had been decomposed.
+
+The first broad exact-component run produced about **198,700 attribution rows**.
+
+BBAI level 3 is intentionally allowed to be the large forensic microscope because it is normally disabled. SASGameRecord remains the compact run-level chronology and deterministic comparison tool. This also lets divergent full autoplays be interpreted carefully: exact component attribution and concrete production transitions are stronger causal evidence than comparing late-game aggregate outcomes after history has diverged.
+
+### Inherited happiness defect found before adding any new happiness policy
+
+The first major inherited finding was the AdvC sign regression now documented separately as **KI#880**.
+
+AdvC had changed K-Mod's post-building anger expression so that positive building happiness could increase the computed anger delta and reduce the value of curing it.
+
+That bug became especially visible after the SAS happiness force/reject layer stopped masking inherited valuation.
+
+The sign was fixed first, and only then was happiness re-audited. The later audit showed that inherited happiness value already rises very strongly with actual angry citizens, so no additional severe-unhappiness multiplier was needed.
+
+See KI#880 for the inherited correctness defect itself.
+
+### Inherited finding: severe health was noticed but not strongly enough relative to optional infrastructure
+
+The health audit found a subtler inherited weakness.
+
+Inherited K-Mod/AdvC was not blind to severe unhealthiness. Among buildings that actually supplied positive health, median exact health contribution rose approximately from **+40 at -1 health** to **+110 at -10 or worse**, with an average around **+137** in the most severe group and some candidates reaching approximately +360.
+
+The problem was relative urgency. At health <= -5, health-positive candidates had median total inherited value around **116**, while candidates with no direct health still had median value around **122**. In the particularly revealing subset with health <= -5 but happiness already >= -1, only about **51 of 126** correlated final selections directly supplied health.
+
+The cure therefore strengthened only the marginal value of health that actually removes unhealthy-food waste, with an additional bonus only for relief that directly closes a current food deficit. It did not restore a named Hospital/Aqueduct/Grocer rule, a fixed health threshold, a whole-building multiplier or a force-first sentinel.
+
+The first full-autoplay calibration moved post-turn-300 negative-health snapshots from about **54.6% to 41.3%** and mean late health surplus from about **-0.82 to +1.10**, while the median added severity bonus remained only about +1 at -1 health and about +24 at -10 or worse.
+
+This inherited valuation weakness is documented separately as **KI#48.6** so the parent PR digest can remain concise.
+
+### Maintenance: inherited proportional valuation already handled the old SAS concern
+
+The old SAS rule tried to avoid Courthouse-like infrastructure when there was too little maintenance to save.
+
+The audit recorded **7,739 maintenance-valued candidates**:
+
+- median current city maintenance: about **3.30 gold/turn**
+- median actual saving: about **1.66 gold/turn**
+- median inherited maintenance contribution: about **+10**
+- savings <=0.50 gold/turn generally contributed only about **+1**
+
+Financial trouble already increases the value dynamically.
+
+The edge cases also showed why rejecting the whole building is unsafe. A Courthouse with very small maintenance savings could still be selected mostly for specialist or other value.
+
+Conclusion: the old strategic concern was legitimate, but inherited K-Mod already solves it proportionally. No replacement maintenance rule was added.
+
+### Conventional defense: inherited value was already modest outside real danger
+
+Across about **21,345 defense-valued candidates**:
+
+- safe/no-war-plan median conventional-defense contribution: about **+7**
+- immediate-danger median: about **+15**
+
+Among selected buildings in safe cities:
+
+- Walls: about **+6** median defense value
+- Castles: about **+12**
+- Bunkers: about **+9**
+
+A representative peaceful Walls evaluation in Beijing had final value around 65, but only about +6 came from defense while roughly +54 came from happiness.
+
+This directly demonstrated the multipurpose-building problem in the old SAS whole-building defense rejection.
+
+Conclusion: conventional inherited defense already responds enough to threat and does not need the old blanket rejection.
+
+### Inherited finding: nuclear defense repeatedly credited the same continental army
+
+Bomb Shelters behaved unlike normal Walls, Castles and Bunkers.
+
+The dedicated nuke-defense audit found that Kek-Mod's `kekm.16` term could independently credit every city with protection of 35% of the entire team's military power in the land area. The same continental army was therefore repeatedly treated as protected by each city's Bomb Shelter.
+
+The audit recorded **1,162** nuke-defense candidates with median contribution around **+239** overall, **+360** among selected Bomb Shelters, and about **+272** even among selected safe/no-war/no-war-plan cities.
+
+The fix preserved the old 35% estimate as an upper bound but capped the protected-stack estimate at average team military power per team city in the area. The final calibration reduced median values to about **+131 overall**, **+167 among selected buildings** and **+189 among safe selected cities**, while retaining strong response when a relevant rival was actually estimated to own nuclear weapons.
+
+This distinct inherited defect is documented separately as **KI#48.7**.
+
+### SAS policy coupling exposed: Barracks/Stable XML `iAIWeight` became excessive once its hard-gate safeguards were removed
+
+The military-infrastructure audit initially showed suspiciously high Barracks and Stable scores.
+
+The exact attribution found that inherited K-Mod experience value itself was already contextual:
+
+- safe selected Barracks: median XP contribution about **+9**
+- war-context Barracks: about **+36**
+- safe selected Stable: about **+3**
+- war-context Stable: about **+12**
+
+The dominant extra value came from SAS XML:
+
+- Barracks family: roughly **+70 `iAIWeight`**
+- Stable family: roughly **+75 `iAIWeight`**
+
+An important implementation nuance is that these weights were not globally inactive under the old SAS system. `iAIWeight` is applied later in inherited `AI_buildingValue`, so it still affected candidates that fell through the SAS prefilter. However, any old SAS hard `return 0` or force-first return ended evaluation before that later transform.
+
+This meant the large XML weights had become **implicitly coupled to the old hard gates**.
+
+The Stable case showed the problem most clearly. The old SAS Stable gate could reject the building when no useful mounted unit was available, so the unconditional +75 never reached the final value in those cases. Once the regular prefilter was disabled, the +75 became exposed to every Stable candidate and amplified the entire building, including unrelated unique-building effects.
+
+In the diagnostic run, **56 of 204 selected Stables** had zero currently trainable units that would benefit from their XP, including 19 completely safe selections. In all 56, pre-final value came from health, with median around **+30**, and then the unrelated military +75 weight boosted the whole building.
+
+Small one-/two-city island examples with `affectedLand=0` also appeared, confirming the earlier observed Archipelago/tiny-island concern.
+
+Barracks were less pathological because K-Mod's first-Settler protection already worked well: only **2 of 386** selected Barracks occurred before `settlerGateReady`.
+
+The normal Barracks/Stable-family `iAIWeight`s were therefore restored to 0 and tested before inventing any new dynamic SAS bonus.
+
+Results:
+
+- Barracks-family matched selections: **434 -> 299**
+- Stable-family selections: **233 -> 74**
+- selected Stables with zero currently benefiting trainable units: **68 -> 6**
+- Barracks before turn 100: **62 -> 21**
+- Stables before turn 100: **6 -> 0**
+- first Barracks: turn **25 -> 39**
+- first Stable: turn **89 -> 112**
+
+There was an expected early aggregate-power reduction, roughly 13% around turn 100 and 11% around turn 150, narrowing to around 5% by turn 200. Later histories were too divergent for their power ordering to be treated causally.
+
+Conclusion: remove the unconditional normal Barracks/Stable-family XML weights and add no replacement unless later evidence shows training infrastructure has genuinely become too rare. The Barbarian Barracks special weight remains separate.
+
+This was a SAS design/coupling issue exposed by the migration, not an inherited K-Mod defect and not accurately described as `iAIWeight never worked under SAS`.
+
+### Culture: inherited valuation already separates first-border need from later culture fluff
+
+When the city still needed culture for its workable BFC, selected culture buildings had median `cultureDelta` around **+42.5**, and the inherited +25 border-expansion priority boost was active in all **32** matched selections.
+
+When BFC expansion was no longer needed, median culture contribution among selected buildings fell to about **+3**.
+
+In secure, non-victory, uncontested cities, selected buildings had median culture contribution about **+2** versus roughly **+97.5** other pre-final value.
+
+The core old SAS `BFC already secured + early/midgame + >=2 culture/turn` condition matched **2,954** candidate evaluations, but only **26** corresponding buildings were finally selected. **25 of 26** were selected mainly for non-culture effects.
+
+Conclusion: no culture cure and no restoration of the blanket old veto.
+
+### Food-kept / Granary logic: both old hard directions were unnecessary
+
+The old SAS policy could reject food-kept buildings when happiness headroom was low and force them under strong growth.
+
+Inherited K-Mod already incorporates target population, food surplus, growth limits and pop-rush value.
+
+Of **862** evaluations matching the old low-happiness rejection, inherited K-Mod naturally reduced **350** to zero food-kept value. Nevertheless, **57** matching Granary-style buildings were ultimately selected in plausible growth situations, typically around population 6, target population 7, +3 food and +1 happiness, with median food-kept value around +50.
+
+The opposite force rule was also redundant. Fast-growth candidates already received median food-kept value around **+90**, and selected ones around **+110**, typically in cities near population 4, target 10, +6 food and +7 happiness.
+
+Conclusion: no food-kept correction and no restoration of either hard gate.
+
+### Production multipliers: inherited value was almost perfectly proportional to actual hammer output
+
+For Forge/Factory/Smithy-style candidates, base city hammers and inherited production contribution had correlation approximately **0.9999**.
+
+Approximate medians:
+
+| Base hammers/turn | Inherited production contribution |
+| --- | ---: |
+| 0-3 | +9 |
+| 4-6 | +15 |
+| 7-9 | +22 |
+| 10-12 | +29 |
+| 13-15 | +36 |
+| 16-19 | +43 |
+| 20-29 | +59 |
+| 30+ | +86 |
+
+The old early `<13 hpt` rejection matched **239** evaluations but only **10** became final selections. Those selected buildings had median final value about +81.5, only about +19 from production, roughly +41.5 from other pre-final effects and about nine turns to complete.
+
+The old production-specific strong-enemy condition matched **702** evaluations and only **31** selections. Those survivors were generally high-value and/or quick, with median final value around +203, production contribution +95, base production 20 hammers/turn and roughly five turns remaining.
+
+Questionable wartime cases were preserved for the later cross-category military-pressure audit rather than used to restore a Forge-specific veto.
+
+Conclusion: no production-specific cure.
+
+### Science: ordinary military pressure already suppresses science buildings heavily
+
+The old SAS science rule could reject a science-like building merely for war, danger or a war plan.
+
+The audit found **22,345** science-like evaluations under those conditions, but only **58**, about **0.26%**, became final selections. The breakdown was:
+
+- immediate danger: **107 evaluations, 0 selected**;
+- at war: **17,335 evaluations, 28 selected**;
+- war plan without current war/danger: **4,903 evaluations, 30 selected**.
+
+Those 58 survivors were generally substantial and quick rather than marginal science spam: median `researchDelta` was about **+59**, median final value about **62.5**, median building time about **4 turns**, versus about **5 turns** for the representative land unit. Roughly **73%** of both ordinary at-war and war-plan selections finished no slower than that representative unit.
+
+Six of the 28 at-war selected `science buildings` had `researchDelta=0` and were being chosen for other effects rather than science, another direct example of why whole-building category rejection is unsafe.
+
+Only **4 of the 28** at-war selections occurred with `enemyPowerPercent >= 120`. Two of those cities had no representative trainable land unit at all. The remaining two useful strong-enemy specimens were approximately **5 building turns vs 5 unit turns at enemy power 220% with researchDelta +31**, and **5 Library turns vs 3 unit turns at enemy power 178% with researchDelta +55**. These cases were preserved for the later central military-opportunity-cost audit rather than used to restore a science-specific veto.
+
+Conclusion: no science-specific cure.
+
+### Economy / gold: inherited value already scales smoothly with actual city gold
+
+Approximate median inherited gold contribution:
+
+| Current city gold/turn | Median gold contribution |
+| --- | ---: |
+| 0 | +2 |
+| 1 | +2 |
+| 2-3 | +5 |
+| 4-5 | +7 |
+| 6-9 | +11 |
+| 10-19 | +19 |
+| 20-49 | +36.5 |
+| 50+ | +78 |
+
+The old low-gold condition occurred **2,382** times and only **5** such candidates became final production. Those five were selected mainly for other effects such as health, happiness and yields.
+
+Under immediate danger there were **479** economy-like evaluations and only **4** selections, again primarily driven by non-gold effects.
+
+Conclusion: no economy-specific cure.
+
+### Trade routes: inherited value already tracks actual route yield and applicability
+
+For ordinary +25% trade-route-modifier buildings, median inherited trade contribution rose smoothly with current trade yield, from 0 at zero trade yield to about +25 at 20+.
+
+Correlation between current trade yield and inherited trade value was about **0.94**.
+
+The old `no foreign route` condition matched **768** evaluations. All 768 had `tradeDelta=0`, exactly as desired, and only one such building was selected; that Custom House was two turns from completion and had roughly +67 value from other effects.
+
+The old low-route-gain condition matched **2,290** evaluations but only **44** selections. Median trade contribution was only about +2 versus roughly +72.5 other value, and none was trade-dominated.
+
+Conclusion: no trade-specific cure.
+
+### Espionage: ordinary behavior was selective; the old handicap hard-force rules remain retired with the prefilter
+
+Across the normal autoplay:
+
+- espionage-like evaluations: **65,506**
+- selections: **528**, about 0.8%
+- war/danger/war-plan evaluations: **40,199**
+- selections under that pressure: **335**, about 0.83%
+
+Among selected buildings under military pressure, **102** had zero non-espionage pre-final value; **88 of those 102** were built while `AI_STRATEGY_ESPIONAGE_ECONOMY` was active.
+
+Under immediate danger there were **1,026** evaluations and only **12** selections. Four were pure espionage buildings; all four belonged to an Espionage Economy, and the diagnostic found no representative trainable land unit in those cities.
+
+This strongly argues against restoring an espionage-specific wartime whole-building veto.
+
+The historical difficulty/research-cost-gap force branches were not exercised by the normal autoplay: with the current handicap table their thresholds were effectively close to Rookie-only on the low-research side and Deity/Deity+ on the high-research side.
+
+Earlier in the audit this was left as a targeted-test TODO.
+
+The broader architectural result makes preserving those hard force branches unnecessary: handicap and current strength do not point espionage in one reliable direction, so actual city/empire valuation and `AI_STRATEGY_ESPIONAGE_ECONOMY` should decide.
+
+The obsolete branches and ultimately the entire historical regular-building prefilter were removed; the dedicated BBAI row remains useful for ordinary contextual espionage attribution, not as a preservation test. The related KI#881 is retired/superseded rather than awaiting an independent cure.
+
+This does **not** prove that handicap context can never matter for espionage. It means a future reproduced Rookie/Deity espionage weakness should be solved from the actual city/empire situation through additive/contextual valuation rather than by reviving an unconditional whole-building force tied to handicap thresholds.
+
+Conclusion: ordinary inherited espionage behavior needs no replacement veto, and no targeted run is required merely to preserve the retired hard-force policy.
+
+### Final happiness audit after KI#880: no severe-unhappiness multiplier needed
+
+After fixing KI#880, positive happiness already received very strong inherited marginal value when it cured real angry citizens.
+
+Among finally selected happiness-like buildings, approximate median happiness contribution was:
+
+| Current anger | Median happiness contribution |
+| --- | ---: |
+| no angry citizen | +16 |
+| 1-3 angry citizens | +96 |
+| 4+ angry citizens | +271 |
+| 6+ angry citizens | +310 |
+
+The old force-anger-relief condition occurred **14,372** times. Without a force-first sentinel, the candidate still became the best inherited building **1,510** times and survived to final production **452** times; those selected cases had median happiness surplus around -2, roughly two angry citizens and happiness contribution around +112.
+
+Conversely, among **103** final selections that would have matched the old `happiness not needed` rejection, median happiness value was only about +7 while median other value was about +71.
+
+The health-versus-happiness interaction was also checked directly. Among 56 final choices with at least four angry citizens and health <= -4:
+
+- 28 supplied both health and happiness
+- 17 were health-only
+- 9 were happiness-only
+- 2 were other buildings
+
+No fixed `health beats happiness` or `happiness beats health` ordering was justified.
+
+Temporary hurry/conscript/defy anger remains a possible timing edge case, but only six final happiness-like selections in the run had one of those temporary anger sources active, with only about three plausible cases where it might expire before completion. That was too little evidence to justify predictive complexity.
+
+Conclusion: happiness after KI#880 already has the severity response that health lacked. No extra severe-unhappiness urgency was added.
+
+### Coastal food and production: the smooth generic mechanism already existed
+
+The old SAS Harbor/Port concern was important because weak coastal and island cities had historically delayed useful water infrastructure.
+
+The audit showed that inherited K-Mod already implements the smooth mechanism we were considering through `AI_buildingSeaYieldChangeWeight(...)`.
+
+Approximate median inherited sea-food contribution rose from about +22 with 0-2 useful water plots to +60 with 7-8 and +112 with 13+.
+
+Sea-production contribution similarly rose from about +11 to +74 and +114.
+
+Among selected buildings, Harbor-style sea food had median value around +60, Port-style sea production around +90 and Lighthouse-style sea commerce around +28.
+
+The old low-food Harbor condition occurred **330** times. Harbor naturally became the best inherited building **55** times and final production **19** times without force-first behavior.
+
+When a normal production decision overrode an already-best Harbor, common winners included Culture processes, Work Boats, Workers, units and Granaries. In a young coastal city, a Work Boat or first-border expansion can genuinely be a prerequisite for exploiting the water tiles, so forcing Harbor first can worsen rather than improve timing.
+
+Conclusion: do not add a duplicate coastal-yield multiplier and do not restore the ordinary regular-building Harbor force-first rule.
+
+The separate `CvCity::doTurn` emergency Harbor/Port layer was subsequently audited and retired entirely; see the completed post-production audit below. Coastal diagnostics remain available so any future weakness can be corrected in additive valuation instead of restoring the hard override.
+
+### Cross-category military pressure: the central chooser already shifts materially toward units
+
+Questionable wartime Forge, science, economy and trade examples were accumulated instead of restoring one veto per category.
+
+A later central production-opportunity audit found:
+
+- no old-SAS military-pressure condition: **5,950 opportunities**
+- war/war-plan/strong-enemy/local-danger pressure: **8,279 opportunities**
+
+The final production target became a unit:
+
+- without pressure: **53.3%**
+- under pressure: **60.7%**
+
+The initially best inherited building survived unchanged:
+
+- without pressure: **34.3%**
+- under pressure: **25.3%**
+
+There were **1,028 underdefended-city opportunities under military pressure**. Only **30** cases remained where the same building survived, a representative land unit existed and the building took longer than that unit.
+
+Of those 30:
+
+- **0** occurred under immediate city danger
+- **20** were already above the normal military-spending budget
+- several belonged to extremely low-production cities where neither the building nor the unit could provide a quick response
+
+The clearest ordinary outlier was effectively the same 1-hammer Argos Forge on two consecutive turns during a bad war; even there the unit itself still required roughly 37-42 turns versus about 76-77 for the Forge.
+
+The other extreme outlier was Heroic Epic and belongs to the later Wonder audit.
+
+Conclusion: do not replace the removed category-specific `enemy strong -> reject building` rules with another broad central hard veto. Existing production competition already moves meaningfully toward units under pressure.
+
+The diagnostic run also reproduced the same turn-487 Space victory and core SASGameRecord state fingerprints as the preceding diagnostic run, providing strong confirmation that the added logging itself did not perturb behavior.
+
+### Completed audit and retirement: the separate post-`doProduction` emergency-building subsystem
+
+A second SAS policy layer lived outside `AI_buildingValue` and the normal production chooser. After `doProduction()` had already selected a target and applied that turn's hammers, `CvCity::doTurn` could rewrite the queue again for Harbor, Port, Walls or Castle.
+
+The first complete audit immediately showed why this architecture needed its own investigation. Before the later helper corrections, **316** true replacements and **16** empty-queue fills were visible. The defensive half could interrupt units, higher-valued buildings and heavily invested Projects; for example, **10 of 11** Projects displaced by Walls in one run were spaceship components, including an SS Engine at **1601/1880 production with 5 turns left -> Walls value 0** and an SS Casing at **982/1128 with 1 turn left -> Walls value 2**.
+
+The audit itself then exposed three independent correctness/observability problems before policy tuning continued:
+
+1. **Disorder boundary violation (KI#51.2).** **23/332** emergency actions happened while `isDisorder()` was true: 16 filled intentionally empty queues and 7 replaced existing targets. The fix made the outer emergency paths respect K-Mod's disorder boundary. In the validating same-seed run, all **226/226** remaining emergency actions had `disorder=0`, and the first core-state divergence occurred at turn 70 in disordered Cuzco: old SAS had preselected Harbor with stored production while the fixed run correctly left the queue untouched. RNG did not diverge until turn 73. See KI#51.2 for the exact scope and the important distinction that this never granted free disorder-time hammers.
+2. **Harbor audit scope bug.** The first logger sat inside the later defense/Port wrapper, so a successful `SEA_FOOD` path set the emergency flag and skipped its own logger. Moving the final audit outside that wrapper exposed **185 Harbor overrides** while preserving the preceding fixed run exactly: **386/386** game-state and RNG-stream checkpoints matched.
+3. **Continuation semantics bug.** `SASTryEmergencyBuilding` and the sea-yield selector called `canConstruct(..., bContinue=false, ...)` before checking whether the requested building was already the current target. Civ4 therefore rejected the queued building before the helper could reach its intended `already doing it` branch. After using continuation legality only for the already-queued same building, the formerly impossible states became active: **1,126 `ALREADY_TARGET`** cases (685 Port, 313 Harbor, 66 Walls, 62 Castle), **128 `KEEP_EMERGENCY_PRIORITY`** and 14 `RELEASE_EMERGENCY_PRIORITY` decisions. Direct Harbor<->Port emergency cross-overrides fell from **10 to 0**. The first same-seed state divergence was exactly the corrected turn-216 Oxhuitza case where Harbor remained the active higher-priority emergency instead of being replaced by Walls.
+
+Correcting those bugs did not rescue the architecture itself. Because the layer ran after `doProduction()`, the normal chooser could select and invest in one target, then SAS would rewrite the queue afterward; on the next turn the normal chooser could switch back before production was applied. Every observed consecutive repeated force showed the emergency building making **zero progress** between interventions: **23/23 Harbor pairs, 19/19 Port pairs and 16/16 Walls pairs**.
+
+#### Harbor/Port controlled removal
+
+The two sea emergency policies were first disabled without deleting code. Comparing both histories through the same turn-372 horizon:
+
+| Metric through T372 | Sea emergencies ON | OFF | Change |
+| --- | ---: | ---: | ---: |
+| Harbors completed | 106 | **102** | -3.8% |
+| Ports completed | 83 | **89** | +7.2% |
+| AI target switches | 1,558 | **1,478** | -5.1% |
+| Invested target changes | 818 | **724** | -11.5% |
+| Parked production | 46,288 | **31,076** | **-32.9%** |
+| Target resumes | 782 | **585** | -25.2% |
+| Production resumed | 45,388 | **29,251** | **-35.6%** |
+
+So removing the hard sea forcing did not stop the AI from building Harbor or Port. Harbor completion was nearly unchanged and Port completion was actually higher in the divergent history, while production churn and parked investment fell substantially.
+
+The severe low-food Harbor snapshots also argued against restoring the classifier. Of 44 severe `foodSurplus <= -5` snapshots in the sea-emergency-off run, **35** also had negative happiness, **27** negative health, **25** both, and **24** were working **zero water tiles**. Harbor was the inherited best building in only 17/44 and normal production chose Harbor in 6. Many old `force Harbor` cases were therefore broader city-state problems rather than proof that Harbor itself was the right answer.
+
+The Harbor/Port post-production subsystem was then removed rather than left disabled. The cleanup reproduced the disabled-policy control exactly across **377/377 core-state checkpoints**, the corresponding RNG streams and **45/45 run-status checkpoints**, confirming that the source cleanup itself preserved the already-tested disabled behavior.
+
+#### Walls/Castle controlled removal
+
+The remaining defensive override was tested separately instead of being deleted by analogy.
+
+With forcing disabled, the AI still naturally completed **92 Walls and 42 Castles** by victory versus 128/58 with forcing, and the normal chooser recorded **125 Walls and 62 Castles as final chosen targets**. Through turn 372, combat losses were essentially identical (**1,879 with forcing vs 1,878 without**); player-vs-player city captures were also close (**90 vs 93**) despite the histories containing different amounts of warfare.
+
+The first controlled state divergence was itself illustrative. On turn 82 endangered Antium normally kept a Forge valued **82** with **10/90** hammers invested; the legacy layer replaced it with Walls valued **5**. RNG stayed identical until turn 86, and Antium was captured on turn 118 with the emergency rule versus turn 121 without it. One city cannot prove that Walls never help, but it reproduced the broader pattern: a legitimate defensive concern had become a coarse post-production override.
+
+The disabled policy was therefore removed entirely. The cleanup matched its control with **379/379 identical core-state checkpoints, 379/379 identical RNG-stream checkpoints and 45/45 identical run-status checkpoints**, confirming that deleting the retired source preserved the already-tested disabled behavior.
+
+The result is that the entire legacy post-`doProduction` emergency-building subsystem is now gone. Harbor, Port, Walls and Castle are again decided through normal production flow rather than by a second queue-rewriting policy after hammers have already been spent.
+
+### Inherited Walls/Castle production-timing weakness (KI#48.8)
+
+Retiring the old post-`doProduction` Walls/Castle force did **not** invalidate its strategic concern. The follow-up Pangaea audit found a distinct inherited K-Mod/AdvC production-opportunity weakness: fortifications could receive sensible inherited value, but the dedicated `BUILDINGFOCUS_DEFENSE` opportunity sat late enough in `AI_chooseProduction()` that many useful pre-siege windows were never reached.
+
+Lineage review confirmed the same late `AI_chooseBuilding(BUILDINGFOCUS_DEFENSE, 20, ...)` stage in both K-Mod 1.46 and AdvCiv 1.14, so this timing weakness was not introduced by the SAS emergency layer.
+
+The final cleaned behavior-neutral Pangaea shadow sample found **962 distinct Walls opportunity city-turns** and **70 Castle opportunities**. The inherited late defense stage was reached on only **36/962 Walls** opportunities and **2/70 Castles**.
+
+Among at-war opportunities followed by city capture within 20 turns, the fortification could naturally finish before capture in **168/222 Walls** cases and **14/24 Castle** cases. Captured-within-20 opportunities also occurred under much greater strategic pressure: median enemy power was about **240% versus 70%** for Walls and **185% versus 69%** for Castles.
+
+The replacement therefore stays inside normal `AI_chooseProduction()`: after ordinary current-target continuity, no-defender production and strike recovery, but before the many later branches that can prevent the inherited defense stage from being reached.
+
+It is deliberately narrow to real Walls/Castle-style effects and visible city-capturing land threats rather than restoring the old whole-building/post-production force.
+
+The full finding, lineage evidence, thresholds, tuning iterations and final validation are tracked in **KI#48.8**. KI#48.5 remains the umbrella regular-building rework.
+
+### Final regular-building closure: central pressure, naval infrastructure and coastal payback
+
+The last historical SAS regular-building concerns were then stress-tested directly rather than left as assumptions. None justified restoring another whole-building hard gate.
+
+#### Central `enemyStrong` / military-pressure concern
+
+A Pangaea level-3 production audit tested the old idea that ordinary infrastructure should be broadly suppressed whenever the AI was materially outpowered. Across **2,340 at-war + enemyStrong opportunities**, normal production already chose **1,685 units (about 72%)** and only **564 buildings (about 24%)**.
+
+The narrower set that initially looked most suspicious - **149** under-defended, enemy-strong city decisions that still ended in a building - mostly came from already-military or continuity-aware paths: 69 short-circuit-1 choices, 24 short-circuit-2, 16 proactive fortifications, 13 short-circuit-3, 12 late defense-focus choices, 11 ordinary final buildings and 4 experience-focus buildings.
+
+After excluding cases with no usable representative land unit, cities already above the normal military-spending allowance, and buildings that completed no slower than the representative unit, only **11** cases in the entire run remained. They were heterogeneous rather than a repeatable policy failure, and several already contained invested production or belonged more naturally to the separate Wonder audit.
+
+Conclusion: the central chooser already combines military pressure, unit availability, military-spending limits, build time, continuity and military infrastructure strongly enough. No new blanket `enemyStrong` multiplier or veto was added.
+
+#### Land-heavy naval-infrastructure rationale
+
+The retired SAS regular prefilter had also treated a land-heavy map as sufficient reason to reject a naval-pump building such as Drydock. Pangaea archaeology showed why the original concern existed but also why the global-map veto was too coarse.
+
+In the audited history **61 Drydocks** completed; 60 could be correlated with subsequent production. The median Drydock city later produced about **4 sea units / 338 production**, while **12/60** produced no sea unit afterward and **20/60** produced at most one. At the same time, several Drydock cities became major naval producers with 10-20+ ships and well over 1,000 production invested at sea.
+
+So `land-heavy map -> reject naval infrastructure` discards real local naval roles together with genuine low-payoff cases. The gameplay veto stayed retired. Its old condition was preserved only as dormant level-3 legacy audit evidence so future code archaeology can still ask what the old SAS rule would have done without changing valuation.
+
+The later cross-map audit in **KI#48.11** then found the inherited reason this old concern had seemed plausible: K-Mod/AdvC's actual `DOMAIN_SEA` production-modifier contribution was itself almost geography-blind. That inherited value is now handled proportionally from expected naval throughput rather than restoring the old map-wide rejection.
+
+#### Tiny-Islands Port and Harbor stress test
+
+The final coastal audit deliberately switched to Tiny Islands, where water-heavy cities and very weak native production make Port/Harbor timing unusually important. It completed **125 Ports, 166 Harbors and 82 Drydocks**, giving a much stronger coastal stress environment than the earlier mixed maps.
+
+Port became the best inherited building opportunity about **605** times and normal production actually chose it about **353 times (58%)**. The inherited preference already rose strongly as the production transformation became larger: hammer-poor cities at <=2 base production chose Port about **84%** of the time, and opportunities with >=200-300% immediate production gains chose it roughly **83-84%** of the time.
+
+The audit also exposed heavy clipping in K-Mod's production-priority transform: about **516/605** best-Port opportunities hit the `+100` priority cap, with median raw requested priority around **309**. That clipping nevertheless did not erase the strongest opportunities because the direct sea-production value continued to scale separately. Among Ports with raw production-priority >=500 and a simple total break-even horizon <=60 turns, normal production chose Port in **79/94 cases (about 84%)**. The 15 losses were 12 immediate unit/Worker choices and 3 military buildings; there was no recurring class of long-payback civilian infrastructure beating a clearly superior Port.
+
+Harbor likewise showed contextual rather than absent urgency. There were about **836** best-Harbor opportunities and **327** final Harbor choices. Selection rose to about **56%** once food surplus reached <=-3 or <=-5, while severe cases that still rejected Harbor commonly had zero currently worked water tiles, heavy anger/health constraints, very long Harbor construction time, or an immediate Worker/unit/Culture need.
+
+Conclusion: both the old Harbor force and any new Port-priority buff would duplicate or distort inherited contextual valuation. Port's compounding hammer-poor-city payoff is real, but inherited K-Mod already represents it much better than the old SAS override assumed.
+
+#### Espionage handicap force
+
+The old Rookie/Deity hard force was retired without a special preservation autoplay. Earlier ordinary espionage attribution already showed selective inherited behavior and strong correlation with `AI_STRATEGY_ESPIONAGE_ECONOMY`. More importantly, handicap direction alone cannot tell whether espionage is strategically good: a stronger or weaker AI can each have situational reasons to invest in offensive or defensive espionage.
+
+A future reproduced handicap-specific weakness can still be investigated, but it should be solved from the actual empire/city context rather than by restoring `ALWAYS_PICK_FIRST` from a handicap threshold.
+
+### Regular-building closure and Wonder handoff
+
+The regular-building audit is complete. The historical prefilter and its exclusive XML knobs were removed after every major old rationale had either been retired, replaced by a narrower evidenced correction, or preserved only as behavior-neutral diagnostic archaeology.
+
+The Wonder layer is now large enough to be treated separately rather than extending this already-long regular-building entry. Its combined World/National diagnostics, the first World-Wonder hard-veto retirements, National-Wonder WIP and current inherited military-production valuation investigation are tracked in **KI#48.9** and **KI#48.10**.
+
+Optional future work such as Bunker/Airport timing or zero-anarchy emergency Slavery/hurry can still be investigated, but those are new AI enhancements rather than unfinished preservation questions from the retired regular-building layer.
+
+### Overall September 2026 regular-building conclusion
+
+The old SAS observations often identified legitimate strategic questions.
+
+What generally did not survive the audit was the architectural answer:
+
+```text
+classify the whole building as category X
++ cross threshold Y
+-> reject the whole building or force it first
+```
+
+Inherited K-Mod/AdvC already handled maintenance, conventional defense, contextual military XP, culture, food-kept growth, production multipliers, science, economy, trade, happiness after KI#880 and coastal yields more proportionally than the old hard gates, while preserving the independent value of multipurpose and unique buildings.
+
+Where concrete weaknesses were found, the rework corrected the responsible source instead of rebuilding the classifier:
+
+- a missing `bWonder` guard in SAS was fixed so disabling the regular prefilter genuinely restores inherited valuation;
+- inherited happiness arithmetic was corrected in KI#880;
+- severe-health relief received a smooth severity and current-food-deficit urgency correction documented in KI#48.6;
+- Kek-Mod's repeated continental-army Bomb Shelter estimate was corrected in KI#48.7;
+- unconditional Barracks/Stable-family XML `iAIWeight`s were removed after the hard SAS safeguards that had partly masked them were retired;
+- the central `enemyStrong` audit found that normal production already shifted strongly toward units under pressure, with only a tiny heterogeneous tail surviving unit-availability, spending, timing and continuity checks, so no new blanket military-pressure veto was added;
+- the land-heavy naval-infrastructure veto stayed retired after Pangaea showed both genuinely low-payoff Drydocks and real local naval roles; KI#48.11 later replaced the inherited almost geography-blind `DOMAIN_SEA` production value with expected naval-throughput valuation rather than reintroducing a global map veto;
+- Tiny-Islands stress testing showed that inherited Port value already responds strongly to hammer-poor coastal development and that Harbor urgency rises with genuine starvation, so neither coastal building received a new force-first rule;
+- the old handicap-based espionage force was retired as architecture because handicap direction does not itself determine whether espionage is strategically useful;
+- the separate post-`doProduction` Harbor/Port/Walls/Castle subsystem was audited, its disorder and continuation defects were corrected, and the entire hard-override layer was retired through controlled A/B tests; the surviving defensive concern was isolated as the inherited production-timing weakness now tracked in KI#48.8 rather than another queue rewrite.
+
+The resulting direction is:
+
+```text
+inherited additive valuation
++ narrowly evidenced proportional corrections
++ normal central production competition
++ exceptional override only where a dedicated emergency audit proves it useful
+```
+
+rather than another large ordered table of named building categories and fixed `0 / ALWAYS_PICK_FIRST` results.
+
+This is also more robust for future AdvCiv-SAS balance changes, unique buildings and modmods because each real effect competes on its own value rather than inheriting the policy label of the building that happens to contain it.
+
+The September 2026 audit/rework was carried out iteratively with level-3 BBAI forensic attribution, SASGameRecord comparison and deterministic-state checking, repeated compile/autoplay validation, and review/collaboration between wonderingabout, ChatGPT-5.6-Sol, GPT-5.6-Sol/Codex and other review assistants where noted in the source/commit history, thanks.
+
+<a id="ki-48.6"></a>
+
+## KI#48.6 - (Improved inherited K-Mod/AdvC AI valuation weakness) Severe unhealthiness did not gain enough relative urgency against ordinary infrastructure
+
+During the September 2026 AdvCiv-SAS regular-building valuation rework in KI#48.5, the old SAS whole-building health force/reject layer was disabled for comparison and inherited K-Mod/AdvC `AI_buildingValue` was instrumented with exact before/after component attribution. The old prefilter was removed after the completed audit.
+
+The audit showed that inherited health valuation was already substantially better than the old binary SAS classifier. It responds continuously to current health deficit, unhealthy-food waste, current food deficit, growth enablement and spare-health padding.
+
+Among buildings that actually supplied positive health, median exact inherited health contribution rose approximately as follows:
+
+| Current health surplus | Median inherited health contribution |
+| --- | ---: |
+| -1 | +40 |
+| -2 to -3 | +58 |
+| -4 to -5 | +64 |
+| -6 to -9 | +88 |
+| -10 or worse | +110 |
+
+At -10 or worse, the average contribution was about **+137**, with some candidates reaching approximately **+360**.
+
+The inherited weakness was therefore not that AdvC failed to notice severe unhealthiness.
+
+The problem was **relative urgency when severe unhealthy-food waste competed against useful but optional infrastructure**.
+
+At health <= -5:
+
+- health-positive candidates had median total inherited value around **116**;
+- candidates with no direct health still had median total inherited value around **122**.
+
+In the particularly revealing subset with health <= -5 but happiness already >= -1, only about **51 of 126** correlated final building selections directly supplied health. Banks, Universities, Libraries, Jails, Airports and other useful infrastructure could therefore remain roughly competitive while severe sickness was already consuming food.
+
+The same diagnostic run recorded **556 starvation/population-loss events** in its population-flow windows. Because full autoplays diverge, this count by itself is not controlled causal evidence, but it confirmed that starvation/depopulation was common enough to treat as a real optimization problem rather than a theoretical edge case.
+
+The correction deliberately preserves the inherited health formula and adds only generic **marginal urgency when a candidate actually removes unhealthy-food waste**.
+
+For each point of health relief that removes current unhealthy-food waste, the severity bonus is proportional to the average before/after health deficit:
+
+```cpp
+citizenValue
+* healthRelief
+* (healthDeficitBefore + healthDeficitAfter)
+* SAS_AI_BUILDING_VALUE_HEALTH_RELIEF_AVERAGE_DEFICIT_URGENCY_PERCENT
+/ 200
+```
+
+The validated default percentage is 10, exactly reproducing the initially tested `/ 20` formula. It corresponds to 10% of one citizen value per point of average unhealthy population for each point of actual health relief; 0 disables only this added severity term.
+
+If the city is already losing food, only the health points that directly close that current food deficit receive an additional starvation/depopulation term:
+
+```cpp
+citizenValue
+* min(healthRelief, currentFoodDeficit)
+* SAS_AI_BUILDING_VALUE_HEALTH_RELIEF_STARVATION_CITIZEN_VALUE_PERCENT
+/ 100
+```
+
+The validated default percentage is 100. For example, if a city is losing 2 food and a building removes 4 unhealthy-food waste, only 2 of those health points receive the additional full citizen value; 0 disables only this added starvation/depopulation term.
+
+The correction deliberately contains:
+
+- no Hospital/Aqueduct/Grocer or other building-class check;
+- no named technology, civic or era;
+- no fixed `health < X -> force` threshold;
+- no whole-building multiplier;
+- no absolute `AI_BUILDING_ALWAYS_PICK_FIRST` sentinel.
+
+Research, culture, gold, production, military and other unrelated building effects retain their independent inherited values.
+
+This also makes the correction naturally modmod-safe: any future building that genuinely removes current unhealthy-food waste receives the same proportional treatment.
+
+The first full-autoplay calibration remained conservative:
+
+- post-turn-300 negative-health snapshots: about **54.6% -> 41.3%**;
+- mean late health surplus: about **-0.82 -> +1.10**;
+- only about **12,700 of 255,700** evaluated building rows received either new urgency term;
+- median nonzero severity bonus at -1 health: about **+1**;
+- median affected severity bonus at -10 health or worse: about **+24**.
+
+The candidate run also grew more aggressively. Raw starvation/population-loss events rose from 556 over 360 turns to 857 over 394 turns, but population gains rose from 2251 to 2771 and final total population from 1651 to 1726. Because the histories had substantially diverged, these aggregate event counts are supporting context rather than a controlled regression; the direct attribution and improved late health state are the stronger validation.
+
+No equivalent severe-unhappiness bonus was added. After the inherited happiness sign correction in KI#880, selected happiness-building value already rose sharply with real angry citizens, reaching about +271 median at 4+ angry citizens and about +310 at 6+.
+
+The repair is intentionally reactive rather than speculative. Future health/happiness penalties from technologies, civics or other transitions should not be hardcoded by name here. If a future city-state change can be predicted reliably and generically, preventive preparation can be implemented separately and measured with its own BBAI attribution.
+
+Found and corrected during the September 2026 AdvCiv-SAS regular-building valuation rework with the help of ChatGPT-5.6-Sol, using level-3 BBAI component attribution and SASGameRecord autoplay comparison, then compile/runtime tested with the help of wonderingabout, thanks.
+
+<a id="ki-48.7"></a>
+
+## KI#48.7 - (Fixed inherited Kek-Mod AI valuation defect) Every Bomb Shelter protected the same continental army
+
+Screenshots/files for this issue: [google drive folder link](https://drive.google.com/drive/folders/1A7xq6H7PVOsECMy3KQ0NIBEjdbccXcH-?usp=sharing).
+
+During the AdvCiv-SAS regular-building AI rework in KI#48.5, the old SAS whole-building prefilter was disabled so ordinary buildings could use the inherited additive K-Mod/AdvCiv valuation instead. Level-3 BBAI attribution was added before deciding whether any old SAS rejection rationale still needed a narrower replacement; the prefilter was removed after that audit completed.
+
+Conventional defensive-building value proved modest and threat-responsive, but the new diagnostics exposed a separate inherited outlier in Kek-Mod's `kekm.16` nuke-defense term, originally adopted into AdvCiv as DarkLunaPhantom's `dlph.16` change for Bomb Shelter AI.
+
+That term replaces K-Mod's older modest nuke-defense modifier with an estimate of the city and a strong unit stack protected by a Bomb Shelter. It sums the whole team's military power in the city's land area, takes 35%, and independently assigns that same estimate to every city in the area.
+
+Once `AI_nukeDangerDivisor()` reaches 1 because a known potential enemy is estimated to own nuclear weapons, this repeated area-wide stack estimate can dominate ordinary building and defense value even in safe peace-time cities.
+
+The level-3 BBAI building-value audit recorded 1,162 nuke-defense candidates. Their median nuke-defense contribution was +239 overall and +360 among selected Bomb Shelters; selected cities with no immediate danger, war or war plan still had a +272 median.
+
+In safe rows, the median repeated stack estimate was 765 versus only 163 for the city target itself, with individual nuke-defense contributions including +809, +536 and +494.
+
+The fix preserves the inherited 35% estimate as an upper bound, but caps the protected stack on larger areas at the average team military power per team city in that area. A first candidate capped it at twice the average; this reduced the overall median nuke-defense value from about +239 to +178, but selected safe-city Bomb Shelters still had a +314 median because the remaining stack term dominated their city-target value. The final one-times-average cap reduced the overall median to +131, the selected-building median to +167 and the safe selected-city median to +189.
+
+The calculation remains generic by actual area power and city count, without hardcoding Bomb Shelter, technology or era names. It also leaves the broader nuclear-threat policy unchanged: in the final run, remote threats with `nukeDangerDivisor=10` produced only 9 matched selections at about +19 median value, while 182 divisor-1 selections had about +177 median value; 41 of 42 safe matched selections occurred only when a relevant rival was estimated to own nuclear weapons. The turn-500 validation completed 123 Bomb Shelters versus 120 in the candidate-1 turn-474 run, so the lower valuation corrected the repeated continental-army overcount without suppressing actual construction.
+
+The earlier source-only C++ File Audit Album had correctly closed `AI_nukeEplosionValue()` itself as a bounded rough local estimate and verified that the nuke-danger divisor stays positive.
+
+It did not identify this distinct cross-city heuristic overcount in the caller; the later BBAI audit supplied the behavioral and numerical evidence needed to isolate it.
+
+Found during the AdvCiv-SAS regular-building valuation rework by ChatGPT-5.6-Sol and reconciled into Known Issues with the help of GPT-5.6-Sol, thanks.
+
+<a id="ki-48.8"></a>
+
+## KI#48.8 - (Improved inherited K-Mod/AdvC AI production-timing weakness) Walls/Castles could be valued but were considered too late to finish before visible land assaults
+
+This issue was isolated during the September 2026 regular-building rework in KI#48.5 after the old AdvCiv-SAS post-`doProduction` emergency Walls/Castle force was retired.
+
+The old system had identified a real strategic concern - timely fortifications can matter greatly during an approaching land invasion - but enforced it through the wrong architecture.
+
+### Why the old SAS solution was retired
+
+The legacy emergency layer ran after `doProduction()`, after the normal chooser had already selected a target and that turn's hammers had been applied. Detailed BBAI attribution showed that this could rewrite the queue over invested or higher-valued production.
+
+In one audited history, **166 real Walls overrides** displaced 97 units, 58 buildings and 11 Projects; **10 of those 11 Projects were spaceship components**, and **56/58** displaced normal buildings had a higher inherited value than the Walls.
+
+Even after continuation semantics were repaired, every observed consecutive repeated Walls force (**16/16**) made zero progress on Walls between interventions because normal production switched elsewhere before hammers were applied.
+
+Controlled A/B testing therefore retired the outer Walls/Castle force rather than trying to tune its thresholds. The important follow-up question was whether the underlying strategic observation had been wrong, or whether inherited normal production still had a narrower timing weakness.
+
+### The weakness is inherited from K-Mod/AdvC production ordering
+
+Source-lineage review confirms that both **K-Mod 1.46** and **AdvCiv 1.14** place the dedicated defense-building opportunity late in `CvCityAI::AI_chooseProduction()`:
+
+```cpp
+AI_chooseBuilding(BUILDINGFOCUS_DEFENSE, 20, 0, bDanger ? -1 : 3 * getPopulation())
+```
+
+It appears after many earlier production opportunities and immediately before the final last-chance building short-circuit. AdvCiv-SAS inherited that placement.
+
+The problem therefore is not that inherited `AI_buildingValue` cannot understand Walls or Castles; earlier KI#48.5 attribution had already shown conventional defense value to be modest and threat-responsive.
+
+The problem is that the explicit opportunity to choose a defense building can arrive too late in the chooser for a useful fortification to be considered before another branch returns.
+
+### Clean Pangaea shadow audit
+
+A land-heavy Pangaea stress test was used because it produced far denser land invasions and siege activity than the preceding Archipelago runs.
+
+The final tightened shadow logger was behavior-neutral against its control: **466/466 core-state checkpoints, 466/466 real RNG-stream checkpoints and 55/55 run-status checkpoints matched**.
+
+After removing diagnostic false positives such as animals and separating attackers that ignore building defense from those actually affected by it, the clean sample contained:
+
+- **962 distinct Walls opportunity city-turns**, including 810 during player wars;
+- **70 distinct Castle opportunities**, including 45 during player wars;
+- the inherited late `BUILDINGFOCUS_DEFENSE` stage reached on only **36/962 Walls** opportunities and **2/70 Castles**.
+
+The timing evidence was especially important. Among at-war fortification opportunities followed by city capture within 20 turns, natural construction could have completed before capture in **168/222 Walls** cases and **14/24 Castle** cases.
+
+These were not simply random weak-city snapshots: captured-within-20 opportunities had median `enemyPowerPercent` around **240% versus 70%** for Walls and about **185% versus 69%** for Castles that were not captured within 20 turns.
+
+Pangaea also supplied concrete multi-turn examples. York, for example, had a roughly **7-turn Castle** while visible attackers were still 3-4 plots away; bombardment did not begin until about 12 turns after the first shadow opportunity and the city fell roughly 14 turns later.
+
+The old post-production force was too coarse, but simply waiting for the inherited late defense stage could also miss a plausible pre-siege construction window.
+
+### Replacement design: an earlier normal-production opportunity, not another hard outer override
+
+The replacement gives a real Walls/Castle-style fortification one earlier opportunity **inside** `AI_chooseProduction()`, after ordinary current-target continuity, no-defender production and strike recovery have already had priority, but before the many ordinary economic/military branches that often prevented the inherited late defense stage from being reached.
+
+The implementation remains deliberately contextual:
+
+- only visible hostile **land** attackers that can genuinely capture a city count; animals, naval transports and non-capturing units are excluded;
+- only actual city-fortification buildings are considered, rather than the broader `BUILDINGFOCUS_DEFENSE` pool that also contains Bunkers, Airports and nuclear-defense infrastructure;
+- visible attackers affected by building defense must outnumber those that ignore it;
+- raw `AI_isDanger()` is not sufficient by itself when inherited city safety still says `SAFE` or `PERFECT`; only `THREATENED`/`EVACUATING` immediate danger bypasses the city-value gate;
+- otherwise the city must be valuable enough and face a meaningful visible approach;
+- without visible bombarders, that approach currently requires at least the configured four attackers and at least twice the current defender count;
+- a visible bombarder lowers the ordinary stack threshold only when there are still at least **3 attackers** and at least **one more attacker than current defenders**;
+- the maximum useful construction window is expressed in actual map turns, currently **2 turns per nearest-attacker plot capped at 8 turns**, rather than being game-speed scaled a second time;
+- fast-only visible threats lose the speculative siege-time buffer; under-defended cities allow at most a nearly complete **2-turn** fortification; an `EVACUATING` city allows only **1 turn**.
+
+This placement also preserves the inherited current-target continuity logic first, specifically to avoid recreating the old emergency layer's habit of discarding nearly completed production.
+
+No emergency Slavery switch or new hurry policy is part of this implementation; those can be evaluated separately only if natural construction still proves too slow in otherwise good cases.
+
+### Iterative tuning and validation
+
+The first behavior candidate produced **87 proactive fortification selections** (75 Walls, 12 Castles). Its first deterministic divergence was a weak `SAFE` Timbuktu contact - only two visible attackers against two defenders - showing that raw `bDanger` was too permissive.
+
+Requiring `THREATENED`/`EVACUATING` for the immediate-danger bypass reduced the next run to **58 selections** (47 Walls, 11 Castles), with only four interventions displacing a target that already held production.
+
+That second run exposed one remaining edge case: a `PERFECT` Damascus could qualify for a six-turn Castle solely because the bombarder shortcut accepted two attackers against two defenders despite overwhelmingly favorable local defense and only 57% enemy power.
+
+Tightening that shortcut to at least three attackers and a one-unit numerical attacker advantage removed the weak two-attacker cases; the final run contained no `SAFE`/`PERFECT` selection with three or fewer visible attackers.
+
+The final implementation made **66 selections**: 48 Walls and 18 Castles, comprising 51 proactive approaches and 15 immediate-danger cases.
+
+Grouping repeated selections of the same fortification during one threat episode produced 53 distinct episodes; the selected fortification completed before capture in **43/53** of them, including 33/41 Walls and 10/12 Castles.
+
+Against the final diagnostics-only control, state and actual RNG remained identical through turn 136 and first diverged at the intended turn-137 Prague decision. Nine visible slow city-capturing attackers, all affected by building defense and five plots away, gave a six-turn Castle an early opportunity instead of the baseline Great Wall choice.
+
+Ordinary production remained authoritative: Prague temporarily switched to a one-turn Spearman on the following turn, then resumed and completed the Castle on turn 158 rather than being hard-locked into it.
+
+Current-target continuity was also preserved. Of the 66 fortification selections, 47 began with no current target and only six genuinely switched away from a different invested target; every such target still required at least four turns, while the inherited rule retaining targets with three or fewer turns had priority first.
+
+This confirms that the replacement supplies the missing timely opportunity without recreating the retired emergency layer's queue-rewriting behavior.
+
+This is an inherited K-Mod/AdvC production-opportunity weakness exposed through the KI#48.5 rework, not a reason to restore the retired SAS post-production emergency architecture. See **KI#48.5** for the umbrella building-value audit and **KI#333 / KI#51.2** for two distinct defects found in the retired outer emergency subsystem.
+
+Investigated and iteratively refined with the help of ChatGPT-5.6-Sol, BBAI forensic logging and SASGameRecord deterministic comparisons, with testing and review by wonderingabout, thanks.
+
+<a id="ki-48.9"></a>
+
+## KI#48.9 - (Improved AdvCiv-SAS Wonder policy) Replaced monolithic World/National Wonder hard gates with audited inherited valuation and evidence-backed safeguards
+
+KI#48.5 deliberately separated Wonders from the completed regular-building migration because the old AdvCiv-SAS Wonder layer has different mechanics: World-Wonder race risk, National-Wonder specialization, construction-time limits, production-city placement, cheap-Wonder catch-up, coastal scaling and military-pressure policy.
+
+The Wonder rework therefore repeats the same evidence-first method without assuming either old SAS or inherited K-Mod/AdvC behavior is automatically correct. World and National Wonders are instrumented together so shared gates can be compared from one history, but they are analyzed separately because a World-Wonder race and a National-Wonder placement decision are fundamentally different problems.
+
+### Combined Wonder diagnostics and observer-effect cleanup
+
+The first Snaky Continents baseline completed roughly **25 ordinary World Wonders, 37 National Wonders and 14 shrine/Great-Person-built Wonders**, enough to exercise every major policy path. Level-3 diagnostics now record separate World/National policy rows, inherited neutral Wonder attribution and factual strategic context such as production rank, build time, Stone/Marble/trait modifiers, race context, military pressure, coastal empire scale, local rival geography/power and Barbarian relevance.
+
+The diagnostic work also produced an important forensic lesson. An early supposedly logging-only strategic row invoked extra AI evaluation paths and caused deterministic state/RNG divergence. Replacing those calls with parent-computed context, direct factual getters and shared factual helpers restored exact equivalence to the clean control. SASGameRecord therefore served not only as game analysis but as an observer-effect tripwire: diagnostic code itself must not prime mutable AI caches or execute extra decision pipelines merely to print context.
+
+The final factual local-rival refactor introduced `SASLocalAreaRivalContext`, shared with KI#53.5. It centralizes independent rival blocs/cities, known local rival power, our bloc power and local/global power comparisons without pretending those facts imply one universal `area safe` policy. This distinction matters because KI#53.5 asks whether another land unit is excessive, while Wonder policy asks only whether investment is reckless enough to avoid.
+
+The refactor was validated especially strongly: **365/365 core-state checkpoints, 365/365 authoritative RNG checkpoints and 42/42 run-status checkpoints matched**, while **40,271 World-Wonder strategic rows, 40,271 World-Wonder policy rows and 55,177 National-Wonder policy rows were byte-identical** before and after the refactor.
+
+### World Wonders: four weak hard vetoes retired
+
+The inherited-only comparison showed that several old World-Wonder gates were poor enough race-quality proxies to retire outright rather than tune. The first behavior candidate removed only:
+
+- the fixed era-scaled minimum base-hammer veto;
+- the post-opening requirement for at least a +25% Wonder build-time modifier;
+- the hard `N met rivals know the prerequisite technology` race veto;
+- the era-only Great-Wall-style anti-Barbarian veto.
+
+It deliberately retained the concerns that had stronger empirical signal: construction time, relative production placement, military exposure, cheap-Wonder priority, coastal scaling and production-Wonder placement.
+
+The same-seed candidate produced **53 first Wonder attempts** that violated at least one retired rule, and **21/53 (about 39.6%) won**. The old +25% build-modifier and known-rivals rules each rejected groups that still won roughly 40-42% of their races. Reinstating those rules would therefore discard many successful investments.
+
+The cost of relaxing them was visible rather than ignored: 18 newly admitted races later failed to gold after **3,171 invested hammers**, returning **1,582 gold**. That supported keeping smarter time/placement/strategic safeguards while still rejecting the four crude proxies.
+
+The overall first-attempt profile sat between the extremes:
+
+- old SAS Wonder policy: **46 attempts / 23 wins = 50%**;
+- first cured candidate: **65 / 29 = 44.6%**;
+- fully inherited policy: **83 / 28 = 33.7%**.
+
+So the goal is not simply `more Wonders` or `fewer Wonders`: it is to keep selectivity where the underlying opportunity/race cost is evidenced, while removing hard proxies that eliminate too many good races.
+
+### National Wonders: generic production gates retired separately
+
+National Wonders cannot lose a race and often belong in a specialized city rather than a raw hammer leader. The rework therefore retired the generic era-scaled minimum-production veto and blanket top-three production-city restriction, while preserving or translating narrower placement rules whose underlying production or strategic concern survived testing.
+
+The gameplay top-three-hammer cache was correspondingly simplified to top two after its generic National-Wonder consumer disappeared. A separate level-3 counterfactual still computes the retired top-three condition so the audit can measure what the old rule would have done without keeping a gameplay dependency alive.
+
+Heroic-Epic specialization was subsequently completed in KI#48.16 and its remaining redundant placement gate was retired in this parent audit; government-center/Forbidden-Palace logic was completed in KI#48.17.
+
+KI#48.18 then added a narrow economic floor to inherited Palace relocation after proving that its area-population heuristic could select a move that increased empire maintenance.
+
+Its inherited completion-time limit was subsequently audited and retained after a narrow relaxation produced abandoned Palace investment. The shared construction-time hard rejection and the other dedicated rules were then audited in the later steps below rather than being retained merely because they already existed.
+
+The generic National-Wonder retirements were initially checkpointed as WIP while the inherited generic military-production valuation and Heroic-Epic-specific policy were audited separately; the later steps below complete that work.
+
+KI#48.10 repaired the generic throughput shape; KI#48.16 then retired the Heroic-Epic force-first sentinel and migrated its useful specialization signal into additive valuation. The remaining military-National-Wonder question is placement, not another force.
+
+### Inherited detour resolved: generic military-production valuation (KI#48.10)
+
+The National-Wonder audit exposed an inherited K-Mod/AdvC valuation shape that was better corrected before deciding how much SAS Heroic-Epic policy is still needed. KI#48.10 now has a clean Wonder-master-off Pangaea A/B: the throughput-based correction survives without SAS Wonder intervention and replaces the inherited ordinal-rank cliff with continuous value from actual production and dynamic military-unit demand.
+
+That result also clarified the separation of concerns. The inherited rank formula had been supplying some hidden Heroic-Epic urgency, so removing it reduced Heroic-Epic completions in the clean A/B. However, an independent AdvC 1.14 run did not show a general Heroic-Epic lateness problem. Heroic-Epic placement/urgency therefore remains a separate limited-Wonder/domain-specialization question rather than a reason to distort the generic military-production formula.
+
+### Inherited detour continued: `DOMAIN_SEA` production and XP valuation (KI#48.11 / KI#48.12)
+
+The next inherited domain audit used Drydock as a clean ordinary-building case, avoiding National-Wonder policy entirely. K-Mod/AdvC gave a +50% sea-production modifier essentially a fixed `+10`, doubled only for a binary high-production-city classification, while Drydock's +3 naval XP was separately multiplied by a fixed coastal weight of 7 into about `+21`. Pangaea and Tiny Islands therefore received surprisingly similar inherited naval-infrastructure contributions despite radically different expected fleet workload.
+
+KI#48.11 replaces the `DOMAIN_SEA` production-modifier term with expected naval throughput derived from actual city production, dynamic military demand and K-Mod's existing geographic `AI_calculateWaterWorldPercent()` estimate. KI#48.12 then applies the same expected naval-production share to `DOMAIN_SEA` free experience instead of retaining the fixed coastal multiplier. The paired Pangaea/Tiny-Islands validations strongly separate both production and XP value without restoring the retired `land-heavy map -> reject Drydock` rule.
+
+### Inherited detour continued: `DOMAIN_LAND` throughput and generic domain applicability (KI#48.13 / KI#48.14)
+
+A temporary Heroic-Epic `DOMAIN_LAND +50%` laboratory then exposed the same inherited fixed/rank weakness on land. KI#48.13 replaces that component with contextual land throughput: actual city production multiplied by `AI_buildUnitProb()` and a land-demand share that remains substantial on island maps, rises to full relevance during local land war and is kept high during assault preparation.
+
+Pangaea/Tiny-Islands validation restored meaningful differences between strong and weak hammer pumps without another top-city hard gate.
+
+The same laboratory also clarified that `DomainProductionModifier` is not equivalent to Heroic Epic's ordinary military-only modifier: it accelerates **all** units of a domain, including Workers/Settlers and other civilians. LAND/SEA Heroic-Epic scopes therefore remain diagnostic instruments rather than an accepted permanent Wonder redesign.
+
+A follow-up SEA laboratory exposed the separate inherited correctness issue fixed in KI#48.14: a city could receive substantial domain-production value even when it could not train any unit in that domain.
+
+The retained applicability diagnostics established the required distinction between current production and hypothetical future-tech valuation. KI#48.14 now passes that context explicitly and preserves the ordinary building-value cache unless prospective applicability actually changes.
+
+### Post-KI#48.14 continuation: shared turn cap, military pressure and relative production
+
+After the inherited domain work through KI#48.14, the Wonder audit returned to the remaining old SAS policy in three isolated steps.
+
+The shared hard rejection for Wonders estimated above 20 Normal-speed turns was retired for both World and National Wonders. In the inherited-only evidence, **10** selected National-Wonder starts above the cap produced **7 same-city completions**, while **35** World-Wonder starts above it produced **5**. The lower World-Wonder success rate showed a real race concern, but not that 20 estimated turns was a sound hard boundary: among 60 Pangaea best-World-Wonder opportunities above the cap, ordinary production competition already declined 40 (**35 units and 5 other buildings**) and retained only 20. Some apparently long starts also completed much faster as production changed; the Colossus estimated at 37 turns finished 17 turns later, and the Great Library estimated at 34 finished 8 turns later.
+
+The gate was also applied in the wrong semantic contexts. Enabling it rejected 10 World-Wonder valuations immediately at turn 0 and changed the technology-value calculation for **12 of 13** AIs making a turn-0 research decision, even though current-city construction time is not authoritative for a prospective future technology. A later true relative-production-gate-off control contained only two periodic World-Wonder snapshots above 20 turns (22 and 26), neither persistent at the next ten-turn snapshot. The result supports inherited contextual competition plus better placement, not a shared current-city hard cap.
+
+The hard World-Wonder military-pressure veto was then retired through paired Pangaea and Tiny Islands audits. Only about **4%** of its unique Pangaea rejections and **2%** of its Tiny-Islands rejections involved immediate city danger; most reflected broad at-war or war-plan state. In the Tiny danger case, ordinary production competition already selected a military unit without the veto. Conversely, the veto rejected a stronger Rome's safe, roughly eight-turn Pyramids opportunity because Rome merely had a war plan; the inherited control completed the Wonder. Later gate-off evidence included the Apostolic Palace completed under actual danger, Hagia Sophia resumed under enemy-strength pressure and completed five turns later, and Sankore resumed under danger/enemy strength/war and completed the next turn. These examples do not prove that pressure is irrelevant; they show that it belongs in contextual opportunity cost rather than a whole-building `return 0`.
+
+Finally, a corrected isolated Pangaea test found that the old SAS relative-production concern had real signal: normal production competition redirected 8 of 18 affected opportunities to units, but the remaining 10 opportunities became 9 lower-production Wonder episodes with **0 completions** and roughly **880 invested hammers** before abandonment, invalidation or race loss. The first attempted isolation had accidentally left the historical gate active through its narrower nested scope and then added a second candidate gate: control/candidate diagnostics showed roughly **7,892 / 11,395** rejections and a false turn-67 divergence. Removing the actual historical gate produced the valid comparison (**0 / 7,157** rejections and identical state through turn 75). This audit pitfall matters because otherwise the duplicate veto could have been mistaken for evidence in favor of the candidate.
+
+The corrected result did not justify retaining the old SAS `return 0` formula. Instead, it exposed the inherited limited-building placement weakness improved separately in **KI#48.15**.
+
+### Military National Wonders: force-first retired, specialization migrated (KI#48.16)
+
+With KI#48.10's generic military-production throughput and KI#821's cache-lifetime repair underneath it, the Heroic-Epic audit could finally isolate the old SAS `FORCE_WAR_USE` policy cleanly.
+
+The sentinel failed at the architectural level: enabling it changed Rome's turn-22 research path from Bronze Working at roughly 418 to Literature at roughly 1979, while the first actual current-production force event did not occur until turn 107. Broad war-plan state was therefore leaking a production override into prospective technology valuation rather than merely expressing immediate military opportunity cost.
+
+Retiring the force exposed a narrower legitimate signal. The generic `AI_buildUnitProb()` share correctly describes ordinary military-production demand, but a one-per-player +50% military-production National Wonder is itself a decision to designate a specialist military city. KI#48.16 therefore migrated that useful idea into additive valuation instead of restoring another override.
+
+A 0/75/100 calibration on the same Pangaea seed selected the full 100% specialist-city assumption. Heroic Epic moved from three very late baseline completions (T307/T353/T362) to eight natural completions beginning at T178, while ordinary `AI_chooseProduction()` still rejected 26 of 34 logged Heroic-Epic opportunities in favor of immediate units.
+
+All eight accepted starts were short 1-6-turn builds, and matched prospective research values moved only modestly rather than reproducing the old Literature spike.
+
+The remaining Heroic-Epic top-production rejection was then isolated separately. It fired 17,573 times but overlapped none of 50 actual Heroic-Epic best-building opportunities, and enabling it changed no state checkpoint, RNG checkpoint, research row, Heroic-Epic action or outcome through turn 428. It was therefore retired as redundant rather than migrated into another placement rule.
+
+### Government Centers: local proxy and force-first policy replaced by empire-wide projected savings (KI#48.17)
+
+The Forbidden-Palace audit found both an inherited valuation weakness and an overcorrection in the old SAS policy. K-Mod estimated a Government Center mainly from the candidate city's own rounded distance maintenance multiplied by area city count. The old SAS branch instead required a sufficiently large empire, rejected capital and military-pressure contexts, then returned a roughly `99000` force-first sentinel in one of the highest-current-maintenance cities.
+
+A correctly isolated A/B showed the concern was real: inherited coarse valuation completed **zero Forbidden Palaces**, while the old force produced six by turn 295 plus one short-lived abandoned attempt. The force was nevertheless measuring the wrong city property and suppressing ordinary production competition.
+
+KI#48.17 replaces both with projected empire-wide distance-maintenance savings. For each candidate location, it compares every own city's current distance to its nearest Government Center against its distance to the candidate, sums the resulting maintenance reduction and converts that saving through inherited maintenance-building scaling.
+
+This directly measures the candidate that reduces combined empire maintenance most; it does not simply prefer the city with the highest local GPT. Build speed and urgent competing production remain separate concerns handled by ordinary building value, limited-building placement and `AI_chooseProduction()`.
+
+Corrected same-seed validation produced **one natural Pangaea completion** and **three Tiny-Islands completions**, versus zero in both inherited controls. Guangzhou was especially revealing: its own maintenance was only about **6.24 GPT**, far below the empire's roughly **21.45 GPT** second-highest value, but its location projected about **23.67 GPT** of empire-wide distance-maintenance savings.
+
+The old SAS rank/peace conditions would not have selected it; additive valuation let it first finish a one-turn Monastery, then build the Forbidden Palace in about six turns once the projected saving had grown.
+
+Tiny Islands confirmed the geography-sensitive result. Cashel projected roughly **19.49 GPT** of savings despite only **4.88 GPT** local maintenance and production rank 12/16, while Scythian completed a four-turn Forbidden Palace during war, a war plan and assault preparation that the old military-pressure veto would have rejected.
+
+Conversely, Manp'o later valued Forbidden Palace highly but selected an immediate Destroyer while underdefended and facing a strong enemy, confirming that the new additive value does not become another force.
+
+The first projected A/B was accidentally masked because the old National-Wonder master remained enabled and returned `99000` in both branches. The raw-value diagnostics exposed the mistake; corrected controls disabled that layer in both variants and changed only the projected-maintenance selector. This prevents the duplicate-force pitfall from being mistaken for evidence about the new formula.
+
+The permanent correction intentionally omits the secondary colony-maintenance-cap benefit. The naval/fragmented Tiny-Islands stress test already produced three sensible natural completions without it, so no unvalidated extra value was added.
+
+Any XML building marked as a Government Center uses the generic calculation; current SAS Versailles no longer has that effect. Palace relocation remains a separate `BUILDINGFOCUS_CAPITAL` route rather than another consumer of this additive building value; its demonstrated negative-maintenance blind spot is fixed in KI#48.18.
+
+### Government Center National-Wonder placement follow-up: retain inherited raw placement
+
+The projected-maintenance result prompted a narrower follow-up: inherited National-Wonder cross-city placement compares raw building value, whereas KI#48.15's World-Wonder placement compares value per completion time. A focused Tiny-Islands audit recorded **1,520 disagreement rows / 567 unique placement disagreements** between those two formulas.
+
+Of those, **225** had raw placement suppressing the current city while completion-time placement considered it competitive; **342** disagreed in the opposite direction.
+
+Some pairwise examples looked severe. Tlatelolco offered value 38 in six turns while raw placement preferred value 64 in 99-turn Kassite; Seattle offered value 20 in two turns while raw placement preferred value 37 in 17-turn New York.
+
+At turn 316, Corihuayrachina's value-38, two-turn Forbidden Palace was pairwise-suppressed by Machu Picchu's value-49, ten-turn candidate.
+
+That counterfactual evidence was not enough to establish a gameplay defect. The isolated completion-time-placement A/B exercised the selector and changed the disagreement trace from **1,520 rows / 567 unique disagreements** to **1,459 / 542**, but produced **395/395 identical core-state fingerprints, 395/395 identical RNG checkpoints, 1,648/1,648 identical research rows and 11,922/11,922 byte-identical building-opportunity/final-target rows**.
+
+Both modes completed the same Forbidden Palaces in Mycenian on turn 333, Cashel on turn 335 and Scythian on turn 348, with identical final history.
+
+The Corihuayrachina example also ended with the Security Bureau as its best building and Robotic Infantry as actual production in both modes. Changing one pairwise city comparison therefore did not make Forbidden Palace survive the complete limited-building scan and ordinary production competition.
+
+Retain inherited raw National-Wonder placement unchanged; remove the temporary logger/selector and add no completion-time Government Center exception.
+
+### Palace `AI_buildingValue` liveness follow-up: retire the old SAS policy
+
+Runtime and source inspection showed that actual Palace relocation can bypass ordinary `AI_buildingValue()`. `BUILDINGFOCUS_CAPITAL` takes an early `AI_bestBuildingThreshold()` path that scans constructible capital buildings and returns one within the turn limit, and inherited production callers request that focus directly.
+
+An isolated Tiny-Islands liveness A/B then recorded **199 old SAS Palace-policy hits in each mode**. All 199 were prospective evaluations assuming Code of Laws; none represented current production.
+
+Of those, 186 merely fell through during the early/small-empire window and 13 returned zero under military pressure. No case reached the insufficient-output rejection or the `AI_BUILDING_ALWAYS_PICK_FIRST - 500` superior-output force.
+
+Disabling the branch preserved **395/395 core-state checkpoints, 395/395 RNG checkpoints and 1,648/1,648 research decisions**. Actual Palace relocation was also identical: inherited `BUILDINGFOCUS_CAPITAL` made six attempts in each mode, rejected five on its buildability/completion-time test, then selected San Francisco's three-turn Palace on turn 383; it completed on turn 385 in both modes.
+
+The old SAS `AI_buildingValue()` branch therefore did not control actual relocation and was behaviorally redundant in its only observed prospective caller. Its military-pressure veto, T100/four-city window, dual 150% production/research comparison, force-first return, temporary selector and Palace building-class define were removed together.
+
+Retain the level-3 diagnostics for inherited capital-value rejection and the actual capital-focus selection route as evidence for the remaining Palace-placement audit.
+
+The live inherited caller passes `3 * own cities in the candidate area` as `AI_chooseBuilding`'s `iMaxTurns`; despite the local name `iOdds`, the real odds argument remains its default `-1`, so a Palace that passes the turn limit is chosen deterministically.
+
+The first direct audit showed that relocation itself is conservative: 290 cities reached the outer larger-non-capital-area context, only eight passed the area-population test, six also passed the production-rank/war gates, and only San Francisco could produce the Palace within the inherited turn limit. The selection was nevertheless economically harmful.
+
+San Francisco matched the old capital's 28 base production, had lower research output (12 versus 15), was less central by simple own-city distance sum (100 versus 92), and projected **-2.44 GPT** raw maintenance savings (about **-5.12 GPT after inflation**) while every logged player-level capital-specific yield/commerce modifier was zero.
+
+KI#48.18 therefore adds only a do-no-harm floor to this inherited route: when no capital-specific player modifier makes maintenance an incomplete proxy, a proposed Palace move must reduce projected empire-wide distance plus colony maintenance.
+
+The same-seed candidate remained identical through turn 382, rejected San Francisco on turn 383, and later allowed Boston's economically positive two-turn Palace on turn 388. This fixes the demonstrated placement defect without replacing inherited geography, war, production-rank or completion-time policy.
+
+The retained level-3 diagnostic then exposed several economically positive Native-American candidates requiring nine Palace turns against a six-turn limit, plus a later 16-turn case. A narrow A/B raised only the minimum two-city candidate-area allowance from six to nine turns while leaving areas with three or more cities unchanged.
+
+The candidate immediately let Snaketown start its nine-turn Palace on turn 319, but deteriorating war and production context caused it to abandon the build on turn 323 after investing **58 of 144 hammers**. It never resumed or completed the Palace. The control avoided that parked production entirely.
+
+The inherited `3 * candidate-area cities` completion-time rule is therefore retained. It acts as useful commitment-risk protection rather than merely rejecting a favorable maintenance snapshot, while the permanent uncapped-time diagnostic preserves evidence if later rules or map conditions justify reopening the question.
+
+### Cheap World-Wonder force-first follow-up: retire planning pollution
+
+The surviving era-cost catch-up rule returned `AI_BUILDING_ALWAYS_PICK_FIRST + 3000`, i.e. **103,000**, whenever a World Wonder was cheap enough and the city was not in immediate danger. An isolated selector disabled only that return while leaving the cheap classification, every other Wonder policy and inherited/additive valuation unchanged.
+
+Across the Tiny control's 67 historical `FORCE_CHEAP_SAFE` hits and 68 more in the earlier Pangaea evidence, **all 135 referred to World Wonders already completed globally**. The force-off Tiny run recorded 71 matching cheap-condition evaluations, again all for already-completed Wonders. Successful early Wonder completions were identical through turn 116, and the historical force did not begin firing until turn 135.
+
+The first causal effect was therefore not lost Wonder construction. Research-path valuation diverged on turns 177/179 and produced real requested-technology changes on turn 180 while city, unit, group, plot and deal fingerprints remained identical. The huge return was polluting broader planning through `AI_buildingValue()` rather than rescuing a demonstrated constructible cheap Wonder.
+
+Retire `FORCE_CHEAP_SAFE` and its live era-cost calculation. Genuinely available cheap World Wonders remain subject to inherited/additive valuation, ordinary production competition, completion-time-aware placement and the remaining targeted safeguards; the era-cost classification remains only in level-3 Wonder diagnostics as counterfactual evidence.
+
+If a future constructible leftover Wonder proves undervalued, use evidence-backed additive value rather than another force-first sentinel. See also KI#205.
+
+### Coastal-scaling World-Wonder minimum follow-up: retire the two-versus-three-city cliff
+
+The remaining coastal-scaling rule returned zero for Great-Lighthouse-style World Wonders whenever the empire had fewer than three coastal cities. This was an abrupt eligibility cliff layered over inherited K-Mod/AdvC valuation, which already scales `CoastalTradeRoutes` continuously from current coastal cities plus weighted prospective coastal settlement; global sea-plot yields likewise scale with the empire's actual water use.
+
+A same-build Tiny-Islands A/B changed only this minimum. With the gate disabled, the Great Lighthouse completed on **turn 97** instead of **turn 100** in the control. Core/RNG state first diverged on turn 70 and the first requested-technology difference appeared on turn 71, before the first currently constructible under-three-coastal-city case on turn 77. The hard rule was therefore affecting broader planning before it represented a real current production opportunity.
+
+The direct production tradeoff was measured rather than hidden. With two coastal cities, Athens considered a nine-turn Great Lighthouse on turn 82 and switched away two turns later after investing **30 hammers**; those hammers were lost when another civilization completed the Wonder. Across the histories, however, the gate-off run had **110 + 32 hammers** converted to fail-gold plus those 30 lost hammers, while the control had **71 + 42 hammers** converted to fail-gold and completed the Wonder three turns later.
+
+Normal valuation did not turn one-coastal-city or extremely slow 30-150-turn theoretical candidates into actual starts. Every genuinely constructible under-three-city opportunity involved two coastal cities, and ordinary race risk, production competition and completion-time-aware placement remained active. The flat fewer-than-three-coastal-cities rejection, temporary A/B selector and duplicate dedicated logger were therefore removed. The permanent World-Wonder policy audit still records the former coastal-scaling classification and coastal-city count as counterfactual context, while inherited/additive value and actual production-choice diagnostics preserve the live decision evidence.
+
+### National Park military pressure: replace the blanket veto with a narrow safety floor
+
+The National-Park-style branch historically returned zero under any war, war plan, immediate city danger or materially stronger enemy. Tiny-Islands evidence showed that this was too broad: useful Parks could complete during ordinary war planning, while normal production competition already redirected genuinely urgent cities toward units. A fully permissive Pangaea test confirmed that behavior in **36 of 46** pressured best-building opportunities, and Guangzhou, Aachen and York completed useful Parks under broad war or war-plan state.
+
+Full removal nevertheless exposed one concrete failure. Maya's underdefended Uxmal faced `enemyPowerPercent=1213`, had already invested **93/216 hammers** in a Mechanized Infantry with about six turns remaining, but switched to a 13-turn National Park. It later resumed and completed the Park, delaying the defender until turn 320 while its empire contracted from five cities to three.
+
+This demonstrated useful safety signal in `bEnemyStrong`; immediate `bDanger` was retained as the correspondingly local conservative condition.
+
+A three-way Pangaea test therefore compared no veto, the historical blanket veto and a narrow `bDanger || bEnemyStrong` candidate. The narrow candidate matched the permissive history through turn 216 and first diverged on turn 217 when the strong-enemy condition became relevant, while it already escaped the historical blanket policy on turns 188/189.
+
+Of **6,974** currently constructible pressured evaluations, it allowed **6,083 (about 87%)** and rejected only **891** danger/strong-enemy cases. Nine National Parks completed, including several under ordinary war/war-plan state, with zero National-Park production-invalidated losses; a severely pressured later Uxmal instead selected Mechanized Infantry.
+
+The rule tested at this stage consequently removed `bAtWar` and `bWarPlan` from the hard rejection while retaining `bDanger || bEnemyStrong`. Detailed level-3 diagnostics distinguished flexible wartime construction from the narrow safety floor without adding work when building-production logging was disabled. KI#48.19 subsequently translated that remaining hard rejection into a continuous current-production value adjustment.
+
+### National Park resilience and inherited-placement diagnostics
+
+A follow-up examined whether National Park needed a new SAS rule reserving it for the city that would benefit most. Instead of adding another heuristic first, level-3 diagnostics now record population unhealthiness, actual health food loss, immediately recoverable food, current food balance/buffer and improvement-granted free specialists.
+
+A second row exposes the inherited limited-National-Wonder cross-city comparison while reusing values the existing loop already computes; both rows deduplicate unchanged state.
+
+The Tiny-Islands run produced **7,555 candidate rows**. Its initial **566 placement rows represented only about 236 distinct placement states**, motivating permanent deduplication. More importantly, inherited placement already handled both major National Park benefits sensibly when candidates reached it.
+
+Benin's Ugbini had four Forest-Preserve specialists and value 180 versus Ughoton's two specialists and value 122, so inherited placement rejected Ughoton and Ugbini later completed the Park. In Germany, severely starving Sapele had population 19, health -10, recoverable health-food loss 10, food difference -30 and value 570; inherited placement rejected Cologne's value 154 in favor of Sapele.
+
+The evidence therefore does not support another strongest-city reservation layer. It instead exposes the earlier SAS eligibility gates as the likely bottleneck. Among **7,064** currently constructible candidate states, **5,986** were outside the top-two population rank, **3,668** were below population 12 and **3,843** had health above +1. Of 89 unique states with at least eight recoverable food and a negative food balance, 52 were outside the top two.
+
+Spain supplied a direct tie-boundary example: Madrid, Barcelona and Toledo were all population 20 but received ranks 1, 2 and 3. Toledo was health -14, losing nine food per turn and could build National Park in three turns, yet the hard top-two rule prevented inherited placement from comparing it; rank-4 Seville and other severely unhealthy cities were similarly excluded.
+
+The separate health rule is also suspect: **1,377** currently constructible healthy-gate states still had at least one improvement-granted specialist, including **511** with at least three.
+
+Keep these diagnostics as generic evidence rather than hardcoding Depopulation, plague or any other source of a health shock.
+
+### National Park eligibility follow-up: retire the top-two-population gate
+
+The first isolated follow-up removed only the requirement that a National-Park-style Wonder be valued in one of the empire's two most populous cities. The population-12 and health gates, the narrow `danger || enemyStrong` safeguard, inherited cross-city placement and ordinary production competition remained unchanged.
+
+The control and candidate remained behaviorally identical through turn 207; state and actual synchronized RNG first diverged on turn 208, when the newly visible National Park values began affecting research planning. By turn 370 the candidate had completed 12 National Parks.
+
+Seven had initially started in population-rank 3-7 cities: Ugbini, Banteay Kdei, Uzbek, Vilcas, Tlatelolco, Burgundian and Khazak.
+
+Inherited limited-National-Wonder placement independently identified six of those seven cities as their empire's strongest current destination. The exception, Vilcas, had value 594 against Huamanga's 719, remaining within the inherited 25% placement tolerance.
+
+Ordinary production competition also remained effective: Toledo and Barcelona selected Mechanized Infantry despite high exposed National Park values, and the candidate recorded zero National Park production-invalidated losses.
+
+Vilcas further demonstrated why a smooth placement layer is preferable to an ordinal population gate. It began National Park at population 13 with health -12 and 45 hammers invested, then correctly paused when Huamanga became 39% better.
+
+After Vilcas shrank to population 11, however, the separate population-12 floor prevented it from competing again until it regrew. The top-two gate was therefore retired without replacement.
+
+### National Park eligibility follow-up: retire the population-12 floor
+
+The next A/B removed only the fixed population-12 eligibility floor. The first National-Park-related research-value difference appeared on turn 164, the first CORE-state divergence on turn 204, and the first semantic synchronized-RNG and requested-technology divergence on turn 211.
+
+Removing the floor exposed **3,182** current constructible sub-12 candidate states, but only two actual sub-12 National Park starts. Uzbek began at population 9 with health -1, four Preserve specialists, inherited value 223 and an initial 27-turn build; inherited placement selected Uzbek itself as the best destination, and it completed the Park on turn 362.
+
+Ligurian began at population 8 with health -3, three Preserve specialists, inherited value 210 and an eight-turn build; inherited placement likewise selected Ligurian itself, although the game ended two turns later.
+
+The thousands of other exposed low-population evaluations did not become production starts, and neither history recorded a National Park production-invalidated loss.
+
+Inherited valuation, cross-city placement and ordinary production competition therefore supplied the useful filtering without the self-defeating case where health-driven population loss makes a city ineligible for the building that could halt further population-unhealth food loss. Population 12 remains only as counterfactual diagnostic context.
+
+### National Park eligibility follow-up: retire the current-health cliff
+
+The final National-Park-specific eligibility test removed only the rule that returned zero above health +1. The candidate exposed **1,734** current healthy constructible states, including **774** with at least one Preserve specialist and **263** with at least three.
+
+National Park became the best building opportunity on 27 occasions, but none involved a healthy city; all 12 final production choices that selected it had health +1 or lower.
+
+No city switched away from an invested National Park because of the retirement, and the candidate again recorded zero National Park production-invalidated losses.
+
+The first research-value difference appeared on turn 200, while CORE state and semantic synchronized RNG first diverged on turn 206 and requested technology on turn 208.
+
+This completes retirement of the old top-two-population, population-12 and current-health eligibility cliffs.
+
+Inherited valuation can price both population-health relief and improvement-granted free specialists, inherited cross-city placement reserves a substantially stronger destination, and ordinary production competition rejects low-return opportunities. The separately validated `danger || enemyStrong` signal remained active at this stage; KI#48.19 subsequently retained the signal while replacing its hard rejection with contextual value.
+
+### Dead generic National-Wonder and unknown-Wonder branches
+
+The proposed generic National-Wonder pressure A/B unexpectedly produced no live audit or rejection rows in either Pangaea run, despite the earlier policy audit recording **9,848** counterfactual pressure states: 4,213 Forbidden Palace, 3,394 Wall Street, 796 National Park, 768 National Epic, 574 Iron Works and 103 Heroic Epic states.
+
+Source review established the structural cause. With the normal Wonder master enabled, every National Wonder already enters the common `if (bWonder && ...)` branch, so the later `else if (bNationalWonder && ...)` branch is unreachable.
+
+The adjacent unknown-Wonder branches are impossible because their surrounding scope already requires a World or National Wonder. Disabling the common master could otherwise have exposed the stale National-Wonder subpolicy unexpectedly.
+
+The same-build mode-0/mode-1 histories remained identical through turn 344: all 349 RNG checkpoints, 349 CORE fingerprints, 1,003 research decisions, 541 production-pipeline rows, 529 production-flow rows and 410 parked-production snapshots matched.
+
+The dead pressure branch, impossible unknown-Wonder branches, unused selector and three dead XML knobs were removed. National Park's independently validated safety floor was unaffected by this cleanup and was subsequently translated into contextual value by KI#48.19.
+
+### Production-Wonder placement follow-up: retire the top-HPT hard gate
+
+The last live generic placement return restricted Iron-Works-style production Wonders to cities within the SAS top-production leeway. The historical Pangaea control recorded **1,352** live rejections.
+
+With that gate disabled, the candidate exposed 960 counterfactual states, including 411 current constructible off-leeway Iron Works states and 97 with positive inherited value.
+
+Only one off-leeway state made Iron Works the best building opportunity: Munich on turn 397, where final production still selected a Work Boat. Across all 20 final production decisions that selected Iron Works, none occurred outside the historical leeway.
+
+Rome supplied a direct placement example on turn 200: it exposed a reasonable value 564 and 16-turn Iron Works outside the old leeway, but inherited placement correctly kept the Wonder in Antium, with value 721, 12 turns and 62/720 hammers already invested.
+
+The candidate recorded no Iron Works production-invalidated loss. Berlin's later 359/720 parked Iron Works was also not caused by removing the gate: Berlin began or resumed it while inside the historical allowance and fell outside only after relative city production changed.
+
+The first actual planning, CORE-state and synchronized-RNG divergence occurred on turn 202, when the newly visible prospective value changed Native America's immediate research choice from Corporation to Steam Power while both paths still aimed for Assembly Line.
+
+The gate was thus affecting planning without preventing any demonstrated bad production choice.
+
+Retire the hard return and rely on inherited limited-building placement plus ordinary production competition. Its temporary selector/logger, live production-modifier scan and per-player/per-turn top-HPT cache were removed from the gameplay hot path; the permanent level-3 Wonder audit retains independent historical top-city context.
+
+### National Park military-pressure follow-up: translate the final hard rejection into contextual value (KI#48.19)
+
+The earlier audit retained `bDanger || bEnemyStrong` as a narrow hard safety floor after a fully permissive candidate let underdefended Uxmal abandon an invested Mechanized Infantry for a 13-turn National Park.
+
+That protected the demonstrated failure, but still made a useful building worth exactly zero, suppressed prospective Biology/National Park value whenever current military pressure happened to be present and bypassed ordinary production competition.
+
+The final Pangaea A/B replaced only that hard rejection with a transient current-production discount. The ordinary inherited K-Mod/AdvC construction value and reusable cache remain unchanged; prospective technology evaluation deliberately receives no current military-pressure penalty.
+
+For actual production, the discount rises continuously with remaining turns and danger/enemy strength, while already-invested production reduces the penalty. The raw penalty remains below 100%, and a positive inherited value is clamped to at least 1 after integer arithmetic so truncation cannot silently recreate the retired zero gate.
+
+Candidate mode recorded **660 pressured National Park value adjustments**. None of the candidate's **62 National Park best-building opportunities** or **22 final National Park production choices** occurred under `bDanger || bEnemyStrong`, showing that inherited placement and normal production competition still rejected the pressured builds without categorical erasure.
+
+Mayapan supplied a direct transition. It legitimately started a seven-turn National Park while health was -6 and no military-pressure condition applied. One turn later, after storing **47/270 hammers**, enemy power rose to 276% and `bEnemyStrong` became true.
+
+Its inherited value 220 was discounted to 118; Public Transportation became the better building opportunity and final production switched naturally to SAM Infantry. The invested hammers softened rather than defeated the pressure response.
+
+Uxmal likewise received repeated meaningful but discounted values under `bEnemyStrong` (including **84 -> 47**, **107 -> 59**, **248 -> 148** and **180 -> 86**) while actual production continued to choose Cannon, SAM Infantry, Cuirassiers and Infantry instead of reproducing the earlier dangerous diversion.
+
+The prospective-planning correction was independently visible. On turn 179, while CORE state and synchronized RNG still matched, Carthage's candidate path could see Biology with value 459 whereas the control's hard gate redirected the future aim to Chemistry with value 450.
+
+The immediate requested technology remained Gunpowder in both histories; the first CORE-state and semantic RNG divergence occurred only on turn 205 and the first different requested technology on turn 206.
+
+The old `return 0`, its temporary A/B selector and the final SAS Wonder-policy master are therefore removed. National Park retains an evidence-backed military opportunity-cost response, but now through contextual inherited value rather than a hard gate. Permanent pressure/resilience diagnostics remain available for future audits. See KI#48.19. (ChatGPT-5.6-Sol + GPT-5.6-Sol)
+
+### Invested-Wonder continuation follow-up: restore the inherited threshold
+
+The remaining old SAS policy replaced K-Mod's invested-limited-building continuation formula with separate World/National-Wonder thresholds for immediate danger, war plans, current war and relative enemy power. This matrix was not consistently more or less conservative: depending on its branch, it could interrupt a World Wonder that inherited logic retained or continue National Wonders that inherited land-war logic released.
+
+A same-build Pangaea A/B logged both outcomes while selecting one rule. The histories first diverged on turn 66 at their first disagreement: Beijing was in immediate danger with **71/150 hammers** invested in Oracle, 47% complete with four turns remaining. The inherited threshold was 25% and continued it; the old SAS danger threshold was 70% and released it.
+
+The inherited control safely completed Oracle on turn 69. Old SAS instead parked its 71 hammers, completed an attacking Longbowman on turn 68, completed a Worker on turn 71, then resumed Oracle and completed it on turn 76. Beijing survived in the inherited control, so the observed seven-turn delay did not prevent a safety failure.
+
+The later histories diverged too widely for their common team-7 Space victories on turns 318 and 394 to measure this policy's independent strength. The causal opening nevertheless provided no evidence that the larger SAS matrix corrected an inherited weakness, while directly reproducing unnecessary production interruption and making continuation direction depend on several unrelated cliffs.
+
+Restore K-Mod/AdvC's simpler threshold: 25% base, +40 percentage points during land war, +25 during Turtle strategy and +10 for a non-World limited building. Remove the temporary selector and old SAS matrix. A compact level-3 `INVESTED_WONDER_CONTINUATION` row retains the actual completion, threshold and contextual inputs for future regression evidence without computing the retired counterfactual policy. (GPT-5.6-Sol)
+
+### Final cleanup, integrated regression and closing observation
+
+The completed direction is gradual migration rather than another monolithic replacement:
+
+- keep Heroic Epic on its actual military-only production semantics; KI#48.16 retired its force-first war sentinel and migrated useful specialization into additive throughput valuation, while the subsequent top-production gate audit proved redundant and was retired;
+- keep KI#48.15's completion-time-aware inherited World-Wonder placement as the validated relative-production replacement; both the separate hard coastal-city minimum and the production-Wonder top-HPT placement gate are now retired;
+- retain KI#48.13's tested `DOMAIN_LAND` throughput support as generic/modmod-safe infrastructure even if current SAS has no permanent land-domain production consumer; `DOMAIN_AIR` throughput amount and domain-specific AIR XP remain separate future audits rather than symmetry-driven changes;
+- retain KI#48.19's continuous National Park current-production military-pressure adjustment, while leaving inherited/cached and prospective technology value unchanged and relying on inherited placement instead of the retired population-rank, minimum-population and current-health cliffs;
+- focused source/configuration cleanup removed empty retired branches, stale selectors/defines/comments and sentinel remnants; thresholds retained only for level-3 counterfactual evidence are compact DLL-local constants rather than misleading XML tuning, and every remaining `SAS_AI_BUILDING_VALUE_*WONDER*` define has a live gameplay consumer;
+- useful level-3 forensic diagnostics were preserved, and final integrated Pangaea and naval-heavy Archipelago autoplays completed under permanent gameplay settings before the migration was closed.
+
+One closing side observation supports the intended goal without proving that every individual Wonder choice is optimal. The older Snaky-Continents baseline completed **24 World Wonders and 37 National Wonders** by turn 341; the final Pangaea and naval-heavy Archipelago runs each completed **all 39 current World-Wonder building types**, alongside 36 and 29 National Wonders respectively.
+
+Raw World-Wonder XML costs represented roughly **1.1%** of completed unit-plus-building production in the older run and **2.7% / 2.6%** in the final runs, so collective World-Wonder construction genuinely increased after the hard gates were retired.
+
+That increase was not winner-level Wonder spam: the older winner completed 14 World Wonders, while the two final winners completed 12 and 11. The comparison is across different maps and divergent histories, so it is balance evidence rather than a controlled causal measurement. It nevertheless supports keeping the audited opportunity-cost model instead of restoring a blanket target of fewer Wonders.
+
+Future evidence of threatened or weak empires sacrificing urgent units for low-return Wonders should be addressed through smooth completion-time, military-pressure and marginal-value adjustments, not by assuming that either more or fewer Wonders is inherently efficient.
+
+The long-term target mirrors KI#48.5: inherited additive valuation plus narrow contextual safeguards whose underlying concern survives measurement, rather than a large ordered table of hard Wonder vetoes and force-first sentinels.
+
+<a id="ki-48.10"></a>
+
+## KI#48.10 - (Improved inherited K-Mod/AdvC AI valuation-shape weakness) Generic military-production modifiers were valued mostly by fixed/rank rules instead of expected production throughput
+
+This issue was isolated during the National-Wonder phase of KI#48.9, and source-lineage review confirmed essentially the same generic `MilitaryProductionModifier` valuation in **K-Mod 1.46** and **AdvCiv 1.14**.
+
+The inherited branch was not a clear correctness bug, and an independent base-AdvC test does **not** support the stronger claim that Heroic Epic is systematically built late. In a separate AdvC 1.14 Pangaea run, six AIs completed Heroic Epic on turns **185-195**, only **4-20 turns after acquiring Literature**; actual construction also requires the unit-level prerequisite, so the delay from true eligibility can be shorter still.
+
+The demonstrated weakness was instead the **shape of generic military-production valuation**. The inherited formula:
+
+- valued positive generic military-production modifiers mainly from modifier magnitude plus the city's ordinal production **rank**, rather than the number of hammers the modifier could actually multiply;
+- gave limited-Wonder cities increasingly large negative adjustments below the top production ranks;
+- ignored negative military-production modifiers entirely;
+- gave no positive modifier value before first contact;
+- only weakly reflected current expected military-unit production demand.
+
+### Why ordinal production rank is not enough
+
+Rank tells the AI which city is first, second, third or fourth, but not **how far apart those cities actually are**. Consider two empires with the same ordinal ranks:
+
+```text
+100, 99, 98, 97 hammers
+```
+
+versus:
+
+```text
+100, 10, 3, 1 hammers
+```
+
+In the first empire, the fourth city is almost as productive as the first. In the second, the fourth city is two orders of magnitude weaker. A fixed rank-3 -> rank-4 cliff therefore cannot represent both cases sensibly.
+
+Heroic Epic's +50% generic military-production modifier made that inherited discontinuity especially visible. The legacy formula gave roughly **+45 / +37 / +32** at production ranks 1/2/3, then could fall abruptly to about **+12**, or even around **-40** when the rank-4 city no longer qualified as `bHighProductionCity`. Nearly equal 100/99/98/97-hammer cities could therefore receive a large valuation jump at exactly the same boundary as a genuinely lopsided 100/10/3/1 empire.
+
+### Throughput-based correction
+
+The corrected branch retains the inherited formula behind a SAS A/B toggle and values the generic modifier approximately as:
+
+```cpp
+modifier * (baseProduction + 2) * AI_buildUnitProb / 2500
+```
+
+This mirrors K-Mod's ordinary production-yield scaling and then weights it by the city's existing authoritative `AI_buildUnitProb()` demand estimate. That estimate already responds to financial/economic pressure, military specialization, era pacing, relative military strength/throttling and other current AI production context. Positive generic modifiers therefore scale with actual expected military throughput, while negative modifiers can finally receive negative value.
+
+The inherited free-experience synergy remains a separate positive component so the correction changes only the generic production-modifier valuation. `AI_buildUnitProb()` and its small `AI_experienceWeight()` helper were made logically `const` so `const AI_buildingValue()` can reuse the authoritative estimate directly instead of introducing a weaker proxy or `const_cast`.
+
+The first Snaky candidate used a cheaper personality/war-plan/economy-focus approximation. Although its average happened to resemble `AI_buildUnitProb`, same-turn comparison showed only about **0.32 correlation**, so it was replaced rather than calibrated further.
+
+The dynamic-demand candidate produced a smooth Heroic-Epic component in Snaky: median about **28**, mean about **31**, range **0-134** instead of the inherited rank/cliff shape. `AI_buildUnitProb()` also moved in the expected direction, averaging about **62 during war plans versus 54 without** and **63 while at war versus 55 while not at war**.
+
+Before the decisive A/B, Pangaea attribution across **5,177** generic military-production evaluations (4,943 Heroic-Epic rows) already showed the same direction: ranks 1/2/3 averaged about **34.6 / 30.9 / 25.5** under throughput versus legacy **45 / 37 / 32**; below the top three, throughput remained around **+21** while the inherited limited-Wonder rank formula averaged roughly **-49**. Mount Rushmore and Pentagon stayed near their former positive scale, while the Barbarian Palace's **-25%** generic military-production modifier finally received a real negative value (median about **-4**) instead of inherited **0**.
+
+### Clean Pangaea A/B validates the generic correction
+
+The decisive comparison removed SAS Wonder intervention from both histories:
+
+```text
+SAS_AI_BUILDING_VALUE_WONDERS_OPTIMIZE = 0
+SAS_AI_BUILDING_VALUE_NATIONAL_WONDERS_OPTIMIZE = 0
+```
+
+The same Pangaea save/seed was then run with a fresh Civ process for each cached-define state, changing only:
+
+```text
+throughput: SAS_AI_BUILDING_VALUE_MILITARY_PRODUCTION_MODIFIER_THROUGHPUT_OPTIMIZE = 1
+legacy:     SAS_AI_BUILDING_VALUE_MILITARY_PRODUCTION_MODIFIER_THROUGHPUT_OPTIMIZE = 0
+```
+
+The two histories were identical through **turn 89**, first diverged in core game state at **turn 90**, and diverged in RNG at **turn 92**. Their much later victory dates (**Space T341** throughput versus **Space T309** legacy) are therefore not treated as a direct quality score; after roughly 250 turns of divergent history, that aggregate outcome cannot isolate this one formula.
+
+The valuation shape itself is the important controlled result. The throughput history naturally produced an approximate Heroic-Epic rank profile of **+33 / +28 / +27 / +22 / +21 / +21** across production ranks 1-6, instead of the inherited large top-rank bonuses followed by the rank cliff. Actual throughput, rather than an ordinal label, now determines the magnitude.
+
+Heroic Epic also exposed why this generic cure must stay conceptually separate from special-Wonder urgency. With all SAS Wonder policy disabled, the throughput history produced **1** major-civilization Heroic Epic (T303), while the legacy history produced **3** (T167/T282/T302). The old rank formula was therefore supplying some hidden Heroic-Epic urgency. That does **not** make the rank formula desirable: the independent base-AdvC result above shows Heroic Epic itself can be built promptly, while the clean A/B shows that removing the rank hack exposes Heroic-Epic placement/urgency as its own limited-Wonder/domain-specialization question.
+
+Runtime cost was effectively unchanged in this test: throughput autoplay was about **1.87 seconds/turn** versus about **1.86 seconds/turn** for the legacy branch. The richer reuse of `AI_buildUnitProb()` therefore showed no meaningful per-turn performance regression here.
+
+### Result and scope (KI#48.10)
+
+KI#48.10 is therefore considered an **improved inherited valuation correction**, not a Heroic-Epic-specific force. The default throughput path should remain enabled, while the legacy formula stays available behind the SAS define for regression testing and modmod comparison.
+
+The next inherited question was deliberately separated rather than folded into this formula. K-Mod/AdvC's `DomainProductionModifier` valuation used fixed increments and another binary `bHighProductionCity` bonus, with little direct connection to actual domain-specific need or throughput.
+
+The first real consumer, Drydock's `DOMAIN_SEA` +50% production modifier, is audited and improved in **KI#48.11**; its separate +3 naval free-experience value is contextualized in **KI#48.12**. `DOMAIN_LAND` production is now separately audited and improved in **KI#48.13**, using a temporary Heroic-Epic scope only as laboratory equipment.
+
+`DOMAIN_AIR` throughput amount remains inherited until a real consumer justifies calibration, while the generic city-local applicability problem shared by domain-production effects is tracked separately in **KI#48.14**.
+
+See **KI#48.9** for the broader World/National-Wonder migration that exposed this inherited evaluator issue, **KI#48.11** for `DOMAIN_SEA` production throughput, **KI#48.12** for `DOMAIN_SEA` free-experience throughput, **KI#48.13** for `DOMAIN_LAND` production throughput, **KI#48.14** for the domain-applicability follow-up and **KI#48.16** for the Heroic-Epic/National-Wonder specialization signal deliberately kept separate from the generic formula.
+
+<a id="ki-48.11"></a>
+
+## KI#48.11 - (Improved inherited K-Mod/AdvC AI valuation-shape weakness) DOMAIN_SEA production modifiers were almost geography-blind instead of following expected naval throughput
+
+This issue continues the inherited valuation archaeology from KI#48.10, but it is deliberately separate. KI#48.10 corrected a generic `MilitaryProductionModifier` by expected total military throughput; `DomainProductionModifier` still had its own K-Mod/AdvC formula:
+
+```cpp
+FOR_EACH_ENUM(Domain)
+{
+    iValue += kBuilding.getDomainProductionModifier(eLoopDomain) / 5;
+    if (bHighProductionCity)
+        iValue += kBuilding.getDomainProductionModifier(eLoopDomain) / 5;
+}
+```
+
+For a +50% domain-production modifier this is normally `+10`, or `+20` when the city crosses the inherited binary high-production-city threshold. It does not directly know the city's actual hammer throughput, whether the empire expects to spend much military production in that domain, or whether geography makes that domain strategically important.
+
+Current AdvCiv-SAS supplied a clean real-world test without modifying Wonder rules: **Drydock** has `DOMAIN_SEA +50%` production and is an ordinary building. `DOMAIN_LAND` and `DOMAIN_AIR` had no equivalent current building consumer, so sea production could be audited first without using Heroic Epic as temporary laboratory equipment.
+
+### Why the retired Pangaea Drydock veto was the wrong cure
+
+The old SAS regular-building prefilter had noticed a real strategic concern: naval infrastructure can be wasteful on land-heavy maps. But its cure was global and binary: a land-heavy map could reject the whole naval-pump building.
+
+Earlier KI#48.5 archaeology already showed why that was too coarse. Some Pangaea Drydocks were followed by little or no naval production, while other coastal cities went on to become substantial fleet producers. A map-script classification therefore could not distinguish a strategically irrelevant Drydock from a locally useful naval-production city.
+
+There is also an important causal distinction: **building many ships after a Drydock does not prove that building the Drydock was strategically correct**. Base/inherited AI could itself overproduce naval units on Pangaea; a Drydock can efficiently accelerate a bad naval-production policy. The replacement should therefore not reward historical ship spam directly. It should estimate expected naval workload from strategic demand and geography.
+
+### Pangaea versus Tiny Islands exposed the inherited mismatch
+
+The clean cross-map comparison made the inherited formula's weakness visible. The old `DOMAIN_SEA` production contribution remained nearly the same while actual naval workload differed dramatically:
+
+| Metric | Pangaea | Tiny Islands |
+| --- | ---: | ---: |
+| Cities evaluating Drydock | 87 | 190 |
+| Started Drydock | 46 (52.9%) | 106 (55.8%) |
+| Completed Drydock | 35 (40.2%) | 82 (43.2%) |
+| Median inherited +50% sea-production contribution | +10 | +10 |
+| Subsequent sea share of military-production cost | about 9.6% | about 40.6% |
+| Sea share in an equal first-50-turn post-Drydock window | about 12.0% | about 36.3% |
+
+The exact future unit mix is not used as the gameplay formula; it is retrospective evidence that the inherited `+10 / +20` shape was poorly connected to the strategic workload the building served.
+
+### Replacement: expected naval throughput, not map hardcoding
+
+The new `DOMAIN_SEA` path follows the same continuous-throughput principle as KI#48.10, but derives only the expected **sea** share of military production:
+
+```text
+totalMilitaryProductionShare = AI_buildUnitProb()
+waterWorldPercent = AI_calculateWaterWorldPercent()
+seaProductionShare = totalMilitaryProductionShare * waterWorldPercent / 100
+
+value = domainSeaProductionModifier
+      * (baseProduction + 2)
+      * seaProductionShare
+      / 2500
+```
+
+This intentionally reuses existing K-Mod/AdvC concepts instead of hardcoding map scripts:
+
+- actual city base production measures how many hammers the modifier can multiply;
+- `AI_buildUnitProb()` supplies dynamic total military-unit demand;
+- `AI_calculateWaterWorldPercent()` supplies an inherited geographic naval-demand estimate based on local/remote city distribution and land-area context.
+
+`AI_calculateWaterWorldPercent()` is logically read-only and was made `const` so `AI_buildingValue` can reuse it directly without a proxy or `const_cast`.
+
+The richer `SASLocalAreaRivalContext` was deliberately **not** added here. It is useful for land-security and rival-power questions, but the narrower sea-share question is already closer to what `AI_calculateWaterWorldPercent()` estimates. Adding local enemy-power pressure as another multiplier would also risk counting military urgency twice because `AI_buildUnitProb()` already carries much of that demand.
+
+### Cross-map validation
+
+The candidate differentiated the two environments strongly without turning either one into an absolute rule:
+
+| Diagnostic | Pangaea | Tiny Islands |
+| --- | ---: | ---: |
+| Median `waterWorldPercent` | 13% | 100% |
+| Median derived sea-production share | 5% | 41% |
+| Mean derived sea-production share | 17% | 43% |
+| Median +50% sea-production throughput value | +1 | +9 |
+| Mean throughput value | +2.9 | +11.9 |
+
+Individual Pangaea cities can still receive high naval value when their actual geographic context supports it. This is the key improvement over the retired SAS rule: **Pangaea does not mean `no Drydock`; expected naval throughput decides.**
+
+A useful retrospective sanity check compared the predicted naval share before Drydock completion with the next 50 turns of military-production workload where a complete window was available:
+
+- Tiny Islands: predicted mean about **40.8%**, subsequent naval share about **46.0%**;
+- Pangaea: predicted mean about **9.8%**, subsequent naval share about **14.6%**.
+
+The city-by-city relationship is not perfect and is not treated as a target-fitting exercise, but the inherited helper estimates the correct strategic order of magnitude across very different geography.
+
+Candidate and legacy histories diverged naturally after the changed valuation began affecting choices: roughly turn **157** on Tiny Islands and turn **135** on Pangaea. Pangaea runtime was effectively unchanged at about **1.862 seconds/turn** for the candidate versus **1.868 seconds/turn** for the inherited branch, so reuse of the existing water-world calculation showed no meaningful performance regression in this test.
+
+### Scope and remaining domain work
+
+KI#48.11 changes only `DOMAIN_SEA` **production-modifier** valuation. The inherited formula remains available behind `SAS_AI_BUILDING_VALUE_DOMAIN_SEA_PRODUCTION_MODIFIER_THROUGHPUT_OPTIMIZE` for regression and modmod comparison.
+
+Several adjacent questions are intentionally not folded into this production cure:
+
+- Drydock's separate **+3 `DOMAIN_SEA` free experience** was audited next and is now contextualized independently in **KI#48.12**. Keeping separate toggles preserves a clean distinction between naval-production throughput and naval-XP value while both reuse the same expected-sea-share context.
+- `DOMAIN_LAND` production valuation was subsequently audited and improved in **KI#48.13**; `DOMAIN_AIR` throughput amount remains inherited until a real consumer justifies separate calibration.
+- Heroic Epic remains a generic `MilitaryProductionModifier` National Wonder in the committed baseline. Temporary LAND/SEA scopes were useful laboratory instruments, but `DomainProductionModifier` affects civilian units as well as military units and is therefore not automatically the right permanent Heroic-Epic semantic.
+- KI#48.14 separately tracks the generic city-local applicability defect exposed by the SEA laboratory: domain production can receive value even where the city cannot train an affected unit.
+- A bad upstream decision to overproduce ships is a military-production-policy problem, not something building valuation should amplify or independently solve.
+
+See **KI#48.5** for the retired land-heavy Drydock hard veto, **KI#48.10** for the generic military-throughput correction, **KI#48.12** for the separate naval-XP continuation, **KI#48.13** for land throughput, **KI#48.14** for domain applicability, and **KI#48.9** for the Wonder/domain-specialization work that led into this inherited audit.
+
+<a id="ki-48.12"></a>
+
+## KI#48.12 - (Improved inherited K-Mod/AdvC AI valuation-shape weakness) DOMAIN_SEA free experience used a fixed coastal multiplier instead of expected naval throughput
+
+This issue is the deliberately separate second half of the Drydock audit begun in KI#48.11. After `DOMAIN_SEA` production-modifier value was corrected to follow expected naval throughput, Drydock's +3 naval free experience still used the inherited K-Mod/AdvC special case:
+
+```cpp
+if (isCoastal(...))
+    iDomainXPValue *= 7;
+```
+
+For Drydock this turned `+3 DOMAIN_SEA XP` into about **+21 value** in every qualifying coastal city. The special case avoided using the ordinary generic-XP weight because K-Mod considered the high-production-city requirement too strict for sea infrastructure, but the replacement was still almost geography-blind: a Pangaea coastal city with little expected naval workload and a Tiny-Islands fleet center received the same fixed multiplier.
+
+### Why XP should follow expected naval workload too
+
+The strategic value of naval-only experience depends on how much naval production the city is actually expected to perform. This is the same context already validated for KI#48.11's sea-production modifier:
+
+```text
+totalMilitaryProductionShare = AI_buildUnitProb()
+waterWorldPercent = AI_calculateWaterWorldPercent()
+seaProductionShare = totalMilitaryProductionShare * waterWorldPercent / 100
+```
+
+This is intentionally not a map-script rule and does not reward historical ship spam. `AI_buildUnitProb()` expresses current overall military-production demand, while `AI_calculateWaterWorldPercent()` supplies the inherited geographic estimate of how naval that demand is likely to be. A genuinely naval Pangaea theater can therefore still receive high value, while a nominally coastal city on a land-war-heavy map no longer receives `+21` merely for being coastal.
+
+The implementation shares this context with KI#48.11 instead of recalculating the two helper values separately when a building has both sea-production and sea-XP effects.
+
+### Replacement: continuous naval-XP weight
+
+The contextual sea-XP weight is:
+
+```text
+experienceWeight = min(12, (12 * seaProductionShare + 25) / 50)
+throughputValue = seaExperience * experienceWeight
+```
+
+The ordinary full generic-XP weight of 12 is reached at roughly **50% expected sea-production share**. Lower naval shares scale down continuously; stronger naval specialization is capped at 12 so a domain-only XP effect cannot grow without bound and dominate unrelated building effects.
+
+The inherited `* 7` path remains available behind `SAS_AI_BUILDING_VALUE_DOMAIN_SEA_FREE_EXPERIENCE_THROUGHPUT_OPTIMIZE = 0` for regression and modmod comparison.
+
+Only `DOMAIN_SEA` free experience changes. Generic free experience, unit-combat-specific experience, land XP and air XP are untouched.
+
+### Tiny Islands and Pangaea validation
+
+The same-seed paired runs produced the intended contextual separation:
+
+| Diagnostic | Tiny Islands | Pangaea |
+| --- | ---: | ---: |
+| Median expected sea-production share | about 41% | about 5% |
+| Median contextual XP weight | 10 | 1 |
+| Drydock +3 XP inherited value | +21 | +21 |
+| Drydock +3 XP contextual value | about +30 | about +3 |
+
+The Pangaea result is not a hard suppression. Individual cities with strong naval context still reached the full **weight 12 / +36** contribution. This is the intended replacement for the old binary idea: naval-only XP is valuable when the city genuinely expects to produce fleets, regardless of map label.
+
+The first normal production divergences appeared around **turn 145 on Tiny Islands** and **turn 139 on Pangaea**, rather than as an immediate unexplained RNG disturbance.
+
+By common comparison horizons, Drydock counts also showed no sign of a naval-infrastructure spam regression: Tiny Islands had **141 candidate versus 148 control** completions by turn 411, while Pangaea had **25 versus 39** by turn 313. Those totals come from already-divergent histories and are therefore only broad sanity checks, not causal effect sizes.
+
+### Diagnostic cleanup
+
+The first level-3 logger emitted the new row for every qualifying coastal building even when `DOMAIN_SEA` free experience was zero. That produced roughly **499,000 Tiny-Islands rows and 153,000 Pangaea rows**, while only about **13,200 / 4,800** respectively represented nonzero Drydock-style sea-XP evaluations.
+
+The logger is now gated by `iDomainXPValue != 0`. This is behavior-neutral because zero sea XP remains zero; it only removes forensic log spam and avoids needless formatting/output work when detailed logging is enabled. No additional autoplay was needed for that cleanup.
+
+### Scope and next domain step
+
+KI#48.12 completes the currently demonstrated `DOMAIN_SEA` pair:
+
+- **KI#48.11:** sea-production modifiers follow expected naval throughput;
+- **KI#48.12:** sea-only free experience follows the same expected naval share with its own bounded XP weight.
+
+The planned temporary Heroic-Epic `DOMAIN_LAND +50%` scope experiment was subsequently completed and produced **KI#48.13**. It validated a contextual land-throughput replacement, but also established an important semantic boundary: `DomainProductionModifier` applies to civilian units of that domain too, unlike Heroic Epic's current military-only modifier.
+
+The laboratory scope is therefore evidence for the evaluator, not an automatic permanent Heroic-Epic redesign.
+
+The follow-up LAND/SEA applicability instrumentation then exposed the separate generic issue tracked in **KI#48.14**: a domain-production component can be valued in a city that cannot currently train any affected unit.
+
+That correction is intentionally deferred until current production and prospective technology valuation can be represented without conflating their semantics. `DOMAIN_AIR` production throughput amount and AIR-specific XP remain later/separate audits.
+
+See **KI#48.11** for the sea-production half, **KI#48.10** for the generic military-throughput correction, **KI#48.13** for land throughput, **KI#48.14** for domain applicability, and **KI#48.9** for the broader Wonder/domain-specialization migration.
+
+<a id="ki-48.13"></a>
+
+## KI#48.13 - (Improved inherited K-Mod/AdvC AI valuation-shape weakness) DOMAIN_LAND production modifiers were fixed/rank-based instead of following expected land throughput
+
+This issue continues the inherited production-modifier archaeology from KI#48.10-KI#48.12. K-Mod/AdvC valued every positive `DomainProductionModifier` with the same fixed/rank structure used before the `DOMAIN_SEA` correction:
+
+```cpp
+value += modifier / 5;
+if (bHighProductionCity)
+    value += modifier / 5;
+```
+
+For a +50% land-production modifier this therefore became broadly `+10` or `+20`, regardless of whether the city had 6 base hammers or 60, how much military production the AI currently wanted, whether the area was in a land war, or whether the empire was preparing an overseas assault.
+
+Current AdvCiv-SAS had no permanent `DOMAIN_LAND` production building, so Heroic Epic was temporarily changed from generic `MilitaryProductionModifier +50%` to `DOMAIN_LAND ProductionModifier +50%` as **laboratory equipment**.
+
+This experiment is not itself a final Heroic-Epic design: Civ4's `DomainProductionModifier` applies to every unit in the domain, including Workers, Settlers, missionaries and other civilians, while Heroic Epic's normal `MilitaryProductionModifier` applies only to units flagged for military production.
+
+### The inherited flattening was directly reproduced
+
+The clearest same-turn Pangaea example occurred before history divergence:
+
+```text
+Nidaros
+base production = 15
+AI_buildUnitProb ~= 67%
+generic military-throughput value = +22
+inherited DOMAIN_LAND value = +20
+
+Uppsala
+base production = 6
+AI_buildUnitProb ~= 67%
+generic military-throughput value = +10
+inherited DOMAIN_LAND value = +20
+```
+
+The inherited domain formula therefore made the weak and strong hammer pumps equally attractive for the same +50% modifier. This is the same underlying rank/throughput problem corrected generically in KI#48.10 and for sea production in KI#48.11.
+
+### Contextual land-throughput replacement
+
+The replacement keeps the same throughput scale already validated for generic military production, but applies only the expected **land** share of military demand:
+
+```text
+totalMilitaryProductionShare = AI_buildUnitProb()
+landDemandPercent = 100 - waterWorldPercent / 2
+if local land war:
+    landDemandPercent = 100
+else if assault / invasion area AI:
+    landDemandPercent = max(75, landDemandPercent)
+
+landProductionShare = totalMilitaryProductionShare * landDemandPercent / 100
+value = modifier * (baseProduction + 2) * landProductionShare / 2500
+```
+
+`AI_calculateWaterWorldPercent()` is deliberately **not** treated as a literal `SEA share = X, LAND share = 100-X` partition. A Tiny-Islands empire with `waterWorldPercent=100` still needs defenders and expeditionary land forces, so the baseline retains 50-100% land relevance.
+
+Active local land war restores 100%, while assault/massing context keeps at least 75%.
+
+The independently switchable `SAS_AI_BUILDING_VALUE_DOMAIN_LAND_PRODUCTION_MODIFIER_THROUGHPUT_OPTIMIZE` define preserves the inherited formula for regression/modmod comparison.
+
+### Pangaea and Tiny-Islands validation
+
+The paired laboratory runs produced the intended contextual separation:
+
+| Diagnostic | Pangaea | Tiny Islands |
+| --- | ---: | ---: |
+| Median `waterWorldPercent` | 13% | 100% |
+| Median land-demand percent | 98% | 75% |
+| Median derived land-production share | 43% | 30% |
+| Median +50% contextual LAND value | +19 | +11 |
+| Median inherited +50% LAND value | +20 | +20 |
+
+Pangaea can still reach full land demand during real land war. Tiny Islands retains meaningful land value instead of collapsing to zero, but no longer treats every +50% land-production building as if naval geography were irrelevant.
+
+The central chooser also continued to compete normally rather than turning the laboratory Heroic Epic into another force-first rule. The Pangaea inherited-domain control produced no Heroic Epic through turn 404; the throughput candidate produced one at turn 315.
+
+On Tiny Islands the control had two completions by the common turn-408 horizon, one barbarian, while the candidate had two normal-AI completions. These already-divergent completion totals are sanity checks rather than causal effect sizes.
+
+The completed Pangaea Heroic Epic occurred in Dublin at turn 315: production rank 11/16 but **31 base hammers**, only about **3 turns** to build, **57%** total military demand, **52%** derived land-production share and two currently trainable land military units.
+
+Its land-throughput contribution was about **+34** versus inherited **+10**, illustrating why actual throughput can be more informative than ordinal rank alone.
+
+### Applicability diagnostics do not justify another LAND gate
+
+The accompanying level-3 applicability audit also counted whether the city could currently train units affected by the temporary LAND modifier. Purely civilian-only applicability was rare: **1 / 4,592** Heroic-Epic snapshots on Pangaea and **27 / 5,714 (~0.5%)** on Tiny Islands had trainable land units but no trainable military land unit.
+
+None of the demonstrated Heroic-Epic selections/completions belonged to that class.
+
+That result argues against adding another LAND-specific hard gate merely because the theoretical edge case exists. It also helped reveal the more general domain-production applicability defect tracked separately in KI#48.14.
+
+### Result and scope (KI#48.13)
+
+KI#48.13 is considered an **improved inherited valuation correction**. The contextual `DOMAIN_LAND` branch is generic, separately toggleable, tested on both land-heavy and highly naval maps, and dormant when no building has a land-domain production modifier.
+
+It can therefore remain useful for future SAS balance changes and modmods even if current SAS ultimately has no permanent `DOMAIN_LAND` production building.
+
+The temporary Heroic-Epic LAND scope is **not** part of this conclusion. Before resuming specialized Heroic-Epic urgency/placement policy, Heroic Epic should return to its actual military-only production semantics unless a later dedicated design change deliberately says otherwise.
+
+See **KI#48.10** for generic military-production throughput, **KI#48.11** for `DOMAIN_SEA` production throughput, **KI#48.14** for the domain-production applicability issue exposed by the laboratories, and **KI#48.9** for the broader Wonder migration.
+
+<a id="ki-48.14"></a>
+
+## KI#48.14 - (Fixed inherited K-Mod/AdvC AI valuation/applicability defect) Domain-production value could be awarded where the city could not train any affected unit
+
+The LAND/SEA laboratory work for KI#48.13 exposed a distinct inherited problem that should not be hidden inside the throughput formulas themselves. `AI_buildingValue()` could award value for a nonzero `DomainProductionModifier` without first establishing that the **current city could train any unit in that domain**.
+
+This is a component-level correctness issue, not evidence for another whole-building reject. If a building has unrelated health, happiness, XP, trade or other useful effects, those effects should continue to compete normally even when one domain-production component is currently unusable.
+
+### SEA laboratory proves the structural defect
+
+A temporary unrestricted Heroic-Epic `DOMAIN_SEA +50%` scope created a deliberately adversarial test because, unlike Drydock, Heroic Epic itself does not require a suitable coastal city.
+
+The applicability logger found examples such as:
+
+```text
+Carthage, Tiny Islands
+coastal = 0
+trainable SEA units = 0
+trainable military SEA units = 0
+base production = 60
+production rank = 1
+expected sea-production share ~= 59%
+contextual +50% DOMAIN_SEA value = +73
+inherited DOMAIN_SEA value = +20
+```
+
+Pangaea showed the same structure at lower magnitude; inland Hariharalaya could receive roughly **+35** of sea-production value despite being unable to train any sea unit.
+
+The throughput formula was correctly answering its own question -- this empire has substantial naval demand and this city has strong hammers -- but it lacked the separate applicability fact: **this city cannot turn any of those hammers into a unit affected by the modifier.**
+
+Ordinary production competition prevented the false component from producing a demonstrated bad Heroic-Epic completion in these histories. The traced Heroic-Epic best-building opportunities/completions were in usable naval cities. This is therefore a confirmed valuation defect, not evidence for a force/veto at whole-building level.
+
+### Applicability diagnostics
+
+`BUILDING_VALUE_DOMAIN_APPLICABILITY` now records the relevant LAND/SEA/AIR context for regular buildings and Wonders without changing valuation. It distinguishes:
+
+- currently trainable units in each domain;
+- currently trainable **military** units in each domain;
+- production-affected units, military units and non-military units;
+- whether only civilian applicability exists;
+- trainable units that would actually receive the building's XP effects;
+- base production/rank, military demand, water-world/land-demand shares, area AI and local-rival context.
+
+This also established an important Civ4 semantic difference: `DomainProductionModifier` accelerates **all** units of the domain, while `MilitaryProductionModifier` only accelerates units flagged `isMilitaryProduction()`.
+
+The applicability correction therefore treats a trainable Work Boat, Worker or Settler as literal applicability when the XML effect really does accelerate it, even if a separate military-specialization policy may care about combat units.
+
+### Implemented component-level correction
+
+The correction remains deliberately narrow:
+
+```text
+nonzero DOMAIN_X production modifier
++ city can currently train zero DOMAIN_X units
+-> give only that domain-production component zero current value
+```
+
+A temporary unrestricted `DOMAIN_SEA +50%` Heroic Epic laboratory exercised the correction heavily: the final complete runs recorded **271** unique inapplicable evaluations on Tiny Islands and roughly **4,349** on Pangaea. The building could still win from its unrelated residual value, confirming that only the unusable domain component was removed.
+
+K-Mod/AdvC also reuses `AI_buildingValue()` from `AI_techBuildingValue()` for **prospective technology valuation**. In that context, current trainability is not necessarily the right question: the technology being evaluated may itself unlock the first unit of the affected domain.
+
+A central guard based only on today's city state can therefore underestimate a future building while evaluating the very technology that would make its modifier usable.
+
+The implementation therefore distinguishes two legitimate semantic contexts:
+
+```text
+current production valuation
+-> current city applicability should be authoritative
+
+prospective technology valuation
+-> current inability may be resolved by the assumed future technology
+```
+
+`AI_techBuildingValue()` passes an explicit optional assumed technology through ordinary city/player unit legality. A unit unlocked by the candidate itself or by one of its **guaranteed** prerequisites can make the component prospectively applicable without mutating team state.
+
+Every AND prerequisite is guaranteed; an OR ancestor counts only when every still-possible alternative requires it, so mutually alternative research branches are not treated as simultaneously known.
+
+Other missing technologies, resources, religion, location and ordinary city legality remain authoritative. Unit `ObsoleteTech` is evaluated in the same prospective context.
+
+The ordinary construction-value cache remains authoritative whenever current and prospective applicability agree. Only a real applicability change bypasses that cache.
+
+Recursive free/prerequisite-building valuation stays on current-state/cache semantics because the assumed technology belongs to the building directly being evaluated.
+
+This boundary matters: the first implementation bypassed the cache for every prospective building evaluation and caused unrelated deterministic divergence at turns **172** and **76** despite **1,050** prospective rows containing no applicability flip.
+
+### Validation and remaining coverage boundary
+
+The corrected candidate exactly matched the previously validated current-state guard through two complete same-seed games:
+
+- Tiny Islands remained identical through the turn-486 Space Race victory;
+- Pangaea remained identical through the turn-403 Space Race victory;
+- game state, every recorded AI research choice, authoritative RNG state/call count and RNG stream fingerprints all matched;
+- both candidates retained the intended first divergence from the no-applicability-guard control at turn **426** on Tiny Islands and turn **252** on Pangaea.
+
+The final runs contained **616** prospective evaluations on Tiny Islands and **433** on Pangaea, all `0 -> 0` or `1 -> 1`. Current SAS therefore contains no natural case where the candidate technology flips applicability, so the positive `0 -> 1` future/modmod path remains instrumented but not empirically exercised. This does not weaken the validated current-game correction: when applicability did not change, the prospective machinery was behaviorally invisible across both complete games.
+
+The fix is generic across LAND/SEA/AIR and civilization/modmod unit rosters, follows the actual XML meaning that `DomainProductionModifier` also accelerates civilian units, and never rejects the whole building. `DOMAIN_AIR` throughput magnitude and AIR-specific XP remain separate possible calibration questions rather than reasons to delay this correctness fix.
+
+See **KI#48.13** for the validated land-throughput branch, **KI#48.11** for the validated sea-production branch, **KI#48.12** for sea XP, **KI#48.10** for generic military throughput and **KI#48.9** for the broader Wonder migration that exposed these inherited valuation assumptions.
+
+<a id="ki-48.15"></a>
+
+## KI#48.15 - (Improved inherited K-Mod/AdvC AI limited-building-placement weakness) World Wonders used raw value and ordinal production gates instead of completion-time-aware placement
+
+The KI#48.9 audit established that relative production competitiveness matters for World-Wonder races, but also that the old SAS implementation was the wrong architectural layer. In a true gate-off Pangaea control, 18 best-World-Wonder opportunities failed the historical production threshold. Normal central production competition redirected 8 to units; the remaining 10 opportunities became 9 lower-production Wonder episodes with **0 completions** and roughly **880 invested hammers** before abandonment, invalidation or race loss.
+
+The old SAS gate represented that useful signal through top-two production rank, a fixed five-hammer allowance, 70% of the empire's best base production and an early expansion exemption. It returned zero before inherited valuation could compare the complete opportunity. The inherited BtS/K-Mod focused-Wonder path had its own ordinal hard restriction: cities outside the top three production ranks were rejected even though K-Mod's source comment already marked that condition for eventual replacement.
+
+K-Mod's existing one-copy-building placement mechanism supplied a better shared layer, but compared cities only by raw `AI_buildingValue()`. For a World-Wonder race, raw intrinsic value cannot distinguish an 8-turn city from a 25-turn city. KI#48.15 therefore replaces both ordinal gates with the inherited placement comparison using:
+
+```text
+placement value = AI_buildingValue * 1000 / (actual turns left + 3)
+```
+
+Another eligible own city must still exceed the current city's placement value by the inherited 25% margin. Actual turns naturally include stored production and city-specific trait, resource and building construction modifiers. Focused World-Wonder searches now reach the same placement mechanism instead of stopping at the inherited top-three rank cliff.
+
+### Paired Pangaea and Tiny Islands evidence
+
+The disabled migration mode was exactly deterministic-equivalent to the earlier true gate-off control, confirming that the A/B plumbing itself was inert.
+
+The first Pangaea migration run initially looked substantially better than inherited placement on aggregate failed/invalidated production, but that result still contained the speculative cross-city cache side effect described below. The later const-cache replay therefore supersedes those pre-fix aggregate numbers as the final evidence.
+
+Through the inherited control's turn-319 Pangaea horizon, the corrected comparison was:
+
+| Metric | Inherited control | Final const-cache migration |
+| --- | ---: | ---: |
+| Starts/resumes | 22 | 14 |
+| Global World Wonders completed | 39 | 39 |
+| Failed-race events | 55 | 44 |
+| Failed investment | 8,463 | 8,046 |
+| Invalidated production | 42 | 495 |
+| Failed + invalidated production | 8,505 | 8,541 |
+
+The starts/resumes column counts SASGameRecord production-target events and is not by itself a complete construction history. After removing the cache side effect, Pangaea is therefore approximately **neutral** on this crude aggregate waste measure rather than showing the earlier apparent universal reduction.
+
+It still completes the same **39** World Wonders, starts/resumes fewer Wonder attempts, produces fewer failed-race events and retains the continuous actual-completion-time placement logic instead of ordinal production hard gates.
+
+Tiny Islands provides the stronger independent outcome evidence. Through the common turn-408 horizon:
+
+| Metric | Inherited control | Pre-fix migration | Final const-cache migration |
+| --- | ---: | ---: | ---: |
+| Global World Wonders completed | 39 | 39 | 39 |
+| Failed investment | 8,427 | 5,737 | 5,688 |
+| Fail gold | 4,204 | 2,861 | 2,837 |
+| Invalidated production | 530 | 337 | 104 |
+| Periodic Wonder snapshots above 20 turns | 6 | 2 | 2 |
+
+The placement decisions themselves were not mostly marginal ties. Across **883** distinct city/turn/Wonder rejections in the migration diagnostics, the median rejected city needed about **25 turns**, the preferred own city about **12**, and the preferred median placement score was about four times larger. Representative comparisons included a 200-turn versus 25-turn Statue of Zeus and a 63-turn versus 12-turn Pyramids.
+
+Together, the paired maps support the inherited placement correction without restoring the old SAS gate: lower-ranked cities remain eligible whenever their real completion time and value are competitive, Tiny Islands shows a large reduction in failed and invalidated investment, and corrected Pangaea preserves the completed Wonder set with fewer attempts/race failures even though its aggregate wasted hammers are roughly neutral. Divergent final victory outcomes are not treated as direct balance scores.
+
+### Inherited cache-lifetime follow-up
+
+The first Tiny migration candidate drew attention to a separate inherited cache-lifetime hazard because its city-state fingerprint diverged at turn **74** while logged production actions still matched and the authoritative RNG stream did not diverge until turn **82**.
+
+Source inspection showed that the expanded cross-city placement comparison could indeed populate another city's mutable construction-value cache merely because the current city considered whether that city would be a better Wonder location.
+
+That path was initially suspected to explain the turn-74 anomaly, but the confirming replay disproved that attribution. With the const-cache safeguard, Tiny Islands still first diverged from inherited control at turn **74** and Pangaea at turn **81**.
+
+More directly, the pre-fix migration and const-cache migration remained state-identical through **turn 274 on Tiny Islands** and **turn 106 on Pangaea**, then first separated at **turn 275 / turn 107**. The speculative cache write therefore did **not** cause the earlier migration-versus-control split.
+
+It was nevertheless behaviorally consequential later. Pangaea supplied a concrete case: a Great Wall placement comparison reused a previously primed value of **45** for Mutal, while the side-effect-free evaluation produced **20**, changing whether Chichen Itza was rejected as the Wonder location. This is exactly the kind of hidden evaluation-order dependence tracked by **F498 / KI#821**.
+
+The caller-side safeguard became the first partial repair of KI#821: speculative World-Wonder cross-city placement may still read an existing inherited cache entry, but a cache miss is evaluated without writing a new value into the other city's mutable construction cache.
+
+A subsequent dedicated KI#821 audit then fixed the broader demonstrated lifetime problem as well. It added fresh cache boundaries before periodic Great-Person weighting and immediately before city production, retained K-Mod's independent pre-research clear, and made the remaining known speculative cross-city limited-building/prerequisite probes side-effect free. Paired same-seed Tiny-Islands and Pangaea A/B runs validated that broader repair before the temporary selectors were removed.
+
+See **KI#48.9** for the parent Wonder-policy migration and **KI#821** for the now-fixed inherited construction-value cache-lifetime defect that this implementation helped expose.
+
+<a id="ki-48.16"></a>
+
+## KI#48.16 - (Improved old SAS/K-Mod/AdvC AI National-Wonder specialization policy) Heroic Epic force-first distorted research; useful specialization migrated into additive throughput
+
+The KI#48.9 military-National-Wonder audit separated two concerns that the old SAS Heroic-Epic policy had bundled together:
+
+1. **Current urgency:** during war, should Heroic Epic override ordinary units/infrastructure?
+2. **Specialization value:** once a one-per-player +50% military-production National Wonder is selected for a city, should that city be valued like an ordinary city that happens to spend only part of its production on units?
+
+The historical answer to the first question was a force-first sentinel. The inherited/generic answer to the second, after KI#48.10, was `AI_buildUnitProb()`: a useful dynamic estimate of ordinary military-production share, but not necessarily the right post-specialization assumption for the city chosen to host Heroic Epic.
+
+The final migration therefore retires the hard current-production override while preserving the useful specialization idea as a smooth additive input to the corrected throughput formula.
+
+### The old `FORCE_WAR_USE` sentinel was the wrong layer
+
+The isolated Pangaea audit restored only the historical military-National-Wonder force condition while the broader common/National Wonder policy remained disabled.
+
+The old condition effectively said:
+
+```text
+land-military National Wonder
++ exact top-production eligibility
++ war plan or favorable active war
+-> AI_BUILDING_ALWAYS_PICK_FIRST + 1000
+```
+
+This was structurally unsafe because `AI_buildingValue()` is also reused by prospective technology valuation. The first decisive difference occurred **before Heroic Epic was ever forced in current city production**:
+
+```text
+Rome, turn 22
+
+force off:
+aim technology = Bronze Working
+path value ~= 418
+
+force on:
+aim technology = Literature
+path value ~= 1979
+```
+
+Core game state diverged on turn **23**. The first logged current-production `FORCE_WAR_USE` event did not occur until turn **107**.
+
+The force was therefore not merely saying "build Heroic Epic now if this city can spare the hammers." It was leaking a current-production override into general research valuation and making Literature look overwhelmingly attractive whenever the broad war condition was true.
+
+The current-production evidence was poor as well. The force-on run contained **229 distinct city/turn force contexts**, including Heroic-Epic estimates around **20-180 turns**, cities in immediate danger and wars where enemy power substantially exceeded the AI's. The ordinary central chooser often resisted even the huge forced building value and selected units instead.
+
+The divergent force-on history produced many early Heroic-Epic completions/rebuilds, while the force-off baseline produced only three late completions (turns **307, 353 and 362**). That did not justify preserving the force: the histories had diverged on turn 23, and the early research contamination itself made the comparison unsuitable as an adoption target.
+
+The force-first branch was therefore retired. Corrected inherited valuation plus ordinary `AI_chooseProduction()` now decides immediate competition with units/infrastructure.
+
+### The force-off baseline exposed a real specialization-value gap
+
+Retiring the force did reveal a narrower legitimate concern.
+
+All 16 AIs were already evaluating Heroic Epic by roughly turn 107, but early generic-throughput values were often small. Representative same-history examples included:
+
+| City / turn | Base production | `AI_buildUnitProb()` | Generic military-throughput contribution | Final Heroic-Epic value |
+| --- | ---: | ---: | ---: | ---: |
+| Timbuktu T91 | 12 | 34% | +9 | 14 |
+| Utica T96 | 14 | 38% | +12 | 35 |
+| Cahokia T99 | 12 | 43% | +12 | 19 |
+
+KI#48.10 intentionally uses `AI_buildUnitProb()` for ordinary generic military-production effects because it answers a sensible question:
+
+> what share of this city's/empire's ordinary future production is expected to go into units?
+
+For Heroic Epic, however, that can become circular. Building a one-per-player +50% military-production National Wonder is itself a decision to create a military-production specialist city. Valuing the specialization as though the city will continue behaving like an ordinary 34%-unit city can therefore understate the modifier precisely because the building changes how the city is intended to be used.
+
+This useful idea belonged inside additive valuation, not in another sentinel.
+
+### 0 / 75 / 100 specialization calibration
+
+A temporary integer A/B parameter tested a minimum expected military-production share for positive `MilitaryProductionModifier` National Wonders while leaving regular buildings and other effects unchanged.
+
+The same Pangaea seed produced a clear progression:
+
+| Effective military-production share | First Heroic-Epic best-building opportunity | Heroic-Epic completions |
+| --- | ---: | --- |
+| ordinary `AI_buildUnitProb()` (`0` floor) | T237 | T307, T353, T362 |
+| 75% | T218 | T284, T291, T324 |
+| **100%** | **T172** | **T178, T227, T231, T248, T250, T252, T286, T292** |
+
+The 75% candidate passed the architecture test but was too conservative. It modestly raised early Heroic-Epic values without distorting research, yet still produced only three completions and no completion before turn 284.
+
+The 100% candidate supplied the missing specialization signal without becoming another force.
+
+Across **34** logged Heroic-Epic building opportunities, the central chooser accepted Heroic Epic only **8** times and rejected it **26** times, every rejection in favor of an immediate unit. The accepted builds were all short: estimated construction times were **3, 3, 3, 6, 3, 1, 2 and 1 turns**, with no accepted start in immediate danger or underdefended state.
+
+Mound City around turns 172-173 was especially useful: Heroic Epic had become the best building, but the chooser still selected Longbowmen twice before finally starting the three-turn Epic. The specialization signal therefore makes the building worth considering without taking control away from ordinary military urgency.
+
+### Prospective research remains proportional instead of sentinel-driven
+
+The stronger specialization assumption did not recreate the old `FORCE_WAR_USE` technology distortion.
+
+Against the generic `0` baseline, the common pre-divergence history contained **253 matched research decisions** with:
+
+- **zero immediate requested-technology changes**;
+- largest matched research-path increase only about **+17**;
+- one downstream `aimTech` difference while the actual requested technology remained Sailing.
+
+The 75% and 100% histories remained exactly equivalent through turn **135**. Across **352 matched research decisions** through that point:
+
+- **zero requested-technology changes**;
+- maximum path-value increase from 75% to 100% about **+22**;
+- again only one downstream aim-path difference.
+
+That is qualitatively different from the retired sentinel's roughly **418 -> 1979** research-path jump.
+
+### Permanent implementation
+
+The validated permanent rule is intentionally small:
+
+```text
+ordinary positive MilitaryProductionModifier
+-> use normal AI_buildUnitProb()
+
+positive MilitaryProductionModifier on a National Wonder
+-> use at least the configured expected military-production share (100% by default)
+```
+
+In code this remains part of KI#48.10's production-throughput calculation. It does **not** add a rank bonus, whole-building multiplier, hard rejection or `AI_BUILDING_ALWAYS_PICK_FIRST`.
+
+Current SAS effectively exercises this through Heroic Epic. The rule is nevertheless expressed generically for a positive military-production National Wonder so compatible modmods do not require a named-building exception.
+
+The tested calibration is retained as `SAS_AI_BUILDING_VALUE_MILITARY_NATIONAL_WONDER_UNIT_PRODUCTION_SHARE_FLOOR_PERCENT`: `0` preserves ordinary dynamic `AI_buildUnitProb()` weighting, `75` is the validated conservative alternative that improved timing but remained too weak, and the default `100` applies the validated full-specialization assumption.
+
+The value is clamped to 0-100 and remains a floor, so it never lowers a larger dynamic unit-production share.
+
+### Subsequent military-National-Wonder placement audit
+
+The separate old `MILITARY_NATIONAL_WONDER / REJECT_NOT_TOP_PRODUCTION` rule intentionally remained outside the initial KI#48.16 cure, then received its own isolated KI#48.9 test.
+
+The old condition fired **17,573** times but had zero overlap with **50** actual Heroic-Epic best-building opportunities. Gate-on and gate-off histories remained identical through turn 428 across **433 state checkpoints, 433 RNG checkpoints, 1,490 research rows and 63 Heroic-Epic SASGameRecord rows**; all eight actual Heroic-Epic choices and the final outcome also matched.
+
+The gate was therefore redundant after additive specialization and inherited limited-building placement, and was retired without replacement. This closes the Heroic-Epic branch: force-first urgency was removed, useful specialization was migrated into additive throughput, and the remaining hard placement rejection was proven unnecessary.
+
+See **KI#48.9** for the parent Wonder-policy migration, **KI#48.10** for the corrected generic military-production throughput formula and **KI#821** for the construction-value cache-lifetime repair that supplied the clean baseline for this final Heroic-Epic policy audit.
+
+<a id="ki-48.17"></a>
+
+## KI#48.17 - (Improved inherited K-Mod/AdvC AI Government Center valuation weakness) A local maintenance proxy missed the best empire-wide placement
+
+The KI#48.9 Forbidden-Palace audit found a real weakness beneath the old SAS hard policy. Inherited K-Mod/AdvC did value non-capital Government Centers, but its coarse estimate was based mainly on the candidate city's rounded current distance maintenance multiplied by the number of cities in its area, with an extra colony-area multiplier.
+
+That did not directly estimate what the building changes: the reduction in distance maintenance across every city that could use the new Government Center.
+
+The old SAS response was much stronger but equally indirect. It rejected small empires, capital placement and military-pressure contexts, ranked cities by their own current maintenance, and returned roughly `99000` for a qualifying high-maintenance city.
+
+This could make Forbidden Palace exist where inherited valuation built none, but it could not distinguish a genuinely central location from an expensive peripheral city and could override useful immediate production.
+
+### Corrected force and projected-value A/B evidence
+
+The isolated old-force comparison established that the underlying concern was genuine: with the force disabled, inherited valuation completed **zero Forbidden Palaces**; with it enabled, the AI completed **six by turn 295** and briefly started another. The sentinel was therefore not merely dead code, but reproducing its number or current-maintenance rank was not a suitable cure.
+
+The replacement evaluates each possible Government Center location directly:
+
+```text
+for each own city:
+    compare distance to its current nearest Government Center
+    with distance to the candidate location
+    project the corresponding distance-maintenance reduction
+
+sum the reductions across the empire
+convert the saving through inherited maintenance-building value,
+inflation and financial-trouble weighting
+```
+
+The first projected-maintenance experiment was accidentally masked: `SAS_AI_BUILDING_VALUE_NATIONAL_WONDERS_OPTIMIZE` remained enabled in both variants, so the historical `FORCE_HIGH_MAINTENANCE` branch still returned `99000` in both supposedly different runs. Level-3 raw values exposed the duplicate force. The corrected comparison disabled the broader National-Wonder policy in both variants and changed only inherited coarse versus projected valuation.
+
+On Pangaea, inherited coarse valuation again completed **zero Forbidden Palaces**. Projected valuation produced one natural completion in Guangzhou, starting around turn 345 and finishing around turn 351. At selection time:
+
+- Guangzhou's own maintenance was only about **6.24 GPT**, versus roughly **21.45 GPT** for the empire's second-highest-maintenance city;
+- placing the Government Center there projected about **23.67 GPT** of combined empire-wide distance-maintenance savings;
+- inherited Government Center value was about **+96**, versus projected value about **+204**;
+- the city was at war/under a war plan, which the old SAS pressure veto would have rejected;
+- ordinary competition first selected a one-turn Christian Monastery, then selected the roughly six-turn Forbidden Palace only after its projected benefit grew.
+
+Tiny Islands provided the geography-sensitive cross-check. Inherited coarse valuation again completed **zero**, while projected valuation completed **three**: Mycenian on turn 333, Cashel on turn 335 and Scythian on turn 348.
+
+Cashel showed why local maintenance and raw production rank are inadequate placement proxies. Its own maintenance was only about **4.88 GPT**, but the location projected about **19.49 GPT** of empire-wide savings; inherited value was about **+16**, projected value about **+161**, and a production-rank-12/16 city completed the estimated 11-turn build in about nine turns.
+
+Scythian completed its approximately four-turn build while at war, under a war plan and preparing an assault. Later, Manp'o still selected an immediate Destroyer instead of its best-building Forbidden Palace while underdefended and facing a strong enemy, showing that ordinary production competition remained authoritative.
+
+### Post-fix cross-city placement audit: no additional cure
+
+Because inherited National-Wonder placement compares candidate cities by raw value, a follow-up logger contrasted it with KI#48.15's World-Wonder value-per-completion-time shape. The Tiny-Islands run produced **1,520 disagreement rows / 567 unique disagreements**: **225** where raw placement suppressed the current city but completion-time placement did not, and **342** in the opposite direction.
+
+Extreme counterfactuals included a value-38 six-turn candidate suppressed for value 64 in a 99-turn city, and a value-20 two-turn candidate suppressed for value 37 in a 17-turn city.
+
+The isolated behavioral A/B nevertheless changed nothing consequential. The selector demonstrably executed, changing the disagreement trace to **1,459 rows / 542 unique disagreements**, but both modes matched across **395 core-state checkpoints, 395 RNG checkpoints, 1,648 research rows and 11,922 building-opportunity/final-target rows**. Both completed Forbidden Palace in exactly Mycenian T333, Cashel T335 and Scythian T348, and their final histories were identical.
+
+The initially persuasive Corihuayrachina case also remained unchanged: although completion-time comparison favored its value-38 two-turn Forbidden Palace over Machu Picchu's value-49 ten-turn alternative, both modes still chose Security Bureau as the best building and Robotic Infantry as actual production.
+
+Pairwise mathematical disagreement did not establish that raw placement blocked a real production opportunity after the full limited-building scan and ordinary chooser.
+
+The completion-time override and diagnostic were therefore retired without a gameplay commit. The validated projected-maintenance formula remains the entire Government Center cure; inherited raw National-Wonder cross-city placement remains unchanged.
+
+### Permanent correction and scope
+
+The permanent formula replaces the inherited coarse Government Center term with projected combined distance-maintenance savings. It is generic to `isGovernmentCenter()` rather than named for Forbidden Palace, so compatible XML or modmod Government Centers reuse it automatically. Current SAS Versailles no longer has the Government Center effect; if that effect is restored or assigned elsewhere, the same valuation applies.
+
+Construction speed is intentionally not multiplied into the maintenance term. Completion time, city production and immediate military/infrastructure alternatives already compete through limited-building placement and normal production choice.
+
+Mixing them into the economic benefit would double-count those concerns and obscure the distinction between **where the building helps most** and **whether this is the right time/city to spend the hammers**.
+
+The calculation conservatively includes only projected distance-maintenance savings. Government Centers can also affect the colony-maintenance cap indirectly, but the fragmented Tiny-Islands stress test already produced three sensible completions without that secondary benefit. It remains a targeted future extension only if later evidence shows systematic colony-heavy underbuilding.
+
+The parent KI#48.9 cleanup removes the old SAS `REJECT_SMALL_EMPIRE`, `REJECT_CAPITAL`, `REJECT_MILITARY_PRESSURE` and `FORCE_HIGH_MAINTENANCE` branch, its `AI_BUILDING_ALWAYS_PICK_FIRST - 1000` sentinel, the temporary A/B selector and the dead high-maintenance threshold/audit fields.
+
+Palace relocation remains separate. Its caller/liveness A/B found 199 old SAS `AI_buildingValue()` policy hits in each mode, all prospective Code-of-Laws evaluations and none current production. Disabling that branch preserved every compared state, RNG and research row plus the identical San Francisco turn-383 Palace selection and turn-385 completion, so the redundant old SAS policy and its define were retired.
+
+Actual relocation remains on inherited `BUILDINGFOCUS_CAPITAL`: KI#768.2 clarified that the former `iOdds` local is a maximum-turn limit equal to three times the candidate area's own-city count, while the real odds parameter remains `-1`. The subsequent direct audit found and KI#48.18 fixed a separate negative-maintenance relocation defect without importing the deleted SAS output heuristic into this route.
+
+Investigated and validated with the help of ChatGPT-5.6-Sol and GPT-5.6-Sol, using corrected same-seed Pangaea and Tiny-Islands BBAI/SASGameRecord comparisons and testing by wonderingabout, thanks.
+
+<a id="ki-48.18"></a>
+
+## KI#48.18 - (Fixed inherited K-Mod/AdvC AI Palace-relocation economic defect) Area-population heuristics could move the Palace while increasing empire maintenance
+
+The KI#48.9 cleanup established that the old SAS Palace `AI_buildingValue()` policy never controlled real relocation.
+
+Actual moves use inherited `BUILDINGFOCUS_CAPITAL`, whose outer caller favors a safe city on a larger non-capital landmass, requires sufficient candidate-area population and a sufficiently high production rank, and then accepts a constructible Palace within `3 * own cities in the candidate area` turns. KI#768.2 separately corrected that completion-time local's misleading `iOdds` name to `iMaxPalaceTurns`.
+
+Those inherited gates made relocation rare, but they did not evaluate its actual economic result. A Tiny-Islands audit found 290 cities reaching the larger-non-capital-area context, eight passing the area-population test, six also passing the production-rank and war gates, and only one actual Palace selection. That one selection moved the Palace to San Francisco on turn 383 even though:
+
+- candidate and old capital both had **28 base production**;
+- San Francisco had **12 research output versus 15** in the old capital;
+- its own-city distance sum was worse, **100 versus 92**;
+- projected distance maintenance worsened by about **3.83 GPT**, while colony maintenance improved by only about **1.39 GPT**;
+- the net move therefore projected **-2.44 GPT raw savings**, or an approximately **5.12 GPT increase after inflation**;
+- every logged player-level capital-specific production, commerce-yield and research modifier was zero, so no Bureaucracy-style player modifier supplied an unmeasured benefit.
+
+The Palace's local building effects move with the building, and capital-specific player modifiers can make maintenance alone an incomplete relocation score. The correction therefore does not replace inherited placement with a new comprehensive formula.
+
+It adds a conservative floor only when those player-level modifiers are absent: project the move across every own city with the current Palace removed as a Government Center, the candidate added, and all other Government Centers preserved; then require combined distance plus colony maintenance savings to be positive before entering `BUILDINGFOCUS_CAPITAL`.
+
+Every inherited geography, war-success, production-rank, buildability and completion-time rule remains authoritative. If any capital-specific yield or commerce modifier is active, inherited relocation remains unchanged rather than pretending the maintenance projection captures the whole move.
+
+### Deterministic validation (KI#48.18)
+
+The same-seed control and candidate remained identical through turn 382. On turn 383 the guard rejected San Francisco's **-2.44 GPT** projected move, producing the first intended behavioral difference; San Francisco built a Destroyer instead. The AI continued reconsidering relocation rather than entering a permanent veto, rejecting San Francisco again while its projected savings remained negative.
+
+On turn 388 the AI naturally selected Boston instead. Boston projected about **+1.92 GPT raw / +4.07 GPT after inflation**, was more central (**87 versus 101** own-city distance sum), had stronger base production (**33 versus 25**) and could complete the Palace in two turns. Seattle's approximately **-5.77 GPT** alternative was rejected on the same turn.
+
+Both histories still reached the same turn-390 Space Race victory; that common endpoint is only a safety result, while the turn-383 causal split and later positive relocation establish the guard's intended behavior.
+
+The candidate also allowed all observed positive Native-American maintenance projections, roughly **+2.57 to +4.73 GPT**, but inherited completion-time handling rejected their Palaces. The permanent level-3 audit subsequently established that several of those candidates required nine turns against the six-turn allowance for a two-city candidate area; a later case required 16 turns.
+
+A narrow A/B changed only the minimum two-city allowance from six to nine turns. Snaketown immediately started the now-eligible nine-turn Palace on turn 319, but by turn 323 worsening war and production context caused it to abandon the build after investing **58 of 144 hammers**. The Palace never resumed or completed, while the control made no such parked investment.
+
+The inherited `3 * candidate-area cities` limit is therefore retained as commitment-risk protection. The rejected test demonstrates why an economically attractive relocation snapshot is insufficient when completion is slow enough for strategic priorities to change; the uncapped Palace timing remains in level-3 diagnostics for future regression evidence.
+
+This is an inherited K-Mod/AdvC Palace-relocation blind spot exposed during the KI#48.9 SAS Wonder-policy rework. The projected-maintenance audit and narrow permanent safeguard were developed and analyzed with the help of ChatGPT-5.6-Sol and GPT-5.6-Sol, using BBAI diagnostics and deterministic SASGameRecord comparison, with testing and review by wonderingabout, thanks.
+
+<a id="ki-48.19"></a>
+
+## KI#48.19 - (Improved inherited K-Mod/AdvC AI Wonder opportunity-cost weakness and fixed old-SAS planning defect) National Park military pressure was either ignored or hard-zeroed across current and prospective valuation
+
+The KI#48.9 Wonder-policy audit exposed opposite weaknesses in inherited K-Mod/AdvC valuation and the old SAS correction. Inherited valuation had no National-Park-specific military opportunity cost, while old SAS returned zero under broad war states and ultimately under the narrower `danger || enemyStrong` signal. The inherited route could therefore pursue a long Park while urgently needing defenders; the old SAS route prevented that failure only by erasing all current and prospective value instead of letting the building compete at an appropriate discount.
+
+The failure was causal, not theoretical. In a fully permissive Pangaea test, underdefended Uxmal faced enemy power at 1,213%, had **93/216 hammers** invested in a Mechanized Infantry with about six turns remaining, yet switched to a 13-turn National Park. It later resumed and completed the Park, delayed the defender until turn 320 and contracted from five cities to three. This established that immediate danger and materially stronger enemies carry real Wonder opportunity cost.
+
+The first SAS refinement retained those two signals as a hard safety floor while removing ordinary war and war-plan state from the rejection. That prevented Uxmal's failure, but the surviving `return 0` still bypassed normal production competition and suppressed prospective Biology/National Park value whenever transient current pressure happened to be present.
+
+The permanent correction preserves inherited construction value and its reusable cache, then applies a continuous military-pressure discount only when returning a current production value. Remaining turns and immediate danger/enemy strength increase the penalty; stored production reduces it so that a nearly completed Park is not abandoned merely because pressure appeared this turn. The penalty stays below 100%, and a positive inherited value is clamped to at least 1 after integer arithmetic because a fractional penalty could otherwise truncate a small value to zero and silently recreate the retired gate. Prospective technology evaluation receives no transient current-production penalty.
+
+### Deterministic validation (KI#48.19)
+
+The Pangaea candidate recorded **660 pressured National Park value adjustments**. None of its **62 National Park best-building opportunities** or **22 final National Park production choices** occurred under `danger || enemyStrong`, demonstrating that inherited placement and ordinary production competition still rejected the pressured builds without categorical erasure.
+
+Mayapan legitimately began a seven-turn National Park at health -6 without military pressure. One turn later, after storing **47/270 hammers**, enemy power rose to 276% and `enemyStrong` became true. Its inherited value 220 was discounted to 118; Public Transportation became the better building opportunity, and final production switched naturally to SAM Infantry. The invested hammers softened rather than defeated the pressure response.
+
+Uxmal likewise retained meaningful but discounted values under strong-enemy pressure, including **84 -> 47**, **107 -> 59**, **248 -> 148** and **180 -> 86**, while actual production selected Cannon, SAM Infantry, Cuirassiers and Infantry rather than reproducing the dangerous diversion.
+
+The positive-value clamp affected 12 pressured evaluations that integer arithmetic would otherwise have reduced to zero, including Agra **14 -> 1**, Cuman **14 -> 1** and Chicago **12 -> 1**. This verified that the implementation remained a smooth valuation adjustment even at low inherited values.
+
+The planning correction was independently visible before gameplay diverged. On turn 179, while CORE state and synchronized RNG still matched, Carthage's candidate path could value Biology at 459 whereas the hard-gate control aimed for Chemistry at 450. Both still requested Gunpowder immediately; CORE state and semantic synchronized RNG first diverged only on turn 205, and the first requested-technology difference occurred on turn 206.
+
+The result improves inherited K-Mod/AdvC current-production opportunity cost while fixing old SAS's current/prospective hard-zero planning defect. It does not restore the retired monolithic Wonder policy: broad war state remains ordinary production competition, inherited placement remains authoritative, and the pressure adjustment is confined to the demonstrated National-Park-style case.
+
+This inherited weakness and old-SAS overcorrection were isolated during the KI#48.9 Wonder-policy rework. The correction and deterministic A/B analysis were developed with the help of ChatGPT-5.6-Sol and GPT-5.6-Sol, using BBAI diagnostics and SASGameRecord comparison, with testing and review by wonderingabout, thanks.
+
+<a id="ki-48.20"></a>
+
+## KI#48.20 - (Improved inherited K-Mod/AdvC AI World-Wonder opportunity-cost weakness) Locally exposed AIs could over-invest in World Wonders after the old hard military-pressure policy was retired
+
+Near the final KI#48.9 closeout, the old "be stingy with Wonders" goal was reconsidered separately from the old implementation. The earlier audit correctly retired the monolithic World-Wonder gates and the era-cost `FORCE_CHEAP_SAFE` sentinel: broad war/war-plan rejection discarded useful Wonders, fixed hammer/turn/technology-race proxies were weak predictors, and the 103,000 cheap-Wonder force polluted technology planning without demonstrating a useful constructible rescue. That does not imply that World-Wonder opportunity cost is strategically irrelevant.
+
+The same audit retained a real signal. Old SAS achieved 23 wins from 46 first Wonder attempts (50%), the first cured candidate achieved 29/65 (44.6%), and a fully inherited policy achieved 28/83 (33.7%). The corrected relative-production audit also showed substantial abandoned or lost production when weak cities pursued races, while the military-pressure audit showed why a global `atWar || warPlan -> return 0` rule was much too coarse. The intended missing question is narrower: when a civilization still shares its landmass with a serious rival and does not clearly dominate that rival, should a fresh World Wonder compete at full value against units, Settlers and infrastructure?
+
+This is especially different across map shapes. A civilization that has secured or dominates its Tiny-Islands landmass can often afford Wonder investment even while distant overseas rivals exist. On a shared continent or Snaky-Continents landmass, a roughly equal or stronger local rival creates a much more immediate opportunity cost: the same hammers could expand, defend or conquer locally. Conversely, local safety does not guarantee winning the global Wonder race, so the candidate deliberately removes value only under exposure rather than adding a force/bonus when safe.
+
+The existing `SASLocalAreaRivalContext` already stores both **combined known local rival-bloc power** and **highest known local rival-bloc power**. Those are intentionally different facts. KI#53.5's peaceful military-saturation policy asks whether another land unit is excessive against the whole remaining local rival set and therefore uses combined local power. This World-Wonder question asks whether any single rival sharing the landmass is strong enough to make discretionary Wonder investment costly, so the candidate adds a derived our-power-versus-strongest-local-rival percentage while preserving the existing combined percentage unchanged.
+
+A read-only classification pass over the latest revision-130 Pangaea/Tiny-Islands logs supports this as a useful map-sensitive discriminator before changing behavior. Among first realized player/Wonder pairs that could be matched to the existing strategic audit, a 125% strongest-local-rival dominance threshold would classify **82/90 Pangaea** attempts as locally exposed but only **13/57 Tiny-Islands** attempts. Using combined local rival power changes those counts only modestly to **83/90** and **15/57**. This is not causal evidence for the percentage cure, but it shows that the condition separates the intended map situations strongly; because it would touch most Pangaea attempts, the first multiplier is kept conservative at 80% rather than immediately trying 60-70%.
+
+### First candidate
+
+The first candidate deliberately avoids rebuilding the old per-era hammer table. It operates only in `AI_bestBuildingThreshold`, after a World Wonder is actually constructible, so it cannot recreate the retired `AI_buildingValue` technology-planning pollution.
+
+- `SAS_AI_BEST_BUILDING_THRESHOLD_WORLD_WONDER_EAGERNESS_PERCENT = 100` is a global AI Wonder-eagerness knob. `100` preserves normal eagerness; a player who wants a generally more military/infrastructure-heavy game can lower it even on secure islands, e.g. toward `60`, without changing the local-security model.
+- `SAS_AI_BEST_BUILDING_THRESHOLD_WORLD_WONDER_LOCAL_EXPOSURE_OPTIMIZE = 1` enables the local-area adjustment and can be set to `0` for the exact local-policy control.
+- `SAS_AI_BEST_BUILDING_THRESHOLD_WORLD_WONDER_LOCAL_EXPOSURE_VALUE_PERCENT = 80` is the first conservative test value when exposure applies. This is a smooth multiplier, never another categorical rejection.
+- `SAS_AI_BEST_BUILDING_THRESHOLD_WORLD_WONDER_LOCAL_DOMINANCE_MIN_POWER_PERCENT = 125` exempts a landmass with no independent local rival, or with no unknown local rival bloc and at least a 25% power lead over the strongest known local rival bloc. Unknown local rivals prevent the dominance exemption rather than being assumed harmless.
+
+The candidate applies the combined eagerness/local-exposure percentage to the actual World-Wonder candidate after inherited/personality/random value has been assembled but **before** K-Mod's stored-production continuation credit is added. Fresh exposed Wonders therefore pay the intended opportunity cost, while an already-invested Wonder retains its inherited continuity advantage and is less likely to become another abandoned-production machine. KI#48.15's cross-city World-Wonder placement comparison uses each candidate city's own percentage as well, so a fast but exposed city does not automatically disqualify a somewhat slower secure city before final production selection.
+
+The first candidate intentionally does **not** add per-era percentages. Current evidence supports geography/power exposure, while separate Ancient/Classical/Medieval/etc. penalties would add tuning dimensions without evidence. If the A/B shows a repeatable early-versus-late mismatch, the single percentage can later be extended to era-specific values without changing the policy shape.
+
+Level-3 BBAI adds `WORLD_WONDER_LOCAL_OPPORTUNITY_COST`, recording before/after value, global eagerness, local exposure percentage, whether exposure applied, the dominance threshold, local rival counts, our/combined/highest local power, both combined and strongest-rival power ratios, stored production and turns remaining. No SASGameRecord revision is needed for this exploratory candidate.
+
+### First A/B: strong signal, then a zero-value preservation correction
+
+The first synchronized test used the same candidate DLL for a Pangaea control (`LOCAL_EXPOSURE_OPTIMIZE=0`) and 80% candidate (`=1`), followed by the 80% candidate on the existing Tiny-Islands save. The Pangaea control reproduced the previous revision-130 baseline exactly through the comparable core-state checkpoints, synchronized RNG state/call counts/stream fingerprints, run-status checkpoints and final T318 Team-7 Space victory. This validates the added diagnostics and disabled local-policy path as observational for that history.
+
+The preliminary Pangaea candidate produced a strong selectivity signal. Distinct first realized World-Wonder attempts fell from **99 to 57**, while **26** of those first attempts eventually completed in both histories, moving the crude first-attempt success rate from **26.3% to 45.6%**. Recorder-wide failed invested production/fail-gold fell from **9,635 / 4,807** to **3,113 / 1,551**. The first core/RNG divergence occurred at the end of turn 66. At that decision point, exposed Mali had only two cities, 15 independent rival teams on the Pangaea landmass, nine still unknown locally, and about 90% of its strongest known local rival's bloc power. The control's best building opportunity was an 18-turn Artemis and its realized target became the 11-turn Mali Mint; with the 80% local penalty, the best building opportunity became a four-turn already-invested Library and the realized target became a five-turn Barracks. This is qualitatively the intended kind of opportunity-cost change rather than a broad `atWar` veto.
+
+Tiny Islands supplies a complementary regression check. Against the previous revision-130 Tiny control, the candidate remains core-state identical through turn 155; all **39** first World-Wonder attempts before turn 156 are identical. The first state divergence is Spain on a landmass it shares with America, with Spain at only about **91%** of that known local rival's power and no unknown local rival. The control's best building opportunity was a 12-turn Hermitage and its realized target a three-turn Grocer; the candidate's best building opportunity became that Grocer and the realized target a one-turn Missionary. Thus the first Tiny divergence occurs in a deliberately exposed/equal-rival case, not because the rule penalized an isolated or clearly dominant island empire. The much later final histories diverge heavily and are not treated as a controlled measure of this one production decision.
+
+Before accepting those behavioral results, the new level-3 row exposed a small but real implementation defect: the first multiplier used `std::max(1, value * percent / 100)` even when inherited raw value was zero. This produced many diagnostic `valueBefore=0 valueAfter=1` rows. Although the Pangaea control still reproduced the old gameplay exactly, promoting zero before K-Mod's later completion-time normalization is not a faithful percentage reduction and could make an otherwise zero-valued candidate spuriously competitive. The cross-city placement copy had the same shape. The corrected candidate now preserves every nonpositive inherited value exactly and applies the minimum-1 rounding floor only to an originally positive value. Consequently `EAGERNESS_PERCENT=100` with local exposure disabled is value-preserving by construction, not merely empirically neutral in the first control.
+
+The **80% exposure value and 125% strongest-local-rival dominance threshold were retained unchanged for the correction retest** so the zero-preservation fix could be isolated from calibration.
+
+### Corrected retest and retained default
+
+The corrected candidate reproduced the first candidate's gameplay exactly on both maps. All **308/308 Pangaea** and **505/505 Tiny-Islands/Archipelago** core-state checkpoints matched their corresponding first-candidate runs, and the run-status histories matched as well.
+
+Map and synchronized RNG states, call counts and stream fingerprints also matched; only the diagnostic call-site fingerprint differed across the rebuilt source. The zero-preservation correction therefore changed no gameplay outcome in either tested history.
+
+The corrected level-3 rows confirm that the implementation defect itself is gone. Pangaea had **1,215** rows that the first build had logged as `valueBefore=0 valueAfter=1`; all now remain **0 -> 0**. Tiny Islands had **2,131** such rows; all likewise remain **0 -> 0**. A full row audit found no major-civilization mismatch between the configured exposure predicate and `localExposureApplies`, and no mismatch between the configured percentage and the resulting positive candidate value.
+
+The corrected Pangaea candidate therefore retains the original behavioral result: first realized World-Wonder attempts fall from **99 to 57**, while the number of eventual wins among those first attempts remains **26 in each history**. These are not necessarily the same player/Wonder winners after the histories diverge, so the comparison is a count rather than an identity claim.
+
+The crude first-attempt win rate rises from **26.3% to 45.6%**. Failed invested Wonder production falls from **9,635 to 3,113 hammers**, and fail-gold from **4,807 to 1,551 gold**. All of the control's measured failed-Wonder investment had already occurred by turn 302, so the candidate's earlier T302 Space victory does not explain that reduction by truncating late failures.
+
+The common winner remains Team 7; the T302 candidate versus T318 control victory timing is path-dependent and is not treated as proof of the policy by itself.
+
+The corrected Tiny-Islands candidate also preserves the intended regression result. It remains core-state identical to the revision-130 control through the end of turn **155**, and all **39** first World-Wonder attempts through that point occur for the same player/Wonder pairs on the same turns.
+
+The first divergence remains turn 156 in Spain's shared landmass with America, where Spain is only about **91%** of its strongest known local rival's power. Later histories diverge too strongly for the candidate's eventual T500 Time victory versus the control's T344 Space victory to be interpreted as a controlled policy metric.
+
+Direct policy rows remain the stronger regression evidence: locally secure/dominant candidates retain 100% local value, while only shared/non-dominant landmasses receive the 80% multiplier.
+
+The tested defaults are therefore retained: global eagerness **100%**, exposed local value **80%**, and no-penalty local dominance at **125%** of the strongest known independent rival bloc on the landmass, with unknown local rival blocs preventing the dominance exemption.
+
+No per-era Wonder table is added: the current evidence supports the geography/power distinction, and the single smooth percentage already supplies the intended selectivity without restoring the old hard-gate architecture. The separate global eagerness setting remains available for players or modmods that intentionally want fewer Wonders even on secure islands.
+
+This completes KI#48.20 as the final general World-Wonder opportunity-cost follow-up under KI#48.9.
+
+Reopened and designed before the KI#48.9 merge closeout through discussion between wonderingabout and ChatGPT-5.6-Sol; implemented and iteratively reviewed with ChatGPT-5.6-Sol, and compile/autoplay-tested and synchronized by wonderingabout, thanks.
 
 <a id="ki-49"></a>
 
@@ -3393,6 +5515,51 @@ Cleanup: remove the entire post-`doProduction` no-production fallback and its fa
 Post-cleanup new-DLL validation: two further broad runs reached turn-436 and turn-394 victories. Dedicated BBAI recorded **619** expected-disorder chooser returns (**274** occupation/resistance, **345** other disorder), **zero** abnormal `FINAL_FALLTHROUGH` rows and **zero** non-disorder `PRODUCTION_NO_TARGET_BOUNDARY` rows; SASGameRecord likewise recorded **zero** `CITY_PRODUCTION_NO_TARGET` outcomes. The ordinary 10-turn snapshots still contained **36** apparently non-disorder empty-production city rows, while the control-path-aware boundary recorded none. This confirms that coarse snapshots can observe transient post-disorder/turn-order states without demonstrating a production stall, and strengthens the evidence for removing the old fallback.
 
 The historical human-player observation is not claimed resolved by the AI controls: several human cities displayed no production while other cities worked normally, reportedly sometimes for up to five consecutive turns. The removed fallback was AI-only, and a human city's manual/UI/automation production path can differ; the new all-city turn-boundary tripwire deliberately covers that path without assuming it shares the AI cause. Its `gameState` field is important because the documented human example occurred after victory and may have been a distinct post-victory UI state.
+
+### September 2026 follow-up: the separate emergency-building layer was later retired too
+
+At the time of the KI#51 cleanup, the distinct Harbor/Port/Walls/Castle emergency-building rules were intentionally left untouched because they represented strategic policy rather than the old empty-queue fallback. KI#48.5 later audited that second post-`doProduction` layer independently.
+
+That audit first exposed and fixed KI#51.2, where the emergency layer could mutate the queue during intentional disorder. After its continuation and logging semantics were corrected, controlled A/B runs showed that the remaining post-production hard overrides created substantial target churn and could displace higher-valued or nearly completed production after hammers had already been applied. Harbor/Port and then Walls/Castle forcing were therefore retired. The surviving strategic fortification concern is now handled separately as the inherited normal-production timing investigation in **KI#48.8**.
+
+So the current architecture no longer has either of the old outer production-policy systems: the KI#51 no-production fallback is gone, and the later emergency-building subsystem is gone as well. Any new Harbor/Port/fortification enhancement is being investigated inside normal `AI_chooseProduction` / additive valuation instead. See KI#48.5.
+
+<a id="ki-51.2"></a>
+
+## KI#51.2 - (Fixed AdvCiv-SAS post-production override defect; host emergency subsystem later retired) Emergency building rules could override intentional disorder no-production
+
+During KI#48.5's completed post-`doProduction` emergency-building audit, **23 of 332** initially visible emergency actions occurred while `isDisorder()` was true.
+
+- **16** filled an intentionally empty production queue.
+- **7** replaced an existing production target.
+- **17** occurred during occupation/resistance (`occupationTimer > 0`).
+- **6** occurred during other disorder.
+
+The replacements were not merely empty bookkeeping writes: reproduced examples included a Settler with **34 stored production**, an Airport with **100 stored production**, and several Harbor -> Port replacements.
+
+The root was a control-boundary mismatch. K-Mod's normal `AI_chooseProduction` / `doProduction` path deliberately stops during disorder, but the later AdvCiv-SAS Harbor/Port/Walls/Castle emergency layer still ran afterward and could clear, replace or preselect production anyway.
+
+`CvCity::isDisorder()` covers both **local occupation/resistance** and **owner-wide anarchy**. This therefore created an AI-only queue-control asymmetry during those states, but it did **not** grant free production or make a no-anarchy trait such as Spiritual effectively universal. `doProduction()` had already declined to add disorder-time hammers. The bug only let SAS manipulate what the AI would build once production resumed, while the normal K-Mod production path intentionally refused to make that decision during disorder. Non-Spiritual AIs still lost their anarchy production turns.
+
+The fix introduced one shared eligibility condition for the emergency-building entry paths so the AI-only override could run only when the city was **not in disorder**. Outside disorder, policy behavior remained unchanged for that validation step.
+
+The same-seed autoplay gave unusually direct confirmation:
+
+- previous audited run: **332** visible emergency actions, including 23 in disorder;
+- fixed run: **226** visible emergency actions, **226/226 with `disorder=0`**;
+- `FILL_EMPTY` fell to **0**;
+- the first core-state divergence occurred on **turn 70** and only the city fingerprint differed;
+- old Cuzco, while disordered, had `production=BUILDING_HARBOR` with **5 stored production**;
+- fixed Cuzco correctly had no production target and **0 stored production**;
+- the actual RNG stream did not diverge until turn **73**.
+
+That is a direct reproduction of the intended causal change rather than a later divergent-history inference.
+
+The host emergency-building subsystem was then audited further and ultimately retired entirely: first Harbor/Port forcing, then Walls/Castle forcing. KI#51.2 therefore remains useful as a distinct correctness finding even though the code path that once contained it no longer exists.
+
+See **KI#48.5** for the broader emergency-override audit and retirement evidence, and **KI#48.8** for the inherited pre-production fortification timing weakness that survived after the old Walls/Castle force was removed.
+
+Found during the September 2026 building-value rework with the help of ChatGPT-5.6-Sol and SASGameRecord/BBAI deterministic diagnostics, fixed and validated with the help of ChatGPT-5.6-Sol and wonderingabout, thanks.
 
 <a id="ki-52"></a>
 
@@ -6057,6 +8224,8 @@ Historical fix (superseded):
 - These are explicit current-balance rules rather than relationships derived automatically from every XML unit. Modmods that substantially change strategic-resource prerequisites or their useful eras should review the rules or disable `SAS_AI_BONUS_TRADE_ZERO_DOMINATED_STRATEGIC_BUYS`; see KI#239 and KI#240 for the human-recipient, corporation-value and Medieval Copper corrections.
 
 ### Update (AdvCiv-SAS practical 6577)
+
+Related implementation/review PR: [#42 - Add dynamic bonus valuation and trade diagnostics](https://github.com/wonderingabout/AdvCiv-SAS/pull/42).
 
 This first fix greatly reduced the observed waste, but remained tied to current names, eras and unit balance; KI#239 and KI#240 record two later corrections needed by that approach.
 
@@ -10320,17 +12489,35 @@ Screenshots/files for this issue: [google drive folder link](https://drive.googl
 
 The investigation found two independent World-Wonder AI defects:
 
-- **Fixed AdvCiv-SAS game-speed regression in the cheap-Wonder catch-up gate:** `CvCityAI::AI_buildingValue` compares `getProductionNeeded(eBuilding)` against era-based `SAS_AI_BUILDING_VALUE_WORLD_WONDERS_CHEAP_ICOST_CAP_*_NORMAL` thresholds. The cost returned by `getProductionNeeded` is not raw XML cost: `CvPlayer::getProductionNeeded(BuildingTypes)` multiplies building cost by the current game speed's `ConstructPercent` (along with the existing start-era/handicap adjustments). The cap therefore has to be scaled by the same game-speed factor to preserve the intended Normal-speed threshold. AdvCiv-SAS practical commit 5203 (`8a13288983`) originally implemented this correctly through `iCheapWWCapAdjusted = iCheapWWCapNormal * iGameSpeedMultiplier / 100`. Practical commit 5477 (`b33174f828`) later removed that scaling during a broader raw-XML-cost cleanup and changed the nearby comment to say that `iCost` was game-speed-independent XML cost. That assumption was incorrect for this code path. On Slow speed (300% construct cost), the AI's effective cheap-Wonder threshold became roughly one third of its intended relative value; faster speeds were skewed in the opposite direction. The original game-speed scaling is now restored. Normal-speed behavior is unchanged by this correction.
+- **Fixed AdvCiv-SAS game-speed regression in the cheap-Wonder catch-up gate:** `CvCityAI::AI_buildingValue` compared `getProductionNeeded(eBuilding)` against the then-XML-tunable era-based cheap-Wonder thresholds. The cost returned by `getProductionNeeded` is not raw XML cost: `CvPlayer::getProductionNeeded(BuildingTypes)` multiplies building cost by the current game speed's `ConstructPercent` (along with the existing start-era/handicap adjustments).
 
-- **Fixed inherited K-Mod World-Wonder focus inversion:** when `BUILDINGFOCUS_WORLDWONDER` is explicitly requested, current inherited code rejected the candidate whenever `iProductionRank <= 3`. Production rank 1 is the best production city, so this excluded the AI's three strongest hammer cities. The recently included full K-Mod commit history makes the origin unusually clear. Before K-Mod commit 1030 (`418581f6bd`), the corresponding World-Wonder logic positively accepted/boosted a candidate when `findBaseYieldRateRank(YIELD_PRODUCTION) <= 3`. Commit 1030 refactored that check out of the large evaluation loop and into an early veto, describing it as essentially the same original check moved earlier, but retained the same `<= 3` comparison underneath `return 0`. Moving a positive condition into a rejection gate required reversing the comparison; failing to do so inverted the behavior. AdvCiv-SAS now rejects `iProductionRank > 3` instead, restoring the intended top-three-production-city eligibility.
+The cap therefore has to be scaled by the same game-speed factor to preserve the intended Normal-speed threshold.
 
-These two defects could reinforce each other. AdvCiv-SAS deliberately makes early World Wonders less attractive than Base AdvCiv in order to avoid wasting scarce early production and reduce easy human Wonder exploitation; its era-based cheap-Wonder rule is the intended catch-up path that lets old inexpensive Wonders become attractive later. The game-speed regression could effectively remove that catch-up path on Slow/Very Slow speeds, while the inherited K-Mod focus inversion could simultaneously prevent explicit World-Wonder searches from using the cities best equipped to build them. This explains why increasing generic Wonder desire or weakening the SAS optimization would have been the wrong first response: there were concrete correctness issues underneath the balance policy.
+AdvCiv-SAS practical commit 5203 (`8a13288983`) originally implemented this correctly through `iCheapWWCapAdjusted = iCheapWWCapNormal * iGameSpeedMultiplier / 100`. Practical commit 5477 (`b33174f828`) later removed that scaling during a broader raw-XML-cost cleanup and changed the nearby comment to say that `iCost` was game-speed-independent XML cost. That assumption was incorrect for this code path. On Slow speed (300% construct cost), the AI's effective cheap-Wonder threshold became roughly one third of its intended relative value; faster speeds were skewed in the opposite direction. The original game-speed scaling is now restored. Normal-speed behavior is unchanged by this correction.
 
-This investigation also provided a practical validation of the recently expanded AdvCiv-SAS light-source handoff. `commit_diffs` folder includes filtered textual patches for the full current-HEAD ancestry across K-Mod, pre-SAS AdvCiv and the later SAS branch history. Using those shared commit diffs bundled in the light-source ZIP, ChatGPT-5.6-Sol could trace the SAS game-speed regression from its correct introduction in commit 5203 to the incorrect refactor in commit 5477, and independently compare K-Mod 1030's pre/post-refactor World-Wonder condition without requiring live Git access or GitHub. The history therefore supplied not just commit messages but the exact old code needed to distinguish a balance choice from a regression and an inherited refactor bug.
+- **Fixed inherited K-Mod World-Wonder focus inversion:** when `BUILDINGFOCUS_WORLDWONDER` is explicitly requested, current inherited code rejected the candidate whenever `iProductionRank <= 3`. Production rank 1 is the best production city, so this excluded the AI's three strongest hammer cities. The recently included full K-Mod commit history makes the origin unusually clear. Before K-Mod commit 1030 (`418581f6bd`), the corresponding World-Wonder logic positively accepted/boosted a candidate when `findBaseYieldRateRank(YIELD_PRODUCTION) <= 3`.
 
-The combined fix was then validated with another Huge Donut / Slow-speed autoplay through turn 601 (`SASGameRecord_20260818T193115Z_load1.log`). The completed-Wonder result already gives a clear before/after: the pre-fix run (`SASGameRecord_20260818T184659Z_new1.log`) had zero ordinary World Wonders, while the post-fix log has 17 `WONDER_BUILT` rows consisting of 4 religious shrines, 6 Heroic/National Epics and 7 ordinary World Wonders: Stonehenge (England), Pyramids and Colossus (Kingdom of Benin), Great Wall and Great Lighthouse (Egypt), Statue of Zeus (Arabia), and Great Library (Egypt). The periodic city snapshots make the recovery even clearer: at turn 600 the pre-fix log had zero cities with `productionKind=WONDER`, while the post-fix log had 15 ordinary World-Wonder builds active across 9 civilizations (9 Parthenons and 6 Temples of Kukulkan), plus 1 Heroic Epic. This is strong confirmation that the AI World-Wonder selection path itself is functioning again on Slow speed rather than a few Wonders merely completing by chance. The two corrections remain conceptually separable: the game-speed fix leaves Normal-speed thresholds unchanged, while the K-Mod production-rank fix restores intended World-Wonder focus behavior on all speeds.
+Commit 1030 refactored that check out of the large evaluation loop and into an early veto, describing it as essentially the same original check moved earlier, but retained the same `<= 3` comparison underneath `return 0`. Moving a positive condition into a rejection gate required reversing the comparison; failing to do so inverted the behavior. AdvCiv-SAS now rejects `iProductionRank > 3` instead, restoring the intended top-three-production-city eligibility.
 
-Fixed/improved, validated in a repeat Slow/Donut autoplay, and documented with the help of ChatGPT-5.6-Sol thanks.
+These two defects could reinforce each other. AdvCiv-SAS deliberately makes early World Wonders less attractive than Base AdvCiv in order to avoid wasting scarce early production and reduce easy human Wonder exploitation; its era-based cheap-Wonder rule is the intended catch-up path that lets old inexpensive Wonders become attractive later.
+
+The game-speed regression could effectively remove that catch-up path on Slow/Very Slow speeds, while the inherited K-Mod focus inversion could simultaneously prevent explicit World-Wonder searches from using the cities best equipped to build them. This explains why increasing generic Wonder desire or weakening the SAS optimization would have been the wrong first response: there were concrete correctness issues underneath the balance policy.
+
+This investigation also provided a practical validation of the recently expanded AdvCiv-SAS light-source handoff. `commit_diffs` folder includes filtered textual patches for the full current-HEAD ancestry across K-Mod, pre-SAS AdvCiv and the later SAS branch history.
+
+Using those shared commit diffs bundled in the light-source ZIP, ChatGPT-5.6-Sol could trace the SAS game-speed regression from its correct introduction in commit 5203 to the incorrect refactor in commit 5477, and independently compare K-Mod 1030's pre/post-refactor World-Wonder condition without requiring live Git access or GitHub. The history therefore supplied not just commit messages but the exact old code needed to distinguish a balance choice from a regression and an inherited refactor bug.
+
+The combined fix was then validated with another Huge Donut / Slow-speed autoplay through turn 601 (`SASGameRecord_20260818T193115Z_load1.log`). The completed-Wonder result already gives a clear before/after: the pre-fix run (`SASGameRecord_20260818T184659Z_new1.log`) had zero ordinary World Wonders, while the post-fix log has 17 `WONDER_BUILT` rows consisting of 4 religious shrines, 6 Heroic/National Epics and 7 ordinary World Wonders: Stonehenge (England), Pyramids and Colossus (Kingdom of Benin), Great Wall and Great Lighthouse (Egypt), Statue of Zeus (Arabia), and Great Library (Egypt).
+
+The periodic city snapshots make the recovery even clearer: at turn 600 the pre-fix log had zero cities with `productionKind=WONDER`, while the post-fix log had 15 ordinary World-Wonder builds active across 9 civilizations (9 Parthenons and 6 Temples of Kukulkan), plus 1 Heroic Epic. This is strong confirmation that the AI World-Wonder selection path itself is functioning again on Slow speed rather than a few Wonders merely completing by chance.
+
+The two corrections remain conceptually separable: the game-speed fix leaves Normal-speed thresholds unchanged, while the K-Mod production-rank fix restores intended World-Wonder focus behavior on all speeds.
+
+The later KI#48.9 Wonder-policy rework re-audited the cheap-Wonder catch-up mechanism itself. All 67 force hits in an isolated Tiny control and all 68 in earlier Pangaea evidence referred to Wonders already completed globally; disabling the `103000` force return preserved every successful early Wonder through turn 116, while its first demonstrated effect was distortion of research-path valuation and requested technologies.
+
+The force-first return and its live era-cost calculation were therefore retired. This does not restore the old no-Wonder failure: KI#205's inherited production-rank correction remains active, and genuinely available Wonders continue through inherited/additive valuation, normal production competition and completion-time-aware placement. Era-cost caps remain only as compact DLL-local constants for level-3 counterfactual diagnostics, not XML tuning.
+
+Fixed/improved, validated in repeat Slow/Donut and Tiny-Islands autoplays, and documented with the help of ChatGPT-5.6-Sol and GPT-5.6-Sol, thanks.
 
 <a id="ki-206"></a>
 
@@ -11686,13 +13873,19 @@ This is an AdvCiv-SAS AI religion-valuation regression introduced with power wei
 
 <a id="ki-310"></a>
 
-## KI#310 - (Fixed AdvCiv-SAS bug) Water-heavy AI city fallback could leave production empty
+## KI#310 - (Retired fixed AdvCiv-SAS bug; host no-production fallback later retired under KI#51) Water-heavy AI city fallback could leave production empty
 
 AdvCiv-SAS's hard AI-production safety net normally replaces an empty or invalid queue with a restricted military fallback unit. Mostly-water inner-ring cities were excluded from that branch so they could prefer three configured economic building classes instead: currently Harbor, Port and Lighthouse. If all three buildings were unavailable or already present, the water branch logged `WATER_BUILDING_NONE` and ended without selecting anything. This was reachable both before the required technologies and after a city owned all three buildings, leaving the exact empty-production state that the safety net exists to prevent.
 
 The fix tries the three water buildings first. If one is constructible, the economic preference is preserved; if none can be queued, `WATER_BUILDING_NONE_CONTINUE` records the fallthrough and the city uses the same already-audited safe unit fallback as every other empty AI city. Its cost, role, siege and Settler-veto safeguards remain unchanged. Explicitly disabling the general fallback define still disables that final unit rescue.
 
 This is an AdvCiv-SAS AI production-fallback control-flow regression introduced by the water-heavy-city exception. Found and investigated through the systematic archaeology with the help of ChatGPT-5.6-Sol; fixed and documented with the help of GPT-5.6-Sol and compile/runtime-smoke-tested with the help of wonderingabout, thanks.
+
+### September 2026 update: host fallback retired
+
+This fix remains historically correct for the old safety-net architecture, but that architecture is no longer active. KI#51 later instrumented the true end of `AI_chooseProduction` and the all-city turn boundary and found that the apparent AI empty-production cases were intentional disorder returns rather than a normal chooser exhausting its options. The entire post-`doProduction` water-building/unit fallback, including the branch repaired here, was therefore removed.
+
+KI#310 is retained as the record of a real control-flow bug in the former fallback, not as current production policy.
 
 <a id="ki-311"></a>
 
@@ -11705,6 +13898,87 @@ Deeper lineage and accessor review rejected that diagnosis. In AI source, AdvCiv
 The proposed explicit conversions were semantic no-ops and were removed before compilation. KI#311 is retained as a rejected entry so future audits can find the overload evidence instead of rediscovering the same false positive. This is neither a BtS bug nor an AdvCiv/SAS bug.
 
 Initially identified through the systematic archaeology with the help of ChatGPT-5.6-Sol; rejected and documented after local source/accessor/lineage review with the help of GPT-5.6-Sol, thanks.
+
+<a id="ki-311.2"></a>
+
+## KI#311.2 - (Documented AdvCiv-SAS source-maintenance pitfall; no gameplay effect) Narrowing cached CvTeamAI references can hide required AI-only team interfaces
+
+AdvCiv-SAS practical 5282 / commit `1f9b99fd95` cached many repeated `GET_TEAM(...)` lookups in `CvCityAI` for hot-path performance.
+
+In AI translation units, AdvCiv's overloaded `CoreAI::getTeam` accessor returns a `CvTeamAI&`. C++ permits binding that object to a `CvTeam const&`, but doing so deliberately narrows the static interface: inherited `CvTeam` members remain available, while `CvTeamAI`-only methods and helpers that require `CvTeamAI const&` no longer compile.
+
+The distinction is per consumer, not per accessor. A direct test changed the cached team in `CvCityAI::AI_bestProject` from `CvTeamAI const&` to `CvTeam const&`; it compiled at the first attempt because that function only uses base-team operations such as project counts/making and `isHuman`.
+
+Repeating the same narrowing in `CvCityAI::AI_chooseProduction` failed during compilation. The Visual C++ 2003 build reported, among other diagnostics:
+
+```log
+         CvCity.cpp
+         CvCityAI.cpp
+     1>..\CvCityAI.cpp(2755): error C2664: 'SASWarPowerContext::SASWarPowerContext(const CvTeamAI &)' : cannot convert parameter 1 from 'const CvTeam' to 'const CvTeamAI &'
+                 Reason: cannot convert from 'const CvTeam' to 'const CvTeamAI'
+                 No constructor could take the source type, or constructor overload resolution was ambiguous
+     1>..\CvCityAI.cpp(2765): error C2039: 'AI_isWaterAreaRelevant' : is not a member of 'CvTeam'
+                 c:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\CvTeam.h(14) : see declaration of 'CvTeam'
+     1>..\CvCityAI.cpp(2772): error C2039: 'AI_isSneakAttackPreparing' : is not a member of 'CvTeam'
+                 c:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\CvTeam.h(14) : see declaration of 'CvTeam'
+     1>..\CvCityAI.cpp(2775): error C2039: 'AI_getNumWarPlans' : is not a member of 'CvTeam'
+                 c:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\CvTeam.h(14) : see declaration of 'CvTeam'
+     1>..\CvCityAI.cpp(2777): error C2039: 'AI_getNumWarPlans' : is not a member of 'CvTeam'
+                 c:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\CvTeam.h(14) : see declaration of 'CvTeam'
+     1>..\CvCityAI.cpp(2794): error C2039: 'AI_getWarSuccessRating' : is not a member of 'CvTeam'
+                 c:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\CvTeam.h(14) : see declaration of 'CvTeam'
+     1>..\CvCityAI.cpp(2811): error C2039: 'AI_isMasterPlanningLandWar' : is not a member of 'CvTeam'
+                 c:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\CvTeam.h(14) : see declaration of 'CvTeam'
+     1>..\CvCityAI.cpp(2813): error C2039: 'AI_isMasterPlanningSeaWar' : is not a member of 'CvTeam'
+                 c:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\CvTeam.h(14) : see declaration of 'CvTeam'
+     1>..\CvCityAI.cpp(2820): error C2039: 'AI_isWarPossible' : is not a member of 'CvTeam'
+                 c:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\CvTeam.h(14) : see declaration of 'CvTeam'
+     1>..\CvCityAI.cpp(4301): error C2039: 'AI_isAnyChosenWar' : is not a member of 'CvTeam'
+                 c:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\CvTeam.h(14) : see declaration of 'CvTeam'
+     1>..\CvCityAI.cpp(4619): error C2039: 'AI_getNumWarPlans' : is not a member of 'CvTeam'
+                 c:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\CvTeam.h(14) : see declaration of 'CvTeam'
+     1>..\CvCityAI.cpp(4621): error C2039: 'AI_getNumWarPlans' : is not a member of 'CvTeam'
+                 c:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\CvTeam.h(14) : see declaration of 'CvTeam'
+     1>..\CvCityAI.cpp(5069): error C2039: 'AI_isAnyWarPlan' : is not a member of 'CvTeam'
+                 c:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\CvTeam.h(14) : see declaration of 'CvTeam'
+     1>..\CvCityAI.cpp(5099): error C2039: 'AI_isAnyWarPlan' : is not a member of 'CvTeam'
+                 c:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\CvTeam.h(14) : see declaration of 'CvTeam'
+     1>..\CvCityAI.cpp(5106): error C2039: 'AI_getWarPlan' : is not a member of 'CvTeam'
+                 c:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\CvTeam.h(14) : see declaration of 'CvTeam'
+     1>..\CvCityAI.cpp(5118): error C2039: 'AI_isHasPathToEnemyCity' : is not a member of 'CvTeam'
+                 c:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\CvTeam.h(14) : see declaration of 'CvTeam'
+     1>..\CvCityAI.cpp(5132): error C2039: 'AI_isAnyWarPlan' : is not a member of 'CvTeam'
+                 c:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\CvTeam.h(14) : see declaration of 'CvTeam'
+     1>..\CvCityAI.cpp(5195): error C2039: 'AI_getWarPlan' : is not a member of 'CvTeam'
+                 c:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\CvTeam.h(14) : see declaration of 'CvTeam'
+     1>NMAKE : fatal error U1077: '"C:\Program Files (x86)\Civ4SDK\Microsoft Visual C++ Toolkit 2003\bin\cl.exe"' : return code '0x2'
+         Stop.
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.MakeFile.Targets(38,5): error MSB3073: The command "set TARGET=Debug-opt
+C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.MakeFile.Targets(38,5): error MSB3073: nmake source_list /NOLOGO
+C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.MakeFile.Targets(38,5): error MSB3073: nmake fastdep /NOLOGO
+C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.MakeFile.Targets(38,5): error MSB3073: nmake dll /NOLOGO" exited with code 2.
+     1>Done Building Project "C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\Project\AdvCiv.vcxproj" (build target(s)) -- FAILED.
+```
+
+The same experiment produced further `C2039` errors for other AI-only team methods in `AI_chooseProduction`; the build then stopped with `NMAKE ... return code '0x2'`. This is compile-time static typing, not a cast/runtime-safety defect and not a gameplay bug.
+
+Therefore the practical result is intentionally not a blanket type rule. Some of these practical-5282 cache sites do compile when narrowed to `CvTeam const&`: `CvCityAI::AI_bestProject` was directly changed and successfully compiled at the first attempt because that consumer only needs inherited/base-team operations.
+
+Other sites demonstrably do not compile when narrowed: the corresponding `CvCityAI::AI_chooseProduction` experiment produced both a `C2664` failure when passing `const CvTeam` to `SASWarPowerContext(const CvTeamAI&)` and multiple `C2039` failures because `AI_isWaterAreaRelevant`, `AI_isSneakAttackPreparing`, `AI_getNumWarPlans`, `AI_getWarSuccessRating`, `AI_isMasterPlanningLandWar`, `AI_isMasterPlanningSeaWar`, `AI_isWarPossible` and other AI-only members are not members of `CvTeam`.
+
+AdvCiv-SAS nevertheless keeps `CvTeamAI const&` for all of the related practical-5282 `GET_TEAM` cache sites that carried this maintenance breadcrumb, including individual sites that could technically be narrowed to `CvTeam`.
+
+`CoreAI::getTeam` already returns `CvTeamAI&`, so retaining the concrete type is valid at every such site; testing and maintaining a separate base/AI type choice for each cache would add review and maintenance tedium without a practical benefit.
+
+In short: some compile as `CvTeam`, some do not, and the family is deliberately kept uniformly `CvTeamAI` for simplicity.
+
+This uniformity policy is scoped to that practical-5282 cache family, not to every team reference in `CvCityAI`. Unrelated or newer code that genuinely needs only inherited `CvTeam` operations may still use `CvTeam const&`; for example, `SAS_countIndependentRivalTeamsInArea` intentionally keeps its narrow base-team reference because it only needs `isHasMet`.
+
+The same practical-5282 cleanup also cached `GET_PLAYER(getOwner())` as `kOwner`/`kPlayer` at several sites and then derived the team cache from that existing player reference.
+
+Stale commented-out `CvTeam` alternatives are not retained as documentation; KI#311.2 records the tested distinction instead. Source comments now preserve the key “some compile / some fail / keep the family uniform to avoid tedium” rationale directly.
+
+Identified while cleaning the practical-5282 team caches during the AI building valuation PR, and runtime-tested through contrasting successful/failing compile experiments by wonderingabout, with source/lineage review and documentation by ChatGPT-5.6-Sol, thanks.
 
 <a id="ki-312"></a>
 
@@ -11968,7 +14242,7 @@ This is an inherited BUG/Base AdvCiv UI defect broadened by later AdvCiv-SAS UI 
 
 <a id="ki-333"></a>
 
-## KI#333 - (Fixed AdvCiv-SAS priority-order regression) Emergency Port could preempt stronger strategic defense
+## KI#333 - (Retired fixed AdvCiv-SAS priority-order regression; host emergency-building subsystem later retired under KI#48.5) Emergency Port could preempt stronger strategic defense
 
 AdvCiv-SAS practical 5919 added an emergency Port-class water-hammer rule for mature ocean-coastal AI cities with low production or food surplus. Its XML and Main Changes Guide contract stated that the broader strategic-defense rule would still run first, allowing Walls or Castle to precede Port when an ongoing war or stronger enemy justified defense even without immediate local danger. The implementation instead inserted Port between the deliberately higher-priority Harbor rule and the older defense branch.
 
@@ -11979,6 +14253,14 @@ The fix moves the Port attempt after the existing Walls/Castle branch. Harbor re
 After compilation, a Large Hub autoplay completed normally at the turn-500 Time Victory with 105 cities still present. This broadly exercised long-running AI city production; the exact old overlapping Port/defense choice remains source-verified rather than deterministically reproduced.
 
 This is an AdvCiv-SAS practical-5919 insertion-order regression, not an inherited BtS, K-Mod or AdvCiv defect. Found through the current-tree C++ File Audit Album with the help of ChatGPT-5.6-Sol; independently reviewed, fixed and documented with the help of GPT-5.6-Sol and compile/runtime-tested with the help of wonderingabout, thanks.
+
+### September 2026 update: host emergency subsystem retired
+
+The ordering repair remains historically correct, but KI#48.5 later audited the entire post-`doProduction` Harbor/Port/Walls/Castle subsystem with detailed BBAI attribution and SASGameRecord continuity data. The broader problem was architectural: even correctly ordered emergency rules could rewrite a queue after the normal chooser had already selected a target and that turn's hammers had been applied, repeatedly interrupting invested or higher-valued production.
+
+Controlled A/B testing first retired Harbor/Port forcing and then Walls/Castle forcing. Subsequent Pangaea shadow logging showed that the strategic concern behind the old defense priority was nevertheless real: inherited K-Mod/AdvC can value Walls/Castles, but its dedicated defense-building opportunity sits late enough in `AI_chooseProduction()` that many fortifications capable of finishing before capture never receive a timely chance.
+
+So this KI's ordering repair remains historically correct, while the host priority chain itself is retired. The replacement stays inside normal pre-production flow and is tracked as the inherited timing weakness in **KI#48.8**; see **KI#48.5** for the broader building-policy audit.
 
 <a id="ki-334"></a>
 
@@ -18096,19 +20378,23 @@ Found as F553 during ChatGPT-5.6-Sol's C031-WIP328 audit; reconciled into Known 
 
 <a id="ki-877"></a>
 
-## KI#877 - (Provisional Pending AdvCiv-SAS building-prefilter defect) Maintenance classification uses the wrong sign
+## KI#877 - (Retired/Superseded dormant AdvCiv-SAS building-prefilter defect) Maintenance classification uses the wrong sign
 
 The SAS regular-building prefilter classifies maintenance buildings with the opposite sign, so every current maintenance-reducing building bypasses the authored gate. Test the actual maintenance-reduction direction.
 
 Found as F554 during ChatGPT-5.6-Sol's C031-WIP329 audit; reconciled into Known Issues with the help of GPT-5.6-Sol, thanks.
 
+**September 2026 disposition:** mechanically confirmed in the retained historical prefilter, but KI#48.5 disabled/superseded the whole regular-building hard-gate layer before a local repair was warranted. This no longer affects default regular-building valuation; retain it as source archaeology and as a warning if the historical prefilter is ever re-enabled.
+
 <a id="ki-878"></a>
 
-## KI#878 - (Provisional Pending AdvCiv-SAS building-prefilter defect) Miscellaneous wartime tail is attached too broadly
+## KI#878 - (Retired/Superseded dormant AdvCiv-SAS building-prefilter defect) Miscellaneous wartime tail is attached too broadly
 
 The final unknown/miscellaneous-building wartime rejection is attached to `!bCultureOnlyBuilding`, causing it to reject almost every previously classified regular building during war or danger. Restrict the tail to the genuinely unclassified category.
 
 Found as F555 during ChatGPT-5.6-Sol's C031-WIP330 audit; reconciled into Known Issues with the help of GPT-5.6-Sol, thanks.
+
+**September 2026 disposition:** mechanically confirmed in the retained historical prefilter, but KI#48.5 disabled/superseded the whole regular-building hard-gate layer before a local repair was warranted. This no longer affects default regular-building valuation; retain it as source archaeology and as a warning if the historical prefilter is ever re-enabled.
 
 <a id="ki-879"></a>
 
@@ -18132,15 +20418,19 @@ This became especially visible after disabling the AdvCiv-SAS regular-building h
 
 Keeping this as a separate correction lets the next comparison run measure the inherited evaluator with its intended happiness arithmetic before adding any new urgency heuristic.
 
-Found as F557 during ChatGPT-5.6-Sol's C031-WIP333 audit; reconciled into Known Issues with the help of GPT-5.6-Sol, thanks. Fixed during the inherited-versus-SAS building-valuation rework.
+Found as F557 during ChatGPT-5.6-Sol's C031-WIP333 audit; reconciled into Known Issues with the help of GPT-5.6-Sol, thanks. Fixed during the inherited-versus-SAS building-valuation rework. See **KI#48.5** for the broader September 2026 regular-building audit that exposed and validated this correction.
 
 <a id="ki-881"></a>
 
-## KI#881 - (Provisional Pending AdvCiv-SAS handicap-scope defect) Regular-building skew reads the AI handicap
+## KI#881 - (Retired/Superseded dormant AdvCiv-SAS espionage handicap-force defect) Regular-building espionage strategy was forced from handicap research costs
 
 The SAS regular-building difficulty skew reads the AI player's handicap while the relevant AI research-cost setting comes from the game handicap. Use the authoritative game-handicap source.
 
 Found as F558 during ChatGPT-5.6-Sol's C031-WIP334 audit; reconciled into Known Issues with the help of GPT-5.6-Sol, thanks.
+
+**September 2026 disposition:** mechanically confirmed in the historical prefilter, but KI#48.5 disabled/superseded the regular-building hard-gate layer before a local repair was warranted. The faulty handicap-force branches were subsequently removed rather than corrected because handicap does not imply one reliable espionage strategy.
+
+The dedicated BBAI espionage row remains as general contextual attribution and now reads the authoritative game-handicap research cost. The data-masked world-wonder sibling was aligned with `CvPlayer::getProductionNeeded`. Retain KI#881 as source archaeology; the inherited KI#879 and KI#880 findings remain independent of this retirement.
 <a id="ki-882"></a>
 
 ## KI#882 - (Provisional Pending inherited production-upgrade defect) Destination hammers are overwritten

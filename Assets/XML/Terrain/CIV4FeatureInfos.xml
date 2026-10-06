@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- edited with XMLSPY v2004 rel. 2 U (http://www.xmlspy.com) by Alex Mantzaris (Firaxis Games) --><!-- Sid Meier's Civilization 4 --><!-- Copyright Firaxis Games 2005 --><!-- -->
 <!-- Feature -->
-<!-- custom: note: be careful when/if renaming some of these features, as one or several of these are now also hardcoded in advciv-sas in the DLL as part of AI settling/founding/planting cities optimization, as well as optimizing AI worker improvement choice, if you want to rename it, rename it there as well and recompile the DLL -->
 <Civ4FeatureInfos xmlns="x-schema:CIV4TerrainSchema.xml">
 	<FeatureInfos>
 		<FeatureInfo>

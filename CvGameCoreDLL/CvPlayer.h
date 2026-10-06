@@ -262,7 +262,8 @@ public:
 	bool canFound(CvPlot const& kPlot, bool bTestVisible = false, bool bIgnoreFoW = true) const; // </advc.181>
 	void found(int iX, int iY);																						// Exposed to Python
 
-	bool canTrain(UnitTypes eUnit, bool bContinue = false, bool bTestVisible = false, bool bIgnoreCost = false) const; // Exposed to Python
+	// <!-- custom: eAssumeTech lets prospective AI valuation test one candidate technology and its guaranteed XML prerequisites without mutating team state or granting unrelated same-era technologies. See KI#48.14. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	bool canTrain(UnitTypes eUnit, bool bContinue = false, bool bTestVisible = false, bool bIgnoreCost = false, TechTypes eAssumeTech = NO_TECH) const; // Exposed to Python
 	bool canConstruct(BuildingTypes eBuilding, bool bContinue = false, bool bTestVisible = false, bool bIgnoreCost = false, /* K-Mod: */ bool bIgnoreTech = false) const; // Exposed to Python
 	bool canCreate(ProjectTypes eProject, bool bContinue = false, bool bTestVisible = false) const;					// Exposed to Python
 	bool canMaintain(ProcessTypes eProcess, bool bContinue = false) const;											// Exposed to Python

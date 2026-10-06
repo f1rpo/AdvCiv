@@ -34,13 +34,15 @@ public:
 
 	BuildingTypes AI_bestBuilding(int iFocusFlags = 0, int iMaxTurns = 0, bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR) const;
 	// <!-- custom: bRandomize preserves the inherited random wonder bonus and final 100-124% building-value multiplier by default.
-	// Pass false only for deterministic diagnostics/behavioral gates that must not consume ASyncRand or synchronized game RNG. See KI#197.13. (ChatGPT-5.6-Sol) -->
-	BuildingTypes AI_bestBuildingThreshold(int iFocusFlags = 0, int iMaxTurns = 0, int iMinThreshold = 0, bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR, bool bRandomize = true) const;
+	// Pass false only for deterministic diagnostics/behavioral gates that must not consume ASyncRand or synchronized game RNG.
+	// The optional output returns the winning same-pass post-turn selection score so a pre-gated realized-choice recorder does not rerun randomized valuation. See KI#197.13. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	BuildingTypes AI_bestBuildingThreshold(int iFocusFlags = 0, int iMaxTurns = 0, int iMinThreshold = 0, bool bAsync = false, AdvisorTypes eIgnoreAdvisor = NO_ADVISOR, bool bRandomize = true, int* piBestValue = NULL) const;
 
 	/* int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0) const;
 	int AI_buildingValueThreshold(BuildingTypes eBuilding, int iFocusFlags = 0, int iThreshold = 0) const; */
 	// advc.121b <!-- custom: hoisted from multiline signature between `bIgnoreSpecialists` and `bObsolete` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-	int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0, int iThreshold = 0, bool bConstCache = false, bool bAllowRecursion = true, bool bIgnoreSpecialists = false, bool bObsolete = false) const; // advc.004c
+	// <!-- custom: eAssumeTech distinguishes current-state valuation from AI_techBuildingValue's candidate technology and guaranteed-prerequisite context. See KI#48.14. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0, int iThreshold = 0, bool bConstCache = false, bool bAllowRecursion = true, bool bIgnoreSpecialists = false, bool bObsolete = false, TechTypes eAssumeTech = NO_TECH) const; // advc.004c
 	// <advc.179>
 	scaled AI_estimateReligionBuildings(PlayerTypes ePlayer, ReligionTypes eReligion, std::vector<BuildingTypes> const& aeBuildings) const; // </advc.179>
 	ProjectTypes AI_bestProject(int* piBestValue = 0, /* advc.001n: */ bool bAsync = false) const;
@@ -128,7 +130,8 @@ public:
 	int AI_countOvergrownBonuses(FeatureTypes eFeature) const; // advc.129
 
 	int AI_splitEmpireValue() const; // advc.ctr: Renamed from AI_cityValue
-	int AI_calculateWaterWorldPercent();
+	// <!-- custom: inherited sea-throughput valuation: logically read-only; const lets building valuation reuse the existing water-world demand estimate directly for production and free-experience context. See KI#48.11 and KI#48.12. (ChatGPT-5.6-Sol) -->
+	int AI_calculateWaterWorldPercent() const;
 	int AI_getCityImportance(bool bEconomy, bool bMilitary);
 
 	int AI_yieldMultiplier(YieldTypes eYield) const;
@@ -256,8 +259,9 @@ protected:
 	// <advc>
 	int AI_defensiveBuildingValue(BuildingTypes eBuilding, bool bAreaAlone, bool bWarPlan, int iNumCities, int iNumCitiesInArea, bool bRemove, /* advc.004c: */ bool bObsolete) const; // </advc>
 
-	int AI_experienceWeight();
-	int AI_buildUnitProb(/* advc.017: */ bool bDraft = false);
+	// <!-- custom: logically read-only helpers made const so const building valuation can reuse the authoritative dynamic unit-production-demand estimate without a proxy or const_cast. See KI#48.10. (ChatGPT-5.6-Sol) -->
+	int AI_experienceWeight() const;
+	int AI_buildUnitProb(/* advc.017: */ bool bDraft = false) const;
 	bool AI_emphasizeIrrigatingPlot(CvPlot const& kPlot) const; // advc
 	void AI_bestPlotBuild(CvPlot const& kPlot, int* piBestValue, BuildTypes* peBestBuild, int iFoodPriority, int iProductionPriority, int iCommercePriority, bool bChop, int iHappyAdjust, int iHealthAdjust, int iDesiredFoodChange) const;
 

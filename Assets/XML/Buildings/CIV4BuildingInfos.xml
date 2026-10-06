@@ -239,7 +239,6 @@
 			<bNukeImmune>1</bNukeImmune>
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
-			<!-- custom: building it first priority enforced in the DLL in as of now CvCityAI::AI_buildingValue, check there for details if i didn't change it since then and didn't update this note -->
 			<iAIWeight>0</iAIWeight>
 			<iCost>5</iCost>
 			<iHurryCostModifier>50</iHurryCostModifier>
@@ -1383,8 +1382,8 @@
 			<bNukeImmune>0</bNukeImmune>
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
-			<!-- custom: GPT-5.2-Codex: Long_Comments_XML.txt #9 -->
-			<iAIWeight>70</iAIWeight>
+			<!-- custom: September 2026 audit: restore Barracks to iAIWeight 0. K-Mod already values applicable XP contextually; the old +70 whole-building bonus could dominate that context and amplify unrelated unique-building effects. See KI#48.5. Was 70. (ChatGPT-5.6-Sol) -->
+			<iAIWeight>0</iAIWeight>
 			<iCost>50</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
@@ -1559,8 +1558,8 @@
 			<bNukeImmune>0</bNukeImmune>
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
-			<!-- custom: GPT-5.2-Codex: Long_Comments_XML.txt #9 -->
-			<iAIWeight>75</iAIWeight>
+			<!-- custom: Follow the September 2026 Barracks-class iAIWeight rollback: value actual XP/other effects plus flavour instead of an unconditional whole-building bonus. See KI#48.5. Was 75. (ChatGPT-5.6-Sol) -->
+			<iAIWeight>0</iAIWeight>
 			<!-- custom: The city maintenance effect is not that strong early, and the military effect not so strong, but increasing cost makes Shaka significantly less competitive militarily, especially early, so do not increase cost. -->
 			<iCost>50</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
@@ -1740,7 +1739,8 @@
 			<bNukeImmune>0</bNukeImmune>
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
-			<iAIWeight>70</iAIWeight>
+			<!-- custom: Follow the September 2026 Barracks-class iAIWeight rollback: value actual XP/other effects plus flavour instead of an unconditional whole-building bonus. See KI#48.5. Was 70. (ChatGPT-5.6-Sol) -->
+			<iAIWeight>0</iAIWeight>
 			<iCost>50</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
@@ -2100,8 +2100,8 @@
 			<bNukeImmune>0</bNukeImmune>
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
-			<!-- custom: GPT-5.2-Codex: Long_Comments_XML.txt #9 -->
-			<iAIWeight>70</iAIWeight>
+			<!-- custom: Follow the September 2026 Barracks-class iAIWeight rollback: value actual XP/other effects plus flavour instead of an unconditional whole-building bonus. See KI#48.5. Was 70. (ChatGPT-5.6-Sol) -->
+			<iAIWeight>0</iAIWeight>
 			<iCost>50</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
@@ -2272,8 +2272,8 @@
 			<bNukeImmune>0</bNukeImmune>
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
-			<!-- custom: note: told AIs to never build this in the DLL in as of now CvCityAI::AI_buildingValue if we don't have any of the required bonuses to produce units with it; Long_Comments_XML.txt #375; see code comment at BUILDING_BARRACKS for details, was 0 -->
-			<iAIWeight>75</iAIWeight>
+			<!-- custom: September 2026 audit: restore Stable to iAIWeight 0. The old +75 was coupled to the former hard Stable gate; without it, the unconditional bonus could inflate unrelated effects even when no trainable unit benefited from the XP. See KI#48.5. Was 75. (ChatGPT-5.6-Sol) -->
+			<iAIWeight>0</iAIWeight>
 			<iCost>60</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
@@ -2447,8 +2447,8 @@
 			<bNukeImmune>0</bNukeImmune>
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
-			<!-- custom: see code comment at BUILDING_BARRACKS and BUILDING_STABLE for details, was 0 -->
-			<iAIWeight>80</iAIWeight>
+			<!-- custom: Follow the September 2026 Stable-class iAIWeight rollback: value units that can actually use its XP and its other real effects instead of an unconditional whole-building bonus. See KI#48.5. Was 80. (ChatGPT-5.6-Sol) -->
+			<iAIWeight>0</iAIWeight>
 			<!-- custom: was 70; return to the generic Stable cost while shifting some of the Ger's raw XP advantage into a pastoral Cattle benefit. (ChatGPT-5.6-Sol) -->
 			<iCost>60</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
@@ -2636,8 +2636,8 @@
 			<bNukeImmune>0</bNukeImmune>
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
-			<!-- custom: see code comment at BUILDING_BARRACKS and BUILDING_STABLE for details, was 0 -->
-			<iAIWeight>75</iAIWeight>
+			<!-- custom: Follow the September 2026 Stable-class iAIWeight rollback: value units that can actually use its XP and its other real effects instead of an unconditional whole-building bonus. See KI#48.5. Was 75. (ChatGPT-5.6-Sol) -->
+			<iAIWeight>0</iAIWeight>
 			<iCost>60</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
@@ -2831,8 +2831,8 @@
 			<bNukeImmune>0</bNukeImmune>
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
-			<!-- custom: note: told AIs to never build this in the DLL in as of now CvCityAI::AI_buildingValue if we don't have any of the required bonuses to produce units with it; Long_Comments_XML.txt #375; see code comment at BUILDING_BARRACKS for details, was 0 -->
-			<iAIWeight>75</iAIWeight>
+			<!-- custom: Follow the September 2026 Stable-class iAIWeight rollback: value units that can actually use its XP and its other real effects instead of an unconditional whole-building bonus. See KI#48.5. Was 75. (ChatGPT-5.6-Sol) -->
+			<iAIWeight>0</iAIWeight>
 			<iCost>60</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>

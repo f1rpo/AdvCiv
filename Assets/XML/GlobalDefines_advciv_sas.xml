@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- 
+<!--
 AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 -->
@@ -1582,7 +1582,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_BBAI_LIMITED_PROJECT_PRODUCTION_LOG_LEVEL</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
-	<!-- custom: Dedicated building-production diagnostics for comparing useful infrastructure opportunities with actual production choices, including the hard-needed and high-return cheap-infrastructure efficiency gates. Level 2 records the best general building opportunity and the final production target; level 3 also records health, happiness, maintenance, food, production, gold, and research-focused building candidates plus representative land-military unit costs. Diagnostic-only and adds no RNG calls. (ChatGPT-5.6-Sol) -->
+	<!-- custom: Dedicated building-production diagnostics for comparing useful infrastructure opportunities with actual production choices, including the hard-needed and high-return cheap-infrastructure efficiency gates. Level 2 notably records the best general building opportunity and the final production target; level 3 also notably records health, happiness, maintenance, food, production, gold, and research-focused building candidates plus representative land-military unit costs. Diagnostic-only and adds no RNG calls. (ChatGPT-5.6-Sol) -->
 	<Define>
 		<DefineName>SAS_BBAI_BUILDING_PRODUCTION_LOG_LEVEL</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
@@ -2043,147 +2043,93 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_WORKER_AI_IRRIGATION_CHAIN_OTHER_IMPROVEMENT_OVERWRITE_PENALTY</DefineName>
 		<iDefineIntVal>2200</iDefineIntVal>
 	</Define>
-	<!-- custom: Long_Comments_XML.txt #198 -->
+	<!-- custom: Percentage of one citizen value added for each point of average before/after health deficit per point of unhealthy-food waste removed. The validated default 10 is equivalent to the former hardcoded / 20 formula because the code sums the before/after deficits; 0 disables only this added severity urgency. See KI#48.6. (GPT-5.6-Sol) -->
 	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_OPTIMIZE</DefineName>
+		<DefineName>SAS_AI_BUILDING_VALUE_HEALTH_RELIEF_AVERAGE_DEFICIT_URGENCY_PERCENT</DefineName>
+		<iDefineIntVal>10</iDefineIntVal>
+	</Define>
+	<!-- custom: Percentage of one citizen value added per point of unhealthy-food waste removed that directly closes a current food deficit. The validated default 100 retains the full starvation/depopulation urgency; 0 disables only this added term. See KI#48.6. (GPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_AI_BUILDING_VALUE_HEALTH_RELIEF_STARVATION_CITIZEN_VALUE_PERCENT</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<!-- custom: Inherited K-Mod/AdvC military-production valuation A/B. 1 values generic MilitaryProductionModifier effects from actual city base-production throughput weighted by the city's authoritative AI_buildUnitProb demand estimate, so financial/economic pressure, XP specialization, era pacing, military power/throttling and SAS under-strength response can all affect the expected payoff; also handles negative modifiers and pre-contact contexts. 0 preserves the inherited fixed/rank-based positive-only formula for comparison. This is independent from the SAS Wonder prefilter so inherited valuation can be tested with National-Wonder policy disabled. See KI#48.5. (ChatGPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_AI_BUILDING_VALUE_MILITARY_PRODUCTION_MODIFIER_THROUGHPUT_OPTIMIZE</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
+	<!-- custom: Minimum expected unit-production share for positive MilitaryProductionModifier National Wonders. 0 keeps ordinary dynamic AI_buildUnitProb weighting, 75 is the validated conservative specialization alternative, and the tested default 100 treats selecting the one-per-player building as full military-city specialization; values are clamped to 0-100 and act only as a floor. See KI#48.16. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_REGULAR_BUILDINGS_OPTIMIZE</DefineName>
+		<DefineName>SAS_AI_BUILDING_VALUE_MILITARY_NATIONAL_WONDER_UNIT_PRODUCTION_SHARE_FLOOR_PERCENT</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<!-- custom: 1 removes a domain-production component when this city cannot train any affected unit; prospective technology valuation includes the candidate and its guaranteed XML prerequisites. 0 preserves inherited unconditional applicability. See KI#48.14. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_AI_BUILDING_VALUE_DOMAIN_PRODUCTION_MODIFIER_APPLICABILITY_OPTIMIZE</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
-	<!-- custom: knob common to all wonders, see below for more specific ones alternatively i mean. -->
+	<!-- custom: 1 replaces inherited fixed/rank-based DOMAIN_LAND scoring with city-production throughput weighted by military and contextual land demand; 0 preserves inherited valuation for regression comparison. See KI#48.13. (ChatGPT-5.6-Sol) -->
 	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_WONDERS_OPTIMIZE</DefineName>
+		<DefineName>SAS_AI_BUILDING_VALUE_DOMAIN_LAND_PRODUCTION_MODIFIER_THROUGHPUT_OPTIMIZE</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
-	<!-- custom: Long_Comments_XML.txt #162 -->
-	<!-- custom: if value is 0 (disabled), we won't build great wall after specified era index (e.g. 2, so from era 3 = medieval era, we won't build great wall. We assume this is all a wonder has else said wonder would be op so no need to check other things) -->
+	<!-- custom: 1 replaces inherited fixed/rank-based DOMAIN_SEA scoring with city-production throughput weighted by military and water-world demand; 0 preserves inherited valuation. LAND is controlled above, sea XP below, and AIR remains inherited. See KI#48.11. (ChatGPT-5.6-Sol) -->
 	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_ANTI_BARBARIAN_BORDER_WONDER_LATE_ENABLE</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
+		<DefineName>SAS_AI_BUILDING_VALUE_DOMAIN_SEA_PRODUCTION_MODIFIER_THROUGHPUT_OPTIMIZE</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
+	<!-- custom: Inherited K-Mod/AdvC DOMAIN_SEA free-experience valuation optimization. 1 replaces the fixed sea-XP * 7 contribution with a continuous weight derived from the same AI_buildUnitProb * AI_calculateWaterWorldPercent expected naval-production share used by the validated sea-production cure. Full generic XP weight is reached when roughly half of city production is expected to be naval; 0 preserves the inherited fixed value for regression comparison. This changes only DOMAIN_SEA free experience and leaves generic/unit-combat/land/air XP unchanged. See KI#48.12. (ChatGPT-5.6-Sol) -->
 	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_ANTI_BARBARIAN_BORDER_WONDER_LATE_MAX_ERA</DefineName>
+		<DefineName>SAS_AI_BUILDING_VALUE_DOMAIN_SEA_FREE_EXPERIENCE_THROUGHPUT_OPTIMIZE</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<!-- custom: World-Wonder selection eagerness percentage applied only inside AI_bestBuildingThreshold after inherited/personality/random candidate value is known and before stored-production continuation is added. 100 preserves ordinary eagerness; lower values make all AI empires more militarily/infrastructure-oriented even when locally secure (e.g. 60 for a deliberately low-Wonder game); values are clamped to 0-200. This does not modify AI_buildingValue and therefore cannot recreate the retired FORCE_CHEAP_SAFE technology-planning pollution. See KI#48.20. (ChatGPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_AI_BEST_BUILDING_THRESHOLD_WORLD_WONDER_EAGERNESS_PERCENT</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+	<!-- custom: Enable the KI#48.20 local-area World-Wonder opportunity-cost adjustment. A landmass with no independent rival, or with no unknown local rival bloc and at least the configured power lead over its strongest known local rival, keeps full local value; otherwise the percentage below applies. This is deliberately a soft candidate-value multiplier rather than a hard veto. 1 enables; 0 disables only the local-exposure part while the global eagerness percentage above remains available. See KI#48.20. (ChatGPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_AI_BEST_BUILDING_THRESHOLD_WORLD_WONDER_LOCAL_EXPOSURE_OPTIMIZE</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<!-- custom: Percentage of normal World-Wonder candidate value retained when the local-exposure rule above applies. Default 80 is the first deliberately conservative calibration candidate: strong enough to create meaningful military/infrastructure opportunity cost without making an exceptional or nearly completed Wonder impossible. Values are clamped to 0-100. See KI#48.20. (ChatGPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_AI_BEST_BUILDING_THRESHOLD_WORLD_WONDER_LOCAL_EXPOSURE_VALUE_PERCENT</DefineName>
+		<iDefineIntVal>80</iDefineIntVal>
+	</Define>
+	<!-- custom: Minimum our-bloc power as a percentage of the strongest known independent rival bloc with cities on this landmass for the no-penalty local-dominance exemption. Default 125 means a clear 25% lead; unknown local rival blocs suppress the exemption rather than being assumed harmless. This strongest-rival comparison intentionally coexists with KI#53.5's combined-local-rival percentage because the two policies ask different questions. See KI#48.20 and KI#53.5. (ChatGPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_AI_BEST_BUILDING_THRESHOLD_WORLD_WONDER_LOCAL_DOMINANCE_MIN_POWER_PERCENT</DefineName>
+		<iDefineIntVal>125</iDefineIntVal>
+	</Define>
+
+
+
+	<!-- custom: Enable the evidence-driven proactive Walls/Castle-style fortification opportunity inside AI_chooseProduction. The removed legacy CvCity::doTurn emergency layer rewrote production after hammers were spent; this replacement acts through the normal production flow only after current-target continuity, no-defender production and strike recovery have had priority. 1 enables; 0 disables. See KI#48.8. (ChatGPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_AI_CHOOSE_PRODUCTION_PROACTIVE_FORTIFICATION_OPTIMIZE</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
+	</Define>
+	<!-- custom: Absolute cap in actual game turns for the proactive fortification window. This deliberately is not game-speed scaled: invading units still move in map turns, so slower production speeds should make a fortification harder, not equally easy, to finish before the assault. Keep TURNS_UNSCALED_GAMESPEED in the name; the turn-define CI caught the initially ambiguous name and this classification prevents later accidental scaling. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_AI_CHOOSE_PRODUCTION_PROACTIVE_FORTIFICATION_MAX_TURNS_UNSCALED_GAMESPEED</DefineName>
+		<iDefineIntVal>8</iDefineIntVal>
+	</Define>
+	<!-- custom: Base unscaled construction turns per plot to the nearest visible city-capturing land attacker before the maximum above. 2 leaves room for slow-stack assembly and siege/bombardment without inventing a synthetic pathfinding ETA; fast-only visible threats are tightened in code. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_AI_CHOOSE_PRODUCTION_PROACTIVE_FORTIFICATION_TURNS_UNSCALED_GAMESPEED_PER_DISTANCE</DefineName>
 		<iDefineIntVal>2</iDefineIntVal>
 	</Define>
-	<!-- custom: knob common to all world wonders, see below for more specific ones alternatively i mean. -->
-	<!-- custom: Long_Comments_XML.txt #164 -->
+	<!-- custom: Minimum AI city-value percentage when inherited city safety is still SAFE/PERFECT. Capitals are always considered valuable enough; only genuinely THREATENED/EVACUATING immediate-danger cities bypass this value gate. (ChatGPT-5.6-Sol) -->
 	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_WORLD_WONDERS_OPTIMIZE</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
+		<DefineName>SAS_AI_CHOOSE_PRODUCTION_PROACTIVE_FORTIFICATION_MIN_CITY_VALUE_PERCENT</DefineName>
+		<iDefineIntVal>50</iDefineIntVal>
 	</Define>
-	<!-- custom: this ignores following SAS_AI_BUILDING_VALUE_WORLD_WONDERS_OPTIMIZE related rejects: if a world wonder is cheap enough, grab it ASAP. These are Normal-speed caps and are scaled by game-speed ConstructPercent to match getProductionNeeded; see Long_Comments_XML.txt #163 and KI#205. -->
+	<!-- custom: Minimum visible city-capturing land attackers for a proactive approach to count as meaningful without siege. The code also requires at least twice the city's current defender count, whichever threshold is higher; a visible bombarder can lower this only to a still-real stack of at least 3 attackers and at least one more attacker than the current defender count. (ChatGPT-5.6-Sol) -->
 	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_WORLD_WONDERS_CHEAP_ICOST_CAP_ANCIENT_NORMAL</DefineName>
-		<iDefineIntVal>60</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_WORLD_WONDERS_CHEAP_ICOST_CAP_CLASSICAL_NORMAL</DefineName>
-		<iDefineIntVal>90</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_WORLD_WONDERS_CHEAP_ICOST_CAP_MEDIEVAL_NORMAL</DefineName>
-		<iDefineIntVal>150</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_WORLD_WONDERS_CHEAP_ICOST_CAP_RENAISSANCE_NORMAL</DefineName>
-		<iDefineIntVal>200</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_WORLD_WONDERS_CHEAP_ICOST_CAP_INDUSTRIAL_NORMAL</DefineName>
-		<iDefineIntVal>250</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_WORLD_WONDERS_CHEAP_ICOST_CAP_MODERN_NORMAL</DefineName>
-		<iDefineIntVal>300</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_WORLD_WONDERS_CHEAP_ICOST_CAP_FUTURE_NORMAL</DefineName>
-		<iDefineIntVal>350</iDefineIntVal>
-	</Define>
-	<!-- Min base-hammers gate for wonders (used in CvCityAI::AI_buildingValue)
-	Formula: reject if iBaseHammersPerTurn < (MIN_BASE + iCurrentEra * EXTRA_PER_ERA) -->
-
-	<!-- custom: Long_Comments_XML.txt #102 -->
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_WORLD_WONDERS_MIN_BASE_HAMMERS</DefineName>
-		<iDefineIntVal>6</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_WORLD_WONDERS_MIN_EXTRA_HAMMERS_PER_ERA</DefineName>
-		<iDefineIntVal>3</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_NATIONAL_WONDERS_MIN_BASE_HAMMERS</DefineName>
-		<iDefineIntVal>6</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_NATIONAL_WONDERS_MIN_EXTRA_HAMMERS_PER_ERA</DefineName>
-		<iDefineIntVal>2</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_UNKNOWN_WONDERS_MIN_BASE_HAMMERS</DefineName>
-		<iDefineIntVal>6</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_UNKNOWN_WONDERS_MIN_EXTRA_HAMMERS_PER_ERA</DefineName>
-		<iDefineIntVal>2</iDefineIntVal>
-	</Define>
-	<!-- custom: Long_Comments_XML.txt #183 -->
-	<!-- custom: Long_Comments_XML.txt #111 -->
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_WORLD_WONDERS_LOWER_HAMMER_OK_AT_EXPANSION_PHASE_TURN_NORMAL_GAMESPEED</DefineName>
-		<iDefineIntVal>0</iDefineIntVal>
-	</Define>
-	<!-- custom: skip wonder if many rivals can build it, most likely we won't finish it on time, better assume so in most cases should be efficient and help AI not build unbuildable wonders, if not already handled by code elsewhere but added to be safe and to not check all their code -->
-	<!-- custom: Long_Comments_XML.txt #182 -->
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_WORLD_WONDERS_DONT_BUILD_IF_RIVALS_KNOW_TECH</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
-	<!-- custom: specific the number of rivals we max tolerate before we give up on the idea of building this wonder. Note: if we are already (see below for completion percent to keep building it) building it, then ignore this. E.g. if value is 3, it means if 3 or more rivals know (as of now) TECH_CALENDAR, then we won't build the oracle. -->
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_WORLD_WONDERS_DONT_BUILD_IF_RIVALS_KNOW_NUM</DefineName>
-		<iDefineIntVal>3</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_NATIONAL_WONDERS_OPTIMIZE</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
-	<!-- custom: if somehow a building is a wonder but not a world wonder nor a national wonder, enable/disable this to specifically enable advciv-sas optimizations for this type of building if it ever exists (i don't think it does, but i don't know too much to tell, so added the knob to be safe and for exhaustiveness i mean) -->
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_UNKNOWN_WONDERS_OPTIMIZE</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
-
-
-
-	<!-- custom: if higher than this value, count this city as a city with high maintenance per turn where we would favour building maintenance per turn reducer building(s) in this city. E.g. if value is 600 (6 gpt) or higher, consider building the courthouse class building (or civ-specific variants) in this city -->
-	<!-- // < 6 gpt => not worth it yet -->
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_GATE_M100_REGULAR_BUILDINGS</DefineName>
-		<iDefineIntVal>600</iDefineIntVal>
-	</Define>
-	<!-- custom: if higher than this value, count this city as a city with high maintenance per turn where we may favour building maintenance per turn reducer wonder(s) in this city. E.g. if value is 600 (6 gpt) or higher, consider building the forbidden palace class building (or civ-specific variants) in this city -->
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_GATE_M100_WONDERS</DefineName>
-		<iDefineIntVal>600</iDefineIntVal>
-	</Define>
-	<!-- custom: e.g. as of now in advciv-sas, "stable" class buildings (including civ-specific variants) to give XP to mounted untis such as horse knights, chariots, camel cuirassiers, war elephants, etc.). Adjust as per your xml. -->
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_MOUNTED_UNITS_EXP_BUILDINGCLASS_NAME</DefineName>
-		<DefineTextVal>BUILDINGCLASS_STABLE</DefineTextVal>
-	</Define>
-	<!-- custom: e.g. as of now in advciv-sas is as such; adjust as per your xml. -->
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_GOVERNMENT_CENTER_PALACE_BUILDINGCLASS_NAME</DefineName>
-		<DefineTextVal>BUILDINGCLASS_PALACE</DefineTextVal>
-	</Define>
-	<!-- custom: Long_Comments_XML.txt #205 -->
-	<Define>
-		<DefineName>SAS_AI_BUILDING_VALUE_WONDERS_MAX_BASE_TURNS_NORMAL_GAMESPEED_TO_BUILD</DefineName>
-		<iDefineIntVal>20</iDefineIntVal>
+		<DefineName>SAS_AI_CHOOSE_PRODUCTION_PROACTIVE_FORTIFICATION_MIN_VISIBLE_ATTACKERS</DefineName>
+		<iDefineIntVal>4</iDefineIntVal>
 	</Define>
 
 
@@ -2764,7 +2710,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</Define>
 	<!-- (2) Vassal: devalue techs that our "cluster" already knows -->
 	<!-- custom: if our master knows the tech, devalue researching it, we can get it from them rather. -->
-	<!-- // Master -->  
+	<!-- // Master -->
 	<Define>
 		<DefineName>SAS_AI_TECH_VALUE_VASSAL_FROM_MASTER_TECH_RESEARCH_PERCENT</DefineName>
 		<iDefineIntVal>25</iDefineIntVal>
@@ -3209,92 +3155,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 
 
 
-	<!-- custom: Emergency/force the most hammer-efficient currently constructible building with a positive sea-plot food change when a coastal city has low food. Set to 1 to enable; this fixed coastal tundra AI cities that otherwise remained stagnant for dozens of turns. The building is discovered from civilization-specific XML rather than a configured class name. (GPT-5.6-Sol) -->
-	<Define>
-		<DefineName>SAS_DO_TURN_FORCE_WATER_FOOD_BUILDING</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
-	<!-- custom: if food per turn in city is <= 1 food per turn and city is coastal, then force harbor as we would stagnate soon anyway -->
-	<Define>
-		<DefineName>SAS_DO_TURN_FORCE_WATER_FOOD_BUILDING_FOOD_THRESHOLD</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
-	<!-- custom: Force the most hammer-efficient currently constructible building with a positive sea-plot production change for non-human coastal cities that are big enough but still have low production or low food surplus. Such a building can take significant time, but these cities are not likely to contribute much short-term production anyway; if not in immediate danger, making their water plots produce hammers first should make them much more useful later. Defense emergencies still run earlier in CvCity::doTurn. The building is discovered from civilization-specific XML rather than a configured class name. (GPT-5.5 + GPT-5.6-Sol) -->
-	<Define>
-		<DefineName>SAS_DO_TURN_FORCE_WATER_HAMMER_BUILDING</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_DO_TURN_FORCE_WATER_HAMMER_BUILDING_MIN_POPULATION</DefineName>
-		<iDefineIntVal>6</iDefineIntVal>
-	</Define>
-	<!-- custom: Production-per-pop is stored per 100: 300 means 3 hammers/pop. Set enable to 0 to disable. (GPT-5.5) -->
-	<Define>
-		<DefineName>SAS_DO_TURN_FORCE_WATER_HAMMER_BUILDING_MAX_PRODUCTION_PER_POP_100</DefineName>
-		<iDefineIntVal>300</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_DO_TURN_FORCE_WATER_HAMMER_BUILDING_FOOD_SURPLUS_THRESHOLD</DefineName>
-		<iDefineIntVal>4</iDefineIntVal>
-	</Define>
-
-
-
-	<!-- custom: update: the harbor is more likely to be useful than walls for a coastal city, plus a harbor would help us build our walls or such faster anyway, so risk weaker defenses to make sure we get the very important harbor first rather; Long_Comments_XML.txt #173 -->
-	<!-- classify "mostly water inner ring" cities in CvCity::doTurn. If the 8 inner BFC tiles (excluding the city) have <= this many non-water, non-peak tiles, we treat the city as hammer-poor, low-risk island/peninsula for emergency economic/defense rules (notably Harbor/Port and Walls/Castle). Example: 2 means 0, 1, or 2 land tiles. -->
-	<Define>
-		<DefineName>SAS_DO_TURN_MAX_INNER_RING_NON_WATER_NON_PEAK_TILES_WATER_CITY</DefineName>
-		<iDefineIntVal>2</iDefineIntVal>
-	</Define>
-	<!-- custom: e.g. if city has 4 base hammers (base production before any modifier is applied) and we are at era 1 (era_classical.), then if city has less than 5 * 1 + 2 = 7 base hammers at classical, it will be considered a low hammer city and won't do the emergency defense-building override (as of now Walls/Castle); these low-hammer or watery cities are usually better left to economic development instead. -->
-	<Define>
-		<DefineName>SAS_DO_TURN_LOW_BASE_HAMMERS_BASE_THRESHOLD</DefineName>
-		<iDefineIntVal>3</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_DO_TURN_LOW_BASE_HAMMERS_PER_ERA_THRESHOLD</DefineName>
-		<iDefineIntVal>2</iDefineIntVal>
-	</Define>
-
-
-
-	<!-- custom: emergency buildings to build if we are at war and weaker, or some similar risky situation where we may be backstabbed and it is advisable to have some defense buildings in our city; Long_Comments_XML.txt #172 -->
-	<!-- // Your broader trigger: strong enemy, or we’re at war and they aren’t weak, or city flagged in danger -->
-	<Define>
-		<DefineName>SAS_DO_TURN_FORCE_DEFENSE_BUILDINGS</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
-	<!-- custom: 1 skips emergency defense (e.g. so far Walls/Castle) overrides in sheltered cities: no immediate land danger and no known current/chosen-war land border in the BFC plus its one-tile perimeter. Ocean-coastal cities remain eligible during an active overseas/non-land-area war, or when the existing AI water-danger check sees a nearby enemy naval unit within 2 tiles. Ordinary building choices and existing production are unaffected. 0 restores the previous emergency location policy for comparison; restart Civ4 after changing this cached define. (GPT-6 + ChatGPT-5.6-Sol) -->
-	<Define>
-		<DefineName>SAS_DO_TURN_FORCE_DEFENSE_BUILDINGS_SKIP_SHELTERED_ENABLE</DefineName>
-		<iDefineIntVal>1</iDefineIntVal>
-	</Define>
-	<!-- custom: adjust as per your xml if your defense buildings to urgently build are not the walls and the castle -->
-	<Define>
-		<DefineName>SAS_DO_TURN_FORCE_DEFENSE_BUILDINGS_1_BUILDINGCLASS_FULL_NAME</DefineName>
-		<DefineTextVal>BUILDINGCLASS_WALLS</DefineTextVal>
-	</Define>
-	<!-- custom: don't force walls or whichever building you set too soon, threats are not high, and we risk halting key settler units. Turn 100 at normal is for example turn 100 * 1.5 = turn 150 at gamespeed epic -->
-	<Define>
-		<DefineName>SAS_DO_TURN_FORCE_DEFENSE_BUILDINGS_1_MIN_TURN_NORMAL_GAMESPEED</DefineName>
-		<iDefineIntVal>80</iDefineIntVal>
-	</Define>
-	<Define>
-		<DefineName>SAS_DO_TURN_FORCE_DEFENSE_BUILDINGS_2_BUILDINGCLASS_FULL_NAME</DefineName>
-		<DefineTextVal>BUILDINGCLASS_CASTLE</DefineTextVal>
-	</Define>
-	<!-- custom: don't force castle or whichever building you set too soon similarly -->
-	<Define>
-		<DefineName>SAS_DO_TURN_FORCE_DEFENSE_BUILDINGS_2_MIN_TURN_NORMAL_GAMESPEED</DefineName>
-		<iDefineIntVal>100</iDefineIntVal>
-	</Define>
-	<!-- custom: note 3: higher increments like 3, 4, 5, etc. are not supported in current code, implement logic in .cpp or such files if you want such defines in your mod mod if you have extra building class defense buildings you want AIs to build urgently when needed -->
-
-
-
-
-
-
 	<!-- custom: enable (1, recommended) / disable (0) to toggle advciv-sas smart unit promotions optimization (e.g. as of now pick city raider for UNITAI_ATTACK_CITY units first if not in danger or enemy is strong, or don't pick medic or woodsman promotions (inefficient), etc.) -->
 	<Define>
 		<DefineName>SAS_AI_PROMOTION_VALUE_OPTIMIZE</DefineName>
@@ -3333,15 +3193,10 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_GREAT_GENERAL_AS_MILITARY_INSTRUCTOR_TOP_N_HAMMER_EXTRA_VALUING</DefineName>
 		<iDefineIntVal>1000</iDefineIntVal>
 	</Define>
-	<!-- custom: if city has or is building this buildingclass, increase the above value by this number (adjust as per your xml for which building it is) -->
+	<!-- custom: Add this value for each positive military-unit Production percentage point supplied by the city's active buildings and current building production. This replaces the hardcoded Heroic Epic building-class name and fixed +500 value. With 10, Heroic Epic's current +50 still adds 500, while civ-specific, mod-added, smaller, and stacked building effects scale automatically. (GPT-5.6-Sol) -->
 	<Define>
-		<DefineName>SAS_GREAT_GENERAL_AS_MILITARY_INSTRUCTOR_TOP_N_HAMMER_EXTRA_VALUING_BUILDINGCLASS_FULL_NAME</DefineName>
-		<DefineTextVal>BUILDINGCLASS_HEROIC_EPIC</DefineTextVal>
-	</Define>
-	<!-- custom: Long_Comments_XML.txt #235 -->
-	<Define>
-		<DefineName>SAS_GREAT_GENERAL_AS_MILITARY_INSTRUCTOR_TOP_N_HAMMER_EXTRA_VALUING_BUILDINGCLASS_FULL_NAME_EXTRA_VALUING</DefineName>
-		<iDefineIntVal>500</iDefineIntVal>
+		<DefineName>SAS_GREAT_GENERAL_AS_MILITARY_INSTRUCTOR_TOP_N_HAMMER_MILITARY_PRODUCTION_MODIFIER_EXTRA_VALUING</DefineName>
+		<iDefineIntVal>10</iDefineIntVal>
 	</Define>
 	<!-- custom: was 1 in base advciv -->
 	<!-- High iMaxCount means we don't care about existing instructors -->

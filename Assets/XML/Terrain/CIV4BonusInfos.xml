@@ -1583,7 +1583,6 @@
 				<iYieldChange>0</iYieldChange>
 			</YieldChanges>
 			<iAITradeModifier>0</iAITradeModifier>
-			<!-- custom: GPT-5.2-Codex: Long_Comments_XML.txt #26 -->
 			<iAIObjective>0</iAIObjective>
 			<iHealth>0</iHealth>
 			<iHappiness>1</iHappiness>

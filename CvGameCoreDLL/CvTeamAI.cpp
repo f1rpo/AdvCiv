@@ -2176,8 +2176,7 @@ int CvTeamAI::AI_techTradeVal(TechTypes eTech, TeamTypes eFromTeam, bool bIgnore
 		if (bSAS_AI_TECH_TRADE_VAL_MILITARY_POWER_OPTIMIZE)
 		{
 			const int iEnemyPowerPercent = AI_getEnemyPowerPercent(true);
-			static const int iSAS_ENEMY_STRONG_POWER_THRESHOLD = GC.getDefineINT("SAS_ENEMY_STRONG_POWER_THRESHOLD");
-			const bool bEnemyStrong = (iEnemyPowerPercent >= iSAS_ENEMY_STRONG_POWER_THRESHOLD);
+			const bool bEnemyStrong = SASWarPowerContext::isEnemyStrong(iEnemyPowerPercent);
 
 			if (bEnemyStrong)
 			{

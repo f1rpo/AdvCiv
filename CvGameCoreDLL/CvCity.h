@@ -23,12 +23,6 @@ public:
 	void reloadEntity(); // advc.095
 	void kill(bool bUpdatePlotGroups, /* advc.001: */ bool bBumpUnits = true);									// Exposed to Python
 
-	// Helper: attempts to force-construct a single building
-	// Returns true if we set an emergency building order (or one was already queued)
-	bool SASTryEmergencyBuilding(BuildingClassTypes eBuildingClass, bool* pbDefenseBlockedByShelter = NULL, bool bLandDanger = false);
-	// <!-- custom: Select a civilization-specific water-yield building from its XML effect instead of a configured building-class name. (GPT-5.6-Sol) -->
-	bool SASTryEmergencySeaYieldBuilding(YieldTypes eYield);
-
 	void doTurn();
 	void doRevolt(); // advc: previously in CvPlot::doCulture
 	/*	K-Mod. public for the "insert culture" espionage mission.
@@ -80,7 +74,8 @@ public:
 
 	void verifyProduction(); // advc.064d: public wrapper for doCheckProduction
 	// advc.001b <!-- custom: hoisted from multiline signature between `bCheckAirUnitCap` and `eAssumeVailable` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-	bool canTrain(UnitTypes eUnit, bool bContinue = false, bool bTestVisible = false, bool bIgnoreCost = false, bool bIgnoreUpgrades = false, bool bCheckAirUnitCap = true, BonusTypes eAssumeVailable = NO_BONUS) const; // advc.001u; Exposed to Python
+	// <!-- custom: eAssumeTech passes one prospective technology through ordinary city/player legality; player-level checks also recognize its guaranteed XML prerequisites. See KI#48.14. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	bool canTrain(UnitTypes eUnit, bool bContinue = false, bool bTestVisible = false, bool bIgnoreCost = false, bool bIgnoreUpgrades = false, bool bCheckAirUnitCap = true, BonusTypes eAssumeVailable = NO_BONUS, TechTypes eAssumeTech = NO_TECH) const; // advc.001u; Exposed to Python
 	bool canUpgradeTo(UnitTypes eUnit) const; // advc.001b
 	bool canTrain(UnitCombatTypes eUnitCombat) const;
 	bool canConstruct(BuildingTypes eBuilding, bool bContinue = false, bool bTestVisible = false, bool bIgnoreCost = false, bool bIgnoreTech = false) const; // K-Mod; Exposed to Python

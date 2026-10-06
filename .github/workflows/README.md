@@ -404,7 +404,11 @@ For resource-specific connecting improvements, checks that the resource's `TechC
 
 ### `build/sas_revision_history.py`
 
-Requires full Git history and validates every finalized SASGameRecord revision hash against HEAD ancestry. A stale amended/rebased commit can still exist as a Git object, so mere existence is insufficient. From revision 69 onward, the referenced source header must also contain that entry's exact revision marker. Only the newest entry may say `pending`: a commit cannot store its own final hash, but older entries must be finalized. This complements the existing contiguous-revision/current-marker check and requires `actions/checkout` `fetch-depth: 0`.
+Validates every finalized SASGameRecord revision hash against the repository's canonical default-branch ancestry. A stale amended/rebased commit can still exist as a Git object, while a valid mainline commit need not be an ancestor of a feature branch, so neither object existence nor current `HEAD` ancestry is sufficient.
+
+CI passes the GitHub default branch explicitly; local runs discover `origin/HEAD`, `origin/main` or `main`, and abstain from ancestry validation when none is available.
+
+From revision 69 onward, the referenced source header must also contain that entry's exact revision marker. Only the newest entry may say `pending`: a commit cannot store its own final hash, but older entries must be finalized. This complements the existing contiguous-revision/current-marker check and requires `actions/checkout` `fetch-depth: 0` when the default branch is available.
 
 Regression fixtures live in [`.github/workflows/tests/test_ci_backlog.py`](/.github/workflows/tests/test_ci_backlog.py). Run `python -m unittest discover -s .github/workflows/tests` locally. Fixtures use isolated temporary repositories; they do not commit or modify the development checkout.
 

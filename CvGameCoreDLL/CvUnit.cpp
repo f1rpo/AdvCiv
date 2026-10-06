@@ -3634,50 +3634,6 @@ bool CvUnit::canScrap() const
 			{
 				return false;
 			}
-
-			// <!-- custom: no need for these below, but kept in case as they were bit tedious to make for this cvunit.cpp fileand in case we change our rules here or use them for something else similar-->
-			// else
-			// {
-			// 	const CvPlayerAI& kOwner = GET_PLAYER(getOwner());
-			// 	const CvTeamAI&   kTeam  = GET_TEAM(getTeam());
-
-			// 	// <!-- custom: we already return false and never ever scrap land military units so no need to add them here inefficiently and most importantly unneededly -->
-
-			// 	// Situation read
-			// 	const bool bWarPlan = kOwner.AI_isFocusWar();
-			// 	const bool bAtWar = (kTeam.getNumWars() > 0);
-			// 	const int  iEnemyPowerPercent = kTeam.AI_getEnemyPowerPercent(true);
-			// 	static const int iSAS_ENEMY_STRONG_POWER_THRESHOLD = GC.getDefineINT("SAS_ENEMY_STRONG_POWER_THRESHOLD"); // e.g. 120
-			// 	const bool bEnemyStrong = (iEnemyPowerPercent >= iSAS_ENEMY_STRONG_POWER_THRESHOLD);
-			// 	static const int iSAS_ENEMY_WEAK_POWER_THRESHOLD = GC.getDefineINT("SAS_ENEMY_WEAK_POWER_THRESHOLD"); // e.g. 80
-			// 	const bool bEnemyWeak   = (iEnemyPowerPercent <= iSAS_ENEMY_WEAK_POWER_THRESHOLD);
-
-			// 	// There is no AI_isDanger() at player scope. Build a bDanger flag by scanning your cities.
-			// 	// Danger heuristic: any unsafe city or any plot danger near a city
-			// 	bool bDanger = false;
-			// 	FOR_EACH_CITYAI(pCityAI, kOwner)
-			// 	{
-			// 		if (!pCityAI->AI_isSafe() ||
-			// 			kOwner.AI_isAnyPlotDanger(*pCityAI->plot(), 2, /*bTestMoves=*/false))
-			// 		{
-			// 			bDanger = true;
-			// 			break;
-			// 		}
-			// 	}
-			// 	// We *disallow scrapping* during any of these conditions.
-			// 	if (canFight())
-			// 	{
-			// 		// newborns: let them live a few turns
-			// 		if (kGame.getGameTurn() - getGameTurnCreated() < 5)
-			// 		{
-			// 			return false;
-			// 		}
-			// 		if (bAtWar || bEnemyStrong || bEnemyWeak || bDanger || bWarPlan)
-			// 		{
-			// 			return false;
-			// 		}
-			// 	}
-			// }
 		}
 
 		// <!-- custom: these below should happen less often, for computation saving put them at the end-->

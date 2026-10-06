@@ -3111,8 +3111,7 @@ void CvPlayer::doTurn()
 	doEspionagePoints();
 
 	// <!-- custom: Research valuation can populate neutral construction values before AI_doCommerce/AI_doCivics/AI_doReligion change their inputs, and doResearch above can complete the newly valued technology.
-	// Establish a fresh cache boundary immediately before city turns so production cannot consume those earlier values.
-	// This intentionally supplements rather than replaces K-Mod's pre-research clear. See KI#821. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// Establish a fresh cache boundary immediately before city turns so production cannot consume those earlier values. This intentionally supplements rather than replaces K-Mod's pre-research clear. See KI#821. (ChatGPT-5.6-Sol) -->
 	AI().AI_ClearConstructionValueCache();
 
 	// <!-- custom: Manual human cities are sampled before end-turn production processing, after the player had the opportunity to choose; sampling afterward would misclassify a normal item completed during doProduction while its new popup awaits input.
@@ -5574,7 +5573,42 @@ void CvPlayer::found(int iX, int iY)
 }
 
 
-bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool bIgnoreCost) const
+// <!-- custom: Prospective evaluation can value technologies several steps deep, so include a unit technology when it is the candidate or a guaranteed prerequisite of that candidate.
+// Every AND branch is required; an OR ancestry contributes only when every still-possible alternative requires the same technology.
+// Treating the union of OR branches as simultaneously known incorrectly granted units from mutually exclusive research paths.
+// NO_TECH remains strictly current-state-only. See KI#48.14. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+static bool SAS_isTechKnownOrGuaranteedPrerequisiteOf(TeamTypes eTeam, TechTypes eRequiredTech, TechTypes eAssumeTech)
+{
+	if (eRequiredTech == NO_TECH)
+		return true;
+	if (GET_TEAM(eTeam).isHasTech(eRequiredTech) || eRequiredTech == eAssumeTech)
+		return true;
+	if (eAssumeTech == NO_TECH || GET_TEAM(eTeam).isHasTech(eAssumeTech))
+		return false;
+	CvTechInfo const& kAssumeTech = GC.getInfo(eAssumeTech);
+	for (int i = 0; i < kAssumeTech.getNumAndTechPrereqs(); i++)
+	{
+		if (SAS_isTechKnownOrGuaranteedPrerequisiteOf(eTeam, eRequiredTech, kAssumeTech.getPrereqAndTechs(i)))
+			return true;
+	}
+	int const iNumOrPrereqs = kAssumeTech.getNumOrTechPrereqs();
+	if (iNumOrPrereqs <= 0)
+		return false;
+	for (int i = 0; i < kAssumeTech.getNumOrTechPrereqs(); i++)
+	{
+		TechTypes const eOrPrereq = kAssumeTech.getPrereqOrTechs(i);
+		if (GET_TEAM(eTeam).isHasTech(eOrPrereq) ||
+			!SAS_isTechKnownOrGuaranteedPrerequisiteOf(eTeam, eRequiredTech, eOrPrereq))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+
+// <!-- custom: eAssumeTech is normally NO_TECH; prospective building valuation passes its candidate technology so units unlocked by it or its guaranteed prerequisites can satisfy domain applicability without changing team state. See KI#48.14. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool bIgnoreCost, TechTypes eAssumeTech) const
 {
 	//PROFILE_FUNC(); // advc.003o
 	UnitClassTypes const eUnitClass = GC.getInfo(eUnit).getUnitClassType();
@@ -5588,18 +5622,22 @@ bool CvPlayer::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool
 	if (isOneCityChallenge() && GC.getInfo(eUnit).isFound())
 		return false;
 
-	if (!GET_TEAM(getTeam()).isHasTech((TechTypes)GC.getInfo(eUnit).getPrereqAndTech()))
+	// <!-- custom: Apply the candidate/guaranteed-prerequisite assumption independently to every required unit technology; other missing technologies still reject the unit. See KI#48.14. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	TechTypes const ePrereqAndTech = (TechTypes)GC.getInfo(eUnit).getPrereqAndTech();
+	if (!SAS_isTechKnownOrGuaranteedPrerequisiteOf(getTeam(), ePrereqAndTech, eAssumeTech))
 		return false;
 
 	for (int i = 0; i < GC.getInfo(eUnit).getNumPrereqAndTechs(); i++)
 	{
-		if (!GET_TEAM(getTeam()).isHasTech(GC.getInfo(eUnit).getPrereqAndTechs(i)))
+		TechTypes const ePrereqAndTech = GC.getInfo(eUnit).getPrereqAndTechs(i);
+		if (!SAS_isTechKnownOrGuaranteedPrerequisiteOf(getTeam(), ePrereqAndTech, eAssumeTech))
 			return false;
 	}
 
 	// <!-- custom: ObsoleteTech stops training once known; default NONE. (GPT-5.2-Codex) -->
+	// <!-- custom: Apply the same candidate/guaranteed-prerequisite context to ObsoleteTech; otherwise prospective applicability could count a unit that disappears before the evaluated building technology is reached. See KI#48.14. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	TechTypes const eObsoleteTech = GC.getInfo(eUnit).getObsoleteTech();
-	if (eObsoleteTech != NO_TECH && GET_TEAM(getTeam()).isHasTech(eObsoleteTech))
+	if (eObsoleteTech != NO_TECH && SAS_isTechKnownOrGuaranteedPrerequisiteOf(getTeam(), eObsoleteTech, eAssumeTech))
 		return false;
 
 	if (GC.getInfo(eUnit).getStateReligion() != NO_RELIGION)

@@ -5,7 +5,6 @@
 <!-- Copyright Firaxis Games 2005 -->
 <!-- -->
 <!-- Improvement -->
-<!-- custom: note: be careful when renaming the improvementinfo types, we use them in CvUnitAI::AI_bestCityBuild as a way to optimize worker improvement choice, so if you change it, also change it there as well and then recompile DLL, among other places that may or not need the change as well but this is the one we specifically implemented in advciv-sas as of now that would require a recompile; see also related code comment at CIV4BonusInfos.xml for details -->
 <Civ4ImprovementInfos xmlns="x-schema:CIV4TerrainSchema.xml">
 	<ImprovementInfos>
 		<ImprovementInfo> <!-- custom: IMPROVEMENT_LAND_WORKED (useful for VS Code upper tree view while scrolling) -->

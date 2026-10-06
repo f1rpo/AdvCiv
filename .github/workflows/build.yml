@@ -65,7 +65,9 @@ jobs:
       - run: python .github/workflows/build/diagnostic_log_safety.py
       - run: python .github/workflows/build/bbai_log.py
       - run: python .github/workflows/build/sas_game_record_log.py
-      - run: python .github/workflows/build/sas_revision_history.py
+      - run: python .github/workflows/build/sas_revision_history.py --default-branch-ref "origin/$DEFAULT_BRANCH"
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
       - run: python .github/workflows/build/fonts.py
       - run: python .github/workflows/build/detail_manager.py
       - run: python .github/workflows/build/aip.py

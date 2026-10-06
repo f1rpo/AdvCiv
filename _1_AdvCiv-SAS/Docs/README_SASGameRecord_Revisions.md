@@ -27,7 +27,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=129 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=130 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -53,10 +53,36 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
-### Revision 129 - SAS practical 6581 (CI revision-history provenance checks)
+### Revision 130 - SAS practical 6584
+
+- **Date:** 2026-10-06
+- **Git commit:** pending
+- **Change:** Added compact realized AI building-choice history after the building-value and production-policy audit replaced broad hard gates with inherited valuation plus targeted cures.
+
+At level 2+, `GAME_RECORD_PRODUCTION_FLOW` now aggregates actual AI building commitments by loaded building type, chooser origin, regular/National/Team/World-Wonder category, stored/required production and a compact overlapping `aiBuildingChoiceEffects` vocabulary.
+
+Effects distinguish actual health-food relief and starvation prevention, happiness relief, food retention, maintenance/trade/production effects, Government Centers/Palaces/National-Park-style buildings, defense, military/domain production and free experience without widening the interval row for every future mechanic.
+
+The two full validation runs showed that a separate current-health-relief family was structurally identical to health-food relief, so revision 130 retains only the latter.
+
+At level 3, `GAME_RECORD_AI_BUILDING_CHOICE` preserves each realized commitment's helper/direct origin, readable and numeric focus, selected same-pass score when available, actual production progress and city food/happiness/health/maintenance state, projected happiness and both actual-current-bonus and AI-assumed-strategic health changes, loaded-XML yield/commerce/domain/military/economic effects, unit-combat experience, bonus-specific production modifiers and improvement-granted free-specialist potential.
+
+Palace choices additionally identify the current capital being replaced. Helper-only max-turn/threshold/odds/random fields are explicitly `-1` for direct chooser origins rather than overloading one field with unrelated branch-local meanings. Direct border-culture, proactive-fortification and opportunistic-Wonder branches are included because they bypass `AI_chooseBuilding`.
+
+The recorder reuses the required chooser pass, its winning score and real RNG result. It does not repeat candidate building valuation, placement comparison, threat search, rank refresh or RNG; rejected candidates and exact inherited value-component attribution remain in BBAI.
+
+Every choice call is explicitly pre-gated at the caller: level 2 owns aggregation, level 3 alone constructs readable focus/detail strings, and the emitter intentionally performs no hidden log-level guard/assert. This keeps disabled-path cost and future contract regressions visible at call sites.
+
+While adding the shared focus vocabulary, the inherited local `BUILDINGFOCUS_*` preprocessor constants were replaced with an ordinary local enum and one canonical focus descriptor table, paralleling the earlier AI-strategy diagnostic macro cleanup while keeping the private building-choice mask inside `CvCityAI`.
+
+The same audit consolidated AI-strategy values and raw names into one shared descriptor table. SASGameRecord state hashes, periodic strategy checkpoints, exact strategy-transition rows and the existing strategy UI now iterate that table instead of maintaining separate lowest/highest-bit ranges; adding a future strategy therefore has one canonical diagnostic registration point.
+
+Corrected revision-provenance validation to use the repository's canonical default-branch ancestry instead of feature-branch `HEAD`. This preserves the real mainline hash when a feature branch contains a rewritten or cherry-picked counterpart; local checks visibly abstain from ancestry validation when the default branch is unavailable.
+
+### Revision 129 - SAS practical 6581
 
 - **Date:** 2026-10-02
-- **Git commit:** pending
+- **Git commit:** `a3292818a85573483763800cc87f0714e92c74f6`
 - **Change:** Added a full-history CI check that recorded revision commit hashes remain ancestors of the checked source, and that hashes from the explicit-marker era identify a source with the matching revision.
 
 Only the latest entry may remain pending, since a commit cannot contain its own final hash; finalized older entries must resolve after amend/rebase.

@@ -3901,9 +3901,11 @@ void CvDLLWidgetData::parseScoreboardCheatText(CvWidgetDataStruct &widgetDataStr
 	// Strategies (advc: Moved below victory stages)
 	szTempBuffer.clear();
 	// <advc> Refactored with a loop and switch
-	for (int iShift = 0; iShift < MAX_AI_STRATEGIES; iShift++)
+	// <!-- custom: Iterate the shared registered strategies instead of brute-forcing the former 32-bit MAX_AI_STRATEGIES bound; the same table now drives diagnostic identities and CI verifies complete enum coverage. (GPT-5.6-Sol) -->
+	int const iStrategyCount = getSASAIStrategyDescriptorCount();
+	for (int iI = 0; iI < iStrategyCount; iI++)
 	{
-		AIStrategy eStrat = (AIStrategy)(1 << iShift);
+		AIStrategy const eStrat = getSASAIStrategyDescriptor(iI).eStrategy;
 		if (!kPlayer.AI_isDoStrategy(eStrat,
 				true)) // advc.007: So that human strategies get shown as well
 		{
