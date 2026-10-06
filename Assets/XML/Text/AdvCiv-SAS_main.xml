@@ -95,26 +95,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<English>Military Buildings</English>
 	</TEXT>
 	<TEXT>
-		<Tag>TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_BLDG_BARRACKS</Tag>
-		<English>Barracks</English>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_BLDG_STABLES</Tag>
-		<English>Stables</English>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_BLDG_DRYDOCKS</Tag>
-		<English>Drydocks</English>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_BLDG_HEROIC_EPIC</Tag>
-		<English>Heroic Epic</English>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_BLDG_MIL_ACADEMY</Tag>
-		<English>Military Academy</English>
-	</TEXT>
-	<TEXT>
 		<Tag>TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_UNIT_PRODUCTION</Tag>
 		<English>Military Production</English>
 	</TEXT>
@@ -137,14 +117,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	<TEXT>
 		<Tag>TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_DEFENSES</Tag>
 		<English>Defenses</English>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_BLDG_WALLS</Tag>
-		<English>Walls</English>
-	</TEXT>
-	<TEXT>
-		<Tag>TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_BLDG_CASTLES</Tag>
-		<English>Castles</English>
 	</TEXT>
 	<TEXT>
 		<Tag>TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_BEST_DEFENDED</Tag>

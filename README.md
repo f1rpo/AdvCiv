@@ -288,7 +288,9 @@ The domestic advisor now follows the usual advisor with tabs and debug mode layo
 
 ##### Summary tab (Military Advisor)
 
-Added a new Summary tab in the Military Advisor, showing a synthetic view of our Military's **Support** (detailed Cost and Supply, and Unit Cap numerical breakdown (e.g., `P x R x M    (1 x 100 x 82) / 10000 = 0 gold icon char`), etc.), **Army** (detailed numerical overview for military/civilian units, Domain repartition (Land/Sea/Air), Strongest, Costliest, etc.), and **Deployment** (Allied/Neutral/Enemy Cities/Territory/Roaming information with Avg Defense and Best defense of our cities, defensive buildings (as of now Walls and Castles (e.g., `1 / 2`)), Wounded information (Max/Avg/Min and Full/High/Medium/Low Health (e.g, `15 (100%)`)), and Battles reusing the [SASBattleHistory.py](/Assets/Python/SASBattleHistory.py) added with the new Battles Tab (Won/Retreated/Lost (e.g., `35 (33%)`)), Good-Luck Wins and Bad-Luck Losses counts (`e.g., 11 (31%)`), Best/Worst (e.g., `6.3 vs 10.0 1300 AD (39%)`)).
+Added a new Summary tab in the Military Advisor, showing a synthetic view of our Military's **Support** (detailed Cost and Supply, and Unit Cap numerical breakdown (e.g., `P x R x M    (1 x 100 x 82) / 10000 = 0 gold icon char`), etc.), **Army** (detailed numerical overview for military/civilian units, Domain repartition (Land/Sea/Air), Strongest, Costliest, etc.), and **Deployment** (Allied/Neutral/Enemy Cities/Territory/Roaming information with Avg Defense and Best defense of our cities, data-driven fortification-building coverage (up to two XML-effect-selected rows, e.g. `1 / 2`)).
+
+It also notably shows wounded information (Max/Avg/Min and Full/High/Medium/Low Health (e.g, `15 (100%)`)), and Battles reusing the [SASBattleHistory.py](/Assets/Python/SASBattleHistory.py) added with the new Battles Tab (Won/Retreated/Lost (e.g., `35 (33%)`)), Good-Luck Wins and Bad-Luck Losses counts (`e.g., 11 (31%)`), Best/Worst (e.g., `6.3 vs 10.0 1300 AD (39%)`)).
 
 Also added a **legend link**. Implementation details in the Main Changes guide.
 

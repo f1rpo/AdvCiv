@@ -131,15 +131,9 @@ class CvMilitaryAdvisor:
 		self.IS_SAS_CV_MILITARY_ADVISOR_BATTLES_LOG_BUTTON_ENABLE = None
 		self.iINITIAL_OUTSIDE_UNIT_GOLD_PERCENT = None
 		self.iNUM_BUILDING_AND_TECH_PREREQS = None
-		# <!-- custom: lazy-init cache for required Summary tab XML IDs. getInfoTypeOrFail makes missing tags loud; this already showed that BUILDINGCLASS_WEST_POINT is not in current AdvCiv-SAS, whereas a silent lookup would have skipped it without a clear error.
-		# Class IDs are stored so civ-specific building replacements resolve through CvCivilizationInfo at use site. (Claude code Opus 4.7, GPT-5.5) -->
-		self.iBldClassBarracks = None
-		self.iBldClassStable = None
-		self.iBldClassDrydock = None
-		self.iBldClassWalls = None
-		self.iBldClassCastle = None
-		self.iBldClassHeroicEpic = None
-		self.iBldClassMilAcademy = None
+		# <!-- custom: cache Summary-tab military-building groups per civilization.
+		# Building identities are discovered from civ-specific XML effects rather than named BuildingClasses; the helper applies only fixed UI row caps, so UBs and modmods remain data-driven without inventing a balance-sensitive ranking score. (ChatGPT-5.6-Sol) -->
+		self.dSummaryMilitaryBuildingGroups = {}
 		self.iUnitCombatMountedMelee = None
 		self.iUnitCombatMountedRanged = None
 		self.iBattleTerrainPeak = None
@@ -181,21 +175,7 @@ class CvMilitaryAdvisor:
 			self.iINITIAL_OUTSIDE_UNIT_GOLD_PERCENT = gc.getDefineINT("INITIAL_OUTSIDE_UNIT_GOLD_PERCENT")
 		if self.iNUM_BUILDING_AND_TECH_PREREQS is None:
 			self.iNUM_BUILDING_AND_TECH_PREREQS = gc.getDefineINT("NUM_BUILDING_AND_TECH_PREREQS")
-		# <!-- custom: resolve required XML IDs strictly and check each sentinel separately for exhaustive lazy-init safety; silent zero rows would be worse than a clear missing-tag failure. (Claude code Opus 4.7, GPT-5.5) -->
-		if self.iBldClassBarracks is None:
-			self.iBldClassBarracks = getInfoTypeOrFail("BUILDINGCLASS_BARRACKS")
-		if self.iBldClassStable is None:
-			self.iBldClassStable = getInfoTypeOrFail("BUILDINGCLASS_STABLE")
-		if self.iBldClassDrydock is None:
-			self.iBldClassDrydock = getInfoTypeOrFail("BUILDINGCLASS_DRYDOCK")
-		if self.iBldClassWalls is None:
-			self.iBldClassWalls = getInfoTypeOrFail("BUILDINGCLASS_WALLS")
-		if self.iBldClassCastle is None:
-			self.iBldClassCastle = getInfoTypeOrFail("BUILDINGCLASS_CASTLE")
-		if self.iBldClassHeroicEpic is None:
-			self.iBldClassHeroicEpic = getInfoTypeOrFail("BUILDINGCLASS_HEROIC_EPIC")
-		if self.iBldClassMilAcademy is None:
-			self.iBldClassMilAcademy = getInfoTypeOrFail("BUILDINGCLASS_MILITARY_ACADEMY")
+		# <!-- custom: resolve remaining required XML IDs strictly and check each sentinel separately for exhaustive lazy-init safety; military-building identities are intentionally discovered from XML effects instead of named classes. (Claude code Opus 4.7 + GPT-5.5 + ChatGPT-5.6-Sol) -->
 		if self.iUnitCombatMountedMelee is None:
 			self.iUnitCombatMountedMelee = getInfoTypeOrFail("UNITCOMBAT_MOUNTED_MELEE")
 		if self.iUnitCombatMountedRanged is None:
@@ -262,19 +242,12 @@ class CvMilitaryAdvisor:
 		self.TEXT_SUMMARY_TOTAL_GOLD = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_TOTAL_GOLD", ())
 		self.TEXT_SUMMARY_ANARCHY = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_ANARCHY", ())
 		self.TEXT_SUMMARY_MIL_BUILDINGS = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_MIL_BUILDINGS", ())
-		self.TEXT_SUMMARY_BLDG_BARRACKS = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_BLDG_BARRACKS", ())
-		self.TEXT_SUMMARY_BLDG_STABLES = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_BLDG_STABLES", ())
-		self.TEXT_SUMMARY_BLDG_DRYDOCKS = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_BLDG_DRYDOCKS", ())
-		self.TEXT_SUMMARY_BLDG_HEROIC_EPIC = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_BLDG_HEROIC_EPIC", ())
-		self.TEXT_SUMMARY_BLDG_MIL_ACADEMY = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_BLDG_MIL_ACADEMY", ())
 		self.TEXT_SUMMARY_UNIT_PRODUCTION = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_UNIT_PRODUCTION", ())
 		self.TEXT_SUMMARY_AVG_MODIFIER = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_AVG_MODIFIER", ())
 		self.TEXT_SUMMARY_BEST_CITY = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_BEST_CITY", ())
 		self.TEXT_SUMMARY_AVG_NEW_XP = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_AVG_NEW_XP", ())
 		self.TEXT_SUMMARY_BEST_NEW_XP = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_BEST_NEW_XP", ())
 		self.TEXT_SUMMARY_DEFENSES = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_DEFENSES", ())
-		self.TEXT_SUMMARY_BLDG_WALLS = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_BLDG_WALLS", ())
-		self.TEXT_SUMMARY_BLDG_CASTLES = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_BLDG_CASTLES", ())
 		self.TEXT_SUMMARY_BEST_DEFENDED = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_BEST_DEFENDED", ())
 		self.TEXT_SUMMARY_AVG_DEFENSE = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_AVG_DEFENSE", ())
 		self.TEXT_SUMMARY_ALLIED_HAMMERS = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_SUMMARY_ALLIED_HAMMERS", ())
@@ -1294,25 +1267,17 @@ class CvMilitaryAdvisor:
 			szHighestCostName = pHighestCostInfo.getDescription()
 			szHighestCostButton = pHighestCostInfo.getButton()
 
-		# <!-- custom: one city pass collects building, military-production, generic new-XP, and building-defense stats for the Summary tab. Idea credit and section design from GPT-5.5-Thinking. (Claude code Opus 4.7 + GPT-5.5) -->
-		# <!-- custom: resolve BuildingClass -> civ-specific Building once per civ (cities owned by the active player all share the same civ). This handles civ-unique replacements correctly (a future modded UB that replaces Barracks would still be counted via its BuildingClass), and avoids re-doing the lookup per city.
-		# Returns -1 only if this civ has no building for the class (e.g. modder removed it for one civ). pCivInfo already exists above for getUpgradeTargets. (Claude code Opus 4.7) -->
-		iBldBarracks = pCivInfo.getCivilizationBuildings(self.iBldClassBarracks)
-		iBldStable = pCivInfo.getCivilizationBuildings(self.iBldClassStable)
-		iBldDrydock = pCivInfo.getCivilizationBuildings(self.iBldClassDrydock)
-		iBldWalls = pCivInfo.getCivilizationBuildings(self.iBldClassWalls)
-		iBldCastle = pCivInfo.getCivilizationBuildings(self.iBldClassCastle)
-		iBldHeroicEpic = pCivInfo.getCivilizationBuildings(self.iBldClassHeroicEpic)
-		iBldMilAcademy = pCivInfo.getCivilizationBuildings(self.iBldClassMilAcademy)
+		# <!-- custom: one city pass collects building, military-production, generic new-XP, and building-defense stats for the Summary tab.
+		# Military infrastructure/fortification identities come from getSummaryMilitaryBuildingGroups instead of named XML classes. (Claude code Opus 4.7 + GPT-5.5 + ChatGPT-5.6-Sol) -->
+		aTrainingBuildings, aNationalMilitaryBuildings, aDefenseBuildings = self.getSummaryMilitaryBuildingGroups(iCiv)
+		dBuildingCounts = {}
+		for iBuilding in aTrainingBuildings + aDefenseBuildings:
+			dBuildingCounts[iBuilding] = 0
+		dNationalBuildingCities = {}
+		for iBuilding in aNationalMilitaryBuildings:
+			dNationalBuildingCities[iBuilding] = u""
 		iNumCities = 0
 		iNumCoastalCities = 0
-		iCountBarracks = 0
-		iCountStables = 0
-		iCountDrydocks = 0
-		iCountWalls = 0
-		iCountCastles = 0
-		szHeroicEpicCity = u""
-		szMilAcademyCity = u""
 		iProdModSum = 0
 		iBestProdMod = -1000000
 		szBestProdCity = u""
@@ -1329,21 +1294,13 @@ class CvMilitaryAdvisor:
 			# <!-- custom: coastal check uses minWaterSize=10 (the standard "ocean tile" threshold the engine uses for naval-build prerequisites); lakes don't count. Drydock denominator. (GPT-5.5) -->
 			if pCity.isCoastal(10):
 				iNumCoastalCities += 1
-			if iBldBarracks >= 0 and pCity.getNumBuilding(iBldBarracks) > 0:
-				iCountBarracks += 1
-			if iBldStable >= 0 and pCity.getNumBuilding(iBldStable) > 0:
-				iCountStables += 1
-			if iBldDrydock >= 0 and pCity.getNumBuilding(iBldDrydock) > 0:
-				iCountDrydocks += 1
-			if iBldWalls >= 0 and pCity.getNumBuilding(iBldWalls) > 0:
-				iCountWalls += 1
-			if iBldCastle >= 0 and pCity.getNumBuilding(iBldCastle) > 0:
-				iCountCastles += 1
-			# <!-- custom: National wonders are unique per civ; first city found owns them. Empty string left as sentinel for "not built yet" so the display layer can show a dash. (GPT-5.5) -->
-			if iBldHeroicEpic >= 0 and pCity.getNumBuilding(iBldHeroicEpic) > 0:
-				szHeroicEpicCity = szCityName
-			if iBldMilAcademy >= 0 and pCity.getNumBuilding(iBldMilAcademy) > 0:
-				szMilAcademyCity = szCityName
+			for iBuilding in dBuildingCounts:
+				if pCity.getNumBuilding(iBuilding) > 0:
+					dBuildingCounts[iBuilding] += 1
+			# <!-- custom: selected national military buildings are player-limited; retain the owning city for the Summary row, with an empty string meaning not built yet. (ChatGPT-5.6-Sol) -->
+			for iBuilding in aNationalMilitaryBuildings:
+				if pCity.getNumBuilding(iBuilding) > 0:
+					dNationalBuildingCities[iBuilding] = szCityName
 			# <!-- custom: getMilitaryProductionModifier is the aggregate %-bonus this city gives to military-unit production (Barracks, Heroic Epic, West Point, Pentagon, Theocracy, etc. all roll into it). Sum + best-city tracking gives the "where do I train?" answer at a glance.
 			# Individual iMilitaryProductionModifier sources above 0 (including civics) are not enumerated because the Summary tab is already full; the aggregate keeps this concise, though less ideal than a full source breakdown. (GPT-5.5) -->
 			iProdMod = pCity.getMilitaryProductionModifier()
@@ -1351,7 +1308,8 @@ class CvMilitaryAdvisor:
 			if iProdMod > iBestProdMod:
 				iBestProdMod = iProdMod
 				szBestProdCity = szCityName
-			# <!-- custom: use generic city free XP here, not getProductionExperience(unit), so "New XP (All)" stays unit-agnostic. Barracks/Stables/Drydocks domain/unit-combat XP is shown on the building rows instead; folding it into this headline made the average hard to interpret. (GPT-5.5) -->
+			# <!-- custom: use generic city free XP here, not getProductionExperience(unit), so "New XP (All)" stays unit-agnostic.
+			# Building-specific domain/unit-combat XP is shown on the infrastructure rows instead; folding it into this headline made the average hard to interpret. (GPT-5.5 + ChatGPT-5.6-Sol) -->
 			iXp = pCity.getFreeExperience()
 			iXpSumCity += iXp
 			if iXp > iBestXp:
@@ -1446,6 +1404,24 @@ class CvMilitaryAdvisor:
 		iOutsideUnits = pPlayer.getNumOutsideUnits()
 		iFreeOutside = iOutsideUnits - iPaidOutside
 
+		# <!-- custom: build compact generic row descriptors after the shared city pass.
+		# Ordinary water buildings use the same coastal-city denominator the old Drydock row used; national rows carry their owning city.
+		# Building descriptions/icons come from the active civilization's actual replacement, not the base class identity. (ChatGPT-5.6-Sol) -->
+		aMilitaryBuildingRows = []
+		for iBuilding in aTrainingBuildings:
+			kInfo = gc.getBuildingInfo(iBuilding)
+			iDenominator = iNumCities
+			if kInfo.isWater():
+				iDenominator = iNumCoastalCities
+			aMilitaryBuildingRows.append((self.getSummaryBuildingXpLabel(kInfo.getDescription(), iBuilding), dBuildingCounts[iBuilding], iDenominator, self.summaryBuildingHasTech(kMyTeam, iBuilding), kInfo.getButton(), False, u""))
+		for iBuilding in aNationalMilitaryBuildings:
+			kInfo = gc.getBuildingInfo(iBuilding)
+			aMilitaryBuildingRows.append((kInfo.getDescription(), 0, 1, self.summaryBuildingHasTech(kMyTeam, iBuilding), kInfo.getButton(), True, dNationalBuildingCities[iBuilding]))
+		aDefenseBuildingRows = []
+		for iBuilding in aDefenseBuildings:
+			kInfo = gc.getBuildingInfo(iBuilding)
+			aDefenseBuildingRows.append((kInfo.getDescription(), dBuildingCounts[iBuilding], iNumCities, kInfo.getButton()))
+
 		return {
 			"total": iTotal,
 			"military": iMilitary,
@@ -1478,33 +1454,8 @@ class CvMilitaryAdvisor:
 			"max_health": iMaxHealth,
 			"min_health": iMinHealth,
 			"avg_health": fAvgHealth,
-			"num_cities": iNumCities,
-			"num_coastal_cities": iNumCoastalCities,
-			"count_barracks": iCountBarracks,
-			"count_stables": iCountStables,
-			"count_drydocks": iCountDrydocks,
-			"label_barracks": self.getSummaryBuildingXpLabel(self.TEXT_SUMMARY_BLDG_BARRACKS, iBldBarracks),
-			"label_stables": self.getSummaryBuildingXpLabel(self.TEXT_SUMMARY_BLDG_STABLES, iBldStable),
-			"label_drydocks": self.getSummaryBuildingXpLabel(self.TEXT_SUMMARY_BLDG_DRYDOCKS, iBldDrydock),
-			"count_walls": iCountWalls,
-			"count_castles": iCountCastles,
-			"city_heroic_epic": szHeroicEpicCity,
-			"city_mil_academy": szMilAcademyCity,
-			# <!-- custom: per-building tech-availability flags so the render side can show "-" until the prereq tech is in (kMyTeam from this same city pass). (Claude code Opus 4.7) -->
-			"tech_barracks": self.summaryBuildingHasTech(kMyTeam, iBldBarracks),
-			"tech_stables": self.summaryBuildingHasTech(kMyTeam, iBldStable),
-			"tech_drydocks": self.summaryBuildingHasTech(kMyTeam, iBldDrydock),
-			"tech_heroic_epic": self.summaryBuildingHasTech(kMyTeam, iBldHeroicEpic),
-			"tech_mil_academy": self.summaryBuildingHasTech(kMyTeam, iBldMilAcademy),
-			# <!-- custom: building button paths read directly via gc.getBuildingInfo(iBld).getButton(). No -1 fallback: the iBldClass* resolutions in initDefines already passed getInfoTypeOrFail, and pCivInfo.getCivilizationBuildings(class) returning -1 here would mean the modder disabled one of these for the active civ.
-			# Letting that crash loudly is the same contract as the strict class lookups above - silent fallback to empty icon would hide a real data issue. (Claude code Opus 4.7); not cached because these buildings vary by civ and there would be many or it would be unclean, and would increase maintenance if these civ-specific variants change -->
-			"icon_barracks": gc.getBuildingInfo(iBldBarracks).getButton(),
-			"icon_stables": gc.getBuildingInfo(iBldStable).getButton(),
-			"icon_drydocks": gc.getBuildingInfo(iBldDrydock).getButton(),
-			"icon_walls": gc.getBuildingInfo(iBldWalls).getButton(),
-			"icon_castles": gc.getBuildingInfo(iBldCastle).getButton(),
-			"icon_heroic_epic": gc.getBuildingInfo(iBldHeroicEpic).getButton(),
-			"icon_mil_academy": gc.getBuildingInfo(iBldMilAcademy).getButton(),
+			"military_building_rows": aMilitaryBuildingRows,
+			"defense_building_rows": aDefenseBuildingRows,
 			"avg_prod_mod": iAvgProdMod,
 			"best_prod_mod": iBestProdMod,
 			"best_prod_city": szBestProdCity,
@@ -1621,6 +1572,63 @@ class CvMilitaryAdvisor:
 	def getSummaryCostResultText(self, szFormula, iResult, iColor):
 		# <!-- custom: every caller of this helper produces a Support-column gold amount, so suffix the result with the normal gold coin; formula operands remain unitless counts, rates, and multipliers. (Claude code Opus 4.7, GPT-5.5) -->
 		return szFormula + u" = " + localText.changeTextColor(unicode(iResult) + self.GOLD_CHAR, iColor)
+
+	def summaryBuildingHasMilitarySupportEffect(self, kInfo):
+		# <!-- custom: semantic Military Summary predicate: local/global XP, military/domain production, Great-General generation, unit-combat/domain XP, or a free promotion.
+		# Deliberately no hand-tuned "importance" weights; selection order comes from BuildingClass XML and only the visible row count is capped. (ChatGPT-5.6-Sol) -->
+		if kInfo.getFreeExperience() > 0 or kInfo.getGlobalFreeExperience() > 0 or kInfo.getMilitaryProductionModifier() > 0 or kInfo.getGreatGeneralRateModifier() > 0 or kInfo.getDomesticGreatGeneralRateModifier() > 0 or kInfo.getFreePromotion() >= 0:
+			return True
+		for eDomain in (DomainTypes.DOMAIN_LAND, DomainTypes.DOMAIN_SEA, DomainTypes.DOMAIN_AIR):
+			if kInfo.getDomainFreeExperience(eDomain) > 0 or kInfo.getDomainProductionModifier(eDomain) > 0:
+				return True
+		for iUnitCombat in range(gc.getNumUnitCombatInfos()):
+			if kInfo.getUnitCombatFreeExperience(iUnitCombat) > 0:
+				return True
+		return False
+
+	def summaryBuildingHasFortificationEffect(self, kInfo):
+		# <!-- custom: keep the Deployment "Defenses" block about conventional city fortification, matching getBuildingDefense/anti-bombard context; anti-air/nuclear buildings are separate mechanics and are not pulled in merely because they are military-themed. (ChatGPT-5.6-Sol) -->
+		return (kInfo.getDefenseModifier() > 0 or kInfo.getBombardDefenseModifier() > 0)
+
+	def getSummaryMilitaryBuildingGroups(self, iCivilization):
+		if iCivilization in self.dSummaryMilitaryBuildingGroups:
+			return self.dSummaryMilitaryBuildingGroups[iCivilization]
+		pCivInfo = gc.getCivilizationInfo(iCivilization)
+		aLocal = []
+		aNational = []
+		aDefense = []
+		for iClass in range(gc.getNumBuildingClassInfos()):
+			iBuilding = pCivInfo.getCivilizationBuildings(iClass)
+			if iBuilding < 0:
+				continue
+			kClass = gc.getBuildingClassInfo(iClass)
+			# <!-- custom: World/team wonders are excluded from this compact own-infrastructure block; their availability depends on global state.
+			# Ordinary buildings and player-limited national buildings have stable per-player coverage semantics. (ChatGPT-5.6-Sol) -->
+			if kClass.getMaxGlobalInstances() >= 0 or kClass.getMaxTeamInstances() >= 0:
+				continue
+			kInfo = gc.getBuildingInfo(iBuilding)
+			iMaxPlayerInstances = kClass.getMaxPlayerInstances()
+			if iMaxPlayerInstances < 0:
+				if self.summaryBuildingHasMilitarySupportEffect(kInfo):
+					aLocal.append(iBuilding)
+				if self.summaryBuildingHasFortificationEffect(kInfo):
+					aDefense.append(iBuilding)
+			elif iMaxPlayerInstances == 1 and self.summaryBuildingHasMilitarySupportEffect(kInfo):
+				aNational.append(iBuilding)
+		# <!-- custom: Summary column height is fixed.
+		# Preserve five military-infrastructure rows total while reserving at most two for national buildings; remaining slots go to ordinary infrastructure.
+		# Defenses get two rows.
+		# Caps are UI layout policy, not gameplay valuation.
+		# BuildingClass XML order is the deterministic tie/order rule, avoiding another balance-sensitive scoring system. (ChatGPT-5.6-Sol) -->
+		iMaxMilitaryRows = 5
+		iMaxNationalRows = 2
+		iNationalRows = min(iMaxNationalRows, len(aNational))
+		aNational = aNational[:iNationalRows]
+		aLocal = aLocal[:max(0, iMaxMilitaryRows - iNationalRows)]
+		aDefense = aDefense[:2]
+		tGroups = (aLocal, aNational, aDefense)
+		self.dSummaryMilitaryBuildingGroups[iCivilization] = tGroups
+		return tGroups
 
 	def getSummaryBuildingXpLabel(self, szBaseLabel, iBuilding):
 		if iBuilding < 0:
@@ -1844,8 +1852,8 @@ class CvMilitaryAdvisor:
 			# <!-- custom: Match this combined subtotal with its exact unit-cost and away-supply breakdowns instead of unrelated whole-player expenses. See KI#390. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			(szTotalGoldLabel, szTotalGoldText, eHelpUnitCostAndSupply, self.iActivePlayer, 1, 0, -1),
 		]
-		# <!-- custom: Support appends city-level military infrastructure: building coverage, military-production modifier/new all-unit XP, and allied combat-unit hammers. Drydocks use coastal cities as denominator; national wonders show owning city or "-". (Claude code Opus 4.7 + GPT-5.5) -->
-		# <!-- custom: national-wonder cell: "-" until teched, then the owning city when built, else "0 / 1" (cap is 1 regardless of city count). (Claude code Opus 4.7) -->
+		# <!-- custom: Support appends data-driven city-level military infrastructure, then military-production/new-XP aggregates and allied combat-unit hammers.
+		# Ordinary water infrastructure uses coastal-city coverage; selected national buildings show their owning city. (Claude code Opus 4.7 + GPT-5.5 + ChatGPT-5.6-Sol) -->
 		def _nationalWonderValue(bHasTech, szCity):
 			if not bHasTech:
 				return u"-"
@@ -1863,19 +1871,14 @@ class CvMilitaryAdvisor:
 		szBestXpValue = u"-"
 		if dStats["best_xp_city"] and dStats["best_free_xp"] > 0:
 			szBestXpValue = u"%s (%d)" % (dStats["best_xp_city"], dStats["best_free_xp"])
-		szCityFraction = u"/ %d" % dStats["num_cities"]
-		szCoastalFraction = u"/ %d" % dStats["num_coastal_cities"]
-		# <!-- custom: each row reads "-" until its prereq tech is in, then "built / max" (cities, or coastal cities for Drydocks). National wonders go through _nationalWonderValue. (Claude code Opus 4.7) -->
-		szBarracksValue = u"-"
-		if dStats["tech_barracks"]:
-			szBarracksValue = u"%d %s" % (dStats["count_barracks"], szCityFraction)
-		szStablesValue = u"-"
-		if dStats["tech_stables"]:
-			szStablesValue = u"%d %s" % (dStats["count_stables"], szCityFraction)
-		szDrydockValue = u"-"
-		if dStats["tech_drydocks"] and dStats["num_coastal_cities"] > 0:
-			szDrydockValue = u"%d %s" % (dStats["count_drydocks"], szCoastalFraction)
-		aSupport.extend([(None, None, eNone, -1, -1), (self.TEXT_SUMMARY_MIL_BUILDINGS, u"", eNone, -1, -1, 0, -1), (dStats["label_barracks"], szBarracksValue, eNone, -1, -1, 1, -1, dStats["icon_barracks"]), (dStats["label_stables"], szStablesValue, eNone, -1, -1, 1, -1, dStats["icon_stables"]), (dStats["label_drydocks"], szDrydockValue, eNone, -1, -1, 1, -1, dStats["icon_drydocks"]), (self.TEXT_SUMMARY_BLDG_HEROIC_EPIC, _nationalWonderValue(dStats["tech_heroic_epic"], dStats["city_heroic_epic"]), eNone, -1, -1, 1, -1, dStats["icon_heroic_epic"]), (self.TEXT_SUMMARY_BLDG_MIL_ACADEMY, _nationalWonderValue(dStats["tech_mil_academy"], dStats["city_mil_academy"]), eNone, -1, -1, 1, -1, dStats["icon_mil_academy"]),])
+		aSupport.extend([(None, None, eNone, -1, -1), (self.TEXT_SUMMARY_MIL_BUILDINGS, u"", eNone, -1, -1, 0, -1)])
+		for szLabel, iBuilt, iDenominator, bHasTech, szIcon, bNational, szCity in dStats["military_building_rows"]:
+			szValue = u"-"
+			if bNational:
+				szValue = _nationalWonderValue(bHasTech, szCity)
+			elif bHasTech and iDenominator > 0:
+				szValue = u"%d / %d" % (iBuilt, iDenominator)
+			aSupport.append((szLabel, szValue, eNone, -1, -1, 1, -1, szIcon))
 		aSupport.extend([(None, None, eNone, -1, -1), (self.TEXT_SUMMARY_UNIT_PRODUCTION, u"", eNone, -1, -1, 0, -1), (self.TEXT_SUMMARY_AVG_MODIFIER, _signedPct(dStats["avg_prod_mod"]), eNone, -1, -1, 1, -1), (self.TEXT_SUMMARY_BEST_CITY, szBestProdValue, eNone, -1, -1, 1, -1), (self.TEXT_SUMMARY_AVG_NEW_XP, u"%.1f" % dStats["avg_free_xp"], eNone, -1, -1, 1, -1), (self.TEXT_SUMMARY_BEST_NEW_XP, szBestXpValue, eNone, -1, -1, 1, -1), (None, None, eNone, -1, -1), (self.TEXT_SUMMARY_ALLIED_HAMMERS, unicode(dStats["allied_hammers"]) + self.HAMMER_CHAR, eNone, -1, -1, 0, -1),])
 		# <!-- custom: Defenses moved from Support to Deployment because city protection reads closer to "where my forces/cities are" than to support cost. (Claude code Opus 4.7, GPT-5.5) -->
 
@@ -1987,10 +1990,12 @@ class CvMilitaryAdvisor:
 			(self.TEXT_SUMMARY_IN_WILD, unicode(dStats["in_wild"]), eNone, -1, -1),
 			(self.TEXT_SUMMARY_AT_SEA, unicode(dStats["at_sea"]), eNone, -1, -1),
 			(None, None, eNone, -1, -1),
-			# <!-- custom: Defenses live in Deployment beside best-defended city rather than Support cost math. (Claude code Opus 4.7, GPT-5.5) -->
+			# <!-- custom: Defenses live in Deployment beside best-defended city rather than Support cost math; concrete fortification rows are appended below from XML effects rather than named building classes. (Claude code Opus 4.7 + GPT-5.5 + ChatGPT-5.6-Sol) -->
 			(self.TEXT_SUMMARY_DEFENSES, u"", eNone, -1, -1, 0, -1),
-			(self.TEXT_SUMMARY_BLDG_WALLS, u"%d %s" % (dStats["count_walls"], u"/ %d" % dStats["num_cities"]), eNone, -1, -1, 1, -1, dStats["icon_walls"]),
-			(self.TEXT_SUMMARY_BLDG_CASTLES, u"%d %s" % (dStats["count_castles"], u"/ %d" % dStats["num_cities"]), eNone, -1, -1, 1, -1, dStats["icon_castles"]),
+		])
+		for szLabel, iBuilt, iDenominator, szIcon in dStats["defense_building_rows"]:
+			aDeployment.append((szLabel, u"%d / %d" % (iBuilt, iDenominator), eNone, -1, -1, 1, -1, szIcon))
+		aDeployment.extend([
 			(None, None, eNone, -1, -1),
 			(self.TEXT_SUMMARY_WOUNDED, szWoundedValue, eNone, -1, -1, 0, iWoundedColor),
 			(self.TEXT_SUMMARY_MAX_HEALTH, u"%d%%" % dStats["max_health"], eNone, -1, -1, 1, iMaxHealthColor),
