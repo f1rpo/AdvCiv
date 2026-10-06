@@ -1008,7 +1008,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#879 - (Provisional Pending inherited building-value defect) Overseas domestic trade is treated as foreign trade](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-879)\
 [KI#880 - (Fixed inherited AdvC sign regression) Immediate anger reversed building value](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-880)\
 [KI#881 - (Retired/Superseded dormant AdvCiv-SAS espionage handicap-force defect) Regular-building espionage strategy was forced from handicap research costs](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-881)\
-[KI#882 - (Provisional Pending inherited production-upgrade defect) Destination hammers are overwritten](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-882)\
+[KI#882 - (Fixed inherited BtS SDK production-upgrade defect) Destination hammers could be overwritten](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-882)\
 [KI#883 - (Provisional Pending AdvCiv/BULL decay-preview defect) Fractional thresholds are one turn late](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-883)\
 [KI#884 - (Provisional Pending AdvCiv building-preview regression) Trade-yield modifiers truncate before multiplication](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-884)\
 [KI#885 - (Provisional Pending AdvCiv Great-Person projection defect) Fractional type progress disagrees with runtime](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-885)\
@@ -20433,11 +20433,19 @@ Found as F558 during ChatGPT-5.6-Sol's C031-WIP334 audit; reconciled into Known 
 The dedicated BBAI espionage row remains as general contextual attribution and now reads the authoritative game-handicap research cost. The data-masked world-wonder sibling was aligned with `CvPlayer::getProductionNeeded`. Retain KI#881 as source archaeology; the inherited KI#879 and KI#880 findings remain independent of this retirement.
 <a id="ki-882"></a>
 
-## KI#882 - (Provisional Pending inherited production-upgrade defect) Destination hammers are overwritten
+## KI#882 - (Fixed inherited BtS SDK production-upgrade defect) Destination hammers could be overwritten
 
-`upgradeProduction` migrates an obsolete unit order by assigning its hammers to the upgrade target, overwriting any independent hammer bank already stored for that target. Merge the two banks rather than replacing the destination.
+`CvCity::upgradeProduction()` is inherited from the BtS SDK through K-Mod and AdvCiv. The same destination assignment is retained in Civ4CE's BtS implementation, K-Mod 1.46 and AdvCiv 1.14: after clearing an obsolete unit's stored production, the code assigns that bank to the selected available upgrade with `setUnitProduction(eUpgradeUnit, iUpgradeProduction)`.
 
-Found as F559 during ChatGPT-5.6-Sol's C031-WIP336 audit; reconciled into Known Issues with the help of GPT-5.6-Sol, thanks.
+Assignment is only safe when the destination has no production. If two queued obsolete unit types resolve to the same upgrade, the first transfer itself creates destination production that the second transfer overwrites; independently parked production on the destination can be lost the same way. Current AdvCiv-SAS provides a direct example because both Catapult and Trebuchet upgrade to Cannon.
+
+Fixed by retaining the inherited source-bank clear and queue-rewrite logic but changing the destination mutation to `changeUnitProduction(eUpgradeUnit, iUpgradeProduction)`. The ordinary production setter therefore preserves all source banks and any pre-existing destination bank without changing upgrade selection, order rewriting, UnitAI reassignment, save format or synchronized RNG.
+
+SASGameRecord revision 133 aligns the existing rare production-upgrade telemetry with the repaired semantics. `PRODUCTION_UPGRADED` now reports the actual accumulated `newProductionAfter` plus `preservedDestinationProduction`; interval production flow reports `productionUpgradePreservedActions` / `productionUpgradePreserved` instead of obsolete overwrite-loss counters. Level 2 still surfaces the rare pre-existing-destination case and level 3 retains all upgrade transfers. A build check pins both the gameplay accumulation and recorder fields to this contract.
+
+Found first as F559 during ChatGPT-5.6-Sol's C031-WIP336 album audit and reconciled into Known Issues as KI#882 with the help of GPT-5.6-Sol. The same inherited assignment was later independently rediscovered during the SASGameRecord production-lifecycle investigation, which added exact overwrite telemetry but left the defect pending after reviewed autoplays did not exercise a pre-existing destination bank.
+
+Revisited during the SASGameRecord backlog sweep, confirmed reachable through converging upgrade paths, and fixed with the help of ChatGPT-5.6-Sol, thanks.
 
 <a id="ki-883"></a>
 

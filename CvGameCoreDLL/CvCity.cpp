@@ -10935,14 +10935,13 @@ void CvCity::upgradeProduction()
 		FAssert(eUpgradeUnit != eUnit);
 
 		int iUpgradeProduction = getUnitProduction(eUnit);
-		// <!-- custom: Destination production before the inherited assignment exists only for SASGameRecord.
-		// Gate that pre-mutation getter at the caller; source production remains unconditional because gameplay transfers it. (ChatGPT-5.6-Sol) -->
+		// <!-- custom: Destination production before the transfer is recorder-only context, so gate that extra getter at level 2. (ChatGPT-5.6-Sol) -->
 		bool const bLogProductionUpgrade = (gGameRecordLogLevel >= 2);
 		int const iUpgradeProductionBefore = (bLogProductionUpgrade ? getUnitProduction(eUpgradeUnit) : 0);
 		setUnitProduction(eUnit, 0);
-		setUnitProduction(eUpgradeUnit, iUpgradeProduction);
-		// <!-- custom: Stored obsolete-unit production is transferred to the available upgrade.
-		// The inherited assignment can also overwrite pre-existing production on that destination type, so preserve both values before the queue data is rewritten. (ChatGPT-5.6-Sol) -->
+		// <!-- custom: The inherited BtS SDK assignment could overwrite production already stored on the upgrade destination; accumulate into that bank instead. See KI#882. (ChatGPT-5.6-Sol) -->
+		changeUnitProduction(eUpgradeUnit, iUpgradeProduction);
+		// <!-- custom: Record the transferred bank and any preserved destination production before queue data is rewritten. (ChatGPT-5.6-Sol) -->
 		if (bLogProductionUpgrade && (iUpgradeProduction > 0 || iUpgradeProductionBefore > 0)) logSASGameRecordProductionUpgraded(this, eUnit, eUpgradeUnit, iUpgradeProduction, iUpgradeProductionBefore);
 
 		CLLNode<OrderData>* pOrderNode = headOrderQueueNode();

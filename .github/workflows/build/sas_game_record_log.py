@@ -2181,6 +2181,45 @@ def check_broad_settlement_vassal_battle_contracts(repo_root: Path) -> list[str]
 	return failures
 
 
+def check_production_upgrade_preservation_contract(repo_root: Path) -> list[str]:
+	"""Keep KI#882 accumulation and its rare production-upgrade telemetry synchronized."""
+	failures = []
+	for relative_path in (CITY_SOURCE, REVISION_SOURCE):
+		if not (repo_root / relative_path).is_file():
+			failures.append(f"missing production-upgrade preservation file: {relative_path}")
+	if failures:
+		return failures
+
+	city_text = (repo_root / CITY_SOURCE).read_text(encoding="utf-8", errors="replace")
+	m_upgrade = re.search(r"void CvCity::upgradeProduction\(\)\s*\{(?P<body>.*?)^\}", city_text, flags=re.DOTALL | re.MULTILINE)
+	if m_upgrade is None:
+		failures.append(f"{CITY_SOURCE}: could not locate CvCity::upgradeProduction")
+	else:
+		body = m_upgrade.group("body")
+		if body.count("changeUnitProduction(eUpgradeUnit, iUpgradeProduction);") != 1:
+			failures.append(f"{CITY_SOURCE}: KI#882 must accumulate obsolete-unit production into the upgrade destination exactly once")
+		if "setUnitProduction(eUpgradeUnit, iUpgradeProduction);" in body:
+			failures.append(f"{CITY_SOURCE}: inherited BtS destination-overwrite assignment returned to CvCity::upgradeProduction")
+		for token in ("setUnitProduction(eUnit, 0);", "logSASGameRecordProductionUpgraded(this, eUnit, eUpgradeUnit, iUpgradeProduction, iUpgradeProductionBefore)"):
+			if token not in body:
+				failures.append(f"{CITY_SOURCE}: production-upgrade transfer/recorder contract missing {token}")
+
+	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	for token in (
+		"productionUpgradePreservedActions=%d", "productionUpgradePreserved=%d", "preservedDestinationProduction=%d",
+		"iDestinationProductionBefore + iProductionTransferred",
+	):
+		if token not in record_text:
+			failures.append(f"{REVISION_SOURCE}: KI#882 production-upgrade preservation telemetry missing {token}")
+	for stale in (
+		"productionUpgradeOverwriteActions=%d", "productionUpgradeOverwritten=%d", "overwrittenDestinationProduction=%d",
+		"iProductionUpgradeOverwriteActions", "iProductionUpgradeOverwritten",
+	):
+		if stale in record_text:
+			failures.append(f"{REVISION_SOURCE}: stale pre-KI#882 overwrite telemetry remains: {stale}")
+	return failures
+
+
 EXPECTED_GAME_RECORD_DEFAULTS = {
 	"SAS_GAME_RECORD_LOG_LEVEL": 0,
 	# These configure enabled record logging but do not enable it themselves.
@@ -2225,6 +2264,7 @@ def main() -> int:
 	failures.extend(check_ai_religion_spread_target_provenance(args.repo_root))
 	failures.extend(check_ai_map_trade_provenance(args.repo_root))
 	failures.extend(check_unit_completion_sources(args.repo_root))
+	failures.extend(check_production_upgrade_preservation_contract(args.repo_root))
 	failures.extend(check_ai_draft_provenance(args.repo_root))
 	failures.extend(check_ai_hurry_provenance(args.repo_root))
 	failures.extend(check_ai_vassal_resource_tribute_provenance(args.repo_root))
@@ -2237,7 +2277,7 @@ def main() -> int:
 		for failure in failures:
 			print(f"  - {failure}")
 		return 1
-	print(f"PASS SASGameRecord report/revision checks: logging defaults={len(EXPECTED_GAME_RECORD_DEFAULTS)}, revision history/current marker/context-consumer-contracts/turn-completion/city-delta/settlement-vassal-battle/AI-strategy/AreaAI/AI-target-city/AI-attitude/strategic-trade/UWAI-war-plan/AI-vote/AI-contact/AI-help-tribute/AI-give-help/AI-tech-trade/AI-deal-cancel/deal-invalidation/AI-city-trade/AI-embargo/AI-joint-war/AI-vassalage/AI-colony-split/AI-spaceship-launch/AI-religion-spread-target/AI-map-trade/unit-completion-sources/AI-vassal-resource-tribute/AI-draft/AI-hurry/AI-war-trade/AI-conquer-city/AI-Great-Person/AI-Great-General diagnostics synchronized")
+	print(f"PASS SASGameRecord report/revision checks: logging defaults={len(EXPECTED_GAME_RECORD_DEFAULTS)}, revision history/current marker/context-consumer-contracts/turn-completion/city-delta/settlement-vassal-battle/AI-strategy/AreaAI/AI-target-city/AI-attitude/strategic-trade/UWAI-war-plan/AI-vote/AI-contact/AI-help-tribute/AI-give-help/AI-tech-trade/AI-deal-cancel/deal-invalidation/AI-city-trade/AI-embargo/AI-joint-war/AI-vassalage/AI-colony-split/AI-spaceship-launch/AI-religion-spread-target/AI-map-trade/unit-completion-sources/production-upgrade-preservation/AI-vassal-resource-tribute/AI-draft/AI-hurry/AI-war-trade/AI-conquer-city/AI-Great-Person/AI-Great-General diagnostics synchronized")
 	return 0
 
 

@@ -27,7 +27,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=132 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=133 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -55,10 +55,18 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
-### Revision 132 - SAS practical 6587
+### Revision 133 - SAS practical 6588
 
 - **Date:** 2026-10-06
 - **Git commit:** pending
+- **Change:** Aligned production-upgrade telemetry with the KI#882 repair of an inherited BtS destination-production overwrite.
+
+Obsolete-unit production now accumulates into an upgrade target instead of replacing production already stored there. `PRODUCTION_UPGRADED` and interval production-flow rows consequently report destination production preserved by the repair rather than obsolete overwrite-loss fields; the existing level gates and upgrade scan remain unchanged. See [KI#882](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-882).
+
+### Revision 132 - SAS practical 6587
+
+- **Date:** 2026-10-06
+- **Git commit:** `e3d8fe69e2ea7c6479693d70ee95075a1a66deff`
 - **Change:** Added one cheap authoritative completed-turn marker at every enabled level and clarified recorder evidence semantics after a full backlog audit.
 
 `GAME_RECORD_TURN_COMPLETED` is emitted once at the end of each fully processed game turn, after autoplay/synchronization cleanup and the level-3 RNG/state checkpoint when present, but before `incrementGameTurn`. This gives level 1/2 truncated or crashed records the same unambiguous last-completed-turn boundary without adding a snapshot, state scan, pathfinding, RNG, or other expensive work; level 3 keeps the uniform marker beside its richer checkpoint.

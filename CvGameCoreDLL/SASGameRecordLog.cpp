@@ -2652,8 +2652,8 @@ struct SASGameRecordPlayerFlow
 	int iProductionInvalidatedLost;
 	int iProductionUpgradeTransfers;
 	int iProductionUpgradeTransferred;
-	int iProductionUpgradeOverwriteActions;
-	int iProductionUpgradeOverwritten;
+	int iProductionUpgradePreservedActions;
+	int iProductionUpgradePreserved;
 	int aiAIProductionTransitions[NUM_SAS_PRODUCTION_KINDS * NUM_SAS_PRODUCTION_KINDS];
 	std::vector<std::pair<int,int> > aAIProductionTargetChangesByCity;
 	int iUpgrades;
@@ -2734,8 +2734,8 @@ struct SASGameRecordPlayerFlow
 		iProductionInvalidatedLost = 0;
 		iProductionUpgradeTransfers = 0;
 		iProductionUpgradeTransferred = 0;
-		iProductionUpgradeOverwriteActions = 0;
-		iProductionUpgradeOverwritten = 0;
+		iProductionUpgradePreservedActions = 0;
+		iProductionUpgradePreserved = 0;
 		for (int iI = 0; iI < NUM_SAS_PRODUCTION_KINDS * NUM_SAS_PRODUCTION_KINDS; iI++) aiAIProductionTransitions[iI] = 0;
 		aAIProductionTargetChangesByCity.clear();
 		iUpgrades = 0;
@@ -2771,7 +2771,7 @@ struct SASGameRecordPlayerFlow
 	bool hasProduction() const
 	{
 		return (iUnitsCompleted > 0 || iUnitsConscripted > 0 || iColonyFreeDefenders > 0 || iBuildingsCompleted > 0 || iProjectsCompleted > 0 || iOverflowActions > 0 || iFailedInvestedProduction > 0 || iFailGold > 0 ||
-			iAIProductionTargetSwitches > 0 || iAIProductionTargetClears > 0 || iAIProductionTargetResumes > 0 || iAIBuildingChoices > 0 || iProductionDecayActions > 0 || iProductionInvalidatedActions > 0 || iProductionUpgradeTransfers > 0 || iProductionUpgradeOverwritten > 0);
+			iAIProductionTargetSwitches > 0 || iAIProductionTargetClears > 0 || iAIProductionTargetResumes > 0 || iAIBuildingChoices > 0 || iProductionDecayActions > 0 || iProductionInvalidatedActions > 0 || iProductionUpgradeTransfers > 0 || iProductionUpgradePreserved > 0);
 	}
 
 	bool hasMilitary() const
@@ -6542,7 +6542,7 @@ static void logSASGameRecordFlowBuckets(int iGameTurn)
 			}
 			FOR_EACH_ENUM(Project)
 				appendSASGameRecordTypeCount(szProjectTypes, getSASGameRecordProjectType(eLoopProject), kFlow.aiProjectTypes[eLoopProject]);
-			logSASGameRecord("GAME_RECORD_PRODUCTION_FLOW turn=%d range=%d-%d player=%d unitsProduced=%d unitProductionNeeded=%d unitTypes=%s unitsConscripted=%d conscriptProductionNeeded=%d conscriptedUnitTypes=%s colonyFreeDefenders=%d colonyFreeDefenderProductionNeeded=%d colonyFreeDefenderUnitTypes=%s buildingsCompleted=%d buildingProductionNeeded=%d buildingTypes=%s projectsCompleted=%d projectProductionNeeded=%d projectTypes=%s overflowActions=%d rawModifiedOverflow=%d unmodifiedOverflow=%d keptOverflow=%d lostProduction=%d unusedOverflowCapacity=%d overflowGold=%d failedInvestedProduction=%d failGold=%d aiTargetSwitches=%d aiTargetClears=%d aiInvestedTargetChanges=%d aiProductionParked=%d aiTargetResumes=%d aiProductionResumed=%d aiTargetChangedCities=%d aiMaxTargetChangesOneCity=%d aiTargetTransitions=%s aiBuildingChoices=%d aiBuildingChoiceRegular=%d aiBuildingChoiceNationalWonders=%d aiBuildingChoiceTeamWonders=%d aiBuildingChoiceWorldWonders=%d aiBuildingChoiceWithStored=%d aiBuildingChoiceStoredProduction=%d aiBuildingChoiceProductionNeeded=%d aiBuildingChoiceEffects=%s aiBuildingChoiceOrigins=%s aiBuildingChoiceTypes=%s productionDecayActions=%d productionDecayLost=%d productionInvalidatedActions=%d productionInvalidatedLost=%d productionUpgradeTransfers=%d productionUpgradeTransferred=%d productionUpgradeOverwriteActions=%d productionUpgradeOverwritten=%d",
+			logSASGameRecord("GAME_RECORD_PRODUCTION_FLOW turn=%d range=%d-%d player=%d unitsProduced=%d unitProductionNeeded=%d unitTypes=%s unitsConscripted=%d conscriptProductionNeeded=%d conscriptedUnitTypes=%s colonyFreeDefenders=%d colonyFreeDefenderProductionNeeded=%d colonyFreeDefenderUnitTypes=%s buildingsCompleted=%d buildingProductionNeeded=%d buildingTypes=%s projectsCompleted=%d projectProductionNeeded=%d projectTypes=%s overflowActions=%d rawModifiedOverflow=%d unmodifiedOverflow=%d keptOverflow=%d lostProduction=%d unusedOverflowCapacity=%d overflowGold=%d failedInvestedProduction=%d failGold=%d aiTargetSwitches=%d aiTargetClears=%d aiInvestedTargetChanges=%d aiProductionParked=%d aiTargetResumes=%d aiProductionResumed=%d aiTargetChangedCities=%d aiMaxTargetChangesOneCity=%d aiTargetTransitions=%s aiBuildingChoices=%d aiBuildingChoiceRegular=%d aiBuildingChoiceNationalWonders=%d aiBuildingChoiceTeamWonders=%d aiBuildingChoiceWorldWonders=%d aiBuildingChoiceWithStored=%d aiBuildingChoiceStoredProduction=%d aiBuildingChoiceProductionNeeded=%d aiBuildingChoiceEffects=%s aiBuildingChoiceOrigins=%s aiBuildingChoiceTypes=%s productionDecayActions=%d productionDecayLost=%d productionInvalidatedActions=%d productionInvalidatedLost=%d productionUpgradeTransfers=%d productionUpgradeTransferred=%d productionUpgradePreservedActions=%d productionUpgradePreserved=%d",
 				iGameTurn, g_iSASGameRecordFlowStartTurn, iGameTurn, ePlayer, kFlow.iUnitsCompleted, kFlow.iUnitProductionNeeded,
 				getSASDiagnosticOrDash(szUnitTypes).GetCString(), kFlow.iUnitsConscripted, kFlow.iConscriptProductionNeeded,
 				getSASDiagnosticOrDash(szConscriptedUnitTypes).GetCString(), kFlow.iColonyFreeDefenders, kFlow.iColonyFreeDefenderProductionNeeded,
@@ -6560,7 +6560,7 @@ static void logSASGameRecordFlowBuckets(int iGameTurn)
 				getSASGameRecordAIBuildingChoiceOrigins(kFlow).GetCString(), getSASDiagnosticOrDash(szAIBuildingChoiceTypes).GetCString(),
 				kFlow.iProductionDecayActions, kFlow.iProductionDecayLost, kFlow.iProductionInvalidatedActions,
 				kFlow.iProductionInvalidatedLost, kFlow.iProductionUpgradeTransfers, kFlow.iProductionUpgradeTransferred,
-				kFlow.iProductionUpgradeOverwriteActions, kFlow.iProductionUpgradeOverwritten);
+				kFlow.iProductionUpgradePreservedActions, kFlow.iProductionUpgradePreserved);
 		}
 		if (kFlow.hasMilitary())
 		{
@@ -14496,17 +14496,16 @@ void logSASGameRecordProductionUpgraded(CvCity const* pCity, UnitTypes eOldUnit,
 		kFlow.iProductionUpgradeTransfers++;
 		kFlow.iProductionUpgradeTransferred += iProductionTransferred;
 	}
-	// <!-- custom: CvCity::upgradeProduction assigns rather than adds at the destination.
-	// Any pre-existing destination production is therefore overwritten; preserve that separately as a possible mechanical loss instead of misclassifying it as target churn. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Keep any destination bank present before an obsolete-unit transfer explicit in the rare-case telemetry; level 3 retains all transfers, while level 2 also surfaces cases with preserved destination production. See KI#882. (ChatGPT-5.6-Sol) -->
 	if (iDestinationProductionBefore > 0)
-		kFlow.iProductionUpgradeOverwriteActions++;
-	kFlow.iProductionUpgradeOverwritten += std::max(0, iDestinationProductionBefore);
+		kFlow.iProductionUpgradePreservedActions++;
+	kFlow.iProductionUpgradePreserved += std::max(0, iDestinationProductionBefore);
 	if (gGameRecordLogLevel >= 3 || iDestinationProductionBefore > 0)
 	{
-		logSASGameRecord("GAME_RECORD_ACTION turn=%d type=PRODUCTION_UPGRADED player=%d cityId=%d city=%S oldUnit=%s newUnit=%s productionTransferred=%d newProductionBefore=%d newProductionAfter=%d overwrittenDestinationProduction=%d",
+		logSASGameRecord("GAME_RECORD_ACTION turn=%d type=PRODUCTION_UPGRADED player=%d cityId=%d city=%S oldUnit=%s newUnit=%s productionTransferred=%d newProductionBefore=%d newProductionAfter=%d preservedDestinationProduction=%d",
 			GC.getGame().getGameTurn(), pCity->getOwner(), pCity->getID(), getSASGameRecordQuotedCityName(pCity).GetCString(),
 			getSASGameRecordUnitType(eOldUnit), getSASGameRecordUnitType(eNewUnit), iProductionTransferred, iDestinationProductionBefore,
-			iProductionTransferred, std::max(0, iDestinationProductionBefore));
+			iDestinationProductionBefore + iProductionTransferred, std::max(0, iDestinationProductionBefore));
 	}
 }
 
