@@ -463,13 +463,10 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 		bool const bSASGreatGeneralAttached = (getLeaderUnitType() != NO_UNIT);
 		// <!-- custom: The KI#334 visibility contract now needs the killer's team as well as its display identity across several branches; bind the validated ePlayer once instead of mixing repeated player lookups with victim/observer references. See KI#334. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		CvPlayer const& kKiller = GET_PLAYER(ePlayer);
-		if (gGreatGeneralLogLevel >= 1 && (bSASGreatGeneralUnit || bSASGreatGeneralAttached))
-		{
-			logBBAI("    GREAT_GENERAL_DIED turn=%d player=%d %S unitId=%d unitType=%s unitName=%S freeGreatGeneral=%d attachedGreatGeneral=%s killerPlayer=%d x=%d y=%d",
-				GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getID(), GC.getInfo(getUnitType()).getType(),
-				getReplayName().GetCString(), bSASGreatGeneralUnit,
-				bSASGreatGeneralAttached ? GC.getInfo(getLeaderUnitType()).getType() : "-", ePlayer, getX(), getY());
-		}
+		if (gGreatGeneralLogLevel >= 1 && (bSASGreatGeneralUnit || bSASGreatGeneralAttached)) logBBAI("    GREAT_GENERAL_DIED turn=%d player=%d %S unitId=%d unitType=%s unitName=%S freeGreatGeneral=%d attachedGreatGeneral=%s killerPlayer=%d x=%d y=%d",
+			GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getID(), GC.getInfo(getUnitType()).getType(),
+			getReplayName().GetCString(), bSASGreatGeneralUnit,
+			bSASGreatGeneralAttached ? GC.getInfo(getLeaderUnitType()).getType() : "-", ePlayer, getX(), getY());
 		// <!-- custom: Base AdvCiv passed getNameKey() directly to the Great General death texts.
 		// Once a Great General or its combat unit has a personal name, getNameKey() returns only that name, hiding whether the dead unit was the free Great General itself or e.g. a named Longbowman carrying one.
 		// getReplayName() keeps the unit type and personal name together for Great-General cases; retain getNameKey() for the unrelated Golden-Age notification path. See KI#204. (ChatGPT-5.6-Sol) -->

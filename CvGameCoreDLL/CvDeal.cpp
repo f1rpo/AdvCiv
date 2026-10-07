@@ -188,8 +188,7 @@ void CvDeal::announceCancel(PlayerTypes eMsgTarget, PlayerTypes eOther, bool bFo
 // </advc.036> <!-- custom: hoisted from multiline signature between `bUpdateAttitude` and `eCancelPlayer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 void CvDeal::killSilent(bool bKillTeam, bool bUpdateAttitude, PlayerTypes eCancelPlayer) // advc.130p
 {
-	if (gGameRecordLogLevel >= 2 && (getLengthFirst() > 0 || getLengthSecond() > 0))
-		logSASGameRecordDealEndAction(*this, bKillTeam, bUpdateAttitude, eCancelPlayer);
+	if (gGameRecordLogLevel >= 2 && (getLengthFirst() > 0 || getLengthSecond() > 0)) logSASGameRecordDealEndAction(*this, bKillTeam, bUpdateAttitude, eCancelPlayer);
 	FOR_EACH_TRADE_ITEM(getFirstList())
 	{
 		endTrade(*pItem, getFirstPlayer(), getSecondPlayer(), bKillTeam,

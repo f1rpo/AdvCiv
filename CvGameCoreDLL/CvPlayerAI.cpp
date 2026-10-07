@@ -467,8 +467,7 @@ void CvPlayerAI::AI_doTurnPost()
 	if (isBarbarian())
 	{
 		// <!-- custom: Save-file 450 repeatedly showed Barbarian seafood remaining unimproved. Include Barbarians in the existing level-3 Work Boat audit before their shortened post-turn path returns, so production shortages can be distinguished from buildability, reachability, danger and mission-assignment failures. Diagnostic only. (GPT-5.6-Sol) -->
-		if (gWorkerSeaLogLevel >= 3)
-			AI_logWorkerSeaAudit();
+		if (gWorkerSeaLogLevel >= 3) AI_logWorkerSeaAudit();
 		AI_foldDeals(); // advc.036
 		return;
 	}
@@ -482,8 +481,7 @@ void CvPlayerAI::AI_doTurnPost()
 	}
 	if (isHuman())
 		return;
-	if (gWorkerSeaLogLevel >= 3)
-		AI_logWorkerSeaAudit();
+	if (gWorkerSeaLogLevel >= 3) AI_logWorkerSeaAudit();
 	AI_updateExpansionistHate(); // advc.130w (also updates our attitude cache)
 	// </advc.001>
 
@@ -835,13 +833,10 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 				}
 			}
 		}
-		if (bLogUpgradeDiagnostics)
-		{
-			logBBAI("    UPGRADE_PASS_SUMMARY turn=%d player=%d %S pass=%d passName=%s eligibleUnits=%d upgradedUnits=%d skippedBudget=%d spentBefore=%d spentAfter=%d budget=%d goldBefore=%d goldAfter=%d overspentAfter=%d",
-				GC.getGame().getGameTurn(), getID(), getCivilizationDescription(0), iPass, szPassName, iPassEligibleUnits,
-				iPassUpgradedUnits, iPassSkippedBudget, iStartingGold - iPassGoldBefore, iStartingGold - getGold(), iUpgradeBudget,
-				iPassGoldBefore, getGold(), iStartingGold - getGold() > iUpgradeBudget);
-		}
+		if (bLogUpgradeDiagnostics) logBBAI("    UPGRADE_PASS_SUMMARY turn=%d player=%d %S pass=%d passName=%s eligibleUnits=%d upgradedUnits=%d skippedBudget=%d spentBefore=%d spentAfter=%d budget=%d goldBefore=%d goldAfter=%d overspentAfter=%d",
+			GC.getGame().getGameTurn(), getID(), getCivilizationDescription(0), iPass, szPassName, iPassEligibleUnits,
+			iPassUpgradedUnits, iPassSkippedBudget, iStartingGold - iPassGoldBefore, iStartingGold - getGold(), iUpgradeBudget,
+			iPassGoldBefore, getGold(), iStartingGold - getGold() > iUpgradeBudget);
 	}
 
 	/*if (isBarbarian()) // advc.300 (moved up)
@@ -2268,8 +2263,7 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity, bool bEverOwned) // advc.ctr: W
 			{
 				if (kCity.isHolyCity(eLoopReligion))
 				{
-					if (bLogRazeDecision)
-						logBBAI("      Reduction for holy city");
+					if (bLogRazeDecision) logBBAI("      Reduction for holy city");
 					if(getStateReligion() == eLoopReligion)
 						iRazeValue -= 150;
 					else iRazeValue -= 5 + kGame.calculateReligionPercent(eLoopReligion);
@@ -2282,8 +2276,7 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity, bool bEverOwned) // advc.ctr: W
 			{
 				if (kCity.isHeadquarters(eCorp))
 				{
-					if (bLogRazeDecision)
-						logBBAI("      Reduction for corp headquarters");
+					if (bLogRazeDecision) logBBAI("      Reduction for corp headquarters");
 					iRazeValue -= 10 + 100 * kGame.countCorporationLevels(eCorp) /
 							kGame.getNumCities();
 				}
@@ -2410,10 +2403,9 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity, bool bEverOwned) // advc.ctr: W
 				if (bLiberate)
 				{
 					// <!-- custom: same player-log category guard as the nearby conquest/raze diagnostics. (GPT-5.5 + ChatGPT 5.5) -->
-					if (bLogRazeDecision)
-						logBBAI("    Player %d (%S) decides to liberate city %S to player %d (%S)",
-							getID(), getCivilizationDescription(0), kCity.getName().GetCString(), GET_PLAYER(eLiberationPlayer).getID(),
-							GET_PLAYER(eLiberationPlayer).getCivilizationDescription(0));
+					if (bLogRazeDecision) logBBAI("    Player %d (%S) decides to liberate city %S to player %d (%S)",
+						getID(), getCivilizationDescription(0), kCity.getName().GetCString(), GET_PLAYER(eLiberationPlayer).getID(),
+						GET_PLAYER(eLiberationPlayer).getCivilizationDescription(0));
 					CvEventReporter::getInstance().cityAcquiredAndKept(getID(), &kCity);
 					kCity.liberate(true);
 				}
@@ -4749,15 +4741,12 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 						prereq_bonus[prereq_i] = std::max(prereq_bonus[prereq_i],
 								techs[i].first*iPrereqPercent/100);
 
-						if (gPlayerLogLevel >= 3)
-						{
-							logBBAI("      %S adds %d to %S (depth %d)",
-									GC.getInfo(techs[i].second).
-									getDescription(),
-									techs[i].first*iPrereqPercent/100,
-									GC.getInfo(techs[prereq_i].second).
-									getDescription(), iDepth-1);
-						}
+						if (gPlayerLogLevel >= 3) logBBAI("      %S adds %d to %S (depth %d)",
+							GC.getInfo(techs[i].second).
+							getDescription(),
+							techs[i].first*iPrereqPercent/100,
+							GC.getInfo(techs[prereq_i].second).
+							getDescription(), iDepth-1);
 					}
 				}
 			}
@@ -4776,15 +4765,12 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 						//values[prereq_i] += values[i]*iPrereqPercent/100;
 						prereq_bonus[prereq_i] = std::max(prereq_bonus[prereq_i],
 								techs[i].first*iPrereqPercent/100);
-						if (gPlayerLogLevel >= 3)
-						{
-							logBBAI("      %S adds %d to %S (depth %d)",
-									GC.getInfo(techs[i].second).
-									getDescription(),
-									techs[i].first*iPrereqPercent/100,
-									GC.getInfo(techs[prereq_i].second).
-									getDescription(), iDepth-1);
-						}
+						if (gPlayerLogLevel >= 3) logBBAI("      %S adds %d to %S (depth %d)",
+							GC.getInfo(techs[i].second).
+							getDescription(),
+							techs[i].first*iPrereqPercent/100,
+							GC.getInfo(techs[prereq_i].second).
+							getDescription(), iDepth-1);
 					}
 				}
 			}
@@ -4813,10 +4799,7 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 	TechTypes eBestTech = tech_it->second;
 	FAssert(canResearch(eBestTech));
 
-	if (gPlayerLogLevel >= 1)
-	{
-		logBBAI("  Player %d (%S) selects tech %S with value %d", getID(), getCivilizationDescription(0), GC.getInfo(eBestTech).getDescription(), tech_it->first);
-	}
+	if (gPlayerLogLevel >= 1) logBBAI("  Player %d (%S) selects tech %S with value %d", getID(), getCivilizationDescription(0), GC.getInfo(eBestTech).getDescription(), tech_it->first);
 
 	return eBestTech;
 	}
@@ -6115,16 +6098,13 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech, b
 						iSASCityValue = iSASCityValue * iSASCapitalPercent / 100;
 
 					iSASProductiveFeatureRemoveTechValue += iSASCityValue;
-					if (gPlayerLogLevel >= 3 && !bAsync && iSASCityValue > 0)
-					{
-						logBBAI("      AI_TECH_PRODUCTIVE_FEATURE_REMOVE player=%d %S tech=%S feature=%S city=%S cityId=%d featureCount=%d xmlChopProduction=%d actualStoredProduction=%d averageActualChopProduction=%d cityBaseProduction=%d minFeatures=%d minChopTurnsNormal=%d featureProductionPercent=%d capital=%d cityValue=%d",
-							getID(), getCivilizationDescription(0), kTech.getDescription(),
-							kFeature.getDescription(), pSASCity->getName().GetCString(), pSASCity->getID(),
-							iSASFeatureCount, iSASFeatureRemoveProduction, iSASActualStoredProduction,
-							iSASAverageActualChopProduction, iSASCityBaseProduction,
-							iSASMinFeaturesPerCity, iSASMinChopTurnsNormal, iSASFeatureProductionPercent,
-							bSASCapital, iSASCityValue);
-					}
+					if (gPlayerLogLevel >= 3 && !bAsync && iSASCityValue > 0) logBBAI("      AI_TECH_PRODUCTIVE_FEATURE_REMOVE player=%d %S tech=%S feature=%S city=%S cityId=%d featureCount=%d xmlChopProduction=%d actualStoredProduction=%d averageActualChopProduction=%d cityBaseProduction=%d minFeatures=%d minChopTurnsNormal=%d featureProductionPercent=%d capital=%d cityValue=%d",
+						getID(), getCivilizationDescription(0), kTech.getDescription(),
+						kFeature.getDescription(), pSASCity->getName().GetCString(), pSASCity->getID(),
+						iSASFeatureCount, iSASFeatureRemoveProduction, iSASActualStoredProduction,
+						iSASAverageActualChopProduction, iSASCityBaseProduction,
+						iSASMinFeaturesPerCity, iSASMinChopTurnsNormal, iSASFeatureProductionPercent,
+						bSASCapital, iSASCityValue);
 				}
 			}
 
@@ -12909,13 +12889,10 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 				GC.getGame().getGameTurn(), getID(), GC.getInfo(getCivilizationType()).getType(), GC.getInfo(eBonus).getType(), bTrade,
 				getNumAvailableBonuses(eBonus), GC.getInfo(getCurrentEra()).getType(), rHappyHealthValue.getPercent(), rUnitValue.getPercent(),
 				rBuildingValue.getPercent(), rProjectValue.getPercent(), rRouteValue.getPercent(), rManualObjectiveValue.getPercent(), rDynamicValueBeforeDivisor.getPercent(), iValue);
-			if (gBonusLogLevel >= 3)
-			{
-				logBBAI("BONUS_DYNAMIC_CONTRIBUTORS turn=%d player=%d bonus=%s trade=%d unitInputs=%s buildingInputs=%s projectInputs=%s routeInputs=%s",
-					GC.getGame().getGameTurn(), getID(), GC.getInfo(eBonus).getType(), bTrade,
-					(szUnitContributors.empty() ? "-" : szUnitContributors.GetCString()), (szBuildingContributors.empty() ? "-" : szBuildingContributors.GetCString()),
-					(szProjectContributors.empty() ? "-" : szProjectContributors.GetCString()), (szRouteContributors.empty() ? "-" : szRouteContributors.GetCString()));
-			}
+			if (gBonusLogLevel >= 3) logBBAI("BONUS_DYNAMIC_CONTRIBUTORS turn=%d player=%d bonus=%s trade=%d unitInputs=%s buildingInputs=%s projectInputs=%s routeInputs=%s",
+				GC.getGame().getGameTurn(), getID(), GC.getInfo(eBonus).getType(), bTrade,
+				(szUnitContributors.empty() ? "-" : szUnitContributors.GetCString()), (szBuildingContributors.empty() ? "-" : szBuildingContributors.GetCString()),
+				(szProjectContributors.empty() ? "-" : szProjectContributors.GetCString()), (szRouteContributors.empty() ? "-" : szRouteContributors.GetCString()));
 		}
 	}
 	/*  To address karadoc's "@*#!" comment in the middle of this function;
@@ -18290,12 +18267,9 @@ scaled CvPlayerAI::AI_barbarianTargetCityScore(CvArea const& kArea) const
 		if (!pBarbarianCity->isArea(kArea) ||
 			!GET_TEAM(getTeam()).AI_deduceCitySite(*pBarbarianCity))
 		{
-			if (bLogBarbTargets && pBarbarianCity->isArea(kArea))
-			{
-				logBBAI("    BARB_CITY_SCORE_SKIP turn=%d player=%d %S area=%d target=%S target=(%d,%d) reason=not_deduced",
-					GC.getGame().getGameTurn(), getID(), getCivilizationDescription(0), kArea.getID(),
-					pBarbarianCity->getName().GetCString(), pBarbarianCity->getX(), pBarbarianCity->getY());
-			}
+			if (bLogBarbTargets && pBarbarianCity->isArea(kArea)) logBBAI("    BARB_CITY_SCORE_SKIP turn=%d player=%d %S area=%d target=%S target=(%d,%d) reason=not_deduced",
+				GC.getGame().getGameTurn(), getID(), getCivilizationDescription(0), kArea.getID(),
+				pBarbarianCity->getName().GetCString(), pBarbarianCity->getX(), pBarbarianCity->getY());
 			continue;
 		}
 		CvPlot const& kBarbarianCityPlot = pBarbarianCity->getPlot();
@@ -18307,13 +18281,10 @@ scaled CvPlayerAI::AI_barbarianTargetCityScore(CvArea const& kArea) const
 		}
 		if (iOurDist >= 15)
 		{
-			if (bLogBarbTargets)
-			{
-				logBBAI("    BARB_CITY_SCORE_SKIP turn=%d player=%d %S area=%d target=%S target=(%d,%d) pop=%d reason=distance ourDist=%d",
-					GC.getGame().getGameTurn(), getID(), getCivilizationDescription(0), kArea.getID(),
-					pBarbarianCity->getName().GetCString(), pBarbarianCity->getX(), pBarbarianCity->getY(), pBarbarianCity->getPopulation(),
-					iOurDist);
-			}
+			if (bLogBarbTargets) logBBAI("    BARB_CITY_SCORE_SKIP turn=%d player=%d %S area=%d target=%S target=(%d,%d) pop=%d reason=distance ourDist=%d",
+				GC.getGame().getGameTurn(), getID(), getCivilizationDescription(0), kArea.getID(),
+				pBarbarianCity->getName().GetCString(), pBarbarianCity->getX(), pBarbarianCity->getY(), pBarbarianCity->getPopulation(),
+				iOurDist);
 			continue;
 		}
 		/*	"Other" can be on our team - if a teammate is better positioned
@@ -18365,21 +18336,15 @@ scaled CvPlayerAI::AI_barbarianTargetCityScore(CvArea const& kArea) const
 		rScore /= std::max(fixp(0.6),
 				1 + per100(iDefModifier) + (iDefenders < 0 ? 0 : fixp(0.25) *
 				(iDefenders - AI_estimateBarbarianGarrisonSize())));
-		if (bLogBarbTargets)
-		{
-			logBBAI("    BARB_CITY_SCORE_TARGET turn=%d player=%d %S area=%d target=%S target=(%d,%d) pop=%d ourDist=%d otherDist=%d ourCulture=%d otherCulture=%d defModifier=%d defenders=%d estimatedGarrison=%d score=%d scorePercent=%d",
-				GC.getGame().getGameTurn(), getID(), getCivilizationDescription(0), kArea.getID(), pBarbarianCity->getName().GetCString(),
-				pBarbarianCity->getX(), pBarbarianCity->getY(), pBarbarianCity->getPopulation(), iOurDist,
-				(iOtherDist == MAX_INT ? -1 : iOtherDist), iOurCulture, iOtherCulture, iDefModifier, iDefenders,
-				AI_estimateBarbarianGarrisonSize(), rScore.round(), rScore.getPercent());
-		}
+		if (bLogBarbTargets) logBBAI("    BARB_CITY_SCORE_TARGET turn=%d player=%d %S area=%d target=%S target=(%d,%d) pop=%d ourDist=%d otherDist=%d ourCulture=%d otherCulture=%d defModifier=%d defenders=%d estimatedGarrison=%d score=%d scorePercent=%d",
+			GC.getGame().getGameTurn(), getID(), getCivilizationDescription(0), kArea.getID(), pBarbarianCity->getName().GetCString(),
+			pBarbarianCity->getX(), pBarbarianCity->getY(), pBarbarianCity->getPopulation(), iOurDist,
+			(iOtherDist == MAX_INT ? -1 : iOtherDist), iOurCulture, iOtherCulture, iDefModifier, iDefenders,
+			AI_estimateBarbarianGarrisonSize(), rScore.round(), rScore.getPercent());
 		rTotal += rScore;
 	}
-	if (bLogBarbTargets && rTotal > 0)
-	{
-		logBBAI("    BARB_CITY_SCORE_SUMMARY turn=%d player=%d %S area=%d totalScore=%d totalScorePercent=%d",
-			GC.getGame().getGameTurn(), getID(), getCivilizationDescription(0), kArea.getID(), rTotal.round(), rTotal.getPercent());
-	}
+	if (bLogBarbTargets && rTotal > 0) logBBAI("    BARB_CITY_SCORE_SUMMARY turn=%d player=%d %S area=%d totalScore=%d totalScorePercent=%d",
+		GC.getGame().getGameTurn(), getID(), getCivilizationDescription(0), kArea.getID(), rTotal.round(), rTotal.getPercent());
 	return rTotal;
 } // </advc.300>
 
@@ -22462,14 +22427,11 @@ void CvPlayerAI::AI_doCommerce()
 		to keep us above zero gold. */
 	verifyGoldCommercePercent();
 	// <!-- custom: The culture-weight summary is written before this commerce update and therefore shows the prior allocation. Log the actual slider decision and its happiness, pressure, and Culture-2/3 components so late culture spending can be separated from local needs and compared with stronger victory routes. (GPT-5.5) -->
-	if (bLogCultureCommerce)
-	{
-		logBBAI("CULTURE_SLIDER_DECISION turn=%d player=%d %S flexible=%d firstTech=%d culture2=%d culture3=%d culture4=%d happinessIdeal=%d stageBonus=%d averagePressure=%d avoidScience=%d cap=%d initialTarget=%d finalCulture=%d finalResearch=%d finalGold=%d finalEspionage=%d",
-			GC.getGame().getGameTurn(), getID(), getCivilizationShortDescription(), isCommerceFlexible(COMMERCE_CULTURE), bFirstTech,
-			AI_atVictoryStage(AI_VICTORY_CULTURE2), AI_atVictoryStage(AI_VICTORY_CULTURE3), AI_atVictoryStage(AI_VICTORY_CULTURE4),
-			iCultureHappinessIdeal, iCultureStageBonus, iAverageCulturePressure, AI_avoidScience(), iCultureCap, iInitialCultureTarget,
-			getCommercePercent(COMMERCE_CULTURE), getCommercePercent(COMMERCE_RESEARCH), getCommercePercent(COMMERCE_GOLD), getCommercePercent(COMMERCE_ESPIONAGE));
-	}
+	if (bLogCultureCommerce) logBBAI("CULTURE_SLIDER_DECISION turn=%d player=%d %S flexible=%d firstTech=%d culture2=%d culture3=%d culture4=%d happinessIdeal=%d stageBonus=%d averagePressure=%d avoidScience=%d cap=%d initialTarget=%d finalCulture=%d finalResearch=%d finalGold=%d finalEspionage=%d",
+		GC.getGame().getGameTurn(), getID(), getCivilizationShortDescription(), isCommerceFlexible(COMMERCE_CULTURE), bFirstTech,
+		AI_atVictoryStage(AI_VICTORY_CULTURE2), AI_atVictoryStage(AI_VICTORY_CULTURE3), AI_atVictoryStage(AI_VICTORY_CULTURE4),
+		iCultureHappinessIdeal, iCultureStageBonus, iAverageCulturePressure, AI_avoidScience(), iCultureCap, iInitialCultureTarget,
+		getCommercePercent(COMMERCE_CULTURE), getCommercePercent(COMMERCE_RESEARCH), getCommercePercent(COMMERCE_GOLD), getCommercePercent(COMMERCE_ESPIONAGE));
 }
 
 // <!-- custom: Build the pending/final civic bundle only when SASGameRecord is about to emit a meaningful civic outcome.
@@ -22625,14 +22587,11 @@ void CvPlayerAI::AI_doCivics()
 					"    %S switches to %S (value: %d vs %d, slack %d, thr %d)%s",
 					getCivilizationDescription(0), GC.getInfo(eNewCivic).getDescription(0),
 					iBestValue, iCurrent, iAbsSlack, iThreshold, bFirstPass ? "" : ", recheck");
-				if (bLogBBAICivicDecision)
-				{
-					logBBAI("    CIVIC_SWITCH_DETAIL turn=%d player=%d %S status=ACCEPT option=%S old=%S new=%S currentValue=%d bestValue=%d delta=%d anarchyTest=%d currentBundleAnarchy=%d anarchyDelta=%d threshold=%d slack=%d passPercent=%d passSlack=%d firstPass=%d financialTrouble=%d wars=%d anyWarPlan=%d gold=%d goldRate=%d",
-						GC.getGame().getGameTurn(), getID(), getCivilizationDescription(0), GC.getInfo(eLoopCivicOption).getDescription(),
-						GC.getInfo(eOtherCivic).getDescription(), GC.getInfo(eNewCivic).getDescription(), iCurrent, iBestValue,
-						iBestValue - iCurrent, iTestAnarchy, iAnarchyLength, iAnarchyDelta, iThreshold, iAbsSlack, bPassPercent, bPassSlack,
-						bFirstPass, bFinancialTrouble, iNumWars, bAnyWarPlan, getGold(), calculateGoldRate());
-				}
+				if (bLogBBAICivicDecision) logBBAI("    CIVIC_SWITCH_DETAIL turn=%d player=%d %S status=ACCEPT option=%S old=%S new=%S currentValue=%d bestValue=%d delta=%d anarchyTest=%d currentBundleAnarchy=%d anarchyDelta=%d threshold=%d slack=%d passPercent=%d passSlack=%d firstPass=%d financialTrouble=%d wars=%d anyWarPlan=%d gold=%d goldRate=%d",
+					GC.getGame().getGameTurn(), getID(), getCivilizationDescription(0), GC.getInfo(eLoopCivicOption).getDescription(),
+					GC.getInfo(eOtherCivic).getDescription(), GC.getInfo(eNewCivic).getDescription(), iCurrent, iBestValue,
+					iBestValue - iCurrent, iTestAnarchy, iAnarchyLength, iAnarchyDelta, iThreshold, iAbsSlack, bPassPercent, bPassSlack,
+					bFirstPass, bFinancialTrouble, iNumWars, bAnyWarPlan, getGold(), calculateGoldRate());
 				if (bLogSASCivicDecision) logSASGameRecordAICivicCandidate(getID(), "ACCEPT", eLoopCivicOption, eOtherCivic, eNewCivic, iCurrent, iBestValue, iTestAnarchy, iAnarchyLength, iThreshold, iAbsSlack, bPassPercent, bPassSlack, bFirstPass);
 
 				iAnarchyLength = iTestAnarchy;
@@ -22646,15 +22605,12 @@ void CvPlayerAI::AI_doCivics()
 				bool const bWouldLikeSwitch = (iBestValue > iCurrent);
 				if (bWouldLikeSwitch)
 					bWantSwitch = true;
-				if (bLogBBAICivicCandidate)
-				{
-					logBBAI("    CIVIC_SWITCH_DETAIL turn=%d player=%d %S status=%s option=%S old=%S new=%S currentValue=%d bestValue=%d delta=%d anarchyTest=%d currentBundleAnarchy=%d anarchyDelta=%d threshold=%d slack=%d passPercent=%d passSlack=%d firstPass=%d financialTrouble=%d wars=%d anyWarPlan=%d gold=%d goldRate=%d",
-						GC.getGame().getGameTurn(), getID(), getCivilizationDescription(0), (bWouldLikeSwitch ? "WANT_REJECT" : "REJECT"),
-						GC.getInfo(eLoopCivicOption).getDescription(), GC.getInfo(eOtherCivic).getDescription(),
-						GC.getInfo(eNewCivic).getDescription(), iCurrent, iBestValue, iBestValue - iCurrent, iTestAnarchy, iAnarchyLength,
-						iAnarchyDelta, iThreshold, iAbsSlack, bPassPercent, bPassSlack, bFirstPass, bFinancialTrouble, iNumWars, bAnyWarPlan,
-						getGold(), calculateGoldRate());
-				}
+				if (bLogBBAICivicCandidate) logBBAI("    CIVIC_SWITCH_DETAIL turn=%d player=%d %S status=%s option=%S old=%S new=%S currentValue=%d bestValue=%d delta=%d anarchyTest=%d currentBundleAnarchy=%d anarchyDelta=%d threshold=%d slack=%d passPercent=%d passSlack=%d firstPass=%d financialTrouble=%d wars=%d anyWarPlan=%d gold=%d goldRate=%d",
+					GC.getGame().getGameTurn(), getID(), getCivilizationDescription(0), (bWouldLikeSwitch ? "WANT_REJECT" : "REJECT"),
+					GC.getInfo(eLoopCivicOption).getDescription(), GC.getInfo(eOtherCivic).getDescription(),
+					GC.getInfo(eNewCivic).getDescription(), iCurrent, iBestValue, iBestValue - iCurrent, iTestAnarchy, iAnarchyLength,
+					iAnarchyDelta, iThreshold, iAbsSlack, bPassPercent, bPassSlack, bFirstPass, bFinancialTrouble, iNumWars, bAnyWarPlan,
+					getGold(), calculateGoldRate());
 				if (bLogSASCivicCandidate) logSASGameRecordAICivicCandidate(getID(), bWouldLikeSwitch ? "WANT_REJECT" : "REJECT", eLoopCivicOption, eOtherCivic, eNewCivic, iCurrent, iBestValue, iTestAnarchy, iAnarchyLength, iThreshold, iAbsSlack, bPassPercent, bPassSlack, bFirstPass);
 			}
 			// End - Civic switch hysteresis (anti flip-flop)
@@ -22836,10 +22792,7 @@ void CvPlayerAI::AI_doReligion()
 		eBestReligion = eCurrentReligion;
 	if (!canConvert(eBestReligion))
 	{
-		if (bLogSASReligionDecision && eSASEvaluatedBest != NO_RELIGION && (eSASEvaluatedBest != eCurrentReligion || bSASSpreadBlocked))
-		{
-			logSASGameRecordAIReligionDecision(getID(), eCurrentReligion, eSASEvaluatedBest, eBestReligion, eSASRunnerUp, iSASBestValue, iSASRunnerUpValue, iSASCurrentScore, -1, -1, -1, -1, bSASSpreadBlocked ? "SPREAD_BLOCKED" : "CANNOT_CONVERT", bLogSASReligionCandidates ? &aSASCandidateValues : NULL);
-		}
+		if (bLogSASReligionDecision && eSASEvaluatedBest != NO_RELIGION && (eSASEvaluatedBest != eCurrentReligion || bSASSpreadBlocked)) logSASGameRecordAIReligionDecision(getID(), eCurrentReligion, eSASEvaluatedBest, eBestReligion, eSASRunnerUp, iSASBestValue, iSASRunnerUpValue, iSASCurrentScore, -1, -1, -1, -1, bSASSpreadBlocked ? "SPREAD_BLOCKED" : "CANNOT_CONVERT", bLogSASReligionCandidates ? &aSASCandidateValues : NULL);
 		return;
 	}
 	// <advc.131>
@@ -27474,26 +27427,20 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(int iCountdownThresh) const // a
 	}
 	if (!isHuman() && iMinCultureFoundationProgressPercent > 0 && iCultureFoundationProgressPercent < iMinCultureFoundationProgressPercent)
 	{
-		if (bLogCultureStage)
-		{
-			logBBAI("CULTURE_STAGE_RESULT turn=%d player=%d %S countdownThresh=%d stage=1 reason=insufficientCandidateFoundation foundationCities=%d foundationCulture=%d foundationProgressPercent=%d minProgressPercent=%d foundationRaceRank=%d/%d weakestCandidateCulture=%d weakestCandidateProgressPercent=%d high=%d close=%d legendary=%d needed=%d",
-				kGame.getGameTurn(), getID(), getCivilizationShortDescription(), iCountdownThresh, iCultureFoundationCities,
-				iCultureFoundationCulture, iCultureFoundationProgressPercent, iMinCultureFoundationProgressPercent,
-				iCultureFoundationRaceRank, iCultureFoundationRacePlayers, iWeakestCandidateCulture, iWeakestCandidateProgressPercent,
-				iHighCultureCount, iCloseToLegendaryCount, iLegendaryCount, iVictoryCities);
-		}
+		if (bLogCultureStage) logBBAI("CULTURE_STAGE_RESULT turn=%d player=%d %S countdownThresh=%d stage=1 reason=insufficientCandidateFoundation foundationCities=%d foundationCulture=%d foundationProgressPercent=%d minProgressPercent=%d foundationRaceRank=%d/%d weakestCandidateCulture=%d weakestCandidateProgressPercent=%d high=%d close=%d legendary=%d needed=%d",
+			kGame.getGameTurn(), getID(), getCivilizationShortDescription(), iCountdownThresh, iCultureFoundationCities,
+			iCultureFoundationCulture, iCultureFoundationProgressPercent, iMinCultureFoundationProgressPercent,
+			iCultureFoundationRaceRank, iCultureFoundationRacePlayers, iWeakestCandidateCulture, iWeakestCandidateProgressPercent,
+			iHighCultureCount, iCloseToLegendaryCount, iLegendaryCount, iVictoryCities);
 		return 1;
 	}
 	if (!isHuman() && iMaxCultureRaceRank > 0 && iCultureFoundationRaceRank > iMaxCultureRaceRank)
 	{
-		if (bLogCultureStage)
-		{
-			logBBAI("CULTURE_STAGE_RESULT turn=%d player=%d %S countdownThresh=%d stage=1 reason=cultureFoundationRaceBehind foundationCities=%d foundationCulture=%d foundationProgressPercent=%d foundationRaceRank=%d/%d maxRaceRank=%d weakestCandidateCulture=%d weakestCandidateProgressPercent=%d high=%d close=%d legendary=%d needed=%d",
-				kGame.getGameTurn(), getID(), getCivilizationShortDescription(), iCountdownThresh, iCultureFoundationCities,
-				iCultureFoundationCulture, iCultureFoundationProgressPercent, iCultureFoundationRaceRank, iCultureFoundationRacePlayers,
-				iMaxCultureRaceRank, iWeakestCandidateCulture, iWeakestCandidateProgressPercent, iHighCultureCount, iCloseToLegendaryCount,
-				iLegendaryCount, iVictoryCities);
-		}
+		if (bLogCultureStage) logBBAI("CULTURE_STAGE_RESULT turn=%d player=%d %S countdownThresh=%d stage=1 reason=cultureFoundationRaceBehind foundationCities=%d foundationCulture=%d foundationProgressPercent=%d foundationRaceRank=%d/%d maxRaceRank=%d weakestCandidateCulture=%d weakestCandidateProgressPercent=%d high=%d close=%d legendary=%d needed=%d",
+			kGame.getGameTurn(), getID(), getCivilizationShortDescription(), iCountdownThresh, iCultureFoundationCities,
+			iCultureFoundationCulture, iCultureFoundationProgressPercent, iCultureFoundationRaceRank, iCultureFoundationRacePlayers,
+			iMaxCultureRaceRank, iWeakestCandidateCulture, iWeakestCandidateProgressPercent, iHighCultureCount, iCloseToLegendaryCount,
+			iLegendaryCount, iVictoryCities);
 		return 1;
 	}
 	// <!-- custom: Map 437 showed Rome entering Culture 2 for 45 normal-strategy turns despite reaching Domination 3 and later Space 3 while only one of three required culture cities had a high-culture countdown and the projected cultural finish remained too late. Once another victory route is this advanced, return to Culture 1 preparation instead of diverting production, specialists, and commerce into an unready cultural pursuit; preserve Culture 3/4 evaluation when all required cities are already credible candidates so a close cultural win can still take priority. (GPT-5.5) -->
@@ -27576,23 +27523,17 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(int iCountdownThresh) const // a
 				if (kLoopPlayer.getID() != getID() && iEligibleCultureRaceRank > 0 && iLoopWinningCountdown < iWinningCountdown)
 					iEligibleCultureRaceRank++;
 			}
-			if (iCultureLogLevel >= 3)
-			{
-				logBBAI("CULTURE_RIVAL_COUNTDOWN turn=%d player=%d %S rival=%d %S countdown=%d culturePercent=%d cities=%d",
-					kGame.getGameTurn(), getID(), getCivilizationShortDescription(), kLoopPlayer.getID(), kLoopPlayer.getCivilizationShortDescription(),
-					(iLoopWinningCountdown < MAX_INT ? iLoopWinningCountdown : -1), kLoopPlayer.getCommercePercent(COMMERCE_CULTURE), kLoopPlayer.getNumCities());
-			}
+			if (iCultureLogLevel >= 3) logBBAI("CULTURE_RIVAL_COUNTDOWN turn=%d player=%d %S rival=%d %S countdown=%d culturePercent=%d cities=%d",
+				kGame.getGameTurn(), getID(), getCivilizationShortDescription(), kLoopPlayer.getID(), kLoopPlayer.getCivilizationShortDescription(),
+				(iLoopWinningCountdown < MAX_INT ? iLoopWinningCountdown : -1), kLoopPlayer.getCommercePercent(COMMERCE_CULTURE), kLoopPlayer.getNumCities());
 		}
-		if (iCultureLogLevel >= 3)
-		{
-			logBBAI("CULTURE_STAGE_EVAL turn=%d player=%d %S countdownThresh=%d weight=%d high=%d close=%d legendary=%d needed=%d highMark=%d winningCountdown=%d foundationCities=%d foundationCulture=%d foundationProgressPercent=%d foundationRaceRank=%d/%d weakestCandidateCulture=%d weakestCandidateProgressPercent=%d eligibleRaceRank=%d/%d era=%d eraThresholdPercent=%d culturePercent=%d cities=%d",
-				kGame.getGameTurn(), getID(), getCivilizationShortDescription(), iCountdownThresh, iWeight, iHighCultureCount, iCloseToLegendaryCount,
-				iLegendaryCount, iVictoryCities, iHighCultureMark, (iWinningCountdown < MAX_INT ? iWinningCountdown : -1),
-				iCultureFoundationCities, iCultureFoundationCulture, iCultureFoundationProgressPercent,
-				iCultureFoundationRaceRank, iCultureFoundationRacePlayers, iWeakestCandidateCulture,
-				iWeakestCandidateProgressPercent, iEligibleCultureRaceRank, iEligibleCultureRacePlayers,
-				getCurrentEra(), iEraThresholdPercent, getCommercePercent(COMMERCE_CULTURE), getNumCities());
-		}
+		if (iCultureLogLevel >= 3) logBBAI("CULTURE_STAGE_EVAL turn=%d player=%d %S countdownThresh=%d weight=%d high=%d close=%d legendary=%d needed=%d highMark=%d winningCountdown=%d foundationCities=%d foundationCulture=%d foundationProgressPercent=%d foundationRaceRank=%d/%d weakestCandidateCulture=%d weakestCandidateProgressPercent=%d eligibleRaceRank=%d/%d era=%d eraThresholdPercent=%d culturePercent=%d cities=%d",
+			kGame.getGameTurn(), getID(), getCivilizationShortDescription(), iCountdownThresh, iWeight, iHighCultureCount, iCloseToLegendaryCount,
+			iLegendaryCount, iVictoryCities, iHighCultureMark, (iWinningCountdown < MAX_INT ? iWinningCountdown : -1),
+			iCultureFoundationCities, iCultureFoundationCulture, iCultureFoundationProgressPercent,
+			iCultureFoundationRaceRank, iCultureFoundationRacePlayers, iWeakestCandidateCulture,
+			iWeakestCandidateProgressPercent, iEligibleCultureRaceRank, iEligibleCultureRacePlayers,
+			getCurrentEra(), iEraThresholdPercent, getCommercePercent(COMMERCE_CULTURE), getNumCities());
 	}
 	// <!-- custom: Culture 2/3 caused production, specialists, and commerce to chase implausible wins. Once all required cities have reached the level below Legendary, their complete max-affordable-slider projection is meaningful enough to reject a deadline miss immediately; map 437 showed Rome continuing Culture 2 with a 347-409-turn projection and only 193-207 estimated turns remaining. Before a complete projection exists, retain Culture 2 setup until the late-race phase; only then reject a missing projection too. Relative-race ranking also remains late-only, and local border culture remains valued independently. (GPT-5.5) -->
 	if (!isHuman() && kGame.culturalVictoryValid() && (bLateCultureRace || iWinningCountdown < MAX_INT))
@@ -27602,26 +27543,20 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(int iCountdownThresh) const // a
 		bool const bWinningCountdownAvailable = (iWinningCountdown < MAX_INT);
 		if (!bWinningCountdownAvailable || (long long)100 * iWinningCountdown > (long long)std::max(0, iMaxCultureDeadlinePercent) * iTurnsRemaining)
 		{
-			if (bLogCultureStage)
-			{
-				logBBAI("CULTURE_STAGE_RESULT turn=%d player=%d %S countdownThresh=%d stage=1 reason=cultureDeadlineMiss winningCountdown=%d projectionAvailable=%d lateRace=%d turnsRemaining=%d maxDeadlinePercent=%d eligibleRaceRank=%d/%d high=%d close=%d legendary=%d needed=%d",
-					kGame.getGameTurn(), getID(), getCivilizationShortDescription(), iCountdownThresh,
-					(bWinningCountdownAvailable ? iWinningCountdown : -1), bWinningCountdownAvailable, bLateCultureRace, iTurnsRemaining,
-					iMaxCultureDeadlinePercent, iEligibleCultureRaceRank, iEligibleCultureRacePlayers, iHighCultureCount,
-					iCloseToLegendaryCount, iLegendaryCount, iVictoryCities);
-			}
+			if (bLogCultureStage) logBBAI("CULTURE_STAGE_RESULT turn=%d player=%d %S countdownThresh=%d stage=1 reason=cultureDeadlineMiss winningCountdown=%d projectionAvailable=%d lateRace=%d turnsRemaining=%d maxDeadlinePercent=%d eligibleRaceRank=%d/%d high=%d close=%d legendary=%d needed=%d",
+				kGame.getGameTurn(), getID(), getCivilizationShortDescription(), iCountdownThresh,
+				(bWinningCountdownAvailable ? iWinningCountdown : -1), bWinningCountdownAvailable, bLateCultureRace, iTurnsRemaining,
+				iMaxCultureDeadlinePercent, iEligibleCultureRaceRank, iEligibleCultureRacePlayers, iHighCultureCount,
+				iCloseToLegendaryCount, iLegendaryCount, iVictoryCities);
 			return 1;
 		}
 		// <!-- custom: Level-3 diagnostics can compute a positive race rank even when a nonpositive XML limit disables this behavior gate. Check the enable value explicitly so turning on logging cannot change AI strategy. (ChatGPT-5.5 review + GPT-5.5) -->
 		if (bLateCultureRace && iMaxCultureRaceRank > 0 && iEligibleCultureRaceRank > iMaxCultureRaceRank)
 		{
-			if (bLogCultureStage)
-			{
-				logBBAI("CULTURE_STAGE_RESULT turn=%d player=%d %S countdownThresh=%d stage=1 reason=lateCultureRaceBehind winningCountdown=%d turnsRemaining=%d eligibleRaceRank=%d/%d maxRaceRank=%d high=%d close=%d legendary=%d needed=%d",
-					kGame.getGameTurn(), getID(), getCivilizationShortDescription(), iCountdownThresh, iWinningCountdown, iTurnsRemaining,
-					iEligibleCultureRaceRank, iEligibleCultureRacePlayers, iMaxCultureRaceRank, iHighCultureCount, iCloseToLegendaryCount,
-					iLegendaryCount, iVictoryCities);
-			}
+			if (bLogCultureStage) logBBAI("CULTURE_STAGE_RESULT turn=%d player=%d %S countdownThresh=%d stage=1 reason=lateCultureRaceBehind winningCountdown=%d turnsRemaining=%d eligibleRaceRank=%d/%d maxRaceRank=%d high=%d close=%d legendary=%d needed=%d",
+				kGame.getGameTurn(), getID(), getCivilizationShortDescription(), iCountdownThresh, iWinningCountdown, iTurnsRemaining,
+				iEligibleCultureRaceRank, iEligibleCultureRacePlayers, iMaxCultureRaceRank, iHighCultureCount, iCloseToLegendaryCount,
+				iLegendaryCount, iVictoryCities);
 			return 1;
 		}
 	}

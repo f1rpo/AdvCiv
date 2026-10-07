@@ -2,7 +2,7 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
-# Conservatively reflow C++ logging calls: wrap long BBAI/SASGameRecord calls and optionally collapse short ones.
+# Conservatively reflow C++ logging calls: wrap long log-like calls and optionally collapse short ones.
 # Keeps the log format string unchanged and wraps only at top-level commas between arguments.
 # Commented-out calls, preprocessor directives/macros, and calls containing comments/multiline argument expressions are skipped.
 # Existing prose-comment layout is outside this helper's scope and is never reflowed.
@@ -16,9 +16,31 @@ import re
 from pathlib import Path
 from typing import Iterable, Iterator, List, Sequence, Tuple
 
-LOG_FUNCTIONS = ("logBBAI", "logSASGameRecord")
-SHORT_COLLAPSE_FUNCTIONS = LOG_FUNCTIONS + ("log",)
+WRAP_FUNCTIONS = ("logBBAI", "logSASGameRecord")
 CPP_SUFFIXES = {".cpp", ".h"}
+
+
+def _is_log_like_identifier(name: str) -> bool:
+    """Recognize ordinary logging helpers without hard-coding one subsystem."""
+    if name == "log":
+        return True
+    if name.startswith("log") and len(name) > 3 and (name[3].isupper() or name[3] == "_"):
+        return True
+    if name.startswith("myLog"):
+        return True
+    if re.search(r"(?:^|_)log(?:_|[A-Z0-9])", name) is not None:
+        return True
+    if name.endswith("Log"):
+        return True
+    return False
+
+
+def _is_member_log_call(text: str, name_start: int, name: str) -> bool:
+    """Bare `log(...)` is too generic; accept it only as a member/qualified call."""
+    if name != "log":
+        return True
+    prefix = text[:name_start].rstrip()
+    return prefix.endswith(".") or prefix.endswith("->") or prefix.endswith("::")
 
 
 def _find_matching_paren(text: str, open_pos: int) -> int | None:
@@ -150,8 +172,8 @@ def _preprocessor_blocks(text: str) -> Tuple[str, ...]:
     return tuple(blocks)
 
 
-def _iter_active_calls(text: str, function_names: Sequence[str] = LOG_FUNCTIONS) -> Iterator[Tuple[int, str, int, int]]:
-    """Yield (name_start, function_name, open_paren, close_paren) in code only."""
+def _iter_active_calls(text: str, include_generic: bool = False) -> Iterator[Tuple[int, str, int, int]]:
+    """Yield active logging calls in code only."""
     i = 0
     state = "code"
     quote = ""
@@ -172,7 +194,8 @@ def _iter_active_calls(text: str, function_names: Sequence[str] = LOG_FUNCTIONS)
                 while j < len(text) and (text[j] == "_" or text[j].isalnum()):
                     j += 1
                 name = text[i:j]
-                if name in function_names and j < len(text) and text[j] == "(":
+                eligible = name in WRAP_FUNCTIONS or (include_generic and _is_log_like_identifier(name))
+                if eligible and _is_member_log_call(text, i, name) and j < len(text) and text[j] == "(":
                     close = _find_matching_paren(text, j)
                     if close is not None:
                         yield i, name, j, close
@@ -257,8 +280,7 @@ def _cpp_tokens_without_comments(text: str) -> Tuple[str, ...]:
 def reflow_text(text: str, trigger_width: int = 180, wrap_width: int = 140, collapse_short: bool = False, collapse_width: int = 180) -> Tuple[str, int]:
     changes: List[Tuple[int, int, str]] = []
     preprocessor_lines = _preprocessor_line_starts(text)
-    functions = SHORT_COLLAPSE_FUNCTIONS if collapse_short else LOG_FUNCTIONS
-    for start, name, open_pos, close_pos in _iter_active_calls(text, functions):
+    for start, name, open_pos, close_pos in _iter_active_calls(text, include_generic=True):
         line_start = text.rfind("\n", 0, start) + 1
         # Preprocessor line-splicing backslashes are semantic before C++ tokenization.
         # Keep all #directive/macro bodies byte-for-byte outside this formatter's scope.
@@ -267,11 +289,7 @@ def reflow_text(text: str, trigger_width: int = 180, wrap_width: int = 140, coll
         args = _split_top_level_args(text[open_pos + 1:close_pos])
         if len(args) < 1:
             continue
-        # BBAI/SASGameRecord calls conventionally start with a format string. For
-        # generic member `.log(...)` calls, require that too before touching them.
-        if not args[0].lstrip().startswith('"'):
-            continue
-        # Don't rewrite a call whose individual non-format argument is itself a
+        # Don't rewrite a call whose individual argument is itself a
         # multiline/commented expression. Whitespace-only line breaks are fine.
         if any("\n" in arg.strip() or "//" in arg or "/*" in arg for arg in args[1:]):
             continue
@@ -282,16 +300,20 @@ def reflow_text(text: str, trigger_width: int = 180, wrap_width: int = 140, coll
         call_is_multiline = "\n" in call_text
 
         if collapse_short and call_is_multiline:
-            single_call = name + "(" + ", ".join(arg.strip() for arg in args) + ")"
-            candidate_line = text[line_start:start] + single_call + text[close_pos + 1:line_end]
-            if "//" not in call_text and "/*" not in call_text and _visual_len(candidate_line) <= collapse_width:
-                changes.append((start, close_pos + 1, single_call))
-                continue
+            # Named log-like helpers (e.g. logSASGameRecordFoo, SAS_logFoo,
+            # myLogFoo) can legitimately take non-format first arguments.
+            # Generic member `.log(...)` remains restricted to string-first calls.
+            if name != "log" or args[0].lstrip().startswith('"'):
+                single_call = name + "(" + ", ".join(arg.strip() for arg in args) + ")"
+                candidate_line = text[line_start:start] + single_call + text[close_pos + 1:line_end]
+                if "//" not in call_text and "/*" not in call_text and _visual_len(candidate_line) <= collapse_width:
+                    changes.append((start, close_pos + 1, single_call))
+                    continue
 
-        # The wrapping mode remains intentionally limited to the original
-        # BBAI/SASGameRecord functions; generic `.log` is opt-in collapse-only.
-        # A one-argument format-only call has nothing to wrap.
-        if name not in LOG_FUNCTIONS or len(args) < 2:
+        # Generic member `.log(...)` is too ambiguous to wrap unless it is the
+        # familiar string-first diagnostic form. Named project log helpers may
+        # legitimately take typed/non-format arguments (e.g. recorder bridges).
+        if len(args) < 2 or (name == "log" and not args[0].lstrip().startswith('"')):
             continue
         lines = text[line_start:line_end].splitlines()
         if len(lines) == 1:
@@ -305,7 +327,8 @@ def reflow_text(text: str, trigger_width: int = 180, wrap_width: int = 140, coll
 
         indent = re.match(r"[ \t]*", text[line_start:start]).group(0)  # type: ignore[union-attr]
         continuation = indent + "\t"
-        remaining = [arg.strip() for arg in args[1:]]
+        string_first = args[0].lstrip().startswith('"')
+        remaining = [arg.strip() for arg in (args[1:] if string_first else args)]
         groups: List[str] = []
         current = ""
         for arg in remaining:
@@ -318,7 +341,10 @@ def reflow_text(text: str, trigger_width: int = 180, wrap_width: int = 140, coll
         if current:
             groups.append(current)
 
-        replacement = name + "(" + args[0].strip() + ",\n"
+        if string_first:
+            replacement = name + "(" + args[0].strip() + ",\n"
+        else:
+            replacement = name + "(\n"
         replacement += ",\n".join(continuation + group for group in groups)
         replacement += ")"
         if replacement != text[start:close_pos + 1]:

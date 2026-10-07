@@ -2503,8 +2503,7 @@ void CvGame::normalizeAddExtras(/* advc.027: */ NormalizationTarget const* pTarg
 		gDLL->callUpdater(); // allow window to update during launch
 		CitySiteEvaluator citySiteEval(kPlayer, -1, false, true);
 		// <advc.031c>
-		if (gFoundLogLevel > 0 && pTarget == NULL)
-			citySiteEval.log(*pStartingPlot);
+		if (gFoundLogLevel > 0 && pTarget == NULL) citySiteEval.log(*pStartingPlot);
 		// </advc.031c>
 		// <advc.108> Treat desert features and forest separately
 		int iFoodFeatures = 0;
@@ -4736,8 +4735,7 @@ void CvGame::setAIAutoPlay(int iNewValue, /* <advc.127> */ bool bChangePlayerSta
 	m_iAIAutoPlay = std::max(0, iNewValue);
 	// <!-- custom: SASGameRecord logs autoplay start/end/user-status changes so benchmark/autoplay logs show the tested window directly, similar in spirit to replay markers but parse-friendly.
 	// Explicit completion causes distinguish scheduled completion from interruption, victory, player defeat, desync, assertions, and other resets. Skip ordinary countdown ticks because they call setAIAutoPlay every turn and would spam AUTOPLAY_CHANGED rows. See KI#203. (GPT-5.5 + GPT-5.6-Sol) -->
-	if (gGameRecordLogLevel >= 2 && (bChangePlayerStatus || iOldAIAutoPlay == 0 || m_iAIAutoPlay == 0))
-		logSASGameRecordAutoPlayChanged(iOldAIAutoPlay, m_iAIAutoPlay, bChangePlayerStatus, eEndCause);
+	if (gGameRecordLogLevel >= 2 && (bChangePlayerStatus || iOldAIAutoPlay == 0 || m_iAIAutoPlay == 0)) logSASGameRecordAutoPlayChanged(iOldAIAutoPlay, m_iAIAutoPlay, bChangePlayerStatus, eEndCause);
 	if (!bChangePlayerStatus)
 		return; // </advc.127>
 	// Erik <BM1>
@@ -5466,8 +5464,7 @@ void CvGame::setActivePlayer(PlayerTypes eNewValue, bool bForceHotSeat)
 	GC.getInitCore().setActivePlayer(eNewValue);
 	// <!-- custom: Active-player transfers during AI Auto Play can explain why automation ended or whose civilization resumed human control. Keep per-request and per-log-session counts in SASGameRecord rather than requiring reviewers to scan every setup/status row. Cache the gate because the handoff path can also record an auto-dismissal. See KI#203. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
 	bool const bLogActivePlayerChange = (gGameRecordLogLevel >= 2);
-	if (bLogActivePlayerChange)
-		logSASGameRecordActivePlayerChanged(eOldActivePlayer, eNewValue);
+	if (bLogActivePlayerChange) logSASGameRecordActivePlayerChanged(eOldActivePlayer, eNewValue);
 	if (eNewValue != NO_PLAYER && // K-Mod
 		GET_PLAYER(eNewValue).isHuman() &&
 		(isHotSeat() || isPbem() || bForceHotSeat))

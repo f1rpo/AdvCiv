@@ -1062,10 +1062,12 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 		GC.getGame().changeNukesExploded(1);
 		// <!-- custom: The effect vectors above already contain the authoritative realized results after all nuke RNG.
 		// Emit one compact consequence row only for an actual unit-launched detonation. (ChatGPT-5.6-Sol) -->
-		if (bLogSASNukeEffects)
-		{
-			logSASGameRecordNukeEffects(pNukeUnit, this, iSASFalloutPlots, (int)aImprovementDestroyed.size(), (int)aFeatureDestroyed.size(), (int)aUnitDamaged.size(), (int)aUnitKilled.size(), (int)aBuildingDestroyed.size(), (int)aCitizensKilled.size(), iSASPopulationKilled);
-		}
+		if (bLogSASNukeEffects) logSASGameRecordNukeEffects(
+			pNukeUnit, this, iSASFalloutPlots,
+			(int)aImprovementDestroyed.size(), (int)aFeatureDestroyed.size(),
+			(int)aUnitDamaged.size(), (int)aUnitKilled.size(),
+			(int)aBuildingDestroyed.size(), (int)aCitizensKilled.size(),
+			iSASPopulationKilled);
 		CvEventReporter::getInstance().nukeExplosion(this, pNukeUnit);
 	}
 	// <advc.650>
@@ -4855,8 +4857,7 @@ void CvPlot::setBonusType(BonusTypes eNewValue)
 	setLayoutDirty(true);
 	gDLL->UI().setDirty(GlobeLayer_DIRTY_BIT, true);
 	// <!-- custom: Some bonuses can appear or disappear after game start, e.g. save-file-450 follow-up testing showed Shaka gaining Gems. Log only after elapsed turns start so initial map bonus placement does not flood the game-record file. (GPT-5.5) -->
-	if (gGameRecordLogLevel >= 2 && GC.getGame().getElapsedGameTurns() > 0)
-		logSASGameRecordBonusChanged(this, eOldBonus, eNewValue);
+	if (gGameRecordLogLevel >= 2 && GC.getGame().getElapsedGameTurns() > 0) logSASGameRecordBonusChanged(this, eOldBonus, eNewValue);
 }
 
 
@@ -6775,20 +6776,17 @@ bool CvPlot::changeBuildProgress(BuildTypes eBuild, int iChange, /*TeamTypes eTe
 		// <!-- custom: Log completed worker builds that replace one improvement with another.
 		// This helps find real farm/cottage/workshop oscillation cases before changing worker logic. Credit: ChatGPT 5.5.  (GPT-5.5 review) -->
 		// <!-- custom: this fires 339 times in a ~421 turn sample at normal gamespeed large pangea, so fine to keep to level 2 and useful info deemed important enough for now. -->
-		if (gWorkerLogLevel >= 2 && eOldImprovement != NO_IMPROVEMENT && eOldImprovement != eNewImprovement)
-		{
-			logBBAI("    WORKER-IMPROVEMENT overwrite: turn=%d elapsed=%d player=%S plot=%d,%d old=%S new=%S build=%S owner=%d bonus=%S route=%S",
-					GC.getGame().getGameTurn(),
-					GC.getGame().getElapsedGameTurns(),
-					GET_PLAYER(ePlayer).getCivilizationDescription(0),
-					getX(), getY(),
-					GC.getInfo(eOldImprovement).getDescription(),
-					GC.getInfo(eNewImprovement).getDescription(),
-					kBuild.getDescription(),
-					getOwner(),
-					getBonusType(eTeam) == NO_BONUS ? L"-" : GC.getInfo(getBonusType(eTeam)).getDescription(),
-					getRouteType() == NO_ROUTE ? L"-" : GC.getInfo(getRouteType()).getDescription());
-		}
+		if (gWorkerLogLevel >= 2 && eOldImprovement != NO_IMPROVEMENT && eOldImprovement != eNewImprovement) logBBAI("    WORKER-IMPROVEMENT overwrite: turn=%d elapsed=%d player=%S plot=%d,%d old=%S new=%S build=%S owner=%d bonus=%S route=%S",
+			GC.getGame().getGameTurn(),
+			GC.getGame().getElapsedGameTurns(),
+			GET_PLAYER(ePlayer).getCivilizationDescription(0),
+			getX(), getY(),
+			GC.getInfo(eOldImprovement).getDescription(),
+			GC.getInfo(eNewImprovement).getDescription(),
+			kBuild.getDescription(),
+			getOwner(),
+			getBonusType(eTeam) == NO_BONUS ? L"-" : GC.getInfo(getBonusType(eTeam)).getDescription(),
+			getRouteType() == NO_ROUTE ? L"-" : GC.getInfo(getRouteType()).getDescription());
 
 		setImprovementType(eNewImprovement);
 	}

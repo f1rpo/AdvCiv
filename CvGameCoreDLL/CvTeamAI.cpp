@@ -3891,14 +3891,11 @@ DenialTypes CvTeamAI::AI_makePeaceTrade(TeamTypes ePeaceTeam, TeamTypes eBroker)
 		// Refuse brokered peace while the target is inside the countdown window, still a stage-4 victory threat, or already a configured stage-3 Space threat; otherwise direct denial wars become mostly cosmetic. (GPT-5.5) -->
 		if ((iVictoryCountdown >= 0 && iVictoryCountdown <= iMaxVictoryDenialPeaceCountdown) || (bRefuseStage4Peace && iMaxVictoryStage >= 4) || (bRefuseStage3SpacePeace && isSASTeamStage3SpaceVictoryThreat(ePeaceTeam)))
 		{
-			if (gWarLogLevel >= 1)
-			{
-				logBBAI("WAR_TARGET_VICTORY_DENIAL_REFUSE_PEACE turn=%d team=%d peaceTeam=%d brokerTeam=%d targetVictoryCountdown=%d targetMaxVictoryStage=%d targetSpaceshipParts=%d targetSpaceshipPartsPercent=%d targetSpaceLeaderPartGap=%d maxRefusePeaceCountdown=%d warPlan=%s atWarCounter=%d",
-					GC.getGame().getGameTurn(), getID(), ePeaceTeam, eBroker, iVictoryCountdown, iMaxVictoryStage,
-					getSASTeamSpaceshipPartsBuilt(ePeaceTeam), getSASTeamSpaceshipPartsPercent(ePeaceTeam),
-					getSASTeamStage3SpaceLeaderPartGap(ePeaceTeam), iMaxVictoryDenialPeaceCountdown,
-					getSASWarPlanType(AI_getWarPlan(ePeaceTeam)), AI_getAtWarCounter(ePeaceTeam));
-			}
+			if (gWarLogLevel >= 1) logBBAI("WAR_TARGET_VICTORY_DENIAL_REFUSE_PEACE turn=%d team=%d peaceTeam=%d brokerTeam=%d targetVictoryCountdown=%d targetMaxVictoryStage=%d targetSpaceshipParts=%d targetSpaceshipPartsPercent=%d targetSpaceLeaderPartGap=%d maxRefusePeaceCountdown=%d warPlan=%s atWarCounter=%d",
+				GC.getGame().getGameTurn(), getID(), ePeaceTeam, eBroker, iVictoryCountdown, iMaxVictoryStage,
+				getSASTeamSpaceshipPartsBuilt(ePeaceTeam), getSASTeamSpaceshipPartsPercent(ePeaceTeam),
+				getSASTeamStage3SpaceLeaderPartGap(ePeaceTeam), iMaxVictoryDenialPeaceCountdown,
+				getSASWarPlanType(AI_getWarPlan(ePeaceTeam)), AI_getAtWarCounter(ePeaceTeam));
 			return DENIAL_VICTORY;
 		}
 	}
@@ -5031,12 +5028,9 @@ void CvTeamAI::AI_setWarPlan(TeamTypes eTarget, WarPlanTypes eNewValue, bool bWa
 	WarPlanTypes const eOldValue = AI_getWarPlan(eTarget);
 	if (eOldValue == eNewValue || (!bWar && isAtWar(eTarget)))
 		return;
-	if (gWarLogLevel >= 1)
-	{
-		logBBAI("WAR_PLAN_CHANGE turn=%d team=%d targetTeam=%d oldWarPlan=%s newWarPlan=%s bWar=%d atWar=%d stateCounter=%d ourWars=%d targetWars=%d",
-			GC.getGame().getGameTurn(), getID(), eTarget, getSASWarPlanType(eOldValue), getSASWarPlanType(eNewValue), bWar, isAtWar(eTarget),
-			AI_getWarPlanStateCounter(eTarget), getNumWars(true, true), GET_TEAM(eTarget).getNumWars(true, true));
-	}
+	if (gWarLogLevel >= 1) logBBAI("WAR_PLAN_CHANGE turn=%d team=%d targetTeam=%d oldWarPlan=%s newWarPlan=%s bWar=%d atWar=%d stateCounter=%d ourWars=%d targetWars=%d",
+		GC.getGame().getGameTurn(), getID(), eTarget, getSASWarPlanType(eOldValue), getSASWarPlanType(eNewValue), bWar, isAtWar(eTarget),
+		AI_getWarPlanStateCounter(eTarget), getNumWars(true, true), GET_TEAM(eTarget).getNumWars(true, true));
 	// <!-- custom: The game record needs the strategic state transition and preparation duration, not UWAI's full target calculations.
 	// Log before resetting the state counter below. (GPT-5.6-Sol) -->
 	if (gGameRecordLogLevel >= 2 && GC.getGame().isFinalInitialized()) logSASGameRecordWarPlanChanged(getID(), eTarget, eOldValue, eNewValue, bWar, AI_getWarPlanStateCounter(eTarget));
@@ -6066,13 +6060,12 @@ void CvTeamAI::AI_abandonWarPlanIfTimedOut(int iAbandonTimeModifier, TeamTypes e
 	{
 		if (AI_getWarPlanStateCounter(eTarget) > ((15 * iAbandonTimeModifier) / (100)))
 		{
-			if (gWarLogLevel >= 1)
-			{
-				logBBAI("    Team %d (%S) abandoning WARPLAN_LIMITED or WARPLAN_DOGPILE against team %d (%S) after %d turns with enemy power percent %d",
-						getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0),
-						eTarget, GET_PLAYER(GET_TEAM(eTarget).getLeaderID()).getCivilizationDescription(0),
-						AI_getWarPlanStateCounter(eTarget), iEnemyPowerPercent);
-			}
+			if (gWarLogLevel >= 1) logBBAI("    Team %d (%S) abandoning WARPLAN_LIMITED or WARPLAN_DOGPILE against team %d (%S) after %d turns with enemy power percent %d",
+				getID(),
+				GET_PLAYER(getLeaderID()).getCivilizationDescription(0),
+				eTarget,
+				GET_PLAYER(GET_TEAM(eTarget).getLeaderID()).getCivilizationDescription(0),
+				AI_getWarPlanStateCounter(eTarget), iEnemyPowerPercent);
 			AI_setWarPlan(eTarget, NO_WARPLAN);
 		}
 	}
@@ -6082,13 +6075,12 @@ void CvTeamAI::AI_abandonWarPlanIfTimedOut(int iAbandonTimeModifier, TeamTypes e
 	{
 		if (GET_TEAM(eTarget).getNumWars() <= 0)
 		{
-			if (gWarLogLevel >= 1)
-			{
-				logBBAI("    Team %d (%S) abandoning WARPLAN_DOGPILE against team %d (%S) after %d turns because enemy has no war",
-						getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0),
-						eTarget, GET_PLAYER(GET_TEAM(eTarget).getLeaderID()).getCivilizationDescription(0),
-						AI_getWarPlanStateCounter(eTarget));
-			}
+			if (gWarLogLevel >= 1) logBBAI("    Team %d (%S) abandoning WARPLAN_DOGPILE against team %d (%S) after %d turns because enemy has no war",
+				getID(),
+				GET_PLAYER(getLeaderID()).getCivilizationDescription(0),
+				eTarget,
+				GET_PLAYER(GET_TEAM(eTarget).getLeaderID()).getCivilizationDescription(0),
+				AI_getWarPlanStateCounter(eTarget));
 			AI_setWarPlan(eTarget, NO_WARPLAN);
 		}
 	}

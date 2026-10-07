@@ -94,11 +94,10 @@ public:
 		ProjectTypes const eNewProject = m_pCity->getProductionProject();
 		if (eNewProject == m_eOldProject)
 		{
-			if (gSpaceProductionLogLevel >= 3)
-				logBBAI("SPACE_PRODUCTION_TARGET_RESULT turn=%d player=%d city=%S cityId=%d oldProject=%s action=KEEP newKind=PROJECT newTarget=%s stored=%d needed=%d turnsLeft=%d",
-					GC.getGame().getGameTurn(), m_pCity->getOwner(), m_pCity->getName().GetCString(), m_pCity->getID(),
-					GC.getInfo(m_eOldProject).getType(), GC.getInfo(eNewProject).getType(), m_pCity->getProjectProduction(eNewProject),
-					m_pCity->getProductionNeeded(eNewProject), m_pCity->getProductionTurnsLeft(eNewProject, 0));
+			if (gSpaceProductionLogLevel >= 3) logBBAI("SPACE_PRODUCTION_TARGET_RESULT turn=%d player=%d city=%S cityId=%d oldProject=%s action=KEEP newKind=PROJECT newTarget=%s stored=%d needed=%d turnsLeft=%d",
+				GC.getGame().getGameTurn(), m_pCity->getOwner(), m_pCity->getName().GetCString(), m_pCity->getID(),
+				GC.getInfo(m_eOldProject).getType(), GC.getInfo(eNewProject).getType(), m_pCity->getProjectProduction(eNewProject),
+				m_pCity->getProductionNeeded(eNewProject), m_pCity->getProductionTurnsLeft(eNewProject, 0));
 			return;
 		}
 
@@ -183,11 +182,10 @@ public:
 		ProjectTypes const eNewProject = m_pCity->getProductionProject();
 		if (eNewProject == m_eOldProject)
 		{
-			if (gLimitedProjectProductionLogLevel >= 3)
-				logBBAI("LIMITED_PROJECT_TARGET_RESULT turn=%d player=%d city=%S cityId=%d oldProject=%s action=KEEP newKind=PROJECT newTarget=%s stored=%d needed=%d turnsLeft=%d",
-					GC.getGame().getGameTurn(), m_pCity->getOwner(), m_pCity->getName().GetCString(), m_pCity->getID(),
-					GC.getInfo(m_eOldProject).getType(), GC.getInfo(eNewProject).getType(), m_pCity->getProjectProduction(eNewProject),
-					m_pCity->getProductionNeeded(eNewProject), m_pCity->getProductionTurnsLeft(eNewProject, 0));
+			if (gLimitedProjectProductionLogLevel >= 3) logBBAI("LIMITED_PROJECT_TARGET_RESULT turn=%d player=%d city=%S cityId=%d oldProject=%s action=KEEP newKind=PROJECT newTarget=%s stored=%d needed=%d turnsLeft=%d",
+				GC.getGame().getGameTurn(), m_pCity->getOwner(), m_pCity->getName().GetCString(), m_pCity->getID(),
+				GC.getInfo(m_eOldProject).getType(), GC.getInfo(eNewProject).getType(), m_pCity->getProjectProduction(eNewProject),
+				m_pCity->getProductionNeeded(eNewProject), m_pCity->getProductionTurnsLeft(eNewProject, 0));
 			return;
 		}
 
@@ -2641,20 +2639,18 @@ void CvCityAI::AI_chooseProduction()
 					char const* szContinuityGate = (bNearTermContinuity ? "near_term" : "heavy_investment");
 					if (iContinuityRank <= iMinimumCopiesStillNeeded)
 					{
-						if (gSpaceProductionLogLevel >= 2)
-							logBBAI("SPACE_PRODUCTION_CONTINUITY turn=%d player=%d %S city=%S cityId=%d project=%s stored=%d needed=%d completionPercent=%d turnsLeft=%d nearTermMaxTurns=%d heavyMinCompletionPercent=%d heavyMaxTurns=%d continuityGate=%s minimumRequired=%d currentCount=%d remainingMinimum=%d continuityRank=%d teamMaking=%d reason=space3_minimum_component",
-								kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(), kCurrentProject.getType(),
-								iCurrentStored, iCurrentNeeded, iCurrentCompletionPercent, iCurrentTurns, iContinuityMaxTurns,
-								iSASSpace3MinimumComponentContinuityHeavyMinPercent, iHeavyInvestmentMaxTurns, szContinuityGate,
-								iMinimumRequired, iCurrentCount, iMinimumCopiesStillNeeded, iContinuityRank, kTeam.getProjectMaking(eCurrentProject));
-						return;
-					}
-					if (gSpaceProductionLogLevel >= 3)
-						logBBAI("SPACE_PRODUCTION_CONTINUITY_SKIP turn=%d player=%d %S city=%S cityId=%d project=%s stored=%d needed=%d completionPercent=%d turnsLeft=%d nearTermMaxTurns=%d heavyMinCompletionPercent=%d heavyMaxTurns=%d continuityGate=%s minimumRequired=%d currentCount=%d remainingMinimum=%d continuityRank=%d teamMaking=%d reason=duplicate_beyond_minimum",
+						if (gSpaceProductionLogLevel >= 2) logBBAI("SPACE_PRODUCTION_CONTINUITY turn=%d player=%d %S city=%S cityId=%d project=%s stored=%d needed=%d completionPercent=%d turnsLeft=%d nearTermMaxTurns=%d heavyMinCompletionPercent=%d heavyMaxTurns=%d continuityGate=%s minimumRequired=%d currentCount=%d remainingMinimum=%d continuityRank=%d teamMaking=%d reason=space3_minimum_component",
 							kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(), kCurrentProject.getType(),
 							iCurrentStored, iCurrentNeeded, iCurrentCompletionPercent, iCurrentTurns, iContinuityMaxTurns,
 							iSASSpace3MinimumComponentContinuityHeavyMinPercent, iHeavyInvestmentMaxTurns, szContinuityGate,
 							iMinimumRequired, iCurrentCount, iMinimumCopiesStillNeeded, iContinuityRank, kTeam.getProjectMaking(eCurrentProject));
+						return;
+					}
+					if (gSpaceProductionLogLevel >= 3) logBBAI("SPACE_PRODUCTION_CONTINUITY_SKIP turn=%d player=%d %S city=%S cityId=%d project=%s stored=%d needed=%d completionPercent=%d turnsLeft=%d nearTermMaxTurns=%d heavyMinCompletionPercent=%d heavyMaxTurns=%d continuityGate=%s minimumRequired=%d currentCount=%d remainingMinimum=%d continuityRank=%d teamMaking=%d reason=duplicate_beyond_minimum",
+						kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(), kCurrentProject.getType(),
+						iCurrentStored, iCurrentNeeded, iCurrentCompletionPercent, iCurrentTurns, iContinuityMaxTurns,
+						iSASSpace3MinimumComponentContinuityHeavyMinPercent, iHeavyInvestmentMaxTurns, szContinuityGate,
+						iMinimumRequired, iCurrentCount, iMinimumCopiesStillNeeded, iContinuityRank, kTeam.getProjectMaking(eCurrentProject));
 				}
 			}
 			// <!-- custom: One-copy non-spaceship Projects can otherwise hop between cities whenever ordinary AI_chooseProduction reevaluation parks the active copy: getProjectMaking then falls back to 0, another city may start the same Project, and parked copies are invalidated when one copy finally completes.
@@ -2681,12 +2677,11 @@ void CvCityAI::AI_chooseProduction()
 				int const iCurrentProjectValue = AI_projectValue(eCurrentLimitedProject);
 				if ((bNearTerm || bHeavyInvestment) && iCurrentProjectValue > 0)
 				{
-					if (gLimitedProjectProductionLogLevel >= 2)
-						logBBAI("LIMITED_PROJECT_CONTINUITY turn=%d player=%d %S city=%S cityId=%d project=%s stored=%d needed=%d completionPercent=%d turnsLeft=%d nearTermMaxTurns=%d heavyMinCompletionPercent=%d heavyMaxTurns=%d continuityGate=%s projectValue=%d reason=one_copy_project",
-							kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(),
-							GC.getInfo(eCurrentLimitedProject).getType(), iCurrentStored, iCurrentNeeded, iCompletionPercent, iCurrentTurns,
-							iNearTermMaxTurns, iSASOneCopyProjectContinuityHeavyMinPercent, iHeavyMaxTurns,
-							(bNearTerm ? "near_term" : "heavy_investment"), iCurrentProjectValue);
+					if (gLimitedProjectProductionLogLevel >= 2) logBBAI("LIMITED_PROJECT_CONTINUITY turn=%d player=%d %S city=%S cityId=%d project=%s stored=%d needed=%d completionPercent=%d turnsLeft=%d nearTermMaxTurns=%d heavyMinCompletionPercent=%d heavyMaxTurns=%d continuityGate=%s projectValue=%d reason=one_copy_project",
+						kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(),
+						GC.getInfo(eCurrentLimitedProject).getType(), iCurrentStored, iCurrentNeeded, iCompletionPercent, iCurrentTurns,
+						iNearTermMaxTurns, iSASOneCopyProjectContinuityHeavyMinPercent, iHeavyMaxTurns,
+						(bNearTerm ? "near_term" : "heavy_investment"), iCurrentProjectValue);
 					return;
 				}
 			}
@@ -2766,9 +2761,8 @@ void CvCityAI::AI_chooseProduction()
 	{
 		// <!-- custom: Controls showed every raw empty -> empty chooser call in two broad runs returned here: 364/364 were expected disorder, while the true function end was never reached without a target.
 		// Keep a dedicated level-3 microscope marker so future sniping can distinguish expected resistance/anarchy from an abnormal final fall-through; no extra evaluation or RNG is performed. See KI#51. (ChatGPT-5.6-Sol) -->
-		if (gProductionNoTargetLogLevel >= 3 && !isBarbarian())
-			logBBAI("PRODUCTION_NO_TARGET_CHOOSER turn=%d player=%d %S city=%S cityId=%d reason=EXPECTED_DISORDER human=%d occupation=%d occupationTimer=%d",
-				kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(), isHuman(), isOccupation(), getOccupationTimer());
+		if (gProductionNoTargetLogLevel >= 3 && !isBarbarian()) logBBAI("PRODUCTION_NO_TARGET_CHOOSER turn=%d player=%d %S city=%S cityId=%d reason=EXPECTED_DISORDER human=%d occupation=%d occupationTimer=%d",
+			kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(), isHuman(), isOccupation(), getOccupationTimer());
 		return;
 	}
 
@@ -3086,16 +3080,13 @@ void CvCityAI::AI_chooseProduction()
 
 	// <!-- custom: Initial-production logs showed many capitals selecting an Ancient Maceman through the no-defenders branch before reaching normal Worker/Work Boat logic.
 	// Record economic need, queued workers, and actual safety context before changing that priority. (GPT-5.5) -->
-	if ((gCityLogLevel >= 2 || gMilitaryProductionLogLevel >= 2) && isCapital() && iNumCities == 1 && getGameTurnFounded() == kGame.getGameTurn())
-	{
-		logBBAI("FIRST_PRODUCTION_CONTEXT turn=%d player=%d %S city=%S cityId=%d city=(%d,%d) pop=%d defenders=%d playerMilitary=%d danger=%d waterDanger=%d defenseWar=%d financialTrouble=%d turtle=%d workersQueuedInCity=%d workersExisting=%d workersNeeded=%d workersMissing=%d areaBestBuildValue=%d improvableBonusesNow=%d goodTiles=%d seaWorkersQueuedInCity=%d seaWorkersAvailable=%d seaWorkersNeeded=%d foodSurplus=%d baseProduction=%d",
-			kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), sCityName, getID(), getX(), getY(), iCityPopulation,
-			kPlot.getNumDefenders(getOwner()), kPlayer.getNumMilitaryUnits(), bDanger, bWaterDanger, bDefenseWar, bFinancialTrouble,
-			kPlayer.AI_isDoStrategy(AI_STRATEGY_TURTLE), getNumTrainUnitAI(UNITAI_WORKER), iExistingWorkers, iNeededWorkers, iMissingWorkers,
-			AI_totalBestBuildValue(kArea), AI_countNumImprovableBonuses(true, NO_TECH), AI_countGoodTiles(true, false),
-			getNumTrainUnitAI(UNITAI_WORKER_SEA), iAvailableSeaWorkers, iNeededSeaWorkers, foodDifference(true, true),
-			getBaseYieldRate(YIELD_PRODUCTION));
-	}
+	if ((gCityLogLevel >= 2 || gMilitaryProductionLogLevel >= 2) && isCapital() && iNumCities == 1 && getGameTurnFounded() == kGame.getGameTurn()) logBBAI("FIRST_PRODUCTION_CONTEXT turn=%d player=%d %S city=%S cityId=%d city=(%d,%d) pop=%d defenders=%d playerMilitary=%d danger=%d waterDanger=%d defenseWar=%d financialTrouble=%d turtle=%d workersQueuedInCity=%d workersExisting=%d workersNeeded=%d workersMissing=%d areaBestBuildValue=%d improvableBonusesNow=%d goodTiles=%d seaWorkersQueuedInCity=%d seaWorkersAvailable=%d seaWorkersNeeded=%d foodSurplus=%d baseProduction=%d",
+		kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), sCityName, getID(), getX(), getY(), iCityPopulation,
+		kPlot.getNumDefenders(getOwner()), kPlayer.getNumMilitaryUnits(), bDanger, bWaterDanger, bDefenseWar, bFinancialTrouble,
+		kPlayer.AI_isDoStrategy(AI_STRATEGY_TURTLE), getNumTrainUnitAI(UNITAI_WORKER), iExistingWorkers, iNeededWorkers, iMissingWorkers,
+		AI_totalBestBuildValue(kArea), AI_countNumImprovableBonuses(true, NO_TECH), AI_countGoodTiles(true, false),
+		getNumTrainUnitAI(UNITAI_WORKER_SEA), iAvailableSeaWorkers, iNeededSeaWorkers, foodDifference(true, true),
+		getBaseYieldRate(YIELD_PRODUCTION));
 
 	if ((gCityLogLevel >= 3 || gMilitaryProductionLogLevel >= 3)) logBBAI("      City %S pop %d considering new production: iProdRank %d, iBuildUnitProb %d%s, iBestBuildingValue %d",
 		sCityName, iCityPopulation, iProductionRank, iBuildUnitProb, bUnitExempt?"*":"", iBestBuildingValue);
@@ -3230,14 +3221,13 @@ void CvCityAI::AI_chooseProduction()
 		BuildingTypes const eFortification = SAS_getProactiveFortification(*this, bDanger, iCityDefenders, iNeededDefenders, iMaxUsefulFortificationTurns, kFortificationThreat);
 		if (eFortification != NO_BUILDING)
 		{
-			if (gBuildingProductionLogLevel >= 2 || gMilitaryProductionLogLevel >= 2)
-				logBBAI("BUILDING_PRODUCTION_PROACTIVE_FORTIFICATION turn=%d player=%d %S city=%S cityId=%d building=%s turnsLeft=%d maxUsefulTurns=%d immediateDanger=%d citySafety=%d cityValuePercent=%d defenders=%d neededDefenders=%d visibleAttackers=%d visibleSlowAttackers=%d visibleBombarders=%d affectedByBuildingDefense=%d ignoreBuildingDefense=%d nearestAttackerDistance=%d enemyPowerPercent=%d",
-					kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(),
-					GC.getInfo(eFortification).getType(), getProductionTurnsLeft(eFortification, 0), iMaxUsefulFortificationTurns,
-					bDanger, AI_getSafety(), AI_getCityValPercent(), iCityDefenders, iNeededDefenders,
-					kFortificationThreat.iVisibleAttackers, kFortificationThreat.iVisibleSlowAttackers, kFortificationThreat.iVisibleBombarders,
-					kFortificationThreat.iAffectedByBuildingDefense, kFortificationThreat.iIgnoreBuildingDefense,
-					kFortificationThreat.iNearestAttackerDistance, kWarPower.iEnemyPowerPercent);
+			if (gBuildingProductionLogLevel >= 2 || gMilitaryProductionLogLevel >= 2) logBBAI("BUILDING_PRODUCTION_PROACTIVE_FORTIFICATION turn=%d player=%d %S city=%S cityId=%d building=%s turnsLeft=%d maxUsefulTurns=%d immediateDanger=%d citySafety=%d cityValuePercent=%d defenders=%d neededDefenders=%d visibleAttackers=%d visibleSlowAttackers=%d visibleBombarders=%d affectedByBuildingDefense=%d ignoreBuildingDefense=%d nearestAttackerDistance=%d enemyPowerPercent=%d",
+				kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(),
+				GC.getInfo(eFortification).getType(), getProductionTurnsLeft(eFortification, 0), iMaxUsefulFortificationTurns,
+				bDanger, AI_getSafety(), AI_getCityValPercent(), iCityDefenders, iNeededDefenders,
+				kFortificationThreat.iVisibleAttackers, kFortificationThreat.iVisibleSlowAttackers, kFortificationThreat.iVisibleBombarders,
+				kFortificationThreat.iAffectedByBuildingDefense, kFortificationThreat.iIgnoreBuildingDefense,
+				kFortificationThreat.iNearestAttackerDistance, kWarPower.iEnemyPowerPercent);
 			if (bLogSASBuildingChoices) logSASGameRecordAIBuildingChoice(*this, eFortification, SAS_AI_BUILDING_CHOICE_PROACTIVE_FORTIFICATION, BUILDINGFOCUS_DEFENSE, bLogDetailedSASBuildingChoices, bLogDetailedSASBuildingChoices ? SAS_getBuildingFocusNames(BUILDINGFOCUS_DEFENSE).GetCString() : NULL, -1, -1, -1, -1, -1);
 			pushOrder(ORDER_CONSTRUCT, eFortification);
 			return;
@@ -3366,11 +3356,10 @@ void CvCityAI::AI_chooseProduction()
 		SAS_hasExistingSettlerEscortShortage(kPlot, getOwner(), iSASSettlerEscortMinHealthyDefendersLeft, iPlotUnguardedSettlerCount, iPlotHealthyDefenderCount));
 	if (!bUnitExempt && iPlotSettlerCount > 0 && (iPlotCityDefenderCount <= iPlotSettlerCount || bSASExistingSettlerEscortShortage))
 	{
-		if ((gCityLogLevel >= 2 || gMilitaryProductionLogLevel >= 2 || gSettlerLogLevel >= 2))
-			logBBAI("      EXISTING_SETTLER_ESCORT_PRODUCTION turn=%d player=%d %S city=%S result=NEED_ESCORT plotSettlers=%d unguardedSettlers=%d cityDefenders=%d healthyDefenders=%d minHealthyLeft=%d sasShortage=%d",
-				kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), sCityName, iPlotSettlerCount,
-				iPlotUnguardedSettlerCount, iPlotCityDefenderCount, iPlotHealthyDefenderCount, iSASSettlerEscortMinHealthyDefendersLeft,
-				bSASExistingSettlerEscortShortage);
+		if ((gCityLogLevel >= 2 || gMilitaryProductionLogLevel >= 2 || gSettlerLogLevel >= 2)) logBBAI("      EXISTING_SETTLER_ESCORT_PRODUCTION turn=%d player=%d %S city=%S result=NEED_ESCORT plotSettlers=%d unguardedSettlers=%d cityDefenders=%d healthyDefenders=%d minHealthyLeft=%d sasShortage=%d",
+			kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), sCityName, iPlotSettlerCount,
+			iPlotUnguardedSettlerCount, iPlotCityDefenderCount, iPlotHealthyDefenderCount, iSASSettlerEscortMinHealthyDefendersLeft,
+			bSASExistingSettlerEscortShortage);
 		if (AI_chooseUnit(UNITAI_CITY_DEFENSE))
 		{
 			// BBAI TODO: Does this work right after settler is built???
@@ -3528,13 +3517,10 @@ void CvCityAI::AI_chooseProduction()
 	} // </advc.124>
 
 	// <!-- custom: BBAI Work Boat audit found a real under-prioritization case after the overqueue fixes: Konya had a buildable/reachable BFC Whale with 0 Work Boats assigned or queued, but chose an early sea explorer Galleon first. Give actionable unmet seafood a narrow priority before early sea explore/settler-sea choices, while keeping the water-danger, financial-trouble, and already-available Work Boat guards. (GPT-5.5 + ChatGPT-5.5) -->
-	if (gWorkerSeaLogLevel >= 2 && iNeededSeaWorkers > iAvailableSeaWorkers)
-	{
-		logBBAI("      WORKER_SEA_PRIORITY_CHECK turn=%d player=%d %S city=%S cityId=%d needed=%d available=%d pop=%d waterDanger=%d financialTrouble=%d defenseWar=%d warSuccess=%d danger=%d",
-			GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(),
-			iNeededSeaWorkers, iAvailableSeaWorkers, iCityPopulation, bWaterDanger, bFinancialTrouble, bDefenseWar, iWarSuccessRating,
-			bDanger);
-	}
+	if (gWorkerSeaLogLevel >= 2 && iNeededSeaWorkers > iAvailableSeaWorkers) logBBAI("      WORKER_SEA_PRIORITY_CHECK turn=%d player=%d %S city=%S cityId=%d needed=%d available=%d pop=%d waterDanger=%d financialTrouble=%d defenseWar=%d warSuccess=%d danger=%d",
+		GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(),
+		iNeededSeaWorkers, iAvailableSeaWorkers, iCityPopulation, bWaterDanger, bFinancialTrouble, bDefenseWar, iWarSuccessRating,
+		bDanger);
 	if (!bWaterDanger && !bFinancialTrouble && !(bDefenseWar && iWarSuccessRating < -30) &&
 		iNeededSeaWorkers > iAvailableSeaWorkers && (iCityPopulation >= 3 || iAvailableSeaWorkers <= 0))
 	{
@@ -4140,13 +4126,10 @@ void CvCityAI::AI_chooseProduction()
 						int iOldCapitalAreaColonyCostTimes100 = 0;
 						int const iMaintenanceSavingsTimes100 = SAS_getProjectedPalaceMaintenanceSavingsTimes100(*this, pCapital, iDistanceSavingsTimes100, iColonySavingsTimes100, iCandidateAreaColonySavingsTimes100, iOldCapitalAreaColonyCostTimes100);
 						bProjectedMaintenanceAllowsRelocation = (iMaintenanceSavingsTimes100 > 0);
-						if (gBuildingProductionLogLevel >= 3)
-						{
-							logBBAI("PALACE_RELOCATION_MAINTENANCE_GUARD turn=%d player=%d %S city=%S cityId=%d currentCapitalCityId=%d maintenanceSavingsTimes100=%d distanceSavingsTimes100=%d colonySavingsTimes100=%d pass=%d maxPalaceTurns=%d",
-								GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(), pCapital->getID(),
-								iMaintenanceSavingsTimes100, iDistanceSavingsTimes100, iColonySavingsTimes100,
-								bProjectedMaintenanceAllowsRelocation, iMaxPalaceTurns);
-						}
+						if (gBuildingProductionLogLevel >= 3) logBBAI("PALACE_RELOCATION_MAINTENANCE_GUARD turn=%d player=%d %S city=%S cityId=%d currentCapitalCityId=%d maintenanceSavingsTimes100=%d distanceSavingsTimes100=%d colonySavingsTimes100=%d pass=%d maxPalaceTurns=%d",
+							GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(), pCapital->getID(),
+							iMaintenanceSavingsTimes100, iDistanceSavingsTimes100, iColonySavingsTimes100,
+							bProjectedMaintenanceAllowsRelocation, iMaxPalaceTurns);
 					}
 				}
 				if (bProjectedMaintenanceAllowsRelocation && AI_chooseBuilding(BUILDINGFOCUS_CAPITAL, iMaxPalaceTurns))
@@ -4518,17 +4501,14 @@ void CvCityAI::AI_chooseProduction()
 						iAreaBestFoundValue, iNumWaterAreaCitySites, iWaterAreaBestFoundValue);
 				// <!-- custom: first-settler stalls are hard to diagnose from the normal BBAI "build settler 1" success log. Log the gate state for one-city capitals before the choice, so replaying a save shows whether danger, financial trouble, defense/offense mode, site value, or the pop/growth gate blocked first expansion.
 				// This helped show that Bibracte's outer first-settler gate was open while the lower concrete-unit gate still rejected Settler; and ingame fixed the issue of building first settler at t90 on normal game speed (now has city 2 at t~40-50 and 3 cities at t100 instead of only 1). (GPT-5.5 + GPT-5.5-Thinking) -->
-				if (gSettlerLogLevel >= 2 && isCapital() && iNumCities == 1 && iNumSettlers == 0)
-				{
-					logBBAI("      SETTLER_BUILD_DECISION turn=%d player=%d %S city=%S cityId=%d source=first_settler_gate result=CHECK pop=%d freeWindow=%d stagnant=%d foodDiff=%d foodTurnsLeft=%d softGrowthRule=%d preferredMinPop=%d growthWaitMaxTurns=%d growthSoon=%d danger=%d financial=%d defenseMode=%d offenseMode=%d noSettler=%d workerReplaces=%d areaSites=%d areaBest=%d waterSites=%d waterBest=%d minFound=%d settlerBuildMin=%d settlers=%d/%d priority=%d plotSettlers=%d",
-						GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), sCityName, getID(), iCityPopulation,
-						bSettlerGateFreeWindow, bSettlerGateStagnant, iSettlerGateFoodDifference, iSettlerGateFoodTurnsLeft,
-						bSettlerGateSoftGrowthRule, iSettlerGatePreferredMinPopulation, iSettlerGateGrowthWaitMaxTurns,
-						bSettlerGateGrowthSoon, bSettlerGateDanger, bFinancialTrouble, bSettlerGateDefenseMode, bSettlerGateOffenseMode,
-						bNoSettler, bWorkerReplacesSettler, iNumAreaCitySites, iAreaBestFoundValue, iNumWaterAreaCitySites,
-						iWaterAreaBestFoundValue, iMinFoundValue, iSettlerBuildMinFoundValue, iNumSettlers, iMaxSettlers, iSettlerPriority,
-						iPlotSettlerCount);
-				}
+				if (gSettlerLogLevel >= 2 && isCapital() && iNumCities == 1 && iNumSettlers == 0) logBBAI("      SETTLER_BUILD_DECISION turn=%d player=%d %S city=%S cityId=%d source=first_settler_gate result=CHECK pop=%d freeWindow=%d stagnant=%d foodDiff=%d foodTurnsLeft=%d softGrowthRule=%d preferredMinPop=%d growthWaitMaxTurns=%d growthSoon=%d danger=%d financial=%d defenseMode=%d offenseMode=%d noSettler=%d workerReplaces=%d areaSites=%d areaBest=%d waterSites=%d waterBest=%d minFound=%d settlerBuildMin=%d settlers=%d/%d priority=%d plotSettlers=%d",
+					GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), sCityName, getID(), iCityPopulation,
+					bSettlerGateFreeWindow, bSettlerGateStagnant, iSettlerGateFoodDifference, iSettlerGateFoodTurnsLeft,
+					bSettlerGateSoftGrowthRule, iSettlerGatePreferredMinPopulation, iSettlerGateGrowthWaitMaxTurns,
+					bSettlerGateGrowthSoon, bSettlerGateDanger, bFinancialTrouble, bSettlerGateDefenseMode, bSettlerGateOffenseMode,
+					bNoSettler, bWorkerReplacesSettler, iNumAreaCitySites, iAreaBestFoundValue, iNumWaterAreaCitySites,
+					iWaterAreaBestFoundValue, iMinFoundValue, iSettlerBuildMinFoundValue, iNumSettlers, iMaxSettlers, iSettlerPriority,
+					iPlotSettlerCount);
 				// <!-- custom: If the first Settler is otherwise ready to be trained, opportunistically prepare the spare escort capacity that KI#179's movement rule will require.
 				// Do this only when the best city defender can finish quickly: the first unconditional version eliminated post-completion parking but made two weak-production capitals postpone their first trained Settler until about T90-T97.
 				// Slow defenders therefore fall back to normal Settler-first sequencing plus KI#179.2's post-completion escort repair. See KI#179.3. (ChatGPT-5.6-Sol) -->
@@ -4544,20 +4524,18 @@ void CvCityAI::AI_chooseProduction()
 						UnitTypes const eBestEscortPreparationUnit = (iSASFirstSettlerEscortPreparationMaxTurns > 0 ? AI_bestUnitAI(UNITAI_CITY_DEFENSE) : NO_UNIT);
 						int const iEscortPreparationTurns = (eBestEscortPreparationUnit == NO_UNIT ? -1 : getProductionTurnsLeft(eBestEscortPreparationUnit, 0));
 						bool const bEscortPreparationQuickEnough = (eBestEscortPreparationUnit != NO_UNIT && iEscortPreparationTurns >= 0 && iEscortPreparationTurns <= iSASFirstSettlerEscortPreparationMaxTurns);
-						if (gSettlerLogLevel >= 2 || gMilitaryProductionLogLevel >= 2)
-							logBBAI("      FIRST_SETTLER_ESCORT_PREPARATION turn=%d player=%d %S city=%S cityId=%d result=%s healthyDefenders=%d minHealthyLeft=%d bestDefender=%s defenderTurns=%d maxTurns=%d areaBest=%d waterBest=%d settlerBuildMin=%d",
-								kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), sCityName, getID(),
-								(bEscortPreparationQuickEnough ? "NEED_QUICK_DEFENDER" : "SKIP_SLOW_DEFENDER"),
-								iHealthyDefenders, iSASSettlerEscortMinHealthyDefendersLeft,
-								(eBestEscortPreparationUnit == NO_UNIT ? "-" : GC.getInfo(eBestEscortPreparationUnit).getType()),
-								iEscortPreparationTurns, iSASFirstSettlerEscortPreparationMaxTurns, iAreaBestFoundValue, iWaterAreaBestFoundValue, iSettlerBuildMinFoundValue);
+						if (gSettlerLogLevel >= 2 || gMilitaryProductionLogLevel >= 2) logBBAI("      FIRST_SETTLER_ESCORT_PREPARATION turn=%d player=%d %S city=%S cityId=%d result=%s healthyDefenders=%d minHealthyLeft=%d bestDefender=%s defenderTurns=%d maxTurns=%d areaBest=%d waterBest=%d settlerBuildMin=%d",
+							kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), sCityName, getID(),
+							(bEscortPreparationQuickEnough ? "NEED_QUICK_DEFENDER" : "SKIP_SLOW_DEFENDER"),
+							iHealthyDefenders, iSASSettlerEscortMinHealthyDefendersLeft,
+							(eBestEscortPreparationUnit == NO_UNIT ? "-" : GC.getInfo(eBestEscortPreparationUnit).getType()),
+							iEscortPreparationTurns, iSASFirstSettlerEscortPreparationMaxTurns, iAreaBestFoundValue, iWaterAreaBestFoundValue, iSettlerBuildMinFoundValue);
 						if (bEscortPreparationQuickEnough && AI_chooseUnit(UNITAI_CITY_DEFENSE))
 						{
-							if (gSettlerLogLevel >= 2 || gMilitaryProductionLogLevel >= 2)
-								logBBAI("      FIRST_SETTLER_ESCORT_PREPARATION turn=%d player=%d %S city=%S cityId=%d result=CHOSEN_CITY_DEFENSE healthyDefenders=%d minHealthyLeft=%d bestDefender=%s defenderTurns=%d maxTurns=%d",
-									kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), sCityName, getID(),
-									iHealthyDefenders, iSASSettlerEscortMinHealthyDefendersLeft, GC.getInfo(eBestEscortPreparationUnit).getType(),
-									iEscortPreparationTurns, iSASFirstSettlerEscortPreparationMaxTurns);
+							if (gSettlerLogLevel >= 2 || gMilitaryProductionLogLevel >= 2) logBBAI("      FIRST_SETTLER_ESCORT_PREPARATION turn=%d player=%d %S city=%S cityId=%d result=CHOSEN_CITY_DEFENSE healthyDefenders=%d minHealthyLeft=%d bestDefender=%s defenderTurns=%d maxTurns=%d",
+								kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), sCityName, getID(),
+								iHealthyDefenders, iSASSettlerEscortMinHealthyDefendersLeft, GC.getInfo(eBestEscortPreparationUnit).getType(),
+								iEscortPreparationTurns, iSASFirstSettlerEscortPreparationMaxTurns);
 							return;
 						}
 					}
@@ -4586,17 +4564,13 @@ void CvCityAI::AI_chooseProduction()
 							return;
 						}
 					}
-					else if (gSettlerLogLevel >= 2 && bSASFirstSettlerOwnsQuickDefenseGate)
-					{
-						logBBAI("      FIRST_SETTLER_EXTRA_QUICK_DEFENSE turn=%d player=%d %S city=%S cityId=%d result=BYPASS_INHERITED_ADVCIV_GATE militaryUnits=%d cities=%d",
-							kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), sCityName, getID(), kPlayer.getNumMilitaryUnits(), iNumCities);
-					}
+					else if (gSettlerLogLevel >= 2 && bSASFirstSettlerOwnsQuickDefenseGate) logBBAI("      FIRST_SETTLER_EXTRA_QUICK_DEFENSE turn=%d player=%d %S city=%S cityId=%d result=BYPASS_INHERITED_ADVCIV_GATE militaryUnits=%d cities=%d",
+						kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), sCityName, getID(), kPlayer.getNumMilitaryUnits(), iNumCities);
 					return;
 				}
 				else if (bWorkerReplacesSettler && AI_chooseUnit(UNITAI_WORKER, /*iOdds=*/100))
 				{
-					if (gWorkerLogLevel >= 2)
-						logBBAI("      City %S replaces Settler 1 with Worker", sCityName);
+					if (gWorkerLogLevel >= 2) logBBAI("      City %S replaces Settler 1 with Worker", sCityName);
 					return;
 				}
 			}
@@ -4902,18 +4876,15 @@ void CvCityAI::AI_chooseProduction()
 		}
 		if (!bLandCapacityEligible || !bNavalCapacityEligible) break;
 	}
-	if (bLogDetailedMilitaryProduction)
-	{
-		logBBAI("MILITARY_PRODUCTION_CAPACITY_FLOOR turn=%d player=%d %S city=%S cityId=%d era=%d securedProfileEnable=%d securedProfile=%d navalProfile=%d navalHeavyMap=%d navalTargetMultiplierPercent=%d independentRivalTeams=%d independentRivalCities=%d barbarianCities=%d landWar=%d defenseWar=%d landTargetPercent=%d landCurrentPercent=%d landBaseProduction=%d landTotalBaseProduction=%d landCities=%d landProductiveCities=%d navalTargetPercent=%d navalCurrentPercent=%d navalBaseProduction=%d navalTotalBaseProduction=%d navalCities=%d navalProductiveCities=%d navalProjectionActive=%d navalPortCities=%d navalTrackedStock=%d navalStockCapActive=%d navalStockLimit=%d primaryArea=%d financialTrouble=%d danger=%d alwaysPeace=%d getBetterUnits=%d cultureCity=%d unitExempt=%d landEligible=%d navalEligible=%d landChosen=%d navalChosen=%d",
-			kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), sCityName, getID(), iCurrentEra,
-			bSASSecuredPrimaryAreaProfile, bUseSecuredPrimaryAreaProfile, bUseSecuredNavalProfile, kGame.isNavalHeavyMapnameCached(),
-			iSecuredNavalTargetMultiplierPercent, iIndependentRivalTeams, iIndependentRivalCities, iLocalBarbarianCities, bLandWar,
-			bDefenseWar, iLandTargetPercent, iLandCapacityPercent, iLandBaseProduction, iLandTotalBaseProduction, iLandProductionCities,
-			iLandProductiveCities, iNavalTargetPercent, iNavalCapacityPercent, iNavalBaseProduction, iNavalTotalBaseProduction,
-			iNavalProductionCities, iNavalProductiveCities, bNavalProjectionActive, iNavalPortCities, iNavalTrackedStock,
-			bNavalStockCapActive, iNavalStockLimit, bPrimaryArea, bFinancialTrouble, bDanger, bAlwaysPeace, bGetBetterUnits, bCultureCity,
-			bUnitExempt, bLandCapacityEligible, bNavalCapacityEligible, bLandCapacityChosen, bNavalCapacityChosen);
-	}
+	if (bLogDetailedMilitaryProduction) logBBAI("MILITARY_PRODUCTION_CAPACITY_FLOOR turn=%d player=%d %S city=%S cityId=%d era=%d securedProfileEnable=%d securedProfile=%d navalProfile=%d navalHeavyMap=%d navalTargetMultiplierPercent=%d independentRivalTeams=%d independentRivalCities=%d barbarianCities=%d landWar=%d defenseWar=%d landTargetPercent=%d landCurrentPercent=%d landBaseProduction=%d landTotalBaseProduction=%d landCities=%d landProductiveCities=%d navalTargetPercent=%d navalCurrentPercent=%d navalBaseProduction=%d navalTotalBaseProduction=%d navalCities=%d navalProductiveCities=%d navalProjectionActive=%d navalPortCities=%d navalTrackedStock=%d navalStockCapActive=%d navalStockLimit=%d primaryArea=%d financialTrouble=%d danger=%d alwaysPeace=%d getBetterUnits=%d cultureCity=%d unitExempt=%d landEligible=%d navalEligible=%d landChosen=%d navalChosen=%d",
+		kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), sCityName, getID(), iCurrentEra,
+		bSASSecuredPrimaryAreaProfile, bUseSecuredPrimaryAreaProfile, bUseSecuredNavalProfile, kGame.isNavalHeavyMapnameCached(),
+		iSecuredNavalTargetMultiplierPercent, iIndependentRivalTeams, iIndependentRivalCities, iLocalBarbarianCities, bLandWar,
+		bDefenseWar, iLandTargetPercent, iLandCapacityPercent, iLandBaseProduction, iLandTotalBaseProduction, iLandProductionCities,
+		iLandProductiveCities, iNavalTargetPercent, iNavalCapacityPercent, iNavalBaseProduction, iNavalTotalBaseProduction,
+		iNavalProductionCities, iNavalProductiveCities, bNavalProjectionActive, iNavalPortCities, iNavalTrackedStock,
+		bNavalStockCapActive, iNavalStockLimit, bPrimaryArea, bFinancialTrouble, bDanger, bAlwaysPeace, bGetBetterUnits, bCultureCity,
+		bUnitExempt, bLandCapacityEligible, bNavalCapacityEligible, bLandCapacityChosen, bNavalCapacityChosen);
 	if (bLandCapacityChosen || bNavalCapacityChosen)
 	{
 		if ((gCityLogLevel >= 2 || gMilitaryProductionLogLevel >= 2))
@@ -5938,8 +5909,7 @@ void CvCityAI::AI_chooseProduction()
 				// <!-- custom: also add a barbarian check here (with also our worker replaces settler new logic too) as our logic doesn't apply to barbarians as well at least not as of now-->
 				else if (!isBarbarian() && bWorkerReplacesSettler && AI_chooseUnit(UNITAI_WORKER, /*iOdds=*/100))
 				{
-					if (gWorkerLogLevel >= 2)
-						logBBAI("      City %S replaces Settler 2 with Worker", sCityName);
+					if (gWorkerLogLevel >= 2) logBBAI("      City %S replaces Settler 2 with Worker", sCityName);
 					return;
 				}
 			}
@@ -6185,11 +6155,8 @@ void CvCityAI::AI_chooseProduction()
 				kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), sCityName);
 		}
 	}
-	else if (bLogDetailedMilitaryProduction)
-	{
-		logBBAI("MILITARY_PRODUCTION_GENERIC_GATE turn=%d player=%d %S city=%S unitSpending=%d maxPlus15=%d spendingAllowed=0 baseBuildUnitProb=%d unitExempt=%d landWar=%d",
-			kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), sCityName, iUnitSpending, iMaxUnitSpending + 15, iBuildUnitProb, bUnitExempt, bLandWar);
-	}
+	else if (bLogDetailedMilitaryProduction) logBBAI("MILITARY_PRODUCTION_GENERIC_GATE turn=%d player=%d %S city=%S unitSpending=%d maxPlus15=%d spendingAllowed=0 baseBuildUnitProb=%d unitExempt=%d landWar=%d",
+		kGame.getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), sCityName, iUnitSpending, iMaxUnitSpending + 15, iBuildUnitProb, bUnitExempt, bLandWar);
 
 	// Only cities with reasonable production
 	/*if ((iProductionRank <= ((iNumCities > 8) ? 3 : 2))
@@ -7010,10 +6977,7 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 			if (gSettlerLogLevel >= 2) SAS_logSettlerBuildDecision(*this, "AI_bestUnit_value", "REJECT_MIN_FOUND_VALUE", NO_UNIT, UNITAI_SETTLE, -1, aiUnitAIVal[UNITAI_SETTLE]);
 			aiUnitAIVal[UNITAI_SETTLE] = 0;
 		}
-		else if (gSettlerLogLevel >= 3 && aiUnitAIVal[UNITAI_SETTLE] > 0)
-		{
-			SAS_logSettlerBuildDecision(*this, "AI_bestUnit_value", "VALUE_ALLOWED", NO_UNIT, UNITAI_SETTLE, -1, aiUnitAIVal[UNITAI_SETTLE]);
-		}
+		else if (gSettlerLogLevel >= 3 && aiUnitAIVal[UNITAI_SETTLE] > 0) SAS_logSettlerBuildDecision(*this, "AI_bestUnit_value", "VALUE_ALLOWED", NO_UNIT, UNITAI_SETTLE, -1, aiUnitAIVal[UNITAI_SETTLE]);
 	}
 
 	int iBestValue = 0;
@@ -7043,8 +7007,7 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 			}
 		}
 	}
-	if (gSettlerLogLevel >= 2 && eBestUnitAI == UNITAI_SETTLE)
-		SAS_logSettlerBuildDecision(*this, "AI_bestUnit", eBestUnit == NO_UNIT ? "NO_UNIT" : "BEST_UNIT", eBestUnit, eBestUnitAI, -1, iBestValue);
+	if (gSettlerLogLevel >= 2 && eBestUnitAI == UNITAI_SETTLE) SAS_logSettlerBuildDecision(*this, "AI_bestUnit", eBestUnit == NO_UNIT ? "NO_UNIT" : "BEST_UNIT", eBestUnit, eBestUnitAI, -1, iBestValue);
 	return eBestUnit;
 }
 
@@ -7363,8 +7326,7 @@ UnitTypes CvCityAI::AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync, AdvisorTypes
 		}
 	}
 
-	if (gSettlerLogLevel >= 2 && eUnitAI == UNITAI_SETTLE)
-		SAS_logSettlerBuildDecision(*this, "AI_bestUnitAI", eBestUnit == NO_UNIT ? "NO_UNIT" : "BEST_UNIT", eBestUnit, eUnitAI, -1, iBestValue);
+	if (gSettlerLogLevel >= 2 && eUnitAI == UNITAI_SETTLE) SAS_logSettlerBuildDecision(*this, "AI_bestUnitAI", eBestUnit == NO_UNIT ? "NO_UNIT" : "BEST_UNIT", eBestUnit, eUnitAI, -1, iBestValue);
 	return eBestUnit;
 }
 
@@ -7624,13 +7586,10 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 							{
 								if (bLogNationalParkPlacementAudit)
 									bNationalParkRejectedForBetterCity = true;
-								if (gBuildingProductionLogLevel >= 3 && kBuilding.isWorldWonder())
-								{
-									logBBAI("WORLD_WONDER_INHERITED_PLACEMENT turn=%d player=%d %S city=%S cityId=%d building=%s action=REJECT_FOR_BETTER_CITY currentRawValue=%d currentTurns=%d currentPlacementValue=%d betterCity=%S betterCityId=%d betterRawValue=%d betterTurns=%d betterPlacementValue=%d",
-										GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(), kBuilding.getType(),
-										iValue, iTurnsLeft, iThisPlacementValue, pLoopCity->getName().GetCString(), pLoopCity->getID(),
-										iLoopValue, iLoopTurnsLeft, iLoopPlacementValue);
-								}
+								if (gBuildingProductionLogLevel >= 3 && kBuilding.isWorldWonder()) logBBAI("WORLD_WONDER_INHERITED_PLACEMENT turn=%d player=%d %S city=%S cityId=%d building=%s action=REJECT_FOR_BETTER_CITY currentRawValue=%d currentTurns=%d currentPlacementValue=%d betterCity=%S betterCityId=%d betterRawValue=%d betterTurns=%d betterPlacementValue=%d",
+									GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(), kBuilding.getType(),
+									iValue, iTurnsLeft, iThisPlacementValue, pLoopCity->getName().GetCString(), pLoopCity->getID(),
+									iLoopValue, iLoopTurnsLeft, iLoopPlacementValue);
 								iValue = 0;
 								break;
 							}
@@ -9216,14 +9175,10 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 	if (kBuilding.isCapital())
 	{
 		// <!-- custom: Keep this level-3 row after removing the old SAS Palace policy: inherited capital-building rejection remains live for direct/prospective callers and is distinct from actual BUILDINGFOCUS_CAPITAL relocation. (GPT-5.6-Sol) -->
-		if (bLogBuildingProductionLevel3)
-		{
-			logBBAI("PALACE_INHERITED_BUILDING_VALUE_REJECT turn=%d player=%d %S city=%S cityId=%d building=%s focusFlags=%d prospective=%d assumeTech=%s",
-				GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(), kBuilding.getType(),
-				iFocusFlags, eAssumeTech != NO_TECH, (eAssumeTech == NO_TECH ? "-" : GC.getInfo(eAssumeTech).getType()));
-		}
-		if (bLogBuildingValueDetails && !bWonder)
-			SAS_logInheritedBuildingValueRejection(*this, eBuilding, "CAPITAL_BUILDING");
+		if (bLogBuildingProductionLevel3) logBBAI("PALACE_INHERITED_BUILDING_VALUE_REJECT turn=%d player=%d %S city=%S cityId=%d building=%s focusFlags=%d prospective=%d assumeTech=%s",
+			GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(), kBuilding.getType(),
+			iFocusFlags, eAssumeTech != NO_TECH, (eAssumeTech == NO_TECH ? "-" : GC.getInfo(eAssumeTech).getType()));
+		if (bLogBuildingValueDetails && !bWonder) SAS_logInheritedBuildingValueRejection(*this, eBuilding, "CAPITAL_BUILDING");
 		return 0;
 	}
 
@@ -9239,8 +9194,7 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 		if (perReligionVal.second > 0 &&
 			!kTeam.hasHolyCity(perReligionVal.first))
 		{
-			if (bLogBuildingValueDetails && !bWonder)
-				SAS_logInheritedBuildingValueRejection(*this, eBuilding, "MISSING_HOLY_CITY");
+			if (bLogBuildingValueDetails && !bWonder) SAS_logInheritedBuildingValueRejection(*this, eBuilding, "MISSING_HOLY_CITY");
 			return 0;
 		}
 	}
@@ -9271,12 +9225,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 			{
 				bProspectiveDomainApplicabilityChange = true;
 			}
-			if (bLogProspectiveDomainApplicability)
-			{
-				logBBAI("BUILDING_VALUE_DOMAIN_PRODUCTION_PROSPECTIVE_APPLICABILITY turn=%d player=%d city=%S cityId=%d building=%s domain=%d modifier=%d assumedTech=%s currentApplicable=%d prospectiveApplicable=%d",
-					kGame.getGameTurn(), eOwner, getName().GetCString(), getID(), kBuilding.getType(), eLoopDomain, iDomainProductionModifier,
-					GC.getInfo(eAssumeTech).getType(), bCurrentDomainProductionApplicable, abDomainProductionApplicable[eLoopDomain]);
-			}
+			if (bLogProspectiveDomainApplicability) logBBAI("BUILDING_VALUE_DOMAIN_PRODUCTION_PROSPECTIVE_APPLICABILITY turn=%d player=%d city=%S cityId=%d building=%s domain=%d modifier=%d assumedTech=%s currentApplicable=%d prospectiveApplicable=%d",
+				kGame.getGameTurn(), eOwner, getName().GetCString(), getID(), kBuilding.getType(), eLoopDomain, iDomainProductionModifier,
+				GC.getInfo(eAssumeTech).getType(), bCurrentDomainProductionApplicable, abDomainProductionApplicable[eLoopDomain]);
 		}
 	}
 	// <!-- custom: The first prospective implementation bypassed this cache for every candidate technology.
@@ -9712,13 +9663,10 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 							int const iSeaExperienceThroughputValue = iSeaExperience * iSeaExperienceWeight;
 							int const iLegacySeaExperienceValue = iSeaExperience * 7;
 							iDomainXPValue = iSeaExperienceThroughputValue;
-							if (bLogBuildingValueDetailsThisPass)
-							{
-								logBBAI("BUILDING_VALUE_DOMAIN_SEA_FREE_EXPERIENCE_THROUGHPUT turn=%d player=%d city=%S cityId=%d building=%s seaExperience=%d totalMilitaryProductionShare=%d waterWorldPercent=%d seaProductionShare=%d experienceWeight=%d throughputValue=%d legacyValue=%d baseProduction=%d productionRank=%d numCities=%d highProductionCity=%d",
-									kGame.getGameTurn(), eOwner, getName().GetCString(), getID(), kBuilding.getType(), iSeaExperience,
-									iDomainTotalMilitaryProductionShare, iDomainWaterWorldPercent, iSeaProductionShare, iSeaExperienceWeight,
-									iSeaExperienceThroughputValue, iLegacySeaExperienceValue, iBaseHammersPerTurn, iProductionRank, iNumCities, bHighProductionCity);
-							}
+							if (bLogBuildingValueDetailsThisPass) logBBAI("BUILDING_VALUE_DOMAIN_SEA_FREE_EXPERIENCE_THROUGHPUT turn=%d player=%d city=%S cityId=%d building=%s seaExperience=%d totalMilitaryProductionShare=%d waterWorldPercent=%d seaProductionShare=%d experienceWeight=%d throughputValue=%d legacyValue=%d baseProduction=%d productionRank=%d numCities=%d highProductionCity=%d",
+								kGame.getGameTurn(), eOwner, getName().GetCString(), getID(), kBuilding.getType(), iSeaExperience,
+								iDomainTotalMilitaryProductionShare, iDomainWaterWorldPercent, iSeaProductionShare, iSeaExperienceWeight,
+								iSeaExperienceThroughputValue, iLegacySeaExperienceValue, iBaseHammersPerTurn, iProductionRank, iNumCities, bHighProductionCity);
 						}
 						else
 						{
@@ -10238,12 +10186,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 				{
 					iValue += (iMilitaryProductionModifier * (getFreeExperience() + getSpecialistFreeExperience())) / 10;
 				}
-				if (bLogBuildingValueDetailsThisPass)
-				{
-					logBBAI("BUILDING_VALUE_MILITARY_PRODUCTION_THROUGHPUT turn=%d player=%d city=%S cityId=%d building=%s modifier=%d baseProduction=%d baseRateWithGrowth=%d unitProductionShare=%d effectiveUnitProductionShare=%d throughputValue=%d productionRank=%d numCities=%d limited=%d nationalWonder=%d hasMetCount=%d",
-						kGame.getGameTurn(), eOwner, getName().GetCString(), getID(), kBuilding.getType(), iMilitaryProductionModifier, iBaseHammersPerTurn,
-						iMilitaryProductionBaseRate, iMilitaryProductionShare, iEffectiveMilitaryProductionShare, iMilitaryProductionThroughputValue, iProductionRank, iNumCities, bLimitedWonder, bNationalWonder, iHasMetCount);
-				}
+				if (bLogBuildingValueDetailsThisPass) logBBAI("BUILDING_VALUE_MILITARY_PRODUCTION_THROUGHPUT turn=%d player=%d city=%S cityId=%d building=%s modifier=%d baseProduction=%d baseRateWithGrowth=%d unitProductionShare=%d effectiveUnitProductionShare=%d throughputValue=%d productionRank=%d numCities=%d limited=%d nationalWonder=%d hasMetCount=%d",
+					kGame.getGameTurn(), eOwner, getName().GetCString(), getID(), kBuilding.getType(), iMilitaryProductionModifier, iBaseHammersPerTurn,
+					iMilitaryProductionBaseRate, iMilitaryProductionShare, iEffectiveMilitaryProductionShare, iMilitaryProductionThroughputValue, iProductionRank, iNumCities, bLimitedWonder, bNationalWonder, iHasMetCount);
 			}
 			else if (!bMilitaryProductionThroughputOptimize && iHasMetCount > 0 && iMilitaryProductionModifier > 0)
 			{
@@ -10395,9 +10340,8 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 				{
 					// <!-- custom: Remove only the unusable domain-production component, not the whole multipurpose building.
 					// AI_techBuildingValue passes its prospective technology and guaranteed prerequisites so a unit unlocked before/by the building technology keeps the component applicable; ordinary production uses current trainability. See KI#48.14. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-					if (bLogBuildingValueDetailsThisPass)
-						logBBAI("BUILDING_VALUE_DOMAIN_PRODUCTION_INAPPLICABLE turn=%d player=%d city=%S cityId=%d building=%s domain=%d modifier=%d assumedTech=%d",
-							kGame.getGameTurn(), eOwner, getName().GetCString(), getID(), kBuilding.getType(), eLoopDomain, iDomainProductionModifier, eAssumeTech);
+					if (bLogBuildingValueDetailsThisPass) logBBAI("BUILDING_VALUE_DOMAIN_PRODUCTION_INAPPLICABLE turn=%d player=%d city=%S cityId=%d building=%s domain=%d modifier=%d assumedTech=%d",
+						kGame.getGameTurn(), eOwner, getName().GetCString(), getID(), kBuilding.getType(), eLoopDomain, iDomainProductionModifier, eAssumeTech);
 					continue;
 				}
 				if (bLandProductionThroughputOptimize && eLoopDomain == DOMAIN_LAND && iDomainProductionModifier != 0)
@@ -11840,22 +11784,19 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 			kDiagnostics->iAirCapacityDelta, kDiagnostics->iMilitaryProductionDelta, kDiagnostics->iDomainProductionDelta, kDiagnostics->iGoldDelta, kDiagnostics->iResearchDelta,
 			kDiagnostics->iCultureDelta, kDiagnostics->iEspionageDelta, kDiagnostics->iSeaFoodDelta, kDiagnostics->iSeaProductionDelta, kDiagnostics->iSeaCommerceDelta);
 	}
-	else if (bLogBuildingValueDetails && !bWonder)
-	{
-		SAS_logInheritedBuildingValue(*this, eBuilding, iValue, iPriorityFactor, kDiagnostics->iDefenseDelta, kDiagnostics->iEspionageDefenseDelta,
-			kDiagnostics->iHappinessDelta, kDiagnostics->iHealthDelta, kDiagnostics->iExperienceDelta, kDiagnostics->iDomainSeaDelta, kDiagnostics->iMaintenanceDelta, kDiagnostics->iSpecialistDelta,
-			kDiagnostics->iTradeDelta, kDiagnostics->iGeneralDelta, kDiagnostics->iYieldDelta, kDiagnostics->iCommerceGlobalDelta, kDiagnostics->iAirCapacityDelta, kDiagnostics->iMilitaryProductionDelta,
-			kDiagnostics->iDomainProductionDelta, kDiagnostics->iHealthSeverityUrgencyBonus, kDiagnostics->iHealthStarvationUrgencyBonus,
-			kDiagnostics->iMaintenanceCurrentTimes100, kDiagnostics->iMaintenanceEstimatedBaseTimes100, kDiagnostics->iMaintenanceNewUpkeepTimes100, kDiagnostics->iMaintenanceSavedTimes100,
-			kDiagnostics->iMaintenancePreInflationValue, kDiagnostics->iMaintenanceInflatedValue, kDiagnostics->iMaintenanceFinalValue,
-			kDiagnostics->iValueBeforePriority, kDiagnostics->iValueAfterPriority, kDiagnostics->iValueBeforeAIWeight, kDiagnostics->iValueAfterAIWeight, kDiagnostics->iFlavorMatch, kDiagnostics->iValueAfterFlavor,
-			kDiagnostics->iGoldDelta, kDiagnostics->iGoldBeforeWeight, kDiagnostics->iGoldAfterWeight,
-			kDiagnostics->iResearchDelta, kDiagnostics->iResearchBeforeWeight, kDiagnostics->iResearchAfterWeight,
-			kDiagnostics->iCultureDelta, kDiagnostics->iCultureClaimValue, kDiagnostics->iCulturePriorityBoost, kDiagnostics->iCultureBeforeWeight, kDiagnostics->iCultureAfterWeight,
-			kDiagnostics->iEspionageDelta, kDiagnostics->iEspionageBeforeWeight, kDiagnostics->iEspionageAfterWeight,
-			kDiagnostics->iSeaFoodDelta, kDiagnostics->iSeaProductionDelta, kDiagnostics->iSeaCommerceDelta, kDiagnostics->iSeaYieldPlotWeight,
-			kDiagnostics->iYieldProductionPriorityRaw, kDiagnostics->iYieldProductionPriorityApplied);
-	}
+	else if (bLogBuildingValueDetails && !bWonder) SAS_logInheritedBuildingValue(*this, eBuilding, iValue, iPriorityFactor, kDiagnostics->iDefenseDelta, kDiagnostics->iEspionageDefenseDelta,
+		kDiagnostics->iHappinessDelta, kDiagnostics->iHealthDelta, kDiagnostics->iExperienceDelta, kDiagnostics->iDomainSeaDelta, kDiagnostics->iMaintenanceDelta, kDiagnostics->iSpecialistDelta,
+		kDiagnostics->iTradeDelta, kDiagnostics->iGeneralDelta, kDiagnostics->iYieldDelta, kDiagnostics->iCommerceGlobalDelta, kDiagnostics->iAirCapacityDelta, kDiagnostics->iMilitaryProductionDelta,
+		kDiagnostics->iDomainProductionDelta, kDiagnostics->iHealthSeverityUrgencyBonus, kDiagnostics->iHealthStarvationUrgencyBonus,
+		kDiagnostics->iMaintenanceCurrentTimes100, kDiagnostics->iMaintenanceEstimatedBaseTimes100, kDiagnostics->iMaintenanceNewUpkeepTimes100, kDiagnostics->iMaintenanceSavedTimes100,
+		kDiagnostics->iMaintenancePreInflationValue, kDiagnostics->iMaintenanceInflatedValue, kDiagnostics->iMaintenanceFinalValue,
+		kDiagnostics->iValueBeforePriority, kDiagnostics->iValueAfterPriority, kDiagnostics->iValueBeforeAIWeight, kDiagnostics->iValueAfterAIWeight, kDiagnostics->iFlavorMatch, kDiagnostics->iValueAfterFlavor,
+		kDiagnostics->iGoldDelta, kDiagnostics->iGoldBeforeWeight, kDiagnostics->iGoldAfterWeight,
+		kDiagnostics->iResearchDelta, kDiagnostics->iResearchBeforeWeight, kDiagnostics->iResearchAfterWeight,
+		kDiagnostics->iCultureDelta, kDiagnostics->iCultureClaimValue, kDiagnostics->iCulturePriorityBoost, kDiagnostics->iCultureBeforeWeight, kDiagnostics->iCultureAfterWeight,
+		kDiagnostics->iEspionageDelta, kDiagnostics->iEspionageBeforeWeight, kDiagnostics->iEspionageAfterWeight,
+		kDiagnostics->iSeaFoodDelta, kDiagnostics->iSeaProductionDelta, kDiagnostics->iSeaCommerceDelta, kDiagnostics->iSeaYieldPlotWeight,
+		kDiagnostics->iYieldProductionPriorityRaw, kDiagnostics->iYieldProductionPriorityApplied);
 	if (eAssumeTech == NO_TECH)
 		iValue = SAS_adjustUnhealthinessReducerWonderForMilitaryPressure(*this, eBuilding, iValue);
 	return iValue;
@@ -12020,15 +11961,13 @@ ProjectTypes CvCityAI::AI_bestProject(int* piBestValue, /* advc.001n: */ bool bA
 		bool const bLogLimitedProject = (gLimitedProjectProductionLogLevel >= 3 && SAS_isOneCopyNonSpaceshipProject(eProject));
 		if (!canCreate(eProject))
 		{
-			if (gSpaceProductionLogLevel >= 3 && kProject.isSpaceship())
-				logBBAI("SPACE_PROJECT_CANDIDATE turn=%d player=%d %S city=%S cityId=%d project=%s result=SKIP reason=cannot_create productionRank=%d teamCount=%d teamMaking=%d maxTeam=%d stored=%d",
-					kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(), kProject.getType(), iProductionRank,
-					kTeam.getProjectCount(eProject), kTeam.getProjectMaking(eProject), kProject.getMaxTeamInstances(), getProjectProduction(eProject));
-			if (bLogLimitedProject)
-				logBBAI("LIMITED_PROJECT_CANDIDATE turn=%d player=%d %S city=%S cityId=%d project=%s result=SKIP reason=cannot_create productionRank=%d teamCount=%d teamMaking=%d maxGlobal=%d maxTeam=%d stored=%d",
-					kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
-					kProject.getType(), iProductionRank, kTeam.getProjectCount(eProject), kTeam.getProjectMaking(eProject),
-					kProject.getMaxGlobalInstances(), kProject.getMaxTeamInstances(), getProjectProduction(eProject));
+			if (gSpaceProductionLogLevel >= 3 && kProject.isSpaceship()) logBBAI("SPACE_PROJECT_CANDIDATE turn=%d player=%d %S city=%S cityId=%d project=%s result=SKIP reason=cannot_create productionRank=%d teamCount=%d teamMaking=%d maxTeam=%d stored=%d",
+				kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(), kProject.getType(), iProductionRank,
+				kTeam.getProjectCount(eProject), kTeam.getProjectMaking(eProject), kProject.getMaxTeamInstances(), getProjectProduction(eProject));
+			if (bLogLimitedProject) logBBAI("LIMITED_PROJECT_CANDIDATE turn=%d player=%d %S city=%S cityId=%d project=%s result=SKIP reason=cannot_create productionRank=%d teamCount=%d teamMaking=%d maxGlobal=%d maxTeam=%d stored=%d",
+				kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
+				kProject.getType(), iProductionRank, kTeam.getProjectCount(eProject), kTeam.getProjectMaking(eProject),
+				kProject.getMaxGlobalInstances(), kProject.getMaxTeamInstances(), getProjectProduction(eProject));
 			continue; // can't build it. skip to the next project.
 		}
 
@@ -12036,14 +11975,12 @@ ProjectTypes CvCityAI::AI_bestProject(int* piBestValue, /* advc.001n: */ bool bA
 		// <advc.004x>
 		if(iTurnsLeft == MAX_INT)
 		{
-			if (gSpaceProductionLogLevel >= 3 && kProject.isSpaceship())
-				logBBAI("SPACE_PROJECT_CANDIDATE turn=%d player=%d %S city=%S cityId=%d project=%s result=SKIP reason=no_finite_turns productionRank=%d stored=%d",
-					kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
-					kProject.getType(), iProductionRank, getProjectProduction(eProject));
-			if (bLogLimitedProject)
-				logBBAI("LIMITED_PROJECT_CANDIDATE turn=%d player=%d %S city=%S cityId=%d project=%s result=SKIP reason=no_finite_turns productionRank=%d stored=%d",
-					kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
-					kProject.getType(), iProductionRank, getProjectProduction(eProject));
+			if (gSpaceProductionLogLevel >= 3 && kProject.isSpaceship()) logBBAI("SPACE_PROJECT_CANDIDATE turn=%d player=%d %S city=%S cityId=%d project=%s result=SKIP reason=no_finite_turns productionRank=%d stored=%d",
+				kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
+				kProject.getType(), iProductionRank, getProjectProduction(eProject));
+			if (bLogLimitedProject) logBBAI("LIMITED_PROJECT_CANDIDATE turn=%d player=%d %S city=%S cityId=%d project=%s result=SKIP reason=no_finite_turns productionRank=%d stored=%d",
+				kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
+				kProject.getType(), iProductionRank, getProjectProduction(eProject));
 			continue;
 		} // </advc.004x>
 		int iRelativeTurns = (100 * iTurnsLeft + 50) /
@@ -12058,14 +11995,12 @@ ProjectTypes CvCityAI::AI_bestProject(int* piBestValue, /* advc.001n: */ bool bA
 			iProductionRank > std::max(3, kOwner.getNumCities() / 2))
 		{
 			// not fast enough to risk blocking our more productive cities from building it.
-			if (gSpaceProductionLogLevel >= 3 && kProject.isSpaceship())
-				logBBAI("SPACE_PROJECT_CANDIDATE turn=%d player=%d %S city=%S cityId=%d project=%s result=SKIP reason=slow_low_production_rank productionRank=%d cities=%d turnsLeft=%d relativeTurns=%d stored=%d",
-					kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
-					kProject.getType(), iProductionRank, kOwner.getNumCities(), iTurnsLeft, iRelativeTurns, getProjectProduction(eProject));
-			if (bLogLimitedProject)
-				logBBAI("LIMITED_PROJECT_CANDIDATE turn=%d player=%d %S city=%S cityId=%d project=%s result=SKIP reason=slow_low_production_rank productionRank=%d cities=%d turnsLeft=%d relativeTurns=%d stored=%d",
-					kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
-					kProject.getType(), iProductionRank, kOwner.getNumCities(), iTurnsLeft, iRelativeTurns, getProjectProduction(eProject));
+			if (gSpaceProductionLogLevel >= 3 && kProject.isSpaceship()) logBBAI("SPACE_PROJECT_CANDIDATE turn=%d player=%d %S city=%S cityId=%d project=%s result=SKIP reason=slow_low_production_rank productionRank=%d cities=%d turnsLeft=%d relativeTurns=%d stored=%d",
+				kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
+				kProject.getType(), iProductionRank, kOwner.getNumCities(), iTurnsLeft, iRelativeTurns, getProjectProduction(eProject));
+			if (bLogLimitedProject) logBBAI("LIMITED_PROJECT_CANDIDATE turn=%d player=%d %S city=%S cityId=%d project=%s result=SKIP reason=slow_low_production_rank productionRank=%d cities=%d turnsLeft=%d relativeTurns=%d stored=%d",
+				kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
+				kProject.getType(), iProductionRank, kOwner.getNumCities(), iTurnsLeft, iRelativeTurns, getProjectProduction(eProject));
 			continue;
 		}
 		// otherwise, the project is something we can consider building!
@@ -12087,14 +12022,12 @@ ProjectTypes CvCityAI::AI_bestProject(int* piBestValue, /* advc.001n: */ bool bA
 		}
 		if (iValue <= 0)
 		{
-			if (gSpaceProductionLogLevel >= 3 && kProject.isSpaceship())
-				logBBAI("SPACE_PROJECT_CANDIDATE turn=%d player=%d %S city=%S cityId=%d project=%s result=SKIP reason=nonpositive_value productionRank=%d turnsLeft=%d relativeTurns=%d value=%d stored=%d",
-					kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
-					kProject.getType(), iProductionRank, iTurnsLeft, iRelativeTurns, iValue, getProjectProduction(eProject));
-			if (bLogLimitedProject)
-				logBBAI("LIMITED_PROJECT_CANDIDATE turn=%d player=%d %S city=%S cityId=%d project=%s result=SKIP reason=nonpositive_value productionRank=%d turnsLeft=%d relativeTurns=%d value=%d stored=%d",
-					kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
-					kProject.getType(), iProductionRank, iTurnsLeft, iRelativeTurns, iValue, getProjectProduction(eProject));
+			if (gSpaceProductionLogLevel >= 3 && kProject.isSpaceship()) logBBAI("SPACE_PROJECT_CANDIDATE turn=%d player=%d %S city=%S cityId=%d project=%s result=SKIP reason=nonpositive_value productionRank=%d turnsLeft=%d relativeTurns=%d value=%d stored=%d",
+				kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
+				kProject.getType(), iProductionRank, iTurnsLeft, iRelativeTurns, iValue, getProjectProduction(eProject));
+			if (bLogLimitedProject) logBBAI("LIMITED_PROJECT_CANDIDATE turn=%d player=%d %S city=%S cityId=%d project=%s result=SKIP reason=nonpositive_value productionRank=%d turnsLeft=%d relativeTurns=%d value=%d stored=%d",
+				kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
+				kProject.getType(), iProductionRank, iTurnsLeft, iRelativeTurns, iValue, getProjectProduction(eProject));
 			continue; // the project is worthless. Skip it.
 		}
 
@@ -12179,12 +12112,11 @@ ProjectTypes CvCityAI::AI_bestProject(int* piBestValue, /* advc.001n: */ bool bA
 				iValue /= iRelativeTurns + 5;
 			}
 		}
-		if (bLogLimitedProject)
-			logBBAI("LIMITED_PROJECT_CANDIDATE turn=%d player=%d %S city=%S cityId=%d project=%s result=VALUE productionRank=%d turnsLeft=%d relativeTurns=%d stored=%d teamCount=%d teamMaking=%d maxGlobal=%d maxTeam=%d goodFit=%d finalValue=%d currentBest=%s currentBestValue=%d",
-				kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(), kProject.getType(),
-				iProductionRank, iTurnsLeft, iRelativeTurns, getProjectProduction(eProject), kTeam.getProjectCount(eProject),
-				kTeam.getProjectMaking(eProject), kProject.getMaxGlobalInstances(), kProject.getMaxTeamInstances(), bGoodFit, iValue,
-				(eBestProject == NO_PROJECT ? "-" : GC.getInfo(eBestProject).getType()), iBestValue);
+		if (bLogLimitedProject) logBBAI("LIMITED_PROJECT_CANDIDATE turn=%d player=%d %S city=%S cityId=%d project=%s result=VALUE productionRank=%d turnsLeft=%d relativeTurns=%d stored=%d teamCount=%d teamMaking=%d maxGlobal=%d maxTeam=%d goodFit=%d finalValue=%d currentBest=%s currentBestValue=%d",
+			kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(), kProject.getType(),
+			iProductionRank, iTurnsLeft, iRelativeTurns, getProjectProduction(eProject), kTeam.getProjectCount(eProject),
+			kTeam.getProjectMaking(eProject), kProject.getMaxGlobalInstances(), kProject.getMaxTeamInstances(), bGoodFit, iValue,
+			(eBestProject == NO_PROJECT ? "-" : GC.getInfo(eBestProject).getType()), iBestValue);
 		if (gSpaceProductionLogLevel >= 3 && kProject.isSpaceship())
 		{
 			VictoryTypes const eSpaceVictory = kProject.getVictoryPrereq();
@@ -12202,20 +12134,16 @@ ProjectTypes CvCityAI::AI_bestProject(int* piBestValue, /* advc.001n: */ bool bA
 			eBestProject = eProject;
 		}
 	}
-	if (gLimitedProjectProductionLogLevel >= 2 && eBestProject != NO_PROJECT && SAS_isOneCopyNonSpaceshipProject(eBestProject))
-		logBBAI("LIMITED_PROJECT_BEST turn=%d player=%d %S city=%S cityId=%d productionRank=%d project=%s value=%d currentProject=%s currentStored=%d",
-			kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(), iProductionRank,
-			GC.getInfo(eBestProject).getType(), iBestValue,
-			(getProductionProject() == NO_PROJECT ? "-" : GC.getInfo(getProductionProject()).getType()),
-			(getProductionProject() == NO_PROJECT ? 0 : getProjectProduction(getProductionProject())));
-	if (gSpaceProductionLogLevel >= 2 && kOwner.AI_atVictoryStage(AI_VICTORY_SPACE2))
-	{
-		logBBAI("SPACE_PROJECT_BEST turn=%d player=%d %S city=%S cityId=%d productionRank=%d project=%s value=%d currentProject=%s currentStored=%d",
-			kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(), iProductionRank,
-			(eBestProject == NO_PROJECT ? "-" : GC.getInfo(eBestProject).getType()), iBestValue,
-			(getProductionProject() == NO_PROJECT ? "-" : GC.getInfo(getProductionProject()).getType()),
-			(getProductionProject() == NO_PROJECT ? 0 : getProjectProduction(getProductionProject())));
-	}
+	if (gLimitedProjectProductionLogLevel >= 2 && eBestProject != NO_PROJECT && SAS_isOneCopyNonSpaceshipProject(eBestProject)) logBBAI("LIMITED_PROJECT_BEST turn=%d player=%d %S city=%S cityId=%d productionRank=%d project=%s value=%d currentProject=%s currentStored=%d",
+		kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(), iProductionRank,
+		GC.getInfo(eBestProject).getType(), iBestValue,
+		(getProductionProject() == NO_PROJECT ? "-" : GC.getInfo(getProductionProject()).getType()),
+		(getProductionProject() == NO_PROJECT ? 0 : getProjectProduction(getProductionProject())));
+	if (gSpaceProductionLogLevel >= 2 && kOwner.AI_atVictoryStage(AI_VICTORY_SPACE2)) logBBAI("SPACE_PROJECT_BEST turn=%d player=%d %S city=%S cityId=%d productionRank=%d project=%s value=%d currentProject=%s currentStored=%d",
+		kGame.getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(), iProductionRank,
+		(eBestProject == NO_PROJECT ? "-" : GC.getInfo(eBestProject).getType()), iBestValue,
+		(getProductionProject() == NO_PROJECT ? "-" : GC.getInfo(getProductionProject()).getType()),
+		(getProductionProject() == NO_PROJECT ? 0 : getProjectProduction(getProductionProject())));
 	if (piBestValue) // note: piBestValue is set even if there is no best project.
 		*piBestValue = iBestValue;
 	return eBestProject;
@@ -12606,13 +12534,10 @@ int CvCityAI::AI_processValue(ProcessTypes eProcess, CommerceTypes eCommerceType
 			bSkipVictoryCultureProcess = !(kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE2) && iCultureVictoryRank > 0 && iCultureVictoryRank <= iVictoryCultureCities && iCultureVictoryInvestmentPercent > 0);
 		}
 	}
-	if (gCultureLogLevel >= 3 && bSkipVictoryCultureProcess)
-	{
-		logBBAI("CULTURE_PROCESS_SKIP turn=%d player=%d %S city=%S cityId=%d cultureLevel=%d pressureFactor=%d candidateRank=%d neededRank=%d victoryInvestmentPercent=%d",
-			GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationShortDescription(), getName().GetCString(), getID(),
-			getCultureLevel(), iCulturePressureFactor, iCultureVictoryRank, iVictoryCultureCities,
-			iCultureVictoryInvestmentPercent);
-	}
+	if (gCultureLogLevel >= 3 && bSkipVictoryCultureProcess) logBBAI("CULTURE_PROCESS_SKIP turn=%d player=%d %S city=%S cityId=%d cultureLevel=%d pressureFactor=%d candidateRank=%d neededRank=%d victoryInvestmentPercent=%d",
+		GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationShortDescription(), getName().GetCString(), getID(),
+		getCultureLevel(), iCulturePressureFactor, iCultureVictoryRank, iVictoryCultureCities,
+		iCultureVictoryInvestmentPercent);
 
 	/* if (GC.getInfo(eProcess).getProductionToCommerceModifier(COMMERCE_GOLD) && GET_PLAYER(getOwner()).AI_isFinancialTrouble())
 	{
@@ -15128,10 +15053,9 @@ void CvCityAI::AI_doDraft(bool bForce)
 		}
 	}
 
-	if (gCityLogLevel >= 2 && !bWait)
-		logBBAI("      City %S (size %d, highest %d) chooses to conscript with danger: %d, land war: %d, poor tiles: %d%s",
-			getName().GetCString(), getPopulation(), getHighestPopulation(), bDanger, bLandWar, iPoorPlots,
-			bGoodValue ? ", good value" : "");
+	if (gCityLogLevel >= 2 && !bWait) logBBAI("      City %S (size %d, highest %d) chooses to conscript with danger: %d, land war: %d, poor tiles: %d%s",
+		getName().GetCString(), getPopulation(), getHighestPopulation(), bDanger, bLandWar, iPoorPlots,
+		bGoodValue ? ", good value" : "");
 	// BETTER_BTS_AI_MOD: END
 	if (!bWait)
 	{
@@ -15226,8 +15150,7 @@ void CvCityAI::AI_doHurry(bool bForce)
 			{
 				if (iHappy < 0 && iHurryPopulation < -4*iHappy) // don't kill 4 citizens to remove 1 angry citizen.
 				{
-					if (gCityLogLevel >= 2)
-						logBBAI("      City %S whips to reduce unhappiness", getName().GetCString());
+					if (gCityLogLevel >= 2) logBBAI("      City %S whips to reduce unhappiness", getName().GetCString());
 					if (gGameRecordLogLevel >= 2) logSASGameRecordAIHurryDecision(*this, eHurry, SAS_AI_HURRY_UNHAPPINESS_RELIEF, eProductionUnitAI, iHappy, iHappyDiff, foodDifference(), -1, iGoldCost, -1, -1, -1);
 					hurry(eHurry);
 					return;
@@ -15238,8 +15161,7 @@ void CvCityAI::AI_doHurry(bool bForce)
 
 			if (iHappy + iHappyDiff >= 1 && iGoldCost == 0 && foodDifference() < -iHurryPopulation)
 			{
-				if (gCityLogLevel >= 2)
-					logBBAI("      City %S whips to reduce food loss", getName().GetCString());
+				if (gCityLogLevel >= 2) logBBAI("      City %S whips to reduce food loss", getName().GetCString());
 				if (gGameRecordLogLevel >= 2) logSASGameRecordAIHurryDecision(*this, eHurry, SAS_AI_HURRY_FOOD_LOSS_RELIEF, eProductionUnitAI, iHappy, iHappyDiff, foodDifference(), -1, iGoldCost, -1, -1, -1);
 				hurry(eHurry);
 				return;
@@ -15590,8 +15512,7 @@ bool CvCityAI::AI_chooseUnit(UnitAITypes eUnitAI, /* BBAI: */ int iOdds)
 		(eBestUnit == NO_UNIT ? "REJECT_NO_BEST_UNIT" : "BEST_UNIT"), (eBestUnit == NO_UNIT ? L"-" : GC.getInfo(eBestUnit).getDescription()), iOdds);
 
 	const bool bResolvedSettler = (eUnitAI == UNITAI_SETTLE);
-	if (gSettlerLogLevel >= 2 && bResolvedSettler)
-		SAS_logSettlerBuildDecision(*this, bRequestedSettler ? "AI_chooseUnit_requested" : "AI_chooseUnit_generic", eBestUnit == NO_UNIT ? "NO_BEST_UNIT" : "BEST_UNIT", eBestUnit, eUnitAI, iOdds, -1);
+	if (gSettlerLogLevel >= 2 && bResolvedSettler) SAS_logSettlerBuildDecision(*this, bRequestedSettler ? "AI_chooseUnit_requested" : "AI_chooseUnit_generic", eBestUnit == NO_UNIT ? "NO_BEST_UNIT" : "BEST_UNIT", eBestUnit, eUnitAI, iOdds, -1);
 
 	// <!-- custom: performance optimization: cache repetitive calls -->
 	CvGame const& kGame = GC.getGame();
@@ -15646,8 +15567,7 @@ bool CvCityAI::AI_chooseUnit(UnitAITypes eUnitAI, /* BBAI: */ int iOdds)
 					(pPreferredCity == NULL || pPreferredCity->getProductionUnit() == NO_UNIT ? "-" : GC.getInfo(pPreferredCity->getProductionUnit()).getType()));
 				if (bDeferToPreferredCity) return false;
 			}
-			if (gSettlerLogLevel >= 2 && bResolvedSettler)
-				SAS_logSettlerBuildDecision(*this, bRequestedSettler ? "AI_chooseUnit_requested" : "AI_chooseUnit_generic", "CALL_CONCRETE", eBestUnit, eUnitAI, iOdds, -1);
+			if (gSettlerLogLevel >= 2 && bResolvedSettler) SAS_logSettlerBuildDecision(*this, bRequestedSettler ? "AI_chooseUnit_requested" : "AI_chooseUnit_generic", "CALL_CONCRETE", eBestUnit, eUnitAI, iOdds, -1);
 			// <!-- custom: avoid redundance, call same function instead, also so we can tweak it there only once, much cleaner; also note: chatgpt 5 recommeneded to add a return here (i.e. in next code, not comment, line as of now below), i thought it was not necessary, but maybe chatgpt 5 is right and i don't know too much about these, check if accurate -->
 			// pushOrder(ORDER_TRAIN, eBestUnit, eUnitAI);
 			// return true;
@@ -15679,12 +15599,9 @@ bool CvCityAI::AI_chooseUnit(UnitAITypes eUnitAI, /* BBAI: */ int iOdds)
 			GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getName().GetCString(),
 			GC.getInfo(eBestUnit).getDescription(), iOdds, getUnitProduction(eBestUnit), getProductionNeeded(eBestUnit));
 	}
-	else if (bLogDetailedMilitaryProduction)
-	{
-		logBBAI("MILITARY_PRODUCTION_UNIT_SELECTION turn=%d player=%d %S city=%S cityId=%d stage=RESULT result=REJECT_NO_BEST_UNIT requestedAI=%s resolvedAI=%s odds=%d",
-			GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getName().GetCString(), getID(),
-			(eRequestedUnitAI == NO_UNITAI ? "ANY" : GC.getInfo(eRequestedUnitAI).getType()), (eUnitAI == NO_UNITAI ? "-" : GC.getInfo(eUnitAI).getType()), iOdds);
-	}
+	else if (bLogDetailedMilitaryProduction) logBBAI("MILITARY_PRODUCTION_UNIT_SELECTION turn=%d player=%d %S city=%S cityId=%d stage=RESULT result=REJECT_NO_BEST_UNIT requestedAI=%s resolvedAI=%s odds=%d",
+		GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getName().GetCString(), getID(),
+		(eRequestedUnitAI == NO_UNITAI ? "ANY" : GC.getInfo(eRequestedUnitAI).getType()), (eUnitAI == NO_UNITAI ? "-" : GC.getInfo(eUnitAI).getType()), iOdds);
 
 	return false;
 }
@@ -15984,17 +15901,14 @@ bool CvCityAI::SAS_AI_findBestFallbackUnit(UnitTypes& ePickUnit, UnitAITypes& eP
 		}
 	}
 
-	if (bLogDetailedMilitaryProduction)
-	{
-		logBBAI("MILITARY_PRODUCTION_FALLBACK_SEARCH turn=%d player=%d %S city=%S cityId=%d maxCost=%d offenseOnly=%d defenseOnly=%d allowSiege=%d allowTrebuchetsLike=%d capNonTrebs=%d capTrebs=%d existingNonTrebs=%d existingTrebs=%d allowOverall=%d allowCheapest=%d trainable=%d landCombat=%d suitableAI=%d siegeRejected=%d withinCostCap=%d aboveCostCap=%d pickedUnit=%s pickedAI=%s",
-			GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getName().GetCString(), getID(),
-			iMaxCost, bOffenseDefaultUnitAIsOnly, bDefenseDefaultUnitAIsOnly, bAllowSiege, bAllowTrebuchetsLike,
-			iCapNonTrebuchetsLikeSiegesAll, iCapTrebsLike, iSiegesAllNonTrebuchetsLike, iSiegesAllTrebuchetsLike, bAllowOverallFallback,
-			bAllowCheapestFallback, iFallbackTrainableForLog, iFallbackLandCombatForLog, iFallbackSuitableAIForLog,
-			iFallbackSiegeRejectedForLog, iFallbackWithinCostCapForLog, iFallbackAboveCostCapForLog,
-			(ePickUnit == NO_UNIT ? "-" : GC.getInfo(ePickUnit).getType()),
-			(ePickUnitAI == NO_UNITAI ? "-" : GC.getInfo(ePickUnitAI).getType()));
-	}
+	if (bLogDetailedMilitaryProduction) logBBAI("MILITARY_PRODUCTION_FALLBACK_SEARCH turn=%d player=%d %S city=%S cityId=%d maxCost=%d offenseOnly=%d defenseOnly=%d allowSiege=%d allowTrebuchetsLike=%d capNonTrebs=%d capTrebs=%d existingNonTrebs=%d existingTrebs=%d allowOverall=%d allowCheapest=%d trainable=%d landCombat=%d suitableAI=%d siegeRejected=%d withinCostCap=%d aboveCostCap=%d pickedUnit=%s pickedAI=%s",
+		GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getName().GetCString(), getID(),
+		iMaxCost, bOffenseDefaultUnitAIsOnly, bDefenseDefaultUnitAIsOnly, bAllowSiege, bAllowTrebuchetsLike,
+		iCapNonTrebuchetsLikeSiegesAll, iCapTrebsLike, iSiegesAllNonTrebuchetsLike, iSiegesAllTrebuchetsLike, bAllowOverallFallback,
+		bAllowCheapestFallback, iFallbackTrainableForLog, iFallbackLandCombatForLog, iFallbackSuitableAIForLog,
+		iFallbackSiegeRejectedForLog, iFallbackWithinCostCapForLog, iFallbackAboveCostCapForLog,
+		(ePickUnit == NO_UNIT ? "-" : GC.getInfo(ePickUnit).getType()),
+		(ePickUnitAI == NO_UNITAI ? "-" : GC.getInfo(ePickUnitAI).getType()));
 	return ((ePickUnit != NO_UNIT) && (ePickUnitAI != NO_UNITAI));
 }
 
@@ -16108,12 +16022,9 @@ bool CvCityAI::AI_chooseUnit(UnitTypes eUnit, UnitAITypes eUnitAI, bool* pbRetry
 					int iUsefulNonSiegeStrength = 0;
 					UnitTypes const eUsefulNonSiegeUnit = (bNeedEarlySiegeAlternative ? SAS_bestUsefulNonSiegeLandAttacker(*this, eUnitCombatSiege, pUnitInfo->getCombat(), iUsefulNonSiegeMinStrengthPercent, &iUsefulNonSiegeStrength) : NO_UNIT);
 					bool const bHaveUsefulNonSiegeAttacker = (!bNeedEarlySiegeAlternative || eUsefulNonSiegeUnit != NO_UNIT);
-					if (bLogDetailedMilitaryProduction && bNeedEarlySiegeAlternative)
-					{
-						logBBAI("MILITARY_PRODUCTION_SIEGE_ALTERNATIVE turn=%d player=%d %S city=%S cityId=%d siege=%s siegeStrength=%d usefulNonSiege=%s usefulNonSiegeStrength=%d minStrengthPercent=%d",
-							GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(), GC.getInfo(eChangedUnit).getType(), pUnitInfo->getCombat(),
-							(bHaveUsefulNonSiegeAttacker ? GC.getInfo(eUsefulNonSiegeUnit).getType() : "-"), iUsefulNonSiegeStrength, iUsefulNonSiegeMinStrengthPercent);
-					}
+					if (bLogDetailedMilitaryProduction && bNeedEarlySiegeAlternative) logBBAI("MILITARY_PRODUCTION_SIEGE_ALTERNATIVE turn=%d player=%d %S city=%S cityId=%d siege=%s siegeStrength=%d usefulNonSiege=%s usefulNonSiegeStrength=%d minStrengthPercent=%d",
+						GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(), GC.getInfo(eChangedUnit).getType(), pUnitInfo->getCombat(),
+						(bHaveUsefulNonSiegeAttacker ? GC.getInfo(eUsefulNonSiegeUnit).getType() : "-"), iUsefulNonSiegeStrength, iUsefulNonSiegeMinStrengthPercent);
 
 					// Trebuchet-like stricter rule
 					if (bTrebuchetLike && bNoExcessTrebuchetsLike)
@@ -16703,10 +16614,9 @@ bool CvCityAI::AI_chooseUnit(UnitTypes eUnit, UnitAITypes eUnitAI, bool* pbRetry
 						if (pSecondSeaWorkerArea != NULL && pSecondSeaWorkerArea != pPrimarySeaWorkerArea) iLocalAvailableSeaWorkers += kPlayer.AI_totalWaterAreaUnitAIs(*pSecondSeaWorkerArea, UNITAI_WORKER_SEA);
 						int const iLocalNeededSeaWorkers = AI_neededSeaWorkers();
 						bool const bLocalSeaWorkerDeficit = (iLocalNeededSeaWorkers > iLocalAvailableSeaWorkers);
-						if (gWorkerSeaLogLevel >= 2 && iTotalUnitAIs >= iMaxUnits && bLocalSeaWorkerDeficit)
-							logBBAI("      WORKER_SEA_CAP_BYPASS turn=%d player=%d %S city=%S cityId=%d total=%d cap=%d localNeeded=%d localAvailable=%d",
-								GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(),
-								getID(), iTotalUnitAIs, iMaxUnits, iLocalNeededSeaWorkers, iLocalAvailableSeaWorkers);
+						if (gWorkerSeaLogLevel >= 2 && iTotalUnitAIs >= iMaxUnits && bLocalSeaWorkerDeficit) logBBAI("      WORKER_SEA_CAP_BYPASS turn=%d player=%d %S city=%S cityId=%d total=%d cap=%d localNeeded=%d localAvailable=%d",
+							GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(),
+							getID(), iTotalUnitAIs, iMaxUnits, iLocalNeededSeaWorkers, iLocalAvailableSeaWorkers);
 						if (iTotalUnitAIs >= iMaxUnits && !bLocalSeaWorkerDeficit)
 						{
 							if (bLogDetailedMilitaryProduction) logSASMilitaryProductionConcreteReject(*this, eChangedUnit, eChangedUnitAI, "WORKER_SEA_CAP", "existingAndTraining", iTotalUnitAIs, "max", iMaxUnits);
@@ -16850,33 +16760,28 @@ bool CvCityAI::AI_chooseUnit(UnitTypes eUnit, UnitAITypes eUnitAI, bool* pbRetry
 						// <!-- custom: Same Settler-log gate as the UnitAITypes overload; this concrete-unit branch already knows it is handling UNITAI_SETTLE. (GPT-5.5-Thinking) -->
 						const bool bLogSettler = (gSettlerLogLevel >= 2);
 
-						if (bLogSettler)
-						{
-							logBBAI("      SETTLER_BUILD_DECISION turn=%d player=%d %S city=%S cityId=%d source=AI_bestUnit_land_settler_gate result=CHECK atWar=%d enemyStrong=%d danger=%d warPlan=%d earlyExpansion=%d totalSettlers=%d maxSettlers=%d numCities=%d",
-								GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(),
-								getID(), bAtWar, bEnemyStrong, bDanger, bWarPlan, bEarlyExpansionSettler, iTotalUnitAIs, iMaxUnits,
-								kPlayer.getNumCities());
-						}
+						if (bLogSettler) logBBAI("      SETTLER_BUILD_DECISION turn=%d player=%d %S city=%S cityId=%d source=AI_bestUnit_land_settler_gate result=CHECK atWar=%d enemyStrong=%d danger=%d warPlan=%d earlyExpansion=%d totalSettlers=%d maxSettlers=%d numCities=%d",
+							GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(),
+							getID(), bAtWar, bEnemyStrong, bDanger, bWarPlan, bEarlyExpansionSettler, iTotalUnitAIs, iMaxUnits,
+							kPlayer.getNumCities());
 
 						// <!-- custom: Bibracte's first settler was delayed until around turn 90 because the outer first-settler gate allowed expansion, but this lower concrete-unit gate rejected it only because bWarPlan was true despite no war, no strong enemy, and no local danger.
 						// Keep hard tactical blockers, but do not let a generic war plan alone block early expansion before the AI has at least 3 cities.
 						// This fixed the reproduced case: city 2 moved to around turn 40-50, city 3 followed soon after, and Brennus had 3 cities by turn 100. (GPT-5.5 + GPT-5.5-Thinking) -->
 						if (bAtWar || bEnemyStrong || bDanger || (bWarPlan && !bEarlyExpansionSettler))
 						{
-							if (bLogSettler)
-								logBBAI("      SETTLER_BUILD_DECISION turn=%d player=%d %S city=%S cityId=%d source=AI_bestUnit_land_settler_gate result=REJECT_THREAT atWar=%d enemyStrong=%d danger=%d warPlan=%d earlyExpansion=%d totalSettlers=%d",
-									GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(),
-									getID(), bAtWar, bEnemyStrong, bDanger, bWarPlan, bEarlyExpansionSettler, iTotalUnitAIs);
+							if (bLogSettler) logBBAI("      SETTLER_BUILD_DECISION turn=%d player=%d %S city=%S cityId=%d source=AI_bestUnit_land_settler_gate result=REJECT_THREAT atWar=%d enemyStrong=%d danger=%d warPlan=%d earlyExpansion=%d totalSettlers=%d",
+								GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(),
+								getID(), bAtWar, bEnemyStrong, bDanger, bWarPlan, bEarlyExpansionSettler, iTotalUnitAIs);
 							if (bLogDetailedMilitaryProduction) logSASMilitaryProductionConcreteReject(*this, eChangedUnit, eChangedUnitAI, "LAND_SETTLER_THREAT", "enemyPowerPercent", iEnemyPowerPercent, "warPlan", bWarPlan);
 							return false;
 						}
 
 						if (iTotalUnitAIs >= iMaxUnits)
 						{
-							if (bLogSettler)
-								logBBAI("      SETTLER_BUILD_DECISION turn=%d player=%d %S city=%S cityId=%d source=AI_bestUnit_land_settler_gate result=REJECT_SETTLER_CAP totalSettlers=%d maxSettlers=%d",
-									GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(),
-									getID(), iTotalUnitAIs, iMaxUnits);
+							if (bLogSettler) logBBAI("      SETTLER_BUILD_DECISION turn=%d player=%d %S city=%S cityId=%d source=AI_bestUnit_land_settler_gate result=REJECT_SETTLER_CAP totalSettlers=%d maxSettlers=%d",
+								GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(),
+								getID(), iTotalUnitAIs, iMaxUnits);
 							if (bLogDetailedMilitaryProduction) logSASMilitaryProductionConcreteReject(*this, eChangedUnit, eChangedUnitAI, "LAND_SETTLER_CAP", "existingAndTraining", iTotalUnitAIs, "max", iMaxUnits);
 							return false;
 						}
@@ -16920,10 +16825,9 @@ bool CvCityAI::AI_chooseUnit(UnitTypes eUnit, UnitAITypes eUnitAI, bool* pbRetry
 
 						const int iTotalUnitAIs = kPlayer.AI_totalUnitAIs(UNITAI_WORKER);
 
-						if (gWorkerLogLevel >= 2 && iTotalUnitAIs >= iMaxUnits && bAreaWorkerMinimumDeficit)
-							logBBAI("      WORKER_CAP_BYPASS turn=%d player=%d %S city=%S cityId=%d total=%d cap=%d area=%d areaWorkers=%d areaMinimum=%d",
-								GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(),
-								iTotalUnitAIs, iMaxUnits, getArea().getID(), iAreaWorkers, iMinimumAreaWorkers);
+						if (gWorkerLogLevel >= 2 && iTotalUnitAIs >= iMaxUnits && bAreaWorkerMinimumDeficit) logBBAI("      WORKER_CAP_BYPASS turn=%d player=%d %S city=%S cityId=%d total=%d cap=%d area=%d areaWorkers=%d areaMinimum=%d",
+							GC.getGame().getGameTurn(), getOwner(), kPlayer.getCivilizationDescription(0), getName().GetCString(), getID(),
+							iTotalUnitAIs, iMaxUnits, getArea().getID(), iAreaWorkers, iMinimumAreaWorkers);
 						if (iTotalUnitAIs >= iMaxUnits && !bAreaWorkerMinimumDeficit)
 						{
 							if (bLogDetailedMilitaryProduction) logSASMilitaryProductionConcreteReject(*this, eChangedUnit, eChangedUnitAI, "LAND_WORKER_CAP", "existingAndTraining", iTotalUnitAIs, "max", iMaxUnits);
@@ -17197,22 +17101,19 @@ bool CvCityAI::AI_chooseUnit(UnitTypes eUnit, UnitAITypes eUnitAI, bool* pbRetry
 							iMinMaintenanceTimes100, iMinMaintenanceBuildingValue, iNeededFocusFlags, iNeededBuildingValue, iNeededBuildingTurns, iNeededUnitTurns);
 					}
 					bool const bNeededWouldReject = (eNeededBuilding != NO_BUILDING);
-					if (gBuildingProductionLogLevel >= 2)
-					{
-						logBBAI("BUILDING_PRODUCTION_CHEAP_NEED_GATE turn=%d player=%d %S city=%S cityId=%d enabled=%d wouldReject=%d actualReject=%d unit=%s unitAI=%s unitTurns=%d unitSpending=%d maxUnitSpending=%d spendingGap=%d minSpendingOverMax=%d building=%s focus=%s buildingValue=%d buildingTurns=%d buildingToUnitTurnsPercent=%d maxBuildingToUnitProductionTimePercent=%d happySurplus=%d healthSurplus=%d maintenanceTimes100=%d minMaintenanceTimes100=%d minMaintenanceValue=%d primaryArea=%d areaAI=%d atWar=%d anyWarPlan=%d danger=%d defenders=%d neededDefenders=%d underDefended=%d settlerEscortContext=%d militaryVictoryPush=%d militaryStrategyPush=%d vassal=%d",
-							GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
-							bSASCheapNeededInfrastructureOptimize, bNeededWouldReject,
-							bSASCheapNeededInfrastructureOptimize && bNeededWouldReject, GC.getInfo(eChangedUnit).getType(),
-							GC.getInfo(eChangedUnitAI).getType(), iNeededUnitTurns, iUnitSpending, iMaxUnitSpending,
-							iMaxUnitSpending - iUnitSpending, iNeededMinUnitSpendingOverMax,
-							(eNeededBuilding == NO_BUILDING ? "-" : GC.getInfo(eNeededBuilding).getType()), SAS_getBuildingFocusType(iNeededFocusFlags), iNeededBuildingValue,
-							iNeededBuildingTurns,
-							(iNeededUnitTurns <= 0 || iNeededBuildingTurns < 0 ? -1 : (100 * iNeededBuildingTurns) / iNeededUnitTurns),
-							iNeededMaxBuildingToUnitProductionTimePercent, happyLevel() - unhappyLevel(), goodHealth() - badHealth(),
-							getMaintenanceTimes100(), iMinMaintenanceTimes100, iMinMaintenanceBuildingValue, bPrimaryArea,
-							getArea().getAreaAIType(getTeam()), bAtWar, bAnyWarPlan, bDanger, iCityDefenders, iNeededDefenders,
-							bUnderDefended, bSettlerEscortContext, bMilitaryVictoryPush, bMilitaryStrategyPush, bVassal);
-					}
+					if (gBuildingProductionLogLevel >= 2) logBBAI("BUILDING_PRODUCTION_CHEAP_NEED_GATE turn=%d player=%d %S city=%S cityId=%d enabled=%d wouldReject=%d actualReject=%d unit=%s unitAI=%s unitTurns=%d unitSpending=%d maxUnitSpending=%d spendingGap=%d minSpendingOverMax=%d building=%s focus=%s buildingValue=%d buildingTurns=%d buildingToUnitTurnsPercent=%d maxBuildingToUnitProductionTimePercent=%d happySurplus=%d healthSurplus=%d maintenanceTimes100=%d minMaintenanceTimes100=%d minMaintenanceValue=%d primaryArea=%d areaAI=%d atWar=%d anyWarPlan=%d danger=%d defenders=%d neededDefenders=%d underDefended=%d settlerEscortContext=%d militaryVictoryPush=%d militaryStrategyPush=%d vassal=%d",
+						GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
+						bSASCheapNeededInfrastructureOptimize, bNeededWouldReject,
+						bSASCheapNeededInfrastructureOptimize && bNeededWouldReject, GC.getInfo(eChangedUnit).getType(),
+						GC.getInfo(eChangedUnitAI).getType(), iNeededUnitTurns, iUnitSpending, iMaxUnitSpending,
+						iMaxUnitSpending - iUnitSpending, iNeededMinUnitSpendingOverMax,
+						(eNeededBuilding == NO_BUILDING ? "-" : GC.getInfo(eNeededBuilding).getType()), SAS_getBuildingFocusType(iNeededFocusFlags), iNeededBuildingValue,
+						iNeededBuildingTurns,
+						(iNeededUnitTurns <= 0 || iNeededBuildingTurns < 0 ? -1 : (100 * iNeededBuildingTurns) / iNeededUnitTurns),
+						iNeededMaxBuildingToUnitProductionTimePercent, happyLevel() - unhappyLevel(), goodHealth() - badHealth(),
+						getMaintenanceTimes100(), iMinMaintenanceTimes100, iMinMaintenanceBuildingValue, bPrimaryArea,
+						getArea().getAreaAIType(getTeam()), bAtWar, bAnyWarPlan, bDanger, iCityDefenders, iNeededDefenders,
+						bUnderDefended, bSettlerEscortContext, bMilitaryVictoryPush, bMilitaryStrategyPush, bVassal);
 					if (bSASCheapNeededInfrastructureOptimize && bNeededWouldReject)
 					{
 						if (bLogDetailedMilitaryProduction) logSASMilitaryProductionConcreteReject(*this, eChangedUnit, eChangedUnitAI, "CHEAP_NEEDED_INFRASTRUCTURE", "buildingTurns", iNeededBuildingTurns, "unitTurns", iNeededUnitTurns);
@@ -17234,22 +17135,19 @@ bool CvCityAI::AI_chooseUnit(UnitTypes eUnit, UnitAITypes eUnitAI, bool* pbRetry
 							iHighReturnBaseValue, iHighReturnFocusValueGain, iHighReturnBuildingTurns, iHighReturnUnitTurns);
 					}
 					bool const bHighReturnWouldReject = (eHighReturnBuilding != NO_BUILDING);
-					if (gBuildingProductionLogLevel >= 2)
-					{
-						logBBAI("BUILDING_PRODUCTION_CHEAP_HIGH_RETURN_GATE turn=%d player=%d %S city=%S cityId=%d enabled=%d wouldReject=%d actualReject=%d unit=%s unitAI=%s unitTurns=%d unitSpending=%d maxUnitSpending=%d spendingOverMax=%d minSpendingOverMax=%d building=%s focus=%s focusedValue=%d baseValue=%d focusValueGain=%d minFocusedValue=%d minFocusValueGain=%d buildingTurns=%d buildingToUnitTurnsPercent=%d maxBuildingToUnitProductionTimePercent=%d primaryArea=%d areaAI=%d atWar=%d anyWarPlan=%d danger=%d defenders=%d neededDefenders=%d underDefended=%d settlerEscortContext=%d militaryVictoryPush=%d militaryStrategyPush=%d vassal=%d",
-							GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
-							bSASCheapHighReturnInfrastructureOptimize, bHighReturnWouldReject,
-							bSASCheapHighReturnInfrastructureOptimize && bHighReturnWouldReject, GC.getInfo(eChangedUnit).getType(),
-							GC.getInfo(eChangedUnitAI).getType(), iHighReturnUnitTurns, iUnitSpending, iMaxUnitSpending,
-							iUnitSpending - iMaxUnitSpending, iHighReturnMinUnitSpendingOverMax,
-							(eHighReturnBuilding == NO_BUILDING ? "-" : GC.getInfo(eHighReturnBuilding).getType()), SAS_getBuildingFocusType(iHighReturnFocusFlags),
-							iHighReturnFocusedValue, iHighReturnBaseValue, iHighReturnFocusValueGain, iHighReturnMinFocusedBuildingValue,
-							iHighReturnMinFocusValueGain, iHighReturnBuildingTurns,
-							(iHighReturnUnitTurns <= 0 || iHighReturnBuildingTurns < 0 ? -1 : (100 * iHighReturnBuildingTurns) / iHighReturnUnitTurns),
-							iHighReturnMaxBuildingToUnitProductionTimePercent, bPrimaryArea, getArea().getAreaAIType(getTeam()), bAtWar,
-							bAnyWarPlan, bDanger, iCityDefenders, iNeededDefenders, bUnderDefended, bSettlerEscortContext,
-							bMilitaryVictoryPush, bMilitaryStrategyPush, bVassal);
-					}
+					if (gBuildingProductionLogLevel >= 2) logBBAI("BUILDING_PRODUCTION_CHEAP_HIGH_RETURN_GATE turn=%d player=%d %S city=%S cityId=%d enabled=%d wouldReject=%d actualReject=%d unit=%s unitAI=%s unitTurns=%d unitSpending=%d maxUnitSpending=%d spendingOverMax=%d minSpendingOverMax=%d building=%s focus=%s focusedValue=%d baseValue=%d focusValueGain=%d minFocusedValue=%d minFocusValueGain=%d buildingTurns=%d buildingToUnitTurnsPercent=%d maxBuildingToUnitProductionTimePercent=%d primaryArea=%d areaAI=%d atWar=%d anyWarPlan=%d danger=%d defenders=%d neededDefenders=%d underDefended=%d settlerEscortContext=%d militaryVictoryPush=%d militaryStrategyPush=%d vassal=%d",
+						GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
+						bSASCheapHighReturnInfrastructureOptimize, bHighReturnWouldReject,
+						bSASCheapHighReturnInfrastructureOptimize && bHighReturnWouldReject, GC.getInfo(eChangedUnit).getType(),
+						GC.getInfo(eChangedUnitAI).getType(), iHighReturnUnitTurns, iUnitSpending, iMaxUnitSpending,
+						iUnitSpending - iMaxUnitSpending, iHighReturnMinUnitSpendingOverMax,
+						(eHighReturnBuilding == NO_BUILDING ? "-" : GC.getInfo(eHighReturnBuilding).getType()), SAS_getBuildingFocusType(iHighReturnFocusFlags),
+						iHighReturnFocusedValue, iHighReturnBaseValue, iHighReturnFocusValueGain, iHighReturnMinFocusedBuildingValue,
+						iHighReturnMinFocusValueGain, iHighReturnBuildingTurns,
+						(iHighReturnUnitTurns <= 0 || iHighReturnBuildingTurns < 0 ? -1 : (100 * iHighReturnBuildingTurns) / iHighReturnUnitTurns),
+						iHighReturnMaxBuildingToUnitProductionTimePercent, bPrimaryArea, getArea().getAreaAIType(getTeam()), bAtWar,
+						bAnyWarPlan, bDanger, iCityDefenders, iNeededDefenders, bUnderDefended, bSettlerEscortContext,
+						bMilitaryVictoryPush, bMilitaryStrategyPush, bVassal);
 					if (bSASCheapHighReturnInfrastructureOptimize && bHighReturnWouldReject)
 					{
 						if (bLogDetailedMilitaryProduction) logSASMilitaryProductionConcreteReject(*this, eChangedUnit, eChangedUnitAI, "CHEAP_HIGH_RETURN_INFRASTRUCTURE", "buildingTurns", iHighReturnBuildingTurns, "unitTurns", iHighReturnUnitTurns);
@@ -17602,13 +17500,10 @@ bool CvCityAI::AI_chooseBuilding(int iFocusFlags, int iMaxTurns, int iMinThresho
 					iProductionNeededForLog, iProgressOddsBonusForLog, iOdds < 0 ? -1 : iOdds + iProgressOddsBonusForLog,
 					iOdds < 0 ? -1 : iRand, iOdds < 0);
 			}
-			if (bLogPalaceFocus)
-			{
-				logBBAI("PALACE_CAPITAL_FOCUS_CHOICE turn=%d player=%d %S city=%S cityId=%d building=%s chosen=1 maxTurns=%d baseOdds=%d rand=%d productionStored=%d productionNeeded=%d",
-					GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getName().GetCString(), getID(),
-					GC.getInfo(eBestBuilding).getType(), iMaxTurns, iOdds, (iOdds < 0 ? -1 : iRand),
-					getBuildingProduction(eBestBuilding), getProductionNeeded(eBestBuilding));
-			}
+			if (bLogPalaceFocus) logBBAI("PALACE_CAPITAL_FOCUS_CHOICE turn=%d player=%d %S city=%S cityId=%d building=%s chosen=1 maxTurns=%d baseOdds=%d rand=%d productionStored=%d productionNeeded=%d",
+				GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getName().GetCString(), getID(),
+				GC.getInfo(eBestBuilding).getType(), iMaxTurns, iOdds, (iOdds < 0 ? -1 : iRand),
+				getBuildingProduction(eBestBuilding), getProductionNeeded(eBestBuilding));
 			pushOrder(ORDER_CONSTRUCT, eBestBuilding);
 			return true;
 		}
@@ -17622,21 +17517,15 @@ bool CvCityAI::AI_chooseBuilding(int iFocusFlags, int iMaxTurns, int iMinThresho
 				getID(), iFocusFlags, iMaxTurns, iMinThreshold, GC.getInfo(eBestBuilding).getType(), iOdds, iProductionStoredForLog,
 				iProductionNeededForLog, iProgressOddsBonusForLog, iOdds + iProgressOddsBonusForLog, iRand);
 		}
-		if (bLogPalaceFocus)
-		{
-			logBBAI("PALACE_CAPITAL_FOCUS_CHOICE turn=%d player=%d %S city=%S cityId=%d building=%s chosen=0 maxTurns=%d baseOdds=%d rand=%d productionStored=%d productionNeeded=%d",
-				GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getName().GetCString(), getID(),
-				GC.getInfo(eBestBuilding).getType(), iMaxTurns, iOdds, (iOdds < 0 ? -1 : iRand), getBuildingProduction(eBestBuilding), getProductionNeeded(eBestBuilding));
-		}
+		if (bLogPalaceFocus) logBBAI("PALACE_CAPITAL_FOCUS_CHOICE turn=%d player=%d %S city=%S cityId=%d building=%s chosen=0 maxTurns=%d baseOdds=%d rand=%d productionStored=%d productionNeeded=%d",
+			GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getName().GetCString(), getID(),
+			GC.getInfo(eBestBuilding).getType(), iMaxTurns, iOdds, (iOdds < 0 ? -1 : iRand), getBuildingProduction(eBestBuilding), getProductionNeeded(eBestBuilding));
 	}
 	else if (bLogDetailedMilitaryProduction) logBBAI("MILITARY_PRODUCTION_BUILDING_CHOICE turn=%d player=%d %S city=%S cityId=%d focusFlags=%d maxTurns=%d minThreshold=%d building=- baseOdds=%d productionStored=0 productionNeeded=0 progressBonus=0 effectiveOdds=%d rand=-1 forced=%d chosen=0",
 		GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getName().GetCString(), getID(),
 		iFocusFlags, iMaxTurns, iMinThreshold, iOdds, iOdds, iOdds < 0);
-	if (bLogPalaceFocus && eBestBuilding == NO_BUILDING)
-	{
-		logBBAI("PALACE_CAPITAL_FOCUS_CHOICE turn=%d player=%d %S city=%S cityId=%d building=- chosen=0 maxTurns=%d baseOdds=%d rand=-1 productionStored=0 productionNeeded=0",
-			GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getName().GetCString(), getID(), iMaxTurns, iOdds);
-	}
+	if (bLogPalaceFocus && eBestBuilding == NO_BUILDING) logBBAI("PALACE_CAPITAL_FOCUS_CHOICE turn=%d player=%d %S city=%S cityId=%d building=- chosen=0 maxTurns=%d baseOdds=%d rand=-1 productionStored=0 productionNeeded=0",
+		GC.getGame().getGameTurn(), getOwner(), GET_PLAYER(getOwner()).getCivilizationDescription(0), getName().GetCString(), getID(), iMaxTurns, iOdds);
 
 	return false;
 }
@@ -20170,21 +20059,18 @@ int CvCityAI::AI_buildUnitProb(bool bDraft) const
 	} // </advc.017>
 	r.decreaseTo(1); // experimental (K-Mod)
 	int const iFinalBuildUnitProb = r.getPercent();
-	if (gMilitaryProductionLogLevel >= 3 && !isHuman() && !isBarbarian() && !bDraft)
-	{
-		logBBAI("MILITARY_PRODUCTION_BUILD_PROB turn=%d player=%d %S city=%S cityId=%d personalityBuildProb=%d xpWeight=%d finalBuildProb=%d militaryProdModifier=%d financialTrouble=%d economyFocus=%d oneCityCapital=%d getBetterUnits=%d cities=%d teamPower=%d highestRelevantRivalPower=%d ourPowerPerCityX100=%d relevantRivalAvgPowerPerCityX100=%d powerPerCityDeficitPercent=%d understrengthBoostPercent=%d preUnderstrengthProb=%d postMultiplicativeUnderstrengthProb=%d postUnderstrengthProb=%d affordableAbsoluteWeightPercent=%d affordableBoostPoints=%d affordableUnitSpending=%d affordableMaxUnitSpending=%d affordableSpendingGap=%d affordableSpendingAllowed=%d powerThrottle=%d greatlyReduced=%d conquest1=%d military3=%d military4=%d",
-			GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
-			GC.getInfo(getPersonalityType()).getBuildUnitProb(), iXPWeight, iFinalBuildUnitProb, getMilitaryProductionModifier(),
-			kOwner.AI_isFinancialTrouble(), kOwner.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS), kOwner.getNumCities() <= 1 && isCapital(),
-			kOwner.AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS), kOwner.getNumCities(), kTeam.getPower(false), iHighestRivalPowForLog,
-			iOurPowerPerCityX100ForLog, iRelevantRivalAvgPowerPerCityX100ForLog, iPowerPerCityDeficitPercentForLog,
-			iUnderstrengthBoostPercentForLog, iPreUnderstrengthProbForLog, iPostMultiplicativeUnderstrengthProbForLog,
-			iPostUnderstrengthProbForLog, iAffordableAbsoluteWeightPercentForLog, iAffordableUnderstrengthBoostPointsForLog,
-			iAffordableUnderstrengthUnitSpendingForLog, iAffordableUnderstrengthMaxUnitSpendingForLog,
-			iAffordableUnderstrengthSpendingGapForLog, iAffordableUnderstrengthSpendingAllowedForLog, iPowerThrottleForLog, bGreatlyReduced,
-			kOwner.AI_atVictoryStage(AI_VICTORY_CONQUEST1), kOwner.AI_atVictoryStage(AI_VICTORY_MILITARY3),
-			kOwner.AI_atVictoryStage(AI_VICTORY_MILITARY4));
-	}
+	if (gMilitaryProductionLogLevel >= 3 && !isHuman() && !isBarbarian() && !bDraft) logBBAI("MILITARY_PRODUCTION_BUILD_PROB turn=%d player=%d %S city=%S cityId=%d personalityBuildProb=%d xpWeight=%d finalBuildProb=%d militaryProdModifier=%d financialTrouble=%d economyFocus=%d oneCityCapital=%d getBetterUnits=%d cities=%d teamPower=%d highestRelevantRivalPower=%d ourPowerPerCityX100=%d relevantRivalAvgPowerPerCityX100=%d powerPerCityDeficitPercent=%d understrengthBoostPercent=%d preUnderstrengthProb=%d postMultiplicativeUnderstrengthProb=%d postUnderstrengthProb=%d affordableAbsoluteWeightPercent=%d affordableBoostPoints=%d affordableUnitSpending=%d affordableMaxUnitSpending=%d affordableSpendingGap=%d affordableSpendingAllowed=%d powerThrottle=%d greatlyReduced=%d conquest1=%d military3=%d military4=%d",
+		GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
+		GC.getInfo(getPersonalityType()).getBuildUnitProb(), iXPWeight, iFinalBuildUnitProb, getMilitaryProductionModifier(),
+		kOwner.AI_isFinancialTrouble(), kOwner.AI_isDoStrategy(AI_STRATEGY_ECONOMY_FOCUS), kOwner.getNumCities() <= 1 && isCapital(),
+		kOwner.AI_isDoStrategy(AI_STRATEGY_GET_BETTER_UNITS), kOwner.getNumCities(), kTeam.getPower(false), iHighestRivalPowForLog,
+		iOurPowerPerCityX100ForLog, iRelevantRivalAvgPowerPerCityX100ForLog, iPowerPerCityDeficitPercentForLog,
+		iUnderstrengthBoostPercentForLog, iPreUnderstrengthProbForLog, iPostMultiplicativeUnderstrengthProbForLog,
+		iPostUnderstrengthProbForLog, iAffordableAbsoluteWeightPercentForLog, iAffordableUnderstrengthBoostPointsForLog,
+		iAffordableUnderstrengthUnitSpendingForLog, iAffordableUnderstrengthMaxUnitSpendingForLog,
+		iAffordableUnderstrengthSpendingGapForLog, iAffordableUnderstrengthSpendingAllowedForLog, iPowerThrottleForLog, bGreatlyReduced,
+		kOwner.AI_atVictoryStage(AI_VICTORY_CONQUEST1), kOwner.AI_atVictoryStage(AI_VICTORY_MILITARY3),
+		kOwner.AI_atVictoryStage(AI_VICTORY_MILITARY4));
 	return iFinalBuildUnitProb;
 }
 

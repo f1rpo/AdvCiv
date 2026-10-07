@@ -320,9 +320,10 @@ python LLM_Helpers\fix_line_endings.py Assets\Python PrivateMaps --in-place
 
 Conservative readability formatter for C++ logging calls.
 
-- The default wrapping mode targets active `logBBAI(...)` and `logSASGameRecord(...)` calls; commented-out code is ignored.
-- Keeps the diagnostic format string byte-for-byte intact and wraps only at top-level commas between C++ arguments.
-- `--collapse-short` additionally collapses simple multiline logging calls that fit within `--collapse-width` (default 180), including ordinary member `.log(...)` calls such as `m_kReport.log(...)`; this is opt-in so existing intentional multiline layout does not churn by default.
+- The default wrapping mode targets active diagnostic log-like calls across the project (`logBBAI(...)`, `logSASGameRecord...(...)`, `SAS_log...(...)`, `myLog...(...)`-style helpers, etc.); bare/member `.log(...)` calls are wrapped only in the familiar string-first diagnostic form, and commented-out code is ignored.
+- Keeps a leading diagnostic format string byte-for-byte intact when present and wraps only at top-level commas between C++ arguments; typed recorder/helper calls without a format string can also be split conservatively at those argument boundaries.
+- `--collapse-short` additionally collapses simple multiline log-like calls that fit within `--collapse-width` (default 180). It recognizes logging families rather than only `logBBAI`: e.g. `logSASGameRecord...(...)`, `SAS_log...(...)`, `myLog...(...)`-style helpers, and string-first ordinary member `.log(...)` calls. This is opt-in so existing intentional multiline layout does not churn by default.
+- The log-like recognizer is deliberately prefix/role based rather than "contains `Log`": unrelated gameplay/event callbacks such as `combatLogHit(...)` are not treated as diagnostic emitters merely because their name contains that substring.
 - Does not reflow or merge existing prose comments; comment layout remains author-maintained, and calls containing comments are skipped for manual review.
 - Skips preprocessor directives and continued macro bodies entirely. Physical `\` line-splicing is semantic before C++ tokenization, so macro logging calls require manual formatting.
 - By default, a one-line call is considered for wrapping above 180 columns; an already-multiline call is considered only when one of its argument/continuation lines exceeds that threshold, so a deliberately long format-string line alone does not trigger churn.
@@ -353,10 +354,11 @@ python LLM_Helpers/reflow_cpp_logging_calls.py CvGameCoreDLL/CvPlayerAI.cpp --co
 
 Conservative formatter for simple one-statement C++ logging guards.
 
-- Collapses ordinary `if (...)` and `else if (...)` logging pre-gates so the condition and call head stay together, e.g. `if (bLog) logBBAI(...);`.
+- Collapses ordinary `if (...)` and `else if (...)` logging pre-gates so the condition and log-like call head stay together, e.g. `if (bLog) logBBAI(...);`; the body recognizer is not limited to BBAI and also accepts SASGameRecord/domain logging helpers and `myLog...`-style names.
+- Arbitrary functions that merely contain `Log` in the middle of a gameplay/event name are intentionally excluded; this is a diagnostic-logging formatter, not a general one-statement formatter.
 - Eligible conditions must contain a recognizable logging gate such as a local `bLog...` flag, a `g*LogLevel`/`i*LogLevel` comparison, `GC.isLogging()`, or an explicit logging-enabled predicate; the exact variable name is otherwise generic.
 - Semantic-only conditions such as `isNormalizing()`, `isDebug()`, `bCoastal`, or gameplay predicates are intentionally skipped even when their sole body is a log call. Those branches may already sit inside an outer logging pre-gate, and collapsing them would add unrelated cosmetic churn rather than make pre-gating clearer.
-- Long logging argument tails remain multiline; the helper joins only the guard to the call head and removes a truly redundant one-statement brace pair.
+- Long logging argument tails remain multiline; the helper joins only the guard to the call head, removes a truly redundant one-statement brace pair, and normalizes the shallowest continuation tail to one body indent below the unified head while preserving deeper relative nesting.
 - Safe trailing `//` comments are preserved. Preprocessor/macro bodies, block comments, ambiguous call shapes, multi-statement blocks, and braced `if/else` structures are skipped.
 - This is formatting only. It does **not** invent missing log-level gates or reorder `&&` operands; use `audit_cpp_logging_pregates.py` plus LLM/manual review for architectural pre-gating.
 - Prefer targeted/touched-file runs. A whole-DLL scan can expose many historical cosmetic candidates and is normally unnecessary diff noise.

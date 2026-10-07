@@ -1796,10 +1796,11 @@ void CvTeam::meet(TeamTypes eTeam, bool bNewDiplo, FirstContactData* pData) // a
 	// Update both teams only after contact is symmetric; The Internet can then grant the same technology regardless of which team initiated contact. See KI#414. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	updateTechShare();
 	kTeam.updateTechShare();
-	if (gGameRecordLogLevel >= 2 && isAlive() && kTeam.isAlive() && !isBarbarian() && !kTeam.isBarbarian())
-	{
-		logSASGameRecordTeamMet(getID(), eTeam, bNewDiplo, pData == NULL ? -1 : pData->x1, pData == NULL ? -1 : pData->y1, pData == NULL ? -1 : pData->x2, pData == NULL ? -1 : pData->y2, pAt, pOtherAt);
-	}
+	if (gGameRecordLogLevel >= 2 && isAlive() && kTeam.isAlive() && !isBarbarian() && !kTeam.isBarbarian()) logSASGameRecordTeamMet(
+		getID(), eTeam, bNewDiplo,
+		pData == NULL ? -1 : pData->x1, pData == NULL ? -1 : pData->y1,
+		pData == NULL ? -1 : pData->x2, pData == NULL ? -1 : pData->y2,
+		pAt, pOtherAt);
 	// <advc.120l> (Not in makeHasMet b/c all the has-met data needs to be set first)
 	if (pData != NULL &&
 		GC.IsGraphicsInitialized() && // No reminder while initializing a scenario
@@ -4375,8 +4376,7 @@ void CvTeam::setResearchProgress(TechTypes eIndex, int iNewValue, PlayerTypes eP
 		// <!-- custom: Only a genuine CvPlayer::doResearch threshold crossing has meaningful research-overflow accounting.
 		// Log after the overflow grant and KI#404 clamp, but before setHasTech emits the generic TECH_ACQUIRED row, so the two factual actions remain in chronological order.
 		// Other acquisition causes stay on TECH_ACQUIRED alone. (ChatGPT-5.6-Sol) -->
-		if (gGameRecordLogLevel >= 2 && eCause == TECH_ACQUISITION_RESEARCH)
-			logSASGameRecordResearchCompleted(eIndex, getID(), ePlayer, iOldProgress, iProgressBeforeClamp, iResearchModifier, iOverflow);
+		if (gGameRecordLogLevel >= 2 && eCause == TECH_ACQUISITION_RESEARCH) logSASGameRecordResearchCompleted(eIndex, getID(), ePlayer, iOldProgress, iProgressBeforeClamp, iResearchModifier, iOverflow);
 		setHasTech(eIndex, true, ePlayer, true, true, /* advc.121: */ true, eCause);
 		/*if (!GC.getGame().isMPOption(MPOPTION_SIMULTANEOUS_TURNS) && !GC.getGame().isOption(GAMEOPTION_NO_TECH_BROKERING))
 			setNoTradeTech(eIndex, true);*/ // BtS

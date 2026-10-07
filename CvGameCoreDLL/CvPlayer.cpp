@@ -4097,8 +4097,7 @@ void CvPlayer::handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer
 		captureSASGameRecordDiploRelationState(getID(), ePlayer, kSASDiploAfter);
 		logSASGameRecordResolvedDiploInteraction(getID(), eDiploEvent, ePlayer, iData1, kSASDiploBefore, kSASDiploAfter);
 	}
-	else if (bLogSASDiplo && (bLogVerboseSASDiplo || !isSASGameRecordLowValueDiploEvent(eDiploEvent)))
-		logSASGameRecordDiploEventAction(getID(), eDiploEvent, ePlayer, iData1, iData2);
+	else if (bLogSASDiplo && (bLogVerboseSASDiplo || !isSASGameRecordLowValueDiploEvent(eDiploEvent))) logSASGameRecordDiploEventAction(getID(), eDiploEvent, ePlayer, iData1, iData2);
 }
 
 
@@ -9317,8 +9316,7 @@ void CvPlayer::setAlive(bool bNewValue)
 			GET_TEAM(getTeam()).changeEverAliveCount(1);
 		}
 		// <!-- custom: Initial slots are already described by GAME_RECORD_PLAYER_SETUP; log later alive transitions explicitly so colonies, revivals, or unusual player appearances are visible instead of only changing alive/ever-alive counts. (GPT-5.5) -->
-		if (gGameRecordLogLevel >= 2 && !isBarbarian() && (bEverAlive || kGame.getElapsedGameTurns() > 0))
-			logSASGameRecordPlayerAliveChanged(getID(), bEverAlive);
+		if (gGameRecordLogLevel >= 2 && !isBarbarian() && (bEverAlive || kGame.getElapsedGameTurns() > 0)) logSASGameRecordPlayerAliveChanged(getID(), bEverAlive);
 		if (getNumCities() <= 0)
 			setFoundedFirstCity(false);
 		updatePlotGroups();
@@ -9347,8 +9345,7 @@ void CvPlayer::setAlive(bool bNewValue)
 		killCities();
 		killAllDeals();
 		// <!-- custom: SASGameRecord logs explicit player lifecycle rows because elimination was otherwise only inferable from city captures and missing later snapshots, which made autoplay/LLM review needlessly brittle. Log after cleanup so remaining city/unit counts are final. (GPT-5.5) -->
-		if (gGameRecordLogLevel >= 2 && bEverAlive && !isBarbarian())
-			logSASGameRecordPlayerEliminated(getID());
+		if (gGameRecordLogLevel >= 2 && bEverAlive && !isBarbarian()) logSASGameRecordPlayerEliminated(getID());
 
 		setTurnActive(false);
 

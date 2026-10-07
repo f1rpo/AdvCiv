@@ -28,7 +28,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=134 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=135 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -71,10 +71,20 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
-### Revision 134 - SAS practical 6598
+### Revision 135 - SAS practical 6599
 
 - **Date:** 2026-10-07
 - **Git commit:** pending
+- **Change:** Normalized simple explicit diagnostic logging guards and short log-call layout after the caller pre-gating pass.
+
+One-statement BBAI/SASGameRecord/domain logging guards now keep the explicit logging pre-gate and log-call head together, while long argument tails remain multiline. The formatter recognizes logging families rather than only `logBBAI`, but intentionally leaves semantic-only inner predicates, inherited `IFLOG` control flow, and UWAI's separate report system unchanged.
+
+This is formatting/tooling only: statement ordering/behavior, emitted SASGameRecord rows, and log-level semantics are unchanged.
+
+### Revision 134 - SAS practical 6598
+
+- **Date:** 2026-10-07
+- **Git commit:** `6b90bb0070a1640f6117e370ed4867141ebbfa5c`
 - **Change:** Led independent BBAI/SASGameRecord diagnostic conditions with their cached logging gates and added conservative pre-gate/formatting review helpers.
 
 Disabled diagnostics now short-circuit before unrelated semantic checks wherever the predicates are independent, while existing outer gates continue to skip whole logging-only scans without duplicating per-call checks. This is a pre-gating/readability optimization only: emitted SASGameRecord rows and log-level semantics are unchanged.

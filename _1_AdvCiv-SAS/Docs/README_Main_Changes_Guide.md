@@ -427,6 +427,9 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 - (Requires AdvCiv-SAS 6598+) **Diagnostic caller pre-gating is stricter:**
   - independent BBAI/SASGameRecord compound guards lead with the cached logging gate so disabled categories short-circuit before unrelated diagnostic predicates, while existing outer gates continue to skip whole logging-only loops/setup without redundant inner level checks.
   - This is a disabled-logging performance/readability cleanup only; enabled diagnostic output and log-level semantics are unchanged.
+- (Requires AdvCiv-SAS 6599+) **Explicit diagnostic log guards are easier to grep:**
+  - simple one-statement guards keep the actual BBAI/SASGameRecord/domain logging pre-gate and log-call head on the same line, while long argument tails remain multiline.
+  - The cleanup is logging-only and deliberately leaves semantic inner predicates, inherited `IFLOG` control flow, and UWAI's separate report system for their own reviewed passes.
 - (Requires AdvCiv-SAS 6479+) **Deeper disabled-diagnostic call-site cleanup:**
   - shared gameplay/logging helpers now keep BBAI-only enrichment behind the relevant category gate instead of carrying it through ordinary AI work.
   - Notably, Settler escort scans skip diagnostic unit classification/defender-need/list formatting unless requested, player-turn logging is not entered while PLAYER logging is disabled, AI production avoids several logging-only snapshots/name/value preparations, Worker Phase-0 logging retains only a cheap pre-mutation feature ID until the enabled log point, and Great Person weighting no longer constructs eight level-3 diagnostic maps when CULTURE logging is off.

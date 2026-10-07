@@ -177,10 +177,10 @@ def log_like_callee(statement_start: str) -> bool:
         return False
     return (
         name == "log"
-        or name.startswith("log")
-        or "Logging" in name
-        or re.search(r"Log(?:[A-Z0-9_]|$)", name) is not None
+        or (name.startswith("log") and (len(name) == 3 or name[3].isupper() or name[3] == "_"))
+        or name.startswith("myLog")
         or re.search(r"(?:^|_)log(?:_|[A-Z0-9])", name) is not None
+        or name.endswith("Log")
     )
 
 
@@ -235,6 +235,23 @@ def deindent_statement_lines(lines: list[str], start: int, end: int, header_inde
         if body.startswith(prefix):
             body = header_indent + body[len(prefix):]
         result.append(body + eol)
+
+    # A braced/originally nested call can already have a continuation tail that
+    # sits two or more levels below the log-call head. Once the guard and call
+    # head share a line, keep the shallowest continuation exactly one body
+    # indent deeper than the guard and preserve any extra relative nesting.
+    # This avoids leaving visually over-indented tails after brace/body removal.
+    continuation_indices = [i for i in range(1, len(result)) if split_line_ending(result[i])[0].strip()]
+    if continuation_indices:
+        desired_prefix = header_indent + indent_delta
+        continuation_ws = [leading_ws(split_line_ending(result[i])[0]) for i in continuation_indices]
+        if all(ws.startswith(desired_prefix) for ws in continuation_ws):
+            shortest = min(continuation_ws, key=len)
+            common_extra = shortest[len(desired_prefix):]
+            if common_extra and all(ws.startswith(desired_prefix + common_extra) for ws in continuation_ws):
+                for i in continuation_indices:
+                    body, eol = split_line_ending(result[i])
+                    result[i] = desired_prefix + body[len(desired_prefix + common_extra):] + eol
     return result
 
 
