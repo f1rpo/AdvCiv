@@ -104,6 +104,14 @@ COMMIT_DIFF_ALWAYS_SUMMARIZE_PATH_PARTS = (
     "/sevopedialeadercachepredumped.py",
     "/sevopedialead_derexamplesofoutputs.txt",
 )
+# <!-- custom: Imported manuals/reference documents and published changelog copies remain available in the current snapshot; summarize their historical payloads while retaining changed paths/counts and maintained README indexes.
+# Keep code files in reference folders inspectable too. (GPT-6.1-Sol) -->
+COMMIT_DIFF_REFERENCE_DOCUMENT_DIRS = (
+    "_0_common_docs/",
+    "_1_advciv-sas/docs/changelogs_web/",
+    "_1_advciv-sas/docs/modding_ressources/changelogs_web/",
+)
+COMMIT_DIFF_REFERENCE_DOCUMENT_SUFFIXES = (".txt", ".md", ".html", ".htm", ".chm")
 COMMIT_DIFF_LARGE_NEW_FUNCTIONAL_SUFFIXES = (
     ".cpp", ".h", ".py", ".xml", ".md", ".ini", ".cfg", ".json", ".csv",
     ".bat", ".cmd", ".ps1", ".sh",
@@ -432,7 +440,6 @@ def git_is_ancestor(repo_root: Path, ancestor: str, descendant: str) -> bool:
 def detect_pending_upstream_targets(repo_root: Path, explicit_refs: Iterable[str] = ()) -> dict[str, object] | None:
     """Select exact merge target or a union of fetched release-like refs not yet represented by HEAD."""
     refs, refs_error = list_upstream_refs(repo_root)
-    ref_sha = {ref: sha for ref, sha in refs}
     release_refs = sorted(
         [(upstream_release_version(ref), ref, sha) for ref, sha in refs if upstream_release_version(ref) is not None],
         key=lambda item: item[0],
@@ -966,7 +973,7 @@ def commit_diff_cache_policy_key() -> str:
     """Fingerprint cache-affecting patch policy constants so tuning caps/exclusions does not reuse stale renderings."""
     # <!-- custom: Key relocation-equivalent exclusions by the former paths so the existing multi-thousand-commit SHA cache remains reusable.
 	# Cached commits predate the canonical paths; new commits are rendered with both old/new exclusions above, while any future substantive filtering change still changes this policy key normally. (GPT-5.6-Sol) -->
-    payload = repr((COMMIT_DIFF_CACHE_FORMAT_VERSION, COMMIT_DIFF_MAX_FILE_PATCH_BYTES, COMMIT_DIFF_MAX_FILE_CHANGED_LINES, COMMIT_DIFF_MAX_COMMIT_PATCH_BYTES, COMMIT_DIFF_ALWAYS_SUMMARIZE_PATH_PARTS, COMMIT_DIFF_ALWAYS_SUMMARIZE_SUFFIXES, COMMIT_DIFF_LARGE_NEW_FUNCTIONAL_SUFFIXES, LEGACY_COMMIT_DIFF_EXCLUDED_PATHS)).encode("utf-8")
+    payload = repr((COMMIT_DIFF_CACHE_FORMAT_VERSION, COMMIT_DIFF_MAX_FILE_PATCH_BYTES, COMMIT_DIFF_MAX_FILE_CHANGED_LINES, COMMIT_DIFF_MAX_COMMIT_PATCH_BYTES, COMMIT_DIFF_ALWAYS_SUMMARIZE_PATH_PARTS, COMMIT_DIFF_ALWAYS_SUMMARIZE_SUFFIXES, COMMIT_DIFF_REFERENCE_DOCUMENT_DIRS, COMMIT_DIFF_REFERENCE_DOCUMENT_SUFFIXES, COMMIT_DIFF_LARGE_NEW_FUNCTIONAL_SUFFIXES, LEGACY_COMMIT_DIFF_EXCLUDED_PATHS)).encode("utf-8")
     return hashlib.sha1(payload).hexdigest()[:12]
 
 
@@ -1073,6 +1080,10 @@ def should_summarize_historical_patch(patch_label: str, patch_bytes: int, patch_
     changed_lines = historical_patch_changed_lines(patch_chunk)
     if any(part in normalized for part in COMMIT_DIFF_ALWAYS_SUMMARIZE_PATH_PARTS):
         return True, "known-generated/noisy-history", changed_lines
+    reference_paths = [path.lower().replace("\\", "/") for path in historical_patch_paths(patch_label)]
+    # <!-- custom: Require both sides of a rename to qualify, so moving a maintained guide or source into an archive does not hide that transition's patch. (GPT-6.1-Sol) -->
+    if reference_paths and all(path.startswith(COMMIT_DIFF_REFERENCE_DOCUMENT_DIRS) and path.endswith(COMMIT_DIFF_REFERENCE_DOCUMENT_SUFFIXES) and Path(path).name not in ("readme.md", "readme.txt") for path in reference_paths):
+        return True, "imported-reference/archive-document", changed_lines
     label_clean = patch_label.lower().replace('"', "")
     label_tokens = label_clean.split()
     if any(token.endswith(COMMIT_DIFF_ALWAYS_SUMMARIZE_SUFFIXES) for token in label_tokens):
@@ -1673,7 +1684,8 @@ def build_snapshot_context_readme() -> str:
         "  included; merged side-branch commits remain because they genuinely contribute to current HEAD. Diff files\n"
         "  keep a short title, change summary and useful patches, while full messages/metadata redirect to the tracked\n"
         "  anonymized Git logs above (or the generated recent SAS gap). This avoids duplicating long commit messages.\n"
-        "  Known generated/log/binary or exceptionally huge historical payloads are summarized instead of embedded.\n"
+        "  Known generated/log/binary, imported reference documents, published changelog copies and exceptionally huge\n"
+        "  historical payloads are summarized instead of embedded; maintained README indexes retain their patches.\n"
         f"  This canonical generated context lives at {COMMIT_DIFF_CONTEXT_DIR}/ locally for code agents, and the light ZIP\n"
         "  injects a freshly generated copy at that same path rather than duplicating it under _SNAPSHOT_CONTEXT. Normal\n"
         "  full-history ZIP creation refreshes the Git-ignored local directory after the archive succeeds. The directory is\n"

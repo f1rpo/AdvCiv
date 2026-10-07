@@ -73,7 +73,7 @@
 /CvGameCoreDLL/Project/temp_files     export-ignore
 /CvGameCoreDLL/Project/temp_files/**  export-ignore
 
-# <!-- custom: include most doc or debug as not too heavy and may be useful if downloaded as ZIP (manual.odt, manual.txt, CIV4BUG_Sourceforge_net_All_Classes_Doc, git_logs (as of now non AdvCiv-SAS), Docs/git_logs (as of now AdvCiv-SAS), Docs/changelogs_web, Modding_Ressources, Sevopedia/Debug/) -->
+# <!-- custom: include most doc or debug as not too heavy and may be useful if downloaded as ZIP (manual.odt, manual.txt, CIV4BUG_Sourceforge_net_All_Classes_Doc, git_logs (as of now pre-AdvCiv-SAS), Docs/git_logs (as of now AdvCiv-SAS), Docs/changelogs_web, Modding_Ressources, Sevopedia/Debug/) -->
 /Assets/Res/Fonts/other_mods/                             export-ignore
 
 # <!-- custom: Keep a full raw SASGameRecord sample in git for LLM/dev review, but exclude it from GitHub Download ZIP / release archives because the log is large and diagnostic-only. (GPT-5.6) -->

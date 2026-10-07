@@ -5,7 +5,7 @@
 # <!-- custom: This file is for the user's VS Code Ruff extension and local editing signal/noise. Keep these ignores limited to noise that does not hide information we want to sanity check; python-ruff.yml currently runs isolated from this file and narrows CI separately from actual GitHub output. (ChatGPT-5.5 + GPT-5.5) -->
 # Enable Ruff linting for VS Code/local focused review (blazing fast).
 # Run errors (E) and pyflakes warnings (F)
-select = ["E", "F"]
+lint.select = ["E", "F"]
 # <!-- custom: Civ4 runs Python 2.4, where `unicode` is a built-in; modern Ruff needs it listed explicitly. (GPT-5.5) -->
 builtins = ["unicode"]
 # <!-- custom: Downloaded map-script originals are immutable archaeology references rather than AdvCiv-SAS runtime source. Keep them greppable without adding upstream lint noise or encouraging cleanup edits. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
@@ -16,4 +16,4 @@ extend-exclude = ["LLM_Helpers/context/mapscript_refs"]
 # F403: 'from module import *' used; can't track undefined names
 # F405: Name may be undefined, or defined from star imports
 # E501: Line too long (we allow longer lines in Civ4 UI scripts)
-ignore = ["F403", "F405", "E501"]
+lint.ignore = ["F403", "F405", "E501"]
