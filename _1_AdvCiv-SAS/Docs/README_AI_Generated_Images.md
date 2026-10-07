@@ -38,7 +38,7 @@ Example with some buildings (the Gord (new Russian building based on the castle,
 
 Example with some techs (for example the theory of evolution new tech, mounted combat) i edited with Paint.NET by myself to remove extra camel, not sure i did best but hopefully good enough and was fun even though bit tedious xd([see in this google drive folder image edit with Paint.NET](https://drive.google.com/drive/folders/1UNyrAqEjOJCHkNH8c05q2MFx1C6l0fNi?usp=sharing) for details, i really wanted this image so had to fix it.
 
-Update: now used/added. Nano banana pro (see [/README.md#nano-banana-pro](/README.md#nano-banana-pro)) to do it which it did amazingly and very easily which fixes the a tech's image and recolored the border as blue with just this simple prompt:
+Update: now used/added. Nano banana pro (see [/_1_AdvCiv-SAS/Docs/README_Authors.md#nano-banana-pro](/_1_AdvCiv-SAS/Docs/README_Authors.md#nano-banana-pro)) to do it which it did amazingly and very easily which fixes the a tech's image and recolored the border as blue with just this simple prompt:
 
 > "please remove the extra part of a camel in this civ4 button image and make the outside "cadre" color dark blue not white"
 

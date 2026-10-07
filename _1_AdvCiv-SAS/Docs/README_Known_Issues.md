@@ -1385,7 +1385,7 @@ A quite weird issue i never had before, but after doing a fastdep (auto, not me)
 
 Screenshots/files for this issue: [google drive folder link](https://drive.google.com/drive/folders/19T9I75vGCk58pFSR60y2Tmj69-NoFFtk?usp=sharing)
 
-More context of how i implemented the change in the .cpp and such can be found in this Google Drive about Claude AI's first prompt i successfully implemented in AdvCiv-SAS, [/README.md#claude-web-chat](/README.md#claude-web-chat)
+More context of how i implemented the change in the .cpp and such can be found in this Google Drive about Claude AI's first prompt i successfully implemented in AdvCiv-SAS, [/_1_AdvCiv-SAS/Docs/README_Authors.md#claude-web-chat](/_1_AdvCiv-SAS/Docs/README_Authors.md#claude-web-chat)
 
 I don't know if fastdep compiel was the cause or just some weird corruption unnotified happened (i don't know a lot about these if at all hehe but it was reproducible, and my player name also unusually changed just after this fast compile so i can quite confidently say it is maybe indeed related(for example after checking indeed Civ4ScreenShot3010 in the advciv-sas's mod journey drive (see main README.md for link), with last compiled DLL before this Claude AI related .cpp change and recompile, had my windows username as default player name as can be seen in screenshot, but the screenshots of the issue in the drive linked above, that happen between Civ4ScreenShot3095(new game not yet started after the cpp changes and recompile) and Civ4ScreenShot3096 (where issue is solved)); in short if my long sentence still makes sense xd and i didnt get tangled into it if this is a word too, default civ4 player game suddenly changed from windows username to steam username (that i didnt want to show in screenshots too as is private to me, and this coincidated if this is a wordwith this screen being stuck issue))
 
@@ -1978,7 +1978,7 @@ Note 2: this specific one should not be relevant anymore as we have overhauled A
 
 Note: as of now the changes in the DLL described below in this section can be found in this [advciv-sas commit](https://github.com/wonderingabout/AdvCiv-SAS/commit/6d82d51fe1e3a3262d7c69af67daaacb927175e4) among a few other unrelated changes but or not but or yes buthopefuly helpful or not or yes or etc
 
-This is an issue i had more extensively documented in the known issues about advciv civfanatics thread (see link somewhere in [README.md#me-wonderingabout](/README.md#me-wonderingabout)), that AIs often build forts on top of existing improvements.
+This is an issue i had more extensively documented in the known issues about advciv civfanatics thread (see link somewhere in [README.md#me-wonderingabout](/_1_AdvCiv-SAS/Docs/README_Authors.md#me-wonderingabout)), that AIs often build forts on top of existing improvements.
 
 This should be very inefficient in most cases as forts,... :
 
@@ -2203,7 +2203,7 @@ See also, although not directly related: [README_Known_Issues.md#ki-22](/_1_AdvC
 
 Screenshots/files for this issue: [google drive folder link](https://drive.google.com/drive/folders/1xeAY-R41d3jQ8W4JvK8mhdRBlkKINpQu?usp=sharing).
 
-This is an issue i had in base advciv, and this solution may not necessarily in all cases be better, but i believe and hope in most cases it helps, at least for the part of the code changed. Rewrote/refactored `CvUnitAI::AI_bestCityBuild` with gemini ai's help for most thanks to its persistence in particular (see [/README.md#gemini-ai](/README.md#gemini-ai)) for details.
+This is an issue i had in base advciv, and this solution may not necessarily in all cases be better, but i believe and hope in most cases it helps, at least for the part of the code changed. Rewrote/refactored `CvUnitAI::AI_bestCityBuild` with gemini ai's help for most thanks to its persistence in particular (see [/_1_AdvCiv-SAS/Docs/README_Authors.md#gemini-ai](/_1_AdvCiv-SAS/Docs/README_Authors.md#gemini-ai)) for details.
 
 I have written most details there, so only adding here as less tedious to do so, a few screenshots in the google drive link folder mentioned at the top of this known issue section (as of now number 30).
 
