@@ -1407,7 +1407,7 @@ Be careful of having too long XML code comments, they (seem to indeed) cause gam
 
 Something to keep in mind perhaps while doing XML code comments, that if they have to be long, move them outside of the XML tree entirely maybe, or at least outside the nested ones maybe, tweak this advice or opinion or feel or not feel or yes feel but maybe rather too view/thought as you see fit.
 
-More details here too in: [Long_Comments/Long_Comments_XML.txt](/Long_Comments/Long_Comments_XML.txt) (search for `AudioDefines nested-comments crash notes`)
+More details here too in: [Long_Comments_XML.txt](/_1_AdvCiv-SAS/Docs/Long_Comments/Long_Comments_XML.txt) #94 (search for `AudioDefines nested-comments crash notes`)
 
 <a id="ki-7"></a>
 
@@ -1856,7 +1856,7 @@ See screenshots linked in this drive for details as well, thanks thanks.
 
 Screenshots/files for this issue: [google drive folder link](https://drive.google.com/drive/folders/1oOiKggm9nHVyp07QF8HM_WgXY5Gtcg44?usp=sharing) and [google drive folder link 2](https://drive.google.com/drive/folders/1fWa7xXOgnXW2w2_b6JHGcDaoSqhGHree?usp=sharing).
 
-Commented-out most python docstrings, instead with a `#`, as for very long ones, they are moved to specific files instead, for example as of now the changelog giant (500+ line approximately from my memory) in configobj.py has been moved to [/Long_Comments/Long_Comments_py.txt](/Long_Comments/Long_Comments_py.txt).
+Commented-out most python docstrings, instead with a `#`, as for very long ones, they are moved to specific files instead, for example as of now the changelog giant (500+ line approximately from my memory) in configobj.py has been moved to [Long_Comments_py.txt](/_1_AdvCiv-SAS/Docs/Long_Comments/Long_Comments_py.txt).
 
 Exceptions are for example test docstrings as comenting them out causes ingame errors for example in configobj py file, and empty if commented out which causes ingame error with VS Code unexpected indent at the next function (i.e. if i comment-out this function that has only a docstirng, everything else being a comment out or empty, then the function below it has unexpected indent error, which causes ingame errors as well, such as in eventsigns py file for example), and maybe some ambiguous other cases if i have forgotten them or maybe not, hopefully this increases even if a bit if not lot loading times and reduces memory usage from what i understand chatgpt's explanation, and as according to/advised by chatgpt, they are not used ingame, and from my quick autoplay test(s) game seems to run fine without it. Added info if helps here.
 

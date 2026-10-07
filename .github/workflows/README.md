@@ -88,6 +88,7 @@ This is intentionally a syntax/compile compatibility check only: it does not lau
 - [`build/art_button_paths.py`](#buildart_button_pathspy)
 - [`build/markdown_images.py`](#buildmarkdown_imagespy)
 - [`build/markdown_links.py`](#buildmarkdown_linkspy)
+- [`build/long_comments.py`](#buildlong_commentspy)
 - [`build/sas_text_references.py`](#buildsas_text_referencespy)
 - [`build/global_defines_nonempty.py`](#buildglobal_defines_nonemptypy)
 - [`build/version_metadata.py`](#buildversion_metadatapy)
@@ -206,6 +207,14 @@ It checks normal and explicit reference-style Markdown links plus HTML `<a href=
 It also verifies the continuous Known Issues ledger and its standardized `KI#number` schema. Every integer through the highest body entry or stable `F### / provisional KI#number` assignment in the C++ File Audit Album must have an explicit Fixed, Pending, Merged, Rejected or Retired entry; the menu and body identifier sets must match without duplicates; and every entry uses a stable short `#ki-number` anchor. This catches both undiscoverable body entries such as the previously omitted KI#202 and wholly absent provisional/disposition entries such as KI#501.
 
 When `_LLM_REPO_FILE_MANIFEST.txt` is present in a light-source ZIP, tracked files and directories intentionally omitted from the bundle are still recognized as existing repository paths; Markdown fragments are checked whenever the target Markdown file itself is bundled. This prevents both moved/renamed repository targets and renamed Markdown headings from silently leaving stale local links.
+
+### `build/long_comments.py`
+
+Verifies the two archives under [`_1_AdvCiv-SAS/Docs/Long_Comments`](/_1_AdvCiv-SAS/Docs/Long_Comments/) stay synchronized with their live `Long_Comments_XML.txt #N` and `Long_Comments_py.txt #N` markers. A live marker without an archived entry fails, and an archived entry without any live marker fails so deleted or superseded source comments do not accumulate as stale documentation.
+
+The documentation archives must also remain valid UTF-8; this prevents legacy encoding damage from being silently reintroduced.
+
+Historical changelogs, archived Git logs, generated LLM commit-diff context, snapshots, and workflow/test files are ignored as references: they may legitimately preserve old marker text, but they must not keep a dead current entry alive. Multiple IDs on one marker line are supported. IDs remain stable and are not renumbered when stale entries are removed.
 
 ### `build/sas_text_references.py`
 

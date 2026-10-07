@@ -60,7 +60,7 @@
 			<DomainMods/>
 			<TerrainDoubleMoves/>
 			<FeatureDoubleMoves/>
-			<!-- custom: alphabetical/sevopedia order -->
+			<!-- custom: alphabetical/sevopedia order; Long_Comments_XML.txt #91 -->
 			<UnitCombats>
 				<UnitCombat>
 					<UnitCombatType>UNITCOMBAT_AIR_BOMBER</UnitCombatType>

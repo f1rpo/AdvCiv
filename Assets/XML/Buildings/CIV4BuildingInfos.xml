@@ -1753,7 +1753,7 @@
 			<iMinLatitude>0</iMinLatitude>
 			<iMaxLatitude>90</iMaxLatitude>
 			<iGreatPeopleRateModifier>0</iGreatPeopleRateModifier>
-			<!-- custom: Support Japan's military/martial-arts identity. Keep this at 15 because every early Doujou adds cumulatively to the empire-wide modifier, preserving a strong Japanese identity without making the cumulative bonus too high. (GPT-5.6-Sol) -->
+			<!-- custom: Support Japan's military/martial-arts identity. Keep this at 15 because every early Doujou adds cumulatively to the empire-wide modifier, preserving a strong Japanese identity without making the cumulative bonus too high. Long_Comments_XML.txt #12. (GPT-5.6-Sol) -->
 			<iGreatGeneralRateModifier>15</iGreatGeneralRateModifier>
 			<iDomesticGreatGeneralRateModifier>0</iDomesticGreatGeneralRateModifier>
 			<iGlobalGreatPeopleRateModifier>0</iGlobalGreatPeopleRateModifier>

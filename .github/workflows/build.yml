@@ -34,6 +34,7 @@ jobs:
       - run: python .github/workflows/build/art_button_paths.py
       - run: python .github/workflows/build/markdown_images.py
       - run: python .github/workflows/build/markdown_links.py
+      - run: python .github/workflows/build/long_comments.py
       - run: python .github/workflows/build/markdown_structure.py
       - run: python .github/workflows/build/global_defines_nonempty.py
       - run: python .github/workflows/build/version_metadata.py

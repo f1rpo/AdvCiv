@@ -6,7 +6,7 @@
 <!-- Basic Infos -->
 <!-- custom: file imported from:
 C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Assets\XML\BasicInfos\CIV4BasicInfos.xml
-then modified to have "Mods Info" and "Outdated" instead of the old concept sevopedia categories, see Long_Comments/Long_Comments_XML.txt comment #93 for details) -->
+then modified to have "Mods Info" and "Outdated" instead of the old concept sevopedia categories, see Long_Comments_XML.txt comment #93 for details) -->
 <Civ4BasicInfos xmlns="x-schema:CIV4BasicInfoSchema.xml">
 	<ConceptInfos>
 		<!-- custom: moved these concepts away from CIV4NewConceptInfos.xml, then renamed them from NewConceptInfo to ConceptInfo -->

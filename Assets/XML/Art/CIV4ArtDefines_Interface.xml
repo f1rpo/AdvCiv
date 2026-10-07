@@ -1736,7 +1736,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 			<Path>Art/AdvCiv_SAS/Interface/Draft/Gemini_Generated_Image_bb4mzkbb4mzkbb4m_draft_64px.dds</Path>
 		</InterfaceArtInfo>
 
-		<!-- custom: emoji icons as dds; Long_Comments_XML.txt #150 -->
+		<!-- custom: emoji icons as dds; Long_Comments_XML.txt #31, #150 -->
 		<!-- 🕊️ emoji from emojiterra -->
 		<InterfaceArtInfo>
 			<Type>SAS_EMOJI_DOVE</Type>

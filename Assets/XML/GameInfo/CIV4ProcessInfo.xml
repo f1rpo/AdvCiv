@@ -22,7 +22,7 @@
 			<Type>PROCESS_RESEARCH</Type>
 			<Description>TXT_KEY_PROCESS_RESEARCH</Description>
 			<Strategy>TXT_KEY_PROCESS_RESEARCH_STRATEGY</Strategy>
-			<!-- custom: Long_Comments_XML.txt #318, was TECH_NATURALISM -->
+			<!-- custom: Long_Comments_XML.txt #317, was TECH_NATURALISM -->
 			<TechPrereq>TECH_WRITING</TechPrereq>
 			<ProductionToCommerceModifiers>
 				<iProductionToCommerceModifier>0</iProductionToCommerceModifier>

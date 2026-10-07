@@ -147,8 +147,8 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 
 		self.X_CATEGORIES = 0
 		self.Y_CATEGORIES = (self.Y_TOP_PANEL + self.H_TOP_PANEL) - 4
-		# <!-- custom: shorter category column width to have more room in sevopedia; Long_Comments_XML.txt #15. Update: increased for upscaled text. -->
-		# <!-- custom: keep categories narrower at default font, but widen when UI label font is upscaled so text doesn't clip (GPT-5.3-Codex); Long_Comments_XML.txt #16. -->
+		# <!-- custom: shorter category column width to have more room in sevopedia; Long_Comments_py.txt #15. Update: increased for upscaled text. -->
+		# <!-- custom: keep categories narrower at default font, but widen when UI label font is upscaled so text doesn't clip (GPT-5.3-Codex); Long_Comments_py.txt #16. -->
 		iCategoryWidth = 124
 		if getSASUIFontLabel() > 3:
 			iCategoryWidth = 166

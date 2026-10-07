@@ -36,7 +36,6 @@ ROOT_SUBDIRS = (
     "PrivateMaps",
     ".claude",
     ".github",
-    "Long_Comments",
     "_0_Common_Docs",
     "LLM_Helpers",
     "Resource",

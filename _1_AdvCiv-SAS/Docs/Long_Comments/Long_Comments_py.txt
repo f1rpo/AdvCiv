@@ -2,6 +2,8 @@
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
 
+Encoding: UTF-8.
+
 Similar purpose than in the XML equivalent of this file, but for .py file! Make it leaner so our AI/LLM helpers can read it easier and to improve readability and efficiency when possible and relevant!
 
 
@@ -759,22 +761,10 @@ A reasonably elegant implementation - a basic reader in 160 lines of code.
 # <!-- custom: increase hard drive life span by 0.1% by disabling this / setting it to False, maybe (disclaimer: i am not responsible is just i mean about the actual real percentage meant as a joke / comedy thingbut is maybe also true that disabling debug may avoid reducing hard drive life span even if a bit, as we write quite a lot of debug at each sevopedia load, however it is not guaranteed and i am not responsible, so do as you see fit use at your own risk, is just harmless text writing but writing a lot may hurt ssd or whichever hard drive especially most importantly by repeated use over a long time period of playing civ4 restarting game many times -->
 
 ===== \Assets\Python\Contrib\Sevopedia\SevoPediaLeader.py =====
------ Comment #9 -----
-
-		# <!-- custom: here even though debug code in debugPrintLeaderHeadInfoFieldsToFetch uses a dynamic code, manually tell all the getters names instead of a dynamic code, to make sure we have them all and since they have flat getters this is consistent with how other similar kind of field/getters are handled as before in this current tuple; their names are available in the debug output example of the same debugPrintLeaderHeadInfoFieldsToFetch, see there for details -->
-
-===== \Assets\Python\Contrib\Sevopedia\SevoPediaLeader.py =====
 ----- Comment #10 -----
 
 (but we still want the excluded leaders to be excluded from computation as it could and most likely will most often if not always affect the ranking and scores normalized of other leaders with this additional item
 		# This is especially useful for iLeader of LEADER_BARBARIAN (iLeader 0 at least as of now if i'm not mistaken) in particular that is somehow accessible in the sevopedia civilization category from the barbarian civ (which is also useful because we now display their city names for example, see sevopedia civilization for details about how we place city names in it now)
-
-===== \Assets\Python\Contrib\Sevopedia\SevoPediaLeader.py =====
------ Comment #11 -----
-
-and undoing it as it told me later solved the error. So i think or at least it seems like this is not a bug. Chatgpt 5 may have received a truncated prompt or something though as it mentioned ... in code which was not the case if i'm not mistaken; after i sent it an entire file as appended file rather, it told me to not do this change as this would cause an error if i'm not mistaken, so this is now reverted to how it was before and seems to run fine as such. I don't remember enough of the code to be sure, but it seems like this is as intended to use raw aggregated values in order to store normalized aggregated ones under a field name that does not use "raw" in it anymore as it is the normalized aggregated value we are storing and displaying in UI now, no longer the intermediate for calculations raw aggregated value if i'm not mistaken, but check to be sure; seems to run fine as such but check to be sure. Thanks for all help chatgpt 5 you helped me lot, confirmed current logic, and helped me find a nice performance optimization as of now with loopLeaderHeadInfo -->
-				# Conclusion: it was not a bug in your code.
-				# Your original line was correct:
 
 ===== \Assets\Python\Contrib\Sevopedia\SevoPediaLeader.py =====
 ----- Comment #12 -----
