@@ -1,0 +1,46 @@
+release date: Dec 31, 2025
+source: https://forums.civfanatics.com/resources/advciv-sas-simple-advanced-strategy.32513/update/37087/
+retrieved: Oct 7, 2026 by wonderingabout (manual web copy)
+
+New UI features and enhancements (Sevopedia Search Bar, Keyboard UP/DOWN navigation, Info Screen and Victory Screen Upscaled / Heavily Beautified), performance optimizations and other changes.
+
+- UI (Sevopedia reworks & related)
+	- Search Bar: shared by several sevopedia pages; it allows to search for entries using the keyboard. The code is in SevoPediaMain.py.
+	- Keyboard Navigation: allows to browse sevopedia categories using the keyboard in the list pages (e.g. In the Units Category: Axeman, Swordsman, Worker) or tree pages (e.g. Units Tree and Promotion Tree categories) using the keyboard UP/DOWN arrow keys. The code is in SevoPediaMain.py.
+
+- UI (In-game)
+	- Did a similar rework of the Info Screen (F9 key) in CvInfoScreen.py; in particular in Top 5 Cities we now use a multilist to display more wonders in a prettier way, and in the Wonders tab we now show the Wonders' Buttons (i.e. icons) in the first column (click to move to city mechanic is moved to the City column instead); the Statistics tab now also shows buttons, and the Graph Tab and possibly other tabs also show buttons (leader buttons as text, emojis, etc.) following the AdvCiv-SAS's Images as Buttons approach, or add other information (turn numbers in the Graph tab, etc.).
+	- Beautified the Victory Screen (F8 key) in CvVictoryScreen.py: added Buttons/Icons (Leaders, Religions, Apostolic Palace, UN, Spaceship parts, Traits as chars, etc.), Thousands Separators, Victory Culture Percentages (mirroring the changes in CvInfoScreen.py).
+	- Renamed “All Units” → “No UnitCombat” in the Military Advisor: was inaccurate: this does not list all units (e.g. military units such as swordsmen), but only <Combat>NONE</Combat> units (e.g. Worker, Workboat, Missionary).
+
+- AI
+	- Unit upgrades - stop wasting gold on tiny gains: Fix AI tendency to over-upgrade units even when the upgrade is poor value (high gold cost for a small strength gain), which can burn many turns of gold and slow tech pace. Before allowing an upgrade, the AI must pass simple ROI gates based on strength gained vs gold cost: (1) gold per 10% strength gain, and (2) gold per +1 flat strength gain; both gates are more lenient with higher unit EXP (high-EXP units keep their promotions after being upgraded which is valuable, so spending more gold on them is more justified), while low-EXP units are treated more strictly (often better to let them die and rebuild if needed, unless it is cheap enough to upgrade them). Example (Knight -> Cuirassier): 10 strength -> 13 strength; if one of the gates requires 15 gold per +1 flat strength gain with +1 gold per +1 flat strength gain per 1 EXP, then we won't upgrade the unit if its upgrade cost is more than 15 * 3 = 45 gold at 0 EXP, or ((15 + 18) * 3) = 99 gold at 18 EXP for this gate. In autoplay, this seemingly leads to all AIs teching significantly faster, especially in the late game where there are many units and AI would often have its tech pace stall for dozens of turns. Change in CvUnit::canUpgrade (single global gate, like CvUnit::canScrap); see KI#88.
+
+- Renaming
+	- rename "USAmerican" to "US American".
+	- rename "the people of Benin" (adjective) to "Edo": "After asking gemini 3 pro, it recommended "Edo" (as in "Edo people") and also suggested "Bini" (as in "Bini workers") and as i also thought: Beninese should be avoided since the old Kingdom of Benin could be confounded with the modern Benin. Also, the old name was too long and not a real adjective to begin with anyway.
+
+- Events
+	- The standard new game mode (Play Now) now has Events Disabled by default. We find they can be annoying, distracting, or frustrating; they do not offer a real gameplay value, and setting up a Custom Game every time to disable them is tedious. Players can still enable events via the Custom Game mode: make sure the "No Random Events" option is unticked, or alternatively revert this change. Change in CIV4GameOptionInfos.xml (GAMEOPTION_NO_EVENTS's bDefault: 0 -> 1).
+
+- Terrain/Bonuses
+	- Adjust some animal Food Bonuses' terrains/features for balance, accuracy, or thematic fit: Sheep: Grassland + Plains -> Plains only (Plains are weaker, Grassland food is overpowered and over-represented, real world population is mostly on savanna-like biomes and culturally closer to African, Western Asian, and Australian regions); Pig Jungle -> Forest (real world population is mostly around typical forest biomes, this helps counter-balance the Sheep removal from Grassland, and Jungle is stronger in AdvCiv-SAS (no inherent food-penalty) so it can accomodate this change).
+
+- Code/Performance optimizations/fixes:
+	- Move long XML comments (e.g. 1000+ character XML code comments) to LongComments.txt in case they cause issues and for tidiness
+	- Load Precomputed Files: optionally load the Sevopedia Leader's AI Personality Panel's information to display as a predumped file (https://github.com/wonderingabout/AdvCiv-SAS/blob/tech-rework/Assets/Python/Contrib/Sevopedia/SevoPediaLeaderCachePredumped.py): (~550k Python literal characters) (default ON, recommended): since these values never change for players, this is more efficient. For modders, if they change leader XML info values, they can turn the SAS define to always compute temporarily so they can regenerate then update the file, or permanently for quick testing or if they prefer. Added with the very nice help of claude opus 4.5 and chatgpt 5.2 thanks.
+	- Fix BUG Mod Help not opening the external .chm help from the BUG Menu.
+	- cache redundant computation (e.g. store per turn and player top cities' values CvCityAI::AI_buildingValue)
+	- other performance optimizations in various .py and .cpp files.
+
+- update 48 civs DLL
+
+Update: 2026-01-02 (after release):
+
+- fix Sevopedia search bar scrolling error when out of range ("<!-- custom: rebuild arrow-navigation selectable caches every time we rebuild the list (fixes stale indices / out-of-range) (chatgpt 5.2) -->").
+
+If you downloaded the AdvCiv-SAS 5282 first released version before, just redownload from same link: it now has the updated file. Since this is a minor change i didn't make a new release for it.
+
+Reminder: many of these new settings are partially or entirely tunable in GlobalDefines_advciv_sas.xml
+
+Full Cumulative file changes and git commit history from AdvCiv-SAS 5240 to 5282 viewable at https://github.com/wonderingabout/AdvCiv-SAS/compare/b5ecf7a37ae7330c65384a4f880d20d344193230...1f9b99fd955e07d83cd3984be22b61bad3bc4220

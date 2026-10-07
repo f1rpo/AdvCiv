@@ -1,0 +1,31 @@
+release date: Oct 3, 2025
+source: https://forums.civfanatics.com/resources/advciv-sas-simple-advanced-strategy.32513/update/36793/
+retrieved: Oct 7, 2026 by wonderingabout (manual web copy)
+
+- Much stronger/efficient AI than in AdvCiv-SAS 4986 (full evacuation of doomed cities, razing faraway cities early, fix/enhance happiness buildings priority when needed, emergency peace if in multi-war threat, better valuing of low value bonuses (e.g. pig = 1 health < wheat = 2 health (one from granary)), better / more varied military composition (reduced excess siege in particular, focus more on offense units generally after minimal defense needs are met, anti very cheap early units excess (in particular ancient macemen as very inefficient)) with various settings, added iAIObjective to key strategic bonuses (as of now copper, iron, horse, camel, low value for elephants for war elephants window, aluminium, uranium) with new AI logic on top of existing one in other areas for this setting (that was 0 in base advciv though if i'm not mistaken), now also in settling priorities, working tiles (improve it first), trade it better/smarter (e.g. horse is valuable at medieval era if we have iron, but not at classical if we have elephants, nor at renaissance even if we have iron (new units fallback (cannons, muskets, etc. if any more))
+
+- adjusted timelines at each game speed for a slower/longer middle ages (was too short to really let units shine if i may say anyways etc) and late industrial era. In particular, GAMESPEED_MARATHON reduced from 1250 turns in base advciv to now 1000 turns in advciv-sas.
+
+- fixed tech costs to match era modifiers removal (was using old logic so costs were too high)
+
+- performance optimizations
+
+- balance changes and reworks: new unit combat types to replace UNITCOMBAT_MELEE: UNITCOMBAT_MELEE_POLEARM (spears, pikes, etc.) and UNITCOMBAT_MELEE_SHOCK (axes, swords, maces, etc.). In continuation to the past split of UNITCOMBAT_MOUNTED into UNITCOMBAT_MELEE and UNITCOMBAT_RANGED that allowed pikemen to be strong against knight units but no longer against cuirassiers which was nonsensical, this new UNITCOMBAT_MELEE split allows for example axemen to now be barely stronger than swordsmen vs much stronger before which was too skewed (but they still remain strong against polearm), and many other things. Reworked and buffed spearman units.
+
+- civ-specific units changes: replaced the mongol_keshik with the mongol_khishigten (horse knight based, meshes better with ger timing and historically more accurate) and the english_redcoat with the english_yeoman_archer (crossbowman based, better match with the english empire's defensive profile, nice cover if no bonus early)
+
+- finer hammer cost tuning, now per 1 hammer no longer rounded to closest 5 multiple for the human player like in base advciv: e.g. sworsdsman cost increased to 42 (btw xd if i may say but anyways etc) stays at 42 not 40 (and 43 does not become 45), fairer vs AIs which did not have this and caused cost mismatches even at same handicap if these were to be changed to non 5 multiples, now fixed/enhanced. Also allows finer balance especially for early units (ancient macemen cost 18 not rounded to 20 anymore)
+
+- bug fixes and tweaks
+
+- new GlobalDefines_advciv_sas.xml file with some settings being now tunable in https://github.com/wonderingabout/AdvCiv-SAS/blob/tech-rework/Assets/XML/GlobalDefines_advciv_sas.xml
+
+- UI enhancements: in particular in sevopedia promotions (now shows as buttons = images the list of all units and the list of all buildings that have this promotion as free promotion), and in sevopedia civics (also shows as buttons the list of all leaders that have civic as their favourite civic) and beautified and refactored code
+
+- 48 civs DLL included now
+
+- various other tweaks and fixes
+
+Strongly recommended to upgrade to this new version if you are using 4986 or an old version.
+
+see for full changes: commit history from AdvCiv-SAS 4986 to 5030 viewable at https://github.com/wonderingabout/AdvCiv-SAS/commits/tech-rework/?since=2025-09-06&until=2025-10-03 or at https://github.com/wonderingabout/AdvCiv-SAS/compare/8d6bf6e0f61004e415aa3584e906fdb77275c1f8...e3ecaf41449b5a4415d3a98ff0c68c0d0ccd7738

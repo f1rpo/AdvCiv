@@ -30,6 +30,8 @@ All in all, this simplifies gameplay to some extent, but greatly increases depth
 
 Also most importantly LLMs like GPT Thinking (i.e. ChatGPT), GPT Codex, Claude code, Gemini AI, Deepseek AI, Grok AI, have helped me a lot to do this, and i probably would not have completed (or extremely harder) without them and all i mean so thanks again and thanks a lot!
 
+Changelogs, Main Changes Guide, commit log/history, and other supporting documentation/information are also available on GitHub.
+
 For license and reuse terms, including project-specific restrictions and expressly permitted derivatives, see [License and reuse](/LICENSE.md#license-and-reuse).
 
 <a href="https://www.youtube.com/watch?v=ipSdRP7HcFs"><img src="./_1_AdvCiv-SAS/Images/LLM/gpt_5_3_codex_youtube_demo.png" alt="gpt_5_3_codex_youtube_demo.png" width="640"></a>
@@ -39,8 +41,8 @@ For license and reuse terms, including project-specific restrictions and express
 [Tech Tree](/README.md#tech-tree)\
 [Military Tree and changes](/README.md#military-tree-and-changes)\
 [Ingame gameplay samples](/README.md#ingame-gameplay-samples)\
-[Docs](/README.md#docs)\
 [How to play?](/README.md#how-to-play)\
+[Docs](/README.md#docs)\
 [Full exhaustive very long and exhaustive changes](/README.md#full-exhaustive-very-long-and-exhaustive-changes)\
 [Main Changes Guide](/README.md#main-changes-guide)\
 [UI (Main Menu)](/README.md#ui-main-menu)\
@@ -206,21 +208,27 @@ These are from autoplay or me playing them myself (for the 4986 rome AI screensh
 
 See also [the CFC AdvCiv-SAS Discussion Thread here](https://forums.civfanatics.com/threads/advciv-sas-simple-advanced-strategy.699716/) as well, or the google drive link (see [Docs section](/README.md#docs) for link below) for more gameplay samples although some of these may be old/dated now.
 
+## How to play?
+
+If you are a new player or want to play this mod and would like a few instructions on how to install it and play it, i have provided a few instructions in the [README_Quick_Install_Setup_Guide.md](/_1_AdvCiv-SAS/Docs/README_Quick_Install_Setup_Guide.md)
+
 ## Docs
 
 About the mod AdvCiv-SAS in general, i added quite a bit of documentation, pictures, and other elements about this AdvCiv-SAS mod in [/_1_AdvCiv-SAS/](/_1_AdvCiv-SAS/)
 
 Additionally, some extra files can be found on this google drive: [full AdvCiv-SAS google drive folder link](https://drive.google.com/drive/folders/1thBnA_TzWq2psd8Tg8RaorwmPZzqgN9M?usp=sharing).
 
-## How to play?
-
-If you are a new player or want to play this mod and would like a few instructions on how to install it and play it, i have provided a few instructions in the [README_Quick_Install_Setup_Guide.md](/_1_AdvCiv-SAS/Docs/README_Quick_Install_Setup_Guide.md)
-
 ## Full exhaustive very long and exhaustive changes
 
 If you want to see the full very exhaustive code changes between the current base AdvCiv release and AdvCiv-SAS, it can be viewed in this [pull request compare](https://github.com/wonderingabout/AdvCiv-SAS/pull/39). However it is very lengthy, read below for the main pointers rather.
 
-As for the changelog between releases of AdvCiv-SAS, see the [github tags](https://github.com/wonderingabout/AdvCiv-SAS/tags) that for each release show the list of changes in git history format since the previous release.
+For release-by-release AdvCiv-SAS history, see:
+
+	- the [published web changelog archive](/_1_AdvCiv-SAS/Docs/changelogs_web/) for the contemporary CivFanatics/ModDB release text
+	- the [AdvCiv-SAS Git log](/_1_AdvCiv-SAS/Docs/git_logs/) for detailed commit history
+	- the [GitHub tags](https://github.com/wonderingabout/AdvCiv-SAS/tags) for release boundaries and Git history/compare references.
+
+For older, pre-AdvCiv-SAS (e.g. AdvCiv, K-Mod) history or other historical/misc docs/artifacts, see also [/_0_Common_Docs/](/_0_Common_Docs/).
 
 ## Main Changes Guide
 

@@ -42,10 +42,6 @@
 # <!-- custom: Keep LLM_Helpers in GitHub/source ZIP downloads because it contains compact review/tuning scripts and docs, notably make_light_source_zip.py, that help LLM/code-agent analysis.
 # Generated LLM_Helpers/outputs files stay out through .gitignore. (GPT-5.5) -->
 
-# <!-- custom: Keep web release-changelog examples, drafts, and continuation checkpoints tracked for clones/future user+LLM release work, but exclude the whole working folder from player/download archives so individual files never need separate export-ignore entries. (ChatGPT-5.6-Sol) -->
-/_1_AdvCiv-SAS/Docs/Modding_Ressources/changelogs_web/    export-ignore
-/_1_AdvCiv-SAS/Docs/Modding_Ressources/changelogs_web/**  export-ignore
-
 # <!-- custom: Keep source-analysis progress and albums tracked so future clones and AI/LLM helpers can resume them, but exclude the whole development-analysis folder from player/download archives.
 # Future C++/Python/XML or other analyses need no individual export-ignore entry. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 /_1_AdvCiv-SAS/Docs/Source_Analysis/    export-ignore
@@ -77,7 +73,7 @@
 /CvGameCoreDLL/Project/temp_files     export-ignore
 /CvGameCoreDLL/Project/temp_files/**  export-ignore
 
-# <!-- custom: include most doc or debug as not too heavy and may be useful if downloaded as ZIP (manual.odt, manual.txt, CIV4BUG_Sourceforge_net_All_Classes_Doc, git_logs folders, Modding_Ressources, Sevopedia/Debug/) -->
+# <!-- custom: include most doc or debug as not too heavy and may be useful if downloaded as ZIP (manual.odt, manual.txt, CIV4BUG_Sourceforge_net_All_Classes_Doc, git_logs (as of now non AdvCiv-SAS), Docs/git_logs (as of now AdvCiv-SAS), Docs/changelogs_web, Modding_Ressources, Sevopedia/Debug/) -->
 /Assets/Res/Fonts/other_mods/                             export-ignore
 
 # <!-- custom: Keep a full raw SASGameRecord sample in git for LLM/dev review, but exclude it from GitHub Download ZIP / release archives because the log is large and diagnostic-only. (GPT-5.6) -->

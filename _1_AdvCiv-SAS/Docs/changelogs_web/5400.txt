@@ -1,0 +1,118 @@
+release date: Jan 31, 2026
+source: https://forums.civfanatics.com/resources/advciv-sas-simple-advanced-strategy.32513/update/37266/
+retrieved: Oct 7, 2026 by wonderingabout (manual web copy)
+
+- AI
+	- Stack attack order — spend expendables first: stack attacks now prefer bombard/collateral and low-effective-strength/low-XP units first (once the stack commits to attack), preserving elite finishers. Rationale: economically efficient (older/weaker units cost upkeep but scale poorly) and strategically safer (keep high-value units for decisive blows or retreats). Change in CvSelectionGroupAI::AI_getBestGroupAttacker. Toggle via SAS defines for A/B testing. See KI#89.
+	- Scrapping update: Exception: Allow scrapping for units that have an `ObsoleteTech`. They are less efficient to keep. - Remove the old anti cheap unit system: the ObsoleteTech one is more efficient and versatile, as well as cleaner and much tighter to do the same. Plus ingame we get even better results it seems (less ancient macemen) at a glance
+	- Add scrap tolerance beyond unit support costs: we expect to lose a few units during war; having a few extra units helps us not become weaker than our rivals; overshooting may lead to bankruptcy. Formula: `mult * (era + 1) + add` extra units.
+	- Heavily increase the importance of XML Unit Cost (Hammers) (reliable reflection of a unit's overall strength: e.g. A 4 Strength Trebuchet at 80 Hammers Cost is stronger than a 5 Strength Axeman at 35 Hammers) when deciding which unit to scrap first, and reduce the importance of experience: A 0 XP swordsman is more valuable than a 10 XP we will likely never upgrade. Also account for map heaviness (e.g. prioritize scrapping land units on archipelago, or galleys on pangea). Change in CvPlayerAI::AI_disbandValue.
+
+- Game Speeds
+	- New Game Speeds: `Slow (1500 turns / 300%)` and `Very Slow (2000 turns / 400%)`, slower than Marathon (1000 turns / 200%); and `Turbo (250 turns / 50%)` and `Nitro (165 turns / 33%)`, faster than Quick (330 turns / 67%), that should provide varied experiences. See full game speed details in the new Sevopedia Speeds category.
+	- Clarified and made more outwardly visible the Game Speed information: e.g. `"Normal (500 / 100%)"` bullet; `Epic (750 / 150%)` bullet; `GAME SPEED (50 000 BC - 2105 AD)` header, and clarified other fields.
+	- Reordered them in XML from fastest to slowest so they appear in this order in the UI (Main Menu)'s "Play Now" Game Speed section.
+	- Fix base AdvCiv `iExtraFreeOutsideUnits` incorrect default bug: Faster-than-Marathon speeds ended up with 100 extra free outside units due to two issues: the `iExtraFreeOutsideUnits` XML tag was missing for those speeds, and the DLL fallback default for that tag was incorrectly set to 100 (Marathon explicitly had 1). Fixed by changing the DLL default from 100 to 0, and by adding the missing `iExtraFreeOutsideUnits` game-speed XML field with a value of 0 so nothing relies on defaults. Also added `iUnitCostPercent` in XML for exhaustiveness (value 100) without changing its DLL default (100) since it was correct. Spotted thanks to the new Sevopedia Game Speed Chart. See: KI#92.
+
+- World Size/Scaling
+	- New World Sizes: `SAS24`, `SAS32`, `SAS40`, `SAS48`, bigger than Huge (Recommended for about 24, 32, 40, 48 players). They are modified versions of the XXL World mod's largest maps. Recommended DLL to play these is the 48 Civs DLL that is provided in AdvCiv-SAS. Also a new `Arena` World Size smaller than Tiny. See full World Sizes details in the new Sevopedia W. Sizes category.
+
+- Handicaps
+	- `iGPThresholdPercent` (great person) stay constant for the human (AI equivalents scale with handicap).
+	- `iBaseGrowthThresholdPercent` (base food required to grow a city): Fixed at 100 on all handicaps. Rationale: In base AdvCiv this value varies by difficulty to add a human growth/expansion penalty (and it can also shift early expansion pacing via settler cost logic tied to the initial growth threshold). Consequence: Removing this scaling makes high handicaps (e.g. Deity) easier for the human player (faster early growth/expansion than base AdvCiv), and makes low handicaps (e.g. Chieftain) harder for the human player (less of an early growth/expansion boost).
+
+- Builds
+	- Remove Jungle and Chop Down a Forest builds now use distinct buttons. These are visible both in the Technology Advisor and in Sevopedia Techs' Enables and in the new Sevopedia Builds category panel.
+
+- Eras
+	- Add new XML field `<Button>` for eras, to cleanly display them in Sevopedia and ingame without having to hardcode the path.
+
+- Civilizations
+	- Change Kingdom of Benin's civilization sounds from using Ethiopian's sounds to now using Mali's sounds (CivilizationSelectionSound and CivilizationActionSound) (now same as in the History Rewritten mod).
+
+- Leaders
+	- Switched De Gaulle from Louis' music in Base AdvCiv to Base Civ4's Napoleon's music, and added an AdvCiv-SAS specific new music for Napoleon so each leader has its own specific music, see KI#98.
+
+- Units (Common)
+	- New optional XML field: `ObsoleteTech` for units: if set, this unit can no longer be produced once we have discovered this tech (e.g. Ancient Maceman (`UNIT_WARRIOR`) obsolete at `TECH_BRONZE_WORKING`). This XML field is optional: if not set (`<ObsoleteTech>NONE</ObsoleteTech>`, e.g. for the `UNIT_SETTLER`) or missing entirely (better inter-mod portability), a fallback default of `NONE` is provided anyway, so the unit is never obsolete, meaning no tech discovery will stop allowing to produce it (base AdvCiv/Civ4 behaviour). This new XML field allows to avoid unit clutter in later eras (no more abherrent obsolete units in later eras (e.g. Ancient Maceman produced in Medieval Era; Pikemen in Industrial Era)) being produced or shown in the Production Chooser Bar. AI becomes naturally stronger as a result of these changes. Additionally, this also helps set clean scrapping rules to computationally cheaply detect and remove old units for the AI's military compostion, or further enhancements. See also KI#93.
+
+- Units (Military)
+	- Set the ancient maceman's obsolete tech to TECH_ANIMAL_HUSBANDRY for hammer and military efficiency: this unit is useless after the very early game, yet AIs often produce it; humans would have little to gain from stacking them past a certain point fairly early in the game, so make their ObsoleteTech sooner than when we unlock their upgrade (which is as of now the Axeman). By that new tech, we should have archers as a fallback, or should research its tech anyway. Thematically, this is around the time when we domesticate animals, so we no longer have to fight them, if that makes sense. Gameplay wise, we unlock slavery around that time. Most importantly, this tech is on the Hunting path, so it as of now guarantees archers are available.
+
+- UI (Main Menu)
+	- Beautified the Main Menu's Play Now screens: removed the margins and reduced the radio buttons' vertical spacing so more information is displayed and the need for scrolling is reduced.
+	- Make the Globe animation in "Play Now" use real scaling instead of demonstrative one, e.g. the new World Size Arena has a ratio to World Size Standard of 0.128, so its model only has 12.8% of the size of the standard-sized globe, and vice versa for sizes bigger than standard. This aims to provide a better representation of real world size differences. See the new Sevopedia W. Sizes Chart category.
+
+- UI (Common)
+	- Worker builds that remove a feature now redirect to the corresponding new Sevopedia Builds page. Applies to any caller (e.g. Technology Advisor, Sevopedia Tech, Sevopedia Builds itself) using the `WIDGET_PYTHON` `6798` approach. See also KI#97.
+
+- UI (Sevopedia)
+	- the Default First Sevopedia category opened is changed from hardcoded Sevopedia Techs no matter its position to now whichever category is the first in the category order.
+	- Sevopedia Index is now moved from the Tabs (bottom) to its own category for easier access and navigation between categories. Also implements the Search Bar.
+	- Beautify Sevopedia Main: Reorder categories and change category icon characters.
+	- Handicap Chart: new category to see all handicap XML values in a sortable chart, notably by icons (first column), which allows to group them by theme (e.g. war, gold, knowledge, etc.).
+	- Game Speed Chart: similarly a new category to see all game speed XML values in a sortable chart, notably by icons (first column), which allows to group them by theme. In particular, they allow to see the full Calendar/Timeline information in lines such as `"+2*10k=30k"` or `"+40*m2=2076m9"` for each month increment and each game speed; and the Culture Level Infos at each game speed. For convenience, additional fields are added (e.g. or `Total Turns*` 165 at game speed Turbo) and marked with `*` to distinguish them from regular XML info fields..
+	- World Sizes Chart: similarly a new category to see all World Size XML values in a sortable chart. Similarly, for convenience, additional fields are added (e.g. or `Ratio to Standard*` 3.640 at World Size SAS24), `Ratio to Largest*` (e.g. "0.502" for SAS24 World Size), `Tiles Per Default Player*` (e.g. 145 for World Size Huge), or `Recommended DLL*` (e.g."48 Civs" at World Size SAS24) and marked with `*` to help identify them.
+	- Similarly, added a new Eras Chart category with sortable entries including the list of techs for all eras, and notably optional era buttons.
+	- New Media Player (shared between Sevopedia Movies and Music): supports Replay, Eject (Exit), Previous Track and Next track, Toggle Movies/Music, Fast Up and Fast Down (change grouping), Timer, and a Playlist and a TV panel on the right side for non-bik files (e.g., for nif, dds), or a more compact queue form for bik files. This allows to view without having to exit the screen. Click on Eject button or Right-click to stop the media playing; press Escape or Enter key for main menu.
+	- New Movies category (bik, nif, dds) for Victories, Wonders, Projects, Religions, and Eras, additional audio support for non-bik files (e.g. Religions have a nif + separate audio asset). Play button added in related Sevopedia categories to redirect to their entry in Sevopedia Movies.
+	- New Music category: allows to play ~1750 audio scripts (i.e. files) in Sevopedia, notably for Techs, Leaders, Eras, Civilizations, and many other. Play button added in related Sevopedia categories to redirect to Sevopedia Music. Approach broadly similar to that of Sevopedia Movies. Search bar support and widening allows to find desired tracks. Note: there are multiple sounds in an item for each civilization sound item, so replay many times the same item to hear all civilization sounds.
+	- Added a new Sevopedia Builds category (e.g. "Remove Jungle", Chop Down a Forest, "Build a Road", "Create a Farm") distinct from Sevopedia Improvements, notably with FeatureStruct panels and mod-agnostic new Civilopedia blurbs-based Background panel (added the new XML field `Civilopedia`> to BuildInfos). Also added them to Sevopedia Index as clickable entries with buttons.
+	- Sevopedia — Improvements: Added a new sortable Improvement Weights (Leaders) Chart, showing Weights, Count per Weight, and clickable Leader buttons for each weight and improvement.
+	- Sevopedia — Leaders: Beautify Traits with icon characters. Make a free promotion's UnitCombats span in the same line instead of taking too much vertical space, and add a blank line between Traits for readability. Also add linking to their corresponding Sevopedia Traits entry.
+	- Sevopedia — Traits: New Trait Charts: 2 sortable charts showing how widespread pairs are in a Trait, and ranking for each Trait combination, with clickable leader buttons. The Leaders' panel's header shows statistics (e.g. "Leader 12/53 (22%)"). Additionally, Beautified and added a new Background panel with mod-agnostic blurbs.
+	- Sevopedia — Techs: New Starting Techs Charts: sortable charts showing Civilization pairs and combinations for each starting tech, mirroring the Traits' Charts. New Untradeable Techs Chart shows per era untradeable techs similarly. Add a new Obsoletes panel showing Buttons (i.e. icons) of obsolete assets, with an updated thinner RedX art. Also beautified with a new Enables panel enriched with more information (Civics, Promotions, Bonuses, various effects such as "Centers World Map", "Can Adjust Commerce Rate", etc.), and a new First to Discover panel (Founds Religion, Receives a Great Person, Receives a Free Tech) and Untradeable panel for the currently selected tech (Emoji or "Yes").
+	- Sevopedia — Specialists: new Extra Slots (showing slot, free slots, unlimited specialists) and Extra Yields panel showing detailed yield information per asset for each specialist.
+
+- UI (In-game)
+	- Additionally, added in the Info Screen (F9 key) a new History Tab, showing a text-colored spoiler-free account of the key moments that happened each turn. Based on the ReplayScreen's text, so preserves information on save reload unlike the Event Log. Optional LOG button allows to export to `PythonDbg.log` text file the output, and has optional caching for performance.
+	- Main Interface (Common): Moved minimap to the right-edge for quicker read. Add details to most progress bars; e.g. in the Tech bar `Fusion: 2245 / 5774 (35)`. Show chars in the GP bar even if 100% (e.g. `Great Scientist: Lyons (3) - [RESEARCH_CHAR] 100%`)
+	- Main Interface (City Screen): added a new Culture Breakdown mirroring the Specialists Breakdown; optionally hide the unit bar (`"PlotListPanel"`) (note: does not affect the production chooser outside of the city screen); added Buttons (i.e. icons) in the Production Queue; Enhanced the city bar and other bars, e.g., `Lakamha: 16 - 12372 (4500BC)` or `Growing - 30/43 (4 Turns)`. Split the Draft group into hurry controls on the right (and a new draft button) and config options on the right. Add building list filtering buttons ("Show All Buildings", "Show Regular Buildings Only", "Show National Wonders Only", "Show World Wonders Only"). And other changes. See also KI#101.
+	- Main Interface (Map View): Reordered buttons (end turn, city change arrows) and wrapped them in a pretty panel. Added buttons to unit stack, selected unit.
+	- Inverted BUG Options for the Technology Advisor and the Religious Advisor so they are more accessible. They are now enabled as a default, and ticking their box disables them. Rewrote their text for clarity (e.g. "GP Research" -> "Hide bulbing indicators").
+
+- General changes
+	- Hints: remove multiple copies of the same hint.
+
+- Renaming
+	- Rename UnitCombats for concision or accuracy: "Recon Units" -> "Recon"; "Siege Weapons" -> "Siege"; "Helicopter Units" -> "Helicopters"; "Armored Units" -> "Armor"; "Naval Units" -> "Naval"; "Gunpowder Units" -> "Gun" (was inaccurate since gunpowder is no longer used in modern guns).
+	- "Difficulty" → "Handicap" (matches Civ4 naming).
+
+- Code/Performance optimizations
+	- Heavily refactor and simplify Sevopedia Main so it is much easier to add, reorder, or modify or otherwise maintain categories. See https://github.com/wonderingabout/AdvCiv-SAS/commit/aca192481508a3cac3e8812dc970aebc8675b874
+	- Move groupings logic from SevoPediaMain.py to _sevopedia_main_groupings.py + refactor/perf opt: do not re-sort in sevopedia groupings
+	- Remove gc and localText as parameters or local variables or such when not relevant in _sevopedia_helpers.py and related files
+	- Move Leader AI Personality Panel computation to SevoPediaLeaderAIPValues.py
+	- Found-value evaluation now uses `int` end-to-end (CitySiteEvaluator, AIFoundValue, CvPlot cache, SPI, Python callback), not `short`. Why: avoid overflow/underflow and short wraparounds in site scoring; keep the logic the same while improving reliability. Expectation: more robust site values, fewer edge-case penalties/boosts from short overflow; no known negative gameplay change. Performance: `int` is typically at least as fast as short on modern CPUs; no slowdown expected. Tested: autoplay ran fine.
+	- Removed the old clunky Base AdvCiv's `CONCEPT_TRAIT` XML clutter. Now using the more efficient `WIDGET_PYTHON` similarly instead.
+	- Merge into CvCityAI::SAS_AI_findBestFallbackUnit the common duplicated logic in CvCityAI::AI_chooseUnit and CvCity::doTurn
+	- Cache once per session precomputed Sevopedia Traits' Charts and Sevopedia Improvements' Weights (Leaders) Chart on category open before any entry is clicked on. This uses a simplified version of the AI Personality Panel's caching approach.
+	- Make paths absolute in .gitignore to fix folders with an identical name being incorrectly ignored; add .gitattributes for more precise archiving.
+	- > ~500k characters reduced or moved to Long_Comments/ and still ongoing.
+
+- Other Bug and Crash Fixes or Tweaks (if not mentioned above)
+	- (Fixed) Base AdvCiv bug of Sevopedia Index using the Religion's button instead of the corporations. See KI#90.
+	- Replace camel weirdly drawn tga from rfc doc's with the middle-earth mod's one, which matches the art used in the camel button and is prettier. Done with the very nice Game Font Editor (V0.6) for Civ 4 by Asaf: https://forums.civfanatics.com/resources/game-font-editor-v0-6-for-civ-4.17276/ thanks a lot!!
+	- Fix Base AdvCiv bug of opening last visited category instead of the index (or in AdvCiv-SAS hints category instead of last visited). Was happening in AdvCiv-SAS for other categories last visited like charts too, or Hints or such in base advciv too. See KI#94.
+	- Fix Base AdvCiv issue of Back button not leading back to Hints or Index that we last visited. After previous issue with exiting Sevopedia, this also fixes the Back Tab not leading back to last visited category when it was Hints or Index. See KI#95.
+	- Fixed/Enhanced Base AdvCiv issue of Obsoletes spanning vertically with one bullet each instead of horizontally, with the help of Claude code Sonnet 4.5, which was a problem when we had many of them. See KI#96.
+	- fix Sevopedia Terrain's Hills' Improvements' formula
+	- fix base advciv bug of unallocated txt key (unwrapped in TEXT XML text, moved to long comment instead, see KI#99)
+	- (Fixed) Base AdvCiv major CvSelectionGroup::plot crash. See KI#100.
+	- (Fixed) Base AdvCiv bug of GP bar tooltip in city screen not showing GP from obsolete buildings yet seemignly counting them for the total GP calculation. See KI#101.
+	- remove CIV4CityLSystem.xml: we had mistakenly imported the Warlords version of this file instead of the BTS one. Since the BTS one does not harcode any asset name, we don't need to reimport this file at all. Should fix the issue of building models not showing in map view as per player feedback in https://forums.civfanatics.com/threads/advciv-sas-simple-advanced-strategy.699716/post-16914675. Note: CIV4PlotLSystem.xml has been double-checked to minimally be based on the BTS version of this file, plus it uses assets like BONUS_GRAPES (or _WINE in Base AdvCiv) so kept.
+	- Fix base AdvCiv crash at 332 related to CvCity::getProductionBarPercentages. See KI#102.
+
+- Various other performance optimizations and refactor/tweaks
+
+- 48 civs DLL included
+
+Heavy inspiration for some of these new features and changes from the Middle-earth mod [USER=177536]@topsecret[/USER] and C2C mod [USER=86969]@strategyonly[/USER] [USER=118350]@JosEPh_II[/USER] with extra enhancements by our AI helpers including in particular but not only GPT-5.2-Codex, Claude code Opus 4.5, Claude code Sonnet 4.5, GPT-5.2 Thinking.
+
+Update: 2026-01-31 (1 hour after release):
+
+- minor fix military tradition audio quote using the wrong variant of the metal casting audio quote. Spotted thanks to the New Sevopedia Media Player.
+
+If you downloaded the AdvCiv-SAS 5400 first released version before, just redownload from same link: it now has the updated file. Since this is a minor change i didn't make a new release for it.
+
+Full Cumulative file changes and git commit history from AdvCiv-SAS 5282 to 5400 viewable at https://github.com/wonderingabout/AdvCiv-SAS/compare/1f9b99fd955e07d83cd3984be22b61bad3bc4220...24cfc0803db7251f521f0b9b6df1c620109ae3a8

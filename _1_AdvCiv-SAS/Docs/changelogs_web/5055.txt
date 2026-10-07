@@ -1,0 +1,43 @@
+release date: Oct 10, 2025
+source: https://forums.civfanatics.com/resources/advciv-sas-simple-advanced-strategy.32513/update/36819/
+retrieved: Oct 7, 2026 by wonderingabout (manual web copy)
+
+- Significantly stronger AI than in AdvCiv-SAS 5030, in particular in the early game offense, and renaissance to end game offense (heavily relaxed siege thresholds at renaissance and later eras (our gates were too strict at these eras, resulting in single digit or very low cannons count, even when no other alternative than pikemen was available, as a result AI now uses cannons a lot more, while still being conservative with catapults and trebuchets), relaxed early siege thresholds a bit (helps when catapults and trebuchets are our only offensive unit but not only, also helps supports early rushes better in autoplay it seems as well), removed UNITAI_COUNTER for units where it was bad/ineffective (chariots, cartage numidian cavalry), added offense only (default) and defense only logic in no production fallback unit code (in CvCity::doTurn anyways etc), both fallback as well to any eligible land combat unit if we have no offense unit in offense only or no defense unit in defense only: tunable in sas globaldefines (https://github.com/wonderingabout/AdvCiv-SAS/blob/tech-rework/Assets/XML/GlobalDefines_advciv_sas.xml), added anti very cheap unit logic in the no production fallback unit code as well (reduces seemingly reliably ancient macemen or such that escaped the AI_ChooseUnit gates); results in significantly stronger early game (offense mostly if we can, else defense rather than always a bit too much longbowmen): e.g. De Gaulle AI has a 7 chariots + 3 catapults stack invading a rival at monarch at normal gamespeed at turn 100 vs not before we had too much longbowmen), e.g. 2: Charlemagne AI +/- 50 cannon class units at turn 250 vs less than 10 before this change (quite often spamming pikemen even when we have cannons available, and no muskets yet, which was very bad, although siege gates were nice especially against trebuchet spam, they are now more flexible))
+
+- balance fixes (some units had the effects of other units: e.g. the persia_immortal and the greek_hoplite were in other units, so they were a bit too weak while other were too powerful, etc.) and adjustments (rebalance culture buildings to be stronger (colosseum class, etc.)), buffed or reworked several civ-specific units (cannon class (see below), french_musketeer, etc.)
+
+- allow copper for some civ-specific units: roman_legionary, persia_immortal (the gallic_warrior had it, plus bronze at this era is plausible), and other units (see below). Not added to generic units (e.g. the generic unit_swordsman of all civs) to keep strategic importance of iron anyways etc.
+
+- allow pikemen to upgrade to musketmen (they would use a nearby gun if they had it and not wait to die to cuirassiers, against which they are also useless now (unitcombat_polearm vs unitcombat_mounted_ranged is very ineffective)), helps AI produce less of them as well
+
+- remove TRAIT_EXPANSIVE was overlapping with our more general TRAIT_PROTECTIVE (does not just protect defensively in our mod but also more generally protects health too and also has no anarchy (protects political stability more or less anyways etc)) and empire-expansion related TRAIT_IMPERIALIST (settler discount same, but also trade route based scaling yield modifiers), so TRAIT_EXPANSIVE was redundant. Also, it was among weakest (flat health not so helpful) and hardest to balance (most often weak or some (very in this case i mean but anyways etc) rare times op).
+
+- overhaul all traits with a focus on historical accuracy most importantly, but also gameplay relevance (+/- civ-specific building and unit timing and effects as well but anyways etc) and overall civ theme to a lesser extent, with the help of chatgpt 5 and multiple rounds of review, +/- other AIs or not so much but anyways etc. For example, julius caesar has been changed from organized + imperialist to aggressive + imperialist (war theme and strength), hammurabi has been changed from organized + aggressive to organized + protective (more of an administrator + defensive civ overall if i'm not mistaken but anyways etc), saladin has been changed from protective + spiritual to spiritual + charismatic (more of warmonger in civ4 + historical warmonger and charisma), isabella has been changed from spiritual + expansive to spiritual + aggressive (very ruthless campaigns), charlemagne has been changed from imperialistic + protective to aggressive + organized (more controversial according to chatgpt 5 but he was focused on conquest and doing admin of his empire. He seems to perform nice in some games so i hope this helps mesh better with his more aggressive overall civ4 profile if i'm not mistaken but anyways etc), or hatshepsut has been changed from spiritual + creative to spiritual + financial (historically more accurate according to chatgpt 5, plus will most likely buff her if i'm not mistaken, which is nice i think if i may say but anyways etc). See for the list of all changes with a before vs after comparison as well as rationales the table at https://github.com/wonderingabout/AdvCiv-SAS/blob/tech-rework/_1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md#new-state-after-rework-with-rationale-andor-such-anyways-etc anyways etc. Note: as of now leaders' flavors unchanged for simplicity vs base advciv but anyways etc
+
+- removed trait_expansive related building modifiers (they were the granary and harbor in advciv-sas before, removed as too generic and op plus no good/relevant candidate to replace them in a balanced way but anyways etc)
+
+- fix missing FreePromotionUnitCombat in all unitcombats for trait_protective and some unitcombats for trait_aggressive.Hopefully works fine now in this case i mean but anyways etc and buffed the eleigible units' unicombar types since but anwyays etc
+
+- swapped the imperialistic and organized traits' logos/icons
+
+- buff and rework most traits (e.g. trait_spiritual is more about religion now, and trait_creative is more about cultural happiness anyways etc) anyways etc
+
+- fix incorrect iron vs metal on renaissance bonus valuing logic (cannons need iron not no bonus, plus logic was checking for all metals, when copper is largely obsolete at renaissance (unlike in middle ages but anyways etc), so fixed logic)
+
+- fix dual counting bug (as of now was only affecting siege units)
+
+- replace the "HOLY_ROMAN_LANDSKNECHT" with the "HOLY_ROMAN_HOUFNICE (cannon-based, better match with holy roman empire's aggressive profile, medieval window was too tight, and the old landsknetch was obsolete too soon in combat by the time it was produced). Note: can also use copper for this civ-specific unit (as per above change: plausible bronze artillery). Note 2: as of now high copper value at renaissance for holy roman empire buyer trading logic not implemented as tedious. Note 3: overall very good results ingame it seems, in one run Charlemagne AI made a decisive push from turn 200 building many houfnice units and winning (see https://forums.civfanatics.com/threads/advciv-sas-simple-advanced-strategy.699716/post-16875736) for example anyways etc.
+
+- reduce tech costs a bit in the mid game until end game (they were still quite a bit too high for AIs and all players to keep up with timeline, now a bit better anyways etc. I don't want to reduce it too much to punish overbuilding military, so that players who build less units may be rewarded by higher tech advantage and possibly comeback (if they don't die xd but anyways etc)).
+
+- performance optimizations
+
+- minor UI enhancements in sevopedia
+
+- 48 civs DLL included
+
+- various other tweaks and fixes
+
+Recommended to upgrade to this new version if you are using 5030 or an old version.
+
+see for full changes: commit history from AdvCiv-SAS 5030 to 5055 viewable at https://github.com/wonderingabout/AdvCiv-SAS/commits/tech-rework/?since=2025-10-04&until=2025-10-10 or at https://github.com/wonderingabout/AdvCiv-SAS/compare/e3ecaf41449b5a4415d3a98ff0c68c0d0ccd7738...b8c861af13f28c070022e1bcca3c48e6040bc174

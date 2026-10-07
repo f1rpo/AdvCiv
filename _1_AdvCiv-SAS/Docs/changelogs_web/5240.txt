@@ -1,0 +1,45 @@
+release date: Dec 23, 2025
+source: https://forums.civfanatics.com/resources/advciv-sas-simple-advanced-strategy.32513/update/37055/
+retrieved: Oct 7, 2026 by wonderingabout (manual web copy)
+
+A hotfix version that massively increases AI strength, and extensive UI Reworks (Sevopedia, Military Advisor, and City Screen).
+
+- AI (Major Strength increase due to bugfix):
+	- replaced hardcoded CvUnitAI::getBonusSpecificLandBuilds which somehow leads to much more cities at turn 100 and much faster tech pace, and stronger military. Much higher score for all players as well in score board at turn 100 vs turn 200, reproducible too.
+	- e.g. test 1 noble pangea large map:
+    	- t100: before: scores from 267 (top) to 199 (bottom) -> after: 387 to 265
+    	- t200: before: scores from 721 (top) to 281 (bottom) -> after: 1140 to 414
+	- e.g. test 2 monarch pangea large map, swap autoplay order, same results:
+    	- t100: before: scores from 380 (top) to 225 (bottom) -> after: 452 to 240
+    	- t200: before: scores from 1168 (top) to 667 (bottom) -> after: 1211 to 628
+
+	Cause of these results is most likely either fixing a bug in a recent CvUnitAI::getBonusSpecificLandBuilds, rework that moved them to xml hardcoded defines in an incomplete way, now they are automatically fetched by the DLL without needing XML defines which should be cleaner and more reliable, or the cause could likely be removing a +/- 9000 char code comment to a separate .txt file in case it caused issues as it was the only other change at this commit. Regardless of which cause it is, AI is measurably stronger so this warrants a release.
+
+- Technologies
+	- increase tech costs to match this AI strength increase (else they tech too fast): 875->950, 1150->1250, 1700->1750, 1900->1950, 2050->2075
+
+- UI (In-game)
+	- Military Advisor: added Unit Combat and Units buttons (i.e. icons) with the help of chatgpt 5.2 and claude opus 4.5 thanks.
+	- City Screen: added Buttons (i.e. icons) in the Production Queue.
+
+- UI (Sevopedia reworks & related)
+	- Entries Grouping: Depending on the Sevopedia Page, Sevopedia lists are now grouped: by Civic Type (e.g. Government, Economy) in Sevopedia Civics; by Era Type (e.g. Ancient Era, Classical Era, No Tech Prerequisite (available at any era)); by Specialist Type (e.g. Engineer vs Great Engineer) in Sevopedia Specialist; by Improvement Type (e.g. Farm -> Wheat/Maize, Pasture -> Sheep/Pig) in Sevopedia Bonus; by Land/Water (e.g. Land Improvements -> Farm/Pasture, Water Improvements -> Fishing Boats/Offshore Platform) sometimes with additional subgroups. Code implemented in SevoPediaMain.py. Mostly based on RFC DOC mod, with some ideas from the Middle-earth mod too (land/water groupings in particular), then implemented with the help of chatgpt 5.2.
+	- sevopedia building: fix ironworks requiring coal+coal instead of coal+iron
+	- sevopedia building: the great person button in sevopedia building can now be hovered and and successfully redirects to the specialist's corresponding sevopedia page.
+	- fixed Base AdvCiv bug, in sevopedia bonus, in the aluminium bonus' entry, of all project tooltips showing the Apostolic Palace and redirecting to it instead of showing the project's tooltip and redirecting to said project, with the help of chatgpt 5.2 thanks anyways etc
+	- minor beautify and polish sevopedia projects
+
+- Buildings
+	- Great Person Buildings (e.g. Academy, Scotland Yard) now require a tech (e.g. `TECH_LITERATURE`, `TECH_MONARCHY`) so they appear in the tech tree and in the Sevopedia Building's corresponding group rather than in the "No Tech Prerequisite" group. This may make strategic considerations more specialized and help slightly curb military beelines in particular.
+
+- Units
+	- UNITCLASS_SPY: change tech prereq from TECH_MONARCHY to TECH_CALENDAR
+	- Executives now require the same Tech(s) to be built as their corresponding corporation's does (e.g. `TECH_MARINE_TECHNOLOGY` and `TECH_CORPORATION` for the Sid Sushi's executive unit; was `NONE`.) to be built. This simplifies the Sevopedia Unit Era grouping implementation so they are correctly listed (e.g. "at Modern Era", not at "No Technology Prequisite"), and executive's effective availability (i.e. not until the later eras). This also balances rival city acquisition so a player cannot produce executives if we do not have the corresponding Corporation in the city (mirroring the shrine prerequirement change).
+
+- code cleanup, refactor, and performance optimizations
+
+- update 48 civs DLL
+
+Reminder: many of these new settings are partially or entirely tunable in GlobalDefines_advciv_sas.xml
+
+Full Cumulative file changes and git commit history from AdvCiv-SAS 5210 to 5240 viewable at https://github.com/wonderingabout/AdvCiv-SAS/compare/39914c9b3d5f0422b05cab7fbba55d088658932a...b5ecf7a37ae7330c65384a4f880d20d344193230

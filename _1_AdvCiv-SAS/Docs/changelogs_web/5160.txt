@@ -1,0 +1,115 @@
+release date: Dec 5, 2025
+source: https://forums.civfanatics.com/resources/advciv-sas-simple-advanced-strategy.32513/update/36979/
+retrieved: Oct 7, 2026 by wonderingabout (manual web copy)
+
+Significantly stronger AI since AdvCiv-SAS 5082, as well as reworked tech tree and civics to increase balance and versatility (new strategic options), and quality of life updates (including human convenience new options such as auto artist for bfc, no auto citizen in cities, etc.), and other changes:
+
+- Significantly stronger AI:
+	- increase willingness to build the heroic epic effect building even if danger is moderate (riskier short-term as we'll have less units, but better longterm as we'll have less units early -> better economy + better scaling mid/late game since we'll be able to produce more and have a stronger military when our economy can handle it).
+	- Fix the issue of AIs autopicking/overvaluing the former civic_emancipation (or any civic with iCivicPercentAnger) just because other rivals have it regardless of how good the civic itself is (the former civic_emancipation was really weak yet still picked by AIs)
+	- reduce excessive civic oscillation by adding a min slack percent requirement before civic switch (e.g. civic must be at least 10% better than our previous one else we won't switch)
+	- Fix the issue of civics that give specialist extra commerce being almost never picked during the entire game (vs for example civic_heridetary_rule) by valuing commerce per specialist more: results in much more varied civics picks by AI
+	- Fix and enhance AI spam of pikemen or other land direct combat units at renaissance+ (was very inefficient and ineffective militarily and economically)
+	- devalue researching techs our vassal(s) or master already knows as this is inefficient
+	- Implemented preferrential master<->vassal(s) tech trading (heavily more and for all techs, not just the ones that overlap with what our master/vassal(s) already knows)
+	- also added vassal<->vassal(s) siblings devaluation to self research logic (if any of our sibling vassal(s) has the tech, devalue researching it ourselves)
+	- also added vassal<->vassal siblings extra tech trading chance similarly
+	- Whenever we want to contact players outside of our master-vassal(s) locus for a tech trade, first check if a member of does not already have the tech, and if so do not contact outsiders (in the hope we indirectly trade more with players within our locus rather).
+	- If not between members of the same master-vassal(s) locus, added an alternative military power based tech trade contact chance modifier, so that we have a higher chance to trade with militarily weaker players to us (safer, less likely to backstab us) and a lower chance for stronger players to us (more likely to become our ennemies or to bite us back in some way).
+	- overhaul FLAVOR_MILITARY of techs so AI better understands/values the military importance of techs (e.g. TECH_CORPORATION 3->0 , TECH_CIVIL_SERVICE 3->8)
+	- value researching key military techs much more when we are weaker, as economy or such techs are useless at best, or at worst we'd just be researching them for our ennemies after they conquer us.
+	- When we are evaluating the value of techs in tech trades, with players outside of our master-vassal(s) locus, extra value key military techs (high FLAVOR_MILITARY) if we are weaker than our ennemies/rivals, as this is what we need most to survive, not extra economy techs or such
+	- When we are evaluating the value of a tech in tech trades with players outside of our master-vassal(s) locus, moderately devalue techs that outsiders want to sell us, if any member of our locus already knows this tech
+	- No longer apply era-based key strategic bonus trade extra valuation between members of the same master-vassal(s) locus (as it is in their interest to be mutually stronger anyways etc.)
+	- lean more towards early aggression and more efficient/versatile military: reduce anti cheap unit gates in classical and medieval tiers
+	- fallback unit if no production and emergency defense buildings no longer apply if city is very low hammer or has mostly water tiles in its inner BFC (focus on economy rather. In particular, for watery cities, try to build fallback some of the key water buildings (for food, hammer, gold) rather than unit fallback, as this should/may be economically and also for food/growth more efficient cities than fallback units, plus generally the risk of them being land attacked is not as high and worth taking provided the benefits but anyways etc.
+	- Add military power weighting to religion valuing, so that AIs no longer (or much less) choose religions mostly based on who they already like no matter how weak or strong, but now mostly based on which religions are popular among the top military power players. The previous valuation used to lead to much worse diplomacy with them (less trades, more wars, etc.) or blunders of an AI suddenly being hated by almost everyone else due to a "random" very suboptimal religion change.
+
+- Tech tree adjustments and optimizations (main ones, non-exhaustive as there are too many), generally more more balance and versatility:
+	- hunting is no longer an AND but is now an OR requirement for agriculture (replaced by pottery now): the hunting line was too op to allows everything, now it will be instead the early committal edge for animal husbandry and chariots. Pottery is indirectly stronger as it plays a more central role now in the early game, but the tech itself is not op so maybe fine as such anyways etc. Indirectly gives builder and religious civs more momentum for bronze working as well that is a bit more accessible now (since it requires masonry which is available via pottery anyway), so i hope it is both more flexible and balanced as such
+	- reworked the naval line so that sailing is available sooner and is now also an alternative tech for construction (if you can curve wood for ships, you can probably curve bows (construction) and roofs with wood or something without needing the wheel itself). More sensical and should most importantly hopefully make the naval line with fishing much more viable.
+	- relaxed bronze working requirements (was falling behind the usual construction or chariot path otherwise)
+	- reworked the late classical to late renaissance timeline in particular: religions are available sooner to help them spread while remaining broadly historically relevant; removed or relaxed the prereqs of many techs so tech path is not too linear, while adding a few when relevant (e.g. civil service now requires iron working, no longer philosophy); vassals are available sooner as well (now at drama); aesthetics is more important as a tech as it unlocks the culture slider which is thematically more sensical as well; CIVIC_PACIFISM is moved from philosophy to meditation (much more sensical); chivalry no longer gives too much benefits, now spread among various techs; democracy occupies a more central place in tech tree and renaissance progression, etc.
+	- removed some problematic beelines and added new ones when relevant
+	- speed up early part of the tech tree that was asymmetrically slower and too slow in comparison: (e.g. and mostly: 350->300, 475->425, 650->575, 900->750, etc.)
+	- rework the list of untradeable techs to focus more on techs that are key gameplay knots, or have a big snowball potential:
+		- remove untradeable (bTrade 0->1): TECH_MONARCHY, TECH_MATHEMATICS, TECH_FEUDALISM, TECH_POSTAXIAL_RELIGION, TECH_LATER_ABRAHAMISM, TECH_BROADER_EDUCATION ,TECH_MILITARY_SCIENCE, TECH_ASSEMBLY_LINE, TECH_MASS_MEDIA
+		- add untradeable (bTrade 1->0): TECH_THE_WHEEL, TECH_CODE_OF_LAWS, TECH_ENGINEERING, TECH_CHIVALRY, TECH_FASCISM
+
+- Civics rework: significant changes that add more versatility, balance, or new strategic options, including (non-exhaustive as there are too many):
+	- buff CIVIC_SLAVERY: reduce upkeep from UPKEEP_MEDIUM to UPKEEP_LOW
+	- buff CIVIC_SERFDOM: remove the IMPROVEMENT_TOWN penalty, and add food modifier effects and gold on fishing and whaling boats (so it is a stronger, agrarian-based alternative to caste system and slavery).
+	- nerf CIVIC_CASTE_SYSTEM: nerf upkeep from UPKEEP_MEDIUM to UPKEEP_HIGH (still strong but has a significant early cost to sustain it, and scaling improves later in the game instead)
+	- replace CIVIC_EMANCIPATION with CIVIC_WAGE_LABOR: a new medieval labor civic with a hurry with gold effect instead and unlimited engineer effect, and remove the iCivicAnger effect.
+	- rework CIVIC_UNIVERSAL_SUFFRAGE: remove the hurry with gold effect, add the happiness from many cities effect, add war weariness, add hammer from village, and other changes
+	- rework CIVIC_REPRESENTATION: nerf as was too op (remove the happiness from large cities)
+	- replace CIVIC_ENVIRONMENTALISM with CIVIC_TRADE_BLOC: an alternative new medieval economy civic that enhances trade, symbolizing regional economic unions such as the hanseatic league, the european union, etc. Replaces the old environmentalism civic which was very poorly framed thematically in civ4, and that had nothing to do with economy
+	- rework CIVIC_MERCANTILISM as CIVIC_PROTECTIONISM: less trade, no longer no trade, to buff it
+	- rework CIVIC_FREE_MARKET: add BuildingHappinessChanges +1 from BUILDINGCLASS_SUPERMARKET and BUILDINGCLASS_BANK; remove iTradeRoutes (changed from 1 to 0), add SpecialistExtraCommerces +1 commerce gold per specialist (market globally improves not just one specialist like as of now in trade_bloc anyways etc.); change upkeep from UPKEEP_MEDIUM to UPKEEP_HIGH
+	- rework/nerf CIVIC_STATE_PROPERTY: add 0/-20/0 CapitalYieldModifiers so it distributes wealth i.e. hammer here anyways etc. Note that this is balanced by the +10% hammer in all cities (including capital), so effectively: -10% hammers in the capital, +10% in all other cities.
+	- buff and rework some religious civics so that they are more about religion: CIVIC_ORGANIZED_RELIGION now gives unlimited priests as well as health (cleansing one's soul, meditation/purification theme, etc.) and remove the not relevant any building construction speedup that was not balanced either; CIVIC_THEOCRACY now gives military unit production and anger from not adopting this civic (iCivicAnger, symbolizing religious intolerance (adopt our religion civic / way of ruling or we'll kill you / hate you) with a toned down effect (reduced from 400 in emancipation to now 200)
+	- rework CIVIC_FREE_RELIGION: gives war weariness, gives happiness from university
+	- rework CIVIC_POLICE_STATE: change iMilitaryProductionModifier from 25 to 20, add new effect of unlimited spy specialists
+	- buff CIVIC_VASSALAGE: change upkeep from UPKEEP_HIGH to UPKEEP_MEDIUM
+	- rework CIVIC_NATIONHOOD: remove happiness effect from barracks, remove espionage in all cities effect, add a new +1 happiness effect from BUILDINGCLASS_COLOSSEUM + from BUILDINGCLASS_COURTHOUSE + from BUILDINGCLASS_CASTLE (more iconic, possibly more balanced, less generic) and give Nationhood home-territory combat bonuses instead
+
+- Favourite civics rework: Reassigned each leader’s favourite civic for better historical or/and thematic fit and to align with AdvCiv-SAS civic changes, using ChatGPT 5.1 + other AIs and manual review. Examples:
+	- Julius Caesar — Representation → Police State (authoritarian strongman rather than democrat)
+	- Gandhi — Universal Suffrage → Pacifism
+	- Boudica — Universal Suffrage → Nationhood (“defending the people and their land” against Rome)
+	- Darius — Free Religion → Bureaucracy (imperial system-builder)
+	- Elizabeth — Free Religion → Free Market (commerce-focused)
+	- Huayna Capac — Hereditary Rule → State Property (state-controlled Incan economy)
+	- Napoleon — Representation → Nationhood (levée en masse, national armies)
+	- Pacal II — Hereditary Rule → Caste System (highly stratified Classic Maya society).
+
+Some civics are left with no favourite leader when no clear historical match exists. Full before/after with rationale: https://github.com/wonderingabout/AdvCiv-SAS/blob/tech-rework/_1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md#after-changes-favourite-civics-per-leader-anyways-etc
+
+- add to docs the favourite religion changes and rationale (if was documented in notes): https://github.com/wonderingabout/AdvCiv-SAS/blob/tech-rework/_1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md#summary-of-the-favourite-religion-leaders-changes-in-advciv-sas-anyways-etc
+
+- Handicap:
+	- Upgrade costs rework: AIs no longer have cheaper upgrade costs than human players (increased iAIUnitUpgradePercent from 50 to 100). Additionally, reduced upgrade costs for both human and AI players to as of now 75%. So unlike in base advciv where AI paid half cost (too easily upgrade / too cheap but anyways etc.) and humans payed full cost (which btw felt too expensive ingame to me at least but anyways etc.), now both human and AI players pay the same upgrade cost, which is as of now 75% of what humans used to pay for unit upgrades.
+	- iAIUnitSupplyPercent increased from 50 to 100 so human and AI players' unit supply outside of borders costs are no longer different (was half-cost for AI players in base advciv)
+
+- Renaming/reframing:
+	- rename UNIT_MODERN_ARTILLERY to UNIT_FIELD_GUN ("modern" in name was not fit as other modern units link to ww2 timing vs this one being ww1 and slightly pre (1880s): https://en.wikipedia.org/wiki/Field_gun)
+	- rename "_CHOKONU" and "Cho-Ko-Nu" (was non-standard/incorrect Wade–Giles romanization based on quick search results i found and on chatgpt 5.1's info) to "_ZHUGE_NU" and "Zhuge Nu" (modern pinyin): https://en.wikipedia.org/wiki/Repeating_crossbow
+	- rename and replace "_CAVALRY" (the early-industrial units) with "_DRAGOON": https://en.wikipedia.org/wiki/Dragoon (old name/unit was way too generic, era aspecific, and old unit's art was inaccurate for target advciv-sas early-industrial tech tree time with a new art (from RFC DOC mod thanks anyways etc.)). Same unit stats as before otherwise.
+
+- Some unit changes (non-exhaustive):
+	- scouts, explorers, airships, and robotic drones are now a national unit (max 2 per player) so that AIs don't overproduce them, have a more efficient economy, and also to add a bit more strategy to when to build scouts
+	- reduce UNIT_AZTEC_JAGUAR's UnitCombatMod UNITCOMBAT_MELEE_SHOCK from 50 to 25
+	- add BONUS_COPPER as an alternative prereq for remaining civ-specific crossbowman-class units
+	- reduce the cost of knight units from 100 and 110 to 95 and 105.
+	- move the UNIT_KOREAN_HWACHA to tech_chemistry like the other cannons as gunpowder is otherwise too accessible and the unit would be op.
+	- remove anti modern artillery UnitClassAttackMod (was 25) from gun units (the modern_infantry and paratrooper had it)
+	- add UnitCombatMod UNITCOMBAT_SIEGE 25 to tank kind of units: UNIT_TANK + UNIT_MODERN_TANK + UNIT_ROBOTIC_TANK
+	- remove UnitCombatMod UNITCOMBAT_SIEGE (was 50) to tank kind of units: UNIT_FIELD_GUN + UNIT_SELF_PROPELLED_ARTILLERY + UNIT_LEVITATION_ARTILLERY
+	- UNIT_GERMAN_HUSSAR is now dragoon based
+	- rebalance and buff the UNIT_RUSSIA_COSSACK: increase strength from 15 to 16, cost from 140 to 150 (same as base dragoon), reduce combat modifier against UNITCOMBAT_MOUNTED_RANGED from 50 to 25
+
+- Convenience option for the human player in SAS defines (https://github.com/wonderingabout/AdvCiv-SAS/blob/tech-rework/Assets/XML/GlobalDefines_advciv_sas.xml):
+	- extend the force an artist if we can until we have our BFC to human players as well for convenience.
+	- add an option (default enabled) to disable auto-citizen specialist assignments for the human player as well for convenience, as they are annoying to check in every city every turn, and this is still often a very inefficient specialist to choose unless absolutely necessary (no other plot nor good enough specialist but anyways etc, etc.).
+	- similarly add an option (default disabled) to disable any other type of specialist auto assignments (e.g. allow auto scientists, auto engineers, auto merchants, auto priests, but not auto spies nor auto artists (as long as this is not overriden by external pieces of logic such as the forced artist until we have BFC or/and such)) for the human player as well for convenience.
+
+- UI changes:
+	- adjust the civics' order in xml so that their display order ingame in the civics advisor (F3 key) matches tech tree pace (e.g. Universal Suffrage is before Police State not after)
+	- add iCivicAnger info in the civics advisor and in sevopedia.
+	- change CIVIC_DECENTRALIZATION's button (import from Middle-Earth mod thanks anyways etc.)
+
+- move more variables to sas defines, in particular but not only some of the CvCityAI::AI_BuildingValue related ones anyways etc.
+
+- reduce the player ZIP size: remove unneeded files for play (pictures, some documentation, etc.) (still available on github)
+
+- performance optimizations and bugfixes
+
+- updated 48 civs DLL
+
+AdvCiv-SAS 5160 (Update after release: 2025-12-08: fix missing 4 dialogue lines of moctezuma).
+
+- 2025-12-08: fix missing 4 dialogue lines of moctezuma; file download updated with this change.
+
+If you downloaded the AdvCiv-SAS 5160 first released version (2025-12-05) before, just redownload from same link: it now has the updated file. Since this is a minor change i didn't make a new release for it.
+
+Full Cumulative file changes and git commit history from AdvCiv-SAS 5082 to 5160 viewable at https://github.com/wonderingabout/AdvCiv-SAS/compare/37615028018c14723ab4598cf095c39604f2a002...2a453a1f3f0a8eb4ca9be538ec9553c12d49cc1c

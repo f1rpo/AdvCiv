@@ -46,7 +46,6 @@ ROOT_SUBDIRS = (
 
 EXTRA_SUBDIRS = (
     "_1_AdvCiv-SAS/Docs",
-    "_1_AdvCiv-SAS/git_logs",
     "_1_AdvCiv-SAS/SASGameRecord_log",
 )
 
@@ -141,7 +140,7 @@ GENERATED_PENDING_UPSTREAM_REFS_NAME = f"{GENERATED_PENDING_UPSTREAM_DIR}/UPSTRE
 UPSTREAM_RELEASE_REF_RE = re.compile(r"^upstream/(?:(?:v)|(?:release[-/]))?(\d+)\.(\d+)(?:\.(\d+))?$", re.IGNORECASE)
 TRACKED_KMOD_GIT_LOG = "_0_Common_Docs/git_logs/git_log_anonymized_email_001_K-Mod.txt"
 TRACKED_BASE_ADVCIV_GIT_LOG = "_0_Common_Docs/git_logs/git_log_anonymized_email_002_Base_AdvCiv.txt"
-TRACKED_ADVCIV_SAS_GIT_LOG = "_1_AdvCiv-SAS/git_logs/git_log_anonymized_email_003_AdvCiv-SAS.txt"
+TRACKED_ADVCIV_SAS_GIT_LOG = "_1_AdvCiv-SAS/Docs/git_logs/git_log_anonymized_email_003_AdvCiv-SAS.txt"
 HISTORY_SEGMENTS = (
     ("KMod", "K-Mod history", TRACKED_KMOD_GIT_LOG),
     ("AdvCivPreSAS", "pre-SAS AdvCiv history", TRACKED_BASE_ADVCIV_GIT_LOG),

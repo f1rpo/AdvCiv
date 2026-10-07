@@ -1,0 +1,197 @@
+release date: Feb 27, 2026
+source: https://forums.civfanatics.com/resources/advciv-sas-simple-advanced-strategy.32513/update/37404/
+retrieved: Oct 7, 2026 by wonderingabout (manual web copy)
+
+Note: for information and screenshots of the new SAS original mapscripts, BTG, and other maps added in AdvCiv-SAS 5500, see notably also: https://github.com/wonderingabout/AdvCiv-SAS/blob/tech-rework/README.md#advciv-sas-original-mapscripts-eg-sas_large_facing_islands-sas_longworld-sas_parallel_lines-sas_spiky_avenues
+
+- Renaming
+
+	- "Play Now" → "Simple Game" Clearer, matches code name, better contrasts with "Custom Game", and same as in C2C mod.
+	- Foreign Advisor's "Active" tab -> "Treaties" tab (no longer shows redundant bonuses).
+
+- AI
+	- Do not buy dominated or equivalent strategic bonuses (era and bonus-aware): strategic resource buying now uses explicit exclusion rules, so AI skips dominated/equivalent offers instead of considering them as valid buys. Examples: in Classical, Copper is not needed if we have Iron; in Classical metals and mounted lines can substitute each other so redundant buys are skipped; Horse and Camel are treated as equivalent in Classical/Medieval/Renaissance; in Industrial (before Modern), Horse has the edge (no Camel Dragoon), so Camel is skipped if Horse is already available, etc. Change in CvPlayerAI::AI_bonusTrade. See KI#109.
+	- Workers: prefer farms on low-food BFCs
+	- Workers: also remove incorrect food production checks in worker logic: regardless of if we produce a settler or not, what matters is long term food situation.
+	- Workers: account for farms being built as future food difference for city. Aims to fix multiple simultaneous farms followed by multiple simultaenous workshops edge case for a high pop but somehow unimproved city
+	- Tribute/counter-propose consistency fix for pure Vassal/Surrender offers: base AdvCiv/BtS diplomacy would reject direct Tribute/Demand ("Not bloody likely"), yet clicking "What do you want in exchange?" would accept for the same demand (with nothing extra). So players had to do an unnecessary extra click to get the same vassal result. Fixed by making CvPlayerAI::AI_considerOffer accept this exact pure one-item vassal/surrender demand directly, and by making CvDiplomacy.py not remember this narrow accepted case as a tribute demand memory (because this is rather a UI consistency fix). See KI#108.
+	- Unit scrapping: now gated strictly by domain/era: (e.g., an archer is not useful at medieval era, but a knight unit is still useful at industrial era). These are raw XML-cost gates (no game-speed scaling). Also added a naval exception: sea units carrying cargo are never scrapped (e.g., a galley is still useful to transport units).
+	- City evacuation — doomed city: now tunable via SAS defines (default ON, recommended). Addresses player feedback at: https://forums.civfanatics.com/threads/advciv-sas-simple-advanced-strategy.699716/post-16921308
+	- Minimum Stack size before war: Added a minimum stack unit count requirement to prevent the stack from being marked as "ready" until it has enough units: no MOVE_DECLARE_WAR flag, no premature advance toward the city, and AI keeps building units until the stack is big enough. Helps fix the issue of "back and forth" war declarations with immediate retreat without city attack: low-numbered unit stacks were especially sensible to power swings (city defenses, one more enemy units skews win chance, etc.). Change in CvUnitAI::AI_attackCityMove. See KI#104.
+	- Fix leaders inconsistently not having 150 as the total of their BBAI victory weights: (iCultureVictoryWeight, iSpaceVictoryWeight, iConquestVictoryWeight, iDominationVictoryWeight, iDiplomacyVictoryWeight, 150): (LEADER_BISMARCK, 20, 25, 25, 30, 40, 140) -> 20, 25, 25, 35, 45, 150; (LEADER_BRENNUS, 0, 30, 30, 50, 30, 140) -> 0, 30, 35, 55, 30, 140; (LEADER_LINCOLN, 10, 35, 35, 15, 45, 140) -> 10, 40, 35, 15, 50, 150; (LEADER_RAMESSES, 25, 25, 35, 35, 20, 140) -> 35, 25, 35, 35, 20, 150.
+	- Better support Earth2' heaviness computation: Earth2 now treated as Land type. Fine tuned logic and made map heaviness now tunable in SAS defines. Addresses issue of Earth2 having AI being too weak when it treated it incorrectly as a naval heavy map, as per player feedback at https://forums.civfanatics.com/threads/advciv-sas-simple-advanced-strategy.699716/post-16916283. Reviewed other mapscripts similarly so they are better assessed as landheavy or navalheavy, and added fallback logic to determine type based on the number of players per area.
+
+- UI (Main Menu)
+	- Randomized Opening menu music: opening-menu soundtrack now supports randomized playback from a tunable pool of multiple main menu scripts, using the shuffle-bag approach (i.e. no repeat until all have been played); once all configured entries have been played once, the pool refills and shuffles again. Music is also playable via Sevopedia Music/Media Player. Change in CvMainMenuInfo::getSoundtrack in CvInfo_Misc.cpp.
+	- Switch to using the Middle-earth mod's (RingMainMenu.dds) nif for main menu static wallpapers (instead of the ri mod's)
+
+- UI (Sevopedia)
+	- Chart categories (common): added a "LOG" button to print to PythonDbg.log.
+	- Game Speed Chart category: also added analysis rows (e.g., Summary 08 (40%) with T200=+1400 (120); Increments Years 02 with 750, 500, 250; Increments Months 02 with 9000, 6000, 3000). See Sevopedia reworks (Game Speed Chart).
+	- Sevopedia — Leaders: also added a clickable "Legend" (can be hidden) link that redirects to Sevopedia Concepts' corresponding legend.
+	- Sevopedia — Mods Infos: added Legend items showing the legend (e.g., for the Info Screen's new Score Tab; for the AI Personality Panel).
+	- Sevopedia — Unit: add worker speed modifiers bullet
+	- Sevopedia —  Build and Feature: add iFeatureproduction panel
+
+- UI (In-game)
+	- Foreign Advisor: the Treaties tab no longer shows redundant bonuses (since their deal can be cancelled from the bonuses tab), and beautified it with icons.
+	- Info Screen's Statistics tab: change default ordering from alphabetical to from most to least Built/Current (avoids tedious manual user ordering each time)
+	- Added in the Info Screen (F9 key) a new Score Tab showing a sortable (default ordered by highest score) table with all relevant scoreboard fields, plus new fields like Player ID (to distinguish identical Name/Civ/Leader/Player Color), Player color, total Power (of a player, distinct from power ratios), total Power per City, Land%, V/M. Added a clickable "Legend" text that redirects to Sevopedia Concepts' "Score Tab Columns" page. If table has more than max rows, table expands and Legend link moves to top right.
+	- Beautified the Diplomacy Screen's trading rows with icons (e.g., Gold, Gold Per Turn, World Map, Open Borders, Vassal, Defensive Pact; and leader icons (make peace / declare war / embargo)). Change in CvPlayer::getItemTradeString.
+
+- Game Speeds
+	- Fix inaccurate game speed timelines so they are much closer to Normal game speed (fine tuning done with the help of LLM_Helpers/autotune_speed_from_xml.py and LLM_Helpers/compare_speed_summaries.py we added in AdvCiv-SAS). Addresses player feedback at: https://forums.civfanatics.com/threads/advciv-sas-simple-advanced-strategy.699716/post-16921383
+
+- Mapscripts
+	- Modify Highlands so it supports AdvCiv-SAS's new world sizes. Also increase its players supported from 18 to 48+ (for the 48 civs DLL). Change in the new Highlands.py. Grid size computed dynamically beyond Huge
+	- Similarly also fix other maps to make them compatible with AdvCiv-SAS: aDebugMap.py, Fantasy_Realm.py, Great_Plains.py, Ice_Age.py, Inland_Sea.py, Lakes.py, Maze.py, Hub.py, Mirror.py, Oasis.py, Ring.py, Team_Battleground.py, Tilted_Axis.py, Wheel.py, Arboria.py, Boreal.py, Donut.py, Earth2.py (see below), Global_Highlands.py, PerfectMongoose.py, Rainforest.py, RandomScriptMap.py, Terra.py.
+	- Reduced the grid size of some maps that are almost entirely composed of land plots: city spacing was too wide due to the excess of land and lack of water plots.
+	- Add new SAS_Worldsizes map: helper sandbox map: almost all land with mostly flat grass tiles.
+	- Earth2 start distribution rework: for Huge and beyond world sizes, keep Earth2 at its existing Huge-scale sizing (already large enough), but solve crowding by populating underused landmasses instead (e.g., min 16 players before Africa is populated, min 32 players before the whole world is populated) of enlarging the script further. Thresholds are based on player count (not world size). See GlobalDefines_advciv_sas.xml.
+	- Add Deer percentage map option (e.g., 0/10/25/50/75/100) for Arboria.py and Boreal.py: high-food terrain (e.g. grass) maps like Arboria, or lower-food terrain ones (e.g. tundra/plains) like Boreal, had too much deer. See also See KI#105.
+	- Order maps alphabetically in Simple Game or Custom Game (by adding missing map scripts in PrivateMaps).
+	- Remove from Simple Game some maps that are deemed not essential or unbalanced; they are remain playable via the Custom Game menu: Big_and_Small.py, Great_Plains.py, Earth2.py, Hemispheres.py, Lakes.py (has too few lakes), Mixed_Continents.py, Oasis.py, Shuffle.py, Tectonics.py.
+	- Add or redo the .dds (i.e. image) in Simple Game for maps so it is more illustrative or accurate than a dark or incorrect globe map.
+	- Add new AdvCiv-SAS original maps: SAS_Longworld: A lightweight long-format world for AdvCiv-SAS: one connected horizontal landmass with wavy borders, inspired by Ringworld3_102_mst.py but heavily simplified, similarly also SAS_Spiky_Avenues.py (Compact tactical map with repeated streets: each street has facing houses (spikes), a central avenue, and bridges on left/right edges to connect streets), SAS_Large_Facing_Islands.py (Each player starts on a large island, with rivals on the east and west sides, and a rival facing north or south (when world size is large enough)), and SAS_Parallel_Lines.py (Parallel lines map where the world is optionally (default) connected horizontally (WrapX) and vertically (WrapY). Fixed number of players per line (3 or 4), and height per player). See Readme.md (AdvCiv-SAS original mapscripts: https://github.com/wonderingabout/AdvCiv-SAS/blob/tech-rework/README.md#advciv-sas-original-mapscripts-eg-sas_large_facing_islands-sas_longworld-sas_parallel_lines-sas_spiky_avenues
+	- Add and adapt BTG_Cross.py map (from the Beyond the Game mod (v2.43)): remove non-AdvCiv BTG options/logic, fix script compatibility issues, support max player count and up to world size SAS48, change some options (e.g., allow Desert as Default), and expose the map in both Simple Game and Custom Game lists. Similarly add other BTG maps: BTG_Grid.py, BTG_Lagoon.py.
+	- Add and adapt Planet_Generator_0_68.py (from CFC: https://forums.civfanatics.com/resources/planet-generator-0-68.1817/): keeps its core behavior (unpredictable continent shapes with balanced continent sizes) while applying AdvCiv-SAS map compatibility changes, notably world-size percentage scaling, removed unneeded options (map-size override and redundant resources choice), and bug fixes (including robust direction handling). Expose the map in both Simple Game and Custom Game lists. Similarly add Equal_Islands_V2_beta.py (from CFC: https://forums.civfanatics.com/resources/equal-islands-v2-beta.19405/), Water.py (from CFC: https://forums.civfanatics.com/resources/water.15334/) (actually has many lakes unlike Lakes.py); also adjusted city spacing that was too wide).
+	- Make other maps also appear in Simple Game: Donut.py, Ring.py, Wheel.py
+
+- Scenarios
+	- Update docs about pre-AdvCiv-SAS scenarios not being supported in AdvCiv-SAS
+
+- Technologies (not exhaustive as too long)
+	- increase tech costs to fix too fast pacing: partially addresses player feedback at: https://forums.civfanatics.com/threads/advciv-sas-simple-advanced-strategy.699716/post-16921308
+		- 140->150
+		- 200->225
+		- 275->300
+		- 400->425
+		- 525->600
+		- 700->800
+		- 950->1050
+		- 1250->1300
+		- 1500->1650
+		- 1750->1900
+		- 1950->2100
+		- 2075->2250
+		- 2200->2400
+		- 2300->2500
+		- 2400->2650
+		- 2500->2800
+		- 5500->6000
+		- 7000->8000
+	- replace functionally TECH_DRAMA with TECH_PAPER, TECH_SUPERCONDUCTORS with TECH_PROFESSIONAL_ARMY, and balance changes
+	- TECH_COMMUNISM: change tech preqs from TECH_LIBERALISM and TECH_NATIONALISM to TECH_LIBERALISM and TECH_ECOLOGY
+	- TECH_FASCISM: change tech preqs from TECH_NATIONALISM and TECH_COMMUNISM and TECH_COMBUSTION to (TECH_NATIONALISM or TECH_COMMUNISM) and TECH_COMBUSTION
+	- TECH_GUNPOWDER: change tech preqs from TECH_LATER_ABRAHAMISM and TECH_MEDICINE to TECH_MACHINERY and TECH_MEDICINE
+	- bMapCentering: change tech from TECH_NAVIGATION to TECH_PAPER
+	- bMapTrading: change tech from TECH_CONSTITUTION to TECH_PAPER
+	- TECH_PAPER: change tech preqs from TECH_LITERATURE and TECH_THE_WHEEL to TECH_LITERATURE and TECH_CONSTRUCTION
+	- TECH_LATER_ABRAHAMISM: change tech preqs from TECH_DRAMA and TECH_CIVIL_SERVICE and TECH_MONOTHEISM to (TECH_POSTAXIAL_RELIGION or TECH_CONSTITUTION) and TECH_MONOTHEISM
+	- TECH_FEUDALISM: change tech preqs from TECH_CIVIL_SERVICE and TECH_POSTAXIAL_RELIGION and TECH_CONSTITUTION to TECH_CIVIL_SERVICE
+	- TECH_BROADER_EDUCATION: change tech preqs from TECH_MEDICINE and TECH_LATER_ABRAHAMISM to TECH_LATER_ABRAHAMISM and TECH_PAPER
+	- TECH_NATURALISM: change tech preqs from TECH_BROADER_EDUCATION and TECH_PRINTING_PRESS to TECH_MEDICINE and TECH_BROADER_EDUCATION
+	- TECH_BANKING: change tech preqs from TECH_CHIVALRY and TECH_CURRENCY to TECH_CURRENCY and TECH_CONSTITUTION
+	- TECH_DEMOCRACY: change tech preqs from TECH_BANKING or TECH_BROADER_EDUCATION to TECH_BROADER_EDUCATION and TECH_PRINTING_PRESS
+	- TECH_CHIVALRY: change tech preqs from TECH_LATER_ABRAHAMISM and TECH_FEUDALISM and TECH_MOUNTED_COMBAT to TECH_CIVIL_SERVICE and TECH_MOUNTED_COMBAT
+	- replace TECH_SUPERCONDUCTORS with TECH_PROFESSIONAL_ARMY
+	- TECH_DEPOPULATION: change tech preq TECH_SUPERCONDUCTORS to TECH_FISSION
+	- TECH_FUSION: same
+	- TECH_PROFESSIONAL_ARMY: change tech preq from TECH_FISSION to TECH_CHIVALRY
+	- TECH_FIREARMS: change tech preq from TECH_GUNPOWDER and TECH_MACHINERY and TECH_CHIVALRY to TECH_PROFESSIONAL_ARMY and TECH_GUNPOWDER and TECH_MACHINERY
+	- TECH_ASTRONOMY: change tech preqs from TECH_NAVIGATION and TECH_LATER_ABRAHAMISM and TECH_MACHINERY to TECH_NAVIGATION and TECH_PROFESSIONAL_ARMY and TECH_MACHINERY
+	- adjust tech cost, era, iAsset, some flavors, to match tech changes
+	- fix incorrect iAsset for TECH_CHIVALRY of 24 instead of 32 of its cost bracket, now reduced to 24 due to cost reduction
+	- TECH_PROFESSIONAL_ARMY is untradeable
+	- fix incorrect iPower for techs (e.g. TECH_MATHEMATICS was too high while catapults are now at tech_engineering)
+	- Swap tech quotes: see https://github.com/wonderingabout/AdvCiv-SAS/blob/tech-rework/_1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md#tech-quote-swaps-rework
+
+- Processes
+	- PROCESS_CULTURE (i.e. Build Culture in a city): change tech preq from TECH_DRAMA to TECH_AESTHETICS
+
+- Civics
+	- CIVIC_WAGE_LABOR: change tech preq from TECH_BROADER_EDUCATION to TECH_PROFESSIONAL_ARMY
+
+- Religions
+	- RELIGION_DAOISM: change tech preq from TECH_PHILOSOPHY to TECH_PAPER
+
+- Civilizations
+	- New civ: Ireland (i.e. Irish Empire). See also youtube demo of how it was added in AdvCiv-SAS with the help of GPT-5.3-Codex thanks at: youtube video ipSdRP7HcFs
+	- starting techs changes (for starting tech counts and combos counts see sevopedia tech or assets rebalancing doc):
+		- Arabia: Mysticism + Pottery → Hunting + Mysticism; Desert pastoral/tribal-warrior flavor + smooth path toward Animal Husbandry/camels; Mysticism preserves religion/culture identity (and your UB is university-based so no Pottery dependency).
+		- Greece: Fishing + Mysticism → Mining + Mysticism; Keeps the “culture/religion” signal (temples/oracles/cults) while also pushing the Hoplite → Bronze/Iron line sooner via Mining; better matches “bronze + sacred polis” as a starter identity.
+		- Holy Roman: Hunting + Mysticism → Mysticism + Pottery; Reads more like “Church + towns/guild/urban administration” than generic hunting, and unlocks their civ-specific building (Courthouse-based) sooner via the Pottery line.
+		- Kingdom of Benin: Fishing + Mysticism → Mysticism + Pottery; Pottery anchors the “fortified/urban builder court-state” + supports your Impluvium/aqueduct line; Mysticism keeps the ritual/court legitimacy flavor (and avoids pushing them toward early bronze play).
+		- Korea: Mining + Mysticism → Fishing + Mining; Keeps Mining (the more distinctive “Korea-coded” pillar: metals/engineering), and adds Fishing to reflect a peninsula/coastal civilization with strong maritime/trade exposure—without implying an early religion-race start.
+	- replace seowon with BUILDING_KOREAN_GYEONGDANG (Library): "Use a more ancient-coded Korean school identity tied to Korea's long education tradition (Taehak, Gyeongdang, later state academies). This uses underused library slot, declutters overused university slot, and keeps the civ's science identity, and also reflects the historical pairing of scholarship, state ideology, and social cohesion. Great general chance similarly to how it was done for the japan_doujou (martial arts training)."
+	- replace pavillion with BUILDING_CHINESE_CHANGPINGCANG (Market): "Not so cultural game profile plus it is weaker. This new building leans into a market-management/state-stability theme (price smoothing and social calm) rather than pure food storage. As China in this setup is often health-rich, extra happiness support is valuable and a nice synergy for larger empires and sustained city growth. Identity with happy from Rice capitalizes on such excess health, and food kept fits thematically and is not as op later in the game."
+	- make BUILDING_IRELAND_SCRIPTORIUM university based: "New civ: strong monastic-learning thematic fit (scriptoria as centers of manuscript copying/scholarship) and good gameplay/profile match for Irish leaders with gold/diplomatic/science leanings. University timing keeps it meaningful without becoming an overpowered early spike like a library would be with the as of now scriptorium's effects."
+	- replace dun with BUILDING_CELTIC_LA_TENE_SMITHY: "Dun is weak and too defensive/situational; also doesn't match the aggressive Celtic profile. Shift to a Forge-based UB for a stronger metalwork identity, with happiness support tied to Iron/Copper. Good synergy with their swordsman-based civ-specific unit and overall military profile that may use these bonuses as well."
+	- replace stele with BUILDING_ETHIOPIAN_METSEHAF_BET: "Distinctive theology-to-scholarship identity via Ge'ez manuscript/commentary tradition. Also uses underused library slot and declutters the overused monument slot. Strong religious identity (priest-scholar) => as of now GP Priest plus culture-scaling profile. Also aims to go better with Zara Yaqob's trading/diplomat/growth ingame profile"
+	- rework BUILDING_BYZANTINE_HIPPODROME so it is now based on the stable: "Stronger and more efficient building than weak situational culture of the theater for this civ, since the stable is likely almost always desired for their civ-specific unit in particular. As of now takes most of old theater building effects with some cultural effects instead of all happiness effects."
+	- See for details: https://github.com/wonderingabout/AdvCiv-SAS/blob/tech-rework/_1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md#civs-starting-techs-rework (and other sections there too)
+
+- Leaders
+	- New leaders: Grace O'Malley and Michael Collins (Irish Empire).
+
+- Buildings
+
+	See https://github.com/wonderingabout/AdvCiv-SAS/blob/tech-rework/_1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md#civ-specific-buildings-rework for detailed rationales and before/after changes table.
+
+	- BUILDING_GERMAN_LONGHOUSE: reduce iFoodKept from 50 to 40 and reduce iCost from 55 to 45 (same as generic granary) (Keeps +1 food).
+	- BUILDING_INCAN_QULLQA: reduce iCost from 60 to 45 (same as generic granary). Remove +10% Hammer effect (Keeps iFoodKept 50).
+	- BUILDING_SCOTLAND_YARD: change tech prereq from TECH_MONARCHY to to TECH_PHILOSOPHY
+	- BUILDING_APOSTOLIC_PALACE: change tech prereq from TECH_POSTAXIAL_RELIGION to TECH_CONSTITUTION: "not strictly religious; fits UN being around as of now TECH_MASS_MEDIA"
+	- BUILDING_ANGKOR_WAT: change tech preq from TECH_AESTHETICS to TECH_MEDITATION
+	- BUILDINGCLASS_THEATRE: change tech preq from TECH_DRAMA to TECH_AESTHETICS
+	- BUILDING_NATYA_SHASTRA: change tech preq from TECH_DRAMA to TECH_AESTHETICS
+	- BUILDING_DAOIST_SHRINE: change tech preq from TECH_PHILOSOPHY to TECH_PAPER
+	- BUILDING_MONGOL_GER: reduce iCost from 75 to 70
+	- replace GERMAN_LONGHOUSE art with a much more fitting one (art from Rise of Manking A new dawn mod thanks (which i redrew with Paint.NET to remove the religion logo))
+
+- Units
+	- UNIT_PRIVATEER: change tech preqs from TECH_ASTRONOMY to TECH_PROFESSIONAL_ARMY and TECH_MACHINERY
+	- UNIT_FRIGATE: change tech preqs from TECH_GUNPOWDER and TECH_ASTRONOMY to TECH_ASTRONOMY and TECH_ASTRONOMY
+	- UNIT_MODERN_INFANTRY: remove PROMOTION_FIRST_STRIKE1 (previous base advciv was was PROMOTION_AMPHIBIOUS, but not needed at all since unit is strong enough already or doesn't fit thematically in advciv-sas)
+
+- Promotions
+	- PROMOTION_BLITZKRIEG: change tech prereq from TECH_CONSTITUTION to TECH_PROFESSIONAL_ARMY
+
+- Code/Performance optimizations
+	- Launch guard for SAS defines (startup/load/Sevopedia): Added a strict define-integrity check using one int sentinel and one string sentinel, validated at pre-game start, game start, save load, Sevopedia creation, and Sevopedia show. If a value is missing or mismatched, Python raises a fatal error with actual vs expected values and guidance to launch from a Windows shortcut. The game will be unplayable if the config is incorrect. Change in: SASDefineGuard.py. See also the Quick Install Guide.
+	- Fail-fast XML lookup hardening: replaced getInfoTypeForString(...) calls (terrain/features/bonuses and similar tags) with getInfoTypeOrFail(...) (in SASUtils.py), so missing/renamed XML tags raise explicit errors instead of silently using invalid -1 values. Notably allowed to detect and fix incorrect getInfoTypeOrFail("DIRECTION_NORTH") instead of correct DirectionTypes.DIRECTION_NORTH (in Planet Generator map), or incorrect getInfoTypeOrFail("PLOT_PEAK") failing instead of correct PlotTypes.PLOT_PEAK (in Peirce map).
+	- single quote to double quote (e.g. 'BONUS_IRON' to "BONUS_IRON"), which allowed to detect and fix incorrect fields and later strengthen them with getInfoTypeOrFail(...).
+	- Fix/cleanup incorrect char formatting: e.g.; "Berang�r" -> "Beranger"; removed non-English hints.
+	- Other tweaks, fixes, and refactorings.
+	- Performance optimizations in Arboria
+	- add index / leader name pairs in SevoPediaLeaderCachePredumped.py, remove excess blank lines, and line separate leaders and fields
+
+- Bug and crash fixes
+	- Fix Base AdvCiv crash variant of the CvCity::getProductionBarPercentages crash (at KI#102). Fixed with the help of GPT-5.2-Codex and Claude code Opus 4.5 for review thanks a lot. See KI#103.
+	- Fix base AdvCiv bug of most bonuses (e.g., Deer) sometimes not appearing at first Civ4 launch in some maps (e.g. Boreal). Seemingly now reliably fixed with the help of GPT-5.3-Codex and Claude code Opus 4.6 thanks. See KI#105.
+	- Fix incorrect bonuses in some maps
+	- Document (KI#106) base advciv bug in Simple Game of too many options causing errors, and add workaround with ingame warning once to KI#106 (press Esc key many times or several seconds)
+	- Fix space being pressed twice in sevopedia search bar (e.g. "la  t" instead of "la t" for "la tene", fixed with the help of GPT-5.3-Codex thanks)
+	- Fix Base AdvCiv crash after loading a save file, returning to main menu, opening sevopedia (index since first time opened) and typing a sequence like "xsv". Fixed with the help of Claude code Opus 4.6 thanks. See KI#107.
+	- Fix non-normal game speeds mistakenly using scaling by game speed for XML Cost wonder cheap ASAP gates, as XML cost is game speed independent unlike actual hammer cost
+
+- 48 Civs DLL included
+
+Update: 2026-03-05 (6 days after release): fixes and tweaks
+
+- Fixes:
+	- also show PowT (total power) and PoT/C (total power per city) for the human player in the Score Tab (Info Screen): "PowT and Pow/C are shown even for the human player, since these vary every turn". So this data is comparable with that of other players, use PowT rather than Pow instead (1.0 constant military ratio for the human player is less relevant; and total power per city is more informative than military ratio per city)
+	- Sevopedia Music and Sevopedia Media Player: fix regression of _order and _select civilization items not playing music yet their AS3D script equivalent entry would work as intended: now both items play music correctly
+	- shorter mehmed music name because too long to git clone
+	- fix incorrect AI flavors for TECH_PAPER and TECH_PROFESSIONAL_ARMY: they were using the flavors of the old techs they were based on, changing these tells the AI for example that this is a gold tech instead of a science tech so it will influence AI leaders' tech choices in theory
+	- fix bug when entering a city's city screen (error was: UnboundLocalError: local variable 'bProdDetailAdded'). Addresses player feedback at: https://forums.civfanatics.com/threads/advciv-sas-simple-advanced-strategy.699716/post-16926238
+	- fix some numerical score tab columns not being sorted numerically but lexicographically: "<!-- custom: Score-tab sort fix: Civ4 table sorting is type-aware, and values inserted with setTableText sort lexicographically" + "(e.g. "96" before "413"), which broke PoT/C and other numeric columns. Use setTableInt for numeric fields so ordering is truly numeric," + "while still keeping setTableText fallbacks where values are unknown/hidden so blanks remain blank instead of fake defaults. (GPT-5.3-Codex) -->" + sort as int, display as colored text in score tab's columns "<!-- custom: keep dSc color cues (green/red) while preserving numeric sort." + "Civ4 sorting uses cell type, so this must stay setTableInt; we pass a colorized string value to keep visual feedback" + "without falling back to lexicographic setTableText sorting. (GPT-5.3-Codex) -->"
+
+- Tweaks:
+	- Sevopedia Civilizations: add optional grouping by Art style (e.g. European, Asian)
+	- Sevopedia Leaders: add optional grouping by civilization (with an icon)
+	- reorder xml text more logically
+
+If you downloaded the AdvCiv-SAS 5500 first released version before, just redownload from same link: it now has the updated file. Since this is a minor change i didn't make a new release for it.
+
+Full Cumulative file changes and git commit history from AdvCiv-SAS 5400 to 5500 viewable at https://github.com/wonderingabout/AdvCiv-SAS/compare/24cfc0803db7251f521f0b9b6df1c620109ae3a8...b421b9e33ff43349b4983398279c4f33dcfa94f3

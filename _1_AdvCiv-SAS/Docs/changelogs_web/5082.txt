@@ -1,0 +1,39 @@
+release date: Oct 31, 2025
+source: https://forums.civfanatics.com/resources/advciv-sas-simple-advanced-strategy.32513/update/36853/
+retrieved: Oct 7, 2026 by wonderingabout (manual web copy)
+
+- Much stronger AI than in AdvCiv-SAS 5055, in particular it should be way more resistant to snowballing and better at defending and going into the late game, leading games to generally be closer and harder to decide on a winner early on:
+	- improved worker AI efficiency (apply 1 worker per tile logic to more functions, attempt to improve cities in more cases rather than idling) and reduced parking in cities,
+	- increase siege threshold pre renaissance if we have no key strategic bonus (as of now iron, copper, horse, camel, elephants) (we need more catapults and trebuchets if we have no key strategic bonus, helps reduce longbow spam, and make a successful longbow + catapult +/- trebuchets rush)
+	- force one artist if we don't have BFC and city culture per turn is low, until we do, in CvCity::doTurn
+	- force emergency buildingclass_harbor if city is coastal (ocean) and low food per turn (tunable in sas defines (https://github.com/wonderingabout/A...ework/Assets/XML/GlobalDefines_advciv_sas.xml) anyways etc)
+	- add emergency defense buildings to build at highest priority if invasion risk is high enough, in CvCity::doTurn: This seems to lead in autoplay to much harder snowball, and to games lasting significantly longer. As a side effect, it also reduces a bit unit spam which should slightly improve economy and bankruptcy risk. This change should make AI players especially stronger, at least it appears so in autoplay.
+	- make civ specific unit importance evaluation lower and tunable, and other tweaks or fixes: addresses the case of japan ai relying too much on samurais when knight units are available, and now it is tunable in sas defines.
+	- enhance AI promotion choices (e.g. more restrictive city raider force promotion (if we are weaker, etc.), add optimal naval unitais promotion support, move some / a few settings to sas defines, add support for combat promotions and/or such and other fixes and tweaks anyways etc)
+	- fix/address AI settlers staying parked for a very long time in cities when it should be safe enough or urgent enough not to do so (e.g. 3 cities at turn 100 vs 1 city at turn 100 in some cases which was critically bad)
+	- AI now favours a military instructor specialist rather than a great general leader, as this is much stronger and scales better with late game: added logic to favour decremntially top 3 hammer cities especially more, and especially more so if they have or are building the heroic epic effect building. Also removed the limit on military instructors per city. Should lead to much stronger AI.
+
+- Heavily reduced the cost of most wonders (e.g. 275->225, 525->425, 900->625-650, etc.): they were too costly to be significant strategic alternatives to just unit spamming. Hopefully should reduce early bankruptcies and lead to a more efficient economy and faster tech pace.
+
+- Multiple other balance changes (non-exhaustive):
+	- increase TECH_DEPOPULATION 's negative health + happiness effect from -6 to -8. Adjusted and rebalanced the health and happiness gains from other future era techs. The total is +8 / +8 health / happiness gain. Moved effects so that they mostly apply in later techs to increase their strategical importance. Also Adjust tech flavors and such if any other such but anyways etc to match these changes anyways etc
+	- Barbarian civ-specific buildings can be captured (`iConquestProb`) with half the chance of their generic building equivalent (since their cities are overall easier and lower risk to capture, it balances it out). See Sevopedia/XML.
+	- BUILDING_PUBLIC_TRANSPORTATION 's iUnhealthyPopulationModifier effect from -15 to -20, increase cost from 150 to 200
+	- swap BUILDING_PENTAGON and BUILDING_EIFFEL_TOWER tech prereqs to be more historically accurate in the tech tree timeline,
+	- move BUILDING_THREE_GORGES_DAM to TECH_MARINE_TECHNOLOGY
+
+- (Much nicer) Bonus specific builds logic is now fully customizable in sas defines, and refactor/enhance code anyways etc
+
+- fix/tweak incorrect sevopedia ice cap information, and of terrain peak or/and such 's unit(s) panels information as well
+
+- moved more tunables to sas defines
+
+- multiple performance and code/refactoring optimizations
+
+- 48 civs DLL included to match these changes
+
+- update docs and other tweaks and fixes
+
+Recommended to upgrade to this new version if you are using 5055 or an older version.
+
+see for full changes: commit history from AdvCiv-SAS 5055 to 5082 viewable at https://github.com/wonderingabout/AdvCiv-SAS/commits/tech-rework/?since=2025-10-11&until=2025-10-31 or at https://github.com/wonderingabout/AdvCiv-SAS/compare/b8c861af13f28c070022e1bcca3c48e6040bc174...37615028018c14723ab4598cf095c39604f2a002

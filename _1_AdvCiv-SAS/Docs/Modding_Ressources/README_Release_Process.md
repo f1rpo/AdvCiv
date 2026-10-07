@@ -62,7 +62,7 @@ This is a living release checklist for the user and AI/LLM helpers working on Ad
 
 ## 6. Build the player-facing cumulative changelog
 
-- Use `_1_AdvCiv-SAS/Docs/Modding_Ressources/changelogs_web/changelog_release_example_6020.txt` as the current local style/example rather than inventing a new structure each release.
+- Use the complete published release texts in [`_1_AdvCiv-SAS/Docs/changelogs_web/`](/_1_AdvCiv-SAS/Docs/changelogs_web/) as local style/examples rather than maintaining separate example or checkpoint copies. Prefer a recent comparable release when available, while adapting sectioning to the release at hand.
 - Produce the release changelog as plain text suitable for sites such as CivFanatics and ModDB where the user may add website-specific bullets/HTML formatting manually. Do not depend on Markdown-only formatting for the publishing copy.
 - Before the detailed body, draft a short release overview that explains the main development arc and **why** the release matters rather than enumerating changes. Keep it substantially shorter than the body. The user may prefer to rewrite this overview personally so it expresses the release's purpose in exactly the intended voice; when that is likely, prioritize LLM effort on the body instead of over-polishing the introduction.
 - Ground the overview in the actual cumulative commit/diff range and final repository state. It should describe the shipped net result, not temporary development history or a catalogue of unfamiliar asset names. Prefer one or two understandable consequences/examples over many unexplained examples.
@@ -89,7 +89,7 @@ This is a living release checklist for the user and AI/LLM helpers working on Ad
 - CivFanatics currently has an approximately **50,000-character limit per post** and ModDB approximately **100,000 characters**. Do not prematurely delete meaningful body substance just to force one CFC post; prepare the complete body first, then compact or split it if needed.
 - For the final CFC-oriented plain-text copy, keep **no blank lines between individual items within a section**. The user's website-side HTML/list formatting can provide indentation/visual separation. Blank lines may still separate major section boundaries and overview paragraphs.
 - Keep cumulative compare information/SHAs near the end in the style of the existing sample when useful.
-- Store reusable published examples, active web-changelog drafts, and continuation checkpoints in `_1_AdvCiv-SAS/Docs/Modding_Ressources/changelogs_web/`. The whole folder is tracked but `export-ignore`, so future changelog files do not need individual `.gitattributes` entries.
+- Routine working drafts/checkpoints do not need to be committed. After publication, archive the final public release text(s) in `_1_AdvCiv-SAS/Docs/changelogs_web/<version>.txt` with release/source/retrieval provenance. When the same release has distinct CFC/ModDB/forum texts, preserve them as clearly labeled blocks in the same version file rather than flattening them together.
 
 ## 7. Prepare Git history/reference updates
 
@@ -122,6 +122,6 @@ This is a living release checklist for the user and AI/LLM helpers working on Ad
 ## 10. After release
 
 - Update release/tag examples or version-specific documentation only when doing so adds useful future guidance; avoid turning every example into a maintenance burden.
-- Update incremental Git logs and any release-history notes that intentionally track the newly published boundary.
+- Update the incremental Git log and archive the newly published CFC/ModDB release text in [`Docs/changelogs_web/`](/_1_AdvCiv-SAS/Docs/changelogs_web/) if it has not already been captured.
 - Record post-release hotfix/update boundaries clearly so the next cumulative changelog uses the intended previous stable release rather than accidentally starting from an intermediate development commit.
 - Keep newly discovered release-process omissions or repetitive manual steps as improvements to this checklist. The goal is for future LLM/user release preparation to become more reliable and less tedious over time.

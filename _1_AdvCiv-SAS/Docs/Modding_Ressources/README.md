@@ -22,6 +22,7 @@ This is a non-exhaustive page containing some ressources i found helpful and gen
 &emsp;&emsp;[More advanced version to also set the date of the tag to last commit and not time of tagging, plus using shell variables so less tedious](#more-advanced-version-to-also-set-the-date-of-the-tag-to-last-commit-and-not-time-of-tagging-plus-using-shell-variables-so-less-tedious)\
 &emsp;&emsp;&emsp;[example with more advanced version (totally not shameless (or yes xd)) (but it might also help as well)](#example-with-more-advanced-version-totally-not-shameless-or-yes-xd-but-it-might-also-help-as-well)\
 &emsp;[git log with anonymized email in a .txt](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#git-log-with-anonymized-email-in-a-txt)\
+&emsp;[published web release changelogs in .txt](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#published-web-release-changelogs-in-txt)\
 &emsp;[manual(s) and docs in .txt](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#manuals-and-docs-in-txt)\
 &emsp;&emsp;[advciv id changes manual.txt results](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#advciv-id-changes-manualtxt-results)\
 &emsp;[Sources about XML AI Attributes and their meaning](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#sources-about-xml-ai-attributes-and-their-meaning)\
@@ -265,7 +266,15 @@ Note 2: since as of now git log text docs are updated incrementally unlike relea
 
 Note 3: it seems that due to this, some commits are not ordered chronologically, for example `24dbe0256ce974067b99f4d545fa8ca23596c344` (2026-04-25 00:18:51 +0200) is part of the AdvCiv-SAS 6020 release batch's changelog, so it is more recent in our git log than the newer `82f042a44f4cd4bbc2b687444356d220b83131c1` 2026-06-04 19:20:56 +0200, but as of now keep it as such for no tedium and clearer/more reliable version boundaries.
 
-For example, i put thes git log files in the [/_0_Common_Docs/git_logs/](/_0_Common_Docs/git_logs/) and [/_1_AdvCiv-SAS/git_logs/](/_1_AdvCiv-SAS/git_logs/) folders.
+For example, i put thes git log files in the [/_0_Common_Docs/git_logs/](/_0_Common_Docs/git_logs/) and [/_1_AdvCiv-SAS/Docs/git_logs/](/_1_AdvCiv-SAS/Docs/git_logs/) folders.
+
+### published web release changelogs in .txt
+
+Full AdvCiv-SAS release/update text manually copied from CivFanatics and/or ModDB is archived in [Docs/changelogs_web/](/_1_AdvCiv-SAS/Docs/changelogs_web/) as version-named plain-text files.
+
+These are historical source copies and complete release-writing examples that complement Git history; preserve their source/date provenance and keep distinct publication texts separate when one release has multiple web sources.
+
+Routine working drafts/checkpoints do not need to be tracked because the repository, Git history, temporary development notes, and complete published examples already provide the useful inputs for the next release.
 
 ### manual(s) and docs in .txt
 

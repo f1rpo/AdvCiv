@@ -1,0 +1,7 @@
+release date: Sep 5, 2025 on CFC; Oct 3rd, 2025 on ModDB
+source: https://www.moddb.com/mods/advciv-sas-simple-advanced-strategy/downloads/advciv-sas-4986
+retrieved: Oct 7, 2026 by wonderingabout (manual web copy)
+
+This is the first release of AdvCiv-SAS. A newer version has been released since then.
+
+This is the first release of AdvCiv-SAS, version 4986. A newer version has been released since then.
