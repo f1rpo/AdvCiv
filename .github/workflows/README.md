@@ -57,6 +57,22 @@ The workflow first prints the full `ruff check . --isolated --select ALL` groupe
 
 Note: Separate artifacts were considered, which according to ChatGPT-5.5 are as of now limited to 500MB for free users, but GitHub Actions already lets us view on the web browser/URL and download workflow logs as ZIP (as of now right click "Download Log Archive"), so we do not need and so do not use artifact storage for now.
 
+## Markdown lint workflow
+
+[`markdownlint.yml`](/.github/workflows/markdownlint.yml) fails on markdownlint findings in maintained documentation, using [markdownlint-cli2-action](https://github.com/DavidAnson/markdownlint-cli2-action) v24.2.0 (markdownlint-cli2 0.23.2 / markdownlint 0.41.1). Pushes and pull requests touching Markdown, either Markdown configuration, or this workflow trigger it; manual runs are also available. The mirrored base AdvCiv comparison branch is excluded as in the other sanity workflows.
+
+Rule settings come from [`.markdownlint.jsonc`](/.markdownlint.jsonc), shared with the VS Code extension. Existing exceptions for tabs, long lines, raw HTML and intentional code-span whitespace remain unchanged. [`.markdownlint-cli2.jsonc`](/.markdownlint-cli2.jsonc) defines the shared local/CI scope: all Markdown files anywhere in the repository, respecting `.gitignore`.
+
+Explicit exclusions cover upstream common docs, generated helper outputs/examples/commit diffs, imported map-script reference subfolders, dependency folders and version-named published changelog archives. Maintained context guides and archive README indexes remain checked. New documentation locations need no per-file registration.
+
+CI reports findings without modifying files. This complements the existing local-link and declared-menu checks. A real README failure prompted this addition: three tab-indented history bullets became an unintended code block, causing MD046 to flag every later fenced example. Removing the three tabs fixed the list without changing the examples.
+
+Run the same scope and configuration locally:
+
+```sh
+npx markdownlint-cli2@0.23.2
+```
+
 ## Python 2.4 compile workflow
 
 [`python24-compile.yml`](/.github/workflows/python24-compile.yml) runs [`build/python24_compile.py`](#buildpython24_compilepy) inside `ghcr.io/wonderingabout/python-2.4:2.4.6`, built from the separate [`wonderingabout/python-2.4-docker`](https://github.com/wonderingabout/python-2.4-docker) Docker-image recipe. It checks `Assets/Python` and `PrivateMaps` with the real CPython 2.4 parser/bytecode compiler, which is closer to Civ4's embedded Python than Ruff or modern Python 3.

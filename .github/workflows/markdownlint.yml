@@ -1,0 +1,32 @@
+name: Markdown lint
+
+on:
+  push:
+    paths:
+      - "**/*.md"
+      - ".markdownlint*"
+      - ".github/workflows/markdownlint.yml"
+  pull_request:
+    # <!-- custom: Match the other sanity workflows: skip the long-lived comparison against the mirrored base AdvCiv branch. (GPT-6.1-Sol) -->
+    branches-ignore:
+      - "1.14"
+    paths:
+      - "**/*.md"
+      - ".markdownlint*"
+      - ".github/workflows/markdownlint.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  markdownlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check maintained Markdown
+        uses: DavidAnson/markdownlint-cli2-action@v24.2.0
+        with:
+          config: .markdownlint-cli2.jsonc
+          # <!-- custom: An empty glob input avoids the action's default root wildcard; use only the shared configuration's document scope. (GPT-6.1-Sol) -->
+          globs: ""

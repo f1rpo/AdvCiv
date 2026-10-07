@@ -189,9 +189,9 @@ If you want to see the full very exhaustive code changes between the current bas
 
 For release-by-release AdvCiv-SAS history, see:
 
-	- the [published web changelog archive](/_1_AdvCiv-SAS/Docs/changelogs_web/) for the contemporary CivFanatics/ModDB release text
-	- the [AdvCiv-SAS Git log](/_1_AdvCiv-SAS/Docs/git_logs/) for detailed commit history
-	- the [GitHub tags](https://github.com/wonderingabout/AdvCiv-SAS/tags) for release boundaries and Git history/compare references.
+- the [published web changelog archive](/_1_AdvCiv-SAS/Docs/changelogs_web/) for the contemporary CivFanatics/ModDB release text
+- the [AdvCiv-SAS Git log](/_1_AdvCiv-SAS/Docs/git_logs/) for detailed commit history
+- the [GitHub tags](https://github.com/wonderingabout/AdvCiv-SAS/tags) for release boundaries and Git history/compare references.
 
 For older, pre-AdvCiv-SAS (e.g. AdvCiv, K-Mod) history or other historical/misc docs/artifacts, see also [/_0_Common_Docs/](/_0_Common_Docs/).
 

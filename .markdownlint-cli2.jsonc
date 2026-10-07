@@ -1,0 +1,20 @@
+// AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
+// (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
+// <!-- custom: Share document scope between the local CLI and CI; rule settings remain in .markdownlint.jsonc for the editor too. Published version-named changelogs are verbatim archives, while their README indexes remain checked. (GPT-6.1-Sol) -->
+{
+  "globs": ["**/*.md"],
+  "gitignore": true,
+  "ignores": [
+    "_0_Common_Docs/**",
+    "LLM_Helpers/outputs/**",
+    "LLM_Helpers/examples/**",
+    "LLM_Helpers/context/commit_diffs/**",
+    "LLM_Helpers/context/mapscript_refs/*/**",
+    "**/node_modules/**",
+    "_1_AdvCiv-SAS/Docs/changelogs_web/[0-9]*.md",
+    "_1_AdvCiv-SAS/Docs/changelogs_web/_[0-9]*.md",
+    "_1_AdvCiv-SAS/Docs/Modding_Ressources/changelogs_web/[0-9]*.md",
+    "_1_AdvCiv-SAS/Docs/Modding_Ressources/changelogs_web/_[0-9]*.md"
+  ],
+  "fix": false
+}
