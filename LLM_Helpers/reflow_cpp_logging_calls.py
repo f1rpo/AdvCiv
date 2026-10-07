@@ -2,7 +2,7 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
-# Conservatively wrap long C++ BBAI/SASGameRecord logging argument lists.
+# Conservatively reflow C++ logging calls: wrap long BBAI/SASGameRecord calls and optionally collapse short ones.
 # Keeps the log format string unchanged and wraps only at top-level commas between arguments.
 # Commented-out calls, preprocessor directives/macros, and calls containing comments/multiline argument expressions are skipped.
 # Existing prose-comment layout is outside this helper's scope and is never reflowed.
@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Iterable, Iterator, List, Sequence, Tuple
 
 LOG_FUNCTIONS = ("logBBAI", "logSASGameRecord")
+SHORT_COLLAPSE_FUNCTIONS = LOG_FUNCTIONS + ("log",)
 CPP_SUFFIXES = {".cpp", ".h"}
 
 
@@ -149,7 +150,7 @@ def _preprocessor_blocks(text: str) -> Tuple[str, ...]:
     return tuple(blocks)
 
 
-def _iter_active_calls(text: str) -> Iterator[Tuple[int, str, int, int]]:
+def _iter_active_calls(text: str, function_names: Sequence[str] = LOG_FUNCTIONS) -> Iterator[Tuple[int, str, int, int]]:
     """Yield (name_start, function_name, open_paren, close_paren) in code only."""
     i = 0
     state = "code"
@@ -171,7 +172,7 @@ def _iter_active_calls(text: str) -> Iterator[Tuple[int, str, int, int]]:
                 while j < len(text) and (text[j] == "_" or text[j].isalnum()):
                     j += 1
                 name = text[i:j]
-                if name in LOG_FUNCTIONS and j < len(text) and text[j] == "(":
+                if name in function_names and j < len(text) and text[j] == "(":
                     close = _find_matching_paren(text, j)
                     if close is not None:
                         yield i, name, j, close
@@ -253,25 +254,45 @@ def _cpp_tokens_without_comments(text: str) -> Tuple[str, ...]:
     return tuple(tokens)
 
 
-def reflow_text(text: str, trigger_width: int = 180, wrap_width: int = 140) -> Tuple[str, int]:
+def reflow_text(text: str, trigger_width: int = 180, wrap_width: int = 140, collapse_short: bool = False, collapse_width: int = 180) -> Tuple[str, int]:
     changes: List[Tuple[int, int, str]] = []
     preprocessor_lines = _preprocessor_line_starts(text)
-    for start, name, open_pos, close_pos in _iter_active_calls(text):
+    functions = SHORT_COLLAPSE_FUNCTIONS if collapse_short else LOG_FUNCTIONS
+    for start, name, open_pos, close_pos in _iter_active_calls(text, functions):
         line_start = text.rfind("\n", 0, start) + 1
         # Preprocessor line-splicing backslashes are semantic before C++ tokenization.
         # Keep all #directive/macro bodies byte-for-byte outside this formatter's scope.
         if line_start in preprocessor_lines:
             continue
         args = _split_top_level_args(text[open_pos + 1:close_pos])
-        if len(args) < 2 or not args[0].lstrip().startswith('"'):
+        if len(args) < 1:
+            continue
+        # BBAI/SASGameRecord calls conventionally start with a format string. For
+        # generic member `.log(...)` calls, require that too before touching them.
+        if not args[0].lstrip().startswith('"'):
             continue
         # Don't rewrite a call whose individual non-format argument is itself a
-        # multiline/commented expression. Such code deserves manual formatting.
+        # multiline/commented expression. Whitespace-only line breaks are fine.
         if any("\n" in arg.strip() or "//" in arg or "/*" in arg for arg in args[1:]):
             continue
         line_end = text.find("\n", close_pos)
         if line_end < 0:
             line_end = len(text)
+        call_text = text[start:close_pos + 1]
+        call_is_multiline = "\n" in call_text
+
+        if collapse_short and call_is_multiline:
+            single_call = name + "(" + ", ".join(arg.strip() for arg in args) + ")"
+            candidate_line = text[line_start:start] + single_call + text[close_pos + 1:line_end]
+            if "//" not in call_text and "/*" not in call_text and _visual_len(candidate_line) <= collapse_width:
+                changes.append((start, close_pos + 1, single_call))
+                continue
+
+        # The wrapping mode remains intentionally limited to the original
+        # BBAI/SASGameRecord functions; generic `.log` is opt-in collapse-only.
+        # A one-argument format-only call has nothing to wrap.
+        if name not in LOG_FUNCTIONS or len(args) < 2:
+            continue
         lines = text[line_start:line_end].splitlines()
         if len(lines) == 1:
             too_long = _visual_len(lines[0]) > trigger_width
@@ -339,12 +360,14 @@ def main() -> int:
     parser.add_argument("--diff", action="store_true", help="print unified diff")
     parser.add_argument("--trigger-width", type=int, default=180, help="line width that triggers wrapping (default: 180)")
     parser.add_argument("--wrap-width", type=int, default=140, help="target continuation width (default: 140)")
+    parser.add_argument("--collapse-short", action="store_true", help="also collapse simple multiline log calls that fit on one line")
+    parser.add_argument("--collapse-width", type=int, default=180, help="maximum full physical line width for --collapse-short (default: 180)")
     args = parser.parse_args()
 
     total = changed_files = 0
     for path in _iter_files(args.paths):
         old, eol = _read_preserving_eol(path)
-        new, count = reflow_text(old, args.trigger_width, args.wrap_width)
+        new, count = reflow_text(old, args.trigger_width, args.wrap_width, args.collapse_short, args.collapse_width)
         if not count:
             continue
         if _preprocessor_blocks(old) != _preprocessor_blocks(new):

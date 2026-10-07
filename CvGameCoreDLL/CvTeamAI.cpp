@@ -6775,7 +6775,7 @@ void CvTeamAI::AI_doWar()
 							if ((GET_TEAM(eTarget).getDefensivePower(getID()) * 3) / 2 < iDogpilePower)
 							{
 								int iValue = AI_startWarVal(eTarget, WARPLAN_DOGPILE);
-								if (iValue > 0 && gTeamLogLevel >= 2) logBBAI("    Team %d (%S) considering starting DOGPILE warplan with team %d with value %d",
+								if (gTeamLogLevel >= 2 && iValue > 0) logBBAI("    Team %d (%S) considering starting DOGPILE warplan with team %d with value %d",
 									getID(), GET_PLAYER(getLeaderID()).getCivilizationDescription(0), eTarget, iValue);
 								if (iValue > iBestValue)
 								{

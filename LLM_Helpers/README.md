@@ -27,6 +27,7 @@ Always review diffs before committing generated source changes.
   - [`fix_line_endings.py`](#fix_line_endingspy)
 - [C++ source cleanup helpers](#c-source-cleanup-helpers)
   - [`reflow_cpp_logging_calls.py`](#reflow_cpp_logging_callspy)
+  - [`collapse_cpp_log_guards.py`](#collapse_cpp_log_guardspy)
   - [`find_cpp_dead_code_candidates.py`](#find_cpp_dead_code_candidatespy)
   - [`collapse_cpp_signatures.py`](#collapse_cpp_signaturespy)
   - [`collapse_cpp_inline_returns.py`](#collapse_cpp_inline_returnspy)
@@ -49,6 +50,7 @@ Always review diffs before committing generated source changes.
 - [Game info comparison helpers](#game-info-comparison-helpers)
   - [`compare_handicap_infos.py`](#compare_handicap_infospy)
 - [Static audit helpers](#static-audit-helpers)
+  - [`audit_cpp_logging_pregates.py`](#audit_cpp_logging_pregatespy)
   - [`audit_define_keys.py`](#audit_define_keyspy)
   - [`audit_unused_text_keys.py`](#audit_unused_text_keyspy)
 - [Markdown documentation cleanup helpers](#markdown-documentation-cleanup-helpers)
@@ -316,16 +318,16 @@ python LLM_Helpers\fix_line_endings.py Assets\Python PrivateMaps --in-place
 
 ### `reflow_cpp_logging_calls.py`
 
-Conservative readability formatter for long C++ BBAI/SASGameRecord logging calls.
+Conservative readability formatter for C++ logging calls.
 
-- Targets only active `logBBAI(...)` and `logSASGameRecord(...)` calls; commented-out code is ignored.
+- The default wrapping mode targets active `logBBAI(...)` and `logSASGameRecord(...)` calls; commented-out code is ignored.
 - Keeps the diagnostic format string byte-for-byte intact and wraps only at top-level commas between C++ arguments.
+- `--collapse-short` additionally collapses simple multiline logging calls that fit within `--collapse-width` (default 180), including ordinary member `.log(...)` calls such as `m_kReport.log(...)`; this is opt-in so existing intentional multiline layout does not churn by default.
 - Does not reflow or merge existing prose comments; comment layout remains author-maintained, and calls containing comments are skipped for manual review.
 - Skips preprocessor directives and continued macro bodies entirely. Physical `\` line-splicing is semantic before C++ tokenization, so macro logging calls require manual formatting.
 - By default, a one-line call is considered for wrapping above 180 columns; an already-multiline call is considered only when one of its argument/continuation lines exceeds that threshold, so a deliberately long format-string line alone does not trigger churn.
 - Uses a 140-column target for continuation lines while keeping individual nested expressions intact. Complex arguments that are themselves multiline or contain comments are skipped for manual review rather than reformatted speculatively.
 - Preserves LF/CRLF line endings and compares non-comment C++ token streams before writing, refusing the change if significant source tokens differ.
-- This intentionally complements rather than conflicts with the signature/single-line cleanup helpers: diagnostic argument lists are easier to inspect, crash-triage, and review when they are not packed into several-hundred-character physical lines.
 - Always review the diff before committing. This is a narrow logging formatter, not a general C++ formatter.
 
 Dry-run scan of the DLL source:
@@ -340,10 +342,28 @@ Review a single file as a unified diff:
 python LLM_Helpers/reflow_cpp_logging_calls.py CvGameCoreDLL/CvUnitAI.cpp --diff
 ```
 
-Apply across the DLL source:
+Apply across the DLL source, or opt into short-call collapse on a touched file:
 
 ```bash
 python LLM_Helpers/reflow_cpp_logging_calls.py CvGameCoreDLL --in-place
+python LLM_Helpers/reflow_cpp_logging_calls.py CvGameCoreDLL/CvPlayerAI.cpp --collapse-short --diff
+```
+
+### `collapse_cpp_log_guards.py`
+
+Conservative formatter for simple one-statement C++ logging guards.
+
+- Collapses ordinary `if (...)` and `else if (...)` logging pre-gates so the condition and call head stay together, e.g. `if (bLog) logBBAI(...);`.
+- Eligible conditions must contain a recognizable logging gate such as a local `bLog...` flag, a `g*LogLevel`/`i*LogLevel` comparison, `GC.isLogging()`, or an explicit logging-enabled predicate; the exact variable name is otherwise generic.
+- Semantic-only conditions such as `isNormalizing()`, `isDebug()`, `bCoastal`, or gameplay predicates are intentionally skipped even when their sole body is a log call. Those branches may already sit inside an outer logging pre-gate, and collapsing them would add unrelated cosmetic churn rather than make pre-gating clearer.
+- Long logging argument tails remain multiline; the helper joins only the guard to the call head and removes a truly redundant one-statement brace pair.
+- Safe trailing `//` comments are preserved. Preprocessor/macro bodies, block comments, ambiguous call shapes, multi-statement blocks, and braced `if/else` structures are skipped.
+- This is formatting only. It does **not** invent missing log-level gates or reorder `&&` operands; use `audit_cpp_logging_pregates.py` plus LLM/manual review for architectural pre-gating.
+- Prefer targeted/touched-file runs. A whole-DLL scan can expose many historical cosmetic candidates and is normally unnecessary diff noise.
+
+```bash
+python LLM_Helpers/collapse_cpp_log_guards.py CvGameCoreDLL/CvPlayerAI.cpp --repo-root .
+python LLM_Helpers/collapse_cpp_log_guards.py CvGameCoreDLL/CvPlayerAI.cpp --repo-root . --in-place
 ```
 
 ### `find_cpp_dead_code_candidates.py`
@@ -826,6 +846,21 @@ Set-Location -LiteralPath "C:\Program Files (x86)\Steam\steamapps\common\Sid Mei
 ```
 
 ## Static audit helpers
+
+### `audit_cpp_logging_pregates.py`
+
+Advisory C++ audit for obvious BBAI/SASGameRecord caller-side pre-gating omissions.
+
+- Reports direct `logBBAI`, `logSASGameRecord...`, `recordSASGameRecord...`, `noteSASGameRecord...`, and custom `SAS_log...` calls that have no recognizable same-line or enclosing logging gate.
+- Understands ordinary outer gates such as `if (bLogPlotChange) { ... }`, so one gate around a logging-only loop is not mistaken for a missing per-call gate.
+- `--late-gates` also reports `&&` conditions where a recognizable logging gate appears after earlier predicates, including long calls whose argument tail continues on later lines; these are review candidates for moving the cheap gate first when evaluation order is genuinely independent.
+- Heuristic only: caller topology, side effects, and unusual control flow cannot be proved from text. Do not auto-rewrite from this report and do not make it blocking CI.
+- `BBAILog.cpp` and `SASGameRecordLog.cpp` are skipped by default because their internal logger topology is intentionally special; use `--include-log-implementations` for a deeper manual audit.
+
+```bash
+python LLM_Helpers/audit_cpp_logging_pregates.py CvGameCoreDLL
+python LLM_Helpers/audit_cpp_logging_pregates.py CvGameCoreDLL/CvCity.cpp --late-gates
+```
 
 ### `audit_define_keys.py`
 

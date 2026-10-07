@@ -10757,10 +10757,10 @@ void CvUnit::setBlockading(bool bNewValue)
 		// <!-- custom: A blockade is persistent strategic state rather than merely the later trade-route gold event.
 		// Record the old state before clearing and the new state after applying so the recorder can match one unit's start/end, range, affected teams/cities and observed duration without per-turn spam.
 		// The start/end branches are mutually exclusive, so their local level checks intentionally remain local instead of adding a function-wide cache. (ChatGPT-5.6-Sol) -->
-		if (!bNewValue && gGameRecordLogLevel >= 2) logSASGameRecordBlockadeChanged(this, false);
+		if (gGameRecordLogLevel >= 2 && !bNewValue) logSASGameRecordBlockadeChanged(this, false);
 		m_bBlockading = bNewValue;
 		updatePlunder(isBlockading() ? 1 : -1, true);
-		if (bNewValue && gGameRecordLogLevel >= 2) logSASGameRecordBlockadeChanged(this, true);
+		if (gGameRecordLogLevel >= 2 && bNewValue) logSASGameRecordBlockadeChanged(this, true);
 	}
 }
 

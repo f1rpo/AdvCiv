@@ -451,9 +451,10 @@ void CvCity::kill(bool bUpdatePlotGroups, /* advc.001: */ bool bBumpUnits)
 	if (bLogPlotChange) recordSASGameRecordPlotChange(kPlot, kOldPlotState, "cityPlotChanges", "CITY_REMOVED", true);
 	CvEventReporter::getInstance().cityLost(this);
 	// <!-- custom: CvTeam::resetVictoryProgress runs only after this city object has been deleted. Preserve the active launch and old-capital identity first so SASGameRecord can explicitly explain why the spaceship disappeared. (GPT-5.6-Sol) -->
-	if (bCapital && bLogPlotChange) logSASGameRecordVictoryProgressResetForCapital(this);
+	if (bLogPlotChange && bCapital) logSASGameRecordVictoryProgressResetForCapital(this);
 	// <!-- custom: CvArea stores target cities as IDInfo, so deleting the city makes AI_getTargetCity effectively become NULL without an AI_setTargetCity call.
-	// Record that effective transition while the old city is still valid, but deliberately do not mutate gameplay target storage solely for logging. (ChatGPT-5.6-Sol) -->
+	// Record that effective transition while the old city is still valid, but deliberately do not mutate gameplay target storage solely for logging.
+	// The surrounding bLogPlotChange recorder gate intentionally skips the whole otherwise logging-only player scan, including isAlive/isBarbarian/AI_getTargetCity checks, when level-2 SASGameRecord is disabled. (Chat-GPT-5.6-Sol) -->
 	if (bLogPlotChange)
 	{
 		CvArea const& kTargetArea = getArea();

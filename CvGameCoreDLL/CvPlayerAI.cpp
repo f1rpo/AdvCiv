@@ -1976,7 +1976,7 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity, bool bEverOwned) // advc.ctr: W
 			}
 			if (bRaze) eSASForcedRazeReason = SAS_AI_CONQUER_CITY_CULTURE_VICTORY;
 			// <!-- custom: Identify each forced conquest-raze branch at PLAYER level 1 without changing the decision. (GPT-5.6-Sol) -->
-			if (bRaze && bLogRazeDecision) logBBAI("RAZE_FORCED_REASON turn=%d player=%d city=%S reason=CULTURE_VICTORY highCultureCities=%d victoryTargetCities=%d enemyPowerPercent=%d localAttackStrength=%d localDefenceStrength=%d",
+			if (bLogRazeDecision && bRaze) logBBAI("RAZE_FORCED_REASON turn=%d player=%d city=%S reason=CULTURE_VICTORY highCultureCities=%d victoryTargetCities=%d enemyPowerPercent=%d localAttackStrength=%d localDefenceStrength=%d",
 				kGame.getGameTurn(), getID(), kCity.getName().GetCString(), iHighCultureCount, iVictTarget, iEnemyPowerPercent, iAttStr, iDefStr);
 		} // </advc.116>
 	}  // <advc.ctr>
@@ -4668,7 +4668,7 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 			//values.push_back(iValue);
 			++iTechCount;
 
-			if (!bAsync && iDepth == 0 && gPlayerLogLevel >= 3) logBBAI("      Player %d (%S) consider tech %S with value %d",
+			if (gPlayerLogLevel >= 3 && !bAsync && iDepth == 0) logBBAI("      Player %d (%S) consider tech %S with value %d",
 				getID(), getCivilizationDescription(0), GC.getInfo(eTech).getDescription(), iValue); // advc.007: Don't log when bAsync
 		}
 	}
@@ -6115,7 +6115,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech, b
 						iSASCityValue = iSASCityValue * iSASCapitalPercent / 100;
 
 					iSASProductiveFeatureRemoveTechValue += iSASCityValue;
-					if (!bAsync && gPlayerLogLevel >= 3 && iSASCityValue > 0)
+					if (gPlayerLogLevel >= 3 && !bAsync && iSASCityValue > 0)
 					{
 						logBBAI("      AI_TECH_PRODUCTIVE_FEATURE_REMOVE player=%d %S tech=%S feature=%S city=%S cityId=%d featureCount=%d xmlChopProduction=%d actualStoredProduction=%d averageActualChopProduction=%d cityBaseProduction=%d minFeatures=%d minChopTurnsNormal=%d featureProductionPercent=%d capital=%d cityValue=%d",
 							getID(), getCivilizationDescription(0), kTech.getDescription(),
@@ -13693,7 +13693,7 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer, 
 		iValueForThem = kPlayer.AI_bonusVal(eBonus, iChange, false, true);
 		// <!-- custom: Trace the existing technology-readiness gate separately from price calculation so named strategic-resource rules can be replaced and audited.
 		// A full autoplay distinguished unusable first copies from currently useful ones (e.g. early Iron value 1 and later Iron value 10) without hardcoded resource names. (GPT-5.6-Sol) -->
-		if (!bPlayerHuman && gBonusLogLevel >= 2 && (iValueForThem < iTradeValThresh || gBonusLogLevel >= 3))
+		if (gBonusLogLevel >= 2 && !bPlayerHuman && (iValueForThem < iTradeValThresh || gBonusLogLevel >= 3))
 		{
 			CvString szDiagnosticKey;
 			szDiagnosticKey.Format("N|%d|%d|%d|%d", getID(), eToPlayer, eBonus, iChange);

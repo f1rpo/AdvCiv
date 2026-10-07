@@ -5053,7 +5053,7 @@ bool CvUnitAI::AI_bestCityBuild(CvCityAI const& kCity, CvPlot** ppBestPlot, Buil
 	// return (eBestBuild != NO_BUILD);
 
 	// Ensure outputs are consistent no matter how we exit
-	if (!bFound && gWorkerLogLevel >= 3 && iCityPopulation >= 6 && !candidatePlots.empty())
+	if (gWorkerLogLevel >= 3 && !bFound && iCityPopulation >= 6 && !candidatePlots.empty())
 	{
 		CvPlot* pTopCandidatePlot = candidatePlots[0].pPlot;
 		BuildTypes const eTopCandidateBuild = candidatePlots[0].eBuild;
@@ -8557,7 +8557,7 @@ void CvUnitAI::AI_attackCityMove()
 	}
 	int const iCityCaptureUnitsPerExpedition = (bOversizedBarbarianExpedition ? std::min(3, iBarbarianExpeditionMaxUnits / 2 + 1) : 0);
 	bool const bCanFormUsefulBarbarianExpedition = (bOversizedBarbarianExpedition && iBarbarianCanAttackUnits >= iBarbarianExpeditionGroupsAfter * iBarbarianAttackersNeeded && iBarbarianCityCaptureUnits >= iBarbarianExpeditionGroupsAfter * iCityCaptureUnitsPerExpedition);
-	if (bOversizedBarbarianExpedition && !bCanFormUsefulBarbarianExpedition && gUnitLogLevel >= 2)
+	if (gUnitLogLevel >= 2 && bOversizedBarbarianExpedition && !bCanFormUsefulBarbarianExpedition)
 	{
 		logBBAI("    ATTACK_CITY_BARBARIAN_OVERSIZE_SPLIT_SKIP turn=%d player=%d %S reason=insufficient_capability groupId=%d groupUnits=%d canAttack=%d cityCapture=%d groupsPlanned=%d expeditionMax=%d attackersRequired=%d cityCaptureRequired=%d barbarianGarrison=%d barbarianAttackersNeeded=%d",
 			GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getGroup()->getID(), getGroup()->getNumUnits(),
@@ -17240,7 +17240,7 @@ bool CvUnitAI::AI_guardCity(bool bLeave, bool bSearch, int iMaxPath, MovementFla
 		// Retain MISSIONAI_GUARD_CITY so they continue toward the city and other groups count them as incoming instead of duplicating the same assignment.
 		// Preserve the old behavior for ordinary guard calls. (GPT-5.6-Sol) -->
 		MissionAITypes const eMissionAI = (bDangerOnly || !pEjectedUnit->noDefensiveBonus() ? MISSIONAI_GUARD_CITY : NO_MISSIONAI);
-		if (bDangerOnly && gUnitLogLevel >= 2) logBBAI("    ATTACK_DEFENSE_PRIORITY_DETACHED_UNIT turn=%d player=%d %S continuingGuardCity=%d originalGroupId=%d unitId=%d unit=%S unitType=%s unitAI=%s noDefensiveBonus=%d missionAI=%d guardCityMission=%d source=(%d,%d) endTurn=(%d,%d) target=%S target=(%d,%d)",
+		if (gUnitLogLevel >= 2 && bDangerOnly) logBBAI("    ATTACK_DEFENSE_PRIORITY_DETACHED_UNIT turn=%d player=%d %S continuingGuardCity=%d originalGroupId=%d unitId=%d unit=%S unitType=%s unitAI=%s noDefensiveBonus=%d missionAI=%d guardCityMission=%d source=(%d,%d) endTurn=(%d,%d) target=%S target=(%d,%d)",
 			GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), bContinuingGuardCity, iOriginalGroupId,
 			pEjectedUnit->getID(), pEjectedUnit->getName(0).GetCString(), SAS_getUnitTypeName(pEjectedUnit->getUnitType()),
 			SAS_getUnitAITypeName(pEjectedUnit->AI_getUnitAIType()), pEjectedUnit->noDefensiveBonus(), eMissionAI,
@@ -17260,7 +17260,7 @@ bool CvUnitAI::AI_guardCity(bool bLeave, bool bSearch, int iMaxPath, MovementFla
 			pEjectedUnit->pushGroupMoveTo(*pEndTurnPlot, eFlags, false, false, eMissionAI, pBestGuardPlot);
 		}
 	}
-	if (bDangerOnly && gUnitLogLevel >= 2) logBBAI("    ATTACK_DEFENSE_PRIORITY_ACTION turn=%d player=%d %S action=%s unitAI=%d originalGroupId=%d originalGroupUnits=%d defendersDetached=%d remainingGroupUnits=%d source=(%d,%d) target=%S target=(%d,%d) defendersNeeded=%d defendersHave=%d incomingDefenders=%d remainingShortfall=%d pathTurns=%d pathLimit=%d evacuating=%d",
+	if (gUnitLogLevel >= 2 && bDangerOnly) logBBAI("    ATTACK_DEFENSE_PRIORITY_ACTION turn=%d player=%d %S action=%s unitAI=%d originalGroupId=%d originalGroupUnits=%d defendersDetached=%d remainingGroupUnits=%d source=(%d,%d) target=%S target=(%d,%d) defendersNeeded=%d defendersHave=%d incomingDefenders=%d remainingShortfall=%d pathTurns=%d pathLimit=%d evacuating=%d",
 		GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0),
 		(bContinuingGuardCity ? "continue_guard_city" : (bThisUnitEjected ? "redirect_group_head" : "split_defenders_continue_expedition")),
 		AI_getUnitAIType(), iOriginalGroupId, iOriginalGroupUnits, iDefendersToSend, pOldGroup->getNumUnits(), pSourcePlot->getX(),
@@ -19279,7 +19279,7 @@ bool CvUnitAI::AI_join(int iMaxCount, SASGreatGeneralChoiceContext* pSASChoiceCo
 				else if (gGreatGeneralLogLevel >= 3)
 					logSASGreatGeneralJoinCityRejected(*this, *pLoopCity, "city-plot-danger-radius2", iMaxCount, iCount);
 			}
-			else if (bDoesJoin && gGreatGeneralLogLevel >= 3)
+			else if (gGreatGeneralLogLevel >= 3 && bDoesJoin)
 				logSASGreatGeneralJoinCityRejected(*this, *pLoopCity, "cannot-join-specialist", iMaxCount, iCount);
 		}
 	}
@@ -20810,7 +20810,7 @@ CvCity* CvUnitAI::AI_pickTargetCity(MovementFlags eFlags, int iMaxPathTurns, boo
 							iBestSpaceCapitalTotalOffence = iTotalOffence;
 						}
 					}
-					else if (!bCanArriveBeforeVictory && bLogSpaceTargetChoice) logBBAI("WAR_SPACE_CAPITAL_RUSH_SKIP turn=%d player=%d groupId=%d groupUnits=%d targetPlayer=%d capital=%S countdown=%d pathTurns=%d reason=cannot_arrive_before_victory",
+					else if (bLogSpaceTargetChoice && !bCanArriveBeforeVictory) logBBAI("WAR_SPACE_CAPITAL_RUSH_SKIP turn=%d player=%d groupId=%d groupUnits=%d targetPlayer=%d capital=%S countdown=%d pathTurns=%d reason=cannot_arrive_before_victory",
 						GC.getGame().getGameTurn(), getOwner(), getGroup()->getID(), getGroup()->getNumUnits(), pLoopCity->getOwner(),
 						pLoopCity->getName().GetCString(), iSpaceCountdown, iPathTurns);
 				}

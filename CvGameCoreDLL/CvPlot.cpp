@@ -6602,7 +6602,7 @@ void CvPlot::setRevealed(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly, Tea
 	if (bOldValue != bNewValue) // </advc.124>
 	{
 		// <!-- custom: Buffer permanent map revelation by team and flush it once per turn. This preserves exact coordinates without producing one log row for every newly revealed plot. (GPT-5.6-Sol) -->
-		if (bNewValue && gGameRecordLogLevel >= 2) recordSASGameRecordPlotRevealed(*this, eTeam);
+		if (gGameRecordLogLevel >= 2 && bNewValue) recordSASGameRecordPlotRevealed(*this, eTeam);
 		if (eTeam == getActiveTeam())
 		{
 			updateSymbols();

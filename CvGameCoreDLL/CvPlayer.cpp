@@ -3117,7 +3117,7 @@ void CvPlayer::doTurn()
 	// <!-- custom: Manual human cities are sampled before end-turn production processing, after the player had the opportunity to choose; sampling afterward would misclassify a normal item completed during doProduction while its new popup awaits input.
 	// AI-controlled and production-automated cities are sampled afterward so their chooser and emergency-building logic get their opportunity first.
 	// Both phases feed one broad SASGameRecord outcome and one dedicated BBAI diagnostic without duplicate same-city rows. See KI#51. (GPT-5.6-Sol) -->
-	bool const bLogProductionNoTargetBoundary = (!isBarbarian() && (gGameRecordLogLevel >= 2 || gProductionNoTargetLogLevel >= 2));
+	bool const bLogProductionNoTargetBoundary = ((gGameRecordLogLevel >= 2 || gProductionNoTargetLogLevel >= 2) && !isBarbarian());
 	bool const bLogManualHumanProduction = (bLogProductionNoTargetBoundary && isHuman() && !isHumanDisabled());
 	FOR_EACH_CITY_VAR(pLoopCity, *this)
 	{
@@ -5388,7 +5388,7 @@ void CvPlayer::doGoody(CvPlot* pPlot, CvUnit* pUnit, /* advc.314: */ GoodyTypes 
 			break;
 		}
 	}
-	if (!bReceivedGoody && gGameRecordLogLevel >= 2) logSASGameRecordGoodyNoOutcome(getID(), pPlot, pUnit, eTaboo, iAttempts);
+	if (gGameRecordLogLevel >= 2 && !bReceivedGoody) logSASGameRecordGoodyNoOutcome(getID(), pPlot, pUnit, eTaboo, iAttempts);
 }
 
 
@@ -11157,7 +11157,7 @@ void CvPlayer::setCivics(CivicOptionTypes eCivicOption, CivicTypes eNewValue)
 	// <!-- custom: Cache the post-initialization/non-Barbarian condition shared by SASGameRecord and religious-building commerce invalidation.
 	// Civic switches across the state-religion boundary change the player input used by every city's cached building commerce, so retain the old effective religion even when logging is disabled; setup calls still avoid the read. See KI#799. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	bool const bPostInitMajorCiv = (kGame.isFinalInitialized() && !isBarbarian());
-	bool const bLogCivicChange = (bPostInitMajorCiv && gGameRecordLogLevel >= 2);
+	bool const bLogCivicChange = (gGameRecordLogLevel >= 2 && bPostInitMajorCiv);
 	ReligionTypes const eOldEffectiveStateReligion = (bPostInitMajorCiv ? getStateReligion() : NO_RELIGION);
 	bool const bWasStateReligion = isStateReligion(); // advc.106
 

@@ -7010,7 +7010,7 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 			if (gSettlerLogLevel >= 2) SAS_logSettlerBuildDecision(*this, "AI_bestUnit_value", "REJECT_MIN_FOUND_VALUE", NO_UNIT, UNITAI_SETTLE, -1, aiUnitAIVal[UNITAI_SETTLE]);
 			aiUnitAIVal[UNITAI_SETTLE] = 0;
 		}
-		else if (aiUnitAIVal[UNITAI_SETTLE] > 0 && gSettlerLogLevel >= 3)
+		else if (gSettlerLogLevel >= 3 && aiUnitAIVal[UNITAI_SETTLE] > 0)
 		{
 			SAS_logSettlerBuildDecision(*this, "AI_bestUnit_value", "VALUE_ALLOWED", NO_UNIT, UNITAI_SETTLE, -1, aiUnitAIVal[UNITAI_SETTLE]);
 		}
@@ -7043,7 +7043,7 @@ UnitTypes CvCityAI::AI_bestUnit(bool bAsync, AdvisorTypes eIgnoreAdvisor, UnitAI
 			}
 		}
 	}
-	if (eBestUnitAI == UNITAI_SETTLE && gSettlerLogLevel >= 2)
+	if (gSettlerLogLevel >= 2 && eBestUnitAI == UNITAI_SETTLE)
 		SAS_logSettlerBuildDecision(*this, "AI_bestUnit", eBestUnit == NO_UNIT ? "NO_UNIT" : "BEST_UNIT", eBestUnit, eBestUnitAI, -1, iBestValue);
 	return eBestUnit;
 }
@@ -7363,7 +7363,7 @@ UnitTypes CvCityAI::AI_bestUnitAI(UnitAITypes eUnitAI, bool bAsync, AdvisorTypes
 		}
 	}
 
-	if (eUnitAI == UNITAI_SETTLE && gSettlerLogLevel >= 2)
+	if (gSettlerLogLevel >= 2 && eUnitAI == UNITAI_SETTLE)
 		SAS_logSettlerBuildDecision(*this, "AI_bestUnitAI", eBestUnit == NO_UNIT ? "NO_UNIT" : "BEST_UNIT", eBestUnit, eUnitAI, -1, iBestValue);
 	return eBestUnit;
 }
@@ -12606,7 +12606,7 @@ int CvCityAI::AI_processValue(ProcessTypes eProcess, CommerceTypes eCommerceType
 			bSkipVictoryCultureProcess = !(kOwner.AI_atVictoryStage(AI_VICTORY_CULTURE2) && iCultureVictoryRank > 0 && iCultureVictoryRank <= iVictoryCultureCities && iCultureVictoryInvestmentPercent > 0);
 		}
 	}
-	if (bSkipVictoryCultureProcess && gCultureLogLevel >= 3)
+	if (gCultureLogLevel >= 3 && bSkipVictoryCultureProcess)
 	{
 		logBBAI("CULTURE_PROCESS_SKIP turn=%d player=%d %S city=%S cityId=%d cultureLevel=%d pressureFactor=%d candidateRank=%d neededRank=%d victoryInvestmentPercent=%d",
 			GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationShortDescription(), getName().GetCString(), getID(),
@@ -13250,7 +13250,7 @@ void CvCityAI::AI_updateSafety(bool bUpdatePerfectSafety)
 			rThresh *= 2;
 		bEvac = (scaled(iAttStrength, iDefStrength + 1) > rThresh);
 		// <!-- custom: Log doomed-city thresholds and nearby attack context for analysis/logging purposes. (GPT-5.5) -->
-		if (bEvac && gEvacuationLogLevel > 0 && (gEvacuationLogLevel >= 2 || ePreviousSafety != CITYSAFETY_EVACUATING))
+		if (gEvacuationLogLevel > 0 && bEvac && (gEvacuationLogLevel >= 2 || ePreviousSafety != CITYSAFETY_EVACUATING))
 		{
 			TeamTypes eStrongestEnemy = NO_TEAM;
 			int iStrongestEnemyAttack = 0;
@@ -15128,7 +15128,7 @@ void CvCityAI::AI_doDraft(bool bForce)
 		}
 	}
 
-	if (!bWait && gCityLogLevel >= 2)
+	if (gCityLogLevel >= 2 && !bWait)
 		logBBAI("      City %S (size %d, highest %d) chooses to conscript with danger: %d, land war: %d, poor tiles: %d%s",
 			getName().GetCString(), getPopulation(), getHighestPopulation(), bDanger, bLandWar, iPoorPlots,
 			bGoodValue ? ", good value" : "");
@@ -15558,7 +15558,7 @@ bool CvCityAI::AI_chooseUnit(UnitAITypes eUnitAI, /* BBAI: */ int iOdds)
 {
 	UnitAITypes const eRequestedUnitAI = eUnitAI;
 	bool const bLogDetailedMilitaryProduction = (gMilitaryProductionLogLevel >= 3 && !isHuman() && !isBarbarian());
-	bool const bLogRequestedAssaultTransportProduction = (eUnitAI == UNITAI_ASSAULT_SEA && gOverseasTransportLogLevel >= 2);
+	bool const bLogRequestedAssaultTransportProduction = (gOverseasTransportLogLevel >= 2 && eUnitAI == UNITAI_ASSAULT_SEA);
 	// <!-- custom: Production-side Settler diagnostics belong to the Settler log category, not the broad city log, so tests with only SAS_BBAI_SETTLER_LOG_LEVEL enabled still show which high- or low-level unit choice path tried to train a Settler. Callers still own the log-level guard before this formatter is invoked. (GPT-5.5-Thinking) -->
 	const bool bRequestedSettler = (eUnitAI == UNITAI_SETTLE);
 	if (bRequestedSettler)
@@ -15590,7 +15590,7 @@ bool CvCityAI::AI_chooseUnit(UnitAITypes eUnitAI, /* BBAI: */ int iOdds)
 		(eBestUnit == NO_UNIT ? "REJECT_NO_BEST_UNIT" : "BEST_UNIT"), (eBestUnit == NO_UNIT ? L"-" : GC.getInfo(eBestUnit).getDescription()), iOdds);
 
 	const bool bResolvedSettler = (eUnitAI == UNITAI_SETTLE);
-	if (bResolvedSettler && gSettlerLogLevel >= 2)
+	if (gSettlerLogLevel >= 2 && bResolvedSettler)
 		SAS_logSettlerBuildDecision(*this, bRequestedSettler ? "AI_chooseUnit_requested" : "AI_chooseUnit_generic", eBestUnit == NO_UNIT ? "NO_BEST_UNIT" : "BEST_UNIT", eBestUnit, eUnitAI, iOdds, -1);
 
 	// <!-- custom: performance optimization: cache repetitive calls -->
@@ -15646,7 +15646,7 @@ bool CvCityAI::AI_chooseUnit(UnitAITypes eUnitAI, /* BBAI: */ int iOdds)
 					(pPreferredCity == NULL || pPreferredCity->getProductionUnit() == NO_UNIT ? "-" : GC.getInfo(pPreferredCity->getProductionUnit()).getType()));
 				if (bDeferToPreferredCity) return false;
 			}
-			if (bResolvedSettler && gSettlerLogLevel >= 2)
+			if (gSettlerLogLevel >= 2 && bResolvedSettler)
 				SAS_logSettlerBuildDecision(*this, bRequestedSettler ? "AI_chooseUnit_requested" : "AI_chooseUnit_generic", "CALL_CONCRETE", eBestUnit, eUnitAI, iOdds, -1);
 			// <!-- custom: avoid redundance, call same function instead, also so we can tweak it there only once, much cleaner; also note: chatgpt 5 recommeneded to add a return here (i.e. in next code, not comment, line as of now below), i thought it was not necessary, but maybe chatgpt 5 is right and i don't know too much about these, check if accurate -->
 			// pushOrder(ORDER_TRAIN, eBestUnit, eUnitAI);
@@ -15665,13 +15665,13 @@ bool CvCityAI::AI_chooseUnit(UnitAITypes eUnitAI, /* BBAI: */ int iOdds)
 				if (bChosen) return true;
 				if (!bRetrySameRole)
 				{
-					if (bResolvedSettler && gSettlerLogLevel >= 2) SAS_logSettlerBuildDecision(*this, bRequestedSettler ? "AI_chooseUnit_requested" : "AI_chooseUnit_generic", "CONCRETE_REJECTED", eCandidate, eUnitAI, iOdds, -1);
+					if (gSettlerLogLevel >= 2 && bResolvedSettler) SAS_logSettlerBuildDecision(*this, bRequestedSettler ? "AI_chooseUnit_requested" : "AI_chooseUnit_generic", "CONCRETE_REJECTED", eCandidate, eUnitAI, iOdds, -1);
 					return false;
 				}
 			}
 			return false;
 		}
-		else if (bResolvedSettler && gSettlerLogLevel >= 2)
+		else if (gSettlerLogLevel >= 2 && bResolvedSettler)
 		{
 			SAS_logSettlerBuildDecision(*this, bRequestedSettler ? "AI_chooseUnit_requested" : "AI_chooseUnit_generic", "REJECT_RANDOM_ODDS", eBestUnit, eUnitAI, iOdds, -1);
 		}

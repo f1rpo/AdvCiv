@@ -28,7 +28,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=133 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=134 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -71,10 +71,20 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
+### Revision 134 - SAS practical 6598
+
+- **Date:** 2026-10-07
+- **Git commit:** pending
+- **Change:** Led independent BBAI/SASGameRecord diagnostic conditions with their cached logging gates and added conservative pre-gate/formatting review helpers.
+
+Disabled diagnostics now short-circuit before unrelated semantic checks wherever the predicates are independent, while existing outer gates continue to skip whole logging-only scans without duplicating per-call checks. This is a pre-gating/readability optimization only: emitted SASGameRecord rows and log-level semantics are unchanged.
+
+The accompanying advisory helpers detect obvious missing/late caller gates and compact simple explicit logging pre-gates without rewriting semantic-only branches or making heuristic style checks blocking CI. Inherited `IFLOG` control-flow macros and UWAI's separate report system remain intentionally outside this revision for dedicated follow-up passes.
+
 ### Revision 133 - SAS practical 6588
 
 - **Date:** 2026-10-06
-- **Git commit:** pending
+- **Git commit:** `688c7bc797821ef641e6ba5cd5ef0d967b586901`
 - **Change:** Aligned production-upgrade telemetry with the KI#882 repair of an inherited BtS destination-production overwrite.
 
 Obsolete-unit production now accumulates into an upgrade target instead of replacing production already stored there. `PRODUCTION_UPGRADED` and interval production-flow rows consequently report destination production preserved by the repair rather than obsolete overwrite-loss fields; the existing level gates and upgrade scan remain unchanged.
