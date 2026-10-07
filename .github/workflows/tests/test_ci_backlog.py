@@ -103,6 +103,26 @@ class HygieneTests(unittest.TestCase):
             self.assertTrue(hygiene.check(repo, 'C:/' + '\U0001f600' * 126))
 
 
+    def test_filename_limit_counts_extensions_utf16_and_collects_all_failures(self):
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            fixture_git(repo)
+            accepted = ('a' * 52 + '.txt', '\U0001f600' * 26 + '.txt')
+            rejected = ('b' * 53 + '.txt', '\U0001f600' * 27 + '.txt')
+            for name in accepted:
+                (repo / name).write_bytes(b'clean\n')
+                git(repo, 'add', name)
+            self.assertEqual(hygiene.check(repo, 'C:/Mods/SAS'), [])
+            for name in rejected:
+                (repo / name).write_bytes(b'clean\n')
+                git(repo, 'add', name)
+            errors = hygiene.check(repo, 'C:/Mods/SAS')
+            self.assertEqual(len(errors), 2)
+            for name in rejected:
+                self.assertTrue(any(error.startswith(name + ': filename uses ') for error in errors))
+            self.assertTrue(all('including extension (maximum 56)' in error for error in errors))
+
+
     def test_visual_studio_utf8_boms_are_preserved(self):
         with tempfile.TemporaryDirectory() as temp:
             repo = Path(temp)

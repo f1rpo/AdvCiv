@@ -41,7 +41,7 @@
 		</SoundData>
 		<SoundData>
 			<SoundID>SONG_OPENING_MENU_02</SoundID>
-			<Filename>Art/AdvCiv_SAS/Main_Menu/music/juliush-avalon-mystically-fantasy-chill-out-music-7487</Filename>
+			<Filename>Art/AdvCiv_SAS/Main_Menu/music/juliush-avalon-fantasy-chill-out-7487</Filename>
 			<LoadType>STREAMED</LoadType>
 			<bIsCompressed>1</bIsCompressed>
 			<bInGeneric>1</bInGeneric>
@@ -993,7 +993,7 @@
 		</SoundData>
 		<SoundData>
 			<SoundID>SONG_FUTURE_FOOT_TAPPER_CLASSICAL</SoundID>
-			<Filename>Art/AdvCiv_SAS/Eras/Future/music/Foot_Tapper_Classical_Music_Dubstep_Fusion_wav_to_mp3</Filename>
+			<Filename>Art/AdvCiv_SAS/Eras/Future/music/Foot_Tapper_Classical_Dubstep_Fusion_wav_to_mp3</Filename>
 			<LoadType>STREAMED</LoadType>
 			<bIsCompressed>1</bIsCompressed>
 			<bInGeneric>1</bInGeneric>
@@ -1028,7 +1028,7 @@
 		</SoundData>
 		<SoundData>
 			<SoundID>SONG_FUTURE_INTO_THE_DARKNESS_336411</SoundID>
-			<Filename>Art/AdvCiv_SAS/Eras/Future/music/into-the-darkness-symphonic-metal-instrumental-336411</Filename>
+			<Filename>Art/AdvCiv_SAS/Eras/Future/music/into-the-darkness-symphonic-metal-336411</Filename>
 			<LoadType>STREAMED</LoadType>
 			<bIsCompressed>1</bIsCompressed>
 			<bInGeneric>1</bInGeneric>
@@ -1042,7 +1042,7 @@
 		</SoundData>
 		<SoundData>
 			<SoundID>SONG_FUTURE_ON_THE_COSMIC</SoundID>
-			<Filename>Art/AdvCiv_SAS/Eras/Future/music/On_The_Cosmic_Wave_Inspiring_Synthwave_Cosmic_Background</Filename>
+			<Filename>Art/AdvCiv_SAS/Eras/Future/music/On_The_Cosmic_Wave_Inspiring_Synthwave</Filename>
 			<LoadType>STREAMED</LoadType>
 			<bIsCompressed>1</bIsCompressed>
 			<bInGeneric>1</bInGeneric>
@@ -1056,7 +1056,7 @@
 		</SoundData>
 		<SoundData>
 			<SoundID>SONG_FUTURE_TACO_TRUCK_HEIST_377352</SoundID>
-			<Filename>Art/AdvCiv_SAS/Eras/Future/music/taco-truck-heist-flamenco-meets-underground-hip-hop-377352</Filename>
+			<Filename>Art/AdvCiv_SAS/Eras/Future/music/taco-truck-heist-flamenco-hip-hop-377352</Filename>
 			<LoadType>STREAMED</LoadType>
 			<bIsCompressed>1</bIsCompressed>
 			<bInGeneric>1</bInGeneric>
@@ -1385,7 +1385,7 @@
 		</SoundData>
 		<SoundData>
 			<SoundID>DIPLO_MEHMED_EARLY</SoundID>
-			<Filename>Art/AdvCiv_SAS/LeaderHeads/Mehmed/music/00_03_000_Old_Ottoman_turkish_Santuri_Ethem_Efendi_1855</Filename>
+			<Filename>Art/AdvCiv_SAS/LeaderHeads/Mehmed/music/00_03_000_Ottoman_Santuri_Ethem_Efendi_1855</Filename>
 			<LoadType>STREAMED</LoadType>
 			<bIsCompressed>1</bIsCompressed>
 			<bInGeneric>1</bInGeneric>
@@ -1742,7 +1742,7 @@
 		</SoundData>
 		<SoundData>
 			<SoundID>DIPLO_ALEXANDER_EARLY</SoundID>
-			<Filename>Art/AdvCiv_SAS/LeaderHeads/Alexander/music/The_Companions_Ancient_Macedon_Battle_Music_Alexander_the_Great</Filename>
+			<Filename>Art/AdvCiv_SAS/LeaderHeads/Alexander/music/The_Companions_Ancient_Macedon_Alexander_the_Great</Filename>
 			<LoadType>STREAMED</LoadType>
 			<bIsCompressed>1</bIsCompressed>
 			<bInGeneric>1</bInGeneric>
@@ -1980,7 +1980,7 @@
 		</SoundData>
 		<SoundData>
 			<SoundID>DIPLO_GRACE_OMALLEY_EARLY</SoundID>
-			<Filename>Art/AdvCiv_SAS/LeaderHeads/Grace_O_Malley/music/sonican-highlands-sun-celtic-irish-scottish-music-loop-340334</Filename>
+			<Filename>Art/AdvCiv_SAS/LeaderHeads/Grace_O_Malley/music/sonican-highlands-celtic-irish-scottish-loop-340334</Filename>
 			<LoadType>STREAMED</LoadType>
 			<bIsCompressed>1</bIsCompressed>
 			<bInGeneric>1</bInGeneric>

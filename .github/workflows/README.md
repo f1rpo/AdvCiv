@@ -419,7 +419,13 @@ Compile-checks runtime Civ4 Python files under `Assets/Python` and `PrivateMaps`
 
 ### `build/repository_hygiene.py`
 
-Rejects UTF-8, UTF-16 and UTF-32 BOM signatures in Git-tracked files, including inherited references. Visual Studio `.sln` and `.vcxproj` files may retain UTF-8 BOMs for launcher compatibility; UTF-16/32 BOMs remain rejected everywhere. For example, `CvGameCoreDLL/Project/AdvCiv.sln` and `AdvCiv.vcxproj` already contain UTF-8 BOMs in the unmodified `AdvCiv_base_1.14_renamed` comparison snapshot. Their inherited BOMs are preserved after the SAS project shortcut stopped opening following their removal. It also checks installed file paths against the standard Steam Civ4 `Mods/AdvCiv-SAS` anchor: at most 259 UTF-16 units for a file path, and 247 for parent directories. The default mod-folder name is derived from the repository root. `--install-root` can validate another installation path or longer mod name. Only leading signatures are read; binary assets are not decoded.
+Rejects UTF-8, UTF-16 and UTF-32 BOM signatures in Git-tracked files, including inherited references. Visual Studio `.sln` and `.vcxproj` files may retain UTF-8 BOMs for launcher compatibility; UTF-16/32 BOMs remain rejected everywhere. For example, `CvGameCoreDLL/Project/AdvCiv.sln` and `AdvCiv.vcxproj` already contain UTF-8 BOMs in the unmodified `AdvCiv_base_1.14_renamed` comparison snapshot. Their inherited BOMs are preserved after the SAS project shortcut stopped opening following their removal.
+
+It also checks installed file paths against the standard Steam Civ4 `Mods/AdvCiv-SAS` anchor: at most 259 UTF-16 units for a file path, and 247 for parent directories. The default mod-folder name is derived from the repository root. `--install-root` can validate another installation path or longer mod name.
+
+Filenames, including extensions, are limited to 56 UTF-16 units as a repository maintenance policy, not a Windows component limit. The existing 52-unit `Gilgamesh__gilgamesh_parent_action_02_affirmative.kf` provided the baseline for this choice; 56 adds four units of leeway while leaving descriptive names and installation-path headroom. Its exact name is referenced inside `Gilgamesh.kfm`, so a file-only rename would break that reference.
+
+When introducing this limit, eight music files and one example shortcut were shortened; the music XML paths were updated while original download links and credits were preserved. The checker scans every tracked file and reports all violations before failing. Only leading signatures are read; binary assets are not decoded.
 
 ### `build/generated_docs.py`
 
