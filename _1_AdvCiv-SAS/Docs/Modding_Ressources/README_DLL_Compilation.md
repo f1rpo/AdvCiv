@@ -1,6 +1,8 @@
 # AdvCiv-SAS DLL Compilation Guide
 
-This documents the tested local command-line Release-build workflow primarily for AI/LLM helpers operating through a terminal. Human modders can usually open [`AdvCiv.vcxproj`](/CvGameCoreDLL/Project/AdvCiv.vcxproj) directly with tools like Visual C++ 2010 Express and build the Release configuration through the IDE instead, as used for AdvCiv-SAS development. The clean-target, output-verification, installation, testing and symbol-retention rules below still apply to either approach.
+This documents the tested local command-line Release-build workflow primarily for AI/LLM helpers operating through a terminal. Human modders can usually open [`AdvCiv.vcxproj`](/CvGameCoreDLL/Project/AdvCiv.vcxproj) directly with tools like Visual C++ 2010 Express and build the Release configuration through the IDE instead, as used for AdvCiv-SAS development.
+
+The clean-target, output-verification, installation, testing and symbol-retention rules below still apply to either approach.
 
 By default, AI/LLM helpers should let the user compile unless compilation is needed or the user agrees that the helper may do it.
 
@@ -24,7 +26,9 @@ This applies to the first attempt and every retry after a failure:
 2. Delete that target folder before compiling or retrying the same configuration. Do not broaden deletion beyond the verified target folder; other configurations are isolated.
 3. Keep the parent directory's tracked zero-byte `.gitkeep`. It preserves the empty workflow folder in fresh Git clones and anchors the repository hygiene check.
 
-Stale fast-build intermediates have produced unreliable DLL behavior in testing. A one-file retry may be useful only to diagnose a compiler failure; afterward, delete that target folder before retrying the full build. Do not accept a DLL resumed from partial intermediates after a failed attempt. Retaining `temp_files/Debug-opt` is useful after a successful build, but it must be deleted before the next Debug-opt compile; it does not affect a clean Release build.
+Stale fast-build intermediates have produced unreliable DLL behavior in testing. A one-file retry may be useful only to diagnose a compiler failure; afterward, delete that target folder before retrying the full build.
+
+Do not accept a DLL resumed from partial intermediates after a failed attempt. Retaining `temp_files/Debug-opt` is useful after a successful build, but it must be deleted before the next Debug-opt compile; it does not affect a clean Release build.
 
 ## Release compile command
 
@@ -36,7 +40,9 @@ cmd.exe /d /s /c 'call "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\b
 
 Verification on 2026-08-14: from a missing/clean `temp_files/Release` target, this completed a full Release compile and link in about 106 seconds. Full builds on this machine generally take about 1 minute 30 seconds to 1 minute 42 seconds; allow about 2 minutes before treating quiet/buffered output as hung or timing it out.
 
-The command writes `CvGameCoreDLL\Project\Release\CvGameCoreDLL.dll`. Verify successful command output/exit status and the updated DLL. Visual Studio/MSBuild builds also write `CvGameCoreDLL\Project\Release\AdvCiv.log`, where success is shown by `Build succeeded.`, but do not assume that direct `nmake` refreshes the IDE build log.
+The command writes `CvGameCoreDLL\Project\Release\CvGameCoreDLL.dll`. Verify successful command output/exit status and the updated DLL.
+
+Visual Studio/MSBuild builds also write `CvGameCoreDLL\Project\Release\AdvCiv.log`, where success is shown by `Build succeeded.`, but do not assume that direct `nmake` refreshes the IDE build log.
 
 ## Install, test, and clean
 
@@ -54,11 +60,17 @@ cmd.exe /d /s /c 'call "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\b
 
 ## Retained Debug-opt crash symbols
 
-A clean Debug-opt build writes both `CvGameCoreDLL.dll` and its exact matching `CvGameCoreDLL.pdb` under `CvGameCoreDLL/Project/temp_files/Debug-opt`. The linked DLL records that build-time PDB path. Installing only the DLL in `Assets` while retaining the successful build folder therefore lets automatic WinDbg dump analysis resolve private symbols, source files and line numbers without copying the PDB into `Assets` or manually extending the debugger's symbol path. This was confirmed empirically during KI#475.2: after `temp_files/Debug-opt` was removed, a later matching Debug-opt crash report lost the useful source frames despite copying a PDB beside the installed Assets DLL; retaining the freshly rebuilt target restored them.
+A clean Debug-opt build writes both `CvGameCoreDLL.dll` and its exact matching `CvGameCoreDLL.pdb` under `CvGameCoreDLL/Project/temp_files/Debug-opt`. The linked DLL records that build-time PDB path.
 
-Keep the successful `temp_files/Debug-opt` folder while its installed DLL may need crash analysis. The folder is locally Git-ignored because retaining its exact PDB is now the normal Debug-opt workflow. This is not permission to reuse its `.obj`, `.pch`, dependency or linker files for another accepted Debug-opt build: delete the whole `temp_files/Debug-opt` target before every subsequent Debug-opt compile or retry, then create a fresh DLL/PDB pair.
+Installing only the DLL in `Assets` while retaining the successful build folder therefore lets automatic WinDbg dump analysis resolve private symbols, source files and line numbers without copying the PDB into `Assets` or manually extending the debugger's symbol path. This was confirmed empirically during KI#475.2: after `temp_files/Debug-opt` was removed, a later matching Debug-opt crash report lost the useful source frames despite copying a PDB beside the installed Assets DLL; retaining the freshly rebuilt target restored them.
 
-Other `temp_files/<target>` folders remain unignored so stale Release, Debug, Profile or other intermediates are visible in local status. The tracked `.gitkeep` remains for fresh clones and CI, while `.gitattributes` excludes the entire parent from release archives. The light-source ZIP includes only the placeholder, never retained compiler intermediates or private symbols. To preserve symbols beyond the next Debug-opt build, archive the exact DLL/PDB pair outside the repository and explicitly add that archive directory to WinDbg's symbol path when analyzing its matching dump.
+Keep the successful `temp_files/Debug-opt` folder while its installed DLL may need crash analysis. The folder is locally Git-ignored because retaining its exact PDB is now the normal Debug-opt workflow.
+
+This is not permission to reuse its `.obj`, `.pch`, dependency or linker files for another accepted Debug-opt build: delete the whole `temp_files/Debug-opt` target before every subsequent Debug-opt compile or retry, then create a fresh DLL/PDB pair.
+
+Other `temp_files/<target>` folders remain unignored so stale Release, Debug, Profile or other intermediates are visible in local status. The tracked `.gitkeep` remains for fresh clones and CI, while `.gitattributes` excludes the entire parent from release archives.
+
+The light-source ZIP includes only the placeholder, never retained compiler intermediates or private symbols. To preserve symbols beyond the next Debug-opt build, archive the exact DLL/PDB pair outside the repository and explicitly add that archive directory to WinDbg's symbol path when analyzing its matching dump.
 
 ### Inspecting a dump from the command line
 
@@ -83,6 +95,8 @@ The useful debugger commands are compact:
 
 ## Transient legacy-compiler failures
 
-During the 2026-08-14 verification, the first full attempt had a silent VC2003 `cl.exe` code-1 failure at unchanged `CyGlobalContextInterface4.cpp`. The exact correctly pathed one-file diagnostic target compiled immediately afterward. Deleting the complete Release target and rerunning the full command then produced a successful DLL.
+During the 2026-08-14 verification, the first full attempt had a silent VC2003 `cl.exe` code-1 failure at unchanged `CyGlobalContextInterface4.cpp`. The exact correctly pathed one-file diagnostic target compiled immediately afterward.
+
+Deleting the complete Release target and rerunning the full command then produced a successful DLL.
 
 For a similarly unexplained compiler failure: use a narrow retry only for diagnosis, discard that configuration's partial intermediates, delete its target folder and retry the full build from scratch.

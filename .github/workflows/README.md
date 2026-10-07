@@ -36,9 +36,13 @@ For example, this helped spot [map scripts that were previously unclassified in 
 - `.github/workflows/build/aip_predump_values.py`
 - `.github/workflows/aip-predump-refresh.yml`
 
-The workflow checks out the selected or pushed branch, runs `python .github/workflows/build/aip_predump_values.py --write`, reruns the normal checker, and then inspects the predump file diff. If there is no diff, the log says the predump is already current and no PR is created. If there is a diff, it commits only `SevoPediaLeaderCachePredumped.py` to `bot/refresh-aip-predump-cache-<base-branch>` and creates or updates a PR named `Refresh AIP predump cache` targeting the branch that triggered the workflow.
+The workflow checks out the selected or pushed branch, runs `python .github/workflows/build/aip_predump_values.py --write`, reruns the normal checker, and then inspects the predump file diff. If there is no diff, the log says the predump is already current and no PR is created.
 
-The bot ignores its own refresh branches and skips runs by `github-actions[bot]`, so a generated predump PR does not recursively trigger another refresh. This uses only official checkout/setup-python actions plus GitHub's runner-provided `git`/`gh` tools. If PR creation fails with a permission error, check the repository's Actions workflow permissions: the workflow needs `contents: write`, `pull-requests: write`, and repository settings that allow GitHub Actions to create pull requests.
+If there is a diff, it commits only `SevoPediaLeaderCachePredumped.py` to `bot/refresh-aip-predump-cache-<base-branch>` and creates or updates a PR named `Refresh AIP predump cache` targeting the branch that triggered the workflow.
+
+The bot ignores its own refresh branches and skips runs by `github-actions[bot]`, so a generated predump PR does not recursively trigger another refresh. This uses only official checkout/setup-python actions plus GitHub's runner-provided `git`/`gh` tools.
+
+If PR creation fails with a permission error, check the repository's Actions workflow permissions: the workflow needs `contents: write`, `pull-requests: write`, and repository settings that allow GitHub Actions to create pull requests.
 
 Validated behavior, tested in [PR #31](https://github.com/wonderingabout/AdvCiv-SAS/pull/31):
 
@@ -51,9 +55,13 @@ The [PR #31](https://github.com/wonderingabout/AdvCiv-SAS/pull/31) body keeps th
 
 ## Python Ruff workflow
 
-[`python-ruff.yml`](/.github/workflows/python-ruff.yml) runs latest Ruff through `astral-sh/ruff-action` as a separate Python sanity workflow. It intentionally runs isolated from [`ruff.toml`](/ruff.toml), because `ruff.toml` is for the user's VS Code Ruff extension and local editing signal/noise, not for CI strictness. The local config keeps legacy Civ4/Python 2.4 false-positive noise manageable in the user's IDE, while GitHub should show the broader repository picture. Both configurations exclude the verbatim `LLM_Helpers/context/mapscript_refs` archaeology corpus because downloaded reference sources are not AdvCiv-SAS runtime code and should not be lint-modified.
+[`python-ruff.yml`](/.github/workflows/python-ruff.yml) runs latest Ruff through `astral-sh/ruff-action` as a separate Python sanity workflow. It intentionally runs isolated from [`ruff.toml`](/ruff.toml), because `ruff.toml` is for the user's VS Code Ruff extension and local editing signal/noise, not for CI strictness.
 
-The workflow first prints the full `ruff check . --isolated --select ALL` grouped report so all findings are visible, then fails on a practical critical gate (ignoring only those deemed non-critical and too noisy after empirical review) for syntax/parse errors and Pyflakes bug checks. The first GitHub run showed that only a few rules were clearly too noisy, so this is the first cautious narrowing step; narrow further only from actual failure output. For example, this helped spot shadowed duplicate Python callbacks in the base Civ4 `Oasis.py` map script (see [KI#164](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-164)) and a dormant undefined `Point` (instead of `PointLayout`) helper in `RectLayout.py` (see [KI#165](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-165)).
+The local config keeps legacy Civ4/Python 2.4 false-positive noise manageable in the user's IDE, while GitHub should show the broader repository picture. Both configurations exclude the verbatim `LLM_Helpers/context/mapscript_refs` archaeology corpus because downloaded reference sources are not AdvCiv-SAS runtime code and should not be lint-modified.
+
+The workflow first prints the full `ruff check . --isolated --select ALL` grouped report so all findings are visible, then fails on a practical critical gate (ignoring only those deemed non-critical and too noisy after empirical review) for syntax/parse errors and Pyflakes bug checks. The first GitHub run showed that only a few rules were clearly too noisy, so this is the first cautious narrowing step; narrow further only from actual failure output.
+
+For example, this helped spot shadowed duplicate Python callbacks in the base Civ4 `Oasis.py` map script (see [KI#164](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-164)) and a dormant undefined `Point` (instead of `PointLayout`) helper in `RectLayout.py` (see [KI#165](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-165)).
 
 Note: Separate artifacts were considered, which according to ChatGPT-5.5 are as of now limited to 500MB for free users, but GitHub Actions already lets us view on the web browser/URL and download workflow logs as ZIP (as of now right click "Download Log Archive"), so we do not need and so do not use artifact storage for now.
 
@@ -61,11 +69,17 @@ Note: Separate artifacts were considered, which according to ChatGPT-5.5 are as 
 
 [`markdownlint.yml`](/.github/workflows/markdownlint.yml) fails on markdownlint findings in maintained documentation, using [markdownlint-cli2-action](https://github.com/DavidAnson/markdownlint-cli2-action) v24.2.0 (markdownlint-cli2 0.23.2 / markdownlint 0.41.1). Pushes and pull requests touching Markdown, either Markdown configuration, or this workflow trigger it; manual runs are also available. The mirrored base AdvCiv comparison branch is excluded as in the other sanity workflows.
 
-Rule settings come from [`.markdownlint.jsonc`](/.markdownlint.jsonc), shared with the VS Code extension. Existing exceptions for tabs, long lines, raw HTML and intentional code-span whitespace remain unchanged. [`.markdownlint-cli2.jsonc`](/.markdownlint-cli2.jsonc) defines the shared local/CI scope: all Markdown files anywhere in the repository, respecting `.gitignore`.
+Rule settings come from [`.markdownlint.jsonc`](/.markdownlint.jsonc), shared with the VS Code extension. Existing exceptions for tabs, long lines, raw HTML and intentional code-span whitespace remain unchanged.
 
-Explicit exclusions cover upstream common docs, generated helper outputs/examples/commit diffs, imported map-script reference subfolders, dependency folders and version-named published changelog archives. Maintained context guides and archive README indexes remain checked. New documentation locations need no per-file registration.
+[`.markdownlint-cli2.jsonc`](/.markdownlint-cli2.jsonc) defines the shared local/CI scope: all Markdown files anywhere in the repository, respecting `.gitignore`.
 
-CI reports findings without modifying files. This complements the existing local-link and declared-menu checks. A real README failure prompted this addition: three tab-indented history bullets became an unintended code block, causing MD046 to flag every later fenced example. Removing the three tabs fixed the list without changing the examples.
+Explicit exclusions cover upstream common docs, generated helper outputs/examples/commit diffs, imported map-script reference subfolders, dependency folders and version-named published changelog archives. Maintained context guides and archive README indexes remain checked.
+
+New documentation locations need no per-file registration.
+
+CI reports findings without modifying files. This complements the existing local-link and declared-menu checks.
+
+A real README failure prompted this addition: three tab-indented history bullets became an unintended code block, causing MD046 to flag every later fenced example. Removing the three tabs fixed the list without changing the examples.
 
 Run the same scope and configuration locally:
 
@@ -77,7 +91,9 @@ npx markdownlint-cli2@0.23.2
 
 [`python24-compile.yml`](/.github/workflows/python24-compile.yml) runs [`build/python24_compile.py`](#buildpython24_compilepy) inside `ghcr.io/wonderingabout/python-2.4:2.4.6`, built from the separate [`wonderingabout/python-2.4-docker`](https://github.com/wonderingabout/python-2.4-docker) Docker-image recipe. It checks `Assets/Python` and `PrivateMaps` with the real CPython 2.4 parser/bytecode compiler, which is closer to Civ4's embedded Python than Ruff or modern Python 3.
 
-This is intentionally a syntax/compile compatibility check only: it does not launch Civ4, run gameplay code, import `CvPythonExtensions`, or validate engine-only runtime objects. It uses `docker run` after normal checkout instead of a job-level container so GitHub Actions and checkout still run on the ordinary runner, while the old image only needs to provide Python 2.4. A [test run confirmed it fails](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27897204427) on Python 2.5+ ternary syntax such as `SAS_MAGIC_PY24_COMPILE_BREAK_TEST = 1 if True else 0` in `Assets/Python/SASMagicNumbers.py`.
+This is intentionally a syntax/compile compatibility check only: it does not launch Civ4, run gameplay code, import `CvPythonExtensions`, or validate engine-only runtime objects. It uses `docker run` after normal checkout instead of a job-level container so GitHub Actions and checkout still run on the ordinary runner, while the old image only needs to provide Python 2.4.
+
+A [test run confirmed it fails](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27897204427) on Python 2.5+ ternary syntax such as `SAS_MAGIC_PY24_COMPILE_BREAK_TEST = 1 if True else 0` in `Assets/Python/SASMagicNumbers.py`.
 
 ## Current build checks
 
@@ -130,13 +146,17 @@ This is intentionally a syntax/compile compatibility check only: it does not lau
 
 ### `build/temp_files.py`
 
-Verifies `CvGameCoreDLL/Project/temp_files/` exists through its zero-byte tracked placeholder and otherwise contains only the optional locally ignored `Debug-opt` target. That target is retained because its exact matching PDB makes crash dumps actionable, but must be deleted before the next Debug-opt build. Other generated targets remain visible and fail the check; only the exact Debug-opt `.gitignore` rule and the matching `.gitattributes` release-export exclusions are allowed.
+Verifies `CvGameCoreDLL/Project/temp_files/` exists through its zero-byte tracked placeholder and otherwise contains only the optional locally ignored `Debug-opt` target. That target is retained because its exact matching PDB makes crash dumps actionable, but must be deleted before the next Debug-opt build.
+
+Other generated targets remain visible and fail the check; only the exact Debug-opt `.gitignore` rule and the matching `.gitattributes` release-export exclusions are allowed.
 
 This helps catch stale fast-compile intermediates and forgetting to replace the committed DLL after compiling (see also [KI#38](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-38) and [KI#38.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-38.2)).
 
 ### `build/line_endings.py`
 
-Verifies active text-like source/config/docs files do not mix CRLF and LF line endings within the same file and that non-empty files end with a newline. This is intentionally a reporting/fail-fast build check only; for local reviewed cleanup, use [`LLM_Helpers/fix_line_endings.py`](/LLM_Helpers/fix_line_endings.py). Generated/reference helper folders such as `LLM_Helpers/outputs` and the verbatim `LLM_Helpers/context/mapscript_refs` corpus are excluded to avoid noise or rewriting downloaded originals.
+Verifies active text-like source/config/docs files do not mix CRLF and LF line endings within the same file and that non-empty files end with a newline. This is intentionally a reporting/fail-fast build check only; for local reviewed cleanup, use [`LLM_Helpers/fix_line_endings.py`](/LLM_Helpers/fix_line_endings.py).
+
+Generated/reference helper folders such as `LLM_Helpers/outputs` and the verbatim `LLM_Helpers/context/mapscript_refs` corpus are excluded to avoid noise or rewriting downloaded originals.
 
 The script prints its scan mode. In a normal Git checkout it lists tracked files with `git ls-files` and checks the current checked-out bytes. In a plain exported folder, such as an extracted light-source zip without `.git`, it falls back to scanning the configured active source/doc folders directly.
 
@@ -163,7 +183,9 @@ Assets/Python/Contrib/Sevopedia/SevoPediaLeaderAIPValues.py
   LF-only line 334
 ```
 
-But it passed on [GitHub Actions test](https://github.com/wonderingabout/AdvCiv-SAS/pull/29/commits/c0e4c7624edafb022946267c606692071784dbf0): GitHub Actions checks its own post-checkout bytes, so local/exported mixed line endings can still need cleanup even when CI passes. When this happens in a Git checkout, the script notes failing worktree files that are already clean in the Git index. To make this clearer, the checker now prints its scan mode and can note when a failing worktree file is already clean in the Git index.
+But it passed on [GitHub Actions test](https://github.com/wonderingabout/AdvCiv-SAS/pull/29/commits/c0e4c7624edafb022946267c606692071784dbf0): GitHub Actions checks its own post-checkout bytes, so local/exported mixed line endings can still need cleanup even when CI passes. When this happens in a Git checkout, the script notes failing worktree files that are already clean in the Git index.
+
+To make this clearer, the checker now prints its scan mode and can note when a failing worktree file is already clean in the Git index.
 
 ### `build/assets_dlls.py`
 
@@ -171,17 +193,31 @@ Recursively verifies that `Assets` contains only the one shipped game-core DLL, 
 
 ### `build/dll_commit_message.py`
 
-Local test DLLs have accidentally been committed with source work, including a Debug-opt build replacing the intentionally shipped Release DLL. Source changes and local test builds happen more often than deliberate distributed Release DLL updates. A changed installed DLL should therefore remain unstaged unless its inclusion is intentional.
+Local test DLLs have accidentally been committed with source work, including a Debug-opt build replacing the intentionally shipped Release DLL. Source changes and local test builds happen more often than deliberate distributed Release DLL updates.
+
+A changed installed DLL should therefore remain unstaged unless its inclusion is intentional.
 
 The commit-message marker makes that decision explicit and catches accidental binary staging in CI. CI runs after pushing; it does not stop local staging or Git pushes, so inspect the staged file list before committing as well.
 
-Requires the exact, case-sensitive phrase `Update DLL` in the title or body of every checked commit that adds, modifies, deletes or renames a tracked `.dll` file anywhere in the repository. The extension is case-insensitive. For example, use `- Update DLL: install the tested Release build` in the commit body. Source-only commits need no marker. A later marked commit cannot excuse an earlier unmarked DLL update; each message is checked separately. Merge commits are compared against their first parent, and root commits include additions.
+Requires the exact, case-sensitive phrase `Update DLL` in the title or body of every checked commit that adds, modifies, deletes or renames a tracked `.dll` file anywhere in the repository. The extension is case-insensitive.
 
-On pushes, inspect all commit identities supplied by the GitHub push event and read the actual paths/messages from Git. This avoids depending on a discarded push-before object after an amendment. If the payload may be truncated, require the complete Git range instead; missing history produces a clear failure rather than silently passing.
+For example, use `- Update DLL: install the tested Release build` in the commit body. Source-only commits need no marker.
 
-On PRs, inspect commits reachable from the PR head but not its base, using the actual head SHA rather than GitHub's synthetic merge commit. Manual/local runs check the selected head commit by default. The existing full-history checkout supplies parents and PR history. This checks the currently selected push/PR range, not every old repository commit retroactively. GitHub documents its [push payload and commit-array limit](https://docs.github.com/en/webhooks/webhook-events-and-payloads#push).
+A later marked commit cannot excuse an earlier unmarked DLL update; each message is checked separately. Merge commits are compared against their first parent, and root commits include additions.
 
-This is an explicit-intent marker, not proof that a DLL was compiled in Release mode, corresponds to the current source or was authorized by the user. Preserve the existing rule that compiled binaries require explicit user approval. When a squash or merge introduces a DLL, its resulting commit message must also contain `Update DLL`; CI checks that committed message on push. This check does not rebuild DLLs, require binaries for source changes, or install a local hook.
+On pushes, inspect all commit identities supplied by the GitHub push event and read the actual paths/messages from Git. This avoids depending on a discarded push-before object after an amendment.
+
+If the payload may be truncated, require the complete Git range instead; missing history produces a clear failure rather than silently passing.
+
+On PRs, inspect commits reachable from the PR head but not its base, using the actual head SHA rather than GitHub's synthetic merge commit. Manual/local runs check the selected head commit by default.
+
+The existing full-history checkout supplies parents and PR history. This checks the currently selected push/PR range, not every old repository commit retroactively.
+
+GitHub documents its [push payload and commit-array limit](https://docs.github.com/en/webhooks/webhook-events-and-payloads#push).
+
+This is an explicit-intent marker, not proof that a DLL was compiled in Release mode, corresponds to the current source or was authorized by the user. Preserve the existing rule that compiled binaries require explicit user approval.
+
+When a squash or merge introduces a DLL, its resulting commit message must also contain `Update DLL`; CI checks that committed message on push. This check does not rebuild DLLs, require binaries for source changes, or install a local hook.
 
 ```sh
 python .github/workflows/build/dll_commit_message.py
@@ -190,11 +226,15 @@ python .github/workflows/build/dll_commit_message.py --base-ref HEAD~3 --head-re
 
 ### `build/art_button_paths.py`
 
-Verifies local `.dds` button/image paths under `Assets/Art` contain no whitespace because a path that works through a direct Civ4 button or atlas reference can fail when reused in `<img>` markup. Paths beneath any directory named `nif` are excluded because model texture paths can be embedded in NIF files and are not safely renamed through ordinary XML changes. Base-game art paths referenced from XML are also outside this local-asset check. See [KI#118](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-118), including the former `Buildings/Natya_Shastra/indian sreni.dds` example.
+Verifies local `.dds` button/image paths under `Assets/Art` contain no whitespace because a path that works through a direct Civ4 button or atlas reference can fail when reused in `<img>` markup. Paths beneath any directory named `nif` are excluded because model texture paths can be embedded in NIF files and are not safely renamed through ordinary XML changes.
+
+Base-game art paths referenced from XML are also outside this local-asset check. See [KI#118](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-118), including the former `Buildings/Natya_Shastra/indian sreni.dds` example.
 
 ### `build/markdown_images.py`
 
-Verifies every repository-local image referenced by a Markdown file resolves to an existing file. It checks normal and reference-style Markdown images plus HTML `<img src="...">` tags, while ignoring external URLs and fenced-code, inline-code, or comment examples. Repository-root paths and paths relative to each Markdown file are both supported.
+Verifies every repository-local image referenced by a Markdown file resolves to an existing file. It checks normal and reference-style Markdown images plus HTML `<img src="...">` tags, while ignoring external URLs and fenced-code, inline-code, or comment examples.
+
+Repository-root paths and paths relative to each Markdown file are both supported.
 
 This prevents documentation image links from silently breaking when image folders or files are moved or renamed.
 
@@ -202,9 +242,13 @@ This prevents documentation image links from silently breaking when image folder
 
 Verifies every repository-local file or directory referenced by a Markdown link resolves to an existing repository path, and verifies `#heading` fragments for Markdown targets against GitHub-style heading anchors and explicit HTML anchors.
 
-It checks normal and explicit reference-style Markdown links plus HTML `<a href="...">` tags, while ignoring external URLs and fenced-code, inline-code, or comment examples. Image references are handled separately by `markdown_images.py`. Repository-root paths and paths relative to each Markdown file are both supported.
+It checks normal and explicit reference-style Markdown links plus HTML `<a href="...">` tags, while ignoring external URLs and fenced-code, inline-code, or comment examples. Image references are handled separately by `markdown_images.py`.
 
-It also verifies the continuous Known Issues ledger and its standardized `KI#number` schema. Every integer through the highest body entry or stable `F### / provisional KI#number` assignment in the C++ File Audit Album must have an explicit Fixed, Pending, Merged, Rejected or Retired entry; the menu and body identifier sets must match without duplicates; and every entry uses a stable short `#ki-number` anchor. This catches both undiscoverable body entries such as the previously omitted KI#202 and wholly absent provisional/disposition entries such as KI#501.
+Repository-root paths and paths relative to each Markdown file are both supported.
+
+It also verifies the continuous Known Issues ledger and its standardized `KI#number` schema. Every integer through the highest body entry or stable `F### / provisional KI#number` assignment in the C++ File Audit Album must have an explicit Fixed, Pending, Merged, Rejected or Retired entry; the menu and body identifier sets must match without duplicates; and every entry uses a stable short `#ki-number` anchor.
+
+This catches both undiscoverable body entries such as the previously omitted KI#202 and wholly absent provisional/disposition entries such as KI#501.
 
 When `_LLM_REPO_FILE_MANIFEST.txt` is present in a light-source ZIP, tracked files and directories intentionally omitted from the bundle are still recognized as existing repository paths; Markdown fragments are checked whenever the target Markdown file itself is bundled. This prevents both moved/renamed repository targets and renamed Markdown headings from silently leaving stale local links.
 
@@ -214,19 +258,29 @@ Verifies the two archives under [`_1_AdvCiv-SAS/Docs/Long_Comments`](/_1_AdvCiv-
 
 The documentation archives must also remain valid UTF-8; this prevents legacy encoding damage from being silently reintroduced.
 
-Historical changelogs, archived Git logs, generated LLM commit-diff context, snapshots, and workflow/test files are ignored as references: they may legitimately preserve old marker text, but they must not keep a dead current entry alive. Multiple IDs on one marker line are supported. IDs remain stable and are not renumbered when stale entries are removed.
+Historical changelogs, archived Git logs, generated LLM commit-diff context, snapshots, and workflow/test files are ignored as references: they may legitimately preserve old marker text, but they must not keep a dead current entry alive. Multiple IDs on one marker line are supported.
+
+IDs remain stable and are not renumbered when stale entries are removed.
 
 ### `build/sas_text_references.py`
 
-Verifies every `TXT_KEY` defined across all SAS-owned GameText files (`Assets/XML/Text/AdvCiv-SAS*.xml`) is referenced by active mod XML, BUG configuration, Python, map-script Python, or C++. It also verifies that buildings, units, civilizations, and leaders with SAS-owned descriptions reference Civilopedia keys defined in the mod's GameText files, unless the pedia text is explicitly confirmed as inherited from the base game or expansion. Other explicit exceptions cover confirmed inherited base references, empirically confirmed EXE runtime references with no static reference, and BUG option-key families constructed dynamically at runtime. Every passing run prints the exact keys in each exception group so accepted uncertainty stays visible in CI. The two sea-level recommendation labels are runtime exceptions because changing the High label changed its Custom Game list text in-game, and Low uses the matching EXE convention. Inherited AdvCiv/BUG/BULL text remains outside the blocking unused-key check because a full static scan produces hundreds of uncertain legacy and dynamic candidates; the broader manual [`audit_unused_text_keys.py`](/LLM_Helpers/README.md#audit_unused_text_keyspy) remains available for optional review audits.
+Verifies every `TXT_KEY` defined across all SAS-owned GameText files (`Assets/XML/Text/AdvCiv-SAS*.xml`) is referenced by active mod XML, BUG configuration, Python, map-script Python, or C++. It also verifies that buildings, units, civilizations, and leaders with SAS-owned descriptions reference Civilopedia keys defined in the mod's GameText files, unless the pedia text is explicitly confirmed as inherited from the base game or expansion.
+
+Other explicit exceptions cover confirmed inherited base references, empirically confirmed EXE runtime references with no static reference, and BUG option-key families constructed dynamically at runtime. Every passing run prints the exact keys in each exception group so accepted uncertainty stays visible in CI.
+
+The two sea-level recommendation labels are runtime exceptions because changing the High label changed its Custom Game list text in-game, and Low uses the matching EXE convention. Inherited AdvCiv/BUG/BULL text remains outside the blocking unused-key check because a full static scan produces hundreds of uncertain legacy and dynamic candidates; the broader manual [`audit_unused_text_keys.py`](/LLM_Helpers/README.md#audit_unused_text_keyspy) remains available for optional review audits.
 
 ### `build/global_defines_nonempty.py`
 
-Verifies GlobalDefines XML files under `Assets/XML` have `<Define>` entries with non-empty `<DefineName>` values, unique define names within each file, and exactly one non-empty value field (normally `iDefineIntVal`, `fDefineFloatVal`, or `DefineTextVal`). This preventively catches accidental blank define values. We check this because we suspect they may possibly cause unclear errors; for intentional "empty" string-like behavior, explicit values such as `NONE` are clearer and more reliable.
+Verifies GlobalDefines XML files under `Assets/XML` have `<Define>` entries with non-empty `<DefineName>` values, unique define names within each file, and exactly one non-empty value field (normally `iDefineIntVal`, `fDefineFloatVal`, or `DefineTextVal`). This preventively catches accidental blank define values.
+
+We check this because we suspect they may possibly cause unclear errors; for intentional "empty" string-like behavior, explicit values such as `NONE` are clearer and more reliable.
 
 ### `build/version_metadata.py`
 
-Verifies the tracked `Assets/SASModVersion.txt` archive marker retains its Git `export-subst` version-anchor describe, commit, and commit-date placeholders, and that `.gitattributes` still marks the file `export-subst`. The version placeholder uses one immutable `SAS_VERSION_ANCHOR_<exact-commit-count>` tag: Git's describe distance is the count of commits in `anchor..target`, so AdvCiv-SAS can reconstruct the same practical commit-count version in ordinary GitHub/git-archive downloads without a per-commit VERSION file. The anchor is one-time repository infrastructure and must not be moved or renamed after creation.
+Verifies the tracked `Assets/SASModVersion.txt` archive marker retains its Git `export-subst` version-anchor describe, commit, and commit-date placeholders, and that `.gitattributes` still marks the file `export-subst`. The version placeholder uses one immutable `SAS_VERSION_ANCHOR_<exact-commit-count>` tag: Git's describe distance is the count of commits in `anchor..target`, so AdvCiv-SAS can reconstruct the same practical commit-count version in ordinary GitHub/git-archive downloads without a per-commit VERSION file.
+
+The anchor is one-time repository infrastructure and must not be moved or renamed after creation.
 
 ### `build/launch_guard.py`
 
@@ -238,9 +292,12 @@ Verifies `GlobalDefines_advciv_sas.xml` integer values stay within `[-100000, 10
 
 ### `build/turn_define_gamespeed.py`
 
-Verifies turn-valued integer `SAS_*` defines make their game-speed semantics explicit in the define name. `TURN(S)_NORMAL_GAMESPEED` means the XML value is expressed at Normal speed and code must scale it with the appropriate game-speed percentage; `TURN(S)_UNSCALED_GAMESPEED` means literal game/path turns are intentionally kept unchanged across game speeds. The check ignores non-duration uses such as `SAS_DO_TURN_*` function-scope names, `...PER_TURN` rates, and `...PATH_TURN_VALUE...` score weights. It also recognizes legacy-looking maximum countdown, minimum/maximum age, and log-interval names so those cannot silently evade the convention.
+Verifies turn-valued integer `SAS_*` defines make their game-speed semantics explicit in the define name. `TURN(S)_NORMAL_GAMESPEED` means the XML value is expressed at Normal speed and code must scale it with the appropriate game-speed percentage; `TURN(S)_UNSCALED_GAMESPEED` means literal game/path turns are intentionally kept unchanged across game speeds.
+
+The check ignores non-duration uses such as `SAS_DO_TURN_*` function-scope names, `...PER_TURN` rates, and `...PATH_TURN_VALUE...` score weights. It also recognizes legacy-looking maximum countdown, minimum/maximum age, and log-interval names so those cannot silently evade the convention.
 
 This naming rule was added after auditing turn gates while implementing non-combat food-production allocation: the new production gate correctly needed `TrainPercent` scaling, nearby UWAI contact limits correctly represented unscaled movement/path turns, and the victory-denial countdown windows were found to need `VictoryDelayPercent` scaling.
+
 The checker intentionally validates naming/declared intent rather than trying to infer the correct scaling formula from C++: code review still decides whether a Normal-speed value should use `TrainPercent`, `ConstructPercent`, `VictoryDelayPercent`, or another game-speed field. The explicit names make that audit grep-friendly and prevent ambiguous raw turn gates from being added silently.
 
 ### `build/sas_define_usage.py`
@@ -253,7 +310,9 @@ The scanner follows string aliases and discovers functions forwarding a name par
 
 Unsupported SAS name expressions fail and require extending the scanner rather than silently accepting a prefix. This is a static reference check: it does not prove a function executes, evaluate arbitrary Python/C++ expressions, resolve every possible cross-file alias, or preprocess C++ conditional compilation.
 
-One existing declaration is intentionally coverage-only metadata: `SAS_MAP_SCRIPT_NAMES_HEAVINESS_UNSPECIFIED` is consumed by `build/mapscripts.py`, not by game code. Its explicit exception is reported separately and its documented consumer is verified. Other unused declarations are errors. This checker does not change configuration values or require a SASGameRecord revision bump.
+One existing declaration is intentionally coverage-only metadata: `SAS_MAP_SCRIPT_NAMES_HEAVINESS_UNSPECIFIED` is consumed by `build/mapscripts.py`, not by game code. Its explicit exception is reported separately and its documented consumer is verified.
+
+Other unused declarations are errors. This checker does not change configuration values or require a SASGameRecord revision bump.
 
 ### `build/xml_comments.py`
 
@@ -261,19 +320,29 @@ Verifies XML comments under `Assets/XML` do not contain illegal double hyphen `-
 
 ### `build/xml_element_only_content.py`
 
-Verifies non-GameText XML under `Assets/XML` parses and contains no stray text between child elements. This catches XML that is well-formed but rejected by Civ4's schema loader, such as a leftover wrapped-comment line after a self-closing BuildingInfo field or a Python-style `#` before an XML comment. GameText is excluded because its language elements intentionally contain text content and inherited files can use legacy encodings.
+Verifies non-GameText XML under `Assets/XML` parses and contains no stray text between child elements. This catches XML that is well-formed but rejected by Civ4's schema loader, such as a leftover wrapped-comment line after a self-closing BuildingInfo field or a Python-style `#` before an XML comment.
+
+GameText is excluded because its language elements intentionally contain text content and inherited files can use legacy encodings.
 
 ### `build/xml_suspicious_angle_tags.py`
 
-Verifies raw XML files under `Assets/XML` do not contain suspicious malformed-looking tag punctuation such as doubled opening angles or extra closing angles after tags, catching valid-but-wrong text like `<French>>...`. This helped [spot](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27342682844/job/80783239087) and fix suspicious malformed-looking XML tag punctuation. See [KI#151](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-151).
+Verifies raw XML files under `Assets/XML` do not contain suspicious malformed-looking tag punctuation such as doubled opening angles or extra closing angles after tags, catching valid-but-wrong text like `<French>>...`. This helped [spot](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27342682844/job/80783239087) and fix suspicious malformed-looking XML tag punctuation.
+
+See [KI#151](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-151).
 
 ### `build/xml_suspicious_text_chars.py`
 
-Verifies XML text does not contain high-confidence corrupted characters such as `?` inside a word-like token, Unicode replacement characters in active/non-ignored text, common mojibake fragments, raw control characters, or web tracking query parameters such as `?utm_source=...` in active text; inherited non-English replacement-character noise is hidden by default and can be listed with `--show-ignored`. XML comments are ignored, allowing source/reference notes to retain their original URLs. This intentionally does not enforce broader typography policy such as em dashes, curly quotes, or accented letters. This helped [spot](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27400470104/job/80977135402) and fix the corresponding errors. See [KI#152](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-152).
+Verifies XML text does not contain high-confidence corrupted characters such as `?` inside a word-like token, Unicode replacement characters in active/non-ignored text, common mojibake fragments, raw control characters, or web tracking query parameters such as `?utm_source=...` in active text; inherited non-English replacement-character noise is hidden by default and can be listed with `--show-ignored`. XML comments are ignored, allowing source/reference notes to retain their original URLs.
+
+This intentionally does not enforce broader typography policy such as em dashes, curly quotes, or accented letters. This helped [spot](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27400470104/job/80977135402) and fix the corresponding errors.
+
+See [KI#152](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-152).
 
 ### `build/xml_civ4_text_characters.py`
 
-Verifies active GameText values do not contain Unicode typography that Civ4 renders as visible artifacts, including em/en dashes, curly quotes, ellipsis characters, and non-breaking spaces. It also catches repeated question marks that indicate lost characters. XML comments are ignored, while readable accented letters remain allowed.
+Verifies active GameText values do not contain Unicode typography that Civ4 renders as visible artifacts, including em/en dashes, curly quotes, ellipsis characters, and non-breaking spaces. It also catches repeated question marks that indicate lost characters.
+
+XML comments are ignored, while readable accented letters remain allowed.
 
 ### `build/xml_sas_text_english.py`
 
@@ -281,7 +350,9 @@ Verifies AdvCiv-SAS-owned GameText XML files (`Assets/XML/Text/AdvCiv-SAS*.xml`)
 
 ### `build/xml_text_duplicate_tags.py`
 
-Verifies each GameText `TXT_KEY`-style `<TEXT>/<Tag>` entry under `Assets/XML/Text` is defined only once, with source line numbers for duplicate definitions. Inspired by the old AdvCiv-SAS blind [scan_xml_duplicates-3.3.py](/LLM_Helpers/scan_xml_duplicates-3.3.py) (see [Legacy XML duplicate discovery scanner (``scan_xml_duplicates-3.3.py``)](/LLM_Helpers/README.md#legacy-xml-duplicate-discovery-scanner-scan_xml_duplicates-33py)). This helped [spot](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27332010214/job/80746523894) and fix XML text duplicate errors. See [KI#149](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-149).
+Verifies each GameText `TXT_KEY`-style `<TEXT>/<Tag>` entry under `Assets/XML/Text` is defined only once, with source line numbers for duplicate definitions. Inspired by the old AdvCiv-SAS blind [scan_xml_duplicates-3.3.py](/LLM_Helpers/scan_xml_duplicates-3.3.py) (see [Legacy XML duplicate discovery scanner (``scan_xml_duplicates-3.3.py``)](/LLM_Helpers/README.md#legacy-xml-duplicate-discovery-scanner-scan_xml_duplicates-33py)).
+
+This helped [spot](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27332010214/job/80746523894) and fix XML text duplicate errors. See [KI#149](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-149).
 
 ### `build/xml_parent_duplicate_keys.py`
 
@@ -289,13 +360,17 @@ Verifies parent-style XML objects are not defined twice with the same key, such 
 
 ### `build/xml_child_duplicates.py`
 
-Checks suspicious duplicate child/list XML entries inside the same parent object, failing on high-confidence duplicates such as duplicate flavors, leader memory/contact keys, civilization city names, and unit/promotion lists; reports lower-confidence duplicates such as exact duplicate event trigger `Text + Era` entries without failing, prints source line numbers, and hides known allowed/noisy duplicates such as weighted goody huts and reused world-picker art paths unless run with `--show-ignored`. This helped [spot](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27336768909/job/80762873956) and fix XML text duplicate errors. See [KI#150](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-150).
+Checks suspicious duplicate child/list XML entries inside the same parent object, failing on high-confidence duplicates such as duplicate flavors, leader memory/contact keys, civilization city names, and unit/promotion lists; reports lower-confidence duplicates such as exact duplicate event trigger `Text + Era` entries without failing, prints source line numbers, and hides known allowed/noisy duplicates such as weighted goody huts and reused world-picker art paths unless run with `--show-ignored`. This helped [spot](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27336768909/job/80762873956) and fix XML text duplicate errors.
+
+See [KI#150](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-150).
 
 ### `build/xml_redundant_defaults.py`
 
 Verifies a small set of XML representations that are known to be semantically redundant in Civ4/AdvCiv-SAS: explicit zero-valued entries inside `Flavors`, where an omitted flavor already evaluates to 0, and non-empty `TechTypes` lists containing only `NONE`/`NO_TECH`, where an empty `TechTypes` list has the same effective meaning. This was added after the flavor audit found both patterns in inherited/stale XML (see [KI#22.7](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-22.7)).
 
-The check is deliberately conservative rather than a generic "zero is bad" rule. Many scalar zero fields are mandatory or meaningful defaults, and some padded list formats may depend on loader/schema behavior. Add another pattern only after confirming that the shorter representation is accepted and semantically identical.
+The check is deliberately conservative rather than a generic "zero is bad" rule. Many scalar zero fields are mandatory or meaningful defaults, and some padded list formats may depend on loader/schema behavior.
+
+Add another pattern only after confirming that the shorter representation is accepted and semantically identical.
 
 ### `build/tech_columns.py`
 
@@ -303,7 +378,9 @@ Verifies all techs in the same tech-tree column (`iGridX`) share the same core c
 
 ### `build/wonder_cost_columns.py`
 
-Verifies normally constructible world wonders unlocked in the same technology-cost tier have the same production cost and that world-wonder costs increase in later, more expensive technology tiers. Multiple visual columns may intentionally share a timing tier when their technologies have the same research cost. Great Person-founded shrines/corporation headquarters (`iCost=-1`) are excluded, as is the deliberately expensive United Nations diplomatic-victory wonder.
+Verifies normally constructible world wonders unlocked in the same technology-cost tier have the same production cost and that world-wonder costs increase in later, more expensive technology tiers. Multiple visual columns may intentionally share a timing tier when their technologies have the same research cost.
+
+Great Person-founded shrines/corporation headquarters (`iCost=-1`) are excluded, as is the deliberately expensive United Nations diplomatic-victory wonder.
 
 ### `build/wonder_culture_gpp_columns.py`
 
@@ -313,11 +390,17 @@ World-wonder Great Person point rates (`iGreatPeopleRateChange`) must match with
 
 ### `build/asset_tech_prereq_redundancy.py`
 
-Flags stale additional unit/building tech requirements when the primary tech already guarantees them through every valid prerequisite path. To keep nearby foundational requirements explicit when useful, it applies only when the additional tech is from an earlier era and the primary tech is at least two columns after the start of its own era. Era starts and tech-graph guarantees are derived from current XML, so moving or collapsing tech-tree columns updates the check automatically.
+Flags stale additional unit/building tech requirements when the primary tech already guarantees them through every valid prerequisite path. To keep nearby foundational requirements explicit when useful, it applies only when the additional tech is from an earlier era and the primary tech is at least two columns after the start of its own era.
+
+Era starts and tech-graph guarantees are derived from current XML, so moving or collapsing tech-tree columns updates the check automatically.
 
 ### `build/civ_specific_assets.py`
 
-Verifies that civilization and leader references resolve to existing leader, art, trait, civic, and religion entries, and that each civilization's building and unit replacement class matches the class declared by the referenced asset. It also verifies civ-specific building and unit assets do not require a later starting tech-tree column (`iGridX`) or an earlier obsolete tech-tree column than the generic asset they replace; same-column parallel tech variation is allowed for flavor. For example, this helped [spot](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27461191223/job/81175197986) and fix `BUILDING_AZTEC_SACRIFICIAL_ALTAR: building class BUILDINGCLASS_MONUMENT replacement uses later tech column than default BUILDING_MONUMENT: TECH_CALENDAR (GridX=2, GridY=11) after TECH_MYSTICISM (GridX=1, GridY=11)`, but `BUILDING_JAPAN_DOUJOU` (JAIL) requiring `TECH_MEDITATION` parallel (`iGridY=9`) to `TECH_CONSTITUTION` required by the generic `BUILDING_JAIL` is fine so it does not need a fix. Similarly for `BUILDING_EGYPTIAN_OBELISK: building class BUILDINGCLASS_MONUMENT replacement uses earlier ObsoleteTech column than default BUILDING_MONUMENT: TECH_BROADER_EDUCATION (GridX=10, GridY=11) before TECH_LIBERALISM (GridX=13, GridY=11)` being obsolete sooner and so weaker than the generic monument so fixed it (obsolete is now same `GridY` or later).
+Verifies that civilization and leader references resolve to existing leader, art, trait, civic, and religion entries, and that each civilization's building and unit replacement class matches the class declared by the referenced asset. It also verifies civ-specific building and unit assets do not require a later starting tech-tree column (`iGridX`) or an earlier obsolete tech-tree column than the generic asset they replace; same-column parallel tech variation is allowed for flavor.
+
+For example, this helped [spot](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27461191223/job/81175197986) and fix `BUILDING_AZTEC_SACRIFICIAL_ALTAR: building class BUILDINGCLASS_MONUMENT replacement uses later tech column than default BUILDING_MONUMENT: TECH_CALENDAR (GridX=2, GridY=11) after TECH_MYSTICISM (GridX=1, GridY=11)`, but `BUILDING_JAPAN_DOUJOU` (JAIL) requiring `TECH_MEDITATION` parallel (`iGridY=9`) to `TECH_CONSTITUTION` required by the generic `BUILDING_JAIL` is fine so it does not need a fix.
+
+Similarly for `BUILDING_EGYPTIAN_OBELISK: building class BUILDINGCLASS_MONUMENT replacement uses earlier ObsoleteTech column than default BUILDING_MONUMENT: TECH_BROADER_EDUCATION (GridX=10, GridY=11) before TECH_LIBERALISM (GridX=13, GridY=11)` being obsolete sooner and so weaker than the generic monument so fixed it (obsolete is now same `GridY` or later).
 
 ### `build/civ_specific_not_weaker.py`
 
@@ -329,15 +412,21 @@ Verifies any SAS `DefineTextVal` token that looks like a known Civ4 XML tag (e.g
 
 ### `build/raw_getinfotype.py`
 
-Verifies runtime Python files do not add raw `getInfoTypeForString(...)` or `CvUtil.findInfoTypeNum(...)` lookups outside strict helper implementations and narrow legacy/dynamic exceptions. Use `getInfoTypeOrFail(...)` or `findInfoTypeNumOrFail(...)` for literal/static XML tag lookups so missing or renamed tags fail loudly. Python comments and string literals are ignored, so code-generation strings such as those in `savemap.py` are not flagged by this check. This allowed to [find](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27464773794/job/81185039717) this alternative lookup and that it needed an or fail handling too: now fixed.
+Verifies runtime Python files do not add raw `getInfoTypeForString(...)` or `CvUtil.findInfoTypeNum(...)` lookups outside strict helper implementations and narrow legacy/dynamic exceptions. Use `getInfoTypeOrFail(...)` or `findInfoTypeNumOrFail(...)` for literal/static XML tag lookups so missing or renamed tags fail loudly.
+
+Python comments and string literals are ignored, so code-generation strings such as those in `savemap.py` are not flagged by this check. This allowed to [find](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27464773794/job/81185039717) this alternative lookup and that it needed an or fail handling too: now fixed.
 
 ### `build/tech_audio.py`
 
-Verifies every technology's normal and multiplayer audio reference resolves through the mod-local `Audio2DScripts.xml` and `AudioDefines.xml` tables to a non-empty filename, that each technology keeps a distinct spoken recording, and that no technology-specific `AS2D_TECH_*` script remains orphaned after a technology is removed or renamed. `AS2D_TECH_GENERIC` is the intentional reusable exception. Mod-local resolution matters because missing entries in these replacement audio tables are not inherited from base Civ4; this check would catch the missing Drama entries, malformed Communism multiplayer script ID, wrong-layer Aesthetics multiplayer reference, and stale removed-tech scripts found during a technology rework.
+Verifies every technology's normal and multiplayer audio reference resolves through the mod-local `Audio2DScripts.xml` and `AudioDefines.xml` tables to a non-empty filename, that each technology keeps a distinct spoken recording, and that no technology-specific `AS2D_TECH_*` script remains orphaned after a technology is removed or renamed. `AS2D_TECH_GENERIC` is the intentional reusable exception.
+
+Mod-local resolution matters because missing entries in these replacement audio tables are not inherited from base Civ4; this check would catch the missing Drama entries, malformed Communism multiplayer script ID, wrong-layer Aesthetics multiplayer reference, and stale removed-tech scripts found during a technology rework.
 
 ### `build/leader_audio.py`
 
-Verifies every non-empty leader diplomacy-audio reference resolves through the mod-local `Audio2DScripts.xml` and `AudioDefines.xml` tables to a non-empty filename. This catches per-era mapping typos such as Stalin's former Renaissance `AS2D_DIPLO_STALIN_EARLY_INTROO` reference instead of silently losing the intended diplomacy intro. See [KI#1031](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-1031).
+Verifies every non-empty leader diplomacy-audio reference resolves through the mod-local `Audio2DScripts.xml` and `AudioDefines.xml` tables to a non-empty filename. This catches per-era mapping typos such as Stalin's former Renaissance `AS2D_DIPLO_STALIN_EARLY_INTROO` reference instead of silently losing the intended diplomacy intro.
+
+See [KI#1031](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-1031).
 
 ### `build/opening_music.py`
 
@@ -347,11 +436,15 @@ Verifies main-menu opening music has a valid `Audio2DScripts.xml` trigger/fixed 
 
 Verifies the BBAI and SASGameRecord final emission paths use the shared `logSASDiagnosticLiteralLine` wrapper instead of passing an already-formatted dynamic line directly to `gDLL->logMsg`. Civ4's EXE logger can interpret `%` in that message as printf syntax again; the wrapper doubles every remaining literal percent only at the final boundary.
 
-The check also guards the helper's percent-doubling implementation and carries small executable-specification examples such as `75%` -> `75%%`. Producer format strings still use ordinary printf escaping (`%%` for one intended `%`). This check is intentionally scoped to the two SAS diagnostic sinks implicated by [KI#375.3](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-375.3), not every inherited `gDLL->logMsg` caller in the DLL.
+The check also guards the helper's percent-doubling implementation and carries small executable-specification examples such as `75%` -> `75%%`. Producer format strings still use ordinary printf escaping (`%%` for one intended `%`).
+
+This check is intentionally scoped to the two SAS diagnostic sinks implicated by [KI#375.3](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-375.3), not every inherited `gDLL->logMsg` caller in the DLL.
 
 ### `build/bbai_log.py`
 
-Verifies BBAI logging is disabled by default in `Assets/XML/GlobalDefines_advciv_sas.xml`. Every integer `SAS_BBAI_*` define is discovered automatically and required to be `0`, so dedicated categories such as Citizen, Culture, Evacuation, Worker, and Worker-sea logging cannot be omitted from the check when categories are added. The only explicit nonzero exceptions are `SAS_BBAI_SCORE_LOG_INTERVAL_TURNS_UNSCALED_GAMESPEED=100` and `SAS_BBAI_LOG_USE_TIMESTAMPED_FILENAME=1`; these configure how enabled logging behaves but do not enable logging themselves.
+Verifies BBAI logging is disabled by default in `Assets/XML/GlobalDefines_advciv_sas.xml`. Every integer `SAS_BBAI_*` define is discovered automatically and required to be `0`, so dedicated categories such as Citizen, Culture, Evacuation, Worker, and Worker-sea logging cannot be omitted from the check when categories are added.
+
+The only explicit nonzero exceptions are `SAS_BBAI_SCORE_LOG_INTERVAL_TURNS_UNSCALED_GAMESPEED=100` and `SAS_BBAI_LOG_USE_TIMESTAMPED_FILENAME=1`; these configure how enabled logging behaves but do not enable logging themselves.
 
 ### `build/sas_game_record_log.py`
 
@@ -365,7 +458,9 @@ Every revision heading must follow the documented format; the newest entry must 
 
 The same check keeps readable AI-strategy diagnostics synchronized with `AIStrategies.h`: the enum must remain the contiguous power-of-two bitfield used by the recorder's shift scans, every `AIStrategy` value must map to its identical canonical raw token in `getSASAIStrategyType`, and the complete CORE/snapshot/transition scans must still reach the enum's current final strategy. This makes a future `AI_STRATEGY_*` addition or incompatible bit-layout change fail CI instead of silently disappearing from `GAME_RECORD_AI_STRATEGIES` or transition history.
 
-The check also guards exact AreaAI and AI target-city provenance. AreaAI raw-name coverage and its normal/UWAI writer bridges must remain synchronized; target-city checks require every current setter writer plus the city-removal effective-clear path to remain covered by exact transitions and the periodic `GAME_RECORD_AI_TARGET_CITIES` checkpoint. A new target writer therefore fails CI instead of silently bypassing target history.
+The check also guards exact AreaAI and AI target-city provenance. AreaAI raw-name coverage and its normal/UWAI writer bridges must remain synchronized; target-city checks require every current setter writer plus the city-removal effective-clear path to remain covered by exact transitions and the periodic `GAME_RECORD_AI_TARGET_CITIES` checkpoint.
+
+A new target writer therefore fails CI instead of silently bypassing target history.
 
 The check also keeps level-3 `GAME_RECORD_DIPLO_ATTITUDE_BREAKDOWN` synchronized with `CvPlayerAI::AI_updateAttitude`: the recorder component labels/order are validated against the current additive attitude getter sequence, including aggregate memories and the final partial-sum-dependent war modifier. If attitude arithmetic changes later, CI requires the diagnostic breakdown to be reviewed in the same change instead of silently becoming incomplete.
 
@@ -385,7 +480,11 @@ Verifies the Sevopedia Leader AI Personality Panel is enabled, uses the predumpe
 
 Validates effective AIP predump values outside Civ4. It compares committed entries in `Assets/Python/Contrib/Sevopedia/SevoPediaLeaderCachePredumped.py` against values reconstructed from `Assets/XML/Civilizations/CIV4LeaderHeadInfos.xml`, mirroring the narrow DLL path needed for these values: `LEADER_DEFAULTS` copy behavior, `CvLeaderHeadInfo::GetChildXmlValByName` missing-tag defaults, primitive array/list loading, and `UWAI::applyPersonalityWeight` with `UWAI_PERSONALITY_PERCENT`.
 
-This script is intentionally separate from [`build/aip.py`](#buildaippy). `aip.py` remains the lightweight release-safety check, while this deeper value mirror checks the committed predump against effective XML+DLL-style values. It currently checks full cached tuples for direct scalar getter keys, scalar attitude-threshold getters, flavors, no-war attitude probabilities, contact aggregate values, and displayed positive/negative memory aggregate values. Contact and memory aggregate formulas are shared with the in-game AIP helper code; unit AI modifiers and improvement modifiers are not checked because they are not currently displayed/predumped. The script fails by default when mismatches or missing/unparsed entries are found; use `--allow-mismatch` only for exploratory/debug runs such as `--no-uwai`.
+This script is intentionally separate from [`build/aip.py`](#buildaippy). `aip.py` remains the lightweight release-safety check, while this deeper value mirror checks the committed predump against effective XML+DLL-style values.
+
+It currently checks full cached tuples for direct scalar getter keys, scalar attitude-threshold getters, flavors, no-war attitude probabilities, contact aggregate values, and displayed positive/negative memory aggregate values. Contact and memory aggregate formulas are shared with the in-game AIP helper code; unit AI modifiers and improvement modifiers are not checked because they are not currently displayed/predumped.
+
+The script fails by default when mismatches or missing/unparsed entries are found; use `--allow-mismatch` only for exploratory/debug runs such as `--no-uwai`.
 
 Practical predump workflow:
 
@@ -396,7 +495,9 @@ Practical predump workflow:
 
 The generated file intentionally has no timestamp. This keeps no-op `--write` runs byte-identical when cache data is unchanged, avoiding false diffs and future bot/maintenance churn.
 
-This full-tuple check is intentionally stricter than a raw-value-only comparison. During development, the earlier numeric-only check passed, but the tuple check found 394 stale predump entries after shared/runtime AIP label metadata had changed. The underlying values were mostly correct, but many committed labels were missing updated `%` text, such as `Build Unit (52)` instead of `Build Unit % (52)`. Refreshing `SevoPediaLeaderCachePredumped.py` fixed those mismatches and confirmed that this check catches display-cache drift, not just numeric-value drift.
+This full-tuple check is intentionally stricter than a raw-value-only comparison. During development, the earlier numeric-only check passed, but the tuple check found 394 stale predump entries after shared/runtime AIP label metadata had changed.
+
+The underlying values were mostly correct, but many committed labels were missing updated `%` text, such as `Build Unit (52)` instead of `Build Unit % (52)`. Refreshing `SevoPediaLeaderCachePredumped.py` fixed those mismatches and confirmed that this check catches display-cache drift, not just numeric-value drift.
 
 Example local commands (Git Bash):
 
@@ -415,35 +516,61 @@ Verifies every playable `PrivateMaps/*.py` script is listed exactly once across 
 
 ### `build/python24_compile.py`
 
-Compile-checks runtime Civ4 Python files under `Assets/Python` and `PrivateMaps` with CPython 2.4 through [`python24-compile.yml`](/.github/workflows/python24-compile.yml). It uses `py_compile` on each source file but redirects bytecode to a temporary directory so the workflow catches real Python 2.4 parser/bytecode errors without writing `.pyc` files into the mounted repository. This check complements Ruff: Ruff gives modern static diagnostics, while this workflow confirms the old parser still accepts the files Civ4 can load.
+Compile-checks runtime Civ4 Python files under `Assets/Python` and `PrivateMaps` with CPython 2.4 through [`python24-compile.yml`](/.github/workflows/python24-compile.yml). It uses `py_compile` on each source file but redirects bytecode to a temporary directory so the workflow catches real Python 2.4 parser/bytecode errors without writing `.pyc` files into the mounted repository.
+
+This check complements Ruff: Ruff gives modern static diagnostics, while this workflow confirms the old parser still accepts the files Civ4 can load.
 
 ### `build/repository_hygiene.py`
 
-Rejects UTF-8, UTF-16 and UTF-32 BOM signatures in Git-tracked files, including inherited references. Visual Studio `.sln` and `.vcxproj` files may retain UTF-8 BOMs for launcher compatibility; UTF-16/32 BOMs remain rejected everywhere. For example, `CvGameCoreDLL/Project/AdvCiv.sln` and `AdvCiv.vcxproj` already contain UTF-8 BOMs in the unmodified `AdvCiv_base_1.14_renamed` comparison snapshot. Their inherited BOMs are preserved after the SAS project shortcut stopped opening following their removal.
+Rejects UTF-8, UTF-16 and UTF-32 BOM signatures in Git-tracked files, including inherited references. Visual Studio `.sln` and `.vcxproj` files may retain UTF-8 BOMs for launcher compatibility; UTF-16/32 BOMs remain rejected everywhere.
+
+For example, `CvGameCoreDLL/Project/AdvCiv.sln` and `AdvCiv.vcxproj` already contain UTF-8 BOMs in the unmodified `AdvCiv_base_1.14_renamed` comparison snapshot. Their inherited BOMs are preserved after the SAS project shortcut stopped opening following their removal.
 
 It also checks installed file paths against the standard Steam Civ4 `Mods/AdvCiv-SAS` anchor: at most 259 UTF-16 units for a file path, and 247 for parent directories. The default mod-folder name is derived from the repository root. `--install-root` can validate another installation path or longer mod name.
 
-Filenames, including extensions, are limited to 56 UTF-16 units as a repository maintenance policy, not a Windows component limit. The existing 52-unit `Gilgamesh__gilgamesh_parent_action_02_affirmative.kf` provided the baseline for this choice; 56 adds four units of leeway while leaving descriptive names and installation-path headroom. Its exact name is referenced inside `Gilgamesh.kfm`, so a file-only rename would break that reference.
+Filenames, including extensions, are limited to 56 UTF-16 units as a repository maintenance policy, not a Windows component limit. The existing 52-unit `Gilgamesh__gilgamesh_parent_action_02_affirmative.kf` provided the baseline for this choice; 56 adds four units of leeway while leaving descriptive names and installation-path headroom.
 
-When introducing this limit, eight music files and one example shortcut were shortened; the music XML paths were updated while original download links and credits were preserved. The checker scans every tracked file and reports all violations before failing. Only leading signatures are read; binary assets are not decoded.
+Its exact name is referenced inside `Gilgamesh.kfm`, so a file-only rename would break that reference.
+
+When introducing this limit, eight music files and one example shortcut were shortened; the music XML paths were updated while original download links and credits were preserved. The checker scans every tracked file and reports all violations before failing.
+
+Only leading signatures are read; binary assets are not decoded.
 
 ### `build/generated_docs.py`
 
-Validates registered source-to-text conversions in `TEXT_CONVERSIONS`: each entry declares its canonical source, generated text output, converter, refresh command and optional related source artifacts. CI regenerates each output into a temporary directory and compares its text with the tracked copy; missing sources or outputs fail. Add future conversions to this registry with their appropriate converter. The base AdvCiv manual is currently the only entry: `manual.odt` is the canonical source, `manual.txt` is the output and `manual.pdf` is a related artifact.
+Validates registered source-to-text conversions in `TEXT_CONVERSIONS`: each entry declares its canonical source, generated text output, converter, refresh command and optional related source artifacts. CI regenerates each output into a temporary directory and compares its text with the tracked copy; missing sources or outputs fail.
 
-For PRs and pushes, the workflow passes the complete change-range base through `--base-ref`: a registered source or related artifact changing without its corresponding text output changing fails. For the manual, this also catches PDF-only edits while ODT content remains authoritative for exact text verification. Manual dispatch has no change-range base and still verifies all current converted text content.
+Add future conversions to this registry with their appropriate converter. The base AdvCiv manual is currently the only entry: `manual.odt` is the canonical source, `manual.txt` is the output and `manual.pdf` is a related artifact.
 
-The workflow also supplies `--event-name`. After an amended/force-pushed commit, the push event's previous SHA can be absent even from a full-history checkout. For pushes only, the checker first tries fetching that exact commit from `origin`. If it is no longer served, a visible notice reports that paired source/text change-range validation cannot run; all current text-conversion and handicap-report content checks still run and can fail normally. Missing PR or ordinary local bases fail with a clear diagnostic instead of a Git traceback. Available bases always retain the complete-range check.
+For PRs and pushes, the workflow passes the complete change-range base through `--base-ref`: a registered source or related artifact changing without its corresponding text output changing fails. For the manual, this also catches PDF-only edits while ODT content remains authoritative for exact text verification.
 
-Rebuilds the published handicap comparison from current `CIV4HandicapInfo.xml` and the pinned [`handicap_infos_baseline.xml`](/LLM_Helpers/examples/handicap_infos_baseline.xml). The baseline was copied from the local base AdvCiv comparison tree only after verifying every published left-side TSV cell; reproducing the entire existing report also confirmed its unchanged fields and totals. The historical "Base AdvCiv 1.12" report label is retained. No sibling mod checkout is needed in CI. Display labels are read from the report title. Only report timestamp and absolute source/output paths are ignored; tables, values, deltas, entry ordering and summary counts must match.
+Manual dispatch has no change-range base and still verifies all current converted text content.
+
+The workflow also supplies `--event-name`. After an amended/force-pushed commit, the push event's previous SHA can be absent even from a full-history checkout.
+
+For pushes only, the checker first tries fetching that exact commit from `origin`. If it is no longer served, a visible notice reports that paired source/text change-range validation cannot run; all current text-conversion and handicap-report content checks still run and can fail normally.
+
+Missing PR or ordinary local bases fail with a clear diagnostic instead of a Git traceback. Available bases always retain the complete-range check.
+
+Rebuilds the published handicap comparison from current `CIV4HandicapInfo.xml` and the pinned [`handicap_infos_baseline.xml`](/LLM_Helpers/examples/handicap_infos_baseline.xml). The baseline was copied from the local base AdvCiv comparison tree only after verifying every published left-side TSV cell; reproducing the entire existing report also confirmed its unchanged fields and totals.
+
+The historical "Base AdvCiv 1.12" report label is retained. No sibling mod checkout is needed in CI.
+
+Display labels are read from the report title. Only report timestamp and absolute source/output paths are ignored; tables, values, deltas, entry ordering and summary counts must match.
 
 To refresh, run `python LLM_Helpers/convert_advciv_manual_to_txt.py` or `python .github/workflows/build/generated_docs.py --refresh-handicap`. The checker uses temporary output files and does not overwrite reports unless explicitly asked to refresh the handicap report.
 
 ### `build/markdown_structure.py`
 
-Checks maintained Markdown docs in the root, `LLM_Helpers/README.md`, this workflow README, and `_1_AdvCiv-SAS/Docs`. Files declaring a Menu/Contents section must index each following body heading once, in body order, with the same rendered title and indentation: one `&emsp;` or two bullet-list spaces per heading level. Known Issues indexes numbered level-2 KI entries; internal investigation subheadings remain outside its menu. Standalone links to other documents and menu introductions are retained. Existing `markdown_links.py` continues to validate destinations and stable KI anchors.
+Checks maintained Markdown docs in the root, `LLM_Helpers/README.md`, this workflow README, and `_1_AdvCiv-SAS/Docs`. Files declaring a Menu/Contents section must index each following body heading once, in body order, with the same rendered title and indentation: one `&emsp;` or two bullet-list spaces per heading level.
 
-Also rejects unpaired `**` bold markers within a paragraph, excluding fenced code, inline code, HTML comments and escaped literal stars. This is a targeted Markdown guard rather than a full CommonMark parser. Refresh declared menus with `python .github/workflows/build/markdown_structure.py --refresh-menus`; the refresh keeps existing destinations, external-document links, body content and dominant line endings.
+Known Issues indexes numbered level-2 KI entries; internal investigation subheadings remain outside its menu. Standalone links to other documents and menu introductions are retained.
+
+Existing `markdown_links.py` continues to validate destinations and stable KI anchors.
+
+Also rejects unpaired `**` bold markers within a paragraph, excluding fenced code, inline code, HTML comments and escaped literal stars. This is a targeted Markdown guard rather than a full CommonMark parser.
+
+Refresh declared menus with `python .github/workflows/build/markdown_structure.py --refresh-menus`; the refresh keeps existing destinations, external-document links, body content and dominant line endings.
 
 ### `build/art_define_structure.py`
 
@@ -451,9 +578,15 @@ Checks all mod-local `CIV4ArtDefines_*.xml` files for the `Civ4ArtDefines` root,
 
 ### `build/asset_primary_tech.py`
 
-Requires the effective primary unit/building prerequisite to be in the latest required `iGridX` column. Religious buildings and Bomb Shelters may use their shared SpecialBuilding prerequisite; direct `PrereqTech=NONE` is valid there. Both units and buildings store additional prerequisites in `TechTypes`. Equal-column alternatives remain allowed for display timing.
+Requires the effective primary unit/building prerequisite to be in the latest required `iGridX` column. Religious buildings and Bomb Shelters may use their shared SpecialBuilding prerequisite; direct `PrereqTech=NONE` is valid there.
 
-For resource-specific connecting improvements, checks that the resource's `TechCityTrade` is guaranteed by its reveal and Build prerequisite paths. This catches the six plantation resources retaining Calendar after the Build moved to Agriculture, even though Calendar and Agriculture share a column. City-like Forts are excluded. The rule applies to every resource with an XML-defined connecting improvement, without named resource exceptions; unknown or unguaranteed trade requirements fail. Trade unlocks were aligned to the current reveal/Build prerequisites, including the former Marble, Stone and Uranium delays. Changing or renaming resources, builds or technologies needs no checker allowlist update.
+Both units and buildings store additional prerequisites in `TechTypes`. Equal-column alternatives remain allowed for display timing.
+
+For resource-specific connecting improvements, checks that the resource's `TechCityTrade` is guaranteed by its reveal and Build prerequisite paths. This catches the six plantation resources retaining Calendar after the Build moved to Agriculture, even though Calendar and Agriculture share a column.
+
+City-like Forts are excluded. The rule applies to every resource with an XML-defined connecting improvement, without named resource exceptions; unknown or unguaranteed trade requirements fail.
+
+Trade unlocks were aligned to the current reveal/Build prerequisites, including the former Marble, Stone and Uranium delays. Changing or renaming resources, builds or technologies needs no checker allowlist update.
 
 ### `build/sas_revision_history.py`
 
@@ -461,7 +594,9 @@ Validates every finalized SASGameRecord revision hash against the repository's c
 
 CI passes the GitHub default branch explicitly; local runs discover `origin/HEAD`, `origin/main` or `main`, and abstain from ancestry validation when none is available.
 
-From revision 69 onward, the referenced source header must also contain that entry's exact revision marker. Only the newest entry may say `pending`: a commit cannot store its own final hash, but older entries must be finalized. This complements the existing contiguous-revision/current-marker check and requires `actions/checkout` `fetch-depth: 0` when the default branch is available.
+From revision 69 onward, the referenced source header must also contain that entry's exact revision marker. Only the newest entry may say `pending`: a commit cannot store its own final hash, but older entries must be finalized.
+
+This complements the existing contiguous-revision/current-marker check and requires `actions/checkout` `fetch-depth: 0` when the default branch is available.
 
 Regression fixtures live in [`.github/workflows/tests/test_ci_backlog.py`](/.github/workflows/tests/test_ci_backlog.py). Run `python -m unittest discover -s .github/workflows/tests` locally. Fixtures use isolated temporary repositories; they do not commit or modify the development checkout.
 

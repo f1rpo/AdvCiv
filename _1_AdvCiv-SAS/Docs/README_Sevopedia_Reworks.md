@@ -71,9 +71,12 @@ In AdvCiv-SAS 5247, with the help of claude opus 4.5 and chatgpt 5.2, we introdu
 
 The code is in [SevoPediaMain.py](/Assets/Python/Contrib/Sevopedia/SevoPediaMain.py). It minimally modifies a base AdvCiv 1.12 Sevopedia Main, and so it should be compatible with most mods (but check to be sure as i don't know too much about these). Seemingly fully functional ingame.
 
-- 1st commit: It minimally modifies a base AdvCiv 1.12 Sevopedia Main, and so it should be compatible with most mods (but check to be sure as i don't know too much about these). Seemingly fully functional ingame: [commit/6c67df16f99479500a820d34dddd4f4fe569bc8e](https://github.com/wonderingabout/AdvCiv-SAS/commit/6c67df16f99479500a820d34dddd4f4fe569bc8e).
-- 2nd commit: now preserves headers and spacers, and seemingly functions just as well if groupings (headers + their spacers) are disabled, as in `SAS_SEVOPEDIA_MAIN_TECHS_GROUP_BY_ERA` for instance. See screenshot provided showing this being supported successfully in this sample: [commit/7b0f94bf009b78d5b193ef671742dcbc04efcc17](https://github.com/wonderingabout/AdvCiv-SAS/commit/7b0f94bf009b78d5b193ef671742dcbc04efcc17).
-- 3rd commit: fix backspace key (delete to the left last written char if any) firing twice when pressed once in the search bar. Note: no need to support delete to the right key nor enter key as per chatgpt 5.2 and claude opus 4.5's review and solution thanks [commit/1b9d2c8d9eee565d2f5d7b5daba48514cb823234](https://github.com/wonderingabout/AdvCiv-SAS/commit/1b9d2c8d9eee565d2f5d7b5daba48514cb823234).
+- 1st commit: It minimally modifies a base AdvCiv 1.12 Sevopedia Main, and so it should be compatible with most mods (but check to be sure as i don't know too much about these).
+  - Seemingly fully functional ingame: [commit/6c67df16f99479500a820d34dddd4f4fe569bc8e](https://github.com/wonderingabout/AdvCiv-SAS/commit/6c67df16f99479500a820d34dddd4f4fe569bc8e).
+- 2nd commit: now preserves headers and spacers, and seemingly functions just as well if groupings (headers + their spacers) are disabled, as in `SAS_SEVOPEDIA_MAIN_TECHS_GROUP_BY_ERA` for instance.
+  - See screenshot provided showing this being supported successfully in this sample: [commit/7b0f94bf009b78d5b193ef671742dcbc04efcc17](https://github.com/wonderingabout/AdvCiv-SAS/commit/7b0f94bf009b78d5b193ef671742dcbc04efcc17).
+- 3rd commit: fix backspace key (delete to the left last written char if any) firing twice when pressed once in the search bar.
+  - Note: no need to support delete to the right key nor enter key as per chatgpt 5.2 and claude opus 4.5's review and solution thanks [commit/1b9d2c8d9eee565d2f5d7b5daba48514cb823234](https://github.com/wonderingabout/AdvCiv-SAS/commit/1b9d2c8d9eee565d2f5d7b5daba48514cb823234).
 - 4th commit: Sevopedia index has a search bar too and is its own category, with the very nice help of GPT-5.2-Codex thanks a lot: [commit/6fc9cd7a6f521d7a7ee86081547ca429fdf060d9](https://github.com/wonderingabout/AdvCiv-SAS/commit/6fc9cd7a6f521d7a7ee86081547ca429fdf060d9)
 
 Note: this change causes the Sevopedia leader numerical keyboard controls to type in the search bar instead: they are not functional as of now.
@@ -91,9 +94,12 @@ In AdvCiv-SAS 5252, based on C2C mod's code thanks, and with the help of claude 
 
 The code is in [SevoPediaMain.py](/Assets/Python/Contrib/Sevopedia/SevoPediaMain.py).
 
-- 1st commit: It is the conservative first stable functional version. Has some minor issues such sometimes as the tree pages (Unit Tree, Promotions Tree) having the arrows not result in anything unless the player clicks on the page itself, or some similar or related issues: [commit/10fd402effc12c3fa90c265b74630a263a7e761e](https://github.com/wonderingabout/AdvCiv-SAS/commit/10fd402effc12c3fa90c265b74630a263a7e761e).
-- 2nd commit: Conservative fixes with the help of chatgpt 5.2 and claude opus 4.5. Now scrolling in tree pages is functional without requiring a click, and when going from a tree page to a list page we can now use successfully the arrow keys without requiring a click. : [commit/ed2b7c658621f122e1824a858ab79856a5bef736](https://github.com/wonderingabout/AdvCiv-SAS/commit/ed2b7c658621f122e1824a858ab79856a5bef736).
-- 3rd commit: Conservative performance optimizations: Category-aware caching (O(1) navigation) (as per claude opus 4.5's summary of chatgpt 5.2's implementation based on their previous version of this optimization. See commit notes for details as i don't know too much about these, but seems harmless and hopefully helps indeed (check if accurate)) : [commit/e81ea035ab3af8a3fc8e231dc0f86fb50eb59d02](https://github.com/wonderingabout/AdvCiv-SAS/commit/e81ea035ab3af8a3fc8e231dc0f86fb50eb59d02).
+- 1st commit: It is the conservative first stable functional version.
+  - Has some minor issues such sometimes as the tree pages (Unit Tree, Promotions Tree) having the arrows not result in anything unless the player clicks on the page itself, or some similar or related issues: [commit/10fd402effc12c3fa90c265b74630a263a7e761e](https://github.com/wonderingabout/AdvCiv-SAS/commit/10fd402effc12c3fa90c265b74630a263a7e761e).
+- 2nd commit: Conservative fixes with the help of chatgpt 5.2 and claude opus 4.5.
+  - Now scrolling in tree pages is functional without requiring a click, and when going from a tree page to a list page we can now use successfully the arrow keys without requiring a click. : [commit/ed2b7c658621f122e1824a858ab79856a5bef736](https://github.com/wonderingabout/AdvCiv-SAS/commit/ed2b7c658621f122e1824a858ab79856a5bef736).
+- 3rd commit: Conservative performance optimizations: Category-aware caching (O(1) navigation) (as per claude opus 4.5's summary of chatgpt 5.2's implementation based on their previous version of this optimization.
+  - See commit notes for details as i don't know too much about these, but seems harmless and hopefully helps indeed (check if accurate)) : [commit/e81ea035ab3af8a3fc8e231dc0f86fb50eb59d02](https://github.com/wonderingabout/AdvCiv-SAS/commit/e81ea035ab3af8a3fc8e231dc0f86fb50eb59d02).
 - 4th commit: fix an out of range python error that sometimes happened when scrolling beyond first entry with the help of chatgpt 5.2 thanks [commit/1f9b99fd955e07d83cd3984be22b61bad3bc4220](https://github.com/wonderingabout/AdvCiv-SAS/commit/1f9b99fd955e07d83cd3984be22b61bad3bc4220#diff-c8653fbee55dd4a1fa9f17ca80f217b2d5d87a7c49f8d7ac33979c0cf7eb8c2aR2090-R2094) (see commit notes for details as they are written by chatgpt 5.2 thanks who knows better about these and provided the fix).
 
 Note: history handling (i.e. not remembering all visited pages with the arrows inbetween original entry and entry we browsed to) purposely ignored and not supported as it caused issues and fixing it was not easy and created other issues as well, cleaner to just support it as it is (i.e. remembering all these entries as is the default).
@@ -112,7 +118,9 @@ As of now has its own search bar, but keyboard navigation is not supported.
 
 More recently, added the Builds entries to the Index. See [example 0.40 builds category (e.g. "Remove Jungle", "Build Road", "Create a Farm") new category](/_1_AdvCiv-SAS/Docs/README_Sevopedia_Reworks.md#example-040-builds-category-eg-remove-jungle-build-road-create-a-farm).
 
-Then, to make those Index Builds entries fully clickable and stable, we kept the table selectable, mapped row->Build IDs, and routed the click in `SevoPediaIndex.handleInput` instead of overlaying buttons. The overlay approach looked correct at first but the buttons did not scroll with the table and became desynced. Also, the index search bar was dead on first open until the table received focus, so we explicitly set focus to the index table when building it. Credit: Claude code Opus 4.5 + GPT-5.2-Codex.
+Then, to make those Index Builds entries fully clickable and stable, we kept the table selectable, mapped row->Build IDs, and routed the click in `SevoPediaIndex.handleInput` instead of overlaying buttons. The overlay approach looked correct at first but the buttons did not scroll with the table and became desynced.
+
+Also, the index search bar was dead on first open until the table received focus, so we explicitly set focus to the index table when building it. Credit: Claude code Opus 4.5 + GPT-5.2-Codex.
 
 Update: Sevopedia Index now uses the same search bar as the shared one the other sevopedia categories use (no longer duplicated Search bar logic in Sevopedia index).
 
@@ -126,9 +134,13 @@ Update: Sevopedia Index now uses the same search bar as the shared one the other
 
 Based on the Very nice Middle-earth's (C2C mod does it too it seems) approach in its Platypedia thanks a lot! We have found that it is possible to link to build entries using `WIDGET_PYTHON` (no DLL change required it seems) and some id like `6798` or such.
 
-As a result, builds are linkable: clicking on the entries in the Builds category opens the corresponding page. Also, clicking on the link from e.g. the Sevopedia Improvements' Remove panel's button (e.g. of "Remove Jungle") successfully redirects to the Builds page corresponding entry (e.g. the "Remove Jungle" entry in Sevopedia Builds category)! Added with the big and nice help of GPT-5.2-Codex thanks a lot!
+As a result, builds are linkable: clicking on the entries in the Builds category opens the corresponding page. Also, clicking on the link from e.g. the Sevopedia Improvements' Remove panel's button (e.g. of "Remove Jungle") successfully redirects to the Builds page corresponding entry (e.g. the "Remove Jungle" entry in Sevopedia Builds category)!
 
-Note: while `WIDGET_PYTHON` is excellent for custom redirects, it does not provide built-in build hover text by itself. In Tech Chooser/Sevopedia build-entry paths we therefore use a hybrid approach (`WIDGET_HELP_IMPROVEMENT` for hover + Python click routing to Builds). See [KI#113](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-113).
+Added with the big and nice help of GPT-5.2-Codex thanks a lot!
+
+Note: while `WIDGET_PYTHON` is excellent for custom redirects, it does not provide built-in build hover text by itself. In Tech Chooser/Sevopedia build-entry paths we therefore use a hybrid approach (`WIDGET_HELP_IMPROVEMENT` for hover + Python click routing to Builds).
+
+See [KI#113](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-113).
 
 We then also used this approach to replace the old clunky base advciv's `CONCEPT_TRAIT` with now instead the `WIDGET_PYTHON` (with an id as of now of `6799`), which preserves linking and allowed us to delete old XML clutter. See also [example 1.5: traits category (Traits Charts and other changes)](/_1_AdvCiv-SAS/Docs/README_Sevopedia_Reworks.md#example-15-traits-category-traits-charts-and-other-changes).
 
@@ -156,7 +168,9 @@ Note: it mirrors the log button we added in the Info screen's [new Timeline Tab]
 
 #### example 0.41 Votes category (VoteInfo and VoteSourceInfos)
 
-More recently, we have added using widget python trick as well a new Votes category that was totally absent from Civ4, with the help of Claude code Opus 4.7 thanks a lot and GPT-5.4? (which i wanted to be GPT-5.3-Codex but it seems openai or such annoyingly forcibly rerouted it to 5.4 causing all kinds of issues or complications) and GPT-5.3-Codex? (not sure if it reverted back somewhere along the way).
+More recently, we have added using widget python trick as well a new Votes category that was totally absent from Civ4, with the help of Claude code Opus 4.7 thanks a lot and GPT-5.4? (which i wanted to be GPT-5.3-Codex but it seems openai or such annoyingly forcibly rerouted it to 5.4 causing all kinds of issues or complications) and GPT-5.3-Codex?
+
+(not sure if it reverted back somewhere along the way).
 
 It features both VoteInfo and VoteSourceInfos. See [Main Changes Guide](/README.md#main-changes-guide).
 
@@ -274,7 +288,9 @@ One notable feature is how we made the item list much wider so it can display th
 
 Can use the search bar with it too which is very handy as well!
 
-Note: some sounds appear twice such as Tech, Leader, Era sounds. This is because an audio script may exist in the game's audio assets while not being allocated to any real asset (e.g., as of now the space elevator remains, or the tutorial sounds we don't use in our mod). Ideally should clean these up (if it does not create issues to do so), but having the real XML info entry (e.g. `<DiploScriptId>AS2D_DIPLO_ALEXANDER_EARLY</DiploScriptId>`) vs a list of audio scripts in 2D or 3D allows to make sure each ingame asset has a corresponding audio as well as being able to check in-game which it is.
+Note: some sounds appear twice such as Tech, Leader, Era sounds. This is because an audio script may exist in the game's audio assets while not being allocated to any real asset (e.g., as of now the space elevator remains, or the tutorial sounds we don't use in our mod).
+
+Ideally should clean these up (if it does not create issues to do so), but having the real XML info entry (e.g. `<DiploScriptId>AS2D_DIPLO_ALEXANDER_EARLY</DiploScriptId>`) vs a list of audio scripts in 2D or 3D allows to make sure each ingame asset has a corresponding audio as well as being able to check in-game which it is.
 
 Later on, added civilizations parsing as well similarly with buttons. Note: the same item can be replayed many times and has a different sound (i.e. multiple select and order sounds per civilization)
 
@@ -378,11 +394,15 @@ This is a more recent refactor and beautify that adds era information and such o
 
 More recently, i also fixed based advciv issue of obsoletes spanning vertically with one bullet each instead of horizontally, with the help of Claude code Sonnet 4.5, which was a problem when we had many of them. See [KI#96](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-96).
 
-And after that, added a new Obsoletes panel with the help of Claude code Sonnet 4.5, that notably shows a new thinner RedX art than in Civ4 (as it was too bold and hard to read at 64px) for any asset that has a button this tech obsoletes. ChatGPT 5.2 very impressively helped adding such a feature. See [README.md#redx-new-art-button](/_1_AdvCiv-SAS/Docs/README_Authors.md#redx-new-art-button).
+And after that, added a new Obsoletes panel with the help of Claude code Sonnet 4.5, that notably shows a new thinner RedX art than in Civ4 (as it was too bold and hard to read at 64px) for any asset that has a button this tech obsoletes. ChatGPT 5.2 very impressively helped adding such a feature.
+
+See [README.md#redx-new-art-button](/_1_AdvCiv-SAS/Docs/README_Authors.md#redx-new-art-button).
 
 Also, with the help of Claude Opus 4.5 thanks a lot, i reworked and beautified, as well as reordered the panels for a much cleaner and prettier read! Then, merged the old Units Enabled and Buildings Enabled into a new Enables Panel enriched with more information (Civics, Promotions, Bonuses, various effects such as "Centers World Map", "Can Adjust Commerce Rate", etc.), and then also added with the additional help of GPT-5.2-Codex thanks a lot too a new First to Discover panel (Founds Religion, Receives a Great Person, Receives a Free Tech).
 
-Since then, redesigned the UI to free some vertical and horizontal room. Then added new sortable Starting Techs Charts, and clickable buttons, mirroring the Traits' (showing Civilization pairs and combinations for each starting tech or starting tech combination) Charts approach. Also added a new Untradeable Techs Charts showing the count of untradeable, total of any tech in the era for comparison, plus per era untradeable techs as tech button columns. Done with the help of ChatGPT-5.2 Thinking and Claude code Opus 4.5 thanks a lot!
+Since then, redesigned the UI to free some vertical and horizontal room. Then added new sortable Starting Techs Charts, and clickable buttons, mirroring the Traits' (showing Civilization pairs and combinations for each starting tech or starting tech combination) Charts approach.
+
+Also added a new Untradeable Techs Charts showing the count of untradeable, total of any tech in the era for comparison, plus per era untradeable techs as tech button columns. Done with the help of ChatGPT-5.2 Thinking and Claude code Opus 4.5 thanks a lot!
 
 Also added an Untradeable panel with an emoji to visually clearly and quickly indicate if the currently selected tech is tradeable or not.
 
@@ -427,7 +447,11 @@ Also refactored and beautified it (for example moved base yields on top in the i
 
 Note: you can hover and click on the buttons in placeMostYields, as shown in one of the screenshots below when hovering on the steam power tech button, we can see which button/image it is, so no need to memorize them all, it also tells unknown effects of the tech or civic or other type of asset etc, as well as redirects on click.
 
-More recently, entries are now grouped by Land/Water (e.g. Land Improvements -> Farm/Pasture, Water Improvements -> Fishing Boats/Offshore Platform) depending on whether their terrain is a water type or not (e.g. Land Improvements -> Farm/Pasture, Water Improvements -> Fishing Boats/Offshore Platform) an idea i got from seeing ingame how it is in the Middle-Earth mod which i find very polished and took ideas from btw thanks. Plus subdiving them based on growth or such (e.g. Cottages, hamlet, etc.) as i had the idea too xd as was bit too concentrated in land and we have the booleans i mean as chatgpt 5.2 mentioned that we have (booleans) more generally, and then chatgpt 5.2 found the other "Bonus-capable" idea of a subgroup we could use as well thanks a lot. Now they are nicely ordered i mean.! Implemented with chatgpt 5.2's help as for as of now the other ones thanks a lot.
+More recently, entries are now grouped by Land/Water (e.g. Land Improvements -> Farm/Pasture, Water Improvements -> Fishing Boats/Offshore Platform) depending on whether their terrain is a water type or not (e.g. Land Improvements -> Farm/Pasture, Water Improvements -> Fishing Boats/Offshore Platform) an idea i got from seeing ingame how it is in the Middle-Earth mod which i find very polished and took ideas from btw thanks.
+
+Plus subdiving them based on growth or such (e.g. Cottages, hamlet, etc.) as i had the idea too xd as was bit too concentrated in land and we have the booleans i mean as chatgpt 5.2 mentioned that we have (booleans) more generally, and then chatgpt 5.2 found the other "Bonus-capable" idea of a subgroup we could use as well thanks a lot.
+
+Now they are nicely ordered i mean.! Implemented with chatgpt 5.2's help as for as of now the other ones thanks a lot.
 
 Then, also added a Build panel redirecting to the corresponding Sevopedia Builds page we added since then.
 
@@ -445,7 +469,9 @@ Since then, added Graphical Only (e.g., Land Worked, Water Worked) (similarly to
 
 ### example 4: bonuses category
 
-A more extensive rewrite/refactor was done based on [example 7: units category](/_1_AdvCiv-SAS/Docs/README_Sevopedia_Reworks.md#example-7-units-category) and [example-8-buildings-category](/_1_AdvCiv-SAS/Docs/README_Sevopedia_Reworks.md#example-8-buildings-category), and also with the help of Claude AI (see [Authors for details (Claude AI's section) in the main README.md](/_1_AdvCiv-SAS/Docs/README_Authors.md#claude-web-chat) for details), in particular changes include that we now have also added a placeObsoleteWith function now that tells us when a bonus/ressource is obsolete (i.e. at which tech). Also, changes include as well showing horizontally improvements rather than vertically while still keeping the auto-cetering of the spacing between improvements; although code is maybe a bit shaky and not too optimal, it does seem to work well for a small number of improvements (didn't test for more how it would display).
+A more extensive rewrite/refactor was done based on [example 7: units category](/_1_AdvCiv-SAS/Docs/README_Sevopedia_Reworks.md#example-7-units-category) and [example-8-buildings-category](/_1_AdvCiv-SAS/Docs/README_Sevopedia_Reworks.md#example-8-buildings-category), and also with the help of Claude AI (see [Authors for details (Claude AI's section) in the main README.md](/_1_AdvCiv-SAS/Docs/README_Authors.md#claude-web-chat) for details), in particular changes include that we now have also added a placeObsoleteWith function now that tells us when a bonus/ressource is obsolete (i.e. at which tech).
+
+Also, changes include as well showing horizontally improvements rather than vertically while still keeping the auto-cetering of the spacing between improvements; although code is maybe a bit shaky and not too optimal, it does seem to work well for a small number of improvements (didn't test for more how it would display).
 
 More recently, also added with chatgpt's help thanks the terrainbooleans, featurebooleans, and featureterrainbooleans info, see Sevopedia feature screenshots or ingame for what these mean in their respective panel headers (for example featureterrainbooleans is as of now "Terrains only if with this bonus's features" or something similar to this abbreviated if needed for example or if updated since then and not shown in screenshot sample or also updated as well) section information or Main Changes Guide or code comments.
 
@@ -532,11 +558,15 @@ So now we also show Peak and Hill as new "terrains" even though they are both pl
 
 The reworked Sevopedia terrain page now also shows the unit terrain modifiers (e.g. "+25/+50" for +25% attack and +50% defense on said terrain, etc) or in some cases promotions.
 
-This code uses our latest as of now refactor that uses the multilist code as was done in Sevopedia unit in advciv-sas/our modfirst i mean and also then applied to Sevopedia building. While doing so, i noticed or wanted or just did add such a display for units in terrains. Since the code is modular and was thoroughly debugged and adjusted, it was quite easy relatively to add in Sevopedia units, but some new logic had to be added, and it also helped refine the Sevopedia unit and Sevopedia building implementations if ever slightly or not.
+This code uses our latest as of now refactor that uses the multilist code as was done in Sevopedia unit in advciv-sas/our modfirst i mean and also then applied to Sevopedia building. While doing so, i noticed or wanted or just did add such a display for units in terrains.
+
+Since the code is modular and was thoroughly debugged and adjusted, it was quite easy relatively to add in Sevopedia units, but some new logic had to be added, and it also helped refine the Sevopedia unit and Sevopedia building implementations if ever slightly or not.
 
 Also more recently added the `FeatureTerrainBooleans` handling (see [README_Sevopedia_Reworks.md#example-4-bonuses-category](/_1_AdvCiv-SAS/Docs/README_Sevopedia_Reworks.md#example-4-bonuses-category) for details), extending the earlier imported logic with separate, explicit headers in AdvCiv-SAS.
 
-Update: i have recently found with the help of chatgpt 5.2 that these `TERRAIN_HILL` and `TERRAIN_PEAK` already existed, but they were hidden in Base AdvCiv in `getSortedList` in [SevoPediaMain.py](/Assets/Python/Contrib/Sevopedia/SevoPediaMain.py). Some info about them is incorrect like them having the `<bWater>1</bWater>` property (even though it is incorrect; they are not watery, but we don't need to change it, only reveal the entry for our needs, without affecting or bothering how the other entries work fine as they are), but the entry is still useful, so as we did keep it displayed in Sevopedia terrain, but now no longer do hardcoded index additions, just unreveal it specifically in Sevopedia terrain and handle the grouping as of now in the "Land (High)" subgroup with the help of chatgpt 5.2, the rest remaining the same.
+Update: i have recently found with the help of chatgpt 5.2 that these `TERRAIN_HILL` and `TERRAIN_PEAK` already existed, but they were hidden in Base AdvCiv in `getSortedList` in [SevoPediaMain.py](/Assets/Python/Contrib/Sevopedia/SevoPediaMain.py).
+
+Some info about them is incorrect like them having the `<bWater>1</bWater>` property (even though it is incorrect; they are not watery, but we don't need to change it, only reveal the entry for our needs, without affecting or bothering how the other entries work fine as they are), but the entry is still useful, so as we did keep it displayed in Sevopedia terrain, but now no longer do hardcoded index additions, just unreveal it specifically in Sevopedia terrain and handle the grouping as of now in the "Land (High)" subgroup with the help of chatgpt 5.2, the rest remaining the same.
 
 Since then, also added a new Units (Any Build) panel with the help of GPT-5.2-Codex thanks a lot :)
 

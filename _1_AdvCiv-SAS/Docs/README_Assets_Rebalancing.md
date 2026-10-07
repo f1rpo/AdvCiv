@@ -50,7 +50,9 @@ Some of the asset rebalancing is shown here (not exhaustive)
 
 ## How to
 
-A quite easy way to gather the original data with chatgpt 5.1 for example, is, using vs code (or any tool you prefer), to do a global search (see for example [Another example of how to use VS Code global search](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#another-example-of-how-to-use-vs-code-global-search-also-shows-an-example-of-how-to-also-browse-the-civ4-bug_doc-copy-included-in-our-mod)) for say `<Type>LEADER_` and `<FavoriteReligion>` and then copy paste the results found in civ4leaderheadinfos xml file asking chatgpt to merge them into an .md table. There may be easier ways to do it, but this one is quite effective and worked for me.
+A quite easy way to gather the original data with chatgpt 5.1 for example, is, using vs code (or any tool you prefer), to do a global search (see for example [Another example of how to use VS Code global search](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#another-example-of-how-to-use-vs-code-global-search-also-shows-an-example-of-how-to-also-browse-the-civ4-bug_doc-copy-included-in-our-mod)) for say `<Type>LEADER_` and `<FavoriteReligion>` and then copy paste the results found in civ4leaderheadinfos xml file asking chatgpt to merge them into an .md table.
+
+There may be easier ways to do it, but this one is quite effective and worked for me.
 
 More recently, i found or noticed that giving old and new XML files (e.g., `CIV4UnitInfos.xml`) to an LLM or such is enough for it to compile them into a nice .md table comparison or such; there may be other ways too but this seems quite good for example.
 
@@ -68,7 +70,9 @@ See below in the main table after changes as it includes the before values as we
 
 ### after most recent as of now rework
 
-After a few or quite many back and forth and reviewing rounds with chatgpt 5 which helped me tons but also me hehe and my own ideas but it helped lot too, here are (below) the adjusted starting techs for civs as of now in advciv-sas, written by chatgpt 5. This was mostly to remove/replace old now removed tech_agriculture and tech_the_wheel starters that are now no longer starting techs, as well as quite along with it rebalance it and rework it all. I think the result is really good at least much better than it was check if accurate.
+After a few or quite many back and forth and reviewing rounds with chatgpt 5 which helped me tons but also me hehe and my own ideas but it helped lot too, here are (below) the adjusted starting techs for civs as of now in advciv-sas, written by chatgpt 5. This was mostly to remove/replace old now removed tech_agriculture and tech_the_wheel starters that are now no longer starting techs, as well as quite along with it rebalance it and rework it all.
+
+I think the result is really good at least much better than it was check if accurate.
 
 #### main table (chatgpt 5 written with some tweaks from me)
 
@@ -289,22 +293,57 @@ Note: water buildings are generally avoided as they are too situational (useless
 
 ## Unit terrain and feature combat modifiers
 
-Terrain/feature combat effects are mostly a new and currently optional AdvCiv-SAS system. They affect generic as well as civ-specific units, so their shared rationale is documented here instead of being repeated through the civ-specific-unit roster. The four XML categories can be independently enabled or disabled with `SAS_CV_UNIT_INFO_ENABLE_XML_UNIT_TERRAIN_ATTACK_MODIFIERS`, `SAS_CV_UNIT_INFO_ENABLE_XML_UNIT_TERRAIN_DEFENSE_MODIFIERS`, `SAS_CV_UNIT_INFO_ENABLE_XML_UNIT_FEATURE_ATTACK_MODIFIERS`, and `SAS_CV_UNIT_INFO_ENABLE_XML_UNIT_FEATURE_DEFENSE_MODIFIERS` in `GlobalDefines_advciv_sas.xml`.
+Terrain/feature combat effects are mostly a new and currently optional AdvCiv-SAS system. They affect generic as well as civ-specific units, so their shared rationale is documented here instead of being repeated through the civ-specific-unit roster.
 
-The goal is historical/thematic identity constrained by gameplay balance: history can suggest *where* a unit should be better or worse, but does not determine an unrestricted numerical bonus. In Civ4 terminology, Grass/Plains/Desert/Tundra/Snow are **terrains**, Forest/Jungle/Flood Plains are **features**, and Hills/Peaks are **plot types**. Hills combat modifiers use separate XML fields; Peak access/movement is likewise a plot-type property rather than a terrain or feature effect. Terrain and Hills combat modifiers use only 10% and 20% tiers, with 20% as the maximum magnitude. Terrain remains under cities and therefore can directly influence city combat, so larger values were too swingy. A 10% value means a minor affinity or weakness; 20% means a strong specialization. As a rough power-budget guideline rather than exact mathematics, two broad 10% affinities can be treated similarly to one more focused 20% affinity.
+The four XML categories can be independently enabled or disabled with `SAS_CV_UNIT_INFO_ENABLE_XML_UNIT_TERRAIN_ATTACK_MODIFIERS`, `SAS_CV_UNIT_INFO_ENABLE_XML_UNIT_TERRAIN_DEFENSE_MODIFIERS`, `SAS_CV_UNIT_INFO_ENABLE_XML_UNIT_FEATURE_ATTACK_MODIFIERS`, and `SAS_CV_UNIT_INFO_ENABLE_XML_UNIT_FEATURE_DEFENSE_MODIFIERS` in `GlobalDefines_advciv_sas.xml`.
 
-Features use 10%, 20%, and 40% tiers. Features are removed when a city is founded in the current rules, so feature combat modifiers do not directly amplify city-tile combat and can safely be more situational and more pronounced. 40% is reserved for a defining feature specialization or weakness rather than being a normal civ-specific-unit bonus. Terrain and feature values can stack on the same plot, so large combinations should still be used sparingly.
+The goal is historical/thematic identity constrained by gameplay balance: history can suggest *where* a unit should be better or worse, but does not determine an unrestricted numerical bonus. In Civ4 terminology, Grass/Plains/Desert/Tundra/Snow are **terrains**, Forest/Jungle/Flood Plains are **features**, and Hills/Peaks are **plot types**.
 
-Generic units normally use the lower tiers. When a civ-specific unit and its generic counterpart share the same terrain/feature identity, the civ-specific unit should normally receive the stronger specialization rather than merely copying the generic value. Attack and defense do not need to mirror each other: offensive/mobile units can specialize on attack, defensive units on defense, and units with `bNoDefensiveBonus` should normally not regain positive explicit terrain/feature defense through these XML modifiers. A small deliberate exception can still be used when holding that specific terrain is part of the unit identity, such as the Camel Archer's minor Desert defense affinity. Negative terrain/feature defense penalties can still be used on such units to represent a genuine disadvantage. City attack/defense modifiers are a separate, more controllable balance system and are not limited by these terrain/feature caps.
+Hills combat modifiers use separate XML fields; Peak access/movement is likewise a plot-type property rather than a terrain or feature effect. Terrain and Hills combat modifiers use only 10% and 20% tiers, with 20% as the maximum magnitude.
 
-Combat-capable civ-specific units are intentionally given at least one **terrain or feature** identity as part of AdvCiv-SAS tactical variety; noncombat civilians are the main exception. Plot-type effects such as Hills combat bonuses or Peak access can complement that identity, but are tracked separately and do not by themselves replace the intended terrain/feature distinction. To keep that identity readable rather than domineering, a civ-specific unit's added positive terrain specialization normally uses either one strong 20% terrain or at most two weak 10% terrains. Relevant affinities or weaknesses already belonging to the generic counterpart can still carry through, and a shared generic affinity can instead be strengthened by the civ-specific unit without counting as another unrelated specialization. Positive terrain defense is often smaller than attack for offensive units (for example, +20% attack / +10% defense). Feature bonuses are budgeted separately because they are narrower and, including Flood Plains in the current rules, disappear under cities; a defining feature specialization can therefore coexist with a small inherited terrain effect. This is a balance guideline rather than a hard XML limit, but it avoids turning historical plausibility into several simultaneous broad bonuses or many tiny modifiers.
+Terrain remains under cities and therefore can directly influence city combat, so larger values were too swingy. A 10% value means a minor affinity or weakness; 20% means a strong specialization.
+
+As a rough power-budget guideline rather than exact mathematics, two broad 10% affinities can be treated similarly to one more focused 20% affinity.
+
+Features use 10%, 20%, and 40% tiers. Features are removed when a city is founded in the current rules, so feature combat modifiers do not directly amplify city-tile combat and can safely be more situational and more pronounced.
+
+40% is reserved for a defining feature specialization or weakness rather than being a normal civ-specific-unit bonus. Terrain and feature values can stack on the same plot, so large combinations should still be used sparingly.
+
+Generic units normally use the lower tiers. When a civ-specific unit and its generic counterpart share the same terrain/feature identity, the civ-specific unit should normally receive the stronger specialization rather than merely copying the generic value.
+
+Attack and defense do not need to mirror each other: offensive/mobile units can specialize on attack, defensive units on defense, and units with `bNoDefensiveBonus` should normally not regain positive explicit terrain/feature defense through these XML modifiers. A small deliberate exception can still be used when holding that specific terrain is part of the unit identity, such as the Camel Archer's minor Desert defense affinity.
+
+Negative terrain/feature defense penalties can still be used on such units to represent a genuine disadvantage. City attack/defense modifiers are a separate, more controllable balance system and are not limited by these terrain/feature caps.
+
+Combat-capable civ-specific units are intentionally given at least one **terrain or feature** identity as part of AdvCiv-SAS tactical variety; noncombat civilians are the main exception. Plot-type effects such as Hills combat bonuses or Peak access can complement that identity, but are tracked separately and do not by themselves replace the intended terrain/feature distinction.
+
+To keep that identity readable rather than domineering, a civ-specific unit's added positive terrain specialization normally uses either one strong 20% terrain or at most two weak 10% terrains. Relevant affinities or weaknesses already belonging to the generic counterpart can still carry through, and a shared generic affinity can instead be strengthened by the civ-specific unit without counting as another unrelated specialization.
+
+Positive terrain defense is often smaller than attack for offensive units (for example, +20% attack / +10% defense). Feature bonuses are budgeted separately because they are narrower and, including Flood Plains in the current rules, disappear under cities; a defining feature specialization can therefore coexist with a small inherited terrain effect.
+
+This is a balance guideline rather than a hard XML limit, but it avoids turning historical plausibility into several simultaneous broad bonuses or many tiny modifiers.
 
 Worker-type civilian units intentionally have no terrain/feature combat modifiers while they have no combat strength. If civilian units ever gain a combat role, suitable effects can be reconsidered then rather than carrying currently dead XML data.
 
 Related AI concern (discussion notes kept verbatim for later review):
 
-- Related AI concern. I searched the AI code for explicit use of: getTerrainAttackModifier getTerrainDefenseModifier getFeatureAttackModifier getFeatureDefenseModifier and didn't find those being explicitly evaluated in the *AI.cpp strategic logic. The normal combat calculation absolutely does use them, so when the AI is actually comparing attackers/defenders and combat odds, it should experience their effects correctly. But I don't see evidence that high-level unit valuation/production explicitly says: "this is a jungle-heavy theater, therefore this +40% Jungle UU is especially valuable." That could create a mild human advantage: humans can deliberately exploit these identities while AI mostly discovers them through ordinary tactical odds. I wouldn't rush to “fix” that. The modifiers are much smaller now, and UUs replace normal units anyway. But this is exactly the kind of thing I'd watch with GameRecord/BBAI rather than adding speculative AI logic; to which i replied so far and then "thx glad you like it, also noted your concern on terrain valuation :) i thought we compute str but idk :)".
-- then ChatGPT replied this: "Yep xd — and on the terrain valuation point, you were basically right. I checked it more precisely because my previous wording was a little too broad. The actual combat-strength path does account for terrain/feature modifiers. CvUnit::maxCombatStr(...) applies Hills/feature/terrain defense and the attacker's corresponding attack modifiers, and the tactical AI ultimately uses combat odds/strength derived from that. So if a Bowman is fighting on its favored terrain, the AI does understand that this particular fight is better/worse. What I didn't find is the higher-level AI_unitValue / production valuation saying something like: “This unit has +40% Jungle and my theater has tons of Jungle, therefore build more of it.” AI_combatValue itself is basically base combat + first strikes, and AI_unitValue then adds unit-combat counters, city modifiers, collateral, movement, etc.; I still don't see explicit terrain/feature valuation there.So I'd revise my concern to: Tactical valuation: yes, handled. Strategic production valuation of terrain-specialized units: probably not explicitly handled. Which is much less concerning, especially for UUs. The AI doesn't need to perfectly anticipate every situational advantage for the mechanic to work well."
+- Related AI concern.
+  - I searched the AI code for explicit use of: getTerrainAttackModifier getTerrainDefenseModifier getFeatureAttackModifier getFeatureDefenseModifier and didn't find those being explicitly evaluated in the *AI.cpp strategic logic.
+  - The normal combat calculation absolutely does use them, so when the AI is actually comparing attackers/defenders and combat odds, it should experience their effects correctly.
+  - But I don't see evidence that high-level unit valuation/production explicitly says: "this is a jungle-heavy theater, therefore this +40% Jungle UU is especially valuable."
+  - That could create a mild human advantage: humans can deliberately exploit these identities while AI mostly discovers them through ordinary tactical odds.
+  - I wouldn't rush to “fix” that.
+  - The modifiers are much smaller now, and UUs replace normal units anyway.
+  - But this is exactly the kind of thing I'd watch with GameRecord/BBAI rather than adding speculative AI logic; to which i replied so far and then "thx glad you like it, also noted your concern on terrain valuation :) i thought we compute str but idk :)".
+- then ChatGPT replied this: "Yep xd — and on the terrain valuation point, you were basically right.
+  - I checked it more precisely because my previous wording was a little too broad.
+  - The actual combat-strength path does account for terrain/feature modifiers.
+  - CvUnit::maxCombatStr(...) applies Hills/feature/terrain defense and the attacker's corresponding attack modifiers, and the tactical AI ultimately uses combat odds/strength derived from that.
+  - So if a Bowman is fighting on its favored terrain, the AI does understand that this particular fight is better/worse.
+  - What I didn't find is the higher-level AI_unitValue / production valuation saying something like: “This unit has +40% Jungle and my theater has tons of Jungle, therefore build more of it.” AI_combatValue itself is basically base combat + first strikes, and AI_unitValue then adds unit-combat counters, city modifiers, collateral, movement, etc.; I still don't see explicit terrain/feature valuation there.So I'd revise my concern to: Tactical valuation: yes, handled.
+  - Strategic production valuation of terrain-specialized units: probably not explicitly handled.
+  - Which is much less concerning, especially for UUs.
+  - The AI doesn't need to perfectly anticipate every situational advantage for the mechanic to work well."
 
 The tables below are an as-of-now review aid rather than a promise that every value is final. `A` means attack and `D` means defense. Units not listed have no terrain/feature/plot-type combat modifier unless noted otherwise.
 
@@ -397,11 +436,15 @@ General system context from the SAS docs: combat types are refined/split (archer
 
 Legend: `str` = combat strength; `h` = hammer cost; `mv` = movement; `tech` = required tech(s); `bonus` = required bonus; `free` = free promotion(s); `mods` = selected modifier changes; `vsClass`/`vsCombat` = modifiers against a unit class/combat type.
 
-Note: terrain/feature combat effects are a mostly new, currently optional cross-cutting AdvCiv-SAS system that also affects generic units. To keep this roster focused on each civ-specific unit's actual gameplay replacement and role, terrain/feature values and their shared reasoning are omitted here; see [Unit terrain and feature combat modifiers](/_1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md#unit-terrain-and-feature-combat-modifiers). Exact current values remain visible in XML and Sevopedia Unit.
+Note: terrain/feature combat effects are a mostly new, currently optional cross-cutting AdvCiv-SAS system that also affects generic units. To keep this roster focused on each civ-specific unit's actual gameplay replacement and role, terrain/feature values and their shared reasoning are omitted here; see [Unit terrain and feature combat modifiers](/_1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md#unit-terrain-and-feature-combat-modifiers).
+
+Exact current values remain visible in XML and Sevopedia Unit.
 
 Note 2: paired columns are visually merged below (`Before → current SAS`, with both comparison summaries kept in the same linear `Changes` cell) to keep the roster substantially narrower. It can still be [viewed on CFC](https://forums.civfanatics.com/threads/advciv-sas-simple-advanced-strategy.699716/post-16954876) if useful (refer to GitHub or XML/Sevopedia if that copy is not updated).
 
-As of now, playable civilizations intentionally have no naval civ-specific units. Naval replacements can be effectively absent on land-heavy maps and disproportionately important on naval-heavy maps, especially when most other civilizations have no comparable naval replacement; balancing them fairly would otherwise tend to require a broader set of naval counterparts. The Netherlands and Portugal are current examples of this policy: the East Indiaman was replaced by the Swift Worker and the Carrack by the Caçador. Naval warfare itself remains unchanged by this rule; it only keeps civ-specific unit power more consistently relevant across map types.
+As of now, playable civilizations intentionally have no naval civ-specific units. Naval replacements can be effectively absent on land-heavy maps and disproportionately important on naval-heavy maps, especially when most other civilizations have no comparable naval replacement; balancing them fairly would otherwise tend to require a broader set of naval counterparts.
+
+The Netherlands and Portugal are current examples of this policy: the East Indiaman was replaced by the Swift Worker and the Carrack by the Caçador. Naval warfare itself remains unchanged by this rule; it only keeps civ-specific unit power more consistently relevant across map types.
 
 | Civ | Before → current SAS | Changes | Summary / rationale |
 | --- | --- | --- | --- |
@@ -710,7 +753,9 @@ Done with the help of chatgpt 5.1, and other ais for check-up such as claude son
 
 note: as of now advciv-sas civics are (check if updated in Sevopedia/xml) wage labor is medieval new, protecitonism is late classical new (replaces mercantilism), environmentalism is removed in favour of trade_bloc (medieval (1300s) at printing press in our mod), and civic_paganism has been renamed to civic_prehistoric_religion (although it's as of now the same civic, just to distinguish/differentiate it from the religion_paganism we as of now added in advciv-sas).
 
-Also i added this info from chatgpt 5.1's thoughts as i found it very accurate and nicely phrased thanks: "I think favorite civics should relate to the core of a leader's regime-such as government, legal, or religious systems-not just practices like slavery, which were widespread. For example, Caesar, Hannibal, and Pericles all had slavery-so choosing "Slavery" for one wouldn't add accuracy. Similarly, serfdom or trade bloc membership should be linked more to their regime and identity, not the specific labor practices of their time.".
+Also i added this info from chatgpt 5.1's thoughts as i found it very accurate and nicely phrased thanks: "I think favorite civics should relate to the core of a leader's regime-such as government, legal, or religious systems-not just practices like slavery, which were widespread. For example, Caesar, Hannibal, and Pericles all had slavery-so choosing "Slavery" for one wouldn't add accuracy.
+
+Similarly, serfdom or trade bloc membership should be linked more to their regime and identity, not the specific labor practices of their time.".
 
 | Leader | Current Favourite Civic | Recommendation | Rationale |
 | --- | --- | --- | --- |
@@ -863,7 +908,9 @@ as for lincoln, according to sources i read, lincoln was not christian, not stro
 - [https://www.thegospelcoalition.org/blogs/justin-taylor/was-abraham-lincoln-a-christian/](https://www.thegospelcoalition.org/blogs/justin-taylor/was-abraham-lincoln-a-christian/)
 - [https://www.reddit.com/r/todayilearned/comments/llardq/til_that_abraham_lincolns_religious_views_are/](https://www.reddit.com/r/todayilearned/comments/llardq/til_that_abraham_lincolns_religious_views_are/)
 
-i did not look at them in (long) detail, but i think in detail enough hopefully. that i can assert quite faithfully/strongly but anyways maybe that he was definitely leaning more agnostic than christian, reddit comments also lean in that direction, was not christian even though had a strong christian education. Lincoln seems more agnostic or not strongly favouring a religion, so for civ4 i changed it to none rather than christianity, he seems to be a free person rather which i like i mean. (But also even if he were not such free man and really christian, he is free to do so to (else it would defeat the purpose xd i mean.)).
+i did not look at them in (long) detail, but i think in detail enough hopefully. that i can assert quite faithfully/strongly but anyways maybe that he was definitely leaning more agnostic than christian, reddit comments also lean in that direction, was not christian even though had a strong christian education. Lincoln seems more agnostic or not strongly favouring a religion, so for civ4 i changed it to none rather than christianity, he seems to be a free person rather which i like i mean.
+
+(But also even if he were not such free man and really christian, he is free to do so to (else it would defeat the purpose xd i mean.)).
 
 #### Pericles
 

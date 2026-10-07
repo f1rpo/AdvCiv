@@ -72,7 +72,9 @@ Then the problem was that it was 1024 x 1024 though, although otherwise amazing,
 
 <img src="https://drive.google.com/thumbnail?id=1PMaPYxcX7ai6xCc8e-hG-sydadjHpjvS" width="150" alt="advciv-sas main menu expanded to 1920 x 1080 (Creator Nightcafe Studio).webp"></img>
 
-I had resigned myself to maybe using it as again it was really not too bad, but i still asked chatgpt xd if i may say if there are tools to expand our images, and to do a web search on it too, and among the results, it advised me the very nice tool Pixelcut AI, as again i really wanted to use our if i may say/this image as i like/love it even maybe a loooooot, but i needed it at 16:9 so 1920 x 1080, and not stretched, and i found this one to be incredibly niiiiice!!! And it succeeded at first try as well!!!! (At least in a way i can be and am (very!!!) satified of...)
+I had resigned myself to maybe using it as again it was really not too bad, but i still asked chatgpt xd if i may say if there are tools to expand our images, and to do a web search on it too, and among the results, it advised me the very nice tool Pixelcut AI, as again i really wanted to use our if i may say/this image as i like/love it even maybe a loooooot, but i needed it at 16:9 so 1920 x 1080, and not stretched, and i found this one to be incredibly niiiiice!!! And it succeeded at first try as well!!!!
+
+(At least in a way i can be and am (very!!!) satified of...)
 
 The output is amazing and it is now our main menu image :)
 

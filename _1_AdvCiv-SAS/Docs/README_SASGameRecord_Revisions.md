@@ -6,7 +6,8 @@
 
 `SASGameRecord` uses one monotonically increasing **revision** number as a downstream-update signal, not as a compatibility promise. The purpose is simple: an external mod/parser/tool that supports revision N and encounters N+1 knows that the official SASGameRecord implementation changed and should review/update its copy.
 
-- Increment the revision for every intentional SASGameRecord-related code change that a downstream copy may want to review: emitted data/semantics, row/field names, recording conditions, recorder bug fixes, relevant bridges/call sites/configuration/checkers, implementation/refactors/optimizations, and code comments or provenance headers in those implementation files. The goal is deliberately simple: if the official SASGameRecord-related code changed, a copied implementation can notice that there is something new to review.
+- Increment the revision for every intentional SASGameRecord-related code change that a downstream copy may want to review: emitted data/semantics, row/field names, recording conditions, recorder bug fixes, relevant bridges/call sites/configuration/checkers, implementation/refactors/optimizations, and code comments or provenance headers in those implementation files.
+  - The goal is deliberately simple: if the official SASGameRecord-related code changed, a copied implementation can notice that there is something new to review.
 - Do **not** spend time deciding whether a change is backward-compatible or behavior-changing. When in doubt, increment.
 - Do not increment for standalone documentation/history edits, refreshed example logs/screenshots/packages, or unrelated gameplay commits that merely used SASGameRecord as validation evidence.
 - Multiple SASGameRecord changes deliberately combined in one Git commit are one revision; this is an update counter, not a hunk/field counter.
@@ -34,14 +35,29 @@ After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REV
 
 ## Consumer/parser notes
 
-- **Runtime rows are the dynamic game record, not an exhaustive static schema manifest.** The build's exact revision/source identity and `GAME_RECORD_LOG_SETTINGS` tell a consumer which implementation/settings produced the file; loaded-XML/rules rows preserve runtime-dependent mappings. An exhaustive per-run list of every row type the source *could* emit would repeat gameplay-independent implementation metadata and still require maintenance for conditional/dynamic `GAME_RECORD_ACTION type=...` families. Keep such schema/consumer guidance in source/docs/checkers rather than enlarging every record with a static manifest unless a concrete downstream consumer later proves that worthwhile.
-- **Interpret evidence according to how the row is produced.** Exact/realized action or transition rows are emitted at the live mutation/decision boundary and mean that event actually happened; snapshot/checkpoint rows are observations at the stated boundary and do not imply that unrecorded intermediate state was unchanged; derived/diagnostic fields are explanatory calculations from live state and are not necessarily separately stored gameplay state or causal chooser inputs unless the row/documentation says so. AI-decision rows intentionally preserve selected/realized provenance without promising an exhaustive dump of every rejected candidate.
-- **`GAME_RECORD_TURN_COMPLETED` is the authoritative cheap turn-completeness marker from revision 132 onward.** It is emitted once at every enabled log level after `CvEventReporter::endGameTurn`, autoplay/synchronization cleanup and the optional level-3 `END_GAME_TURN` RNG/state checkpoint, but before the game clock advances. In a truncated record, the highest such `turn` is therefore the last game turn known to have reached that boundary; level-3 consumers can additionally use the preceding RNG/state checkpoint for deterministic comparison.
+- **Runtime rows are the dynamic game record, not an exhaustive static schema manifest.**
+  - The build's exact revision/source identity and `GAME_RECORD_LOG_SETTINGS` tell a consumer which implementation/settings produced the file; loaded-XML/rules rows preserve runtime-dependent mappings.
+  - An exhaustive per-run list of every row type the source *could* emit would repeat gameplay-independent implementation metadata and still require maintenance for conditional/dynamic `GAME_RECORD_ACTION type=...` families.
+  - Keep such schema/consumer guidance in source/docs/checkers rather than enlarging every record with a static manifest unless a concrete downstream consumer later proves that worthwhile.
+- **Interpret evidence according to how the row is produced.**
+  - Exact/realized action or transition rows are emitted at the live mutation/decision boundary and mean that event actually happened; snapshot/checkpoint rows are observations at the stated boundary and do not imply that unrecorded intermediate state was unchanged; derived/diagnostic fields are explanatory calculations from live state and are not necessarily separately stored gameplay state or causal chooser inputs unless the row/documentation says so.
+  - AI-decision rows intentionally preserve selected/realized provenance without promising an exhaustive dump of every rejected candidate.
+- **`GAME_RECORD_TURN_COMPLETED` is the authoritative cheap turn-completeness marker from revision 132 onward.**
+  - It is emitted once at every enabled log level after `CvEventReporter::endGameTurn`, autoplay/synchronization cleanup and the optional level-3 `END_GAME_TURN` RNG/state checkpoint, but before the game clock advances.
+  - In a truncated record, the highest such `turn` is therefore the last game turn known to have reached that boundary; level-3 consumers can additionally use the preceding RNG/state checkpoint for deterministic comparison.
 - **Object IDs are namespace-local unless a row explicitly says otherwise.** In particular, Civ4 `cityId` and `unitId` values are player-local; trace them as `(player, cityId)` and `(player, unitId)`, not as globally unique integers. Team/player slot IDs remain their ordinary game slot identities.
 - **Missing-value interpretation is field-specific.** `-` is the common textual/not-applicable token, while numeric `-1` is also used by native Civ4 `NO_*` IDs and by some unavailable numeric fields. Do not globally rewrite every `-1` as null; parse the documented field meaning/context.
 - **Text-map body rows deliberately remain raw pipe-framed art.** Structured `BEGIN`, `LEGEND`, `LAYER_BEGIN`, `LAYER_END`, and `END` framing rows carry the parseable metadata; revision 122 makes every structured legend/layer frame self-locating by repeating `turn`, while the fixed-width `|...|` drawing rows remain undecorated.
-- **Level-3 periodic city detail is checkpoint-plus-delta encoded from revision 123 onward.** Full `GAME_RECORD_CITY`, `GAME_RECORD_CITY_DEVELOPMENT`, `GAME_RECORD_CITY_HAPPINESS`, `GAME_RECORD_CITY_HEALTH`, and `GAME_RECORD_CITY_BUILDINGS` rows establish complete state. Matching `*_DELTA` rows inherit every omitted field from the immediately preceding observation of the same `(player, cityId)` and base family, apply only explicitly present changed fields, and expose `previousTurn`/`fullBaseTurn` so missing chains are detectable. Every new/load log session and every tenth observation returns to a full row. `GAME_RECORD_CITY_TRADE_PARTNERS` remains full. The reference `LLM_Helpers/expand_sasgamerecord_city_deltas.py` can restore these five families to ordinary full rows while validating the chain.
-- **Detailed AI-intent coverage follows AdvCiv-SAS-supported gameplay rather than every inherited compatibility mode.** War-plan causal provenance targets foreground UWAI. `GAME_RECORD_WAR_AI_SETTINGS` still identifies inherited K-Mod/Legacy configurations and factual `WAR_PLAN_CHANGED` history remains available, but SASGameRecord does not promise equivalent deep causal provenance for intentionally unsupported Legacy war/peace planning. Deeper rejected-candidate/value decomposition remains BBAI/source-investigation territory.
+- **Level-3 periodic city detail is checkpoint-plus-delta encoded from revision 123 onward.**
+  - Full `GAME_RECORD_CITY`, `GAME_RECORD_CITY_DEVELOPMENT`, `GAME_RECORD_CITY_HAPPINESS`, `GAME_RECORD_CITY_HEALTH`, and `GAME_RECORD_CITY_BUILDINGS` rows establish complete state.
+  - Matching `*_DELTA` rows inherit every omitted field from the immediately preceding observation of the same `(player, cityId)` and base family, apply only explicitly present changed fields, and expose `previousTurn`/`fullBaseTurn` so missing chains are detectable.
+  - Every new/load log session and every tenth observation returns to a full row.
+  - `GAME_RECORD_CITY_TRADE_PARTNERS` remains full.
+  - The reference `LLM_Helpers/expand_sasgamerecord_city_deltas.py` can restore these five families to ordinary full rows while validating the chain.
+- **Detailed AI-intent coverage follows AdvCiv-SAS-supported gameplay rather than every inherited compatibility mode.**
+  - War-plan causal provenance targets foreground UWAI.
+  - `GAME_RECORD_WAR_AI_SETTINGS` still identifies inherited K-Mod/Legacy configurations and factual `WAR_PLAN_CHANGED` history remains available, but SASGameRecord does not promise equivalent deep causal provenance for intentionally unsupported Legacy war/peace planning.
+  - Deeper rejected-candidate/value decomposition remains BBAI/source-investigation territory.
 
 ## Reconstruction method
 
@@ -61,7 +77,9 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 - **Git commit:** pending
 - **Change:** Aligned production-upgrade telemetry with the KI#882 repair of an inherited BtS destination-production overwrite.
 
-Obsolete-unit production now accumulates into an upgrade target instead of replacing production already stored there. `PRODUCTION_UPGRADED` and interval production-flow rows consequently report destination production preserved by the repair rather than obsolete overwrite-loss fields; the existing level gates and upgrade scan remain unchanged. See [KI#882](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-882).
+Obsolete-unit production now accumulates into an upgrade target instead of replacing production already stored there. `PRODUCTION_UPGRADED` and interval production-flow rows consequently report destination production preserved by the repair rather than obsolete overwrite-loss fields; the existing level gates and upgrade scan remain unchanged.
+
+See [KI#882](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-882).
 
 ### Revision 132 - SAS practical 6587
 
@@ -99,7 +117,9 @@ The two full validation runs showed that a separate current-health-relief family
 
 At level 3, `GAME_RECORD_AI_BUILDING_CHOICE` preserves each realized commitment's helper/direct origin, readable and numeric focus, selected same-pass score when available, actual production progress and city food/happiness/health/maintenance state, projected happiness and both actual-current-bonus and AI-assumed-strategic health changes, loaded-XML yield/commerce/domain/military/economic effects, unit-combat experience, bonus-specific production modifiers and improvement-granted free-specialist potential.
 
-Palace choices additionally identify the current capital being replaced. Helper-only max-turn/threshold/odds/random fields are explicitly `-1` for direct chooser origins rather than overloading one field with unrelated branch-local meanings. Direct border-culture, proactive-fortification and opportunistic-Wonder branches are included because they bypass `AI_chooseBuilding`.
+Palace choices additionally identify the current capital being replaced. Helper-only max-turn/threshold/odds/random fields are explicitly `-1` for direct chooser origins rather than overloading one field with unrelated branch-local meanings.
+
+Direct border-culture, proactive-fortification and opportunistic-Wonder branches are included because they bypass `AI_chooseBuilding`.
 
 The recorder reuses the required chooser pass, its winning score and real RNG result. It does not repeat candidate building valuation, placement comparison, threat search, rank refresh or RNG; rejected candidates and exact inherited value-component attribution remain in BBAI.
 
@@ -165,7 +185,9 @@ At level 3, exact lethal/nonlethal battle rows also retain the attacker's pre-co
 
 `emitSASGameRecordLine` now uses `logSASDiagnosticLiteralLine`, shared with BBAI. The helper doubles each literal `%` only after the recorder's own `CvString::formatv`/row assembly is complete, so dynamic text or future fields containing percent signs reach the log literally rather than becoming a second printf conversion.
 
-This changes no GameRecord schema and adds no work while SASGameRecord is disabled; it hardens only enabled diagnostic emission. Structured fields should still prefer explicit names such as `Percent`/`X100` where that is clearer for machine readers, but that convention is no longer relied upon for memory safety. See also [KI#375.3](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-375.3).
+This changes no GameRecord schema and adds no work while SASGameRecord is disabled; it hardens only enabled diagnostic emission. Structured fields should still prefer explicit names such as `Percent`/`X100` where that is clearer for machine readers, but that convention is no longer relied upon for memory safety.
+
+See also [KI#375.3](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-375.3).
 
 ### Revision 124 - SAS practical 6565
 
@@ -173,7 +195,9 @@ This changes no GameRecord schema and adds no work while SASGameRecord is disabl
 - **Git commit:** `0e0379b78b74cd03827feb1ed1ed94d0b5b93c75`
 - **Change:** Generalized periodic territory irrigation reporting from hardcoded Farms to every improvement whose loaded XML sets `bCarriesIrrigation`, and added compact city-network component rows.
 
-`GAME_RECORD_TERRITORY_DEVELOPMENT` now reports irrigation carriers and their irrigated/dry, bonus, BFC, suburb and by-improvement breakdowns. This matches the Worker evaluator's XML-driven irrigation model, so mod-added food, production or commerce carriers remain visible without new C++ type branches. The same existing territory scan also splits routes on Worker-developable land into periodic BFC and suburb counts, deltas, percentages and route-type lists, making useful city development distinguishable from outer-territory routing.
+`GAME_RECORD_TERRITORY_DEVELOPMENT` now reports irrigation carriers and their irrigated/dry, bonus, BFC, suburb and by-improvement breakdowns. This matches the Worker evaluator's XML-driven irrigation model, so mod-added food, production or commerce carriers remain visible without new C++ type branches.
+
+The same existing territory scan also splits routes on Worker-developable land into periodic BFC and suburb counts, deltas, percentages and route-type lists, making useful city development distinguishable from outer-territory routing.
 
 New `GAME_RECORD_CITY_NETWORK` rows directly list all known cities sharing each `CvPlotGroup` that contains one of the player's cities, along with component plot, route, river-network and terrain-network composition. The implementation reuses the existing expansion map scan and performs no diagnostic pathfinding; conduit counts describe infrastructure present in the connected component rather than claiming an exact mode for every city pair.
 
@@ -183,11 +207,15 @@ New `GAME_RECORD_CITY_NETWORK` rows directly list all known cities sharing each 
 - **Git commit:** `37448599d5f14a155645fe08838df74f41f9db82`
 - **Change:** Added bounded level-3 checkpoint-plus-delta encoding for the five largest repetitive periodic city-detail families while retaining ordinary full rows as self-contained recovery points.
 
-`GAME_RECORD_CITY`, `GAME_RECORD_CITY_DEVELOPMENT`, `GAME_RECORD_CITY_HAPPINESS`, `GAME_RECORD_CITY_HEALTH`, and `GAME_RECORD_CITY_BUILDINGS` now emit a full row on the first observation of each city/family in a log session and every tenth observation thereafter. Intermediate `*_DELTA` rows keep `(player, cityId)`, `previousTurn`, `fullBaseTurn`, `changed`, and only serialized fields that changed. New/load log rolls clear every chain; a lifecycle generation guard prevents reused/reacquired city identities from inheriting stale state. `GAME_RECORD_CITY_TRADE_PARTNERS` deliberately remains full because its small payload became larger with delta metadata.
+`GAME_RECORD_CITY`, `GAME_RECORD_CITY_DEVELOPMENT`, `GAME_RECORD_CITY_HAPPINESS`, `GAME_RECORD_CITY_HEALTH`, and `GAME_RECORD_CITY_BUILDINGS` now emit a full row on the first observation of each city/family in a log session and every tenth observation thereafter. Intermediate `*_DELTA` rows keep `(player, cityId)`, `previousTurn`, `fullBaseTurn`, `changed`, and only serialized fields that changed.
+
+New/load log rolls clear every chain; a lifecycle generation guard prevents reused/reacquired city identities from inheriting stale state. `GAME_RECORD_CITY_TRADE_PARTNERS` deliberately remains full because its small payload became larger with delta metadata.
 
 The level-3-only compressor runs after the ordinary city snapshot is already computed/formatted, so levels 0-2 add no city scan, AI query, pathfinding, or RNG work. `LLM_Helpers/expand_sasgamerecord_city_deltas.py` is the strict reference expander: it validates `previousTurn`/`fullBaseTurn`, fails closed on missing bases/links, copies unrelated rows byte-for-byte, and restores the five encoded families to ordinary full rows for older/simple consumers.
 
-Runtime validation used the actual revision-123 C++ output: 14,835 delta rows and 2,200 full city-detail checkpoints compressed a 59,726,600-byte expanded record to 53,805,598 bytes, saving 5,921,002 bytes (about 9.9% overall). Against the revision-122 same-parent control, all 425 state checkpoints, all 425 gameplay-significant RNG checkpoints, and all 37,458 pre-existing factual actions matched after ignoring timing/sequence-only fields. Expansion reproduced the logical city-detail history; its byte-level comparison also exposed a separate pre-existing exact-boundary `CvString::formatv` termination defect, left for a dedicated source fix rather than mixed into this format revision. See also [KI#375.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-375.2)\
+Runtime validation used the actual revision-123 C++ output: 14,835 delta rows and 2,200 full city-detail checkpoints compressed a 59,726,600-byte expanded record to 53,805,598 bytes, saving 5,921,002 bytes (about 9.9% overall). Against the revision-122 same-parent control, all 425 state checkpoints, all 425 gameplay-significant RNG checkpoints, and all 37,458 pre-existing factual actions matched after ignoring timing/sequence-only fields.
+
+Expansion reproduced the logical city-detail history; its byte-level comparison also exposed a separate pre-existing exact-boundary `CvString::formatv` termination defect, left for a dedicated source fix rather than mixed into this format revision. See also [KI#375.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-375.2).
 
 ### Revision 122 - SAS practical 6551
 
@@ -267,7 +295,9 @@ Recording is reached only immediately before an actual `hurry()` call. Rejected 
 
 The row preserves the selected missing resource and its already-computed `AI_bonusTradeVal` together with the runner-up/value margin and eligible-candidate count. This chooser is separate from ordinary negotiated resource trading: after other diplomacy gates, the master scans resources its vassal can provide, requires the master to have none, and deterministically chooses the highest-valued tradeable resource.
 
-For an AI vassal, the row is emitted immediately before the existing one-sided resource deal. For a human vassal, `delivery=HUMAN_POPUP` records the selected tribute request before `BUTTONPOPUP_VASSAL_GRANT_TRIBUTE`; a later transfer still depends on the human response. Candidate/runner-up bookkeeping is level-2-only, every `AI_bonusTradeVal` result is reused from the native scan, and no resource valuation, tradeability query, counterproposal or synchronized RNG is added solely for recording.
+For an AI vassal, the row is emitted immediately before the existing one-sided resource deal. For a human vassal, `delivery=HUMAN_POPUP` records the selected tribute request before `BUTTONPOPUP_VASSAL_GRANT_TRIBUTE`; a later transfer still depends on the human response.
+
+Candidate/runner-up bookkeeping is level-2-only, every `AI_bonusTradeVal` result is reused from the native scan, and no resource valuation, tradeability query, counterproposal or synchronized RNG is added solely for recording.
 
 ### Revision 115 - SAS practical 6518
 
@@ -277,7 +307,9 @@ For an AI vassal, the row is emitted immediately before the existing one-sided r
 
 The row preserves the two live pre-exchange `AI_mapTradeVal` results: how much the proposer values the target map and how much the target values the proposer map. It also records their value advantage and the strict `DIPLOMACY_VALUE_REMAINDER` threshold applied to the target's received-map value.
 
-A final `MAPS <-> MAPS` package cannot reconstruct those inputs because implementing the deal reveals both maps and changes subsequent map valuation. Existing generic `CONTACT_TRADE_MAP`/deal actions remain authoritative for delivery and payload. The native contact roll, bilateral trade-denial checks, two map valuations and acceptance inequalities remain unchanged, and no map valuation or synchronized RNG is repeated solely for recording.
+A final `MAPS <-> MAPS` package cannot reconstruct those inputs because implementing the deal reveals both maps and changes subsequent map valuation. Existing generic `CONTACT_TRADE_MAP`/deal actions remain authoritative for delivery and payload.
+
+The native contact roll, bilateral trade-denial checks, two map valuations and acceptance inequalities remain unchanged, and no map valuation or synchronized RNG is repeated solely for recording.
 
 ### Revision 114 - SAS practical 6516
 
@@ -415,7 +447,8 @@ Later danger/recon/retreat/stranded/safety/skip fallbacks are explicit without p
 
 - **Date:** 2026-09-18
 - **Git commit:** `a8452813b9aa0819ad20e454d8e7a34cbd4d3d27`
-- **Change:** Added compact level-2 realized proactive AI diplomatic-contact provenance: contact class, human-contact versus immediate AI-deal delivery, current attitude, optional non-package subject, and the final AI-gives/AI-receives package. Existing deeper peace and proactive resource-trade rows remain authoritative rather than being duplicated.
+- **Change:** Added compact level-2 realized proactive AI diplomatic-contact provenance: contact class, human-contact versus immediate AI-deal delivery, current attitude, optional non-package subject, and the final AI-gives/AI-receives package.
+  - Existing deeper peace and proactive resource-trade rows remain authoritative rather than being duplicated.
 
 ### Revision 99 - SAS practical 6489
 
@@ -433,13 +466,15 @@ Later danger/recon/retreat/stranded/safety/skip fallbacks are explicit without p
 
 - **Date:** 2026-09-18
 - **Git commit:** `c154939e23a030b1654b40ac4fbf5c492c2add65`
-- **Change:** Added exact level-2 per-player/per-area AI target-city history for normal area search, K-Mod random clearing, diplomacy coordination, area reassignment and effective clears when a referenced city is removed, plus compact periodic target checkpoints with the city-target refresh timer. Normal search exposes its already-computed winning target value through an optional diagnostic output; old-target provenance remains level-2 gated without duplicating the refresh loop.
+- **Change:** Added exact level-2 per-player/per-area AI target-city history for normal area search, K-Mod random clearing, diplomacy coordination, area reassignment and effective clears when a referenced city is removed, plus compact periodic target checkpoints with the city-target refresh timer.
+  - Normal search exposes its already-computed winning target value through an optional diagnostic output; old-target provenance remains level-2 gated without duplicating the refresh loop.
 
 ### Revision 96 - SAS practical 6486
 
 - **Date:** 2026-09-18
 - **Git commit:** `86485bdd6be96fcb0c3bb7d92ad6885a0fc197a2`
-- **Change:** Added exact level-2 AreaAI theater-posture transitions from the two authoritative writers (`CALCULATED` and UWAI land/naval alignment), plus compact periodic non-neutral AreaAI checkpoints and a shared canonical raw enum-name helper. Initial `NO_AREAAI` setup assignment is omitted from transition history; disabled logging keeps the original inner calculation loop.
+- **Change:** Added exact level-2 AreaAI theater-posture transitions from the two authoritative writers (`CALCULATED` and UWAI land/naval alignment), plus compact periodic non-neutral AreaAI checkpoints and a shared canonical raw enum-name helper.
+  - Initial `NO_AREAAI` setup assignment is omitted from transition history; disabled logging keeps the original inner calculation loop.
 
 ### Revision 95 - SAS practical 6485
 
@@ -453,17 +488,22 @@ The scan reuses the existing Foreign-Advisor market gate and viewer scope rather
 
 - **Date:** 2026-09-18
 - **Git commit:** `da80e04a653cfed2ec20621d9b8c6185acf33903`
-- **Change:** Added complete periodic level-3 AI attitude-component provenance. `GAME_RECORD_DIPLO_ATTITUDE_BREAKDOWN` reconstructs each known cross-team major-AI relationship from the same additive components and order used by `CvPlayerAI::AI_updateAttitude` (first impression, rank/team size, close borders, peace/war, religion, resource/open-border/defensive-pact effects, rival pacts/vassals, expansionism, shared war, favorite civic, trade/rival trade, aggregate memories and attitude-extra), plus the pre-clamp component sum, its normal -100..100 clamped value, cached raw value and gameplay-effective value.
+- **Change:** Added complete periodic level-3 AI attitude-component provenance.
+  - `GAME_RECORD_DIPLO_ATTITUDE_BREAKDOWN` reconstructs each known cross-team major-AI relationship from the same additive components and order used by `CvPlayerAI::AI_updateAttitude` (first impression, rank/team size, close borders, peace/war, religion, resource/open-border/defensive-pact effects, rival pacts/vassals, expansionism, shared war, favorite civic, trade/rival trade, aggregate memories and attitude-extra), plus the pre-clamp component sum, its normal -100..100 clamped value, cached raw value and gameplay-effective value.
 
 This makes fluctuating diplomacy such as different religion ("heathen"), open borders and fair trade explainable from the record rather than exposing only the final attitude number.
 
-The existing `GAME_RECORD_DIPLO_MEMORIES` row remains the per-memory detail and now shares the same memory scan with the broader breakdown instead of recomputing it separately. Full breakdowns are level-3-only and limited to gameplay-active major AI players (including AI Auto Play); ordinary human outgoing pseudo-attitudes and same-team forced relations are not presented as additive AI reasoning. No extra attitude work is added when level 3 is disabled.
+The existing `GAME_RECORD_DIPLO_MEMORIES` row remains the per-memory detail and now shares the same memory scan with the broader breakdown instead of recomputing it separately. Full breakdowns are level-3-only and limited to gameplay-active major AI players (including AI Auto Play); ordinary human outgoing pseudo-attitudes and same-team forced relations are not presented as additive AI reasoning.
+
+No extra attitude work is added when level 3 is disabled.
 
 ### Revision 93 - SAS practical 6483
 
 - **Date:** 2026-09-18
 - **Git commit:** `56f4bce56342897f452363f8f6a52a31c8e52b1c`
-- **Change:** Added exact level-2 team worst-enemy transition history. `GAME_RECORD_WORST_ENEMY_CHANGE` records only the final committed `AI_updateWorstEnemy` replacement as `oldEnemyTeam` -> `newEnemyTeam`, together with the old/new enmity values already computed by the real selection pass plus `recursiveRecheck=0/1`. AdvCiv's optional recursive reevaluation after enemy-trade-memory decay therefore cannot emit its tentative first-pass candidate; the recursive final pass commits and records the authoritative result.
+- **Change:** Added exact level-2 team worst-enemy transition history.
+  - `GAME_RECORD_WORST_ENEMY_CHANGE` records only the final committed `AI_updateWorstEnemy` replacement as `oldEnemyTeam` -> `newEnemyTeam`, together with the old/new enmity values already computed by the real selection pass plus `recursiveRecheck=0/1`.
+  - AdvCiv's optional recursive reevaluation after enemy-trade-memory decay therefore cannot emit its tentative first-pass candidate; the recursive final pass commits and records the authoritative result.
 
 The bridge adds no enemy scan, attitude/enmity evaluation, RNG or pathfinding solely for logging. Existing periodic `GAME_RECORD_DIPLO_STATUS worstEnemyTeam=` fields remain the checkpoint for loaded saves and truncated logs.
 
@@ -471,7 +511,9 @@ The bridge adds no enemy scan, attitude/enmity evaluation, RNG or pathfinding so
 
 - **Date:** 2026-09-18
 - **Git commit:** `d4a67ae0effbeaf879061e9f24c4382da83a7efe`
-- **Change:** Added exact readable AI victory-route stage history at level 2. `GAME_RECORD_AI_VICTORY_STAGE_CHANGE` records each final Culture/Space/Conquest/Domination/Diplomacy 0..4 stage transition after `AI_updateVictoryStageHash` finishes, including authoritative resets caused by invalid/capitulated/no-capital state; the existing periodic `GAME_RECORD_AI_VICTORY_STAGES` row remains the loaded-save/truncated-log checkpoint. The bridge compares only the already-computed before/after victory-stage bitfields and repeats no victory evaluation, RNG or pathfinding.
+- **Change:** Added exact readable AI victory-route stage history at level 2.
+  - `GAME_RECORD_AI_VICTORY_STAGE_CHANGE` records each final Culture/Space/Conquest/Domination/Diplomacy 0..4 stage transition after `AI_updateVictoryStageHash` finishes, including authoritative resets caused by invalid/capitulated/no-capital state; the existing periodic `GAME_RECORD_AI_VICTORY_STAGES` row remains the loaded-save/truncated-log checkpoint.
+  - The bridge compares only the already-computed before/after victory-stage bitfields and repeats no victory evaluation, RNG or pathfinding.
 
 The periodic and exact rows now share one AI/AI-Auto-Play eligibility helper. The revision checker also verifies the revision history's current emitted `recordRevision` example against the source constant so that descriptive marker cannot silently lag after a revision bump.
 
@@ -479,15 +521,22 @@ The periodic and exact rows now share one AI/AI-Auto-Play eligibility helper. Th
 
 - **Date:** 2026-09-18
 - **Git commit:** `9a2348b4029ec5e4bc1c609e00018235d62d0123`
-- **Change:** Added complete readable AI-strategy history at level 2. `GAME_RECORD_AI_STRATEGY_CHANGE` records each final gameplay-active non-default `AIStrategy` bit that starts/stops after `AI_updateStrategyHash` finishes its validity cleanup, while periodic `GAME_RECORD_AI_STRATEGIES` checkpoints preserve the complete active set without requiring replay from turn 0. Existing specialized decision rows remain for local context and BBAI retains its detailed K-Mod transition diagnostics/trigger values.
+- **Change:** Added complete readable AI-strategy history at level 2.
+  - `GAME_RECORD_AI_STRATEGY_CHANGE` records each final gameplay-active non-default `AIStrategy` bit that starts/stops after `AI_updateStrategyHash` finishes its validity cleanup, while periodic `GAME_RECORD_AI_STRATEGIES` checkpoints preserve the complete active set without requiring replay from turn 0.
+  - Existing specialized decision rows remain for local context and BBAI retains its detailed K-Mod transition diagnostics/trigger values.
 
-A shared `getSASAIStrategyType` helper in `CvGameCoreUtils` now provides canonical raw enum names to both logs, replacing the fragile BBAI stringification macros without changing their emitted strategy names. Existing SASGameRecord strategy predicates share one AI-Auto-Play-aware wrapper, and the build check guards the contiguous strategy-bit layout, enum-name coverage, and all complete strategy scans against future `AIStrategy` additions. No AI strategy evaluation, RNG or pathfinding is repeated solely for recording.
+A shared `getSASAIStrategyType` helper in `CvGameCoreUtils` now provides canonical raw enum names to both logs, replacing the fragile BBAI stringification macros without changing their emitted strategy names. Existing SASGameRecord strategy predicates share one AI-Auto-Play-aware wrapper, and the build check guards the contiguous strategy-bit layout, enum-name coverage, and all complete strategy scans against future `AIStrategy` additions.
+
+No AI strategy evaluation, RNG or pathfinding is repeated solely for recording.
 
 ### Revision 90 - SAS practical 6480
 
 - **Date:** 2026-09-17
 - **Git commit:** `e25c3e02b18e1252d873e5b5eb978edf40225d37`
-- **Change:** Source-readability maintenance only. Oversized `logSASGameRecord(...)` argument lists are wrapped at top-level argument boundaries while their format strings remain unchanged. A conservative helper now preserves this argument-layout convention alongside the matching BBAI cleanup while deliberately leaving existing prose-comment layout untouched. Emitted SASGameRecord row text, fields, conditions, and gameplay behavior are unchanged.
+- **Change:** Source-readability maintenance only.
+  - Oversized `logSASGameRecord(...)` argument lists are wrapped at top-level argument boundaries while their format strings remain unchanged.
+  - A conservative helper now preserves this argument-layout convention alongside the matching BBAI cleanup while deliberately leaving existing prose-comment layout untouched.
+  - Emitted SASGameRecord row text, fields, conditions, and gameplay behavior are unchanged.
 
 ### Revision 89 - SAS practical 6477
 
@@ -495,13 +544,18 @@ A shared `getSASAIStrategyType` helper in `CvGameCoreUtils` now provides canonic
 - **Git commit:** `18e8765652b15b1726e3c97724f2a150656ef6ad`
 - **Change:** Tightened disabled-recorder overhead after the expanded provenance work. `SAS_GAME_RECORD_LOG_LEVEL` is now cached once after all GlobalDefines/module overrides load, making the widespread level gates direct integer reads instead of out-of-line getter calls in ordinary non-LTCG Release builds.
 
-Caller-gated plot/random-event placeholder states no longer initialize unused fields at level 0/1, the plot-owner cause scope avoids an unused disabled-path member write, and unit-event before/after snapshots now live wholly inside the enabled branch. Tiny empty vectors that must span gameplay mutation remain intentionally accepted and locally documented; they perform no recorder scan/allocation/population while logging is disabled. Emitted record semantics are unchanged.
+Caller-gated plot/random-event placeholder states no longer initialize unused fields at level 0/1, the plot-owner cause scope avoids an unused disabled-path member write, and unit-event before/after snapshots now live wholly inside the enabled branch. Tiny empty vectors that must span gameplay mutation remain intentionally accepted and locally documented; they perform no recorder scan/allocation/population while logging is disabled.
+
+Emitted record semantics are unchanged.
 
 ### Revision 88 - SAS practical 6476
 
 - **Date:** 2026-09-17
 - **Git commit:** `d8a8df2f2dc046fa57ba8d4679e7d98cf130ab33`
-- **Change:** Added compact AI civic/revolution provenance. `GAME_RECORD_AI_CIVIC_DECISION` records live `AI_doCivics` switch candidates from the already-computed current/best civic values, percent threshold, absolute/anarchy slack, bundle-anarchy state and first/recheck pass; accepted candidates are level 2 while rejected/wanted-but-rejected candidates are level 3. `GAME_RECORD_AI_CIVIC_OUTCOME` records meaningful accepted-bundle outcomes: actual revolution, delaying for an imminent researched civic, insufficient-gold blocking, or an unexpected final `canRevolution` block, including the pending/final civic bundle and real timer/anarchy/research/gold context; `BLOCKED_GOLD` also records the net deal gold-per-turn actually used by its reserve formula. No civic valuation or revolution eligibility search is repeated solely for recording.
+- **Change:** Added compact AI civic/revolution provenance.
+  - `GAME_RECORD_AI_CIVIC_DECISION` records live `AI_doCivics` switch candidates from the already-computed current/best civic values, percent threshold, absolute/anarchy slack, bundle-anarchy state and first/recheck pass; accepted candidates are level 2 while rejected/wanted-but-rejected candidates are level 3.
+  - `GAME_RECORD_AI_CIVIC_OUTCOME` records meaningful accepted-bundle outcomes: actual revolution, delaying for an imminent researched civic, insufficient-gold blocking, or an unexpected final `canRevolution` block, including the pending/final civic bundle and real timer/anarchy/research/gold context; `BLOCKED_GOLD` also records the net deal gold-per-turn actually used by its reserve formula.
+  - No civic valuation or revolution eligibility search is repeated solely for recording.
 
 The same call-site review also gates older BBAI-only financial-trouble/war-state diagnostic lookups so ordinary player-log-disabled gameplay no longer performs that diagnostic work.
 
@@ -509,15 +563,22 @@ The same call-site review also gates older BBAI-only financial-trouble/war-state
 
 - **Date:** 2026-09-17
 - **Git commit:** `727e094fdc31b3e785825433407b47bacdeccaf8`
-- **Change:** Added compact AI resource-trade choice provenance. `GAME_RECORD_AI_BONUS_TRADE_DECISION` records the real proactive `AI_proposeResourceTrade` receive/give chooser winners and runner-ups from already-computed buyer trade value, seller keep-value estimate, bias, probability gate and random final score, then joins them to the actual counterproposal terms that are about to be shown to a human or implemented between AIs. Winner-only factual resource/strategic context is gathered only when an event is emitted; the shared `AI_bonusTradeVal` function itself remains uninstrumented.
+- **Change:** Added compact AI resource-trade choice provenance.
+  - `GAME_RECORD_AI_BONUS_TRADE_DECISION` records the real proactive `AI_proposeResourceTrade` receive/give chooser winners and runner-ups from already-computed buyer trade value, seller keep-value estimate, bias, probability gate and random final score, then joins them to the actual counterproposal terms that are about to be shown to a human or implemented between AIs.
+  - Winner-only factual resource/strategic context is gathered only when an event is emitted; the shared `AI_bonusTradeVal` function itself remains uninstrumented.
 
-`GAME_RECORD_AI_BONUS_DEMAND_DECISION` separately records the different tribute chooser's randomized sorted winner/runner-up, non-surplus sorting adjustment, selected resource bundle/value, minimum threshold and final deal valuation. Existing periodic `GAME_RECORD_TRADE_MARKET` remains the resolved availability/denial/price view. The new rows repeat no bonus valuation, counterproposal search or RNG solely for recording.
+`GAME_RECORD_AI_BONUS_DEMAND_DECISION` separately records the different tribute chooser's randomized sorted winner/runner-up, non-surplus sorting adjustment, selected resource bundle/value, minimum threshold and final deal valuation. Existing periodic `GAME_RECORD_TRADE_MARKET` remains the resolved availability/denial/price view.
+
+The new rows repeat no bonus valuation, counterproposal search or RNG solely for recording.
 
 ### Revision 86 - SAS practical 6474
 
 - **Date:** 2026-09-17
 - **Git commit:** `318c4c070c954a548fd44ae819b59819981d3e1f`
-- **Change:** Added compact AI research/free-technology choice provenance. `GAME_RECORD_AI_RESEARCH_DECISION` identifies teammate coordination, Python overrides and the real `AI_bestTech` fallback; the latter preserves the chosen/requested technology, actual current research after queueing, deeper strategic aim, chooser/path values, distinct runner-up and chooser breadth from values already computed by gameplay. Level 3 additionally serializes each distinct returned-tech candidate with its chooser/path value and deeper aim, while free-tech choices use the same depth-1 machinery. No technology valuation or chooser RNG is repeated for recording.
+- **Change:** Added compact AI research/free-technology choice provenance.
+  - `GAME_RECORD_AI_RESEARCH_DECISION` identifies teammate coordination, Python overrides and the real `AI_bestTech` fallback; the latter preserves the chosen/requested technology, actual current research after queueing, deeper strategic aim, chooser/path values, distinct runner-up and chooser breadth from values already computed by gameplay.
+  - Level 3 additionally serializes each distinct returned-tech candidate with its chooser/path value and deeper aim, while free-tech choices use the same depth-1 machinery.
+  - No technology valuation or chooser RNG is repeated for recording.
 
 The technology-path diagnostic also recovers the actual deepest endpoint after K-Mod backfills/reorders paths with unrelated depth-0 technologies, rather than assuming `path.front()` is always the long-term aim; AdvCiv's rare scenario fallback likewise reports the path actually selected rather than always path 0. These are diagnostic/provenance corrections only and do not change research selection.
 
@@ -525,7 +586,8 @@ The technology-path diagnostic also recovers the actual deepest endpoint after K
 
 - **Date:** 2026-09-17
 - **Git commit:** `f94667171d4523a595a9153e253ad68c5486680b`
-- **Change:** Added compact AI espionage mission-choice and mission-phase interception provenance. `GAME_RECORD_AI_ESPIONAGE_DECISION` retains the scored chooser winner/runner-up and both candidates' already-computed valuation/randomization/overhead/cost components plus chooser risk/EP/strategy context without rerunning valuation or RNG; the separate K-Mod tactical city-revolt path emits `GAME_RECORD_AI_ESPIONAGE_TACTICAL_DECISION` with its factual remaining-defense gate instead of fabricated scores.
+- **Change:** Added compact AI espionage mission-choice and mission-phase interception provenance.
+  - `GAME_RECORD_AI_ESPIONAGE_DECISION` retains the scored chooser winner/runner-up and both candidates' already-computed valuation/randomization/overhead/cost components plus chooser risk/EP/strategy context without rerunning valuation or RNG; the separate K-Mod tactical city-revolt path emits `GAME_RECORD_AI_ESPIONAGE_TACTICAL_DECISION` with its factual remaining-defense gate instead of fabricated scores.
 
 `GAME_RECORD_SPY_INTERCEPTION_CHECK` records every real before/after-mission base/final chance and authoritative result/draw plus counterespionage, counter-Spy-defense/Spy, city-defense and recent-mission context; successful non-interceptions are therefore visible alongside existing completed-mission and caught-Spy outcomes. The ordinary logging-disabled/travel-interception path keeps the original `SyncRandSuccess10000` behavior, and logging-only plot/unit scans remain level-2 gated.
 
@@ -533,60 +595,79 @@ The technology-path diagnostic also recovers the actual deepest endpoint after K
 
 - **Date:** 2026-09-17
 - **Git commit:** `b93cfcd8ae7a6279729c067373532f66d884ea8d`
-- **Change:** Added compact AI corporation operational provenance. `GAME_RECORD_AI_CORPORATION_DECISION` records actual Executive production commits, new/retargeted `AI_spreadCorporation` destinations and deliberate Executive airlift/sea-transport routing with only already-computed chooser scores/path context; no corporation valuation or pathfinding is repeated for logging. Periodic `GAME_RECORD_CORPORATION_POSTURE` separates policy-enabled corporations from actually present corporation types/city instances/headquarters and preserves persistent Executive spread missions, including Executive cargo carried by sea transports, at-target/waiting-gold/ready state and level-3 compact targets across loaded saves; it stays absent before meaningful corporation/Executive state exists.
+- **Change:** Added compact AI corporation operational provenance.
+  - `GAME_RECORD_AI_CORPORATION_DECISION` records actual Executive production commits, new/retargeted `AI_spreadCorporation` destinations and deliberate Executive airlift/sea-transport routing with only already-computed chooser scores/path context; no corporation valuation or pathfinding is repeated for logging.
+  - Periodic `GAME_RECORD_CORPORATION_POSTURE` separates policy-enabled corporations from actually present corporation types/city instances/headquarters and preserves persistent Executive spread missions, including Executive cargo carried by sea transports, at-target/waiting-gold/ready state and level-3 compact targets across loaded saves; it stays absent before meaningful corporation/Executive state exists.
 
 ### Revision 83 - SAS practical 6471
 
 - **Date:** 2026-09-17
 - **Git commit:** `23a3c7abe45b7f775a7c03f4ab904fe8a31bb1a3`
-- **Change:** Added explicit AI fog-control / anti-Barbarian map-control provenance. `GAME_RECORD_AI_MAP_CONTROL_DECISION` records real `AI_guardCitySite` and `AI_guardYield` assignment/retarget changes with their already-computed site/guard/yield, defense/sight/fog-distance, path and action context, without extra target search, pathfinding or fog scans. Periodic `GAME_RECORD_BARBARIAN_PRESSURE` also identifies persistent city-site `MISSIONAI_GUARD_CITY` posture, including level-3 site/guard/current coordinates, so loaded saves retain ongoing fog-control state.
+- **Change:** Added explicit AI fog-control / anti-Barbarian map-control provenance.
+  - `GAME_RECORD_AI_MAP_CONTROL_DECISION` records real `AI_guardCitySite` and `AI_guardYield` assignment/retarget changes with their already-computed site/guard/yield, defense/sight/fog-distance, path and action context, without extra target search, pathfinding or fog scans.
+  - Periodic `GAME_RECORD_BARBARIAN_PRESSURE` also identifies persistent city-site `MISSIONAI_GUARD_CITY` posture, including level-3 site/guard/current coordinates, so loaded saves retain ongoing fog-control state.
 
 ### Revision 82 - SAS practical 6470
 
 - **Date:** 2026-09-17
 - **Git commit:** `a864aa13593c9e80df49d4ff8967b7139bd8d00d`
-- **Change:** Added compact AI religion-choice provenance at the real `AI_doReligion` boundary. Level 2 records meaningful switch/spread-block decisions with the pre-spread best and runner-up post-bias scores, current/selected religions, favorite/missionary/flavor context, best-religion spread/holy-city state, the raw values actually used by gameplay for switch probability, the real conversion probability/roll and realized outcome. Level 3 additionally serializes every eligible religion's already-computed chooser score. The recorder performs no extra religion valuation or RNG and suppresses routine keep-current evaluations to avoid per-turn noise.
+- **Change:** Added compact AI religion-choice provenance at the real `AI_doReligion` boundary.
+  - Level 2 records meaningful switch/spread-block decisions with the pre-spread best and runner-up post-bias scores, current/selected religions, favorite/missionary/flavor context, best-religion spread/holy-city state, the raw values actually used by gameplay for switch probability, the real conversion probability/roll and realized outcome.
+  - Level 3 additionally serializes every eligible religion's already-computed chooser score.
+  - The recorder performs no extra religion valuation or RNG and suppresses routine keep-current evaluations to avoid per-turn noise.
 
 ### Revision 81 - SAS practical 6469
 
 - **Date:** 2026-09-16
 - **Git commit:** `3bcaa9af2c70561ee62b2c60e938cce216949849`
-- **Change:** Added compact peace-decision provenance and knowledge-limited barbarian pressure. `GAME_RECORD_AI_PEACE_DECISION` records the real shared peace-negotiation boundary at level 2: UWAI versus legacy source, war age, initial/final end-war benefit values, provisional reparations, human-counterproposal use, final trade lists when available, and resolved outcomes such as victory-denial block, insufficient reparations/counterproposal, offer sent or AI-AI peace implemented/rejected. It reuses the live negotiation values/package rather than rerunning UWAI or trade valuation.
+- **Change:** Added compact peace-decision provenance and knowledge-limited barbarian pressure.
+  - `GAME_RECORD_AI_PEACE_DECISION` records the real shared peace-negotiation boundary at level 2: UWAI versus legacy source, war age, initial/final end-war benefit values, provisional reparations, human-counterproposal use, final trade lists when available, and resolved outcomes such as victory-denial block, insufficient reparations/counterproposal, offer sent or AI-AI peace implemented/rejected.
+  - It reuses the live negotiation values/package rather than rerunning UWAI or trade valuation.
 
-`GAME_RECORD_BARBARIAN_PRESSURE` complements the omniscient global barbarian rows with what each player's team can actually know: visible/non-invisible barbarian units and city proximity, revealed/visible/actionable-known barbarian cities, explore/city-attack UnitAI state, `MISSIONAI_EXPLORE` groups, and the AI's existing barbarian-defense-focus/attacker-need predicates. `BARBARIAN_UNIT_SPAWNED` also records plot ownership/terrain/feature, revealed/visible major-team counts and the nearest major-civilization city. The new observations add no spawn reevaluation, pathfinding or barbarian target scoring.
+`GAME_RECORD_BARBARIAN_PRESSURE` complements the omniscient global barbarian rows with what each player's team can actually know: visible/non-invisible barbarian units and city proximity, revealed/visible/actionable-known barbarian cities, explore/city-attack UnitAI state, `MISSIONAI_EXPLORE` groups, and the AI's existing barbarian-defense-focus/attacker-need predicates. `BARBARIAN_UNIT_SPAWNED` also records plot ownership/terrain/feature, revealed/visible major-team counts and the nearest major-civilization city.
+
+The new observations add no spawn reevaluation, pathfinding or barbarian target scoring.
 
 ### Revision 80 - SAS practical 6468
 
 - **Date:** 2026-09-16
 - **Git commit:** `1cb708ab8dfc36d7200bd0b4e02cd70c4d6f62b1`
-- **Change:** Added privacy-tiered runtime/install provenance and compact naval operational intent. `GAME_RECORD_EXE_CONTEXT` fingerprints the loaded `Civ4BeyondSword.exe`; level 2 records Windows/Wine runtime/build/update and process/native architecture plus coarse distribution/Steam AppID-build-beta metadata, while level 3 additionally records coarse CPU/GPU vendors, logical processors/RAM and exact EXE/mod paths.
+- **Change:** Added privacy-tiered runtime/install provenance and compact naval operational intent.
+  - `GAME_RECORD_EXE_CONTEXT` fingerprints the loaded `Civ4BeyondSword.exe`; level 2 records Windows/Wine runtime/build/update and process/native architecture plus coarse distribution/Steam AppID-build-beta metadata, while level 3 additionally records coarse CPU/GPU vendors, logical processors/RAM and exact EXE/mod paths.
 
 `GAME_RECORD_DISPLAY_CONTEXT` now retries after loaded-save graphics initialization so short sessions do not omit display/GPU context. Level-3 naval posture also records each assault group's existing MissionAI destination, target team/city, cargo/capacity, support/base and ocean capability without new pathfinding or AI evaluation; war-start context now reuses the shared spaceship-parts-percent helper.
+
 Note: Steam detection/path/build metadata are runtime-validated; GOG, Firaxis retail/other and Wine/Proton branches are source-reviewed but not yet runtime-tested.
 
 ### Revision 79 - SAS practical 6465
 
 - **Date:** 2026-09-16
 - **Git commit:** `439081be51b7ec481f72cda74688fce4ca8b5b33`
-- **Change:** Added explicit territory/BFC/suburb unimproved-development totals and level-3 `GAME_RECORD_CITY_DEVELOPMENT` rows with owned/assigned-radius gaps, development/improvement coverage, remaining feature/resource types and bounded plot coordinates. Level 3 also serializes each already-maintained AI city-site shortlist as rank/coordinates/current found value. These are descriptive/cached-state additions only: no Worker build-legality/value scan, city-site reevaluation or pathfinding.
+- **Change:** Added explicit territory/BFC/suburb unimproved-development totals and level-3 `GAME_RECORD_CITY_DEVELOPMENT` rows with owned/assigned-radius gaps, development/improvement coverage, remaining feature/resource types and bounded plot coordinates.
+  - Level 3 also serializes each already-maintained AI city-site shortlist as rank/coordinates/current found value.
+  - These are descriptive/cached-state additions only: no Worker build-legality/value scan, city-site reevaluation or pathfinding.
 
 ### Revision 78 - SAS practical 6464
 
 - **Date:** 2026-09-16
 - **Git commit:** `fb4c3dcb0b8d8fe9f085620a7bdcaf2ea059bc63`
-- **Change:** Added compact strategic AI intent: current team war plans/ages, remaining high-level military-strategy flags, selected UWAI war-target context, and level-3 best-target `DEFERRED_ROLL` events without logging exhaustive rejected candidates. Espionage snapshots now distinguish foreign Spy locations from stored attack/recon/guard MissionAI intent. The RNG/state comparator also requires equal explicit `recordRevision` values before recipe-sensitive combined interpretation.
+- **Change:** Added compact strategic AI intent: current team war plans/ages, remaining high-level military-strategy flags, selected UWAI war-target context, and level-3 best-target `DEFERRED_ROLL` events without logging exhaustive rejected candidates.
+  - Espionage snapshots now distinguish foreign Spy locations from stored attack/recon/guard MissionAI intent.
+  - The RNG/state comparator also requires equal explicit `recordRevision` values before recipe-sensitive combined interpretation.
 
 ### Revision 77 - SAS practical 6463
 
 - **Date:** 2026-09-16
 - **Git commit:** `989eb50ce43e551708d7f573db4b140e28902307`
-- **Change:** Added compact expansion/city-site intent: maintained shortlist/threshold/primary-site context, settler `MISSIONAI_FOUND` targets/ranks/cached values, normal founding choice plus two cached alternatives, and exact barbarian chooser winner/two runner-ups with raw/area/final values and random/site-spacing context. All reuse already-computed state/scans, adding no map-wide rescoring or pathfinding; also removed a duplicate `CvInfo_Symbol.h` include.
+- **Change:** Added compact expansion/city-site intent: maintained shortlist/threshold/primary-site context, settler `MISSIONAI_FOUND` targets/ranks/cached values, normal founding choice plus two cached alternatives, and exact barbarian chooser winner/two runner-ups with raw/area/final values and random/site-spacing context.
+  - All reuse already-computed state/scans, adding no map-wide rescoring or pathfinding; also removed a duplicate `CvInfo_Symbol.h` include.
 
 ### Revision 76 - SAS practical 6461
 
 - **Date:** 2026-09-14
 - **Git commit:** `66f72899345d54e552c3a40da59b26d7cbdac270`
-- **Change:** Strengthened runtime provenance with a compact tracked code/rules/scripts diff fingerprint and byte count in `GAME_RECORD_SOURCE_CONTEXT`, scoped to `CvGameCoreDLL`, `Assets/Config`, `Assets/Python`, `Assets/XML`, and `PrivateMaps`. This distinguishes different edits to the same runtime-relevant dirty paths and, together with the independent exact-byte loaded-DLL fingerprint, makes stale/unrebuilt DLL mistakes directly visible without hashing docs/LLM helpers or adding per-file timestamp noise.
+- **Change:** Strengthened runtime provenance with a compact tracked code/rules/scripts diff fingerprint and byte count in `GAME_RECORD_SOURCE_CONTEXT`, scoped to `CvGameCoreDLL`, `Assets/Config`, `Assets/Python`, `Assets/XML`, and `PrivateMaps`.
+  - This distinguishes different edits to the same runtime-relevant dirty paths and, together with the independent exact-byte loaded-DLL fingerprint, makes stale/unrebuilt DLL mistakes directly visible without hashing docs/LLM helpers or adding per-file timestamp noise.
 
 ### Revision 75 - SAS practical 6460
 
@@ -598,7 +679,8 @@ Note: Steam detection/path/build metadata are runtime-validated; GOG, Firaxis re
 
 - **Date:** 2026-09-14
 - **Git commit:** `320e73215cf08fa5b5af9fb4231c612a7cebf8f8`
-- **Change:** Added one compact all-city `CITY_PRODUCTION_NO_TARGET` outcome at control-path-aware turn boundaries. Manual human cities are sampled before end-turn production processing, while AI-controlled and production-automated cities are sampled afterward; disorder is suppressed, and detailed legality/chooser-path evidence is kept in the dedicated BBAI category.
+- **Change:** Added one compact all-city `CITY_PRODUCTION_NO_TARGET` outcome at control-path-aware turn boundaries.
+  - Manual human cities are sampled before end-turn production processing, while AI-controlled and production-automated cities are sampled afterward; disorder is suppressed, and detailed legality/chooser-path evidence is kept in the dedicated BBAI category.
 
 ### Revision 73 - SAS practical 6446
 
@@ -634,7 +716,8 @@ Note: Steam detection/path/build metadata are runtime-validated; GOG, Firaxis re
 
 - **Date:** 2026-09-10
 - **Git commit:** `03b44b8932a0715be234e8c5332fcb8a1d1cf3b2`
-- **Change:** Standardized provenance headers across active AdvCiv-SAS files, including the SASGameRecord implementation, comparison helper and dedicated build checker. Runtime recorder behavior was unchanged, but the SASGameRecord-related code artifacts changed and therefore count under the current strict revision policy.
+- **Change:** Standardized provenance headers across active AdvCiv-SAS files, including the SASGameRecord implementation, comparison helper and dedicated build checker.
+  - Runtime recorder behavior was unchanged, but the SASGameRecord-related code artifacts changed and therefore count under the current strict revision policy.
 
 ### Revision 67 - SAS practical 6438
 

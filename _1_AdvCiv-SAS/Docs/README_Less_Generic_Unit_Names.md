@@ -2,7 +2,9 @@
 
 As this will be expanded later if it is at all, moving this part of the README to a specific file or also to not clutter main README.md.
 
-I think some unit names are very lousy, for example for "spearman" it's basically just weapon-man, i am not even sure it's a proper word for most units but i don't know much about this, anyways. But, if want to do it (more maybe at least if i may say) properly, i have some cool unit names in mind. Not sure it would be implemented, but ideally or maybe, here are some ideas i have.
+I think some unit names are very lousy, for example for "spearman" it's basically just weapon-man, i am not even sure it's a proper word for most units but i don't know much about this, anyways. But, if want to do it (more maybe at least if i may say) properly, i have some cool unit names in mind.
+
+Not sure it would be implemented, but ideally or maybe, here are some ideas i have.
 
 ## Menu
 
@@ -12,7 +14,9 @@ I think some unit names are very lousy, for example for "spearman" it's basicall
 
 I found these possibly more epic and badass (i think but anyways) names after a quick bit of research or intutiion/idea of mine or and such or that i saw somewhere or something similar, so using this instead, see below, anyways.
 
-Some other units also have a more problematic name, as they are very inaccurate. For example a Knight is a title, not any medieval horse. Some medieval horse warriors/fighters were not knights probably (did not check, anyways). The teutonic knight (around germany) for example may have been a foot unit maybe for example.
+Some other units also have a more problematic name, as they are very inaccurate. For example a Knight is a title, not any medieval horse.
+
+Some medieval horse warriors/fighters were not knights probably (did not check, anyways). The teutonic knight (around germany) for example may have been a foot unit maybe for example.
 
 - Spearman: Lancer (Light, Medium, Heavy), similar reasoning maybe at a different era instead not sure
 - Axeman: Battle Axe Warrior
