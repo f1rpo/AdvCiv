@@ -26,7 +26,7 @@ int getSASGameRecordTurnInterval();
 // This is deliberately not a compatibility/schema promise: increment it for every intentional change to SASGameRecord implementation code, relevant bridges/call sites/configuration/checkers, or their code comments, even when emitted semantics are unchanged.
 // Standalone docs/example-log/package refreshes do not require a bump. Keep the matching revision-history entry in the same commit.
 // An anonymous enum keeps this a C++03 compile-time integer without a separate storage/linkage definition. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-enum { SAS_GAME_RECORD_REVISION = 136 };
+enum { SAS_GAME_RECORD_REVISION = 137 };
 // <!-- custom: Finalize buffered observations in the old game state before a new game or loaded save resets/replaces it. See KI#382. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 void finalizeSASGameRecordLogSession();
 void startSASGameRecordLogForNewGame();
@@ -551,6 +551,14 @@ void logSASGameRecordUnitCompleted(CvCity const* pCity, CvUnit const* pUnit, SAS
 void logSASGameRecordResearchCompleted(TechTypes eTech, TeamTypes eTeam, PlayerTypes ePlayer, int iProgressBefore, int iProgressBeforeClamp, int iResearchModifier, int iUnmodifiedOverflow);
 // <!-- custom: Added eCause so the existing TECH_ACQUIRED action can name its explicit source. (GPT-5.6-Sol + GPT-5.6 Thinking) -->
 void logSASGameRecordTechAcquired(TechTypes eType, TeamTypes eTeam, PlayerTypes ePlayer, TechAcquisitionCause eCause);
+// <!-- custom: Preserve the exact ordinary Settler target assignment that precedes travel/founding without replaying site selection.
+// This compact level-2 event records already-computed shortlist/path scores only when the MISSIONAI_FOUND target is newly assigned or retargeted; repeated travel toward the same target emits nothing. (ChatGPT-5.6-Sol) -->
+enum SASGameRecordAISettlerSiteDecisionSource
+{
+	SAS_AI_SETTLER_SITE_DECISION_SHORTLIST = 0,
+	SAS_AI_SETTLER_SITE_DECISION_CURRENT_PLOT_RECHECK
+};
+void logSASGameRecordAISettlerSiteDecision(CvUnitAI const& kSettler, CvPlot const& kTargetPlot, bool bFoundNow, SASGameRecordAISettlerSiteDecisionSource eSource, int iDecisionRawFoundValue, int iDecisionSelectionFoundValue, int iPathTurns, int iPathAdjustedScore, bool bSafe, MissionAITypes ePreviousMissionAI, CvPlot const* pPreviousMissionTarget);
 // <!-- custom: Preserve the strategic shortlist plus one cold quality summary for the site that is actually founded, immediately before normal founding mutates the plot/city state.
 // Level 2 deliberately rescans only that rare chosen BFC from player-known and diagnostic-omniscient perspectives; rejected-candidate reasons remain BBAI territory and periodic snapshots do no settlement rescoring. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordCityFoundingSite(CvPlayer const& kPlayer, CvPlot const& kPlot);

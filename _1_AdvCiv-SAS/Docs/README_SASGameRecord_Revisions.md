@@ -28,7 +28,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=136 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=137 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -71,10 +71,24 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
-### Revision 136 - SAS practical 6600
+### Revision 137 - SAS practical 6601
 
 - **Date:** 2026-10-08
 - **Git commit:** pending
+- **Change:** Following the KI#505.2 Found-logging fix/refactor, review of the resulting diagnostic sample exposed a remaining SASGameRecord gap: later site values did not preserve the original decision that sent a Settler there. Added one compact founding-target decision row to bridge assignment-time values to later founding-time values.
+
+`GAME_RECORD_AI_SETTLER_SITE_DECISION` records level-2+ ordinary `AI_found` destination assignments and retargets, suppressing repeated travel toward the same active target. ChatGPT-5.6-Sol's validation-log review found changed cached values in 31 of 62 matched later foundings, ranging from -720 to +800; preserving the original decision therefore makes later founding-time values interpretable.
+
+It reuses computed raw/scenario-adjusted/path-adjusted scores, path turns and safety, plus maintained shortlist/cache and previous-target context, without additional evaluation, pathfinding or RNG. Logging-only winning-score copies are captured only when level-2+ recording is enabled. Current-plot rechecks are identified separately; `pathAdjustedScore=-1` means no path-adjusted comparison was used.
+
+The row captures intent before mission dispatch; actual founding remains recorded separately.
+
+Shortlist counts and rejected-candidate reasoning were deliberately not added: they describe the candidate search, which BBAI already covers, rather than the original chosen destination missing from this compact history. Further recorder fields should address a demonstrated missing-history case rather than duplicate detailed BBAI traces.
+
+### Revision 136 - SAS practical 6600
+
+- **Date:** 2026-10-08
+- **Git commit:** `89a9db59b34b98a14fe7a9e5f9c08acab9a523d8`
 - **Change:** Labeled the recorder's existing known-map and true-map founding rescores for the Found diagnostic redesign, and clarified their hypothetical context. See KI#505.2.
 
 The recorder retains its existing comparison calculations and row layout. Their evaluator traces now use typed contexts converted to `RECORD_KNOWN_MAP_COMPARISON` and `RECORD_TRUE_MAP_COMPARISON` only during enabled output, while ordinary Found diagnostics capture actual evaluations separately. The revision records the intentional recorder implementation/comment update; it does not signify a new serialized format.

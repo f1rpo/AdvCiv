@@ -2140,13 +2140,14 @@ def check_ai_city_trade_intent_provenance(repo_root: Path) -> list[str]:
 def check_broad_settlement_vassal_battle_contracts(repo_root: Path) -> list[str]:
 	"""Keep revision-126 broad settlement, vassal and exact-battle facts semantically unambiguous."""
 	failures = []
-	for relative_path in (REVISION_SOURCE, CITY_SITE_EVALUATOR_HEADER):
+	for relative_path in (REVISION_SOURCE, CITY_SITE_EVALUATOR_HEADER, UNIT_AI_SOURCE):
 		if not (repo_root / relative_path).is_file():
 			failures.append(f"missing SASGameRecord settlement/vassal contract file: {relative_path}")
 	if failures:
 		return failures
 	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
 	evaluator_text = (repo_root / CITY_SITE_EVALUATOR_HEADER).read_text(encoding="utf-8", errors="replace")
+	unit_ai_text = (repo_root / UNIT_AI_SOURCE).read_text(encoding="utf-8", errors="replace")
 	for required in (
 		"GAME_RECORD_CITY_SITE_QUALITY", "knownBest1Sum=%d", "knownBest6Sum=%d", "knownBest14Sum=%d",
 		"omniscientBest1Sum=%d", "omniscientBest6Sum=%d", "omniscientBest14Sum=%d",
@@ -2158,6 +2159,21 @@ def check_broad_settlement_vassal_battle_contracts(repo_root: Path) -> list[str]
 			failures.append(f"{REVISION_SOURCE}: broad chosen-site quality contract missing {required}")
 	if "evaluateWithPlotValueDistribution" not in evaluator_text or "1/2/3/6/10/14" not in evaluator_text:
 		failures.append(f"{CITY_SITE_EVALUATOR_HEADER}: chosen-site distribution bridge changed")
+
+	for required in (
+		"GAME_RECORD_AI_SETTLER_SITE_DECISION", "targetSiteListRank=%d", "targetCachedFoundValue=%d",
+		"decisionRawFoundValue=%d", "decisionSelectionFoundValue=%d", "pathAdjustedScore=%d",
+		"previousMissionAI=%d", "retarget=%d", "previousTargetX=%d", "previousTargetY=%d",
+	):
+		if required not in record_text:
+			failures.append(f"{REVISION_SOURCE}: Settler site-decision contract missing {required}")
+	for required in (
+		"SAS_recordSettlerSiteDecisionIfChanged", "ePreviousMissionAI == MISSIONAI_FOUND && pPreviousMissionTarget == &kTargetPlot",
+		"bool const bLogSASSettlerDecision = (gGameRecordLogLevel >= 2);",
+		"if (bLogSASSettlerDecision) SAS_recordSettlerSiteDecisionIfChanged",
+	):
+		if required not in unit_ai_text:
+			failures.append(f"{UNIT_AI_SOURCE}: Settler site-decision bridge missing {required}")
 
 	for required in (
 		"GAME_RECORD_VASSAL_RULES", "vassalLandFloor=10", "relativeSizeMasterLand=OWN_ONLY",

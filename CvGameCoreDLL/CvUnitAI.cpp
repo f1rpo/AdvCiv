@@ -478,6 +478,20 @@ static void SAS_logSettlerMissionDecision(char const* szAction, CvUnitAI const& 
 		(pTargetPlot == NULL ? -1 : kOwner.AI_getPlotDanger(*pTargetPlot)), (pGroup == NULL ? NO_MISSIONAI : pGroup->AI_getMissionAIType()));
 }
 
+// <!-- custom: Preserve only a newly assigned/retargeted ordinary founding destination in SASGameRecord.
+// Repeated AI_found calls while travelling toward the same MISSIONAI_FOUND plot stay silent; the row reuses values already computed by this decision and does no evaluation/pathfinding of its own. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Record the chosen action before mission dispatch: founding can consume the Settler immediately, so logging afterward is unsafe. This is decision evidence, not confirmation of successful movement or founding; the city-founding record supplies the actual outcome. (GPT-6.1-Sol) -->
+static void SAS_recordSettlerSiteDecisionIfChanged(CvUnitAI const& kSettler, CvPlot const& kTargetPlot, bool bFoundNow, SASGameRecordAISettlerSiteDecisionSource eSource, int iDecisionRawFoundValue, int iDecisionSelectionFoundValue, int iPathTurns, int iPathAdjustedScore, bool bSafe)
+{
+	FAssert(gGameRecordLogLevel >= 2);
+	CvSelectionGroupAI const* pGroup = kSettler.AI_getGroup();
+	MissionAITypes const ePreviousMissionAI = (pGroup == NULL ? NO_MISSIONAI : pGroup->AI_getMissionAIType());
+	CvPlot const* pPreviousMissionTarget = (pGroup == NULL ? NULL : pGroup->AI_getMissionAIPlot());
+	if (ePreviousMissionAI == MISSIONAI_FOUND && pPreviousMissionTarget == &kTargetPlot)
+		return;
+	logSASGameRecordAISettlerSiteDecision(kSettler, kTargetPlot, bFoundNow, eSource, iDecisionRawFoundValue, iDecisionSelectionFoundValue, iPathTurns, iPathAdjustedScore, bSafe, ePreviousMissionAI, pPreviousMissionTarget);
+}
+
 // <!-- custom: Record mission and movement context to diagnose units repeatedly returning to evacuating cities; no behavior change. (GPT-5.5) -->
 static void logSASEvacuationUnitDecision(char const* szMode, CvUnitAI const& kUnit, CvCityAI const& kCity, int iEvacProbPercent, bool bSelected)
 {
@@ -22554,7 +22568,13 @@ bool CvUnitAI::AI_found(MovementFlags eFlags)
 	CvPlot* pBestFoundPlot = NULL;
 	int iBestFoundValue = 0;
 	int iBestPathTurns = -1;
+	// <!-- custom: These copies serve only the recorder; keep sentinel initialization simple, but capture winning scores only with level-2+ recording enabled. Gameplay still computes and uses its own scores independently. (GPT-6.1-Sol) -->
+	int iBestDecisionRawFoundValue = 0;
+	int iBestDecisionSelectionFoundValue = 0;
+	int iBestDecisionPathAdjustedScore = -1;
+	SASGameRecordAISettlerSiteDecisionSource eBestDecisionSource = SAS_AI_SETTLER_SITE_DECISION_SHORTLIST;
 	bool const bRandomize = (!isHuman() && kGame.isScenario()); // advc.052
+	bool const bLogSASSettlerDecision = (gGameRecordLogLevel >= 2);
 	bool const bLogSettlerAILevel2 = (gSettlerLogLevel >= 2);
 	bool const bLogSettlerAILevel3 = (gSettlerLogLevel >= 3);
 
@@ -22666,6 +22686,13 @@ bool CvUnitAI::AI_found(MovementFlags eFlags)
 			pBestPlot = &getPathEndTurnPlot();
 			pBestFoundPlot = &kSite;
 			iBestPathTurns = iPathTurns;
+			if (bLogSASSettlerDecision)
+			{
+				iBestDecisionRawFoundValue = iRawValue;
+				iBestDecisionSelectionFoundValue = iValue;
+				iBestDecisionPathAdjustedScore = iPathAdjustedValue;
+				eBestDecisionSource = SAS_AI_SETTLER_SITE_DECISION_SHORTLIST;
+			}
 		}
 	}
 	if (pBestPlot == NULL || pBestFoundPlot == NULL)
@@ -22692,6 +22719,13 @@ bool CvUnitAI::AI_found(MovementFlags eFlags)
 			pBestPlot = &getPlot();
 			pBestFoundPlot = &getPlot();
 			iBestPathTurns = 0;
+			if (bLogSASSettlerDecision)
+			{
+				iBestDecisionRawFoundValue = iCurrentFoundValue;
+				iBestDecisionSelectionFoundValue = iCurrentFoundValue;
+				iBestDecisionPathAdjustedScore = -1;
+				eBestDecisionSource = SAS_AI_SETTLER_SITE_DECISION_CURRENT_PLOT_RECHECK;
+			}
 		}
 	}
 
@@ -22724,6 +22758,7 @@ bool CvUnitAI::AI_found(MovementFlags eFlags)
 	// <!-- custom: Normal found-at-target path after the current-site and promising-fog safeguards above had a chance to override stale or under-scouted targets. (GPT-5.5) -->
 	if (at(*pBestFoundPlot))
 	{
+		if (bLogSASSettlerDecision) SAS_recordSettlerSiteDecisionIfChanged(*this, *pBestFoundPlot, true, eBestDecisionSource, iBestDecisionRawFoundValue, iBestDecisionSelectionFoundValue, iBestPathTurns, iBestDecisionPathAdjustedScore, bSafe);
 		if (gSettlerLogLevel >= 2)
 		{
 			logBBAI("    Settler founding at site %d, %d", pBestFoundPlot->getX(), pBestFoundPlot->getY());
@@ -22735,6 +22770,7 @@ bool CvUnitAI::AI_found(MovementFlags eFlags)
 	}
 	else
 	{
+		if (bLogSASSettlerDecision) SAS_recordSettlerSiteDecisionIfChanged(*this, *pBestFoundPlot, false, eBestDecisionSource, iBestDecisionRawFoundValue, iBestDecisionSelectionFoundValue, iBestPathTurns, iBestDecisionPathAdjustedScore, bSafe);
 		if (gSettlerLogLevel >= 2)
 		{
 			logBBAI("    Settler heading for site %d, %d", pBestFoundPlot->getX(), pBestFoundPlot->getY());

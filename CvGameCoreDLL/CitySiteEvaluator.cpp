@@ -2558,7 +2558,7 @@ int AIFoundValue::evaluateBestPotentialPlotYield(CvPlot const& p, bool bCanNever
 	int iBestValue = iUnimprovedValue;
 	FeatureTypes const eFeature = p.getFeatureType();
 	// <!-- custom: Found level 3 records the three strongest legal Build outcomes for each inspected plot, including immediate/final yields and feature-removal state.
-	// Keep these details at level 3 so level 2 remains compact; the top three distinguish XML, maturation and timing effects without logging every rejected Build. See KI#505.2. (GPT-5.6-Sol + Chat-GPT-5.6-Sol + GPT-6.1-Sol) -->
+	// Keep these details at level 3 so level 2 remains compact; the top three distinguish XML, maturation and timing effects without logging every rejected Build. See KI#505.2. (GPT-5.6-Sol + ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	BuildTypes aeTopBuild[3] = {NO_BUILD, NO_BUILD, NO_BUILD};
 	int aiTopBuildValue[3] = {MIN_INT, MIN_INT, MIN_INT};
 	int aiTopBuildTimingPercent[3] = {0, 0, 0};
@@ -4466,7 +4466,7 @@ void AIFoundValue::logBBAIFoundDetail(char const* szEvent, char const* szFormat,
 // <!-- custom: Renamed inherited AIFoundValue::logSite() to identify both the BBAI sink and the full-site settings role, distinct from component/plot detail. This helper also incorporates the former CitySiteEvaluator::logSettings() output; its caller gates the entire helper at Found level 3 before preparing diagnostic arguments. See KI#505.2. (GPT-6.1-Sol) -->
 void AIFoundValue::logBBAIFoundSiteSettings() const
 {
-	// <!-- custom: Caller-side FOUND pre-gating is required; keep only a debug invariant here. (Chat-GPT-5.6-Sol) -->
+	// <!-- custom: Caller-side FOUND pre-gating is required; keep only a debug invariant here. (ChatGPT-5.6-Sol) -->
 	FAssert(gFoundLogLevel >= 3);
 
 	// <!-- custom: Replaces logSettings()'s individual tagged output blocks with named fields: advc.300 -> barbarianDiscouragedRange; advc.027 -> ignoreStartingSurroundings; advc.908a -> extraYieldNaturalThreshold (AdvCiv Financial effect).
@@ -4483,7 +4483,7 @@ void AIFoundValue::logBBAIFoundSiteSettings() const
 // Removed and retired the inherited AdvCiv CvPlot::debugStr() helper after replacing its Found-log calls: its descriptions printed actual bonus/owner identities during player-known evaluation. For new Found rows, use plot coordinates and evaluator-scoped fields; do not reintroduce generic true-map descriptions into player-known traces. hiddenBonus deliberately indicates hidden-resource presence; trueMap describes the evaluator mode, not spoiler-free output. See KI#349. See KI#505.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol + GPT-6.1-Sol) -->
 void AIFoundValue::logBBAIFoundPlotDetails(CvPlot const& p, int iPlotValue, int const* aiYield, int iCultureModifier, BonusTypes eBonus, ImprovementTypes eBonusImprovement, bool bCanTradeBonus, bool bCanSoonTradeBonus, bool bCanImproveBonus, bool bCanSoonImproveBonus, bool bEasyAccess, int iFeatureProduction, bool bPersistentFeature, bool bRemovableFeature, int iNatureYieldValue, int iPotentialValue, ImprovementTypes ePotentialImprovement, int const* aiPotentialYield, int iPotentialTimingPercent, bool bPotentialCacheHit) const
 {
-	// <!-- custom: Caller-side FOUND pre-gating is required; keep only a debug invariant here. (Chat-GPT-5.6-Sol) -->
+	// <!-- custom: Caller-side FOUND pre-gating is required; keep only a debug invariant here. (ChatGPT-5.6-Sol) -->
 	FAssert(gFoundLogLevel >= 3);
 	int const F = YIELD_FOOD, P = YIELD_PRODUCTION, C = YIELD_COMMERCE;
 	bool const bHome = isHome(p);

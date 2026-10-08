@@ -2,7 +2,7 @@
 
 Earlier AdvCiv-SAS development relied heavily on web-chat LLMs such as ChatGPT 4o, o3, and later GPT-5-series models. More recent development also increasingly uses agentic tools such as Codex and Claude Code alongside web chat (ChatGPT in particular) when convenient.
 
-Model and product names change quickly, and the same model can sometimes be used through more than one interface; in current AdvCiv-SAS attribution shorthand, `GPT-5.6-Sol` usually refers to Codex use, while `Chat-GPT-5.6-Sol` refers to its ChatGPT counterpart. This is only a project-local convenience convention and may change.
+Model and product names change quickly, and the same model can sometimes be used through more than one interface; in current AdvCiv-SAS attribution shorthand, `GPT-5.6-Sol` usually refers to Codex use, while `ChatGPT-5.6-Sol` refers to its ChatGPT counterpart. This is only a project-local convenience convention and may change.
 
 They are also not necessarily all listed here in this as of now mostly historical record file.
 

@@ -11769,6 +11769,36 @@ void logSASGameRecordBarbarianCitySiteChoice(bool bSkipCivAreas, int iProbModifi
 		iCandidateCount > 2 ? aiRandomPercents[2] : -1);
 }
 
+static char const* getSASGameRecordAISettlerSiteDecisionSource(SASGameRecordAISettlerSiteDecisionSource eSource)
+{
+	switch (eSource)
+	{
+	case SAS_AI_SETTLER_SITE_DECISION_SHORTLIST: return "SHORTLIST_PATH_SCORE";
+	case SAS_AI_SETTLER_SITE_DECISION_CURRENT_PLOT_RECHECK: return "CURRENT_PLOT_RECHECK";
+	}
+	FAssert(false);
+	return "UNKNOWN";
+}
+
+// <!-- custom: Read only the maintained shortlist and selected plot cache; do not rescore the site for this row.
+// A current-plot recheck supplies its fresh score separately, with pathAdjustedScore=-1 because that decision compares raw found values rather than path-adjusted scores. (GPT-6.1-Sol) -->
+void logSASGameRecordAISettlerSiteDecision(CvUnitAI const& kSettler, CvPlot const& kTargetPlot, bool bFoundNow, SASGameRecordAISettlerSiteDecisionSource eSource, int iDecisionRawFoundValue, int iDecisionSelectionFoundValue, int iPathTurns, int iPathAdjustedScore, bool bSafe, MissionAITypes ePreviousMissionAI, CvPlot const* pPreviousMissionTarget)
+{
+	CvPlayerAI const& kPlayer = GET_PLAYER(kSettler.getOwner());
+	int iTargetCachedFoundValue = -1;
+	int const iTargetSiteListRank = getSASGameRecordCitySiteRank(kPlayer, kTargetPlot, iTargetCachedFoundValue);
+	if (iTargetSiteListRank < 0)
+		iTargetCachedFoundValue = kTargetPlot.getFoundValue(kSettler.getOwner());
+	CvSelectionGroupAI const* pGroup = kSettler.AI_getGroup();
+	bool const bRetarget = (ePreviousMissionAI == MISSIONAI_FOUND && pPreviousMissionTarget != NULL);
+	logSASGameRecord("GAME_RECORD_AI_SETTLER_SITE_DECISION turn=%d player=%d unitId=%d groupId=%d fromX=%d fromY=%d action=%s source=%s targetX=%d targetY=%d targetArea=%d targetSiteListRank=%d targetCachedFoundValue=%d decisionRawFoundValue=%d decisionSelectionFoundValue=%d pathTurns=%d pathAdjustedScore=%d safe=%d previousMissionAI=%d retarget=%d previousTargetX=%d previousTargetY=%d",
+		GC.getGame().getGameTurn(), kSettler.getOwner(), kSettler.getID(), (pGroup == NULL ? -1 : pGroup->getID()),
+		kSettler.getX(), kSettler.getY(), bFoundNow ? "FOUND_NOW" : "MOVE_TO_SITE", getSASGameRecordAISettlerSiteDecisionSource(eSource),
+		kTargetPlot.getX(), kTargetPlot.getY(), kTargetPlot.getArea().getID(), iTargetSiteListRank, iTargetCachedFoundValue,
+		iDecisionRawFoundValue, iDecisionSelectionFoundValue, iPathTurns, iPathAdjustedScore, bSafe, ePreviousMissionAI, bRetarget,
+		(pPreviousMissionTarget == NULL ? -1 : pPreviousMissionTarget->getX()), (pPreviousMissionTarget == NULL ? -1 : pPreviousMissionTarget->getY()));
+}
+
 void logSASGameRecordCityFoundingSite(CvPlayer const& kPlayer, CvPlot const& kPlot)
 {
 	if (kPlayer.isBarbarian())
