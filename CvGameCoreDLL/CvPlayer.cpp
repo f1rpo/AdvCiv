@@ -5452,16 +5452,10 @@ void CvPlayer::found(int iX, int iY)
 		}
 	}
 
-	// <advc.031c>
-	if (gFoundLogLevel > 0 && !isHuman() &&
-		// (advc.108 forces founding in place in scenarios)
-		(getNumCities() > 0 || !kGame.isScenario()))
-	{
-		// <!-- custom: Runtime capital logging previously reconstructed the chosen site with ordinary later-city weights, producing false seafood/value reversals against the starting-capital decision.
-		// Pass both the first-city scoring context and the founder-known information scope; the pregame starting-plot logger remains omniscient. (GPT-5.6-Sol) -->
-		const bool bFirstCity = (getNumCities() <= 0);
-		AI().logFoundValue(GC.getMap().getPlot(iX, iY), bFirstCity, bFirstCity);
-	} // </advc.031c>
+	// <!-- custom: Log the cached site value before founding mutates the map. Real evaluation traces are emitted where the AI computes them; founding no longer replays scoring with different planned-site context. A cached value is not a freshly recomputed first-city score. See KI#505.2. (GPT-6.1-Sol) -->
+	if (gFoundLogLevel > 0) logBBAI("FOUND_SITE_FOUNDED turn=%d player=%d site=%d,%d cachedValue=%d firstCity=%d human=%d",
+		kGame.getGameTurn(), getID(), iX, iY,
+		GC.getMap().getPlot(iX, iY).getFoundValue(getID()), getNumCities() <= 0, isHuman());
 	// <!-- custom: SASGameRecord keeps only the already-cached strategic site list/value context here, before initCity changes the plot and surrounding city state.
 	// Detailed CitySiteEvaluator component reasoning remains in Found/BBAI diagnostics. (ChatGPT-5.6-Sol) -->
 	if (bLogSASCityFounding) logSASGameRecordCityFoundingSite(*this, GC.getMap().getPlot(iX, iY));
@@ -7865,12 +7859,7 @@ void CvPlayer::setStartingPlot(CvPlot* pNewValue, bool bUpdateStartDist)
 		m_pStartingPlot = NULL;
 	else
 	{
-		// <advc.031c>
-		if (gFoundLogLevel > 0 && !GC.getInitCore().getScenario() &&
-			m_pStartingPlot == NULL)
-		{
-			AI().logFoundValue(*pNewValue, true);
-		} // </advc.031c>
+		if (gFoundLogLevel > 0) logBBAI("FOUND_SITE_START_ASSIGNED turn=%d player=%d site=%d,%d", GC.getGame().getGameTurn(), getID(), pNewValue->getX(), pNewValue->getY());
 		m_pStartingPlot = pNewValue;
 
 		getStartingPlot()->getArea().changeNumStartingPlots(1);

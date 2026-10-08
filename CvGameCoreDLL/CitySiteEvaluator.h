@@ -35,7 +35,6 @@ public:
 	// <!-- custom: Share settlement-specific seafood counts between selected-site, city-site-list and broad founding diagnostics.
 	// Ordinary diagnostics use the founder's information and non-obsolete resources; SASGameRecord can additionally request the true-map count to explain hidden seafood at the site actually founded; callers keep the BFC scan behind diagnostic gates. (GPT-5.6-Sol) -->
 	static int countWaterBonuses(CvPlot const& kCityPlot, TeamTypes eTeam, bool bDiagnosticOmniscience);
-	int evaluateWithLogging(CvPlot const& kPlot) const; // advc.031c
 	scaled evaluateWorkablePlot(CvPlot const& kPlot) const; // advc.027
 	CvPlayerAI const& getPlayer() const { return m_kPlayer; }
 	bool isStartingLoc() const { return m_bStartingLoc; }
@@ -81,11 +80,9 @@ public:
 	bool isSeafaring() const { return m_bSeafaring; }
 	// willing to place cities further apart. (not directly based on the expansive trait)
 	bool isExpansive() const { return m_bExpansive; }
-	// <advc.031c>
-	void log(CvPlot const& kPlot);
-	// <!-- custom: Detailed found-value breakdown for comparison sites logged next to a selected site, e.g. adjacent/current-site checks that explained and fixed the uMgungundlovu stale-target case in KI#185. (GPT-5.5) -->
-	void logComparedSiteBreakdown(char const* szLabel, CvPlot const& kPlot) const;
-	void logSettings() const; // </advc.031c>
+	// <!-- custom: Typed context describes the caller, not a scoring mode; changing it never changes evaluation or cache policy. The shared getSASFoundLogContextType helper converts it to text only for enabled output. See KI#505.2. (GPT-6.1-Sol) -->
+	void setLogContext(SASFoundLogContextTypes eContext) { m_eLogContext = eContext; }
+	SASFoundLogContextTypes getLogContext() const { return m_eLogContext; }
 
 private:
 	// <!-- custom: Cache the best XML-valid improvement outcome for each plot across the many overlapping candidate BFCs evaluated by one CitySiteEvaluator.
@@ -115,6 +112,8 @@ private:
 	bool m_bAllSeeing;
 	// <!-- custom: True only for the level-3 true-map comparison evaluator; an evaluator whose result can drive an AI decision must leave this false. (GPT-5.6-Sol) -->
 	bool m_bDiagnosticOmniscience;
+	// <!-- custom: Diagnostic-only caller identity, stored as an enum to prevent misspelled string labels and avoid carrying a raw string pointer. Only enabled BBAI output converts it to text; it never selects scoring rules. See KI#505.2. (GPT-6.1-Sol) -->
+	SASFoundLogContextTypes m_eLogContext;
 	int m_iClaimThreshold;
 	bool m_bEasyCulture;
 	bool m_bAmbitious;
@@ -124,7 +123,7 @@ private:
 	bool m_bSeafaring;
 	bool m_bExpansive;
 	// <!-- custom: AI_updateFoundValues evaluates overlapping BFCs across every revealed map plot.
-	// Cache plot-intrinsic XML improvement scans for this evaluator instance so the de-hardcoded logic scans each ordinary plot once, while diagnostic reevaluations may still bypass the cache to emit candidate details. (GPT-5.6-Sol) -->
+	// Cache plot-intrinsic XML improvement scans for this evaluator instance so the de-hardcoded logic scans each ordinary plot once, including when diagnostics are enabled; the consolidated plot row identifies reused outcomes through potentialCacheHit instead of repeating candidate scans. See KI#505.2. (GPT-5.6-Sol + GPT-6.1-Sol) -->
 	mutable std::map<PlotNumTypes, PlotPotentialYield> m_plotPotentialYieldCache;
 	mutable std::map<PlotNumTypes, scaled> m_improvementProductionCache;
 };
@@ -134,18 +133,19 @@ private:
 class AIFoundValue
 {
 public:
-	// <!-- custom: A non-null breakdown output enables diagnostic accounting; normal evaluation passes NULL and keeps that work disabled. (GPT-5.5) -->
+	// <!-- custom: A non-null breakdown output or Found level 2+ enables diagnostic accounting during the same evaluation; neither changes the returned score. Disabled logging with no output skips formatting. See KI#505.2. (GPT-5.5 + GPT-6.1-Sol) -->
 	// <!-- custom: Let SPI construct the shared workable-plot context without also running and discarding a complete city-site evaluation; optional output pointers expose decision components already computed during the same pass. See KI#492. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	AIFoundValue(CvPlot const& kPlot, CitySiteEvaluator const& kSettings, CvString* pszBreakdown = NULL, bool bEvaluateSite = true, int* paiGrowthCorePlotValues = NULL, int* piSustainableProductivePlotValue = NULL, int* paiPlotCoreSums = NULL, int* paiPlotCoreCutoffs = NULL, int* piPositivePlots = NULL);
 	int get() const { return m_iResult; }
 	scaled evaluateWorkablePlot(CvPlot const& p) const; // advc.027
 
-	// <advc.031c> Will have to enable the found log in BBAILog.h in addition
-	static void setLoggingEnabled(bool b);
-	static bool isLoggingEnabled() { return bLoggingEnabled; } // </advc.031c>
+	// <!-- custom: Removed the inherited advc.031c setLoggingEnabled()/isLoggingEnabled() API and static bLoggingEnabled switch: they enabled output only during a separate replay and suppressed constructor settings output.
+	// Direct caller-side gFoundLogLevel guards now observe existing evaluations without a process-wide switch that couples evaluator instances. See KI#505.2. (GPT-6.1-Sol) -->
 
 private:
 	int m_iResult;
+	// <!-- custom: Snapshot of the constructor's bEvaluateSite argument for diagnostic scope only: true means a complete SITE evaluation; false means SPI's shared WORKABLE_PLOT context. Prevent partial helper output from looking like a full site result; this is not a logging-enable flag. See KI#505.2. (GPT-6.1-Sol) -->
+	bool const m_bSiteEvaluation;
 	CvString* m_pszBreakdown;
 	// <!-- custom: Optional caller-owned outputs reuse results already computed by this evaluation.
 	// Growth-core returns the best-6 and best-10 values for first-city logic; the productive-plot output shares its reference threshold; the broader diagnostic outputs return the best-1/2/3/6/10/14 sums and cutoffs plus the positive-plot count. (GPT-5.6-Sol) -->
@@ -180,10 +180,13 @@ private:
 	bool bFirstColony;
 	int iUnrevealedTiles; // advc.040
 	// <advc.031c>
-	static bool bLoggingEnabled;
+	// <!-- custom: The event name already states a simple reason; optional payloads add values or explanation rather than repeating that name as prose. See KI#505.2. (GPT-6.1-Sol) -->
+	void logBBAIFoundDetail(char const* szEvent, char const* szFormat = "", ...) const;
 	static wchar const* cityName(CvCity const& kCity);
-	void logSite() const;
-	void logPlot(CvPlot const& p, int iPlotValue, int const* aiYield, int iCultureModifier, BonusTypes eBonus, ImprovementTypes eBonusImprovement, bool bCanTradeBonus, bool bCanSoonTradeBonus, bool bCanImproveBonus, bool bCanSoonImproveBonus, bool bEasyAccess, int iFeatureProduction, bool bPersistentFeature, bool bRemovableFeature) const;
+	// <!-- custom: Former AIFoundValue::logSite() emitted site identity and coastal/city context. The explicit BBAI name now also covers the settings formerly emitted by CitySiteEvaluator::logSettings(), recorded with the actual evaluation rather than a replay. See KI#505.2. (GPT-6.1-Sol) -->
+	void logBBAIFoundSiteSettings() const;
+	// <!-- custom: Renamed inherited AIFoundValue::logPlot(): reports BFC plot yields, culture and resource-access diagnostics without calculating valuation. Consolidated rows now also carry the already-computed nature/potential scores and cache-hit result. The BBAI prefix identifies its output sink; logBBAIFoundDetail supplies the shared row context. See KI#505.2. (GPT-6.1-Sol) -->
+	void logBBAIFoundPlotDetails(CvPlot const& p, int iPlotValue, int const* aiYield, int iCultureModifier, BonusTypes eBonus, ImprovementTypes eBonusImprovement, bool bCanTradeBonus, bool bCanSoonTradeBonus, bool bCanImproveBonus, bool bCanSoonImproveBonus, bool bEasyAccess, int iFeatureProduction, bool bPersistentFeature, bool bRemovableFeature, int iNatureYieldValue, int iPotentialValue, ImprovementTypes ePotentialImprovement, int const* aiPotentialYield, int iPotentialTimingPercent, bool bPotentialCacheHit) const;
 	// </advc.031c>
 	int evaluate();
 	// Subroutines of evaluate ...
@@ -212,7 +215,8 @@ private:
 	// Keep the city-center distinction optional so the home plot's lost workable potential can be evaluated as an ordinary BFC plot. (GPT-5.6-Sol) -->
 	int evaluateYield(int const* aiYield, CvPlot const* p = NULL, bool bCanNeverImprove = false, bool bTreatHomeAsCity = true) const;
 	// <!-- custom: Return both the best XML-valid Build outcome and the weighted yield/timing details needed by the caller and diagnostics; this replaces separate terrain-, feature- and named-improvement assumptions. (GPT-5.6-Sol) -->
-	int evaluateBestPotentialPlotYield(CvPlot const& p, bool bCanNeverImprove, ImprovementTypes& eBestImprovement, int* aiBestYield, int& iTimingPercent) const;
+	// <!-- custom: bCacheHit reports the existing lookup outcome for consolidated diagnostics; it never controls cache policy or the returned score. See KI#505.2. (GPT-6.1-Sol) -->
+	int evaluateBestPotentialPlotYield(CvPlot const& p, bool bCanNeverImprove, ImprovementTypes& eBestImprovement, int* aiBestYield, int& iTimingPercent, bool& bCacheHit) const;
 	int evaluateFreshWater(CvPlot const& p, int const* aiYield, bool bSteal, int& iRiverTiles, int& iGreenTiles) const;
 	// <!-- custom: removed and now added inline in parent caller AIFoundValue::evaluate() directly, as it seems to be called only once, and we'd have more parameters to fine tune it further in parent caller rather, it is also clearer this way i think -->
 	//int foundOnResourceValue(int const* aiBonusImprovementYield) const;

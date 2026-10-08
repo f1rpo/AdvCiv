@@ -609,8 +609,7 @@ public:
 	int numAdjacentPlots() const { return m_iAdjPlots; }
 	// </advc.003s>
 
-	// <!-- custom: Return owned diagnostic text instead of a pointer into a destroyed temporary. See KI#349. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-	CvWString debugStr() const; // advc.031c
+	// <!-- custom: Retired the inherited debugStr() declaration with its unused implementation after Found logging switched to explicit coordinates/scoring fields. The earlier owning-string fix is retained in the historical issue record. See KI#349. See KI#505.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol + GPT-6.1-Sol) -->
 
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);

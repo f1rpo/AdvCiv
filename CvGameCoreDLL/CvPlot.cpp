@@ -8844,35 +8844,4 @@ bool CvPlot::isConnectSea() const
 	   to do, but shortening paths within a water area can also be valuable. */
 } // </advc.121>
 
-/*  advc.031c: For found value log; but could also find other uses, possibly through
-	optional call parameters. */
-// <!-- custom: AdvCiv returned c_str() from a temporary out.str() value.
-// Return an owning string so found-value logging cannot read a dangling pointer. See KI#349. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-CvWString CvPlot::debugStr() const
-{
-	static std::wostringstream out; // Perhaps not needed; safer this way?
-	out.str(L"");
-	if (isCity())
-	{
-		out << getPlotCity()->getName().c_str();
-		return out.str();
-	}
-	out << L"[" << getX() << L"," << getY() << L"]";
-	if (isPeak())
-	{
-		out << L" " << L"Peak";
-		return out.str();
-	}
-	if (getBonusType() != NO_BONUS)
-		out << L" " << GC.getInfo(getBonusType()).getDescription();
-	if (isRiver())
-		out << L" River";
-	out << L" " << GC.getInfo(getTerrainType()).getDescription();
-	if (isHills())
-		out << L" Hill";
-	if (isFeature())
-		out << L" " << GC.getInfo(getFeatureType()).getDescription();
-	if (isOwned())
-		out << L" (" << GET_PLAYER(getOwner()).getCivilizationShortDescription() << L")";
-	return out.str();
-}
+// <!-- custom: Retired inherited CvPlot::debugStr() after the Found diagnostic redesign removed all callers: generic descriptions exposed actual bonus/owner identities during player-known evaluation. The earlier owning-string lifetime fix remains documented historically; retain explicit diagnostic fields instead of an unused general formatter. See KI#349. See KI#505.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol + GPT-6.1-Sol) -->

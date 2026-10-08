@@ -1168,6 +1168,21 @@ enum ResearchTargetChangeCause
 	RESEARCH_TARGET_CHANGE_FREE_TECH_REEVALUATION
 };
 
+// <!-- custom: Typed Found diagnostic context; labels describe the caller only and never select scoring rules. Not exposed to Python or serialized. Convert to text only while emitting a log row. See KI#505.2. (GPT-6.1-Sol) -->
+enum SASFoundLogContextTypes
+{
+	SAS_FOUND_LOG_EVALUATION,
+	SAS_FOUND_LOG_AI_SITE_REFRESH,
+	SAS_FOUND_LOG_SETTLER_FIRST_CITY,
+	SAS_FOUND_LOG_SETTLER_FOG_SCOUT,
+	SAS_FOUND_LOG_SETTLER_CURRENT_SITE,
+	SAS_FOUND_LOG_UI_PREVIEW,
+	SAS_FOUND_LOG_BARBARIAN_COMPARISON,
+	SAS_FOUND_LOG_SETTLER_TRUE_MAP_COMPARISON,
+	SAS_FOUND_LOG_RECORD_KNOWN_MAP_COMPARISON,
+	SAS_FOUND_LOG_RECORD_TRUE_MAP_COMPARISON
+};
+
 // <!-- custom: Explicit source for ending AI Auto Play, shared between the DLL, Python controller, and SASGameRecord. This is runtime control/diagnostic metadata, not XML-indexed or savegame-serialized. See KI#203. (GPT-5.6-Sol) -->
 enum SASAutoPlayEndCause
 {

@@ -708,6 +708,8 @@ static bool SAS_shouldScoutPromisingFoggedNearbyFoundSite(CvUnitAI& kSettler, Mo
 	CitySiteEvaluator kEvaluator(kOwner);
 	// <!-- custom: Treat adjacent promising-fog candidates as replacements for the selected site, not as extra tentative sites next to it; otherwise overlap with the selected 18,40 site makes the 17,40 comparison return 0 while the found-value logger correctly shows it as viable. See KI#185. (GPT-5.5) -->
 	kEvaluator.setDebug(true);
+	// <!-- custom: This replacement-site fog-scout evaluation feeds a real Settler decision. Label its trace separately, preserving the intentional ignore-planned-sites mode above; context is diagnostic metadata only. See KI#505.2. (GPT-6.1-Sol) -->
+	kEvaluator.setLogContext(SAS_FOUND_LOG_SETTLER_FOG_SCOUT);
 	FOR_EACH_ADJ_PLOT(kSelectedSite)
 	{
 		if (pAdj == NULL || pAdj == &kSelectedSite)
@@ -808,7 +810,7 @@ static CvPlot* SAS_chooseFirstCityReturnPlot(CvUnitAI const& kSettler, CitySiteE
 
 // <!-- custom: High-detail diagnostics for fickle first-city starting-site choices. The BFC tile dump itself is generic, but this helper is first-city-specific as of now because it logs first-city found values, path turns, and the roam/scout/found context that chose the candidate.
 // At BBAI Settler log level 3, log the evaluated city plot plus every revealed BFC tile with coordinates, yields, terrain/feature, bonus, and fresh-water/river state, so Karakorum/Beijing-style first-city decisions are reviewable from BBAI.log without guessing from screenshots. (GPT-5.5) -->
-static void SAS_logFirstCityCandidateBFCDiagnostics(CitySiteEvaluator const& kEvaluator, CitySiteEvaluator const* pOmniscientEvaluator, char const* szContext, CvPlot const& kCityPlot, PlayerTypes ePlayer, TeamTypes eTeam, int iFoundValue, int iAdjustedValue, int iPathTurns)
+static void SAS_logFirstCityCandidateBFCDiagnostics(CitySiteEvaluator const* pOmniscientEvaluator, char const* szContext, CvPlot const& kCityPlot, PlayerTypes ePlayer, TeamTypes eTeam, int iFoundValue, int iAdjustedValue, int iPathTurns)
 {
 	int iFoodBonuses = 0;
 	int iFoodEnvironmentScore = 0;
@@ -831,15 +833,13 @@ static void SAS_logFirstCityCandidateBFCDiagnostics(CitySiteEvaluator const& kEv
 		szContext, ePlayer, kCityPlot.getX(), kCityPlot.getY(), iFoundValue, iAdjustedValue, iPathTurns, kCityPlot.canFound(false, eTeam),
 		kCityPlot.isFreshWater(), kCityPlot.isRiver(), iFoodBonuses, iFoodEnvironmentScore, iCitizenUnworkablePlots, iRevealedNonHomeBFC,
 		iUnrevealedNonHomeBFC);
-	CvString szBreakdown;
-	const int iBreakdownValue = SAS_evaluateFirstCityFoundValue(kEvaluator, kCityPlot, &szBreakdown);
-	logBBAI("        FOUND_VALUE_BREAKDOWN perspective=playerKnown selectionValue=%d recomputedValue=%d %s", iFoundValue, iBreakdownValue, szBreakdown.GetCString());
+	// <!-- custom: The ordinary candidate score was already computed by the decision path. Use it directly as the comparison baseline instead of replaying the player-known evaluation solely for a log. Found level 2 captures its breakdown during that original pass. See KI#505.2. (GPT-6.1-Sol) -->
 	if (pOmniscientEvaluator != NULL)
 	{
 		CvString szOmniscientBreakdown;
 		const int iOmniscientValue = SAS_evaluateFirstCityFoundValue(*pOmniscientEvaluator, kCityPlot, &szOmniscientBreakdown);
 		// <!-- custom: Player-known values explain the AI decision; diagnostic omniscience reveals whether fogged terrain or technology-hidden bonuses made that decision fortunate or costly: keep the comparison out of all selection logic. (GPT-5.6-Sol) -->
-		logBBAI("        FOUND_VALUE_BREAKDOWN perspective=omniscient playerKnownValue=%d omniscientValue=%d delta=%+d %s", iBreakdownValue, iOmniscientValue, iOmniscientValue - iBreakdownValue, szOmniscientBreakdown.GetCString());
+		logBBAI("        FOUND_VALUE_BREAKDOWN perspective=omniscient playerKnownValue=%d omniscientValue=%d delta=%+d %s", iFoundValue, iOmniscientValue, iOmniscientValue - iFoundValue, szOmniscientBreakdown.GetCString());
 	}
 	bool const bOceanCoastal = kCityPlot.isCoastalLand(GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN));
 	int const iAssumedSeaPlotFoodChange = (bOceanCoastal ? CvPlot::SAS_getWaterFoodBuildingSeaPlotFoodChange(ePlayer) : 0);
@@ -5867,6 +5867,9 @@ bool CvUnitAI::AI_foundFirstCity()
 	kOwner.AI_updateFoundValues(false); // </advc>
 	// <!-- custom: Generic XML improvement potential is cached by CitySiteEvaluator. Reuse one non-all-seeing starting-capital evaluator throughout this decision instead of rebuilding it for every city-site, nearby recheck, scout step and return candidate. (GPT-5.6-Sol) -->
 	CitySiteEvaluator kFirstCityEvaluator(kOwner, -1, true);
+	// <!-- custom: Runtime capital logging previously reconstructed the chosen site with ordinary later-city weights, producing false seafood/value reversals against the starting-capital decision.
+	// Label and capture this actual starting-capital evaluation with founder-known information; pregame starting-plot generation retains its separate all-seeing context. See KI#505.2. (GPT-5.6-Sol + GPT-6.1-Sol) -->
+	kFirstCityEvaluator.setLogContext(SAS_FOUND_LOG_SETTLER_FIRST_CITY);
 	kFirstCityEvaluator.setAllSeeing(false);
 	// int iGameSpeedPercent = (2 * kSpeed.getTrainPercent()
 	// 		+ kSpeed.getConstructPercent() + kSpeed.getResearchPercent()) / 4;
@@ -5881,6 +5884,7 @@ bool CvUnitAI::AI_foundFirstCity()
 	{
 		pFirstCityOmniscientEvaluator.reset(new CitySiteEvaluator(kOwner, -1, true));
 		pFirstCityOmniscientEvaluator->setDiagnosticOmniscience(true);
+		pFirstCityOmniscientEvaluator->setLogContext(SAS_FOUND_LOG_SETTLER_TRUE_MAP_COMPARISON);
 	}
 	CvPlot* pFirstCityScoutOrigin = (AI_getGroup()->AI_getMissionAIType() == MISSIONAI_EXPLORE ? AI_getGroup()->AI_getMissionAIPlot() : NULL);
 	const bool bContinuingFirstCityScout = (pFirstCityScoutOrigin != NULL && pFirstCityScoutOrigin != plot());
@@ -5980,7 +5984,7 @@ bool CvUnitAI::AI_foundFirstCity()
 
 				// <!-- custom: note: no division here, the whole point of weighting is not doing a divison, just at the end remember to store the raw value and not weighted one and should be all good -->
 				int const iWeightedPlotValue = (iTurnWeight * iPlotValue);
-				if (bLogSettlerAILevel3) SAS_logFirstCityCandidateBFCDiagnostics(kFirstCityEvaluator, pFirstCityOmniscientEvaluator.get(), "city-site", kSite, getOwner(), getTeam(), iPlotValue, iWeightedPlotValue, pathTurnsFromNow);
+				if (bLogSettlerAILevel3) SAS_logFirstCityCandidateBFCDiagnostics(pFirstCityOmniscientEvaluator.get(), "city-site", kSite, getOwner(), getTeam(), iPlotValue, iWeightedPlotValue, pathTurnsFromNow);
 
 				if (bLogSettlerAILevel2)
 				{
@@ -6054,7 +6058,7 @@ bool CvUnitAI::AI_foundFirstCity()
 				{
 					iLoopFoundTurn = kGame.getElapsedGameTurns() + getPathFinder().getPathTurns() - (getPathFinder().getFinalMoves() > 0 ? 1 : 0);
 				}
-				if (bLogSettlerAILevel3) SAS_logFirstCityCandidateBFCDiagnostics(kFirstCityEvaluator, pFirstCityOmniscientEvaluator.get(), "nearby-raw", kLoopPlot, getOwner(), getTeam(), iLoopValue, iLoopValue, iLoopFoundTurn < 0 ? -1 : iLoopFoundTurn - kGame.getElapsedGameTurns());
+				if (bLogSettlerAILevel3) SAS_logFirstCityCandidateBFCDiagnostics(pFirstCityOmniscientEvaluator.get(), "nearby-raw", kLoopPlot, getOwner(), getTeam(), iLoopValue, iLoopValue, iLoopFoundTurn < 0 ? -1 : iLoopFoundTurn - kGame.getElapsedGameTurns());
 				for (int iTop = 0; iTop < 3; ++iTop)
 				{
 					if (iLoopValue > aiLocalValue[iTop])
@@ -6199,7 +6203,7 @@ bool CvUnitAI::AI_foundFirstCity()
 				// This only investigates evidence already visible to the player, remains yield/XML-driven rather than preferring rivers or named terrain, and requires both growth stages to improve so one exceptional tile cannot conceal a weaker broader core.
 				// Follow-up testing explored from 51,23 and founded Seoul at 47,25 on turn 5: complete value 4535 vs 4345, best-6 1154 vs 956, best-10 1800 vs 1482, and two food bonuses. (GPT-5.6-Sol) -->
 				const int iLoopAdjustedValue = iLoopValue + iLoopCoreGrowthValue;
-				if (bLogSettlerAILevel3) SAS_logFirstCityCandidateBFCDiagnostics(kFirstCityEvaluator, pFirstCityOmniscientEvaluator.get(), "good-enough-recheck", kLoopPlot, getOwner(), getTeam(), iLoopValue, iLoopAdjustedValue, iLoopPathTurns);
+				if (bLogSettlerAILevel3) SAS_logFirstCityCandidateBFCDiagnostics(pFirstCityOmniscientEvaluator.get(), "good-enough-recheck", kLoopPlot, getOwner(), getTeam(), iLoopValue, iLoopAdjustedValue, iLoopPathTurns);
 				if (bLogSettlerAILevel3) logBBAI("FIRST_CITY_CORE_RECHECK player=%d current=%d,%d candidate=%d,%d currentValue=%d candidateValue=%d currentBest6=%d candidateBest6=%d currentBest10=%d candidateBest10=%d strongerBoth=%d coreGrowthValue=%d pathTurns=%d adjusted=%d",
 					getOwner(), getX(), getY(), kLoopPlot.getX(), kLoopPlot.getY(), iCurrentFirstCityValue, iLoopValue, iCurrentBest6PlotValue,
 					iLoopBest6PlotValue, iCurrentBest10PlotValue, iLoopBest10PlotValue, bStrongerGrowthCore, iLoopCoreGrowthValue, iLoopPathTurns,
@@ -6245,7 +6249,7 @@ bool CvUnitAI::AI_foundFirstCity()
 				if (bLogSettlerAILevel3)
 				{
 					const int iBetterRawValue = SAS_evaluateFirstCityFoundValue(kFirstCityEvaluator, *pBetterGoodEnoughFirstCityPlot);
-					SAS_logFirstCityCandidateBFCDiagnostics(kFirstCityEvaluator, pFirstCityOmniscientEvaluator.get(), "chosen-good-enough-recheck", *pBetterGoodEnoughFirstCityPlot, getOwner(), getTeam(), iBetterRawValue, iBetterGoodEnoughFirstCityValue, iBetterGoodEnoughFirstCityTurn - kGame.getElapsedGameTurns());
+					SAS_logFirstCityCandidateBFCDiagnostics(pFirstCityOmniscientEvaluator.get(), "chosen-good-enough-recheck", *pBetterGoodEnoughFirstCityPlot, getOwner(), getTeam(), iBetterRawValue, iBetterGoodEnoughFirstCityValue, iBetterGoodEnoughFirstCityTurn - kGame.getElapsedGameTurns());
 				}
 				// <!-- custom: The first Wang Kon core test correctly noticed that 51,24 pointed toward stronger opening/developed plots, but its raw found value remained below the cached 51,23 site.
 				// Marking that information-gathering step as MISSIONAI_FOUND made the normal selector pull the Settler back on the next turn; the recheck then sent it north again, repeating until the turn-7 deadline and founding the original hill on turn 8.
@@ -6262,7 +6266,7 @@ bool CvUnitAI::AI_foundFirstCity()
 				kOwner.getCivilizationDescription(0), getOwner(), getX(), getY(), iCurrentFoodBonuses, iCurrentFoodEnvironmentScore,
 				iCurrentCitizenUnworkablePlots, iBadFoodEnvironmentScoreThreshold, iCurrentBest6PlotValue, iCurrentBest10PlotValue, iSustainableProductivePlotValue, iGoodEnoughBest6ReferencePercent, iGoodEnoughBest6PlotValue, getPlot().isFreshWater(), iCurrentFirstCityValue,
 				kGame.getElapsedGameTurns(), iMaxTurnsToFound);
-			if (bLogSettlerAILevel3) SAS_logFirstCityCandidateBFCDiagnostics(kFirstCityEvaluator, pFirstCityOmniscientEvaluator.get(), "chosen-found-good-enough", getPlot(), getOwner(), getTeam(), iCurrentFirstCityValue, iCurrentFirstCityValue, 0);
+			if (bLogSettlerAILevel3) SAS_logFirstCityCandidateBFCDiagnostics(pFirstCityOmniscientEvaluator.get(), "chosen-found-good-enough", getPlot(), getOwner(), getTeam(), iCurrentFirstCityValue, iCurrentFirstCityValue, 0);
 			getGroup()->pushMission(MISSION_FOUND);
 			return true;
 		}
@@ -6293,7 +6297,7 @@ bool CvUnitAI::AI_foundFirstCity()
 				if (iLoopValue <= 0)
 					continue;
 				const int iLoopGoodEnoughValue = 100 * iLoopValue - iLoopPathTurns;
-				if (bLogSettlerAILevel3) SAS_logFirstCityCandidateBFCDiagnostics(kFirstCityEvaluator, pFirstCityOmniscientEvaluator.get(), "visible-good-enough", kLoopPlot, getOwner(), getTeam(), iLoopValue, iLoopGoodEnoughValue, iLoopPathTurns);
+				if (bLogSettlerAILevel3) SAS_logFirstCityCandidateBFCDiagnostics(pFirstCityOmniscientEvaluator.get(), "visible-good-enough", kLoopPlot, getOwner(), getTeam(), iLoopValue, iLoopGoodEnoughValue, iLoopPathTurns);
 				if (pGoodEnoughFirstCityPlot == NULL || iLoopGoodEnoughValue > iGoodEnoughFirstCityValue)
 				{
 					pGoodEnoughFirstCityPlot = &kLoopPlot;
@@ -6331,7 +6335,7 @@ bool CvUnitAI::AI_foundFirstCity()
 					if (bLogSettlerAILevel3)
 					{
 						const int iGoodEnoughRawValue = SAS_evaluateFirstCityFoundValue(kFirstCityEvaluator, *pGoodEnoughFirstCityPlot);
-						SAS_logFirstCityCandidateBFCDiagnostics(kFirstCityEvaluator, pFirstCityOmniscientEvaluator.get(), "chosen-found-visible-good-enough", *pGoodEnoughFirstCityPlot, getOwner(), getTeam(), iGoodEnoughRawValue, iGoodEnoughFirstCityValue, 0);
+						SAS_logFirstCityCandidateBFCDiagnostics(pFirstCityOmniscientEvaluator.get(), "chosen-found-visible-good-enough", *pGoodEnoughFirstCityPlot, getOwner(), getTeam(), iGoodEnoughRawValue, iGoodEnoughFirstCityValue, 0);
 					}
 					getGroup()->pushMission(MISSION_FOUND);
 				}
@@ -6344,7 +6348,7 @@ bool CvUnitAI::AI_foundFirstCity()
 					if (bLogSettlerAILevel3)
 					{
 						const int iGoodEnoughRawValue = SAS_evaluateFirstCityFoundValue(kFirstCityEvaluator, *pGoodEnoughFirstCityPlot);
-						SAS_logFirstCityCandidateBFCDiagnostics(kFirstCityEvaluator, pFirstCityOmniscientEvaluator.get(), "chosen-move-visible-good-enough", *pGoodEnoughFirstCityPlot, getOwner(), getTeam(), iGoodEnoughRawValue, iGoodEnoughFirstCityValue, iGoodEnoughFirstCityTurn - kGame.getElapsedGameTurns());
+						SAS_logFirstCityCandidateBFCDiagnostics(pFirstCityOmniscientEvaluator.get(), "chosen-move-visible-good-enough", *pGoodEnoughFirstCityPlot, getOwner(), getTeam(), iGoodEnoughRawValue, iGoodEnoughFirstCityValue, iGoodEnoughFirstCityTurn - kGame.getElapsedGameTurns());
 					}
 					pushGroupMoveTo(*pGoodEnoughFirstCityPlot, MOVE_SAFE_TERRITORY, false, false, MISSIONAI_FOUND, pGoodEnoughFirstCityPlot);
 				}
@@ -6467,7 +6471,7 @@ bool CvUnitAI::AI_foundFirstCity()
 					getOwner(), getX(), getY(), kEndTurnPlot.getX(), kEndTurnPlot.getY(), iPathTurns, iEndpointFogValue,
 					iRevealValue, iInformationValue, iEndTurnFoundValue, iKnownProspectValue, (pBestPlot == NULL ? -1 : pBestPlot->getX()),
 					(pBestPlot == NULL ? -1 : pBestPlot->getY()), iBestValue, iKnownTargetApproachValue, iFoundValueGain, iExploreValue);
-				if (bLogSettlerAILevel3) SAS_logFirstCityCandidateBFCDiagnostics(kFirstCityEvaluator, pFirstCityOmniscientEvaluator.get(), "explore-step-end", kEndTurnPlot, getOwner(), getTeam(), iEndTurnFoundValue, iExploreValue, iPathTurns);
+				if (bLogSettlerAILevel3) SAS_logFirstCityCandidateBFCDiagnostics(pFirstCityOmniscientEvaluator.get(), "explore-step-end", kEndTurnPlot, getOwner(), getTeam(), iEndTurnFoundValue, iExploreValue, iPathTurns);
 				if (iExploreValue > iBestExploreValue)
 				{
 					iBestExploreValue = iExploreValue;
@@ -6524,7 +6528,7 @@ bool CvUnitAI::AI_foundFirstCity()
 				if (bLogSettlerAILevel2) logBBAI("    Settler founding current competitive first-city site for %S player %d at %d,%d instead of returning to cached site %d,%d; currentValue=%d bestValue=%d bestPathTurns=%d elapsed=%d maxFirstCityTurns=%d",
 					kOwner.getCivilizationDescription(0), getOwner(), getX(), getY(), pBestPlot->getX(), pBestPlot->getY(),
 					iCurrentFirstCityValue, iBestValue, iBestPathTurnsFromNow, kGame.getElapsedGameTurns(), iMaxTurnsToFound);
-				if (bLogSettlerAILevel3) SAS_logFirstCityCandidateBFCDiagnostics(kFirstCityEvaluator, pFirstCityOmniscientEvaluator.get(), "chosen-found-current-over-cached", getPlot(), getOwner(), getTeam(), iCurrentFirstCityValue, iCurrentFirstCityValue, 0);
+				if (bLogSettlerAILevel3) SAS_logFirstCityCandidateBFCDiagnostics(pFirstCityOmniscientEvaluator.get(), "chosen-found-current-over-cached", getPlot(), getOwner(), getTeam(), iCurrentFirstCityValue, iCurrentFirstCityValue, 0);
 				getGroup()->pushMission(MISSION_FOUND);
 				return true;
 			}
@@ -6537,7 +6541,7 @@ bool CvUnitAI::AI_foundFirstCity()
 			if (bLogSettlerAILevel2) logBBAI("    Settler not founding in place but moving %d,%d to better first-city site at %d,%d; targetValue=%d foundTurn=%d elapsed=%d maxFirstCityTurns=%d",
 				(pBestPlot->getX() - getX()), (pBestPlot->getY() - getY()), pBestPlot->getX(), pBestPlot->getY(), iBestValue, iBestTurnToFound,
 				kGame.getElapsedGameTurns(), iMaxTurnsToFound);
-			if (bLogSettlerAILevel3) SAS_logFirstCityCandidateBFCDiagnostics(kFirstCityEvaluator, pFirstCityOmniscientEvaluator.get(), "chosen-move-best", *pBestPlot, getOwner(), getTeam(), iBestValue, iBestValue, iBestTurnToFound - kGame.getElapsedGameTurns());
+			if (bLogSettlerAILevel3) SAS_logFirstCityCandidateBFCDiagnostics(pFirstCityOmniscientEvaluator.get(), "chosen-move-best", *pBestPlot, getOwner(), getTeam(), iBestValue, iBestValue, iBestTurnToFound - kGame.getElapsedGameTurns());
 			pushGroupMoveTo(*pBestPlot, MOVE_SAFE_TERRITORY, false, false,
 					MISSIONAI_FOUND, pBestPlot);
 			return true;
@@ -6561,7 +6565,7 @@ bool CvUnitAI::AI_foundFirstCity()
 			if (bLogSettlerAILevel2) logBBAI("    Settler finished first-city scouting for %S player %d at %d,%d and is returning to best known site %d,%d; rawValue=%d adjustedValue=%d pathTurns=%d elapsed=%d maxFirstCityTurns=%d",
 				kOwner.getCivilizationDescription(0), getOwner(), getX(), getY(), pBestPostScoutPlot->getX(), pBestPostScoutPlot->getY(),
 				iBestPostScoutRawValue, iBestPostScoutAdjustedValue, iBestPostScoutPathTurns, kGame.getElapsedGameTurns(), iMaxTurnsToFound);
-			if (bLogSettlerAILevel3) SAS_logFirstCityCandidateBFCDiagnostics(kFirstCityEvaluator, pFirstCityOmniscientEvaluator.get(), "chosen-post-scout-return", *pBestPostScoutPlot, getOwner(), getTeam(), iBestPostScoutRawValue, iBestPostScoutAdjustedValue, iBestPostScoutPathTurns);
+			if (bLogSettlerAILevel3) SAS_logFirstCityCandidateBFCDiagnostics(pFirstCityOmniscientEvaluator.get(), "chosen-post-scout-return", *pBestPostScoutPlot, getOwner(), getTeam(), iBestPostScoutRawValue, iBestPostScoutAdjustedValue, iBestPostScoutPathTurns);
 			pushGroupMoveTo(*pBestPostScoutPlot, MOVE_SAFE_TERRITORY, false, false, MISSIONAI_FOUND, pBestPostScoutPlot);
 			getGroup()->pushMission(MISSION_FOUND, -1, -1, NO_MOVEMENT_FLAGS, true, false, MISSIONAI_FOUND, pBestPostScoutPlot);
 			return true;
@@ -6575,7 +6579,7 @@ bool CvUnitAI::AI_foundFirstCity()
 		if (bLogSettlerAILevel3)
 		{
 			const int iFinalFoundValue = SAS_evaluateFirstCityFoundValue(kFirstCityEvaluator, getPlot());
-			SAS_logFirstCityCandidateBFCDiagnostics(kFirstCityEvaluator, pFirstCityOmniscientEvaluator.get(), "chosen-found-fallback", getPlot(), getOwner(), getTeam(), iFinalFoundValue, iFinalFoundValue, 0);
+			SAS_logFirstCityCandidateBFCDiagnostics(pFirstCityOmniscientEvaluator.get(), "chosen-found-fallback", getPlot(), getOwner(), getTeam(), iFinalFoundValue, iFinalFoundValue, 0);
 		}
 		getGroup()->pushMission(MISSION_FOUND);
 		return true;
@@ -22679,6 +22683,7 @@ bool CvUnitAI::AI_found(MovementFlags eFlags)
 	{
 		CitySiteEvaluator kCurrentPlotEvaluator(kOwner);
 		kCurrentPlotEvaluator.setDebug(true);
+		kCurrentPlotEvaluator.setLogContext(SAS_FOUND_LOG_SETTLER_CURRENT_SITE);
 		int const iCurrentFoundValue = kCurrentPlotEvaluator.evaluate(getPlot());
 		int const iSelectedFoundValue = pBestFoundPlot->getFoundValue(getOwner());
 		if (iCurrentFoundValue > iSelectedFoundValue)

@@ -1483,6 +1483,29 @@ char const* getSASAIStrategyType(AIStrategy eStrategy)
 	return "UNKNOWN_AI_STRATEGY";
 }
 
+// <!-- custom: AI, map, UI and recorder paths share this Found-context vocabulary, so keep its canonical text mapping beside the other getSAS*Type helpers.
+// The enum is used across files; the conversion itself currently has one caller in CitySiteEvaluator's enabled Found output. A file-local converter would also work, but this placement follows the shared diagnostic-enum convention without duplicating labels.
+// Preserve the existing labels; invalid values assert and print an explicit error marker. This is diagnostic metadata, not a gameplay rule. See KI#505.2. (GPT-6.1-Sol) -->
+char const* getSASFoundLogContextType(SASFoundLogContextTypes eContext)
+{
+	switch (eContext)
+	{
+	case SAS_FOUND_LOG_EVALUATION: return "EVALUATION";
+	case SAS_FOUND_LOG_AI_SITE_REFRESH: return "AI_SITE_REFRESH";
+	case SAS_FOUND_LOG_SETTLER_FIRST_CITY: return "SETTLER_FIRST_CITY";
+	case SAS_FOUND_LOG_SETTLER_FOG_SCOUT: return "SETTLER_FOG_SCOUT";
+	case SAS_FOUND_LOG_SETTLER_CURRENT_SITE: return "SETTLER_CURRENT_SITE";
+	case SAS_FOUND_LOG_UI_PREVIEW: return "UI_PREVIEW";
+	case SAS_FOUND_LOG_BARBARIAN_COMPARISON: return "BARBARIAN_COMPARISON";
+	case SAS_FOUND_LOG_SETTLER_TRUE_MAP_COMPARISON: return "SETTLER_TRUE_MAP_COMPARISON";
+	case SAS_FOUND_LOG_RECORD_KNOWN_MAP_COMPARISON: return "RECORD_KNOWN_MAP_COMPARISON";
+	case SAS_FOUND_LOG_RECORD_TRUE_MAP_COMPARISON: return "RECORD_TRUE_MAP_COMPARISON";
+	default:
+		FErrorMsg("Invalid Found diagnostic context");
+		return "INVALID_FOUND_LOG_CONTEXT";
+	}
+}
+
 // <!-- custom: Keep one canonical machine-readable name for AreaAI theater posture; these raw tokens intentionally match the C++ enum rather than player-facing prose. (ChatGPT-5.6-Sol) -->
 char const* getSASAreaAIType(AreaAITypes eAreaAI)
 {

@@ -1254,6 +1254,8 @@ void CvPlayerAI::AI_updateFoundValues(bool bStarting)  // advc: refactored
 		return;
 	}
 	CitySiteEvaluator citySiteEval(*this);
+	// <!-- custom: Replaces inherited advc.031c CvPlayerAI::logFoundValue()'s later reconstruction with traces at the real evaluation/storage points. This context identifies the initial site refresh without changing its calculations. See KI#505.2. (GPT-6.1-Sol) -->
+	citySiteEval.setLogContext(SAS_FOUND_LOG_AI_SITE_REFRESH);
 	AI_invalidateCitySites(/*AI_getMinFoundValue()*/-1); // K-Mod
 	// <advc.108>
 	int iCities = getNumCities();
@@ -1272,18 +1274,25 @@ void CvPlayerAI::AI_updateFoundValues(bool bStarting)  // advc: refactored
 			continue;
 		}
 		int iValue = GC.getPythonCaller()->AI_foundValue(getID(), kLoopPlot);
+		bool const bPythonValue = (iValue != -1);
+		int iEvaluatedValue = iValue;
+		int iStartingPlotPreference = 0;
 		if (iValue == -1)
 		{	// K-Mod:
 			iValue = citySiteEval.evaluate(kLoopPlot);
+			iEvaluatedValue = iValue;
 			// <advc.108> Slight preference for the assigned starting plot
 			if (iCities <= 0 && pStartPlot != NULL && &kLoopPlot == pStartPlot &&
 				// Unless it doesn't have fresh water
 				kLoopPlot.isFreshWater())
 			{
-				iValue += intdiv::round(iValue, 20);
+				iStartingPlotPreference = intdiv::round(iValue, 20);
+				iValue += iStartingPlotPreference;
 			} // </advc.108>
 		}
 		kLoopPlot.setFoundValue(getID(), iValue);
+		if (gFoundLogLevel >= 2) logBBAI("FOUND_SITE_STORED turn=%d player=%d site=%d,%d stage=INITIAL source=%s evaluatedValue=%d startingPlotPreference=%d storedValue=%d",
+			GC.getGame().getGameTurn(), getID(), kLoopPlot.getX(), kLoopPlot.getY(), bPythonValue ? "PYTHON" : "CPP", iEvaluatedValue, iStartingPlotPreference, iValue);
 		if (iValue > kLoopPlot.getArea().getBestFoundValue(getID()))
 			kLoopPlot.getArea().setBestFoundValue(getID(), iValue);
 	}
@@ -31444,13 +31453,18 @@ void CvPlayerAI::AI_recalculateFoundValues(int iX, int iY, int iInnerRadius, int
 		if (AI_isPlotCitySite(p))
 			continue;
 		if (it.currStepDist() <= iInnerRadius)
+		{
 			p.setFoundValue(getID(), 0);
+			if (gFoundLogLevel >= 2) logBBAI("FOUND_SITE_STORED turn=%d player=%d site=%d,%d stage=RECALCULATE source=PLANNED_SITE_EXCLUSION value=0 selected=%d,%d", GC.getGame().getGameTurn(), getID(), p.getX(), p.getY(), iX, iY);
+		}
 		else if (p.isRevealed(getTeam()))
 		{
 			int iValue = GC.getPythonCaller()->AI_foundValue(getID(), p);
+			bool const bPythonValue = (iValue != -1);
 			if (iValue == -1)
 				iValue = AI_foundValue(p.getX(), p.getY());
 			p.setFoundValue(getID(), iValue);
+			if (gFoundLogLevel >= 2) logBBAI("FOUND_SITE_STORED turn=%d player=%d site=%d,%d stage=RECALCULATE source=%s value=%d selected=%d,%d", GC.getGame().getGameTurn(), getID(), p.getX(), p.getY(), bPythonValue ? "PYTHON" : "CPP", iValue, iX, iY);
 			if (iValue > p.getArea().getBestFoundValue(getID()))
 				p.getArea().setBestFoundValue(getID(), iValue);
 		}
@@ -31643,6 +31657,8 @@ void CvPlayerAI::AI_updateCitySites(int iMinFoundValueThreshold, int iMaxSites)
 			pBestEligibleWaterBonusPlot != NULL && pBestEligibleWaterBonusPlot == pBestFoundPlot);
 		if (pBestFoundPlot != NULL)
 		{
+			// <!-- custom: Record the selected cached score before appending the site changes subsequent overlap evaluations; no logging-only rescore. See KI#505.2. (GPT-6.1-Sol) -->
+			if (gFoundLogLevel > 0) logBBAI("FOUND_SITE_SELECTED turn=%d player=%d site=%d,%d pass=%d cachedValue=%d", GC.getGame().getGameTurn(), getID(), pBestFoundPlot->getX(), pBestFoundPlot->getY(), iPass, pBestFoundPlot->getFoundValue(getID()));
 			m_aeAICitySites.push_back(pBestFoundPlot->plotNum());
 			AI_recalculateFoundValues(pBestFoundPlot->getX(), pBestFoundPlot->getY(),
 					CITY_PLOTS_RADIUS, 2 * CITY_PLOTS_RADIUS);
@@ -33466,29 +33482,6 @@ void CvPlayerAI::AI_setHuman(bool b)
 	{
 		apSplitGroups[i]->splitGroup(1);
 	} // </advc.057>
-}
-
-// advc.031c:
-// <!-- custom: Add bPlayerKnown so runtime first-city logs can use starting-capital weights without the omniscience reserved for map-generation starting-plot logs; the assertion keeps that narrower mode confined to starting-capital evaluation. (GPT-5.6-Sol) -->
-void CvPlayerAI::logFoundValue(CvPlot const& kPlot, bool bStartingLoc, bool bPlayerKnown) const
-{
-	// <!-- custom: most callers already check this; keep the guard here too so the helper never constructs the found-value logger when disabled. (ChatGPT 5.5) -->
-	if (gFoundLogLevel <= 0)
-		return;
-	FAssert(!bPlayerKnown || bStartingLoc);
-
-	// <!-- custom: make these static const for performance optimization as advised by chatgpt 5 too. -->
-	static const int iMIN_BARBARIAN_CITY_STARTING_DISTANCE = GC.getDefineINT("MIN_BARBARIAN_CITY_STARTING_DISTANCE");
-	CitySiteEvaluator eval(*this, isBarbarian() ?
-			iMIN_BARBARIAN_CITY_STARTING_DISTANCE : -1, bStartingLoc);
-	// <!-- custom: The actual first-city decision uses starting-capital weights without all-seeing map information.
-	// Preserve omniscience for pregame starting-plot generation logs, but make the runtime founding trace reproduce the value that the Settler knew and used; ordinary later-city logging is unchanged. (GPT-5.6-Sol) -->
-	if (bPlayerKnown)
-	{
-		eval.setAllSeeing(false);
-		logBBAI("RUNTIME_FIRST_CITY_FOUND_VALUE turn=%d player=%d plot=%d,%d perspective=playerKnown", GC.getGame().getGameTurn(), getID(), kPlot.getX(), kPlot.getY());
-	}
-	eval.log(kPlot);
 }
 
 // BETTER_BTS_AI_MOD, General AI/ Efficiency (plot danger cache), 08/20/09, jdog5000: START

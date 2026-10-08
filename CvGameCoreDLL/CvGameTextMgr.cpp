@@ -4954,6 +4954,8 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 			// <advc.007>
 			CitySiteEvaluator citySiteEval(kLoopPlayer);
 			citySiteEval.setDebug(true);
+			// <!-- custom: This score serves the UI preview, not an AI selection. Label any enabled Found trace accordingly without changing the preview's existing evaluator settings. See KI#505.2. (GPT-6.1-Sol) -->
+			citySiteEval.setLogContext(SAS_FOUND_LOG_UI_PREVIEW);
 			int iCalcFoundValue = citySiteEval.evaluate(x, y);
 			int const iStartingFoundValue = 0;
 			// Gets in the way of debugging bStartingLoc=false </advc.007>

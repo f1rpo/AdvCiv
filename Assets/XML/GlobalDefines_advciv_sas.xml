@@ -1617,7 +1617,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_BBAI_SETTLER_LOG_LEVEL</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
-	<!-- custom: Detailed city-site scoring calculations, separate from Settler-unit movement/security diagnostics. Level 1 logs the selected site plus next-best and adjacent alternatives with verbose plot/component calculations; level 2 also logs their compact stage breakdowns and the top three XML-valid improvement outcomes per ordinary plot; level 3 expands those three with immediate/final yields, feature removal, maturation and timing details. Level 3 is the highest implemented level. Base AdvCiv LOG_FOUND_VALUE default: when enabled: 1; when disabled: 0. (GPT-5.5 + GPT-5.6-Sol) -->
+	<!-- custom: Detailed city-site diagnostics, separate from Settler-unit movement/security diagnostics. Level 1 records high-level selected/founded/start-site lifecycle rows. Level 2 adds compact rows for the actual candidate evaluations and values stored by the AI, including stage breakdowns; it does not replay selected sites under later state. Level 3 adds full component, plot, cache, and XML-valid improvement-candidate detail from those real evaluations. Level 3 is the highest implemented level. Levels 2/3 cover candidate sweeps and can produce multi-GB full-autoplay logs; level 1 is compact lifecycle output, while levels 2/3 serve numeric/deep AI audits, often focused on shorter test periods. Base AdvCiv LOG_FOUND_VALUE default: when enabled: 1; when disabled: 0. See KI#505.2. (GPT-5.5 + GPT-5.6-Sol + Chat-GPT-5.6-Sol + GPT-6.1-Sol) -->
 	<Define>
 		<DefineName>SAS_BBAI_FOUND_LOG_LEVEL</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>

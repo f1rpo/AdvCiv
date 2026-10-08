@@ -28,7 +28,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=135 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=136 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -71,10 +71,18 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
+### Revision 136 - SAS practical 6600
+
+- **Date:** 2026-10-08
+- **Git commit:** pending
+- **Change:** Labeled the recorder's existing known-map and true-map founding rescores for the Found diagnostic redesign, and clarified their hypothetical context. See KI#505.2.
+
+The recorder retains its existing comparison calculations and row layout. Their evaluator traces now use typed contexts converted to `RECORD_KNOWN_MAP_COMPARISON` and `RECORD_TRUE_MAP_COMPARISON` only during enabled output, while ordinary Found diagnostics capture actual evaluations separately. The revision records the intentional recorder implementation/comment update; it does not signify a new serialized format.
+
 ### Revision 135 - SAS practical 6599
 
 - **Date:** 2026-10-07
-- **Git commit:** pending
+- **Git commit:** `7c684d203aae30dfc6c8ec15dd1c2179ff1b0463`
 - **Change:** Normalized simple explicit diagnostic logging guards and short log-call layout after the caller pre-gating pass.
 
 One-statement BBAI/SASGameRecord/domain logging guards now keep the explicit logging pre-gate and log-call head together, while long argument tails remain multiline. The formatter recognizes logging families rather than only `logBBAI`, but intentionally leaves semantic-only inner predicates, inherited `IFLOG` control flow, and UWAI's separate report system unchanged.

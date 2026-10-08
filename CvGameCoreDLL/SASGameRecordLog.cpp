@@ -11795,9 +11795,10 @@ void logSASGameRecordCityFoundingSite(CvPlayer const& kPlayer, CvPlot const& kPl
 	int iKnownPositivePlots = 0;
 	int iKnownSustainableProductivePlotValue = 0;
 	CitySiteEvaluator kKnownEvaluator(kPlayerAI, -1, bFirstCity);
-	// <!-- custom: Match the existing BBAI chosen-site replay: ignore the maintained city-site list during this founding-time rescore.
-	// Those sites were not all present when this plot was originally selected; leaving them active can reject/distort the founded plot itself. Diagnostic only. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Ignore the maintained city-site list during this explicitly hypothetical founding-time rescore.
+	// Those sites were not all present when this plot was originally selected; leaving them active can reject/distort the founded plot itself. This is a comparison, not the original decision score; ordinary Found logging now captures the original pass separately. See KI#505.2. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	kKnownEvaluator.setDebug(true);
+	kKnownEvaluator.setLogContext(SAS_FOUND_LOG_RECORD_KNOWN_MAP_COMPARISON);
 	if (bFirstCity)
 		kKnownEvaluator.setAllSeeing(false);
 	int const iKnownRescoredFoundValue = kKnownEvaluator.evaluateWithPlotValueDistribution(kPlot, aiKnownCoreSums, iKnownPositivePlots, iKnownSustainableProductivePlotValue);
@@ -11807,6 +11808,7 @@ void logSASGameRecordCityFoundingSite(CvPlayer const& kPlayer, CvPlot const& kPl
 	int iOmniscientSustainableProductivePlotValue = 0;
 	CitySiteEvaluator kOmniscientEvaluator(kPlayerAI, -1, bFirstCity);
 	kOmniscientEvaluator.setDebug(true);
+	kOmniscientEvaluator.setLogContext(SAS_FOUND_LOG_RECORD_TRUE_MAP_COMPARISON);
 	kOmniscientEvaluator.setDiagnosticOmniscience(true);
 	int const iOmniscientRescoredFoundValue = kOmniscientEvaluator.evaluateWithPlotValueDistribution(kPlot, aiOmniscientCoreSums, iOmniscientPositivePlots, iOmniscientSustainableProductivePlotValue);
 	FAssert(iKnownSustainableProductivePlotValue == iOmniscientSustainableProductivePlotValue);

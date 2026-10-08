@@ -624,6 +624,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#503 - (Fixed AdvCiv-SAS low-food valuation defect) Already-irrigated Farm food was omitted](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-503)\
 [KI#504 - (Fixed inherited AdvCiv production-estimate defect) Existing improvement count was mistaken for build capability](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-504)\
 [KI#505 - (Fixed inherited AdvCiv diagnostic defect) Found-value logging always reported zero unrevealed tiles](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-505)\
+[KI#505.2 - (Fixed and refactored inherited AdvCiv found-value diagnostics; post-album rediscovery) Restore suppressed settings and trace actual evaluations instead of replaying scores](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-505.2)\
 [KI#506 - (Pending Architectural inherited UWAI/AdvCiv retry-state defect) reviewWarPlans retains superseded cross-pass state](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-506)\
 [KI#507 - (Fixed inherited AdvCiv brokered-peace regression) Low-score relaxation was unreachable](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-507)\
 [KI#508 - (Fixed inherited AdvCiv peace-threshold regression) Target team read its self war success](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-508)\
@@ -21412,7 +21413,7 @@ Found through C010 of the current-tree C++ File Audit Album with the help of Cha
 
 ## KI#349 - (Fixed inherited AdvCiv bug) Plot debug strings returned dangling pointers
 
-AdvCiv added `CvPlot::debugStr` for found-value diagnostics.
+AdvCiv added `CvPlot::debugStr` for found-value diagnostics (`advc.031c`); it was inherited by AdvCiv-SAS, not introduced here. A local comparison reconfirmed that the helper is present in Base AdvCiv 1.14 and absent from the compared K-Mod 1.46 and BtS source trees.
 
 It built text in a static `std::wostringstream` but returned `out.str().c_str()`.
 
@@ -21420,11 +21421,17 @@ The `str()` call creates a temporary `std::wstring`; its `c_str()` pointer becom
 
 Enabled found-value/BBAI diagnostic paths could therefore read stale or garbled text through undefined behavior.
 
-The fix returns an owning `CvWString` by value and passes its live `c_str()` to the five current logging calls. The diagnostic text and logging conditions remain unchanged; no gameplay path is affected.
+The original fix returned an owning `CvWString` by value and passed its live `c_str()` to the five then-current logging calls. That repair retained the diagnostic text and logging conditions; no gameplay path was affected.
 
 The same fresh game completed turn 201 through autoplay without an observed issue. Found-value BBAI logging was not enabled, so the corrected diagnostic string path remains source-verified rather than directly exercised.
 
 This is an inherited AdvCiv diagnostic defect, not an AdvCiv-SAS change and not present in BtS before AdvCiv added this helper.
+
+Update (2026-10-08, KI#505.2): the Found diagnostic redesign and final ChatGPT review removed the remaining `CvPlot::debugStr()` calls from player-known Found rows. Besides its former lifetime defect, this general debug helper prints actual bonus/owner data, which could contradict the evaluator's known-information context.
+
+Those rows now use plot coordinates and explicit scoring fields. After a tracked-source search confirmed no remaining production callers, the unused declaration and implementation were retired as part of KI#505.2. The five-call wording above describes the original repair, not the current tree; its lifetime fix remains part of the historical record. The unrelated `StartingPositionIteration::Step::debugStr()` still has a caller and is unchanged.
+
+Retain KI#349 as a fixed historical finding rather than deleting its provenance or declaring its original defect unfounded. Final changes reviewed locally with GPT-6.1-Sol; the earlier contributor credits below remain applicable.
 
 Found through C010 of the current-tree C++ File Audit Album with the help of ChatGPT-5.6-Sol; independently reviewed, fixed and documented with the help of GPT-5.6-Sol and compile/runtime-tested with the help of wonderingabout, thanks.
 
@@ -25146,6 +25153,74 @@ AdvCiv commit `078fc9bd7c` introduced the wrong argument during the 2019 `AIFoun
 Found as F182/provisional KI#505 during ChatGPT-5.6-Sol's C016-WIP06 audit; independently reviewed, fixed and documented with the help of GPT-5.6-Sol, thanks.
 
 The repaired Debug-opt DLL compiled successfully, and a full Continents autoplay completed normally. The exact already-irrigated Farm and newly unlocked first-improvement transitions remain source-verified; KI#505 can additionally be confirmed whenever found-value logging evaluates a BFC containing unrevealed plots.
+
+<a id="ki-505.2"></a>
+
+## KI#505.2 - (Fixed and refactored inherited AdvCiv found-value diagnostics; post-album rediscovery) Restore suppressed settings and trace actual evaluations instead of replaying scores
+
+AdvCiv practical 1851 / commit `078fc9bd7c` (2019-12-15, "Move AI_foundValue computation into a new class") introduced `CitySiteEvaluator`, the `IFLOG` control-flow macro and the constructor call `IFLOG logSettings()` together. K-Mod 1.46's pre-refactor `CvFoundSettings` has no equivalent `CitySiteEvaluator` logging mechanism, and Base AdvCiv 1.14 retains the AdvCiv pattern unchanged; this is therefore an inherited AdvCiv defect rather than an AdvCiv-SAS regression.
+
+`IFLOG` expands to an `if` combining the Found BBAI level with `AIFoundValue::isLoggingEnabled()`. The macro hid the real caller-side logging contract across roughly one hundred found-value diagnostics and produced awkward forms such as `IFLOG if (...)` and `else IFLOG ...`. This became especially undesirable after AdvCiv-SAS made BBAI logging runtime-tunable and standardized explicit caller pre-gating.
+
+It also causes a concrete diagnostic defect: the generic `CitySiteEvaluator` constructor calls `IFLOG logSettings()`, but `AIFoundValue::isLoggingEnabled()` is still false during construction and is enabled only later around explicit `evaluateWithLogging()` calls. Consequently, the intended settings block is suppressed in the normal found-value logging path.
+
+The initial prepared fix replaced the macro with an ordinary inline predicate and explicit guards, and moved settings output into `CitySiteEvaluator::log()` after `setDebug(true)`. That repaired the suppressed header, but discussion and source review exposed a broader diagnostic-design problem: the logger replayed evaluations afterward, ignored the maintained tentative-site list, and could therefore report a different context from the original AI computation.
+
+The recent plot-potential cache also deliberately bypassed reuse when detailed logging was enabled. These are source-observed differences; they do not establish that toggling Found logging changed a real AI decision or synchronized RNG.
+
+Rather than preserve that replay machinery and then replace it in another commit, the prepared fix now records the evaluations that already run:
+
+- Ordinary Found guards read `gFoundLogLevel` directly; the hidden global `AIFoundValue::bLoggingEnabled` switch, forced-inline predicate and `evaluateWithLogging()` replay API are removed.
+- Found logging is deliberately tiered so observing the real evaluation does not turn level 1 into a whole-map trace: level 1 keeps high-level selected/founded/start-site lifecycle rows; level 2 adds compact `FOUND_SITE_BEGIN`/`FOUND_SITE_RESULT`, `FOUND_SITE_BREAKDOWN`, and stored-value rows for the actual evaluations; level 3 adds settings, component/rejection, plot, cache and improvement-candidate detail from those same passes.
+- Every component row has a greppable `FOUND_SITE_*` event name plus `turn`, `player`, `site`, `context` and `scope` fields. Payloads retain useful explanations and measured values; simple reasons are stated once by the event name, and resource-status rows identify the known bonus and plot instead of repeating the event as prose. Notably `FOUND_SITE_VERY_BAD_BFC_PLOT` exposes named plot, terrain, score and threshold fields. Shared SPI helper output is labeled `scope=WORKABLE_PLOT` so it cannot be mistaken for a complete site evaluation. Player-known rows avoid `CvPlot::debugStr()` because it exposes true-map bonus/owner data; coordinates and evaluator-scoped fields preserve the declared information scope. Caller context is stored as a typed enum and converted through the shared `getSASFoundLogContextType` helper only when emitting a row. Breakdown accounting checks the Found logging gate first; a non-null output pointer independently requests accounting for the caller, without enabling Found output.
+- Plot-potential cache reuse no longer depends on the logging level. Level 3 reports `potentialCacheHit` in the consolidated `FOUND_SITE_PLOT` row and candidate-scan detail for scans that actually occurred, rather than triggering extra scans for logging.
+- `FOUND_SITE_STORED` records the value actually cached after Python overrides or the initial starting-plot preference, and after genuine planned-site recalculations. For the initial C++ pass it explicitly separates `evaluatedValue`, the inherited `startingPlotPreference`, and `storedValue`, so the +5% assigned-start preference cannot masquerade as a logging mismatch. `FOUND_SITE_SELECTED` records the selected cached value before appending the site changes overlap context. Founding records the cached value without claiming it is a fresh capital evaluation.
+- The generic selected-site/adjacent-site BBAI replay is removed, as is the redundant player-known Settler breakdown replay. Real AI recalculations and replacement-site scouting still run, including their deliberate `setDebug(true)` context; those gameplay rules are unchanged.
+- Useful explicit comparisons remain separately labeled: UI previews, level-2+ Barbarian chooser alternatives, Settler true-map comparisons, and SASGameRecord's known-map/true-map founding rescores. Their results remain outside AI selection. The Settler true-map delta now uses the already-computed candidate score as its baseline.
+
+This redesign is intended to preserve gameplay scoring, synchronized RNG and AI policy while making logs describe the computation being investigated. Source review confirms that the planned-site/gameplay paths remain. Rebuilt-DLL full autoplays at Found levels 3 and 2 now match all recorded RNG and semantic CORE checkpoints (details below); a matched Found-disabled comparison has not been verified.
+
+Test identical starts and actions, compare selected sites and cached values, and use level-3 SASGameRecord RNG comparison when available. Disabled logging should produce no Found rows; enabled traces should pair site-evaluation beginnings and results, identify early rejection, and label hypothetical comparisons separately.
+
+The first level-3 autoplay sample exceeded 1 GB by turn 50. Full-map candidate sweeps repeatedly inspected overlapping BFCs, and separate cache-hit, potential, plot-yield, culture, resource and feature rows repeated the full evaluation context.
+
+Before committing, the prepared fix was refined to retain the recorded values with fewer rows and shorter repeated prefixes: `FOUND_SITE_PLOT` combines yields, nature/potential scores, cache provenance, culture, hidden-resource presence and feature state; `FOUND_SITE_PLOT_RESOURCE` reports known resource identity and the actual availability/access flags. Invariant information/settings flags are emitted in `FOUND_SITE_BEGIN`; each detail row retains turn/player/site/context/scope for correlation.
+
+Standalone `scope=WORKABLE_PLOT` rows keep those flags because they have no site-evaluation BEGIN. The level-3 settings row also combines site description, coastal status and city counts. Candidate scans, rejection reasons and scoring adjustments remain detailed, with no sampling or extra evaluations. Rebuilt-DLL measurements and the level-3/level-2 parity comparison are recorded below.
+
+Further volume review: early expansion is a particularly useful period for detailed Found diagnostics, so retain unrestricted level 3 for the next test before adding filters or diagnostic deduplication caches. Output follows evaluations rather than only city founding: map refreshes and planned-site recalculations can continue after expansion slows. Similar-looking rows are not automatically redundant, because overlapping sites and later evaluations can use different scoring contexts or world state.
+
+The consolidation above removes repeated formatting while preserving candidate coverage; a longer rebuilt-DLL test should measure whether growth slows later. Roughly 2 GB by turn 100 gives about 10 GB by turn 500 only under a linear-growth assumption, not as a measured forecast. No further filtering or cross-evaluation suppression is implemented.
+
+Completed rebuilt-DLL volume/parity tests on 2026-10-08: the Huge Archipelago test used a 120x84 map with 16 starting players and ended at internal turn 394. Found level 3 produced 20,780,745,128 bytes (20.78 GB decimal) in `BBAI_20261008T081921Z_load1.log`; the newer level-2 replay produced 11,184,140,649 bytes (11.18 GB decimal) in `BBAI_20261008T084840Z_load1.log`, roughly 46% less. These are complete BBAI file sizes, including Settler/other diagnostics, not isolated Found-byte totals.
+
+The corresponding SASGameRecord files were about 72.48 MB each. The user observed slow stretches followed by renewed spikes; the completed sizes show that a linear projection from turn 100 understated this run's final size. No Tiny-map size comparison has been measured.
+
+Bounded readability/format review sampled 512 KiB from the beginning, middle and end of each BBAI file (6,429 level-3 rows and 9,988 level-2 rows). The level-3 sample contained consolidated plot/resource rows, candidate-improvement detail and context-bearing evaluation rows; the level-2 sample contained BEGIN/RESULT/STORED/BREAKDOWN and lifecycle rows. No sampled row reported a nonzero `formatError`; this is a sample review, not a claim that the whole 20.78 GB file was audited or that all repeated-looking output is redundant.
+
+The dedicated `compare_sasgamerecord_rng.py` comparison validated both records and found all 399 authoritative RNG checkpoints and all 399 semantic CORE state checkpoints identical, including autoplay-end, victory and game-end boundaries. This verifies recorded level-3/level-2 parity for this test, not logging-off parity or every unrecorded game field.
+
+Usage conclusion: level 3 remains valuable for detailed early-expansion or focused AI audits; level 2 preserves numeric candidate evidence but is also substantial over a full autoplay. Neither level is intended as a compact whole-game record.
+
+Use level 1 for compact Found lifecycle output and SASGameRecord for whole-game context, requesting levels 2/3 when their additional detail is needed. Retain candidate coverage and context distinctions rather than suppressing similar-looking evaluations without proving their data redundant. Exact level meanings and a brief volume warning remain beside the XML define; measured sizes belong here.
+
+Final review follow-up (2026-10-08): ChatGPT tightened Barbarian chooser tracking, multiplier details and nearby comparison output to Found level 2+, preserving level-1 lifecycle scope and independent SASGameRecord level-2 snapshots. It also removed the remaining `CvPlot::debugStr()` payloads from Found diagnostics and tightened the settings-helper assertion to level 3. KI#349 documents the earlier lifetime repair; its current-use wording has been updated, and the uncalled `CvPlot::debugStr()` declaration/implementation have been retired.
+
+Information flags describe evaluator settings, not a spoiler-free promise: `hiddenBonus` deliberately records hidden-resource presence, and separately labeled true-map comparisons remain diagnostic. Avoid accidentally printing actual bonus/owner names through generic debug descriptions. The 399-checkpoint parity results above predate these final output/assertion/threshold refinements; source checks were repeated afterward, but no new rebuilt-DLL test of the final refinements is claimed.
+
+Deferred recorder follow-up after validating this repair: consider capturing the original site-selection evaluation turn/context and the score actually used, rather than reconstructing that decision at founding time. SASGameRecord already records cached shortlist scores and explicitly labeled founding-time quality rescores; retain those distinctions and avoid duplicate fields.
+
+Any additional compact decision snapshot should reuse values from the real pass, avoid extra evaluations and per-plot log volume, and remain independent of AI policy, caches and synchronized RNG. This is a future design idea, not part of the prepared fix.
+
+The separate hard-disabled `TrueStarts.cpp` `IFLOG` macro is a different inherited mechanism and remains outside this repair.
+
+The C++ File Audit Album had already audited and closed `CitySiteEvaluator.cpp`, including its constructor/settings modes and diagnostic/logging tail. Its final file-016 finding was F182 / KI#505, another inherited found-value diagnostic defect, and the closure deliberately left that file's next root unused.
+
+This `IFLOG` defect was not identified there; it was rediscovered later during the AdvCiv-SAS diagnostic pre-gating cleanup. KI#505.2 intentionally keeps it adjacent to that album lineage without consuming a new top-level KI number if the album resumes; the `.1` suffix is deliberately left unused so this later addendum is not mistaken for an album-assigned first subfinding.
+
+Found post-album during the AdvCiv-SAS diagnostic pre-gating cleanup with ChatGPT-5.6-Sol; ancestry and album coverage independently rechecked against K-Mod 1.46, Base AdvCiv 1.14 and the C++ File Audit Album, thanks.
+
+Reviewed against current source, inherited AdvCiv source and the introducing commit by GPT-6.1-Sol. After the initial settings-header repair and discussion with wonderingabout, GPT-6.1-Sol implemented the same-pass logging redesign, explicit comparison contexts and greppable KI references; runtime validation remains pending, thanks.
 
 <a id="ki-506"></a>
 

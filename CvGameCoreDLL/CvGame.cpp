@@ -2503,7 +2503,9 @@ void CvGame::normalizeAddExtras(/* advc.027: */ NormalizationTarget const* pTarg
 		gDLL->callUpdater(); // allow window to update during launch
 		CitySiteEvaluator citySiteEval(kPlayer, -1, false, true);
 		// <advc.031c>
-		if (gFoundLogLevel > 0 && pTarget == NULL) citySiteEval.log(*pStartingPlot);
+		// <!-- custom: Replaces the inherited CitySiteEvaluator::log() normalization replay with a starting-plot marker; actual normalization evaluations emit their own Found traces. See KI#505.2. (GPT-6.1-Sol) -->
+		if (gFoundLogLevel > 0 && pTarget == NULL) logBBAI("FOUND_SITE_START_SELECTED turn=%d player=%d site=%d,%d",
+			getGameTurn(), kPlayer.getID(), pStartingPlot->getX(), pStartingPlot->getY());
 		// </advc.031c>
 		// <advc.108> Treat desert features and forest separately
 		int iFoodFeatures = 0;
@@ -7327,7 +7329,8 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 	int aiTopRawValues[iSAS_BARBARIAN_CITY_SITE_TOP_LOG_COUNT];
 	int aiTopAreaValues[iSAS_BARBARIAN_CITY_SITE_TOP_LOG_COUNT];
 	int aiTopRandomPercents[iSAS_BARBARIAN_CITY_SITE_TOP_LOG_COUNT];
-	bool const bTrackTopBarbarianSites = (gFoundLogLevel > 0 || gGameRecordLogLevel >= 2);
+	// <!-- custom: Keep Found level 1 lifecycle-only; top-candidate tracking and nearby hypothetical comparisons belong to level 2+, while SASGameRecord level 2 still needs the same compact chooser snapshot. See KI#505.2. (GPT-5.6-Sol) -->
+	bool const bTrackTopBarbarianSites = (gFoundLogLevel >= 2 || gGameRecordLogLevel >= 2);
 	for (int i = 0; i < iSAS_BARBARIAN_CITY_SITE_TOP_LOG_COUNT; i++)
 	{
 		apTopPlots[i] = NULL;
@@ -7413,7 +7416,7 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 				const int iOldValue = iValue;
 				iValue *= 100 + iRandomPercent;
 				iValue /= 100;
-				if (gFoundLogLevel > 0) logBBAI("Barbarian city-site random multiplier: +%d%% (%d→%d)", iRandomPercent, iOldValue, iValue);
+				if (gFoundLogLevel >= 2) logBBAI("Barbarian city-site random multiplier: +%d%% (%d→%d)", iRandomPercent, iOldValue, iValue);
 			}
 			if (iValue > iBestValue)
 			{
@@ -7453,7 +7456,7 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 				iLoggedCandidates++;
 			logSASGameRecordBarbarianCitySiteChoice(bSkipCivAreas, iProbModifierPercent, iTargetCitiesMultiplier, iBarbarianDiscouragedRange, apTopPlots, aiTopRawValues, aiTopAreaValues, aiTopValues, aiTopRandomPercents, iLoggedCandidates);
 		}
-		if (gFoundLogLevel > 0)
+		if (gFoundLogLevel >= 2)
 		{
 			logBBAI("Barbarian city chooser top final candidates before founding:");
 			for (int i = 0; i < iSAS_BARBARIAN_CITY_SITE_TOP_LOG_COUNT; i++)
@@ -7464,6 +7467,11 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 					i + 1, aiTopRawValues[i], aiTopAreaValues[i], aiTopValues[i], apTopPlots[i]->getX(), apTopPlots[i]->getY(),
 					apTopPlots[i]->getArea().getID());
 			}
+			// <!-- custom: Barbarian cities are spawned by a global scan rather than normal Settler city-site lists, and old Barbarian scoring can ignore outer-BFC seafood or other long-term capture value.
+			// Log nearby alternatives so cases like Yue-Chi, Sarmatian, Aryan, and Numidian can show whether the selected spawn tile or a one-tile shift was actually better. (GPT-5.5) -->
+			CitySiteEvaluator diagnosticEval(citySiteEval);
+			// <!-- custom: Label these logging-only alternatives separately from the global chooser's real evaluations; setting context changes only the log label. See KI#505.2. (GPT-6.1-Sol) -->
+			diagnosticEval.setLogContext(SAS_FOUND_LOG_BARBARIAN_COMPARISON);
 			// <!-- custom: Local found-value comparisons can show a better one-tile shift that the actual Barbarian creator skipped because it belongs to an area that does not currently want another Barbarian city.
 			// Log chooser-side eligibility around the selected plot so bad-looking Barbarian settlements can be diagnosed from the real creation filters, not only from post-selection site value. (GPT-5.5) -->
 			for (int iDX = -2; iDX <= 2; iDX++)
@@ -7501,7 +7509,7 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 					int iNearbyAreaValue = 0;
 					if (bSpawnEligible)
 					{
-						iNearbyRawValue = citySiteEval.evaluate(*pLoopPlot);
+						iNearbyRawValue = diagnosticEval.evaluate(*pLoopPlot);
 						iNearbyAreaValue = iNearbyRawValue;
 						if (iTargetCitiesMultiplier > 100)
 						{
@@ -7515,11 +7523,6 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 						pLoopPlot->getX(), pLoopPlot->getY(), plotDistance(pBestPlot, pLoopPlot), iNearbyRawValue, iNearbyAreaValue,
 						a.getID(), a.getCitiesPerPlayer(BARBARIAN_PLAYER), iTargetCities, pLoopPlot->isWater(),
 						pLoopPlot->isVisibleToCivTeam(), bCivArea, bAreaEligible, bSpawnEligible);
-					if (bSpawnEligible && iNearbyRawValue <= 1)
-					{
-						logBBAI("  Detailed raw-value rejection check for nearby chooser candidate %d,%d:", pLoopPlot->getX(), pLoopPlot->getY());
-						citySiteEval.evaluateWithLogging(*pLoopPlot);
-					}
 				}
 			}
 		}
