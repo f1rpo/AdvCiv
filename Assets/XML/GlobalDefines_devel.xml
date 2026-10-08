@@ -3,35 +3,7 @@
 
 <Civ4Defines xmlns="x-schema:CIV4GlobalDefinesSchema.xml">
 
-	<!-- [advc.104]
-		 If logging is enabled in /My Games/
-		 Beyond The Sword/CivilizationIV.ini, a log file is written to
-		 /My Games/Beyond The Sword/Logs every REPORT_INTERVAL turns.
-		 For multiplayer games, the MessageLog (CivilizationIV.ini) needs to be
-		 enabled in addition.
-		 It's not necessary to compile a debug DLL in order to see the reports.
-		 Each report records the war planning of all AI civs during a single
-		 turn. Set to 0 or less to disable logging. -->
-    <Define>
-        <DefineName>REPORT_INTERVAL</DefineName>
-        <iDefineIntVal>0</iDefineIntVal>
-    </Define>
-
-	<!-- [advc.104]
-		 If UWAI reports are enabled (see above), no details about an AI war plan
-		 are logged unless that war plan has greater utility than this
-		 threshold. Exception: Details abound ongoing wars (i.e. when considering
-		 peace) are logged regardless of the threshold.
-		 There's a separate threshold for war plans against human players.
-		 Recommended: -10/-50; use sth. like -1000/-1000 to log details always. -->
-    <Define>
-        <DefineName>UWAI_REPORT_THRESH</DefineName>
-        <iDefineIntVal>-10</iDefineIntVal>
-    </Define>
-    <Define>
-        <DefineName>UWAI_REPORT_THRESH_HUMAN</DefineName>
-        <iDefineIntVal>-50</iDefineIntVal>
-    </Define>
+	<!-- custom: The [advc.104] REPORT_INTERVAL, UWAI_REPORT_THRESH and UWAI_REPORT_THRESH_HUMAN defines that occupied this section in base AdvCiv are removed in AdvCiv-SAS. UWAI diagnostics now use the cached SAS_BBAI_UWAI_* log levels in GlobalDefines_advciv_sas.xml, caller-side pre-gating and the normal timestamped BBAI log. See KI#505.3. (ChatGPT-5.6-Sol) -->
 
 	<!-- [advc.104v]
 		 If this is set to 1 and the Debug mode has been enabled (Ctrl+Z), then
@@ -54,6 +26,7 @@
 		<DefineName>UWAI_IN_BACKGROUND</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
+	<!-- custom: The inherited comment above describes base AdvCiv. In AdvCiv-SAS, UWAI_IN_BACKGROUND still controls AI behavior, but diagnostic output is controlled separately by SAS_BBAI_UWAI_* levels and goes to the BBAI log. (ChatGPT-5.6-Sol) -->
 
 	<!-- [advc.104] Fully disables UWAI if set to 1 or greater (unlike
 		 UWAI_IN_BACKGROUND which still lets it run in the background).

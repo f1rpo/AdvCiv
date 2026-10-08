@@ -1,7 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "WarUtilityAspect.h"
 #include "UWAICache.h"
-#include "UWAIReport.h"
+#include "UWAILogMuteState.h" // <!-- custom: Utility aspects read the shared nested mute state solely to suppress intentionally silent sub-evaluations. See KI#505.3. (ChatGPT-5.6-Sol) -->
 #include "WarEvalParameters.h"
 #include "UWAIAgent.h"
 #include "MilitaryAnalyst.h"
@@ -37,8 +37,9 @@ typedef UWAICache::City City;
 
 
 WarUtilityAspect::WarUtilityAspect(WarEvalParameters const& kParams)
+// <!-- custom: Aspects share the evaluator's nested mute state only; their diagnostic output is ordinary caller-pre-gated BBAI. (ChatGPT-5.6-Sol) -->
 :	m_kParams(kParams), m_kAgentTeam(GET_TEAM(kParams.getAgent())),
-	m_kReport(kParams.getReport()), m_kGame(GC.AI_getGame()),
+	m_kLogMuteState(kParams.getLogMuteState()), m_kGame(GC.AI_getGame()),
 	m_eGameEra(m_kGame.getCurrentEra()),
 	m_rGameEraAIFactor(m_kGame.AI_getCurrEraFactor()),
 	m_kSpeed(GC.getInfo(m_kGame.getGameSpeedType())),
@@ -86,20 +87,20 @@ int WarUtilityAspect::evaluate(MilitaryAnalyst const& kMilitaryAnalyst)
 		int iPerRivalUtility = evaluate(itRival->getID());
 		if (iPerRivalUtility != 0)
 		{
-			log("*%s from %s: %d*", aspectName(),
-					m_kReport.leaderName(itRival->getID(), 16), iPerRivalUtility);
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("%s from %S: %d", aspectName(),
+					GET_PLAYER(itRival->getID()).getName(0), iPerRivalUtility);
 		}
 	}
 	if (iOverallUtility != 0)
 	{
-		log("*%s (from no one in particular): %d*", aspectName(), iOverallUtility);
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("%s (from no one in particular): %d", aspectName(), iOverallUtility);
 		m_iU += iOverallUtility;
 	}
 	int iMemberUtility = m_iU - iPriorUtility;
 	scaled const rXMLAdjust = getUWAI().aspectWeight(xmlID());
 	if (iMemberUtility != 0 && rXMLAdjust != 1)
 	{
-		log("Adjustment from XML: %d percent", rXMLAdjust.getPercent());
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Adjustment from XML: %d percent", rXMLAdjust.getPercent());
 		iMemberUtility = (iMemberUtility * rXMLAdjust).round();
 		m_iU = iPriorUtility + iMemberUtility;
 	}
@@ -167,39 +168,10 @@ bool WarUtilityAspect::concernsOnlyWarParties() const { return true; }
 
 char const* WarUtilityAspect::aspectName() const
 {
-	if (m_kReport.isMute()) // Don't waste time processing the string then
-		return getUWAI().aspectName(xmlID());
-	// Convert from upper case to mixed case and replace underscores with spaces
-	static CvString szBuffer;
-	szBuffer = getUWAI().aspectName(xmlID());
-	for (uint i = 0; i < szBuffer.length(); i++)
-	{
-		if (szBuffer[i] == '_')
-			szBuffer[i] = ' ';
-		if (i > 0 && szBuffer[i - 1] != ' ')
-			szBuffer[i] = static_cast<char>(::tolower(szBuffer[i]));
-	}
-	return szBuffer.GetCString();
+	return getUWAI().aspectName(xmlID());
 }
 
-#if !DISABLE_UWAI_REPORT
-void WarUtilityAspect::log(char const* fmt, ...) const
-{
-	/*	The time spent in this function is negligible when the report is muted,
-		but the call overhead (up to 100,000 calls per game turn) and branching
-		could still be harmful. Might want to profile e.g. ScaledNum::getPercent.
-		Can't really be helped though so long as the report is enabled and disabled
-		through XML. */
-	//PROFILE_FUNC();
-	if (m_kReport.isMute())
-		return;
-	va_list args;
-	va_start(args, fmt);
-	std::string szMsg = CvString::formatv(fmt, args);
-	va_end(args);
-	m_kReport.log(szMsg.c_str());
-}
-#endif
+
 
 scaled WarUtilityAspect::normalizeUtility(scaled rUtilityTeamOnTeam, TeamTypes eOther) const
 {
@@ -375,8 +347,8 @@ scaled WarUtilityAspect::lossesFromNukes(PlayerTypes eVictim, PlayerTypes eSourc
 			rLossRate - fixp(0.05) : rLossRate + fixp(0.05)) * rScorePerCity;
 	if (r >= fixp(0.5))
 	{
-		log("Lost score of %s for cities hit: %d; assets per city: %d; "
-				"cities hit: %.2f; ", m_kReport.leaderName(eVictim),
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Lost score of %S for cities hit: %d; assets per city: %d; "
+				"cities hit: %.2f; ", GET_PLAYER(eVictim).getName(0),
 				r.round(), rScorePerCity.uround(), rHits.getFloat());
 	}
 	return r;
@@ -446,9 +418,9 @@ scaled WarUtilityAspect::conqAssetScore(bool bMute) const
 	r *= fixp(1.1);
 	if (!bMute)
 	{
-		log("%d cities conquered from %s", (int)ourConquestsFromThem().size(),
-				m_kReport.leaderName(eThey));
-		log("Total asset score: %d", r.round());
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("%d cities conquered from %S", (int)ourConquestsFromThem().size(),
+				GET_PLAYER(eThey).getName(0));
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Total asset score: %d", r.round());
 	}
 	/*	Reduce score to account for culture pressure from the current owner unless
 		we expect that civ to eliminated or to be our vassal.
@@ -464,16 +436,14 @@ scaled WarUtilityAspect::conqAssetScore(bool bMute) const
 			based on how much of them remains. Then shift that toward 1 a little. */
 		r *= (4 * (1 - (scaled(1, 1 + (int)ourConquestsFromThem().size()) +
 				scaled(iTheirRemainingCities, kThey.getNumCities())) / 2) + 1) / 5;
-		if (!bMute)
-			log("Asset score reduced to %d due to culture pressure", r.round());
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted() && (!bMute)) logBBAI("Asset score reduced to %d due to culture pressure", r.round());
 	}
 	else
 	{
 		/*	The penalties for the owner's culture applied by asset score are a
 			bit high in this case. */
 		r *= fixp(1.2);
-		if (!bMute)
-			log("Asset score increased to %d b/c enemy culture neutralized", r.round());
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted() && (!bMute)) logBBAI("Asset score increased to %d b/c enemy culture neutralized", r.round());
 	}
 	return r;
 }
@@ -499,7 +469,7 @@ scaled WarUtilityAspect::partnerUtilFromTech() const
 	if (!kThey.isHuman() && !kWe.isHuman() &&
 		(towardThem() < eOurAttitudeThresh || towardUs() < eTheirAttitudeThresh))
 	{
-		log("No tech trade b/c of attitude");
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("No tech trade b/c of attitude");
 		return 0;
 	}
 	int iWeCanOffer = 0;
@@ -520,7 +490,7 @@ scaled WarUtilityAspect::partnerUtilFromTech() const
 	if ((iWeCanOffer == 0 || iTheyCanOffer == 0) &&
 		std::abs(iWeCanOffer - iTheyCanOffer) > 4)
 	{
-		log("No utility from tech trade b/c progress too far apart");
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("No utility from tech trade b/c progress too far apart");
 		return 0;
 	}
 	// Humans are good at making tech trades work
@@ -529,8 +499,7 @@ scaled WarUtilityAspect::partnerUtilFromTech() const
 		iHumanExtra += 3;
 	if (kThey.isHuman())
 		iHumanExtra += 3;
-	if (iHumanExtra > 0)
-		log("Tech trade bonus for human civs: %d", iHumanExtra);
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted() && (iHumanExtra > 0)) logBBAI("Tech trade bonus for human civs: %d", iHumanExtra);
 	// Use their commerce to determine potential for future tech trade
 	scaled rTheyToUsCommerceRatio = kOurTeam.AI_estimateYieldRate(eThey, YIELD_COMMERCE) /
 			(kOurTeam.AI_estimateYieldRate(eWe, YIELD_COMMERCE) + scaled::epsilon());
@@ -540,20 +509,19 @@ scaled WarUtilityAspect::partnerUtilFromTech() const
 	scaled rNearFutureTrades = std::min(iWeCanOffer, iTheyCanOffer);
 	if (rNearFutureTrades > 1) // Just 1 isn't likely to result in a trade
 	{
-		log("Added utility for %d foreseeable trades", rNearFutureTrades.floor());
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Added utility for %d foreseeable trades", rNearFutureTrades.floor());
 		// Humans tend to make trades immediately, and avoid certain techs entirely.
 		if (kThey.isHuman())
 			rNearFutureTrades /= 2;
 		r += fixp(10/3.) * scaled::min(3, rNearFutureTrades);
 	}
-	if (r > 0)
-		log("Tech trade utility: %d", r.round());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted() && (r > 0)) logBBAI("Tech trade utility: %d", r.round());
 	/*	The above assumes that tech trade is only inhibited by overlapping research
 		and diverging tech rates. If there's also AI distrust, it's worse. */
 	if ((!kWe.isHuman() && towardThem() != ATTITUDE_FRIENDLY) ||
 		(!kThey.isHuman() && towardUs() != ATTITUDE_FRIENDLY))
 	{
-		log("Tech trade utility halved for distrust");
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Tech trade utility halved for distrust");
 		r /= 2;
 	}
 	if (m_kGame.isOption(GAMEOPTION_NO_TECH_BROKERING))
@@ -613,7 +581,7 @@ scaled WarUtilityAspect::partnerUtilFromTrade() const
 			// <!-- custom: AdvCiv documented a four-resource cap but its post-increment >= check discarded the fourth trade too. Skip only trades beyond the cap. See KI#427. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			if (iResourceTrades > iMaxResourceTrades)
 			{
-				log("Skipped resource trades in excess of %d", iMaxResourceTrades);
+				if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Skipped resource trades in excess of %d", iMaxResourceTrades);
 				continue;
 			}
 		}
@@ -626,12 +594,12 @@ scaled WarUtilityAspect::partnerUtilFromTrade() const
 			int const iMaxTradeValFromGold = 40;
 			if (rTradeValFromGold + rDealVal > iMaxTradeValFromGold)
 			{
-				log("Trade value from gold capped at %d", iMaxTradeValFromGold);
+				if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Trade value from gold capped at %d", iMaxTradeValFromGold);
 				rDealVal = iMaxTradeValFromGold - rTradeValFromGold;
 			}
 			rTradeValFromGold += rDealVal;
 		}
-		log("GPT value for a %s trade: %d", (bWeReceiveResource ? "resource" : "gold"),
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("GPT value for a %s trade: %d", (bWeReceiveResource ? "resource" : "gold"),
 				rDealVal.round());
 		/*	Similar approach in CvPlayerAI::AI_stopTradingTradeVal, which
 			doubles the trade values of gifts. */
@@ -644,12 +612,12 @@ scaled WarUtilityAspect::partnerUtilFromTrade() const
 		if (iTurnsToCancel > 0)
 		{
 			rTimeHorizon = scaled(iTurnsToCancel + 10, 2);
-			log("Reduced time horizon for recent deal: %d", rTimeHorizon.round());
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Reduced time horizon for recent deal: %d", rTimeHorizon.round());
 		}
 		rDealVal *= rTimeHorizon;
 		rGoldVal += rDealVal;
 	}
-	log("Net gold value of resource and gold: %d", rGoldVal.round());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Net gold value of resource and gold: %d", rGoldVal.round());
 	// Based on TradeUtil::calculateTradeRoutes (Python)
 	scaled rTradeRouteProfit;
 	FOR_EACH_CITY(pCity, kWe)
@@ -669,11 +637,11 @@ scaled WarUtilityAspect::partnerUtilFromTrade() const
 	int const iTradeRouteProfitCap = 40;
 	if (rTradeRouteProfit > iTradeRouteProfitCap)
 	{
-		log("Per-turn Trade route profit capped at %d", iTradeRouteProfitCap);
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Per-turn Trade route profit capped at %d", iTradeRouteProfitCap);
 		rTradeRouteProfit = iTradeRouteProfitCap;
 	}
 	else if (rTradeRouteProfit > 0)
-		log("Per-turn trade route profit: %d", rTradeRouteProfit.uround());
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Per-turn trade route profit: %d", rTradeRouteProfit.uround());
 	return kWeAI.tradeValToUtility(rGoldVal + rTradeRouteProfit * iDefaultTimeHorizon) *
 			kWeAI.amortizationMultiplier();
 }
@@ -688,7 +656,7 @@ scaled WarUtilityAspect::partnerUtilFromMilitary() const
 	}
 	scaled r = kThey.uwai().getCache().getPowerValues()[ARMY]->power() /
 			(ourCache().getPowerValues()[ARMY]->power() + scaled::epsilon());
-	log("Their military relative to ours: %d percent", r.getPercent());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Their military relative to ours: %d percent", r.getPercent());
 	/*	Only count their future military support as 10% b/c there are a lot of ifs
 		despite friendship/ DP */
 	return scaled::min(r * 10, 10);
@@ -702,21 +670,19 @@ void GreedForAssets::evaluate()
 	if (rConqScore <= 0)
 		return;
 	scaled const rPresentScore = ourCache().totalAssetScore();
-	log("Score for present assets: %d", rPresentScore.round());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Score for present assets: %d", rPresentScore.round());
 	/*	(Count non-wonder buildings for rPresentScore? May construct those
 		in the conquered cities too eventually ...) */
 	scaled rUtility = scaled::min(650, 350 * rConqScore /
 			scaled::max(rPresentScore, 1));
-	log("Base utility from assets: %d", rUtility.round());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Base utility from assets: %d", rUtility.round());
 	scaled const rTeamSzMult = teamSizeMultiplier();
-	if (rTeamSzMult != 1)
-		log("Team size multiplier: %d percent", rTeamSzMult.getPercent());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted() && (rTeamSzMult != 1)) logBBAI("Team size multiplier: %d percent", rTeamSzMult.getPercent());
 	scaled const rCompetitionMult = competitionMultiplier();
-	if (rCompetitionMult != 1)
-		log("Competition multiplier: %d percent", rCompetitionMult.getPercent());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted() && (rCompetitionMult != 1)) logBBAI("Competition multiplier: %d percent", rCompetitionMult.getPercent());
 	scaled const rOverextensionMult = overextensionMult();
 	scaled const rDefensibilityMult = defensibilityMult();
-	log("Cost modifiers: %d percent for overextension, %d for defensibility",
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Cost modifiers: %d percent for overextension, %d for defensibility",
 			rOverextensionMult.getPercent(), rDefensibilityMult.getPercent());
 	rUtility *= rCompetitionMult * rTeamSzMult *
 			(1 - rOverextensionMult - rDefensibilityMult);
@@ -727,14 +693,14 @@ void GreedForAssets::evaluate()
 		if (rUtility > iCap)
 		{
 			rUtility = iCap;
-			log("Greed capped at %d b/c of peace-weight", iCap);
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Greed capped at %d b/c of peace-weight", iCap);
 		}
 	}
 	int const iLoveOfPeace = kOurPersonality.getLoveOfPeace();
 	if (iLoveOfPeace > 0)
 	{
 		rUtility *= std::max(fixp(0.1), 1 - per100(iLoveOfPeace));
-		log("Greed reduced by %d percent b/c of love of peace", iLoveOfPeace);
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Greed reduced by %d percent b/c of love of peace", iLoveOfPeace);
 	}
 	/*	Cap utility per conquered city. Relevant mostly for One-City
 		Challenge, but may also matter on dense maps in the early game. */
@@ -757,12 +723,12 @@ scaled GreedForAssets::overextensionMult() const
 		scaled rOurMaintenance = per100(kWe.calculateInflationRate() + 100) *
 				(kWe.getTotalMaintenance() + kWe.getCivicUpkeep(NULL, true));
 		r += rOurMaintenance / rOurIncome;
-		log("Rel. maint. = %d / %d = %d percent",
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Rel. maint. = %d / %d = %d percent",
 				rOurMaintenance.uround(), rOurIncome.uround(),
 				(rOurMaintenance / rOurIncome).getPercent());
 	}
 	// Can happen in later-era start if a civ immediately changes civics/ religion
-	else log("Failed to estimate income");
+	else if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Failed to estimate income");
 	return scaled::max(0, r);
 }
 
@@ -786,7 +752,7 @@ scaled GreedForAssets::defensibilityMult() const
 		rBarbarianThreat.decreaseTo(fixp(0.25));
 		if (rBarbarianThreat >= fixp(0.005))
 		{
-			log("Threat factor from barbarians: %d percent",
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Threat factor from barbarians: %d percent",
 					rBarbarianThreat.getPercent());
 		}
 		rThreatFactor += rBarbarianThreat;
@@ -803,7 +769,7 @@ scaled GreedForAssets::defensibilityMult() const
 		iPersonalityPercent /= 2;
 	if (iMaxWarMinAdjLand >= 3)
 		iPersonalityPercent += 5;
-	log("Personality factor %d (MaxWarMinAdjLand %d); threat factor %d",
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Personality factor %d (MaxWarMinAdjLand %d); threat factor %d",
 			iPersonalityPercent, iMaxWarMinAdjLand, rThreatFactor.getPercent());
 	return std::min(fixp(0.5), rThreatFactor.sqrt() * per100(iPersonalityPercent));
 }
@@ -838,8 +804,8 @@ scaled GreedForAssets::threatToCities(PlayerTypes ePlayer, scaled rRemoteness) c
 	scaled rPlayerDist = medianDistFromOurConquests(ePlayer);
 	if (5 * rPlayerDist >= 4 * rRemoteness || rPlayerDist > 10)
 		return 0;
-	log("Dangerous civ near our conquests: %s (dist. ratio %d/%d)",
-			m_kReport.leaderName(kPlayer.getID()),
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Dangerous civ near our conquests: %S (dist. ratio %d/%d)",
+			GET_PLAYER(kPlayer.getID()).getName(0),
 			rPlayerDist.uround(), rRemoteness.uround());
 	scaled rPowerRatio = scaled::max(0,
 			rPlayerPower / scaled::max(10, rOurPower) - fixp(0.1));
@@ -942,21 +908,21 @@ void GreedForVassals::evaluate()
 	/*	Their commerce may be lower than now at the end of the war.
 		(Don't try to estimate our own post-war commerce though.) */
 	scaled const rTheirCityRatio = remainingCityRatio(eThey);
-	log("Ratio of cities kept by the vassal: cr=%d percent",
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Ratio of cities kept by the vassal: cr=%d percent",
 			rTheirCityRatio.getPercent());
 	// Vassal commerce to account for tech they might research for us
 	scaled const rVassalIncome = kOurTeam.AI_estimateYieldRate(eThey, YIELD_COMMERCE);
 	scaled const rVassalToOurIncome = rVassalIncome * rTheirCityRatio / rOurIncome;
-	log("Rel. income of vassal %s = %d percent = cr * %d / %d",
-			m_kReport.leaderName(eThey), rVassalToOurIncome.getPercent(),
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Rel. income of vassal %S = %d percent = cr * %d / %d",
+			GET_PLAYER(eThey).getName(0), rVassalToOurIncome.getPercent(),
 			rVassalIncome.uround(), rOurIncome.uround());
 	scaled rUtilityFromTechTrade = 100 * rVassalToOurIncome;
 	// Tech they already have
 	scaled const rTechScore = ourCache().vassalTechScore(eThey);
-	log("Vassal score from tech they have in advance of us: %d",
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Vassal score from tech they have in advance of us: %d",
 			rTechScore.uround());
 	rUtilityFromTechTrade += kWeAI.tradeValToUtility(rTechScore);
-	log("Utility from vassal tech and income (still to be reduced): %d",
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Utility from vassal tech and income (still to be reduced): %d",
 			rUtilityFromTechTrade.uround());
 	/*	If they're much more advanced than us, we won't be able to trade for
 		all their tech. */
@@ -966,10 +932,10 @@ void GreedForVassals::evaluate()
 	scaled rUtility = (kOurTeam.isHuman() ? fixp(0.5) : fixp(0.35)) *
 			rUtilityFromTechTrade;
 	scaled rUtilityFromResources = ourCache().vassalResourceScore(eThey);
-	log("Resource score: %d", rUtilityFromResources.uround());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Resource score: %d", rUtilityFromResources.uround());
 	// Expect just +1.5 commerce per each of their cities from trade routes
 	scaled rUtilityFromTR = fixp(1.5) * kThey.getNumCities() / rOurIncome;
-	log("Trade route score: %d", rUtilityFromTR.uround());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Trade route score: %d", rUtilityFromTR.uround());
 	// These trades are pretty safe bets; treated as 75% probable
 	rUtility += fixp(0.75) * rTheirCityRatio * (rUtilityFromResources + rUtilityFromTR);
 	int iOurVassalPlayers = PlayerIter<ALIVE,VASSAL_OF>::count(eOurTeam);
@@ -1005,15 +971,15 @@ void GreedForVassals::evaluate()
 	}
 	scaled const rTheirPower = kThey.uwai().getCache().getPowerValues()[ARMY]->power();
 	scaled const rOurPower = ourCache().getPowerValues()[ARMY]->power();
-	log("Their army/ ours: %d/%d", rTheirPower.round(), rOurPower.round());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Their army/ ours: %d/%d", rTheirPower.round(), rOurPower.round());
 	// Multiplier reflects coordination problems and lack of commitment
 	scaled rUtilityFromMilitary = 45 * rTheirCityRatio * rTheirPower /
 			scaled::max(rOurPower, 10);
-	log("Base utility from military: %d", rUtilityFromMilitary.uround());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Base utility from military: %d", rUtilityFromMilitary.uround());
 	if (!bUsefulArea)
 	{
 		rUtilityFromMilitary /= 2;
-		log("Utility halved b/c vassal not in a useful area");
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Utility halved b/c vassal not in a useful area");
 	}
 	rUtilityFromMilitary.decreaseTo(30);
 	rUtility += rUtilityFromMilitary;
@@ -1023,7 +989,7 @@ void GreedForVassals::evaluate()
 	if (iLoveOfPeace > 0)
 	{
 		rUtility *= std::max(fixp(0.1), 1 - per100(iLoveOfPeace));
-		log("Greed reduced by %d percent b/c of love of peace", iLoveOfPeace);
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Greed reduced by %d percent b/c of love of peace", iLoveOfPeace);
 	}
 	m_iU += std::max(0, rUtility.round());
 }
@@ -1124,7 +1090,7 @@ void GreedForSpace::evaluate()
 	scaled rUtility = (40 * rIncr * kWeAI.amortizationMultiplier());
 	if (rUtility.abs() >= fixp(0.5))
 	{
-		log("Their orphaned sites: %d, our current sites: %d, our current cities: %d", iTheirSites, iOurSites, iOurCities);
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Their orphaned sites: %d, our current sites: %d, our current cities: %d", iTheirSites, iOurSites, iOurCities);
 		m_iU += rUtility.round();
 	}
 }
@@ -1151,7 +1117,7 @@ void GreedForCash::evaluate()
 				return;
 		}
 	}
-	log("Adding utility for future reparations");
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Adding utility for future reparations");
 	m_iU += normalizeUtility(4).uround(); // Only one team member will pay
 }
 
@@ -1180,7 +1146,7 @@ void Loathing::evaluate()
 	int const iVengefulness = kWeAI.vengefulness();
 	if (iVengefulness == 0)
 	{
-		log("No loathing b/c of our leader's personality");
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("No loathing b/c of our leader's personality");
 		return;
 	}
 	scaled rLossRating = lossRating();
@@ -1188,8 +1154,8 @@ void Loathing::evaluate()
 	if (rLossRating.abs() <= 0)
 		return;
 	rLossRating *= 100;
-	log("Loss rating for %s: %d", m_kReport.leaderName(eThey), rLossRating.round());
-	log("Our vengefulness: %d", iVengefulness);
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Loss rating for %S: %d", GET_PLAYER(eThey).getName(0), rLossRating.round());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Our vengefulness: %d", iVengefulness);
 	// Utility proportional to iVengefulness and rLossRating would be too extreme
 	scaled rFromLosses = fixp(10/3.) * (iVengefulness * rLossRating.abs()).sqrt();
 	if (rLossRating.isNegative())
@@ -1202,7 +1168,7 @@ void Loathing::evaluate()
 	{
 		if (kWarsDeclaredOnThem.count(itAlly->getID()) > 0)
 		{
-			log("Joint DoW by %s", m_kReport.leaderName(itAlly->getID()));
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Joint DoW by %S", GET_PLAYER(itAlly->getID()).getName(0));
 			iJointDoW++;
 		}
 	}
@@ -1213,7 +1179,7 @@ void Loathing::evaluate()
 	/*	Obsessing over one enemy is unwise if there are many potential enemies.
 		Rounded down b/c it would be a bit too high otherwise. */
 	int const iFreeCivDivisor = scaled(std::max(1, iFreeCivPlayers)).sqrt().floor();
-	log("Divisor from number of free rival players (%d): %d",
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Divisor from number of free rival players (%d): %d",
 			iFreeCivPlayers, iFreeCivDivisor);
 	m_iU += ((rFromLosses + rFromDiplo) /
 			// Count Loathing only once per team member
@@ -1227,7 +1193,7 @@ scaled Loathing::lossRating() const
 	if (militAnalyst().isEliminated(eThey) ||
 		militAnalyst().hasCapitulated(eTheirTeam))
 	{
-		log("Loss rating based on score");
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Loss rating based on score");
 		return scaled(m_kGame.getPlayerScore(eThey),
 				std::max(10, m_kGame.getPlayerScore(eWe)));
 	}
@@ -1254,7 +1220,7 @@ scaled Loathing::lossRating() const
 			3 * rTheirLostAssets / rTheirAssets);
 	if (rTheirAssetsToOurs >= fixp(0.005))
 	{
-		log("Their lost assets: %d; their present assets: %d;"
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Their lost assets: %d; their present assets: %d;"
 				" our present assets: %d; asset ratio: %d percent",
 				rTheirLostAssets.uround(), rTheirAssets.uround(),
 				rOurAssets.uround(), rTheirAssetsToOurs.getPercent());
@@ -1284,7 +1250,7 @@ scaled Loathing::lossRating() const
 			3 * rTheirMinusOurLostPower / (rTheirPower + scaled::epsilon()));
 	if (rTheirLostPowRatio.abs() > fixp(0.005))
 	{
-		log("Difference in lost power (adjusted): %d; their projected power: %d;"
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Difference in lost power (adjusted): %d; their projected power: %d;"
 				" our projected power: %d; lost pow percentage: %d",
 				rTheirMinusOurLostPower.round(), rTheirPower.round(),
 				rOurPower.round(), rTheirLostPowRatio.getPercent());
@@ -1333,8 +1299,8 @@ void MilitaryVictory::evaluate()
 	int const iFreeRivals = countFreeRivals<false>();
 	if (rTotalProgressRating > 0)
 	{
-		log("Rivals remaining: %d", iFreeRivals);
-		log("Pursued mil. victory conditions: %d", (int)arProgressRatings.size());
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Rivals remaining: %d", iFreeRivals);
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Pursued mil. victory conditions: %d", (int)arProgressRatings.size());
 	}
 	if (iFreeRivals <= 0)
 		return;
@@ -1377,7 +1343,7 @@ void MilitaryVictory::evaluate()
 		{
 			FErrorMsg("Just sth. to take a look at b/c it seems to come up"
 					" very rarely if ever - peaceful victory discouraging nuclear war");
-			log("Nuclear war jeopardizes peaceful victory: %d "
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Nuclear war jeopardizes peaceful victory: %d "
 					"(%d percent population loss expected)",
 					rVoteCost.round(), rPopLossRate.getPercent());
 		}
@@ -1401,7 +1367,7 @@ scaled MilitaryVictory::progressRatingConquest() const
 	if (militAnalyst().isEliminated(eThey) ||
 		militAnalyst().getCapitulationsAccepted(eOurTeam).count(eTheirTeam))
 	{
-		log("They're conquered entirely");
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("They're conquered entirely");
 		return 1;
 	}
 	// If we don't take them out entirely - how much do they lose
@@ -1419,7 +1385,7 @@ scaled MilitaryVictory::progressRatingConquest() const
 		return 0;
 	scaled r = rTheirLostAssets / rTheirScore;
 	r.decreaseTo(1);
-	log("Their loss ratio: %d percent", r.getPercent());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Their loss ratio: %d percent", r.getPercent());
 	/*	Reduced because we can't be sure that we'll eventually finish them off.
 		In particular, they could become someone else's vassal. */
 	return fixp(2/3.) * r;
@@ -1501,7 +1467,7 @@ scaled MilitaryVictory::progressRatingDomination() const
 		}
 		if (iTheirCitiesRemaining > 0)
 		{
-			log("%d vassal pop gained, and %d cities",
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("%d vassal pop gained, and %d cities",
 					iTheirPopRemaining, iTheirCitiesRemaining);
 		}
 		rCitiesGained += fixp(0.5) * iTheirCitiesRemaining;
@@ -1509,10 +1475,10 @@ scaled MilitaryVictory::progressRatingDomination() const
 	}
 	if (rCitiesGained == 0)
 		return 0;
-	log("%d population-to-go for domination, %d cities",
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("%d population-to-go for domination, %d cities",
 			rPopGained.uround(), rCitiesToGo.round());
 	FAssert(rPopGained > 0);
-	log("%d pop gained, and %d cities", rPopGained.uround(), rCitiesGained.uround());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("%d pop gained, and %d cities", rPopGained.uround(), rCitiesGained.uround());
 	// No use in population beyond the victory threshold
 	rPopGained.decreaseTo(iPopToGo);
 	// <!-- custom: The to-go values can be non-positive. For rCitiesToGo, relatively sparse city borders make it unclear whether the land threshold is truly complete; for iPopToGo, CvGame accepts exact equality with the population threshold.
@@ -1525,7 +1491,7 @@ scaled MilitaryVictory::progressRatingDomination() const
 		int const iMinCitiesToGo = 4;
 		if (rCitiesToGo < iMinCitiesToGo)
 		{
-			log("Cities-to-go set to lower bound: %d", iMinCitiesToGo);
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Cities-to-go set to lower bound: %d", iMinCitiesToGo);
 			rCitiesToGo = iMinCitiesToGo;
 		}
 		rCitiesGained.decreaseTo(rCitiesToGo);
@@ -1538,7 +1504,7 @@ scaled MilitaryVictory::progressRatingDomination() const
 			// Assume that we have enough land.
 			return rPopGained / iPopToGo;
 		}
-		log("Progress towards domination based on both gained cities and population");
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Progress towards domination based on both gained cities and population");
 		return fixp(0.5) * (rCitiesGained / rCitiesToGo + rPopGained / iPopToGo);
 	}
 }
@@ -1548,13 +1514,13 @@ scaled MilitaryVictory::progressRatingDiplomacy() const
 {
 	if (m_bEnoughVotes)
 	{
-		log("Votes for diplo victory already secured");
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Votes for diplo victory already secured");
 		return 0;
 	}
 	VoteSourceTypes const eVS = kOurTeam.AI_getLatestVictoryVoteSource();
 	if (eVS == NO_VOTESOURCE)
 	{	// DIPLO3 should normally rule that out (at the call site)
-		log("No vote source yet");
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("No vote source yet");
 		return 0;
 	}
 	ReligionTypes const eVSReligion = m_kGame.getVoteSourceReligion(eVS);
@@ -1601,7 +1567,7 @@ scaled MilitaryVictory::progressRatingDiplomacy() const
 		rObstacleProgress = scaled(iReligionObstaclesRemoved, iReligionObstacles);
 		if (rObstacleProgress > 0)
 		{
-			log("Progress on AP obstacles: %d percent",
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Progress on AP obstacles: %d percent",
 					rObstacleProgress.getPercent());
 		}
 	}
@@ -1644,7 +1610,7 @@ scaled MilitaryVictory::progressRatingDiplomacy() const
 		}
 		if (!bSecular && !kCacheCity.city().isHasReligion(eVSReligion))
 			rPop *= fixp(0.5); // Not 0 b/c religion can still be spread
-		log("Votes expected from %s: %d", m_kReport.cityName(kCacheCity.city()),
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Votes expected from %S: %d", (kCacheCity.city()).getName().GetCString(),
 				rPop.uround());
 		rPopGained += rPop;
 	}
@@ -1673,13 +1639,13 @@ scaled MilitaryVictory::progressRatingDiplomacy() const
 			else if (towardUs() == ATTITUDE_PLEASED)
 				rNewVassalVotes *= fixp(2/3.);
 		}
-		log("Votes expected from capitulated cities of %s: %d",
-				m_kReport.leaderName(eThey), rNewVassalVotes.uround());
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Votes expected from capitulated cities of %S: %d",
+				GET_PLAYER(eThey).getName(0), rNewVassalVotes.uround());
 		rPopGained += rNewVassalVotes;
 	}
 	if (rPopGained >= fixp(0.5))
 	{
-		log("Total expected votes: %d, current votes-to-go: %d",
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Total expected votes: %d, current votes-to-go: %d",
 				rPopGained.uround(), m_iVotesToGo);
 	}
 	FAssert(m_iVotesToGo > 0);
@@ -1756,7 +1722,7 @@ void Assistance::evaluate()
 	scaled rAssistRatio = assistanceRatio();
 	if (rAssistRatio > 0)
 	{
-		log("Expecting them to lose %d percent of their assets",
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Expecting them to lose %d percent of their assets",
 				rAssistRatio.getPercent());
 	}
 	else return;
@@ -1766,14 +1732,14 @@ void Assistance::evaluate()
 			(partnerUtilFromTech() + partnerUtilFromMilitary());
 	if (rTradeUtility > 0 || rOtherUtility > 0)
 	{
-		log("Utility for trade: %d, tech/military: %d, both weighted by saved assets",
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Utility for trade: %d, tech/military: %d, both weighted by saved assets",
 				rTradeUtility.uround(), rOtherUtility.uround());
 	}
 	scaled rUtility = rTradeUtility + rOtherUtility;
 	if (!kWe.isHuman() && towardThem() >= ATTITUDE_FRIENDLY)
 	{
 		scaled rPureAffectionUtility = rAssistRatio * 20;
-		log("Utility raised to %d for pure affection", rPureAffectionUtility.round());
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Utility raised to %d for pure affection", rPureAffectionUtility.round());
 		rUtility.increaseTo(rPureAffectionUtility);
 	}
 	scaled rOBUtil;
@@ -1782,10 +1748,10 @@ void Assistance::evaluate()
 	if (rUtility < rOBUtil && rOBUtil > 0)
 	{
 		rUtility = rOBUtil;
-		log("Utility raised to %d for strategic value of OB", rUtility.round());
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Utility raised to %d for strategic value of OB", rUtility.round());
 	}
 	scaled rPersonalityMult = kWeAI.protectiveInstinct();
-	log("Personality multiplier: %d percent", rPersonalityMult.getPercent());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Personality multiplier: %d percent", rPersonalityMult.getPercent());
 	/*	Assistance really counts the negative utility from losses
 		that our partner suffers */
 	m_iU -= (rUtility * rPersonalityMult).round();
@@ -1811,7 +1777,7 @@ scaled Assistance::assistanceRatio() const
 	{
 		// Count capitulation as a 50% devaluation of their remaining assets
 		r += fixp(0.5) * (1 - r);
-		log("%s capitulates", m_kReport.leaderName(eThey));
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("%S capitulates", GET_PLAYER(eThey).getName(0));
 	}
 	return r;
 }
@@ -1839,8 +1805,8 @@ void Reconquista::evaluate()
 				scaled(kCity.getPlot().calculateCulturePercent(eWe), 50)
 				)).sqrt();
 		rUtility += rBaseReconqVal * rReconqMult;
-		log("Reconquering %s; base val %d, modifier %d percent",
-				m_kReport.cityName(kCity),
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Reconquering %S; base val %d, modifier %d percent",
+				(kCity).getName().GetCString(),
 				rBaseReconqVal.uround(), rReconqMult.getPercent());
 	}
 	m_iU += rUtility.round();
@@ -1857,7 +1823,7 @@ void Rebuke::evaluate()
 			capitulation is offered */
 		int iRejectedPeaceCost = intdiv::uround(
 				kOurPersonality.getContactDelay(CONTACT_PEACE_TREATY), 5);
-		log("+%d for rejected peace offer", iRejectedPeaceCost);
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("+%d for rejected peace offer", iRejectedPeaceCost);
 		m_iU += iRejectedPeaceCost;
 	} // </advc.134a>
 	// Don't expect humans to follow through on rejected demands
@@ -1867,7 +1833,7 @@ void Rebuke::evaluate()
 		return;
 	if (militAnalyst().getCapitulationsAccepted(eOurTeam).count(eTheirTeam) > 0)
 	{
-		log("%s capitulates to us after rebuke", m_kReport.leaderName(eThey));
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("%S capitulates to us after rebuke", GET_PLAYER(eThey).getName(0));
 		/*	OK to count this multiple times for members of the same team; typically,
 			only some member pairs are going to have a rebuke memory. */
 		m_iU += 30;
@@ -1886,7 +1852,7 @@ void Rebuke::evaluate()
 			conqAssetScore() / scaled::max(10, ourCache().totalAssetScore()));
 	if (rPunishmentRatio <= 0)
 		return;
-	log("Punishment ratio: %d percent, rebuke diplo: %d",
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Punishment ratio: %d percent, rebuke diplo: %d",
 			rPunishmentRatio.getPercent(), iRebukeDiplo);
 	m_iU += std::min(30,
 			(scaled(iRebukeDiplo).sqrt() * 100 * rPunishmentRatio).round());
@@ -1927,8 +1893,8 @@ void Fidelity::evaluate()
 		if (eOurAttitude >= ATTITUDE_PLEASED)
 		{
 			bWarOngoing = true;
-			log("%s recently attacked our friend %s", m_kReport.leaderName(eThey),
-					m_kReport.leaderName(ePartner));
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("%S recently attacked our friend %S", GET_PLAYER(eThey).getName(0),
+					GET_PLAYER(ePartner).getName(0));
 			break;
 		}
 	}
@@ -1976,7 +1942,7 @@ void HiredHand::evaluate()
 		// Between Annoyed and Pleased; has to be strictly better to allow sponsorship. If it becomes strictly worse, we bail.
 		if (eSponsor != NO_PLAYER && iOriginalUtility > 0 && GET_PLAYER(eSponsor).isAlive() && kOurTeam.AI_getAttitude(TEAMID(eSponsor)) >= kOurPersonality.getDeclareWarRefuseAttitudeThreshold())
 		{
-			log("We've been hired by %s; original utility of payment: %d", m_kReport.leaderName(eSponsor), iOriginalUtility);
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("We've been hired by %S; original utility of payment: %d", GET_PLAYER(eSponsor).getName(0), iOriginalUtility);
 			// Inclined to fight for 20 turns
 			rUtility += eval(eSponsor, iOriginalUtility, 20);
 			int iDeniedHelpDiplo = 0;
@@ -1984,7 +1950,7 @@ void HiredHand::evaluate()
 				iDeniedHelpDiplo -= kWe.AI_getMemoryAttitude(itSponsorMember->getID(), MEMORY_DENIED_JOIN_WAR);
 			if (iDeniedHelpDiplo > 0) // (The above normally subtracts a negative value)
 			{
-				log("Utility reduced b/c of denied help");
+				if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Utility reduced b/c of denied help");
 				rUtility /= scaled(iDeniedHelpDiplo).sqrt();
 			}
 		}
@@ -2015,12 +1981,12 @@ void HiredHand::evaluate()
 					and eThey is the war we've asked the ally to declare, but that's OK. */
 				bTargetRecordsHire))
 			{
-				log("We've hired %s for war against %s",
-						m_kReport.leaderName(kAlly.getID()),
-						m_kReport.leaderName(eThey));
+				if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("We've hired %S for war against %S",
+						GET_PLAYER(kAlly.getID()).getName(0),
+						GET_PLAYER(eThey).getName(0));
 				if (kWe.AI_getAttitude(kAlly.getID()) <= ATTITUDE_ANNOYED)
 				{
-					log("... but we don't like our hireling enough to care");
+					if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("... but we don't like our hireling enough to care");
 					continue;
 				}
 				/*	Behave as if someone had paid us the equivalent of 25 utility;
@@ -2051,7 +2017,7 @@ scaled HiredHand::eval(PlayerTypes eAlly, int iOriginalUtility, int iObligationT
 		kOurTeam.AI_getWorstEnemy() == TEAMID(eAlly) ||
 		GET_TEAM(eAlly).isAVassal()))
 	{ // Don't feel obliged to vassals
-		log("We don't feel obliged to fight for %s", m_kReport.leaderName(eAlly));
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("We don't feel obliged to fight for %S", GET_PLAYER(eAlly).getName(0));
 		return 0;
 	}
 	int const iOurAtWarCounter = (kOurTeam.isAtWar(eTheirTeam) ?
@@ -2061,11 +2027,11 @@ scaled HiredHand::eval(PlayerTypes eAlly, int iOriginalUtility, int iObligationT
 			MAX_INT : GET_TEAM(eAlly).AI_getAtWarCounter(eTheirTeam));
 	// Whoever has been hired must have the smaller AtWarCounter
 	int iTurnsFought = std::min(iOurAtWarCounter, iAllyAtWarCounter);
-	log("Hired team has fought %d turns against %s", iTurnsFought,
-			m_kReport.leaderName(eThey));
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Hired team has fought %d turns against %S", iTurnsFought,
+			GET_PLAYER(eThey).getName(0));
 	if (iTurnsFought >= iObligationThresh)
 	{
-		log("Fought long enough");
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Fought long enough");
 		return 0;
 	}
 	scaled rObligationRatio(iObligationThresh - iTurnsFought, iObligationThresh);
@@ -2074,8 +2040,8 @@ scaled HiredHand::eval(PlayerTypes eAlly, int iOriginalUtility, int iObligationT
 	scaled rUtility = 2 * SQR(rObligationRatio) * iOriginalUtility;
 	if (rUtility >= fixp(0.5))
 	{
-		log("Utility for sticking with %s: %d", eAlly == NO_PLAYER ?
-				"our historical role" : m_kReport.leaderName(eAlly),
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Utility for sticking with %S: %d", eAlly == NO_PLAYER ?
+				L"our historical role" : GET_PLAYER(eAlly).getName(0),
 				rUtility.round());
 	}
 	return rUtility;
@@ -2108,7 +2074,7 @@ void BorderDisputes::evaluate()
 	}
 	if (militAnalyst().getCapitulationsAccepted(eOurTeam).count(eTheirTeam) > 0)
 	{
-		log("They capitulate; shared-borders diplo%s: %d",
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("They capitulate; shared-borders diplo%s: %d",
 				kWe.isHuman() ? " (human)" : "", iDiploPenalty);
 		m_iU += iDiploPenalty * 8;
 		return;
@@ -2136,20 +2102,20 @@ void BorderDisputes::evaluate()
 						75 - kCity.getPlot().calculateCulturePercent(eConquerer));
 				rNewOwnerMultiplier.increaseTo(0);
 			}
-			log("%s possible border city; our culture: %d percent",
-					m_kReport.cityName(kCity), iOurPlotCulturePercent);
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("%S possible border city; our culture: %d percent",
+					(kCity).getName().GetCString(), iOurPlotCulturePercent);
 			/*	If we have very little culture there and we don't conquer it,
 				assume that the city is far away from our border. */
 			if (eConquerer != eWe && iOurPlotCulturePercent < 1)
 			{
 				rNewOwnerMultiplier = 0;
-				log("Skipped b/c conquered by third party and "
+				if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Skipped b/c conquered by third party and "
 						"our culture very small");
 			}
 			else if (kCity.getPlot().getCulture(eWe) <= 0)
 			{
 				rNewOwnerMultiplier = 0;
-				log("Skipped b/c we have 0 culture there");
+				if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Skipped b/c we have 0 culture there");
 			}
 			break;
 		}
@@ -2168,9 +2134,9 @@ void BorderDisputes::evaluate()
 		}
 		else dOurCultureMultiplier = 1;
 		scaled rOurCultureModifier = scaled::fromDouble(dOurCultureMultiplier);
-		log("Multiplier for our rel. tile culture: %d percent",
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Multiplier for our rel. tile culture: %d percent",
 				rOurCultureModifier.getPercent());
-		log("Diplo penalty from border dispute: %d", iDiploPenalty);
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Diplo penalty from border dispute: %d", iDiploPenalty);
 		rUtility += 5 * rNewOwnerMultiplier * rOurCultureModifier * iDiploPenalty;
 	}
 	m_iU += rUtility.round();
@@ -2232,13 +2198,13 @@ void SuckingUp::evaluate()
 	int const iMaxDiplo = (m_kGame.isOption(GAMEOPTION_RANDOM_PERSONALITIES) ? 4 :
 			GC.getInfo(kThey.getPersonalityType()).getShareWarAttitudeChangeLimit());
 	scaled rUtility = fixp(1.6) * iMaxDiplo; // Should iSharedWars have an impact?
-	log("Sharing a war with %s; up to +%d diplo",
-			m_kReport.leaderName(eThey), iMaxDiplo);
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Sharing a war with %S; up to +%d diplo",
+			GET_PLAYER(eThey).getName(0), iMaxDiplo);
 	int const iCivPlayersAlive = m_kGame.countCivPlayersAlive();
 	if (towardUs() == ATTITUDE_PLEASED &&
 		kWe.AI_atVictoryStage(AI_VICTORY_DIPLOMACY3) && iCivPlayersAlive > 2)
 	{
-		log("Bonus utility for them being pleased and us close to diplo victory");
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Bonus utility for them being pleased and us close to diplo victory");
 		rUtility += 5;
 	}
 	/*	Diplo bonus with just one civ less important in large games, but also in
@@ -2351,26 +2317,26 @@ void PreEmptiveWar::evaluate()
 	rTheirEdge.clamp(fixp(-0.5), fixp(0.5));
 	if (rTheirEdge == 0)
 		return;
-	log("Long-term threat rating for %s: %d percent", m_kReport.leaderName(eThey),
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Long-term threat rating for %S: %d percent", GET_PLAYER(eThey).getName(0),
 			rCurrThreat.getPercent());
-	log("Our cities (now/predicted) and theirs: %d/%d, %d/%d",
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Our cities (now/predicted) and theirs: %d/%d, %d/%d",
 			rOurCurrentCities.uround(), rOurPredictedCities.uround(),
 			rTheirCurrentCities.uround(), rTheirPredictedCities.uround());
-	log("Their gain in power: %d percent", rTheirEdge.getPercent());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Their gain in power: %d percent", rTheirEdge.getPercent());
 	// Shifts in power tend to affect the threat disproportionately
 	scaled rThreatChange = rTheirEdge.abs().sqrt();
 	if (rTheirEdge < 0)
 		rThreatChange.flipSign();
-	log("Change in threat: %d percent", rThreatChange.getPercent());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Change in threat: %d percent", rThreatChange.getPercent());
 	scaled rUtility = -90 * rCurrThreat * rThreatChange;
 	// Kingmaking should handle the endgame (but not quite there yet)
 	if (rUtility.abs().uround() >= 1 && kTheirTeam.AI_anyMemberAtVictoryStage3())
 	{
-		log("Util from pre-emptive war reduced b/c they're close to victory");
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Util from pre-emptive war reduced b/c they're close to victory");
 		rUtility *= fixp(0.6);
 	}
 	scaled rDistrustFactor = kWeAI.distrustRating();
-	log("Our distrust: %d percent", rDistrustFactor.getPercent());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Our distrust: %d percent", rDistrustFactor.getPercent());
 	m_iU += (rUtility * rDistrustFactor).round();
 }
 
@@ -2405,7 +2371,7 @@ int KingMaking::preEvaluate()
 		kOurTeam.AI_isChosenWar(m_kParams.getTarget()) ||
 		!kOurTeam.AI_isAvoidWar(m_kParams.getTarget(), true)))
 	{
-		log("We'll be the only winners; peace weight: %d", iPeaceWeight);
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("We'll be the only winners; peace weight: %d", iPeaceWeight);
 		return (rEraFactor * (iVeryHighPeaceWeight - iPeaceWeight)).round();
 	}
 	return 0;
@@ -2695,8 +2661,8 @@ void KingMaking::evaluate()
 				back in competition. */
 			rCaughtUpPremium += rCatchUpVal;
 			bCaughtUp = true;
-			log("%d for catching up with %s", rCaughtUpPremium.round(),
-					m_kReport.leaderName(eThey));
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("%d for catching up with %S", rCaughtUpPremium.round(),
+					GET_PLAYER(eThey).getName(0));
 		}
 		else
 		{
@@ -2712,8 +2678,8 @@ void KingMaking::evaluate()
 		rCaughtUpPremium -= rCatchUpVal;
 		// Be more reckless when falling behind
 		rAttitudeMult += fixp(0.25);
-		log("%d for falling behind %s", rCaughtUpPremium.round(),
-				m_kReport.leaderName(eThey));
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("%d for falling behind %S", rCaughtUpPremium.round(),
+				GET_PLAYER(eThey).getName(0));
 	}
 	if (rAttitudeMult <= 0)
 	{
@@ -2736,7 +2702,7 @@ void KingMaking::evaluate()
 		rWeight = (bCaughtUp ? 2 : 3);
 	}
 	scaled rUtility = rTheirLoss * 100 * rWeight;
-	log("%d base utility for change in asset ratio", rUtility.round());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("%d base utility for change in asset ratio", rUtility.round());
 	scaled rCompetitionMult;
 	{
 		/*	Over the course of the game, we become more willing to take out rivals
@@ -2746,13 +2712,13 @@ void KingMaking::evaluate()
 		scaled rDiv = 1 + SQR(rProgressFactor * iWinningRivals);
 		rCompetitionMult = 1 / rDiv;
 	}
-	log("Winning teams: %d (%d rivals)", (int)m_winningFuture.size(), iWinningRivals);
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Winning teams: %d (%d rivals)", (int)m_winningFuture.size(), iWinningRivals);
 	rUtility.clamp(-100, 100);
-	log("Attitude multiplier: %d percent, competition multiplier: %d percent",
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Attitude multiplier: %d percent, competition multiplier: %d percent",
 			rAttitudeMult.getPercent(), rCompetitionMult.getPercent());
 	rUtility *= rAttitudeMult * rCompetitionMult;
 	if (rUtility.abs() < fixp(0.5)) // Report confusing to read w/o this
-		log("(Kingmaking gain from %s negligibly small)", m_kReport.leaderName(eThey));
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("(Kingmaking gain from %S negligibly small)", GET_PLAYER(eThey).getName(0));
 	m_iU += (rUtility + rCaughtUpPremium).round();
 }
 
@@ -2783,7 +2749,7 @@ scaled KingMaking::theirRelativeLoss() const
 				scaled rAssets;
 				netLostAssetScore(eTheirAlly, NO_PLAYER, &rAssets);
 				scaled rTheirGain = rVassalFactor * remainingCityRatio(eTheirAlly) * rAssets;
-				log("Gained from new vassal: %d", rTheirGain.round());
+				if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Gained from new vassal: %d", rTheirGain.round());
 				rTheirLostAssets -= rTheirGain;
 			}
 			continue;
@@ -2853,7 +2819,7 @@ int Effort::preEvaluate()
 			/*	Can't be sure that this won't lead to a change in civics
 				(though it shouldn't); therefore not 0 cost. */
 			rUtility += 2;
-			log("All targets are short work; only %d for wartime economy",
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("All targets are short work; only %d for wartime economy",
 					rUtility.uround());
 		}
 		else
@@ -2864,12 +2830,12 @@ int Effort::preEvaluate()
 					((bAllWarsLongDist ? 10 : 7) +
 					// Workers not much of a concern later on
 					kWe.AI_getCurrEraFactor() / 2);
-			log("Cost for wartime economy and ravages: %d%s", rUtility.uround(),
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Cost for wartime economy and ravages: %d%s", rUtility.uround(),
 					(bAllWarsLongDist ? " (reduced b/c of distance)" : ""));
 		}
 	}
 	scaled rGoldPerProduction = ourCache().goldValueOfProduction();
-	log("1 production valued as %.2f gold", rGoldPerProduction.getFloat());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("1 production valued as %.2f gold", rGoldPerProduction.getFloat());
 	// Rather use the max over all wars?
 	int const iDuration = kOurTeam.AI_getAtWarCounter(m_kParams.getTarget());
 	/*	How powerful are we relative to our rivals at the end of the simulation?
@@ -2958,7 +2924,7 @@ int Effort::preEvaluate()
 			(1 - rFutureUse) * (m_kParams.isTotal() ? fixp(1.1) : 1) *
 			// Future use of transports is a long shot
 			(m_kParams.isNaval() ? fixp(1.2) : 1);
-	log("Production value of lost units: %d, invested production: %d,"
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Production value of lost units: %d, invested production: %d,"
 			" multiplier for future use of trained units: %d percent, "
 			"adjusted production value of build-up and losses: %d",
 			rOurLostProductionInUnits.uround(), rInvested.uround(),
@@ -2976,7 +2942,7 @@ int Effort::preEvaluate()
 		{	// Not clear that we're on the offensive
 			rSupplyCost /= 2;
 		}
-		log("Estimated gold for supply: %d (%d turns simulated, %d units lost)",
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Estimated gold for supply: %d (%d turns simulated, %d units lost)",
 				rSupplyCost.uround(), militAnalyst().turnsSimulated(),
 				rOurLostUnits.uround());
 		rSupplyCost *= kWeAI.amortizationMultiplier();
@@ -2994,11 +2960,11 @@ int Effort::preEvaluate()
 		rGoldPerProduction = scaled::min(5, rGoldPerProduction *
 				(1 + rVagueOpportunityWeight * fixp(0.025) *
 				std::min(iExtraDuration, 40) / rGameSpeedDiv));
-		log("Gold per production adjusted to %.2f based on war duration (%d turns)",
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Gold per production adjusted to %.2f based on war duration (%d turns)",
 				rGoldPerProduction.getFloat(), iDuration);
 	}
 	scaled rTradeVal = rSupplyCost + rGoldPerProduction * rOurLostProduction;
-	log("Trade value of build-up and war effort: %d", rTradeVal.uround());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Trade value of build-up and war effort: %d", rTradeVal.uround());
 	rUtility += kWeAI.tradeValToUtility(rTradeVal);
 	/*	Nukes are included in army, and therefore already covered by the costs above.
 		But these don't take into account that nukes are always lost when used.
@@ -3013,7 +2979,7 @@ int Effort::preEvaluate()
 			and b/c already partially covered by army losses. */
 		scaled rNukeProduction = fixp(0.3) * rFired * kNukeBranch.getTypicalCost();
 		scaled rNukeCost = kWeAI.tradeValToUtility(rGoldPerProduction * rNukeProduction);
-		log("Extra cost for fired nukes: %d; lost prod: %d",
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Extra cost for fired nukes: %d; lost prod: %d",
 				rNukeCost.uround(), rNukeProduction.uround());
 		rUtility += rNukeCost;
 	}
@@ -3135,7 +3101,7 @@ int Risk::preEvaluate()
 			FAssert(rRelativeVassalLoss <= 1);
 			rRelativeVassalLoss.decreaseTo(1);
 			rVassalCost = rRelativeVassalLoss * 33;
-			log("Cost for losses of vassal %s: %d", m_kReport.leaderName(eVassal),
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Cost for losses of vassal %S: %d", GET_PLAYER(eVassal).getName(0),
 					rVassalCost.uround());
 		}
 		if (!GET_TEAM(eVassal).isCapitulated())
@@ -3151,7 +3117,7 @@ int Risk::preEvaluate()
 				scaled rBreakAwayCost = scaled::min(20, rRelativePow.sqrt() * 40);
 				if (rBreakAwayCost >= fixp(0.5))
 				{
-					log("Cost for %s breaking free: %d", m_kReport.leaderName(eVassal),
+					if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Cost for %S breaking free: %d", GET_PLAYER(eVassal).getName(0),
 							rBreakAwayCost.uround());
 				}
 				rVassalCost += rBreakAwayCost;
@@ -3198,7 +3164,7 @@ void Risk::evaluate()
 				rAssetScore += (bCulture4 ? 15 : 8);
 			}
 		}
-		log("%s: %d lost assets%s", m_kReport.cityName(kCity), rAssetScore.round(),
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("%S: %d lost assets%s", (kCity).getName().GetCString(), rAssetScore.round(),
 				(bCulture3 || bSpace4 ? " (important for victory)" : ""));
 		rLostAssets += rAssetScore;
 	}
@@ -3215,7 +3181,7 @@ void Risk::evaluate()
 		militAnalyst().getWarsDeclaredBy(eWe).count(eThey) > 0 &&
 		kTheirTeam.getNumWars() <= 0 && rFromNukes <= iScareCost)
 	{
-		log("Nuke cost raised to %d for fear", iScareCost);
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Nuke cost raised to %d for fear", iScareCost);
 		rFromNukes = iScareCost;
 	}
 	rUtility += rFromNukes;
@@ -3224,11 +3190,9 @@ void Risk::evaluate()
 	rUtility /= rTotalAssets;
 	if (rUtility >= fixp(0.5))
 	{
-		if (rFromBlockade / rTotalAssets >= fixp(0.5))
-			log("From naval blockade: %d", (rFromBlockade / rTotalAssets).uround());
-		if (rFromNukes / rTotalAssets >= fixp(0.5))
-			log("From nukes: %d", (rFromNukes / rTotalAssets).uround());
-		log("Cost for lost assets: %d (loss: %d, present: %d)",
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted() && (rFromBlockade / rTotalAssets >= fixp(0.5))) logBBAI("From naval blockade: %d", (rFromBlockade / rTotalAssets).uround());
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted() && (rFromNukes / rTotalAssets >= fixp(0.5))) logBBAI("From nukes: %d", (rFromNukes / rTotalAssets).uround());
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Cost for lost assets: %d (loss: %d, present: %d)",
 				rUtility.round(), rLostAssets.uround(), rTotalAssets.uround());
 	}
 	if (militAnalyst().getCapitulationsAccepted(eTheirTeam).count(eOurTeam) > 0)
@@ -3238,7 +3202,7 @@ void Risk::evaluate()
 		rUtility /= 2;
 		int const iCostForCapitulation = 100;
 		rUtility += iCostForCapitulation;
-		log("Cost halved because of capitulation; %d added", iCostForCapitulation);
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Cost halved because of capitulation; %d added", iCostForCapitulation);
 	}
 	/*	Count something extra for elimination just to make sure that peace is
 		sought even when fighting multiple hopeless wars. */
@@ -3303,8 +3267,7 @@ void IllWill::evaluate()
 	scaled rCitiesWeNuked = militAnalyst().getNukedCities(eWe, eThey);
 	if (rCitiesWeNuked > 0)
 		rNukeCost = nukeCost(rCitiesWeNuked);
-	if (rNukeCost >= fixp(0.5))
-		log("Diplo cost for nukes: %d", rNukeCost.round());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted() && (rNukeCost >= fixp(0.5))) logBBAI("Diplo cost for nukes: %d", rNukeCost.round());
 	// NB: Subroutines have added to m_rCost
 	m_rCost += rNukeCost;
 	m_iU -= m_rCost.round();
@@ -3338,7 +3301,7 @@ scaled IllWill::nukeCost(scaled rCitiesWeNuked) const
 			about other civs as war allies or enemies. */
 		if (kThirdPlayer.AI_getAttitude(eWe) >= ATTITUDE_PLEASED)
 			rAttitudeFactor /= 2;
-		log("Diplo penalty from %s: %d times %.2f", m_kReport.leaderName(kThirdPlayer.getID()),
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Diplo penalty from %S: %d times %.2f", GET_PLAYER(kThirdPlayer.getID()).getName(0),
 				rAttitudeFactor.round(), rCitiesWeNuked.getFloat());
 		rNukeCost += rAttitudeFactor * rCitiesWeNuked;
 	}
@@ -3393,7 +3356,7 @@ void IllWill::evalLostPartner()
 		scaled rReconciliationUtility =
 				4 * (m_rAltPartnerFactor / rDiploDiv) *
 				kWeAI.amortizationMultiplier();
-		log("%d for the possibility of reconciliation",
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("%d for the possibility of reconciliation",
 				rReconciliationUtility.round());
 		m_rCost -= rReconciliationUtility;
 		return;
@@ -3408,21 +3371,21 @@ void IllWill::evalLostPartner()
 	// Halved because can still enter their borders by force.
 	if (kOurTeam.isOpenBorders(eTheirTeam))
 		rPartnerUtil += iPartnerUtilFromOB / (bTheyCapitulated ? 4 : 2);
-	log("Base partner utility from %s: %d", m_kReport.leaderName(eThey),
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Base partner utility from %S: %d", GET_PLAYER(eThey).getName(0),
 			rPartnerUtil.round());
-	log("Modifier for alt. partners: %d percent", m_rAltPartnerFactor.getPercent());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Modifier for alt. partners: %d percent", m_rAltPartnerFactor.getPercent());
 	scaled rUtility = rPartnerUtil * m_rAltPartnerFactor;
 	// They may help us again in the future (if we don't go to war with them)
 	if (kWe.AI_getMemoryCount(eThey, MEMORY_GIVE_HELP) > 0)
 	{
 		scaled rGiftUtility = 5 * kWeAI.amortizationMultiplier();
-		log("%d for given help", rGiftUtility.round());
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("%d for given help", rGiftUtility.round());
 		rUtility += rGiftUtility;
 	}
 	scaled const rHumanMult = fixp(0.81);
 	if (kThey.isHuman())
 	{
-		log("Lost-partner cost reduced b/c humans are forgiving");
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Lost-partner cost reduced b/c humans are forgiving");
 		rUtility *= rHumanMult;
 	}
 	if (kWe.isHuman())
@@ -3470,7 +3433,7 @@ void IllWill::evalRevenge()
 			/*scaled rMult(kOurTeam.AI_getWarSuccessRating(), -10);
 			rMult.clamp(3, fixp(6.5));*/ // Instead of the 5.5?
 			scaled rHopelessStalemateCost = (1 - kWe.uwai().prideRating()) * fixp(5.5);
-			log("Cost for hopeless stalemate: %d", rHopelessStalemateCost.uround());
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Cost for hopeless stalemate: %d", rHopelessStalemateCost.uround());
 			m_rCost += rHopelessStalemateCost;
 		}
 		return;
@@ -3495,7 +3458,7 @@ void IllWill::evalRevenge()
 	rRevengeCost += rPowRatioMult * 28 * rAttitudeMult;
 	if (rRevengeCost >= fixp(0.5))
 	{
-		log("Cost for possible revenge: %d (attitude mult.: %d percent)",
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Cost for possible revenge: %d (attitude mult.: %d percent)",
 				rRevengeCost.round(), rAttitudeMult.getPercent());
 	}
 	m_rCost += rRevengeCost;
@@ -3515,8 +3478,8 @@ scaled IllWill::theirToOurPowerRatio() const
 	if (kWe.isHuman())
 		rTheirPow *= kThey.uwai().confidenceAgainstHuman();
 	scaled r = rTheirPow / scaled::max(10, rOurPow);
-	log("Power ratio %s:%s after military analysis: %d percent",
-			m_kReport.leaderName(eThey), m_kReport.leaderName(eWe), r.getPercent());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Power ratio %S:%S after military analysis: %d percent",
+			GET_PLAYER(eThey).getName(0), GET_PLAYER(eWe).getName(0), r.getPercent());
 	return r;
 }
 
@@ -3546,7 +3509,7 @@ void IllWill::evalAngeredPartners()
 		//if (kThey.AI_getAttitude(*it) >= ATTITUDE_PLEASED)
 		if (kThey.AI_disapprovesOfDoW(eOurTeam, eVictimTeam)) // advc.130h
 		{
-			log("-%d relations with %s for DoW on %s", rPenaltyPerDoW.floor(), m_kReport.leaderName(eThey), m_kReport.leaderName(*it));
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("-%d relations with %S for DoW on %S", rPenaltyPerDoW.floor(), GET_PLAYER(eThey).getName(0), GET_PLAYER(*it).getName(0));
 			rPenalties += rPenaltyPerDoW;
 		}
 	}
@@ -3559,7 +3522,7 @@ void IllWill::evalAngeredPartners()
 	scaled rCostPerPenalty = partnerUtilFromTrade() + partnerUtilFromTech() + partnerUtilFromMilitary() + (kOurTeam.isOpenBorders(eTheirTeam) ? iPartnerUtilFromOB : 0) + (bWillDisplease ? std::min(fixp(14.5), 9 * SQR(rTheirToOurPow)) : 0);
 	// Don't worry quite as much about diplo in team games. AI DoW aren't as dynamic, and it's sufficient for tech trading if some team members get along.
 	rCostPerPenalty /= ((bWillDisplease && towardUs() >= ATTITUDE_CAUTIOUS) ? fixp(3.75) : fixp(5.25)) * scaled(kOurTeam.getNumMembers()).sqrt();
-	log("Cost per -1 relations: %d", rCostPerPenalty.uround());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Cost per -1 relations: %d", rCostPerPenalty.uround());
 	// costPerPenalty already adjusted to game progress, but want to dilute the impact of leader personality in addition to that. diploWeight is mostly about trading, and trading becomes less relevant in the latem_kGame.
 	scaled rDiploWeight = 1 + (kWeAI.diploWeight() - 1) * kWeAI.amortizationMultiplier();
 	// The bad diplo hurts us, but our anger at eThey is difficult to contain.
@@ -3567,12 +3530,12 @@ void IllWill::evalAngeredPartners()
 		rDiploWeight /= 2;
 	// We've actually one partner less b/c we're considering alternatives to a partner that (probably) isn't counted by preEvaluate as hostile.
 	m_rCost += rCostPerPenalty * rPenalties * rDiploWeight * m_rAltPartnerFactor;
-	log("Diplo weight: %d percent, alt.-partner factor: %d percent", rDiploWeight.getPercent(), m_rAltPartnerFactor.getPercent());
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Diplo weight: %d percent, alt.-partner factor: %d percent", rDiploWeight.getPercent(), m_rAltPartnerFactor.getPercent());
 	if (towardUs() >= ATTITUDE_PLEASED && kWe.AI_atVictoryStage(AI_VICTORY_DIPLOMACY4 | AI_VICTORY_DIPLOMACY3))
 	{
 		scaled rVictoryFactor(kThey.getTotalPopulation(), std::max(1, m_kGame.getTotalPopulation()));
 		scaled rVictoryCost = 25 * rVictoryFactor * rPenalties;
-		log("-%d for jeopardizing diplo victory", rVictoryCost.round());
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("-%d for jeopardizing diplo victory", rVictoryCost.round());
 		m_rCost += rVictoryCost;
 	}
 }
@@ -3658,8 +3621,8 @@ void Affection::evaluate()
 		if (iVassalPenalty > 0)
 		{
 			iNoWarPercent = std::max(iNoWarPercent / 2, iNoWarPercent - iVassalPenalty);
-			log("No-war-chance for %s reduced by %d b/c of peace vassals",
-					m_kReport.leaderName(eThey), iVassalPenalty);
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("No-war-chance for %S reduced by %d b/c of peace vassals",
+					GET_PLAYER(eThey).getName(0), iVassalPenalty);
 		}
 		//rUtility = per100(iNoWarPercent).pow(fixp(5.5)) * 75;
 		// ^That progression is a bit too steep
@@ -3699,7 +3662,7 @@ void Affection::evaluate()
 				std::min(rUncertaintyBound, fixp(0.5) * rUtility);
 		if (rUncertainVal.abs() >= fixp(0.5))
 		{
-			log("%d %s for uncertainty", rUncertainVal.abs().round(),
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("%d %s for uncertainty", rUncertainVal.abs().round(),
 					(rUncertainVal > 0 ? "added" : "subtracted"));
 		}
 		rUtility += rUncertainVal;
@@ -3711,7 +3674,7 @@ void Affection::evaluate()
 		rUtility = normalizeUtility(rUtility) * kOurTeam.getNumMembers() * fixp(2/3.);
 	if (rUtility >= fixp(0.5))
 	{
-		log("NoWarAttProb: %d percent, our attitude: %d, for linked war: %d percent,"
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("NoWarAttProb: %d percent, our attitude: %d, for linked war: %d percent,"
 				" for direct war plan: %d percent, for game turn: %d percent",
 				iNoWarPercent, towardThem(), rLinkedWarMult.getPercent(),
 				rWarImminentMult.getPercent(), m_rGameProgressFactor.getPercent());
@@ -3750,7 +3713,7 @@ void Distraction::evaluate()
 	}
 	if (!bCanReach)
 	{
-		log("No distraction from %s b/c neither side can reach the other", m_kReport.teamName(eTheirTeam));
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("No distraction from %S b/c neither side can reach the other", GET_TEAM(eTheirTeam).getName().GetCString());
 		return;
 	}
 	FAssert(!m_kParams.isIgnoreDistraction());
@@ -3776,8 +3739,8 @@ void Distraction::evaluate()
 				ourCache().warUtilityIgnoringDistraction(eAltTarget), eAltTarget);
 		if (rWarUtilityVsAlt >= 50 && kOurTeam.isAtWar(eTheirTeam))
 		{
-			log("Distraction unproblematic b/c war utility against %s is high (%d)",
-					m_kReport.teamName(eAltTarget), rWarUtilityVsAlt.round());
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Distraction unproblematic b/c war utility against %S is high (%d)",
+					GET_TEAM(eAltTarget).getName().GetCString(), rWarUtilityVsAlt.round());
 			continue;
 		}
 		/*	The war against eThey distracts us from our war against eAltTarget.
@@ -3788,9 +3751,9 @@ void Distraction::evaluate()
 		if (kOurTeam.AI_getWarPlan(eAltTarget) != NO_WARPLAN)
 		{
 			rDistractionCost += fixp(5.5);
-			log("War plan against %s distracts us from (actual)"
-					" war plan against %s", m_kReport.teamName(eTheirTeam),
-					m_kReport.teamName(eAltTarget));
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("War plan against %S distracts us from (actual)"
+					" war plan against %S", GET_TEAM(eTheirTeam).getName().GetCString(),
+					GET_TEAM(eAltTarget).getName().GetCString());
 			/*	The cached value is for limited war in 5 turns, which isn't
 				necessarily the best war plan against eAltTarget. */
 			rWarUtilityVsAlt += fixp(7.5);
@@ -3803,7 +3766,7 @@ void Distraction::evaluate()
 				(sponsored or diplo vote) to declare war on eThey. (Not possible:
 				preparations against eAltTarget and eThey at the same time.) */
 				rDistractionCost += rWarUtilityVsAlt;
-				log("%d extra cost for distraction from war in preparation", rWarUtilityVsAlt.uround());
+				if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("%d extra cost for distraction from war in preparation", rWarUtilityVsAlt.uround());
 			}
 			// NB: Imminent war against eAltTarget is covered by UWAI::Team::considerPeace
 		}
@@ -3827,10 +3790,10 @@ void Distraction::evaluate()
 			if (rOpportunityCost >= fixp(0.5))
 			{
 				rOpportunityCost.decreaseTo(15);
-				log("War against %s (%d turns) distracts us from potential war plan "
-						"against %s. Current utilities: %d/%d; Distraction cost: %d",
-						m_kReport.teamName(eTheirTeam), iWarDuration,
-						m_kReport.teamName(eAltTarget), rWarUtilityVsThem.round(),
+				if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("War against %S (%d turns) distracts us from potential war plan "
+						"against %S. Current utilities: %d/%d; Distraction cost: %d",
+						GET_TEAM(eTheirTeam).getName().GetCString(), iWarDuration,
+						GET_TEAM(eAltTarget).getName().GetCString(), rWarUtilityVsThem.round(),
 						rWarUtilityVsAlt.round(), rOpportunityCost.uround());
 				rHighestOpportunityCost.increaseTo(rOpportunityCost);
 				rTotalOpportunityCost += rOpportunityCost;
@@ -3847,7 +3810,7 @@ void Distraction::evaluate()
 				scaled(iAltWars).sqrt();
 		if (rOverallOpportunityCost >= fixp(0.5))
 		{
-			log("Adjusted cost for all (%d) potential wars: %d", iAltWars,
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Adjusted cost for all (%d) potential wars: %d", iAltWars,
 					rOverallOpportunityCost.uround());
 			rDistractionCost += rOverallOpportunityCost;
 		}
@@ -3867,7 +3830,7 @@ void Distraction::evaluate()
 			rDistractionCost.decreaseTo(rWarUtilityVsThem * per100(iMaxCostPercent));
 			if (rDistractionCost < rOldDistractionCost)
 			{
-				log("Distraction reduced from %d to %d: current war utility %d, target power %d percent, war-success lead %d",
+				if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Distraction reduced from %d to %d: current war utility %d, target power %d percent, war-success lead %d",
 						rOldDistractionCost.round(), rDistractionCost.round(), rWarUtilityVsThem.round(), iTargetPowerPercent, rWarSuccessLead.round());
 			}
 		}
@@ -3893,8 +3856,8 @@ void Distraction::evaluate()
 		scaled rAlmostDoneMult(kTheirTeam.getNumCities(), 3);
 		if (rAlmostDoneMult < 1)
 		{
-			log("Distraction cost reduced to %d percent b/c we're almost done with %s",
-					rAlmostDoneMult.getPercent(), m_kReport.teamName(eTheirTeam));
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Distraction cost reduced to %d percent b/c we're almost done with %S",
+					rAlmostDoneMult.getPercent(), GET_TEAM(eTheirTeam).getName().GetCString());
 			rDistractionCost *= rAlmostDoneMult;
 		}
 	}
@@ -3927,7 +3890,7 @@ void PublicOpposition::evaluate()
 	scaled rWWAnger = ourCache().angerFromWarWeariness(eThey);
 	if (rWWAnger + rFaithAnger <= 0)
 		return;
-	log("Angry citizens from religion: %d, from ww: %d; total citizens: %d",
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Angry citizens from religion: %d, from ww: %d; total citizens: %d",
 			rFaithAnger.uround(), rWWAnger.uround(), iTotalPop);
 	// Assume that more WW is coming, and especially if we take the fight to them.
 	WarPlanTypes const eWarPlan = kOurTeam.AI_getWarPlan(eTheirTeam);
@@ -3939,7 +3902,7 @@ void PublicOpposition::evaluate()
 			std::max(kWe.getNumCities(), 1);
 	if (rWWAnger > 0)
 	{
-		log("Expected increase in WW: %d percent (%d conquered cities, %s war)",
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Expected increase in WW: %d percent (%d conquered cities, %s war)",
 				rExtraAngerPortion.getPercent(), (int)ourConquestsFromThem().size(),
 				(bTotal ? "total" : "limited"));
 	}
@@ -3963,7 +3926,7 @@ void PublicOpposition::evaluate()
 		if (kWe.AI_atVictoryStage(AI_VICTORY_MILITARY4))
 			rAngerCost /= iDiv;
 	}
-	log("War anger rate: %d percent%s", rAngerRate.getPercent(),
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("War anger rate: %d percent%s", rAngerRate.getPercent(),
 			(rAngerCost <= fixp(0.5) ? " (negligible)" : ""));
 	m_iU -= rAngerCost.round();
 }
@@ -4013,13 +3976,13 @@ int Revolts::preEvaluate()
 					then it's probably not mainly a matter of distracted units. */
 				if (pCity->getNumRevolts() > GC.getDefineINT(CvGlobals::NUM_WARNING_REVOLTS))
 				{
-					log("%s skipped as hopeless", m_kReport.cityName(*pCity));
+					if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("%S skipped as hopeless", (*pCity).getName().GetCString());
 					continue;
 				}
 				scaled rLossMult = 5 * std::min(fixp(0.1), rRevoltProb);
 				if (rLossMult > 0)
 				{
-					log("%s in danger of revolt (%d percent; assets: %d)", m_kReport.cityName(*pCity), rRevoltProb.getPercent(), iCityAssets);
+					if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("%S in danger of revolt (%d percent; assets: %d)", (*pCity).getName().GetCString(), rRevoltProb.getPercent(), iCityAssets);
 					rLossesFromRevolts += iCityAssets * rLossMult;
 				}
 			}
@@ -4093,7 +4056,7 @@ void UlteriorMotives::evaluate()
 	if (iMotivesCost > 0)
 	{
 		// <!-- custom: AdvCiv's UWAI report format requested the DeclareWarRefuseAttitudeThreshold but omitted its vararg, producing undefined output when reporting was enabled. See KI#431. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-		log("Attitude level towards %s: %d, refusal thresh: %d", m_kReport.leaderName(eThey), towardThem(), kOurPersonality.getDeclareWarRefuseAttitudeThreshold());
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Attitude level towards %S: %d, refusal thresh: %d", GET_PLAYER(eThey).getName(0), towardThem(), kOurPersonality.getDeclareWarRefuseAttitudeThreshold());
 		m_iU -= iMotivesCost;
 	}
 }
@@ -4148,21 +4111,21 @@ void FairPlay::evaluate()
 			if (iTheirRank < iOtherRank)
 				rEnemyWeight *= scaled(iTheirRank + 1, iOtherRank + 1);
 			rOtherEnemies += rEnemyWeight;
-			log("Another enemy of %s: %s; increment: %d percent",
-					m_kReport.leaderName(eThey),
-					m_kReport.leaderName(kOther.getID()),
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Another enemy of %S: %S; increment: %d percent",
+					GET_PLAYER(eThey).getName(0),
+					GET_PLAYER(kOther.getID()).getName(0),
 					rEnemyWeight.getPercent());
 		}
 		else if (kTheirTeam.AI_shareWar(kOther.getTeam()))
 		{
-			log("An ally of %s: %s", m_kReport.leaderName(eThey),
-					m_kReport.leaderName(kOther.getID()));
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("An ally of %S: %S", GET_PLAYER(eThey).getName(0),
+					GET_PLAYER(kOther.getID()).getName(0));
 			rOtherEnemies -= scaled(1,
 					std::max(1, GET_TEAM(kOther.getTeam()).getNumWars(true, true)));
 		}
 		if (kOther.AI_getMemoryAttitude(eThey, MEMORY_DECLARED_WAR) <= -2)
 		{
-			log("They've attacked %s before", m_kReport.leaderName(kOther.getID()));
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("They've attacked %S before", GET_PLAYER(kOther.getID()).getName(0));
 			rOtherEnemies -= fixp(0.5);
 		}
 	}
@@ -4189,7 +4152,7 @@ void FairPlay::evaluate()
 		}
 		if (rFromOtherEnemies >= fixp(0.5))
 		{
-			log("From other enemies: %d", rFromOtherEnemies.uround());
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("From other enemies: %d", rFromOtherEnemies.uround());
 			m_iU -= rFromOtherEnemies.uround();
 		}
 	}
@@ -4238,20 +4201,20 @@ void FairPlay::evaluate()
 	int iTurnsRemaining = iTargetTurn - iElapsed - iStartPercent;
 	if (iTurnsRemaining > 0)
 	{
-		log("Fair-play turns remaining: %d", iTurnsRemaining);
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Fair-play turns remaining: %d", iTurnsRemaining);
 		rFairnessCost += scaled(iTurnsRemaining, 2).pow(fixp(1.28));
 		if (m_eGameEra > eStartEra)
 		{
-			log("The game era has surpassed the start era");
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("The game era has surpassed the start era");
 			rFairnessCost *= fixp(3/4.);
 		}
 		if (kThey.getCurrentEra() > eStartEra)
 		{
-			log("Their era has surpassed the start era");
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Their era has surpassed the start era");
 			rFairnessCost *= fixp(3/4.);
 		}
 		scaled scoreRatio(m_kGame.getPlayerScore(eWe), m_kGame.getPlayerScore(eThey));
-		log("Score ratio: %s", scoreRatio.str(100).c_str());
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Score ratio: %s", scoreRatio.str(100).c_str());
 		scoreRatio -= fixp(0.1);
 		scoreRatio.clamp(fixp(0.4), fixp(5/3.));
 		rFairnessCost *= scoreRatio;
@@ -4266,21 +4229,21 @@ void FairPlay::evaluate()
 		rFromCityLoss = 100 * (1 - scaled(iCitiesTheyHave, iCitiesTheyFounded)).pow(fixp(0.85));
 	if (rFromCityLoss >= fixp(0.5))
 	{
-		log("From lost human cities: %d", rFromCityLoss.uround());
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("From lost human cities: %d", rFromCityLoss.uround());
 		rFairnessCost += rFromCityLoss;
 	}
 	// If no cities gained nor lost, at least don't DoW in quick succession.
 	else if (kThey.getNumCities() == iCitiesTheyFounded)
 	{
 		int iFromRecentDoW = 35 * kTheirTeam.AI_getNumWarPlans(WARPLAN_ATTACKED_RECENT);
-		log("From recent DoW: %d", iFromRecentDoW);
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("From recent DoW: %d", iFromRecentDoW);
 		rFairnessCost += iFromRecentDoW;
 	}
 	int iAttitudeDiv = 3 - towardThem() +
 			kWe.AI_getMemoryAttitude(eThey, MEMORY_REJECTED_DEMAND); // negative
 	if (iAttitudeDiv > 1)
 	{
-		log("Divided by %d because of attitude", iAttitudeDiv);
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Divided by %d because of attitude", iAttitudeDiv);
 		rFairnessCost /= iAttitudeDiv;
 	}
 	m_iU -= std::max(0, rFairnessCost.round());
@@ -4348,7 +4311,7 @@ void Bellicosity::evaluate()
 	// A good war is one that we win, and that occupies many of our eager warriors.
 	scaled rGloryRate = rOurMinusTheirLostPow / rCurrentAggrPow;
 	rGloryRate.decreaseTo(1);
-	log("Difference in lost power: %d; present aggressive power: %d; bellicosity: %d", rOurMinusTheirLostPow.uround(), rCurrentAggrPow.uround(), iBellicosity);
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Difference in lost power: %d; present aggressive power: %d; bellicosity: %d", rOurMinusTheirLostPow.uround(), rCurrentAggrPow.uround(), iBellicosity);
 	m_iU += (2 * iBellicosity * rGloryRate).round();
 }
 
@@ -4476,7 +4439,7 @@ void TacticalSituation::evalEngagement()
 			could have a big impact once it arrives. */
 		iOurMissions *= 3;
 		iOurMissions /= 2;
-		log("Mission count increased b/c target is short work");
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Mission count increased b/c target is short work");
 	}
 	/*	So long as we check canMoveInto with bAttack=true above, this here
 		probably won't save time. */
@@ -4576,7 +4539,7 @@ void TacticalSituation::evalEngagement()
 	rUtility += rRecentlyLostPopPortion * 100;
 	if (rUtility.abs() >= fixp(0.5))
 	{
-		log("Their exposed units: %d, ours: %d; entanglement: %d; "
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Their exposed units: %d, ours: %d; entanglement: %d; "
 				"their evacuating population: %d, ours: %d; our missions: %d; "
 				"our total milit. units: %d; our population: %d; "
 				"recently lost population: %d (%d percent)",
@@ -4742,9 +4705,8 @@ void TacticalSituation::evalOperational()
 		rPassedPortion = 1 - scaled::min(1, scaled(iRemainingTime, iInitialPrepTime));
 	if (rPassedPortion <= 0)
 		return;
-	if (bCanBombard)
-		log("Extra attackers needed for mixed siege/attack stacks");
-	log("Readiness %d percent (%d of %d attackers, %d of %d cargo, "
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted() && (bCanBombard)) logBBAI("Extra attackers needed for mixed siege/attack stacks");
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Readiness %d percent (%d of %d attackers, %d of %d cargo, "
 			"%d of %d escort); %d of %d turns for preparation remain",
 			rReadiness.getPercent(), iAttackers, rTargetAttackers.round(),
 			rCargo.uround(), rTargetCargo.uround(), iEscort, rTargetEscort.uround(),
@@ -4753,8 +4715,8 @@ void TacticalSituation::evalOperational()
 			(1 - rReadiness.pow(fixp(3.7)))).uround();
 	if (iUnreadinessCost == 0)
 	{
-		log("Cost for lack of readiness vs. %s negligible",
-				m_kReport.leaderName(eThey));
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Cost for lack of readiness vs. %S negligible",
+				GET_PLAYER(eThey).getName(0));
 	}
 	m_iU -= iUnreadinessCost;
 }
@@ -4890,7 +4852,7 @@ void ThirdPartyIntervention::evaluate()
 		}
 		if (bAllPushOver)
 		{
-			log("Not considering 3rd-party interventions b/c all enemies are weak");
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Not considering 3rd-party interventions b/c all enemies are weak");
 			return;
 		}
 	}
@@ -4899,7 +4861,7 @@ void ThirdPartyIntervention::evaluate()
 		!kOurTeam.uwai().isLandTarget(eTarget) &&
 		!GET_TEAM(eTarget).AI_hasSharedPrimaryArea(eTheirTeam))
 	{
-		log("Losses treated as higher b/c of overseas deployment");
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Losses treated as higher b/c of overseas deployment");
 		rOurLostPowRatio *= 2;
 		rOurLostPowRatio.decreaseTo(fixp(0.6));
 	}
@@ -4923,7 +4885,7 @@ void ThirdPartyIntervention::evaluate()
 		rUtilityVsUs += rNoise;
 		if (rUtilityVsUs > 0)
 		{
-			log("Their war utility: %d (%d from noise)",
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Their war utility: %d (%d from noise)",
 					rUtilityVsUs.uround(), rNoise.round());
 			rUtilityVsUs.decreaseTo(94);
 			rInterventionProb = fixp(0.8) * rUtilityVsUs / 100;
@@ -4940,12 +4902,12 @@ void ThirdPartyIntervention::evaluate()
 		rInterventionProb = scaled(iParanoia - 28, 233);
 		if (rInterventionProb > 0)
 		{
-			log("Our paranoia rating: %d", iParanoia);
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Our paranoia rating: %d", iParanoia);
 			if (!kTheirTeam.isHuman() &&
 				!m_kGame.isOption(GAMEOPTION_RANDOM_PERSONALITIES))
 			{
 				scaled rWarRand = kTheirTeam.AI_dogpileWarRand();
-				log("Adjusting paranoia based on DogpileWarRand=%d", rWarRand.floor());
+				if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Adjusting paranoia based on DogpileWarRand=%d", rWarRand.floor());
 				rWarRand.mulDiv(4, 3);
 				rWarRand.clamp(25, 200);
 				// War rands matter less when war utility is high
@@ -4970,7 +4932,7 @@ void ThirdPartyIntervention::evaluate()
 		if (rAtPeaceTurns > iThresh)
 		{
 			scaled const rMult = std::max(fixp(1/3.), 1 - (rAtPeaceTurns - iThresh) / 30);
-			log("Taking intervention prob times %d percent b/c peace has lasted %d turns",
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Taking intervention prob times %d percent b/c peace has lasted %d turns",
 					rMult.getPercent(), rAtPeaceTurns.round());
 			rInterventionProb *= rMult;
 		}
@@ -4982,7 +4944,7 @@ void ThirdPartyIntervention::evaluate()
 		int iLimitedWarRand = kTheirTeam.AI_limitedWarRand();
 		scaled rWarRand(iLimitedWarRand +
 				std::min(iLimitedWarRand, kTheirTeam.AI_maxWarRand()), 2);
-		log("Adjusting intervention prob based on WarRand=%d", rWarRand.round());
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Adjusting intervention prob based on WarRand=%d", rWarRand.round());
 		rWarRand.clamp(25, 200);
 		rInterventionProb /= (rWarRand / 100 + 5 * rInterventionProb) /
 				(5 * rInterventionProb + 1);
@@ -4998,7 +4960,7 @@ void ThirdPartyIntervention::evaluate()
 	/*if (militAnalyst().isOnOurSide(eTheirTeam))
 		rInterventionProb *= fixp(2/3.);*/
 	rInterventionProb.decreaseTo(fixp(0.85));
-	log("Probability of intervention by %s: %d percent", m_kReport.leaderName(eThey),
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Probability of intervention by %S: %d percent", GET_PLAYER(eThey).getName(0),
 			rInterventionProb.getPercent());
 	scaled rTheirPow = kThey.uwai().getCache().
 			getPowerValues()[ARMY]->power();
@@ -5033,9 +4995,9 @@ void ThirdPartyIntervention::evaluate()
 	scaled const rPowRatioFloor = fixp(0.5);
 	if (rTheirPowToOurs <= rPowRatioFloor)
 		return;
-	log("Our loss ratio from fighting 2nd parties: %d percent",
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Our loss ratio from fighting 2nd parties: %d percent",
 			rOurLostPowRatio.getPercent());
-	log("Power ratio (they:we) %d:%d=%d percent", rTheirPow.uround(),
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Power ratio (they:we) %d:%d=%d percent", rTheirPow.uround(),
 			rOurPow.uround(), rTheirPowToOurs.getPercent());
 	/*	Proportional to the square of our losses (which are in the unit interval,
 		hence sqrt). We want to avoid any tough fights with 2nd parties, when a
@@ -5061,7 +5023,7 @@ void ThirdPartyIntervention::evaluate()
 		if (rTheirCurPowToOurs > rThresh)
 		{
 			scaled rMult = rThresh / rTheirCurPowToOurs;
-			log("Cost reduced by a factor of %d percent b/c 3rd party very powerful",
+			if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Cost reduced by a factor of %d percent b/c 3rd party very powerful",
 					rMult.getPercent());
 			rCost *= rMult;
 		}
@@ -5072,20 +5034,20 @@ void ThirdPartyIntervention::evaluate()
 	}
 	else
 	{
-		log("Our distrust rating: %d percent", kWeAI.distrustRating().getPercent());
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Our distrust rating: %d percent", kWeAI.distrustRating().getPercent());
 		rCost *= kWeAI.distrustRating().sqrt();
 	}
 	if (kWe.hasCapital() && kThey.hasCapital() &&
 		!kWe.getCapital()->sameArea(*kThey.getCapital()))
 	{
-		log("Cost decreased for differing capital areas");
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Cost decreased for differing capital areas");
 		rCost /= 2;
 	}
 	if (!militAnalyst().getWarsDeclaredBy(eWe).empty() &&
 		!kOurTeam.AI_isSneakAttackPreparing())
 	{	/*	Not starting war preparations should be less of an inconvenience
 			than abandoning preparations or ending an ongoing war. */
-		log("Cost increased for our DoW");
+		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Cost increased for our DoW");
 		rCost *= fixp(4/3.);
 	}
 	{
@@ -5097,8 +5059,7 @@ void ThirdPartyIntervention::evaluate()
 		rCost *= 2;
 		rCost /= (kOurTeam.getNumMembers() + kTheirTeam.getNumMembers());
 	}
-	if (rCost < fixp(0.5))
-		log("(Not a relevant threat: %s)", m_kReport.leaderName(eThey));
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted() && (rCost < fixp(0.5))) logBBAI("(Not a relevant threat: %S)", GET_PLAYER(eThey).getName(0));
 	else m_iU -= rCost.uround();
 }
 
@@ -5174,7 +5135,7 @@ int DramaticArc::preEvaluate()
 	m_rTensionIncrease = (rTensionTarget - rTension) *
 			scaled(iOtherKnown).sqrt() / 2;
 	m_rTensionIncrease.clamp(-1, 1);
-	log("Seeking to adjust tension (overall warfare) by %d percent",
+	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("Seeking to adjust tension (overall warfare) by %d percent",
 			m_rTensionIncrease.getPercent());
 	return 0;
 }
@@ -5211,7 +5172,7 @@ void DramaticArc::evaluate()
 			(militAnalyst().lostPower(eWe, ARMY) + militAnalyst().lostPower(eThey, ARMY)) <
 			std::max(ourCache().getPowerValues()[ARMY]->power(), scaled::epsilon()) / 20)
 		{
-			//log("Too little action expected - not a good way to increase tension");
+			//logBBAI("Too little action expected - not a good way to increase tension");
 			return;
 		}
 	}

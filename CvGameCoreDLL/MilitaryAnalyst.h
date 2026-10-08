@@ -8,8 +8,7 @@
 
 class InvasionGraph;
 class WarEvalParameters;
-class UWAIReport;
-class InvasionGraph;
+class UWAILogMuteState; // <!-- custom: Nested mute depth shared by UWAI diagnostic sub-evaluations; not a logger. See KI#505.3. (ChatGPT-5.6-Sol) -->
 
 /*  advc.104: New class. Handles the military assessment of a war between
 	two teams (agent, target) from the pov of a particular member of the agent team.
@@ -56,12 +55,14 @@ public:
 	// Does ePlayer have a node in the InvasionGraph?
 	bool isPartOfAnalysis(PlayerTypes ePlayer) const { return (m_partOfAnalysis.count(ePlayer) > 0); }
 	void logResults(PlayerTypes ePlayer); // for debugging
+	// <!-- custom: logResults and its helpers are diagnostic-only; callers must pre-gate them before entering this path. (ChatGPT-5.6-Sol) -->
 	// (There's another public and private section below)
 private:
 	PlayerTypes m_eWe;
 	WarEvalParameters& m_kWarEvalParams;
 	TeamTypes m_eTarget;
-	UWAIReport& m_kReport;
+	// <!-- custom: Shared nested mute state from m_kWarEvalParams; this only suppresses nested UWAI diagnostics and is not a logger/cache. (ChatGPT-5.6-Sol) -->
+	UWAILogMuteState& m_kLogMuteState;
 	bool m_bPeaceScenario;
 
 	InvasionGraph* m_pInvGraph;

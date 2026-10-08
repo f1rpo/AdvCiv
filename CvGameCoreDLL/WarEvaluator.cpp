@@ -4,13 +4,13 @@
 #include "WarUtilityAspect.h"
 #include "MilitaryAnalyst.h"
 #include "UWAICache.h" // <!-- custom: Naval-opportunity simulation diagnostics inspect the same cached military branches consumed by UWAI; no behavior change. See KI#53.6. (ChatGPT-5.6-Sol) -->
-#include "UWAIReport.h"
+#include "UWAILogMuteState.h" // <!-- custom: Concrete nested-mute state is needed because WarEvaluator suppresses comparison-only sub-evaluations; emitted rows still go directly to BBAI. (ChatGPT-5.6-Sol) -->
 #include "WarEvalParameters.h"
 #include "CoreAI.h"
 #include "CvInfo_GameOption.h"
 #include "CvCity.h" // <!-- custom: Nearby-overseas WAR diagnostics compare exact nearest city distance without changing UWAI behavior. See KI#53.6. (ChatGPT-5.6-Sol) -->
 #include "CvMap.h" // <!-- custom: Required for the wrap-aware plotDistance used by the nearby-overseas WAR diagnostic. See KI#53.6. (GPT-5.6-Sol) -->
-#include "BBAILog.h" // <!-- custom: Threshold-gated SAS war diagnostics log huge UWAI utility by aspect so high target-drive values can be traced without enabling the separate UWAI report. (GPT-5.5) -->
+#include "BBAILog.h" // <!-- custom: UWAI evaluator diagnostics use cached SAS_BBAI subsystem levels and the unified BBAI sink. See KI#505.3. (ChatGPT-5.6-Sol) -->
 #include "CvGameCoreUtils.h"
 
 using std::vector;
@@ -331,7 +331,8 @@ void WarEvaluator::clearCache()
 
 
 WarEvaluator::WarEvaluator(WarEvalParameters& kWarEvalParams, bool bUseCache)
-:	m_kParams(kWarEvalParams), m_kReport(m_kParams.getReport()),
+// <!-- custom: Keep only the evaluation-wide nested mute state from the former report plumbing; all emitted diagnostics now use BBAI directly. (ChatGPT-5.6-Sol) -->
+:	m_kParams(kWarEvalParams), m_kLogMuteState(m_kParams.getLogMuteState()),
 	m_kAgent(GET_TEAM(m_kParams.getAgent())),
 	m_kTarget(GET_TEAM(m_kParams.getTarget())),
 	m_bPeaceScenario(false), m_bUseCache(bUseCache), m_bSASLogSuspiciousPeace(false), m_bSASLogNavalOpportunity(false), m_iSASNavalOpportunityNearestCityDistance(-1)
@@ -353,70 +354,39 @@ WarEvaluator::WarEvaluator(WarEvalParameters& kWarEvalParams, bool bUseCache)
 }
 
 
-void WarEvaluator::reportPreamble()
+void WarEvaluator::logPreamble()
 {
-	if (m_kReport.isMute())
-		return;
-	/* Show members in one column per team. Use spaces for alignment, table
-	   markers ('|') for Textile. */
-	m_kReport.log("Evaluating *%s%s war* between %s%s and %s%s", m_kParams.isTotal() ?
-			m_kReport.warPlanName(WARPLAN_TOTAL) : m_kReport.warPlanName(WARPLAN_LIMITED),
-			m_kParams.isNaval() ? " naval" : "",
-			m_kReport.teamName(m_kAgent.getID()), m_kAgent.isHuman() ? " (human)" : "",
-			m_kReport.teamName(m_kTarget.getID()), m_kTarget.isHuman() ? " (human)" : "");
-	m_kReport.logNewline();
-	for (MemberIter agentIt(m_kAgent.getID()), targetIt(m_kTarget.getID());
-		agentIt.hasNext() || targetIt.hasNext(); ++agentIt, ++targetIt)
-	{
-		ostringstream os;
-		os << "| " << (agentIt.hasNext()
-				? m_kReport.leaderName(agentIt->getID(), 16)
-				: "");
-		string msg = os.str().substr(0, 17);
-		msg += " |";
-		while (msg.length() < 20)
-			msg += " ";
-		if (targetIt.hasNext())
-			msg += m_kReport.leaderName(targetIt->getID(), 16);
-		msg += "|\n";
-		m_kReport.log(msg.c_str());
-	}
-	m_kReport.log("Current actual war plan: %s",
-			m_kReport.warPlanName(m_kAgent.AI_getWarPlan(m_kTarget.getID())));
-	if (m_kParams.isConsideringPeace())
-		m_kReport.log("(considering peace)");
-	m_kReport.log("Preparation time vs. target: %d",
-			m_kParams.getPreparationTime());
-	if (m_kParams.isImmediateDoW())
-		m_kReport.log("Immediate DoW assumed");
-	if (m_kAgent.isAVassal())
-	{
-		m_kReport.log("Agent is a vassal of %s",
-				m_kReport.masterName(m_kAgent.getMasterTeam()));
-	}
-	if (m_kTarget.isAVassal())
-	{
-		m_kReport.log("Target is a vassal of %s",
-				m_kReport.masterName(m_kTarget.getMasterTeam()));
-	}
+	FAssert(gUWAIWarUtilityLogLevel >= 2 && !m_kLogMuteState.isMuted());
+	logBBAI("Evaluating %s%s war between team=%d %S%s and team=%d %S%s",
+			m_kParams.isTotal() ? getSASWarPlanType(WARPLAN_TOTAL) : getSASWarPlanType(WARPLAN_LIMITED),
+			m_kParams.isNaval() ? " naval" : "", m_kAgent.getID(),
+			GET_TEAM(m_kAgent.getID()).getName().GetCString(), m_kAgent.isHuman() ? " (human)" : "",
+			m_kTarget.getID(), GET_TEAM(m_kTarget.getID()).getName().GetCString(),
+			m_kTarget.isHuman() ? " (human)" : "");
+	for (MemberIter agentIt(m_kAgent.getID()); agentIt.hasNext(); ++agentIt)
+		logBBAI("Agent member: player=%d name=%S", agentIt->getID(), GET_PLAYER(agentIt->getID()).getName(0));
+	for (MemberIter targetIt(m_kTarget.getID()); targetIt.hasNext(); ++targetIt)
+		logBBAI("Target member: player=%d name=%S", targetIt->getID(), GET_PLAYER(targetIt->getID()).getName(0));
+	logBBAI("Current actual war plan: %s", getSASWarPlanType(m_kAgent.AI_getWarPlan(m_kTarget.getID())));
+	if (m_kParams.isConsideringPeace()) logBBAI("Considering peace");
+	logBBAI("Preparation time vs. target: %d", m_kParams.getPreparationTime());
+	if (m_kParams.isImmediateDoW()) logBBAI("Immediate DoW assumed");
+	if (m_kAgent.isAVassal()) logBBAI("Agent is a vassal of %S", GET_TEAM(m_kAgent.getMasterTeam()).getName().GetCString());
+	if (m_kTarget.isAVassal()) logBBAI("Target is a vassal of %S", GET_TEAM(m_kTarget.getMasterTeam()).getName().GetCString());
 	FOR_EACH_ENUM2(Team, eAlly)
 	{
-		if (m_kParams.isWarAlly(eAlly))
-			m_kReport.log("Joint DoW by %s assumed", m_kReport.teamName(eAlly));
+		if (m_kParams.isWarAlly(eAlly)) logBBAI("Joint DoW by %S assumed", GET_TEAM(eAlly).getName().GetCString());
 	}
 	FOR_EACH_ENUM2(Team, eExtraTarget)
 	{
-		if (m_kParams.isExtraTarget(eExtraTarget))
-			m_kReport.log("Extra target: %s", m_kReport.teamName(eExtraTarget));
+		if (m_kParams.isExtraTarget(eExtraTarget)) logBBAI("Extra target: %S", GET_TEAM(eExtraTarget).getName().GetCString());
 	}
 	if (m_kParams.getSponsor() != NO_PLAYER)
 	{
-		m_kReport.log("Sponsored by %s",
-				m_kReport.leaderName(m_kParams.getSponsor()));
+		logBBAI("Sponsored by %S", GET_PLAYER(m_kParams.getSponsor()).getName(0));
 		FAssert(m_kParams.isImmediateDoW());
 	}
-	if (m_kParams.isIgnoreDistraction())
-		m_kReport.log("Computation ignoring Distraction cost");
+	if (m_kParams.isIgnoreDistraction()) logBBAI("Computation ignoring Distraction cost");
 }
 
 
@@ -470,7 +440,7 @@ int WarEvaluator::evaluate(WarPlanTypes eWarPlan, int iPreparationTime)
 			(Doesn't currently write this into params though - should it?)
 			Might as well not bother with the land target check then? */
 		bool const bNaval = !m_kAgent.AI_isLandTarget(m_kTarget.getID());
-		int iU = evaluate(eWarPlan, bNaval, 0);
+		int iU = evaluateScenario(false, eWarPlan, bNaval, 0);
 		m_kParams.setNaval(bNaval);
 		m_kParams.setTotal(bTotal);
 		m_kParams.setPreparationTime(0);
@@ -490,35 +460,32 @@ int WarEvaluator::evaluate(WarPlanTypes eWarPlan, int iPreparationTime)
 			bSkipNaval = false;
 		}
 	}
-	/*  If the report isn't mute anyway, and we're doing two runs, rather than
-		flooding the report with logs for both naval and non-naval utility, mute
-		the report in both runs, and do an additional run just for logging
-		once we know if naval or non-naval war is better. */
-	bool bExtraRun = (!m_kReport.isMute() && !bSkipNaval);
+	// <!-- custom: When both naval and non-naval scenarios are evaluated, suppress their nested level-2+ diagnostics and rerun only the selected scenario for detail. Level 1 remains compact and does not pay for this diagnostic-only third evaluation. (ChatGPT-5.6-Sol) -->
+	bool const bDetailedLog = (!m_kLogMuteState.isMuted() &&
+		(gUWAIWarUtilityLogLevel >= 2 || gUWAIMilitaryAnalystLogLevel >= 2 ||
+		gUWAIInvasionGraphLogLevel >= 2 || gUWAIArmamentForecastLogLevel >= 2));
+	bool const bExtraRun = (bDetailedLog && !bSkipNaval);
 	if (bExtraRun)
-		m_kReport.setMute(true);
-	int iNonNavalU = evaluate(eWarPlan, false, iPreparationTime);
+		m_kLogMuteState.pushMute();
+	int iNonNavalU = evaluateScenario(false, eWarPlan, false, iPreparationTime);
 	// Assume non-naval war if it hardly makes a difference
 	int const iAntiNavalBias = 3;
 	int iNavalU = MIN_INT;
 	if (!bSkipNaval)
-		iNavalU = evaluate(eWarPlan, true, iPreparationTime);
-	int iU=MIN_INT;
+		iNavalU = evaluateScenario(false, eWarPlan, true, iPreparationTime);
+	bool const bNaval = (iNavalU > iNonNavalU + iAntiNavalBias);
+	int const iU = (bNaval ? iNavalU : iNonNavalU);
 	if (bExtraRun)
 	{
-		m_kReport.setMute(false);
-		iU = evaluate(eWarPlan,
-				iNavalU > iNonNavalU + iAntiNavalBias, iPreparationTime);
-	}
-	else
-	{
-		if (iNavalU > iNonNavalU + iAntiNavalBias)
-			iU = iNavalU;
-		else iU = iNonNavalU;
+		m_kLogMuteState.popMute();
+		// <!-- custom: This third pass exists only to emit UWAI detail for the selected scenario. It bypasses WarEvaluator cache reads/writes and focused WarEvaluator structured WAR diagnostics, and its return value can never replace the gameplay utility chosen by the original comparison. (ChatGPT-5.6-Sol) -->
+		int const iDiagnosticU = evaluateScenario(true, eWarPlan, bNaval, iPreparationTime);
+		// <!-- custom: Cached/UI evaluations can intentionally reuse an older result; only assert direct recomputation parity when no cache path can have supplied the gameplay value. Compare outside FAssert so old MSVC /WX still sees iDiagnosticU as used when assertions compile out. (ChatGPT-5.6-Sol) -->
+		if (!m_bCheckCache && !m_bUseCache && !gDLL->isDiplomacy() && iDiagnosticU != iU) FAssertMsg(false, "Diagnostic-only UWAI rerun changed utility");
 	}
 	/*  Calls to evaluate(WarPlanTypes,bool,int) change some members of m_kParams
 		that the caller may read */
-	m_kParams.setNaval(iNavalU > iNonNavalU + iAntiNavalBias);
+	m_kParams.setNaval(bNaval);
 	m_kParams.setTotal(bTotal);
 	m_kParams.setPreparationTime(defaultPreparationTime(eWarPlan));
 	return iU;
@@ -527,6 +494,21 @@ int WarEvaluator::evaluate(WarPlanTypes eWarPlan, int iPreparationTime)
 
 int WarEvaluator::evaluate(WarPlanTypes eWarPlan, bool bNaval, int iPreparationTime)
 {
+	// <!-- custom: Preserve the inherited gameplay overload: callers such as UWAICache need the selected-scenario utility and normal cache semantics. Logging-only selected-scenario reruns use evaluateForDiagnostics instead. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	return evaluateScenario(false, eWarPlan, bNaval, iPreparationTime);
+}
+
+
+void WarEvaluator::evaluateForDiagnostics(WarPlanTypes eWarPlan, bool bNaval, int iPreparationTime)
+{
+	// <!-- custom: Keep the logging-only rerun observation-only by construction: no utility is returned to the caller, and evaluateScenario(true, ...) bypasses evaluator cache reads/writes and focused WAR diagnostics. Added after the remaining UWAIAgent logging rerun was identified during review. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	evaluateScenario(true, eWarPlan, bNaval, iPreparationTime);
+}
+
+
+// <!-- custom: Shared implementation for gameplay evaluation and the explicitly diagnostic-only selected-scenario rerun. bDiagnosticOnly is internal so ordinary callers cannot accidentally use a diagnostic pass as a gameplay evaluator. (ChatGPT-5.6-Sol) -->
+int WarEvaluator::evaluateScenario(bool bDiagnosticOnly, WarPlanTypes eWarPlan, bool bNaval, int iPreparationTime)
+{
 	PROFILE_FUNC(); // All war evaluation goes through here
 	m_bPeaceScenario = (eWarPlan == NO_WARPLAN); // Should only happen in recursive call
 	// <!-- custom: Only the outer WAR evaluation selects and clears a naval-opportunity diagnostic candidate.
@@ -534,7 +516,7 @@ int WarEvaluator::evaluate(WarPlanTypes eWarPlan, bool bNaval, int iPreparationT
 	if (!m_bPeaceScenario)
 	{
 		m_iSASNavalOpportunityNearestCityDistance = -1;
-		m_bSASLogNavalOpportunity = (gWarLogLevel >= 3 && isSASBBAINavalOpportunityCandidate(m_kParams, m_kAgent, m_kTarget, bNaval, m_iSASNavalOpportunityNearestCityDistance));
+		m_bSASLogNavalOpportunity = (!bDiagnosticOnly && gWarLogLevel >= 3 && isSASBBAINavalOpportunityCandidate(m_kParams, m_kAgent, m_kTarget, bNaval, m_iSASNavalOpportunityNearestCityDistance));
 		if (m_bSASLogNavalOpportunity)
 		{
 			m_asSASNavalOpportunityPeaceAspectNames.clear();
@@ -552,7 +534,7 @@ int WarEvaluator::evaluate(WarPlanTypes eWarPlan, bool bNaval, int iPreparationT
 	}
 	m_kParams.setPreparationTime(iPreparationTime);
 	// Don't check cache in recursive calls (peaceScenario=true)
-	if (!m_bPeaceScenario && (m_bCheckCache || m_bUseCache || gDLL->isDiplomacy()))
+	if (!bDiagnosticOnly && !m_bPeaceScenario && (m_bCheckCache || m_bUseCache || gDLL->isDiplomacy()))
 	{
 		WarEvalParamID iParamID = m_kParams.getID();
 		for (int i = 0; i < iCACHE_SZ; i++)
@@ -561,23 +543,26 @@ int WarEvaluator::evaluate(WarPlanTypes eWarPlan, bool bNaval, int iPreparationT
 				return aiLastCallResult[i];
 		}
 	}
-	if (m_bPeaceScenario)
-		m_kReport.log("*Peace scenario*\n");
-	else
+	if (gUWAIWarUtilityLogLevel >= 2 && !m_kLogMuteState.isMuted())
 	{
-		/*  Normally, both are evaluated, and war goes first. Logging the preamble
-			once is enough. */
-		reportPreamble();
-		m_kReport.log("*War scenario*\n");
+		if (m_bPeaceScenario)
+			logBBAI("Peace scenario");
+		else
+		{
+			/*  Normally, both are evaluated, and war goes first. Logging the preamble
+				once is enough. */
+			logPreamble();
+			logBBAI("War scenario");
+		}
 	}
 	vector<WarUtilityAspect*> apAspects;
 	fillWithAspects(apAspects);
 	for (MemberIter itMember(m_kAgent.getID()); itMember.hasNext(); ++itMember)
 		evaluate(itMember->getID(), apAspects);
-	bool const bSASHighUtilityLog = (gWarLogLevel >= 3 && getSASHighWarUtilityLogThreshold() > 0);
+	bool const bSASHighUtilityLog = (!bDiagnosticOnly && gWarLogLevel >= 3 && getSASHighWarUtilityLogThreshold() > 0);
 	// <!-- custom: Save-file 452 showed Mali seeking peace immediately after capturing two Maya cities despite leading heavily in cities, power and war success.
 	// For similarly dominant wars, retain each utility aspect for both scenarios so a sudden reversal can be traced without enabling broad level-3 UWAI spam. (GPT-5.6-Sol) -->
-	bool const bSASSuspiciousPeaceLog = (m_bSASLogSuspiciousPeace && isSASSuspiciousPeaceLead(m_kParams));
+	bool const bSASSuspiciousPeaceLog = (!bDiagnosticOnly && m_bSASLogSuspiciousPeace && isSASSuspiciousPeaceLead(m_kParams));
 	bool const bSASAspectLog = (bSASHighUtilityLog || bSASSuspiciousPeaceLog || m_bSASLogNavalOpportunity);
 	std::vector<CvString> asAspectNames;
 	std::vector<int> aiAspectUtilities;
@@ -591,11 +576,10 @@ int WarEvaluator::evaluate(WarPlanTypes eWarPlan, bool bNaval, int iPreparationT
 			asAspectNames.push_back(apAspects[i]->aspectName());
 			aiAspectUtilities.push_back(iDelta);
 		}
-		if (iDelta != 0)
-			m_kReport.log("%s total: %d", apAspects[i]->aspectName(), iDelta);
+		if (gUWAIWarUtilityLogLevel >= 2 && !m_kLogMuteState.isMuted() && iDelta != 0) logBBAI("%s total: %d", apAspects[i]->aspectName(), iDelta);
 		delete apAspects[i];
 	}
-	m_kReport.log("Bottom line: %d\n", iU);
+	if (gUWAIWarUtilityLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("Bottom line: %d", iU);
 	// <!-- custom: Preserve the recursive PEACE scenario's aspect decomposition in members.
 	// After recursion returns, the outer WAR call still has its local aspect vectors and emits both in one row. See KI#53.6. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (m_bPeaceScenario && m_bSASLogNavalOpportunity)
@@ -610,9 +594,9 @@ int WarEvaluator::evaluate(WarPlanTypes eWarPlan, bool bNaval, int iPreparationT
 	if (!m_bPeaceScenario)
 	{
 		int const iWarScenarioUtility = iU;
-		int const iPeaceScenarioUtility = evaluate(NO_WARPLAN, false, iPreparationTime); // Required for final war-minus-peace utility; stored only so high-utility diagnostics can show both sides.
+		int const iPeaceScenarioUtility = evaluateScenario(bDiagnosticOnly, NO_WARPLAN, false, iPreparationTime); // Required for final war-minus-peace utility; stored only so high-utility diagnostics can show both sides.
 		iU -= iPeaceScenarioUtility;
-		m_kReport.log("Utility war minus peace: %d\n", iU);
+		if (gUWAIWarUtilityLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("Utility war minus peace: %d", iU);
 		if (bSASSuspiciousPeaceLog)
 			logSASBBAISuspiciousPeaceFinal(m_kParams, eWarPlan, bNaval, iPreparationTime, iWarScenarioUtility, iPeaceScenarioUtility, iU);
 		if (bSASHighUtilityLog && isSASHighWarUtility(iU))
@@ -631,7 +615,7 @@ int WarEvaluator::evaluate(WarPlanTypes eWarPlan, bool bNaval, int iPreparationT
 		m_kParams.setPreparationTime(iPreparationTime);
 		/*  Could update cache even when !m_bCheckCache, but this might
 			push out just the values that are needed ... */
-		if (m_bCheckCache || m_bUseCache)
+		if (!bDiagnosticOnly && (m_bCheckCache || m_bUseCache))
 		{
 			// Cache the total result after returning from the recursive call
 			WarEvalParamID iParamID = m_kParams.getID();
@@ -687,13 +671,15 @@ void WarEvaluator::fillWithAspects(vector<WarUtilityAspect*>& kAspects)
 void WarEvaluator::evaluate(PlayerTypes eAgentPlayer, vector<WarUtilityAspect*>& kAspects)
 {
 	MilitaryAnalyst militaryAnalyst(eAgentPlayer, m_kParams, m_bPeaceScenario);
-	for (PlayerIter<MAJOR_CIV,KNOWN_TO> it(m_kAgent.getID()); it.hasNext(); ++it)
+	if (gUWAIMilitaryAnalystLogLevel >= 1 && !m_kLogMuteState.isMuted())
 	{
-		if (!GET_TEAM(it->getID()).isCapitulated())
-			militaryAnalyst.logResults(it->getID());
+		for (PlayerIter<MAJOR_CIV,KNOWN_TO> it(m_kAgent.getID()); it.hasNext(); ++it)
+		{
+			if (!GET_TEAM(it->getID()).isCapitulated()) militaryAnalyst.logResults(it->getID());
+		}
 	}
-	m_kReport.log("\nh4.\nComputing utility of %s\n",
-			m_kReport.leaderName(eAgentPlayer, 16));
+	if (gUWAIWarUtilityLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Computing utility of %S",
+			GET_PLAYER(eAgentPlayer).getName(0));
 	int iU = 0;
 	// <!-- custom: The first KI#53.6 aspect run showed that many strong/near island candidates had no GreedForAssets at all, meaning MilitaryAnalyst predicted no city gain from the target.
 	// Log the underlying naval simulation only for ordinary (non-hard-rejected) opportunity candidates so we can distinguish Army, Fleet, Logistics, and projected-conquest failures before changing behavior. (ChatGPT-5.6-Sol) -->
@@ -707,6 +693,6 @@ void WarEvaluator::evaluate(PlayerTypes eAgentPlayer, vector<WarUtilityAspect*>&
 	}
 	if (m_bSASLogNavalOpportunity && !m_bPeaceScenario && !bSASNavalOpportunityHardReject)
 		logSASBBAINavalOpportunitySimulation(m_kParams, militaryAnalyst, eAgentPlayer);
-	m_kReport.log("--\nTotal utility for %s: %d",
-			m_kReport.leaderName(eAgentPlayer, 16), iU);
+	if (gUWAIWarUtilityLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("Total utility for %S: %d",
+			GET_PLAYER(eAgentPlayer).getName(0), iU);
 }

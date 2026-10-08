@@ -4,7 +4,7 @@
 #define WAR_EVAL_PARAMETERS_H
 
 class WarUtilityAspect;
-class UWAIReport;
+class UWAILogMuteState; // <!-- custom: Nested mute depth propagated through one UWAI evaluation tree; not a logger. See KI#505.3. (ChatGPT-5.6-Sol) -->
 
 /*	For WarEvalParameters::getID.
 	(Could go a bit higher with 32 bit, but e.g. 30 civs won't fit.) */
@@ -19,7 +19,7 @@ class UWAIReport;
 class WarEvalParameters
 {
 public:
-	WarEvalParameters(TeamTypes eTeam, TeamTypes eTarget, UWAIReport& kReport,
+	WarEvalParameters(TeamTypes eTeam, TeamTypes eTarget, UWAILogMuteState& kLogMuteState,
 			bool bIgnoreDistraction = false,
 			/*	Not clear if it should matter which player makes the deal.
 				Can't hurt to store that player id. Can always use its team id
@@ -28,7 +28,8 @@ public:
 			TeamTypes eCapitulationTeam = NO_TEAM);
 	TeamTypes getAgent() const { return m_eAgent; }
 	TeamTypes getTarget() const { return m_eTarget; }
-	UWAIReport& getReport() const {return m_kReport; }
+	// <!-- custom: Propagate one shared nested mute state through the evaluator graph so comparison-only simulations can suppress diagnostics consistently. (ChatGPT-5.6-Sol) -->
+	UWAILogMuteState& getLogMuteState() const { return m_kLogMuteState; }
 	bool isConsideringPeace() const { return m_bConsideringPeace; }
 	/*  For evaluating joint wars when the agent is already at war, but the ally
 		is not. The agent does then not consider itself (and its vassals) to be
@@ -67,7 +68,8 @@ public:
 private:
 	TeamTypes m_eAgent;
 	TeamTypes m_eTarget;
-	UWAIReport& m_kReport;
+	// <!-- custom: This is nested diagnostic mute state only; no output, formatting, names or file state live here. (ChatGPT-5.6-Sol) -->
+	UWAILogMuteState& m_kLogMuteState;
 	bool m_bConsideringPeace;
 	bool m_bIgnoreDistraction;
 	std::set<TeamTypes> m_warAllies;

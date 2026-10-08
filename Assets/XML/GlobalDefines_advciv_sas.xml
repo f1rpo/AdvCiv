@@ -1557,6 +1557,32 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<DefineName>SAS_BBAI_WAR_LOG_LEVEL</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
+	<!-- custom: UWAI's inherited separate Textile report logger is replaced by ordinary cached SAS_BBAI categories that write directly to the normal timestamped BBAI log. Caller-side pre-gates skip diagnostic-only arguments/setup when a category is disabled. Across UWAI categories: 0=None, 1=important outcomes/summaries, 2=major calculation context, 3=full inherited detail where that subsystem has deeper detail. See KI#505.3. (ChatGPT-5.6-Sol) -->
+	<!-- custom: Top-level UWAI team/war-plan flow. Level 1 records important report actions/outcomes; level 2 adds the inherited planning/negotiation detail. Level 3 currently includes the same Agent detail as level 2. (ChatGPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_BBAI_UWAI_AGENT_LOG_LEVEL</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!-- custom: UWAI military-scenario analysis. Level 1 records major war/capitulation/elimination outcomes; level 2 adds scenario membership, city and power detail. Level 3 currently includes the same Military Analyst detail as level 2. See KI#505.3. (ChatGPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_BBAI_UWAI_MILITARY_ANALYST_LOG_LEVEL</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!-- custom: UWAI invasion/deployment simulation. Level 1 records major conquest, landing, army-loss and capitulation outcomes; level 2 adds graph/target transitions; level 3 adds full inherited deployment/clash detail. See KI#505.3. (ChatGPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_BBAI_UWAI_INVASION_GRAPH_LOG_LEVEL</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!-- custom: UWAI military-production/armament forecast. Level 1 records forecast cancellation and predicted power changes; level 2 adds horizon/production summaries; level 3 adds full inherited branch/allocation detail. See KI#505.3. (ChatGPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_BBAI_UWAI_ARMAMENT_FORECAST_LOG_LEVEL</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!-- custom: UWAI WarEvaluator + WarUtilityAspect chain. Level 1 records chosen bottom-line utilities; level 2 adds evaluator/scenario context and aspect totals; level 3 adds the full inherited per-aspect diagnostic stream. This is the hottest inherited report family, so callers pre-gate before entering log helpers or evaluating their arguments. See KI#505.3. (ChatGPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_BBAI_UWAI_WAR_UTILITY_LOG_LEVEL</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
 	<!-- custom: Base AdvCiv LOG_AI default: when enabled: 3; when disabled: 0. (GPT-5.5?) -->
 	<Define>
 		<DefineName>SAS_BBAI_CITY_LOG_LEVEL</DefineName>

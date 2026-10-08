@@ -50,9 +50,40 @@ void cacheSASBBAILogSettings()
 	kSettings.iDealCancelLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_DEAL_CANCEL_LOG_LEVEL") : 0);
 	kSettings.iBonusLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_BONUS_LOG_LEVEL") : 0);
 	kSettings.iCultureLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_CULTURE_LOG_LEVEL") : 0);
+	kSettings.iUWAIAgentLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_UWAI_AGENT_LOG_LEVEL") : 0);
+	kSettings.iUWAIMilitaryAnalystLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_UWAI_MILITARY_ANALYST_LOG_LEVEL") : 0);
+	kSettings.iUWAIInvasionGraphLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_UWAI_INVASION_GRAPH_LOG_LEVEL") : 0);
+	kSettings.iUWAIArmamentForecastLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_UWAI_ARMAMENT_FORECAST_LOG_LEVEL") : 0);
+	kSettings.iUWAIWarUtilityLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_UWAI_WAR_UTILITY_LOG_LEVEL") : 0);
+	// <!-- custom: UWAI is part of the same BBAI category set now; one cached bit is enough for sink/session-level checks. Per-category caller gates remain authoritative for diagnostic work. See KI#505.3. (ChatGPT-5.6-Sol) -->
 	kSettings.bEnabled = (bMasterEnabled &&
-		(kSettings.iPlayerLogLevel > 0 || kSettings.iTeamLogLevel > 0 || kSettings.iWarLogLevel > 0 || kSettings.iCityLogLevel > 0 || kSettings.iProductionNoTargetLogLevel > 0 || kSettings.iMilitaryProductionLogLevel > 0 || kSettings.iSpaceProductionLogLevel > 0 || kSettings.iLimitedProjectProductionLogLevel > 0 || kSettings.iBuildingProductionLogLevel > 0 || kSettings.iCitizenLogLevel > 0 ||
-		kSettings.iUnitLogLevel > 0 || kSettings.iOverseasTransportLogLevel > 0 || kSettings.iGreatGeneralLogLevel > 0 || kSettings.iSettlerLogLevel > 0 || kSettings.iFoundLogLevel > 0 || kSettings.iEvacuationLogLevel > 0 || kSettings.iWorkerLogLevel > 0 || kSettings.iWorkerSeaLogLevel > 0 || kSettings.iMapLogLevel > 0 || kSettings.iDealCancelLogLevel > 0 || kSettings.iBonusLogLevel > 0 || kSettings.iCultureLogLevel > 0));
+		(kSettings.iPlayerLogLevel > 0 ||
+		kSettings.iTeamLogLevel > 0 ||
+		kSettings.iWarLogLevel > 0 ||
+		kSettings.iCityLogLevel > 0 ||
+		kSettings.iProductionNoTargetLogLevel > 0 ||
+		kSettings.iMilitaryProductionLogLevel > 0 ||
+		kSettings.iSpaceProductionLogLevel > 0 ||
+		kSettings.iLimitedProjectProductionLogLevel > 0 ||
+		kSettings.iBuildingProductionLogLevel > 0 ||
+		kSettings.iCitizenLogLevel > 0 ||
+		kSettings.iUnitLogLevel > 0 ||
+		kSettings.iOverseasTransportLogLevel > 0 ||
+		kSettings.iGreatGeneralLogLevel > 0 ||
+		kSettings.iSettlerLogLevel > 0 ||
+		kSettings.iFoundLogLevel > 0 ||
+		kSettings.iEvacuationLogLevel > 0 ||
+		kSettings.iWorkerLogLevel > 0 ||
+		kSettings.iWorkerSeaLogLevel > 0 ||
+		kSettings.iMapLogLevel > 0 ||
+		kSettings.iDealCancelLogLevel > 0 ||
+		kSettings.iBonusLogLevel > 0 ||
+		kSettings.iCultureLogLevel > 0 ||
+		kSettings.iUWAIAgentLogLevel > 0 ||
+		kSettings.iUWAIMilitaryAnalystLogLevel > 0 ||
+		kSettings.iUWAIInvasionGraphLogLevel > 0 ||
+		kSettings.iUWAIArmamentForecastLogLevel > 0 ||
+		kSettings.iUWAIWarUtilityLogLevel > 0));
 }
 
 int getSASBBAIScoreLogInterval()
@@ -155,11 +186,12 @@ static void logSASBBAIProvenanceContext()
 // <!-- custom: Record the effective BBAI diagnostic profile in each new/load file so test runs with different category levels are not compared as if they contained the same diagnostics. (GPT-5.5) -->
 static void logSASBBAILogSettings()
 {
-	logBBAI("BBAI_LOG_SETTINGS SAS_BBAI_LOG_ENABLE=%d SAS_BBAI_LOG_USE_TIMESTAMPED_FILENAME=%d SAS_BBAI_PLAYER_LOG_LEVEL=%d SAS_BBAI_TEAM_LOG_LEVEL=%d SAS_BBAI_WAR_LOG_LEVEL=%d SAS_BBAI_CITY_LOG_LEVEL=%d SAS_BBAI_PRODUCTION_NO_TARGET_LOG_LEVEL=%d SAS_BBAI_MILITARY_PRODUCTION_LOG_LEVEL=%d SAS_BBAI_SPACE_PRODUCTION_LOG_LEVEL=%d SAS_BBAI_LIMITED_PROJECT_PRODUCTION_LOG_LEVEL=%d SAS_BBAI_BUILDING_PRODUCTION_LOG_LEVEL=%d SAS_BBAI_CITIZEN_LOG_LEVEL=%d SAS_BBAI_UNIT_LOG_LEVEL=%d SAS_BBAI_OVERSEAS_TRANSPORT_LOG_LEVEL=%d SAS_BBAI_GREAT_GENERAL_LOG_LEVEL=%d SAS_BBAI_SETTLER_LOG_LEVEL=%d SAS_BBAI_FOUND_LOG_LEVEL=%d SAS_BBAI_EVACUATION_LOG_LEVEL=%d SAS_BBAI_WORKER_LOG_LEVEL=%d SAS_BBAI_WORKER_SEA_LOG_LEVEL=%d SAS_BBAI_MAP_LOG_LEVEL=%d SAS_BBAI_DEAL_CANCEL_LOG_LEVEL=%d SAS_BBAI_BONUS_LOG_LEVEL=%d SAS_BBAI_CULTURE_LOG_LEVEL=%d SAS_BBAI_SCORE_LOG_INTERVAL_TURNS_UNSCALED_GAMESPEED=%d",
+	logBBAI("BBAI_LOG_SETTINGS SAS_BBAI_LOG_ENABLE=%d SAS_BBAI_LOG_USE_TIMESTAMPED_FILENAME=%d SAS_BBAI_PLAYER_LOG_LEVEL=%d SAS_BBAI_TEAM_LOG_LEVEL=%d SAS_BBAI_WAR_LOG_LEVEL=%d SAS_BBAI_CITY_LOG_LEVEL=%d SAS_BBAI_PRODUCTION_NO_TARGET_LOG_LEVEL=%d SAS_BBAI_MILITARY_PRODUCTION_LOG_LEVEL=%d SAS_BBAI_SPACE_PRODUCTION_LOG_LEVEL=%d SAS_BBAI_LIMITED_PROJECT_PRODUCTION_LOG_LEVEL=%d SAS_BBAI_BUILDING_PRODUCTION_LOG_LEVEL=%d SAS_BBAI_CITIZEN_LOG_LEVEL=%d SAS_BBAI_UNIT_LOG_LEVEL=%d SAS_BBAI_OVERSEAS_TRANSPORT_LOG_LEVEL=%d SAS_BBAI_GREAT_GENERAL_LOG_LEVEL=%d SAS_BBAI_SETTLER_LOG_LEVEL=%d SAS_BBAI_FOUND_LOG_LEVEL=%d SAS_BBAI_EVACUATION_LOG_LEVEL=%d SAS_BBAI_WORKER_LOG_LEVEL=%d SAS_BBAI_WORKER_SEA_LOG_LEVEL=%d SAS_BBAI_MAP_LOG_LEVEL=%d SAS_BBAI_DEAL_CANCEL_LOG_LEVEL=%d SAS_BBAI_BONUS_LOG_LEVEL=%d SAS_BBAI_CULTURE_LOG_LEVEL=%d SAS_BBAI_UWAI_AGENT_LOG_LEVEL=%d SAS_BBAI_UWAI_MILITARY_ANALYST_LOG_LEVEL=%d SAS_BBAI_UWAI_INVASION_GRAPH_LOG_LEVEL=%d SAS_BBAI_UWAI_ARMAMENT_FORECAST_LOG_LEVEL=%d SAS_BBAI_UWAI_WAR_UTILITY_LOG_LEVEL=%d SAS_BBAI_SCORE_LOG_INTERVAL_TURNS_UNSCALED_GAMESPEED=%d",
 		isSASBBAILogMasterEnabled(), isSASBBAILogTimestampedFilenameEnabled(), gPlayerLogLevel, gTeamLogLevel, gWarLogLevel, gCityLogLevel,
 		gProductionNoTargetLogLevel, gMilitaryProductionLogLevel, gSpaceProductionLogLevel, gLimitedProjectProductionLogLevel,
 		gBuildingProductionLogLevel, gCitizenLogLevel, gUnitLogLevel, gOverseasTransportLogLevel, gGreatGeneralLogLevel, gSettlerLogLevel,
 		gFoundLogLevel, gEvacuationLogLevel, gWorkerLogLevel, gWorkerSeaLogLevel, gMapLogLevel, gDealCancelLogLevel, gBonusLogLevel, gCultureLogLevel,
+		gUWAIAgentLogLevel, gUWAIMilitaryAnalystLogLevel, gUWAIInvasionGraphLogLevel, gUWAIArmamentForecastLogLevel, gUWAIWarUtilityLogLevel,
 		gScoreLogInterval);
 }
 
@@ -233,7 +265,7 @@ void startSASBBAILogForLoadedSave()
 
 void logBBAI(TCHAR* format, ... )
 {
-	// <!-- custom: Defensive backstop only; callers should pre-gate so logging-only arguments are never evaluated while BBAI diagnostics are disabled. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Defensive sink backstop only; callers still pre-gate by category so disabled diagnostics do not evaluate logging-only arguments or setup. (ChatGPT-5.6-Sol) -->
 	if (!gLogBBAI)
 		return;
 

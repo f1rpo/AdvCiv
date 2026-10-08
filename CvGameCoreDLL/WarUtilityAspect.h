@@ -8,8 +8,8 @@
 #include "UWAISets.h" // <!-- custom: Kingmaking now stores team-owned victory candidates as TeamSet. See KI#433. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 
 class MilitaryAnalyst;
+class UWAILogMuteState; // <!-- custom: Nested mute depth shared by UWAI diagnostic sub-evaluations; not a logger. See KI#505.3. (ChatGPT-5.6-Sol) -->
 class WarEvalParameters;
-class UWAIReport;
 class UWAI::Player;
 class UWAI::Team;
 class UWAICache;
@@ -33,13 +33,6 @@ protected:
 	WarUtilityAspect(WarEvalParameters const& kParams);
 	// Class to enum mapping
 	virtual UWAI::AspectTypes xmlID() const=0;
-	// Just for convenience (replacing m_kReport.log)
-	void log(char const* fmt, ...) const
-	#if DISABLE_UWAI_REPORT
-		{}
-	#else
-		;
-	#endif
 	/*	What can m_pAgentPlayer gain from or lose to m_pRivalPlayer
 		(both set by evaluate(MilitaryAnalyst const&)). Note that m_kRivalPlayer
 		is not necessarily a war enemy of the m_kAgentPlayer; it can be
@@ -62,7 +55,8 @@ protected:
 		the compiler won't warn about it. */
 	WarEvalParameters const& m_kParams;
 	int m_iU;
-	mutable UWAIReport& m_kReport;
+	// <!-- custom: Shared nested mute state inherited from WarEvalParameters; no dedicated UWAI logger remains. (ChatGPT-5.6-Sol) -->
+	UWAILogMuteState& m_kLogMuteState;
 	CvGameAI const& m_kGame;
 	EraTypes const m_eGameEra;
 	scaled const m_rGameEraAIFactor;

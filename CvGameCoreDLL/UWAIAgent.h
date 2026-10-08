@@ -7,9 +7,9 @@
 
 #include "UWAI.h"
 #include "UWAICache.h"
+#include "UWAILogMuteState.h" // <!-- custom: UWAI::Team owns only nested diagnostic mute depth now that the inherited report/logger object is removed. See KI#505.3. (ChatGPT-5.6-Sol) -->
 
 class FDataStreamBase;
-class UWAIReport;
 
 // This class makes decisions about war and peace at the level of CvTeams
 class UWAI::Team
@@ -82,12 +82,12 @@ public:
 	UWAI::Player const& leaderUWAI() const;
 	// E.g. never need to (directly) evaluate war against vassals
 	bool isWarEvalNeeded(TeamTypes eTeam) const;
-	/*	Runs 'scheme' as if UWAI was running in the background and writes a
-		report file regardless of the REPORT_INTERVAL set in XML.
-		Intended for debugging. Could insert a call like
-		GET_TEAM((TeamTypes)1).uwai().doWarReport()
-		in e.g. CvUnit::kill, load the savegame to be debugged, disband a unit,
-		read the report and remove the doWarReport call again. */
+	/*	Runs 'scheme' as if UWAI was running in the background for debugging.
+		Enable the desired SAS_BBAI_UWAI_* log levels before using this helper;
+		output goes through the normal BBAI log like ordinary UWAI diagnostics.
+		Could insert a call like GET_TEAM((TeamTypes)1).uwai().doWarReport() in
+		e.g. CvUnit::kill, load the savegame to be debugged, disband a unit,
+		read the BBAI log and remove the doWarReport call again. */
 	void doWarReport();
 
 private:
@@ -125,18 +125,14 @@ private:
 	scaled tradeValToUtility(scaled rTradeVal) const;
 
 	bool isInBackground() const { return m_bInBackground; }
-	void startReport();
-	void closeReport();
-	void setForceReport(bool b);
-	bool isReportTurn() const;
 	void showWarPrepStartedMsg(TeamTypes eTarget);
 	void showWarPlanAbandonedMsg(TeamTypes eTarget);
 	void showWarPlanMsg(TeamTypes eTarget, char const* szKey);
 
 	TeamTypes m_eAgent;
 	bool m_bInBackground; // Cache for UWAI::m_bInBackground
-	bool m_bForceReport;
-	UWAIReport* m_pReport; // Only to be used in doWar and its subroutines
+	// <!-- custom: Shared only as nested UWAI diagnostic mute depth; output goes directly to BBAI and no report/logger object is owned here. (ChatGPT-5.6-Sol) -->
+	UWAILogMuteState m_kLogMuteState;
 };
 
 // This class makes decisions about war and peace on the level of CvPlayers

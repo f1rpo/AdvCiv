@@ -1,7 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "UWAICache.h"
 #include "UWAIAgent.h"
-#include "UWAIReport.h"
+#include "UWAILogMuteState.h" // <!-- custom: Silent cache-side WarEvaluator probes use the shared nested diagnostic mute state rather than a standalone UWAI report object. See KI#505.3. (ChatGPT-5.6-Sol) -->
 #include "MilitaryBranch.h"
 #include "WarEvalParameters.h"
 #include "WarEvaluator.h"
@@ -774,8 +774,9 @@ void UWAICache::updateWarUtilityIgnDistraction(TeamTypes eTarget)
 		m_aiWarUtilityIgnoringDistraction.set(eTarget, 0);
 		return;
 	}
-	UWAIReport report(true); // silent
-	WarEvalParameters params(kOwnerTeam.getID(), eTarget, report,
+	// <!-- custom: This cache refresh needs the utility result, not a duplicate nested UWAI diagnostic trace. (ChatGPT-5.6-Sol) -->
+	UWAILogMuteState silentLogMuteState(true);
+	WarEvalParameters params(kOwnerTeam.getID(), eTarget, silentLogMuteState,
 			true); // Ignore distraction cost
 	WarEvaluator eval(params);
 	WarPlanTypes eWP = kOwnerTeam.AI_getWarPlan(eTarget);

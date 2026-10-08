@@ -1,14 +1,15 @@
 #include "CvGameCoreDLL.h"
 #include "MilitaryAnalyst.h"
 #include "WarEvalParameters.h"
+#include "UWAILogMuteState.h" // <!-- custom: Concrete nested-mute state is needed because MilitaryAnalyst queries it while the evaluation tree shares the same mute depth. (ChatGPT-5.6-Sol) -->
 #include "UWAIAgent.h"
 #include "InvasionGraph.h"
 #include "CoreAI.h"
 #include "CvCity.h"
 #include "CvPlot.h"
 #include "CvInfo_GameOption.h"
+#include "BBAILog.h" // <!-- custom: Cached SAS_BBAI UWAI subsystem levels pre-gate inherited diagnostic work before argument/setup cost. See KI#505.3. (ChatGPT-5.6-Sol) -->
 
-using std::ostringstream;
 
 
 // empty sets (static)
@@ -47,16 +48,19 @@ namespace
 
 
 MilitaryAnalyst::MilitaryAnalyst(PlayerTypes eAgentPlayer, WarEvalParameters& kWarEvalParams, bool bPeaceScenario)
-:	m_kWarEvalParams(kWarEvalParams), m_kReport(kWarEvalParams.getReport()),
+// <!-- custom: Share one nested mute state across MilitaryAnalyst and its InvasionGraph/forecast descendants; output itself is ordinary BBAI. (ChatGPT-5.6-Sol) -->
+:	m_kWarEvalParams(kWarEvalParams), m_kLogMuteState(kWarEvalParams.getLogMuteState()),
 	m_eWe(eAgentPlayer), m_eTarget(kWarEvalParams.getTarget()),
 	m_bPeaceScenario(bPeaceScenario), m_iTurnsSimulated(0)
 {
 	PROFILE_FUNC();
+	// <!-- custom: Mute depth is stable across this constructor; nested descendants may push/pop it only in balanced scopes. Reuse one descriptive level-2 gate for the constructor's scenario-context rows. (ChatGPT-5.6-Sol) -->
+	bool const bLogMilitaryAnalystContext = (gUWAIMilitaryAnalystLogLevel >= 2 && !m_kLogMuteState.isMuted());
 	m_playerResults.resize(MAX_CIV_PLAYERS, NULL);
 	m_warTable.resize(MAX_CIV_PLAYERS, std::vector<bool>(MAX_CIV_PLAYERS, false));
 	m_nukedCities.resize(MAX_CIV_PLAYERS, std::vector<scaled>(MAX_CIV_PLAYERS, 0));
 	m_capitulationsAcceptedPerTeam.resize(MAX_CIV_TEAMS);
-	m_kReport.log("Military analysis from the pov of %s", m_kReport.leaderName(m_eWe));
+	if (gUWAIMilitaryAnalystLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("Military analysis from the pov of %S", GET_PLAYER(m_eWe).getName(0));
 	CvTeamAI const& kAgent = GET_TEAM(m_eWe);
 	PlyrSet currentlyAtWar; // ("atWar" is already a name of a global function)
 	PlyrSet ourFutureOpponents;
@@ -215,18 +219,16 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes eAgentPlayer, WarEvalParameters& kW
 		will still read the actual prep time from the WarEvalParameters) */
 	if (iPrepTime < 4)
 	{
-		if (iPrepTime > 0)
-			m_kReport.log("Skipping short prep. time (%d turns):", iPrepTime);
+		if (bLogMilitaryAnalystContext && iPrepTime > 0) logBBAI("Skipping short prep. time (%d turns):", iPrepTime);
 		iTimeHorizon += iPrepTime; // Prolong 2nd phase instead
 		iPrepTime = 0;
 	}
 	else
 	{
-		m_kReport.log("Phase 1%s%s%s (%d turns)",
-				m_bPeaceScenario ? "" : ": Prolog of simulation; ",
-				m_bPeaceScenario ? "" : m_kReport.leaderName(m_eWe),
-				m_bPeaceScenario ? "": " is preparing war",
-				iPrepTime);
+		// <!-- custom: Keep %S player-name arguments out of narrow-string ternaries; CvPlayer::getName(0) is wchar const* on the Civ4 toolchain. (ChatGPT-5.6-Sol) -->
+		if (bLogMilitaryAnalystContext && m_bPeaceScenario) logBBAI("Phase 1 (%d turns)", iPrepTime);
+		else if (bLogMilitaryAnalystContext) logBBAI("Phase 1: Prolog of simulation; %S is preparing war (%d turns)",
+				GET_PLAYER(m_eWe).getName(0), iPrepTime);
 		m_pInvGraph->simulate(iPrepTime);
 		m_iTurnsSimulated += iPrepTime;
 	}
@@ -236,11 +238,8 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes eAgentPlayer, WarEvalParameters& kW
 		defeats in phase I. */
 	if (m_bPeaceScenario)
 		m_pInvGraph->updateTargets();
-	m_kReport.log("Phase 2%s%s (%d turns)",
-			(!m_bPeaceScenario && !kAgent.isAtWar(m_eTarget) ?
-			": Simulation assuming DoW by " : ""),
-			(!m_bPeaceScenario && !kAgent.isAtWar(m_eTarget) ?
-			m_kReport.leaderName(m_eWe) : ""), iTimeHorizon);
+	if (bLogMilitaryAnalystContext && !m_bPeaceScenario && !kAgent.isAtWar(m_eTarget)) logBBAI("Phase 2: Simulation assuming DoW by %S (%d turns)", GET_PLAYER(m_eWe).getName(0), iTimeHorizon);
+	else if (bLogMilitaryAnalystContext) logBBAI("Phase 2 (%d turns)", iTimeHorizon);
 	m_pInvGraph->simulate(iTimeHorizon);
 	m_iTurnsSimulated += iTimeHorizon;
 	prepareResults(); // ... of conventional war
@@ -565,26 +564,27 @@ scaled MilitaryAnalyst::militaryProduction(PlayerTypes ePlayer) const
 
 void MilitaryAnalyst::logResults(PlayerTypes ePlayer)
 {
-	if (m_kReport.isMute())
-		return;
+	FAssert(gUWAIMilitaryAnalystLogLevel >= 1 && !m_kLogMuteState.isMuted());
 	// Not the best way to identify civs that weren't part of the simulation ...
 	if (militaryProduction(ePlayer).uround() == 0)
 		return;
-	m_kReport.log("Results about %s", m_kReport.leaderName(ePlayer));
-	m_kReport.log("\nbq.");
+	if (gUWAIMilitaryAnalystLogLevel >= 2)
+	{
+		logBBAI("Results about %S", GET_PLAYER(ePlayer).getName(0));
+		logCities(ePlayer, true);
+		logCities(ePlayer, false);
+		logPower(ePlayer, false);
+		logPower(ePlayer, true);
+		logBBAI("Invested production: %d", militaryProduction(ePlayer).uround());
+	}
 	logCapitulations(ePlayer);
-	logCities(ePlayer, true);
-	logCities(ePlayer, false);
-	logPower(ePlayer, false);
-	logPower(ePlayer, true);
-	m_kReport.log("Invested production: %d", militaryProduction(ePlayer).uround());
 	logDoW(ePlayer);
-	m_kReport.log("");
 }
 
 
 void MilitaryAnalyst::logCities(PlayerTypes ePlayer, bool bConquests)
 {
+	FAssert(gUWAIMilitaryAnalystLogLevel >= 2 && !m_kLogMuteState.isMuted());
 	PlayerResult const* pResult = m_playerResults[ePlayer];
 	if (pResult == NULL)
 		return;
@@ -592,92 +592,99 @@ void MilitaryAnalyst::logCities(PlayerTypes ePlayer, bool bConquests)
 			pResult->getLostCities());
 	if (kCities.empty())
 		return;
-	m_kReport.log("Cities %s:", bConquests ? "conquered" : "lost");
+	logBBAI("Cities %s:", bConquests ? "conquered" : "lost");
 	for (CitySetIter it = kCities.begin(); it != kCities.end(); ++it)
-	{
-		m_kReport.log("%s", m_kReport.cityName(UWAICache::cvCityById(*it)));
-	}
+		logBBAI("%S", (UWAICache::cvCityById(*it)).getName().GetCString());
 }
 
 
 void MilitaryAnalyst::logCapitulations(PlayerTypes ePlayer)
 {
+	FAssert(gUWAIMilitaryAnalystLogLevel >= 1 && !m_kLogMuteState.isMuted());
 	if (isEliminated(ePlayer))
 	{
-		m_kReport.log("Eliminated");
+		logBBAI("Eliminated");
 		return;
 	}
 	TeamTypes const eTeam = TEAMID(ePlayer);
 	if (hasCapitulated(eTeam))
 	{
-		m_kReport.log("Team has capitulated");
+		logBBAI("Team has capitulated");
 		return;
 	}
 	TeamSet const& kCaps = m_capitulationsAcceptedPerTeam[eTeam];
 	if (kCaps.empty())
 		return;
-	m_kReport.log("Capitulation accepted from:");
+	logBBAI("Capitulation accepted from:");
 	for (TeamSetIter it = kCaps.begin(); it != kCaps.end(); ++it)
 	{
 		// The team name (e.g. Team1) would not be helpful
-		for (MemberIter itMember(*it); itMember.hasNext(); ++itMember)
-			m_kReport.log("%s", m_kReport.leaderName(itMember->getID()));
+		if (gUWAIMilitaryAnalystLogLevel >= 2)
+		{
+			for (MemberIter itMember(*it); itMember.hasNext(); ++itMember)
+				logBBAI("%S", GET_PLAYER(itMember->getID()).getName(0));
+		}
 	}
 }
 
 
 void MilitaryAnalyst::logDoW(PlayerTypes ePlayer)
 {
+	FAssert(gUWAIMilitaryAnalystLogLevel >= 1 && !m_kLogMuteState.isMuted());
 	PlayerResult const* pResult = m_playerResults[ePlayer];
 	if (pResult == NULL)
 		return;
 	PlyrSet const& DoWBy = pResult->getDoWBy();
 	if (!DoWBy.empty())
 	{
-		m_kReport.log("Wars declared by %s:",
-				m_kReport.leaderName(ePlayer));
-		for (PlyrSetIter it = DoWBy.begin(); it != DoWBy.end(); ++it)
-			m_kReport.log("%s", m_kReport.leaderName(*it));
+		logBBAI("Wars declared by %S:",
+				GET_PLAYER(ePlayer).getName(0));
+		if (gUWAIMilitaryAnalystLogLevel >= 2)
+		{
+			for (PlyrSetIter it = DoWBy.begin(); it != DoWBy.end(); ++it)
+				logBBAI("%S", GET_PLAYER(*it).getName(0));
+		}
 	}
 	PlyrSet const& DoWOn = pResult->getDoWOn();
 	if (!DoWOn.empty())
 	{
-		m_kReport.log("Wars declared on %s:", m_kReport.leaderName(ePlayer));
-		for (PlyrSetIter it = DoWOn.begin(); it != DoWOn.end(); ++it)
-			m_kReport.log("%s", m_kReport.leaderName(*it));
+		logBBAI("Wars declared on %S:", GET_PLAYER(ePlayer).getName(0));
+		if (gUWAIMilitaryAnalystLogLevel >= 2)
+		{
+			for (PlyrSetIter it = DoWOn.begin(); it != DoWOn.end(); ++it)
+				logBBAI("%S", GET_PLAYER(*it).getName(0));
+		}
 	}
 	PlyrSet const& kWarsCont = pResult->getWarsContinued();
 	if (!kWarsCont.empty())
 	{
-		m_kReport.log("Wars continued:");
-		for (PlyrSetIter it = kWarsCont.begin(); it != kWarsCont.end(); ++it)
-			m_kReport.log("%s", m_kReport.leaderName(*it));
+		logBBAI("Wars continued:");
+		if (gUWAIMilitaryAnalystLogLevel >= 2)
+		{
+			for (PlyrSetIter it = kWarsCont.begin(); it != kWarsCont.end(); ++it)
+				logBBAI("%S", GET_PLAYER(*it).getName(0));
+		}
 	}
 }
 
 
 void MilitaryAnalyst::logPower(PlayerTypes ePlayer, bool bGained)
 {
+	FAssert(gUWAIMilitaryAnalystLogLevel >= 2 && !m_kLogMuteState.isMuted());
 	// Some overlap with InvasionGraph::Node::logPower
-	ostringstream out;
-	if (bGained)
-		out << "Net power gain (build-up minus losses): ";
-	else out << "Lost power from casualties: ";
+	char const* szChange = (bGained ? "Net power gain (build-up minus losses)" :
+			"Lost power from casualties");
 	int iLogged = 0;
 	for (int i = 0; i < NUM_BRANCHES; i++)
 	{
 		MilitaryBranchTypes eBranch = (MilitaryBranchTypes)i;
 		int iPowChange = (bGained ?
-				gainedPower(ePlayer, eBranch) - lostPower(ePlayer, eBranch) :
-				lostPower(ePlayer, eBranch)).round();
+			gainedPower(ePlayer, eBranch) - lostPower(ePlayer, eBranch) :
+			lostPower(ePlayer, eBranch)).round();
 		if (iPowChange == 0)
 			continue;
-		if (iLogged > 0)
-			out << ", ";
-		out << MilitaryBranch::str(eBranch) << " " << iPowChange;
+		logBBAI("%s: %s %d", szChange, MilitaryBranch::str(eBranch), iPowChange);
 		iLogged++;
 	}
-	if (iLogged == 0)
-		out << "none";
-	m_kReport.log("%s", out.str().c_str());
+	if (iLogged == 0) logBBAI("%s: none", szChange);
 }

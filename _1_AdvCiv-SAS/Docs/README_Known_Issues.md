@@ -543,7 +543,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#428 - (Fixed inherited AdvCiv UWAI Domination defect) Exact population equality divided by zero](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-428)\
 [KI#429 - (Fixed inherited AdvCiv UWAI Kingmaking defect) Adjusted leaders were compared by raw score](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-429)\
 [KI#430 - (Fixed inherited AdvCiv UWAI coalition defect) Our predicted side omitted existing vassals and teammate losses](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-430)\
-[KI#431 - (Fixed inherited AdvCiv UWAI reporting defect) A missing vararg produced undefined output](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-431)\
+[KI#431 - (Fixed inherited AdvCiv UWAI reporting defect; affected formatter later retired) A missing vararg produced undefined output](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-431)\
 [KI#432 - (Fixed inherited AdvCiv UWAI Kingmaking defect) Teammates and vassals reused the rival's assets](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-432)\
 [KI#433 - (Fixed inherited AdvCiv UWAI Kingmaking team-victory defect) Shared victory state was modeled per player](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-433)\
 [KI#434 - (Fixed inherited AdvCiv UWAI AP defect) Conquests tested the conqueror instead of the old owner](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-434)\
@@ -625,6 +625,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#504 - (Fixed inherited AdvCiv production-estimate defect) Existing improvement count was mistaken for build capability](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-504)\
 [KI#505 - (Fixed inherited AdvCiv diagnostic defect) Found-value logging always reported zero unrevealed tiles](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-505)\
 [KI#505.2 - (Fixed and refactored inherited AdvCiv found-value diagnostics; post-album rediscovery) Restore suppressed settings and trace actual evaluations instead of replaying scores](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-505.2)\
+[KI#505.3 - (Fixed and refactored inherited AdvCiv UWAI disabled-logging performance defect; post-album rediscovery) Muted report calls still evaluated logging-only work](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-505.3)\
 [KI#506 - (Pending Architectural inherited UWAI/AdvCiv retry-state defect) reviewWarPlans retains superseded cross-pass state](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-506)\
 [KI#507 - (Fixed inherited AdvCiv brokered-peace regression) Low-score relaxation was unreachable](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-507)\
 [KI#508 - (Fixed inherited AdvCiv peace-threshold regression) Target team read its self war success](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-508)\
@@ -23504,7 +23505,7 @@ UWAI reporting was not enabled, so the exact corrected PreEmptiveWar city snapsh
 
 <a id="ki-431"></a>
 
-## KI#431 - (Fixed inherited AdvCiv UWAI reporting defect) A missing vararg produced undefined output
+## KI#431 - (Fixed inherited AdvCiv UWAI reporting defect; affected formatter later retired) A missing vararg produced undefined output
 
 Screenshots/files for this issue: same google drive folder link as KI#430.
 
@@ -23523,6 +23524,8 @@ Base AdvCiv 1.14 contains the same incomplete call, making this an inherited Adv
 Found as F108/provisional KI#431 during ChatGPT-5.6-Sol's open C014 `WarUtilityAspect.cpp` audit; independently reviewed, fixed and documented with the help of GPT-5.6-Sol, thanks.
 
 The same compiled multi-team autoplay completed normally. `REPORT_INTERVAL` remained disabled, so the corrected optional report row was not emitted during this test; its argument count and selected threshold remain source-verified.
+
+Update (2026-10-08, KI#505.3): AdvCiv-SAS later retired the standalone `UWAIReport`/`REPORT_INTERVAL` path entirely while moving UWAI diagnostics to caller-pre-gated BBAI categories. KI#431 remains the historical record of the inherited vararg defect and its original repair; the affected report formatter no longer exists in the current tree.
 
 <a id="ki-432"></a>
 
@@ -25242,6 +25245,44 @@ Log-volume comparison: the earlier `BBAI_20261008T100045Z_load1.log` was 1,908,7
 
 The replay ended autoplay at turn 100 while the baseline continued: its extra `AUTOPLAY_END` checkpoint split the final RNG interval, and the final player/combined state fingerprints differed, so this is not a claim of identical final lifecycle checkpoints.
 
+<a id="ki-505.3"></a>
+
+## KI#505.3 - (Fixed and refactored inherited AdvCiv UWAI disabled-logging performance defect; post-album rediscovery) Muted report calls still evaluated logging-only work
+
+Base AdvCiv's UWAI diagnostics used a separate `UWAIReport` path with per-turn `uwai<turn>.log` files, Textile-oriented formatting, XML interval/utility thresholds and nested mute state. Muted `UWAIReport::log` calls returned without formatting or writing, but that sink check happened only after C++ had already evaluated the caller's logging arguments and entered any logging helper.
+
+This was especially relevant in `WarUtilityAspect`: the inherited helper itself warned that its muted call overhead could reach roughly 100,000 calls per game turn and mentioned diagnostic argument work such as `ScaledNum::getPercent`. Similar UWAI callers still entered report helpers, constructed diagnostic strings/names or performed reporting-only setup before the muted sink could discard the row.
+
+The separate report architecture also made ordinary SAS BBAI analysis span `BBAI.log` plus many turn-scoped UWAI files.
+
+The later finding does not invalidate the historical C++ File Audit Album result for C031-WIP503. That audit correctly closed `UWAIReport.cpp` itself after checking its reference-counted mute nesting, silent-report behavior, buffer/file lifetime, name accessors and lack of gameplay-state mutation.
+
+KI#505.3 is a cross-file caller-side performance/architecture finding outside that file-local audit scope, discovered later while continuing the KI#505.2 diagnostic pre-gating modernization. The album remains unchanged as the historical audit record.
+
+The repair/refactor removes the standalone UWAI report sink and its ordinary runtime `uwai<turn>.log`/Textile machinery. UWAI now uses five startup-cached XML-tunable BBAI categories for Agent, Military Analyst, Invasion Graph, Armament Forecast and War Utility diagnostics. Callers pre-gate logging-only arguments/setup before entering helpers, and enabled output uses the normal timestamped BBAI sink.
+
+The old `REPORT_INTERVAL`, `UWAI_REPORT_THRESH` and `UWAI_REPORT_THRESH_HUMAN` controls are removed from AdvCiv-SAS with migration comments pointing to the new `SAS_BBAI_UWAI_*` levels.
+
+The old report object is not retained as a hidden second logger. `UWAILogMuteState` contains only nested mute depth for UWAI's unusual internal structure, where one real decision can evaluate several hypothetical alternatives.
+
+Those alternatives calculate normally but can remain diagnostically silent so they are not mistaken for the selected scenario in the shared BBAI stream. The mute state carries no formatting, file, cache or gameplay data.
+
+Logging-only selected-scenario reruns are observation-only by construction. `WarEvaluator::evaluateForDiagnostics` returns no utility to gameplay and bypasses WarEvaluator cache reads/writes and focused structured WAR diagnostics; the ordinary gameplay overload remains separate for callers such as `UWAICache`. Source review found no synchronized RNG calls in the WarEvaluator/MilitaryAnalyst/InvasionGraph/ArmamentForecast/WarUtilityAspect evaluation chain.
+
+A Debug-opt build compiled successfully. With `SAS_BBAI_LOG_ENABLE=1` and all five UWAI categories deliberately set to level 3, a full same-save autoplay reached the same turn-394 Space Race result.
+
+The dedicated `compare_sasgamerecord_rng.py` comparison of `SASGameRecord_20261008T185338Z_load1.log` against `SASGameRecord_20261008T194930Z_load1.log` validated both revision-137 records and found all 399 authoritative RNG checkpoints and all 399 semantic CORE state checkpoints identical.
+
+Comparisons against the earlier 10:54 and 16:32 source builds also matched all CORE checkpoints but differed in RNG call-provenance fingerprints; those cross-build comparisons are not claimed as exact RNG-checkpoint matches.
+
+The enabled level-3 BBAI file was 1,352,225,239 bytes (about 1.26 GiB), which is intentionally forensic output rather than a compact whole-game log; normal defaults remain disabled.
+
+The latest source keeps short `See KI#505.3` breadcrumbs in the UWAI/BBAI files touched by this refactor. The broader diagnostic rule remains caller-side pre-gating and observation-only logging; implementation-specific output naming/greppability can continue to improve without changing this defect's provenance.
+
+Found post-album while extending the KI#505.2 logging modernization with ChatGPT-5.6-Sol and wonderingabout.
+
+GPT-6.1-Sol independently reviewed the evolving refactor and identified a remaining selected-scenario diagnostic rerun that could still use ordinary evaluator cache semantics; the final design separates that observer path explicitly. Compile/runtime testing and repeated same-save validation were performed by wonderingabout, thanks.
+
 <a id="ki-506"></a>
 
 ## KI#506 - (Pending Architectural inherited UWAI/AdvCiv retry-state defect) reviewWarPlans retains superseded cross-pass state
@@ -25476,7 +25517,7 @@ A current-build huge autoplay completed successfully; the exact human-master pre
 
 ## KI#517 - (Fixed inherited AdvCiv debug-path defect) doWarReport could mutate real diplomacy
 
-`UWAI::Team::doWarReport` is a manual diagnostic helper that runs normal war planning while background mode is meant to suppress state changes and force a report.
+`UWAI::Team::doWarReport` is a manual diagnostic helper that runs normal war planning while background mode is meant to suppress state changes. Its inherited implementation also forced a standalone UWAI report.
 
 AdvCiv's implementation toggled the global `UWAI` background state, but Team-side guards use a separate value cached by `UWAI::Team::reset`.
 
@@ -25484,7 +25525,7 @@ That cached value remained false during the report, so reachable branches could 
 
 The repair saves both background states, sets both global and Team-local views for the whole diagnostic `doWar` call, and restores each afterward.
 
-Forced report output remains separate from mutation suppression.
+Update (2026-10-08, KI#505.3): the separate report sink and force-report controls were retired. The manual helper retains the KI#517 repair synchronizing both background states, while diagnostic output now follows the normal `SAS_BBAI_UWAI_*` category levels. This retires the old output mechanism, not the mutation-suppression fix.
 
 This path has no production caller and is normally exercised only by temporarily inserting a debugging call, so ordinary full-UWAI autoplay provides regression coverage while the state synchronization is source-verified.
 

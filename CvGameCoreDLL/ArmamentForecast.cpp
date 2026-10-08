@@ -3,7 +3,7 @@
 #include "UWAIAgent.h"
 #include "MilitaryAnalyst.h"
 #include "WarEvalParameters.h"
-#include "UWAIReport.h"
+#include "UWAILogMuteState.h" // <!-- custom: Concrete nested-mute state is needed because this implementation queries isMuted(); diagnostics themselves use BBAI directly. (ChatGPT-5.6-Sol) -->
 #include "CoreAI.h"
 #include "CvCity.h"
 #include "CvMap.h"
@@ -11,18 +11,19 @@
 #include "CvInfo_GameOption.h"
 
 using std::vector;
-using std::ostringstream;
 #include "CvInfo_City.h"
+#include "BBAILog.h" // <!-- custom: Cached SAS_BBAI UWAI subsystem levels pre-gate inherited diagnostic work before argument/setup cost. See KI#505.3. (ChatGPT-5.6-Sol) -->
 
 ArmamentForecast::ArmamentForecast(PlayerTypes ePlayer, MilitaryAnalyst const& kMA, std::vector<MilitaryBranch*>& kMilitary, int iTimeHorizon, bool bPeaceScenario, bool bNoUpgrading, bool bPartyAddedRecently, bool bAllPartiesKnown, UWAICache::City const* pTargetCity, scaled rProductionPortion)
-:	m_kMA(kMA), m_kReport(kMA.evaluationParams().getReport()),
+// <!-- custom: Share the evaluation's nested mute state; no UWAI logger object is being cached here. (ChatGPT-5.6-Sol) -->
+:	m_kMA(kMA), m_kLogMuteState(kMA.evaluationParams().getLogMuteState()),
 	m_eAnalyst(kMA.getAgentPlayer()), m_ePlayer(ePlayer),
 	m_kMilitary(kMilitary), m_iTimeHorizon(iTimeHorizon)
 {
-#define bLOG_AI false // Clogs up the log too much
-	if (!bLOG_AI && !GET_PLAYER(ePlayer).isHuman())
-	  m_kReport.setMute(true);
-	m_kReport.log("Armament forecast for *%s*", m_kReport.leaderName(ePlayer));
+	// <!-- custom: This forecast never changes the shared mute depth itself, so cache clearly named Armament Forecast gates once for the many diagnostic sites below. (ChatGPT-5.6-Sol) -->
+	bool const bLogArmamentForecastSummary = (gUWAIArmamentForecastLogLevel >= 2 && !m_kLogMuteState.isMuted());
+	bool const bLogArmamentForecastDetail = (gUWAIArmamentForecastLogLevel >= 3 && !m_kLogMuteState.isMuted());
+	if (bLogArmamentForecastSummary) logBBAI("Armament forecast for %S", GET_PLAYER(ePlayer).getName(0));
 	WarEvalParameters const& kParams = kMA.evaluationParams();
 	/*	The current production rate. It's probably going to increase a bit
 		over the planning interval, but not much since the forecast doesn't
@@ -44,19 +45,17 @@ ArmamentForecast::ArmamentForecast(PlayerTypes ePlayer, MilitaryAnalyst const& k
 	rProductionEstimate += iHurryProductionPerCity * GET_PLAYER(ePlayer).getNumCities();
 	/*	Civs will often change civics when war is declared. For now, the AI makes
 		no effort to anticipate this. Will have to adapt once it happens. */
-	m_kReport.log("Production per turn: %d", rProductionEstimate.round());
+	if (bLogArmamentForecastDetail) logBBAI("Production per turn: %d", rProductionEstimate.round());
 	rProductionEstimate *= rProductionPortion;
 	if (rProductionPortion != 1)
 	{
-		m_kReport.log("Production considering lost cities: %d",
-				rProductionEstimate.uround());
+		if (bLogArmamentForecastDetail) logBBAI("Production considering lost cities: %d", rProductionEstimate.uround());
 	}
 	// Express upgrades in terms of differences in production costs
 	scaled rProductionFromUpgrades = 0;
 	if (!bNoUpgrading)
 		rProductionFromUpgrades = productionFromUpgrades();
-	if (rProductionFromUpgrades > 0)
-		m_kReport.log("Production from upgrades: %d", rProductionFromUpgrades.uround());
+	if (bLogArmamentForecastDetail && rProductionFromUpgrades > 0) logBBAI("Production from upgrades: %d", rProductionFromUpgrades.uround());
 
 	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer);
 	TeamTypes const eTeam = kPlayer.getTeam();
@@ -74,7 +73,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes ePlayer, MilitaryAnalyst const& k
 		{
 			bNavalArmament = true;
 		}
-		m_kReport.log("Target city: %s%s", m_kReport.cityName(pTargetCity->city()),
+		if (bLogArmamentForecastDetail) logBBAI("Target city: %S%s", (pTargetCity->city()).getName().GetCString(),
 				(bNavalArmament ? " (naval target)": ""));
 	}
 	TeamTypes const eTargetTeam = kParams.getTarget();
@@ -164,7 +163,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes ePlayer, MilitaryAnalyst const& k
 		with that of the war in preparation. */
 	if (bPeaceScenario && ePlayer == m_eAnalyst)
 		iWarPlans = iWars;
-	m_kReport.log("War plans: %d; assuming %d wars, %d total wars%s%s",
+	if (bLogArmamentForecastDetail) logBBAI("War plans: %d; assuming %d wars, %d total wars%s%s",
 				iWarPlans, iWars, iTotalWars,
 				(bPeaceAssumed ? ", peace assumed" : ""),
 				(bAttackedRecently ? ", attacked recently" : ""));
@@ -250,7 +249,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes ePlayer, MilitaryAnalyst const& k
 	}
 	else
 	{
-		m_kReport.log("Checking AreaAI");
+		if (bLogArmamentForecastDetail) logBBAI("Checking AreaAI");
 		AreaAITypes const eAreaAI = getAreaAI(ePlayer);
 		// Offensive Area AI builds fewer units than 'massing' and 'defensive'
 		if (eAreaAI == AREAAI_OFFENSIVE || eAreaAI == AREAAI_ASSAULT_ASSIST ||
@@ -291,18 +290,18 @@ ArmamentForecast::ArmamentForecast(PlayerTypes ePlayer, MilitaryAnalyst const& k
 				eBasedOnCurve = FULL;
 			else if (rBuildUpRate < fixp(0.18))
 				eBasedOnCurve = NORMAL;
-			m_kReport.log("Build-up intensity based on power curve: %d", (int)
+			if (bLogArmamentForecastDetail) logBBAI("Build-up intensity based on power curve: %d", (int)
 					eBasedOnCurve);
 			if (kPlayer.isHuman())
 			{
 				eIntensity = eBasedOnCurve;
-				m_kReport.log("Using estimated intensity for forecast");
+				if (bLogArmamentForecastDetail) logBBAI("Using estimated intensity for forecast");
 				if (eIntensity <= NORMAL && kTeam.isAtWar(TEAMID(m_eAnalyst)) &&
 					!kTeam.AI_isPushover(TEAMID(m_eAnalyst)))
 				{
 					// Have to expect that human will increase build-up as necessary
 					eIntensity = INCREASED;
-					m_kReport.log("Increased intensity for human at war with us");
+					if (bLogArmamentForecastDetail) logBBAI("Increased intensity for human at war with us");
 				}
 			}
 			/*	For AI civs, only use the projection as a sanity check for now.
@@ -313,7 +312,7 @@ ArmamentForecast::ArmamentForecast(PlayerTypes ePlayer, MilitaryAnalyst const& k
 			else if ((eBasedOnCurve == FULL && eIntensity == NORMAL) ||
 				(eBasedOnCurve == NORMAL && eIntensity == FULL))
 			{
-				m_kReport.log("Estimates based on power curve and area differ widely,"
+				if (bLogArmamentForecastDetail) logBBAI("Estimates based on power curve and area differ widely,"
 						" assuming increased build-up");
 				eIntensity = INCREASED;
 			}
@@ -326,15 +325,16 @@ ArmamentForecast::ArmamentForecast(PlayerTypes ePlayer, MilitaryAnalyst const& k
 		predictArmament(iTimeHorizon, rProductionEstimate, rProductionFromUpgrades,
 				eIntensity, bDefensive, bNavalArmament);
 	}
-	if (!bLOG_AI && !kPlayer.isHuman())
-		m_kReport.setMute(false); // advc.test
-#undef bLOG_AI
 }
 
 
 void ArmamentForecast::predictArmament(int iTurnsBuildUp, scaled rPerTurnProduction, scaled rAdditionalProduction, Intensity eIntensity, bool bDefensive, bool bNavalArmament)
 {
 	PROFILE_FUNC();
+	// <!-- custom: This method leaves mute depth unchanged, so reuse stable effective gates instead of repeating the same cached-level/mute conjunction. (ChatGPT-5.6-Sol) -->
+	bool const bLogArmamentForecastOutcome = (gUWAIArmamentForecastLogLevel >= 1 && !m_kLogMuteState.isMuted());
+	bool const bLogArmamentForecastSummary = (gUWAIArmamentForecastLogLevel >= 2 && !m_kLogMuteState.isMuted());
+	bool const bLogArmamentForecastDetail = (gUWAIArmamentForecastLogLevel >= 3 && !m_kLogMuteState.isMuted());
 	CvPlayerAI const& kPlayer = GET_PLAYER(m_ePlayer);
 	if (!bDefensive)
 	{
@@ -342,7 +342,7 @@ void ArmamentForecast::predictArmament(int iTurnsBuildUp, scaled rPerTurnProduct
 		bool const bPeacefulVictory = kPlayer.uwai().getCache().isFocusOnPeacefulVictory();
 		if (bPeacefulVictory)
 		{
-			m_kReport.log("Build-up reduced b/c pursuing peaceful victory");
+			if (bLogArmamentForecastDetail) logBBAI("Build-up reduced b/c pursuing peaceful victory");
 			if (eIntensity == FULL)
 				eIntensity = INCREASED;
 			else if (eIntensity == INCREASED)
@@ -352,8 +352,8 @@ void ArmamentForecast::predictArmament(int iTurnsBuildUp, scaled rPerTurnProduct
 		}
 	}
 
-	m_kReport.log("Forecast for the next %d turns", iTurnsBuildUp);
-	m_kReport.log("Defensive: %s, naval: %s, intensity: %s", bDefensive ? "yes" : "no",
+	if (bLogArmamentForecastSummary) logBBAI("Forecast for the next %d turns", iTurnsBuildUp);
+	if (bLogArmamentForecastSummary) logBBAI("Defensive: %s, naval: %s, intensity: %s", bDefensive ? "yes" : "no",
 			bNavalArmament ? "yes" : "no", strIntensity(eIntensity));
 
 	// Armament portion of the total production; based on intensity.
@@ -411,7 +411,7 @@ void ArmamentForecast::predictArmament(int iTurnsBuildUp, scaled rPerTurnProduct
 			rArmamentPortion += fixp(0.04);
 		else if (eIntensity == FULL)
 			rArmamentPortion += fixp(0.08);
-		m_kReport.log("Armament portion increased b/c of conscription");
+		if (bLogArmamentForecastDetail) logBBAI("Armament portion increased b/c of conscription");
 	}
 	rArmamentPortion.clamp(0, fixp(0.75));
 	// Portions of the military branches
@@ -528,7 +528,7 @@ void ArmamentForecast::predictArmament(int iTurnsBuildUp, scaled rPerTurnProduct
 	}
 	if (rSurplus.approxEquals(1, fixp(0.001)))
 	{
-		m_kReport.log("Armament forecast canceled b/c no units can be trained");
+		if (bLogArmamentForecastOutcome) logBBAI("Armament forecast canceled b/c no units can be trained");
 		return;
 	}
 	for (int i = 0; i < NUM_BRANCHES; i++)
@@ -551,43 +551,24 @@ void ArmamentForecast::predictArmament(int iTurnsBuildUp, scaled rPerTurnProduct
 			rBranchPortions[CAVALRY] = rBranchPortions[ARMY];
 		}
 	}
-	if (!m_kReport.isMute()) // Logging
+	if (bLogArmamentForecastDetail)
 	{
-		ostringstream msg;
-		msg << "Branch portions for ";
-		bool bFirstItemDone = false; // for commas
 		for (int i = 0; i < NUM_BRANCHES; i++)
 		{
 			if (i == NUCLEAR || rBranchPortions[i].getPercent() < 1)
 				continue;
 			MilitaryBranch const& kBranch = *m_kMilitary[i];
-			if (bFirstItemDone)
-				msg << ", ";
-			msg << kBranch;
-			bFirstItemDone = true;
+			logBBAI("Branch portion: player=%d branch=%s percent=%d", m_ePlayer,
+					kBranch.str(), rBranchPortions[i].getPercent());
 		}
-		msg << ": ";
-		bFirstItemDone = false;
-		for (int i = 0; i < NUM_BRANCHES; i++)
-		{
-			if (i == NUCLEAR || rBranchPortions[i].getPercent() < 1)
-				continue;
-			if (bFirstItemDone)
-				msg << ", ";
-			msg << rBranchPortions[i].getPercent();
-			bFirstItemDone = true;
-		}
-		m_kReport.log("%s", msg.str().c_str());
 	}
 	// Compute total production for armament
 	scaled rTotalProductionForBuildUp = rAdditionalProduction;
 	rTotalProductionForBuildUp += iTurnsBuildUp * rArmamentPortion * rPerTurnProduction;
-	m_kReport.log("Total production for build-up: %d hammers",
-			rTotalProductionForBuildUp.uround());
+	if (bLogArmamentForecastSummary) logBBAI("Total production for build-up: %d hammers", rTotalProductionForBuildUp.uround());
 	m_rProductionInvested = rTotalProductionForBuildUp;
 
 	// Increase military power
-	//m_kReport.log("\nbq."); // Textile block quote (takes up too much space)
 	TeamTypes const eAgentTeam = TEAMID(m_kMA.getAgentPlayer());
 	for (int i = 0; i < NUM_BRANCHES; i++)
 	{
@@ -602,11 +583,9 @@ void ArmamentForecast::predictArmament(int iTurnsBuildUp, scaled rPerTurnProduct
 		if (rIncrease.uround() > 0)
 		{
 			FAssertMsg(kBranch.power() >= 0, "overflow in predicted power?");
-			m_kReport.log("Predicted power increase in %s by %d",
-					kBranch.str(), rIncrease.uround());
+			if (bLogArmamentForecastOutcome) logBBAI("Predicted power increase in %s by %d", kBranch.str(), rIncrease.uround());
 		}
 	}
-	m_kReport.logNewline();
 }
 
 
@@ -631,6 +610,7 @@ char const* ArmamentForecast::strIntensity(Intensity eIntensity)
 
 scaled ArmamentForecast::productionFromUpgrades()
 {
+	bool const bLogArmamentForecastDetail = (gUWAIArmamentForecastLogLevel >= 3 && !m_kLogMuteState.isMuted());
 	/*	Going through all the units and checking for possible upgrades would be
 		somewhat expensive and complicated: Which upgrades would be prioritized
 		if upgrading them all is too costly?
@@ -641,8 +621,7 @@ scaled ArmamentForecast::productionFromUpgrades()
 		convert the result into hammers, and (later) the hammers into power. */
 	CvPlayerAI const& kPlayer = GET_PLAYER(m_ePlayer);
 	scaled r = kPlayer.AI_getGoldToUpgradeAllUnits();
-	if (2 * r >= 1)
-		m_kReport.log("Total gold needed for upgrades: %d", r.uround());
+	if (bLogArmamentForecastDetail && 2 * r >= 1) logBBAI("Total gold needed for upgrades: %d", r.uround());
 	/*	kPlayer may not have the funds to make all the upgrades in the medium term.
 		Think of a human player keeping stacks of Warriors around, or a vassal
 		receiving tech quickly from its master. Spend at most iIncomeTurns turns
@@ -656,8 +635,7 @@ scaled ArmamentForecast::productionFromUpgrades()
 	int const iGold = kPlayer.getGold();
 	rIncomeBound = std::max((2 * rIncomeBound + iGold) / 3,
 			(2 * iGold + rIncomeBound) / 3);
-	if (rIncomeBound < r)
-		m_kReport.log("Upgrades bounded by income (%d gpt)", rIncome.round());
+	if (bLogArmamentForecastDetail && rIncomeBound < r) logBBAI("Upgrades bounded by income (%d gpt)", rIncome.round());
 	r.decreaseTo(rIncomeBound);
 	// An approximate inversion of CvUnit::upgradePrice
 	scaled rUpgrCostPerProd = GC.getDefineINT(CvGlobals::UNIT_UPGRADE_COST_PER_PRODUCTION);

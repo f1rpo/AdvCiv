@@ -199,7 +199,6 @@
     <ClCompile Include="..\UWAIAgent.cpp" />
     <ClCompile Include="..\UWAI.cpp" />
     <ClCompile Include="..\UWAICache.cpp" />
-    <ClCompile Include="..\UWAIReport.cpp" />
     <ClCompile Include="..\WarEvalParameters.cpp" />
     <ClCompile Include="..\WarEvaluator.cpp" />
     <ClCompile Include="..\WarUtilityAspect.cpp" />
@@ -383,7 +382,7 @@
     <ClInclude Include="..\UWAIAgent.h" />
     <ClInclude Include="..\UWAI.h" />
     <ClInclude Include="..\UWAICache.h" />
-    <ClInclude Include="..\UWAIReport.h" />
+    <ClInclude Include="..\UWAILogMuteState.h" />
     <ClInclude Include="..\WarEvalParameters.h" />
     <ClInclude Include="..\WarEvaluator.h" />
     <ClInclude Include="..\WarUtilityAspect.h" />

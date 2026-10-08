@@ -5,8 +5,9 @@
 #include "AgentIterator.h"
 
 
-WarEvalParameters::WarEvalParameters(TeamTypes eAgent, TeamTypes eTarget, UWAIReport& kReport, bool bIgnoreDistraction, PlayerTypes eSponsor, TeamTypes eCapitulationTeam)
-:	m_eAgent(eAgent), m_eTarget(eTarget), m_kReport(kReport),
+// <!-- custom: Replace the inherited UWAIReport reference with shared nested mute depth only; callers emit diagnostics directly through BBAI. See KI#505.3. (ChatGPT-5.6-Sol) -->
+WarEvalParameters::WarEvalParameters(TeamTypes eAgent, TeamTypes eTarget, UWAILogMuteState& kLogMuteState, bool bIgnoreDistraction, PlayerTypes eSponsor, TeamTypes eCapitulationTeam)
+:	m_eAgent(eAgent), m_eTarget(eTarget), m_kLogMuteState(kLogMuteState),
 	m_eSponsor(eSponsor), m_eCapitulationTeam(eCapitulationTeam),
 	m_bIgnoreDistraction(bIgnoreDistraction),
 	// To be set by WarEvaluator:

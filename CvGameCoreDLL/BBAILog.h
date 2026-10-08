@@ -15,6 +15,7 @@
 // Keep the widespread g*LogLevel hot gates as direct reads; call sites should still gate before evaluating logging-only arguments because logBBAI cannot undo argument work already performed by its caller. (GPT-5.5? + ChatGPT-5.6-Sol) -->
 struct SASBBAILogSettings
 {
+	// <!-- custom: This remains the one cached "any BBAI diagnostics active" bit. UWAI categories are ordinary BBAI categories now that their separate report sink is gone. (ChatGPT-5.6-Sol) -->
 	bool bEnabled;
 	bool bMasterEnabled;
 	int iPlayerLogLevel;
@@ -39,6 +40,12 @@ struct SASBBAILogSettings
 	int iDealCancelLogLevel;
 	int iBonusLogLevel;
 	int iCultureLogLevel;
+	// <!-- custom: UWAI diagnostics use the same cached BBAI category model and physical log sink as the rest of SAS. See KI#505.3. (ChatGPT-5.6-Sol) -->
+	int iUWAIAgentLogLevel;
+	int iUWAIMilitaryAnalystLogLevel;
+	int iUWAIInvasionGraphLogLevel;
+	int iUWAIArmamentForecastLogLevel;
+	int iUWAIWarUtilityLogLevel;
 };
 extern SASBBAILogSettings gSASBBAILogSettings;
 void cacheSASBBAILogSettings();
@@ -49,7 +56,8 @@ void startSASBBAILogForNewGame(); // <!-- custom: Roll to a new timestamped BBAI
 void logSASBBAINewGameStarted(); // <!-- custom: Log complete new-game identification after map and player initialization. (GPT-5.5) -->
 void startSASBBAILogForLoadedSave(); // <!-- custom: Roll and identify a loaded save after its complete game state is read. (GPT-5.5) -->
 int getSASBBAILogSessionSequence(); // <!-- custom: Let high-volume diagnostic categories discard change-dedup state whenever a new/load BBAI session begins. (GPT-5.6-Sol) -->
-#define gLogBBAI (gSASBBAILogSettings.bEnabled) // advc.007: So that BBAI logging can be checked in FAssert; <!-- custom: startup-cached direct read. (ChatGPT-5.6-Sol) -->
+// <!-- custom: gLogBBAI remains a startup-cached direct read and now includes enabled UWAI categories because they use the same BBAI sink instead of a parallel logger. (ChatGPT-5.6-Sol) -->
+#define gLogBBAI (gSASBBAILogSettings.bEnabled) // advc.007: So that BBAI logging can be checked in FAssert;
 #define gPlayerLogLevel (gSASBBAILogSettings.iPlayerLogLevel)
 #define gScoreLogInterval getSASBBAIScoreLogInterval() // advc.007: was hardcoded to 25 in CvPlayer::onTurnLogging; only reached when PLAYER logging is enabled.
 #define gTeamLogLevel (gSASBBAILogSettings.iTeamLogLevel)
@@ -73,6 +81,12 @@ int getSASBBAILogSessionSequence(); // <!-- custom: Let high-volume diagnostic c
 #define gDealCancelLogLevel (gSASBBAILogSettings.iDealCancelLogLevel) // advc.133
 #define gBonusLogLevel (gSASBBAILogSettings.iBonusLogLevel) // <!-- custom: Shared bonus valuation, trade, and strategic-resource diagnostics independent of their Worker/Settler consumers. (GPT-5.6-Sol) -->
 #define gCultureLogLevel (gSASBBAILogSettings.iCultureLogLevel) // <!-- custom: Separate culture-victory diagnostics from general PLAYER and CITY logging. (ChatGPT-5.5) -->
+// <!-- custom: UWAI follows the normal cached BBAI category contract. Keep these as direct hot reads so callers can pre-gate diagnostic-only work before formatting, helper calls or extra simulations. (ChatGPT-5.6-Sol) -->
+#define gUWAIAgentLogLevel (gSASBBAILogSettings.iUWAIAgentLogLevel)
+#define gUWAIMilitaryAnalystLogLevel (gSASBBAILogSettings.iUWAIMilitaryAnalystLogLevel)
+#define gUWAIInvasionGraphLogLevel (gSASBBAILogSettings.iUWAIInvasionGraphLogLevel)
+#define gUWAIArmamentForecastLogLevel (gSASBBAILogSettings.iUWAIArmamentForecastLogLevel)
+#define gUWAIWarUtilityLogLevel (gSASBBAILogSettings.iUWAIWarUtilityLogLevel)
 
 void logBBAI(TCHAR* format, ... );
 // <advc.133>

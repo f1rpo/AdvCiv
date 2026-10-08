@@ -19,10 +19,7 @@ class FDataStreamBase;
 #define getUWAI() GC.AI_getGame().uwai()
 
 
-/*	Setting this to 1 should remove almost all runtime overhead from logging in
-	optimized release builds. The overhead should be pretty small in any case,
-	so I'd rather keep logging available (via an XML switch) in releases. */
-#define DISABLE_UWAI_REPORT 0
+// <!-- custom: Base AdvCiv used DISABLE_UWAI_REPORT as a compile-time escape hatch for its standalone UWAI logger. AdvCiv-SAS removes that separate logger; cached SAS_BBAI_UWAI_* caller gates suppress disabled diagnostics without recompilation. See KI#505.3. (ChatGPT-5.6-Sol) -->
 
 class UWAI : private boost::noncopyable
 {

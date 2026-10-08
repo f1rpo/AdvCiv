@@ -5,10 +5,10 @@
 
 #include "MilitaryBranch.h"
 #include "UWAICache.h"
-#include "UWAIReport.h"
 #include "UWAISets.h"
 
 class MilitaryAnalyst;
+class UWAILogMuteState; // <!-- custom: Nested mute depth shared by UWAI diagnostic sub-evaluations; not a logger. See KI#505.3. (ChatGPT-5.6-Sol) -->
 class SimulationStep;
 class CvArea;
 
@@ -116,7 +116,8 @@ public:
 
 	private:
 		InvasionGraph const& m_kOuter;
-		UWAIReport& m_kReport;
+		// <!-- custom: Shared nested mute state from the outer graph; diagnostics themselves go directly to BBAI. (ChatGPT-5.6-Sol) -->
+		UWAILogMuteState& m_kLogMuteState;
 		PlayerTypes m_ePlayer;
 		PlayerTypes m_eAgent;
 		PlyrSet m_warOpponents;
@@ -221,7 +222,8 @@ private:
 	std::vector<Node*> m_nodeMap;
 	MilitaryAnalyst& m_kMA;
 	PlayerTypes m_eAgent;
-	UWAIReport& m_kReport;
+	// <!-- custom: Shared nested mute state from the MilitaryAnalyst evaluation; not a logger or formatter. (ChatGPT-5.6-Sol) -->
+	UWAILogMuteState& m_kLogMuteState;
 	bool m_bAllWarPartiesKnown;
 	int m_iTimeLimit; // for simulateLosses
 	bool m_bPeaceScenario;
