@@ -25222,6 +25222,26 @@ Found post-album during the AdvCiv-SAS diagnostic pre-gating cleanup with ChatGP
 
 Reviewed against current source, inherited AdvCiv source and the introducing commit by GPT-6.1-Sol. After the initial settings-header repair and discussion with wonderingabout, GPT-6.1-Sol implemented the same-pass logging redesign, explicit comparison contexts and greppable KI references; runtime validation remains pending, thanks.
 
+### Follow-up diagnostic preservation audit (2026-10-08, GPT-6.1-Sol)
+
+Reviewing deleted rows against commit `89a9db59b` found that retiring the replay API also removed useful comparison summaries. Actual-evaluation logging preserved most scoring detail, but did not fully replace the selected/next/coastal or best adjacent/distance-2 summaries. Earlier blanket assurances of complete diagnostic preservation were too broad.
+
+- The prepared follow-up restores founding year and the current minimum-found-value threshold beside `FOUND_SITE_FOUNDED`.
+- `FOUND_SITE_CACHED_COMPARISON` summarizes the highest cached alternative in the maintained shortlist and the highest cached coastal alternative with player-known water bonuses. It includes selected/alternative values, coordinates, deltas, water-bonus context and explicit absence. `source=MAINTAINED_CITY_SITE_CACHE` distinguishes these possibly older, planned-site-adjusted values from the deleted fresh replay; it does not claim movement legality or that the Settler should have chosen the highest cached value regardless of travel.
+- `BARBARIAN_CITY_SITE_COMPARISON` restores the best raw eligible alternative at distance 1 and 2 using values from the existing diagnostic scan, compared with the actual selected raw chooser score. It adds no evaluations or RNG draws. Top candidates, randomization and nearby eligibility rows now use structured event names. Nearby ineligible candidates retain their rejection context with `evaluated=0` and scores `-1`, rather than a misleading numeric zero score.
+- Deliberately not restored: unconstrained best-neighbor/Barbarian comparisons that score water, visible or area-ineligible sites, and fresh ordinary-site replay comparisons. Those require additional hypothetical evaluations, whereas the restored summaries reuse available evidence. This is a documented coverage difference, not a claim that all old hypothetical data remains available. A specific missing diagnostic case can justify a separately labelled comparison later.
+- Settings, component/rejection rows, plot/resource details and breakdowns remain in the actual-evaluation traces; normalization/start-site lifecycle markers remain. No separate replay is added just to reproduce their old prose headings.
+
+This follow-up changes BBAI diagnostics only; SASGameRecord rows/revision remain unchanged. Source review checked format/argument counts, unchanged RNG call expressions, and the absence of scoring/pathfinding/cache-mutation calls in the cached comparison helper; recorder contracts, diagnostic-log safety, repository hygiene and Markdown checks passed.
+
+Workflow tests passed 89/90, with the existing ignored deferred XML draft causing the sole Long_Comments failure. Debug-opt compilation and the turn-100 replay passed. Targeted BBAI validation checked 110 cached comparisons and 22 Barbarian ring comparisons: scores, deltas, eligibility and absence markers were consistent, including 13 positive cached deltas and 122 explicitly unevaluated nearby candidates.
+
+Against the earlier revision-137 baseline, all shared CORE state fingerprints matched through turn 99; authoritative RNG states, cumulative counts and cumulative value-stream fingerprints matched through turn 100. Call-provenance fingerprints differed across the source builds, whose labels include source locations.
+
+Log-volume comparison: the earlier `BBAI_20261008T100045Z_load1.log` was 1,908,798,076 bytes; the new `BBAI_20261008T124844Z_load1.log` was 1,908,834,494 bytes, an increase of 36,418 bytes (about 35.6 KiB, 0.00191%). Both used Found/Settler level 3 and ended with the same turn-101 site-list audit. This comparison spans the intervening Settler logging changes as well as this follow-up, so it is not an isolated measurement of this commit; the combined added diagnostics had negligible impact on total log size.
+
+The replay ended autoplay at turn 100 while the baseline continued: its extra `AUTOPLAY_END` checkpoint split the final RNG interval, and the final player/combined state fingerprints differed, so this is not a claim of identical final lifecycle checkpoints.
+
 <a id="ki-506"></a>
 
 ## KI#506 - (Pending Architectural inherited UWAI/AdvCiv retry-state defect) reviewWarPlans retains superseded cross-pass state

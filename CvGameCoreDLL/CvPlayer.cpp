@@ -21,6 +21,7 @@
 #include "CvBugOptions.h"
 #include "CvDLLFlagEntityIFaceBase.h" // BBAI
 #include "BBAILog.h"
+#include "CitySiteEvaluator.h" // <!-- custom: Known-water-bonus queries for cached coastal comparisons avoid replaying found-value scoring. See KI#505.2. (GPT-6.1-Sol) -->
 #include "SASGameRecordLog.h" // <!-- custom: Structured player/diplomacy rows are logged to SASGameRecord_*.log, separate from BBAI diagnostics. (GPT-5.5) -->
 #include "RiseFall.h" // advc.708: Needed only for savegame compatibility
 #include "SelfMod.h" // advc.092b
@@ -5424,6 +5425,52 @@ bool CvPlayer::canFound(CvPlot const& kPlot, bool bTestVisible, /* <advc.181> */
 }
 
 
+// <!-- custom: Removing CitySiteEvaluator::log() also removed its selected/next/coastal summaries.
+// Restore shortlist comparisons from cached values before founding mutates the map, identifying them as cached rather than fresh or path-adjusted scores.
+// Only player-known water resources are counted; this helper performs no scoring, pathfinding or RNG and its caller gates it at Found level 2. See KI#505.2. (GPT-6.1-Sol) -->
+static void logBBAIFoundCachedAlternatives(CvPlayerAI const& kPlayer, CvPlot const& kSelected)
+{
+	FAssert(gFoundLogLevel >= 2);
+	int const iSelectedCachedValue = kSelected.getFoundValue(kPlayer.getID());
+	int const iMinWaterSize = GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN);
+	bool const bSelectedCoastal = kSelected.isCoastalLand(iMinWaterSize);
+	int const iSelectedKnownWaterBonuses = bSelectedCoastal ? CitySiteEvaluator::countWaterBonuses(kSelected, kPlayer.getTeam(), false) : 0;
+	CvPlot const* apAlternatives[2] = { NULL, NULL };
+	int aiCachedValues[2] = { -1, -1 };
+	int iCoastalKnownWaterBonuses = 0;
+	for (int iSite = 0; iSite < kPlayer.AI_getNumCitySites(); iSite++)
+	{
+		CvPlot const& kSite = kPlayer.AI_getCitySite(iSite);
+		if (&kSite == &kSelected)
+			continue;
+		int const iCachedValue = kSite.getFoundValue(kPlayer.getID());
+		if (iCachedValue > aiCachedValues[0])
+		{
+			apAlternatives[0] = &kSite;
+			aiCachedValues[0] = iCachedValue;
+		}
+		if (iCachedValue <= aiCachedValues[1] || !kSite.isCoastalLand(iMinWaterSize))
+			continue;
+		int const iKnownWaterBonuses = CitySiteEvaluator::countWaterBonuses(kSite, kPlayer.getTeam(), false);
+		if (iKnownWaterBonuses > 0)
+		{
+			apAlternatives[1] = &kSite;
+			aiCachedValues[1] = iCachedValue;
+			iCoastalKnownWaterBonuses = iKnownWaterBonuses;
+		}
+	}
+	for (int iKind = 0; iKind < 2; iKind++)
+	{
+		CvPlot const* pAlternative = apAlternatives[iKind];
+		logBBAI("FOUND_SITE_CACHED_COMPARISON turn=%d player=%d selected=%d,%d source=MAINTAINED_CITY_SITE_CACHE kind=%s selectedCached=%d selectedCoastal=%d selectedKnownWaterBonuses=%d citySites=%d hasAlternative=%d alternative=%d,%d alternativeCached=%d cachedDelta=%d alternativeKnownWaterBonuses=%d sameAsBestListed=%d",
+			GC.getGame().getGameTurn(), kPlayer.getID(), kSelected.getX(), kSelected.getY(), iKind == 0 ? "BEST_LISTED" : "COASTAL_WATER_BONUS",
+			iSelectedCachedValue, bSelectedCoastal, iSelectedKnownWaterBonuses, kPlayer.AI_getNumCitySites(), pAlternative != NULL,
+			pAlternative == NULL ? -1 : pAlternative->getX(), pAlternative == NULL ? -1 : pAlternative->getY(), aiCachedValues[iKind],
+			pAlternative == NULL ? 0 : aiCachedValues[iKind] - iSelectedCachedValue,
+			iKind == 1 ? iCoastalKnownWaterBonuses : -1, pAlternative != NULL && pAlternative == apAlternatives[0]);
+	}
+}
+
 void CvPlayer::found(int iX, int iY)
 {
 	if (!canFound(iX, iY))
@@ -5453,9 +5500,10 @@ void CvPlayer::found(int iX, int iY)
 	}
 
 	// <!-- custom: Log the cached site value before founding mutates the map. Real evaluation traces are emitted where the AI computes them; founding no longer replays scoring with different planned-site context. A cached value is not a freshly recomputed first-city score. See KI#505.2. (GPT-6.1-Sol) -->
-	if (gFoundLogLevel > 0) logBBAI("FOUND_SITE_FOUNDED turn=%d player=%d site=%d,%d cachedValue=%d firstCity=%d human=%d",
-		kGame.getGameTurn(), getID(), iX, iY,
-		GC.getMap().getPlot(iX, iY).getFoundValue(getID()), getNumCities() <= 0, isHuman());
+	if (gFoundLogLevel > 0) logBBAI("FOUND_SITE_FOUNDED turn=%d year=%d player=%d site=%d,%d cachedValue=%d minFoundValue=%d firstCity=%d human=%d",
+		kGame.getGameTurn(), kGame.getGameTurnYear(), getID(), iX, iY,
+		GC.getMap().getPlot(iX, iY).getFoundValue(getID()), AI().AI_getMinFoundValue(), getNumCities() <= 0, isHuman());
+	if (gFoundLogLevel >= 2 && !isBarbarian()) logBBAIFoundCachedAlternatives(AI(), GC.getMap().getPlot(iX, iY));
 	// <!-- custom: SASGameRecord keeps only the already-cached strategic site list/value context here, before initCity changes the plot and surrounding city state.
 	// Detailed CitySiteEvaluator component reasoning remains in Found/BBAI diagnostics. (ChatGPT-5.6-Sol) -->
 	if (bLogSASCityFounding) logSASGameRecordCityFoundingSite(*this, GC.getMap().getPlot(iX, iY));

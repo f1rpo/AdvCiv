@@ -7416,7 +7416,7 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 				const int iOldValue = iValue;
 				iValue *= 100 + iRandomPercent;
 				iValue /= 100;
-				if (gFoundLogLevel >= 2) logBBAI("Barbarian city-site random multiplier: +%d%% (%d→%d)", iRandomPercent, iOldValue, iValue);
+				if (gFoundLogLevel >= 2) logBBAI("BARBARIAN_CITY_SITE_RANDOMIZATION turn=%d site=%d,%d randomPercent=%d areaAdjusted=%d final=%d", getGameTurn(), kPlot.getX(), kPlot.getY(), iRandomPercent, iOldValue, iValue);
 			}
 			if (iValue > iBestValue)
 			{
@@ -7458,17 +7458,22 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 		}
 		if (gFoundLogLevel >= 2)
 		{
-			logBBAI("Barbarian city chooser top final candidates before founding:");
+			logBBAI("BARBARIAN_CITY_SITE_SELECTED turn=%d site=%d,%d raw=%d areaAdjusted=%d final=%d randomPercent=%d", getGameTurn(), pBestPlot->getX(), pBestPlot->getY(), aiTopRawValues[0], aiTopAreaValues[0], iBestValue, aiTopRandomPercents[0]);
 			for (int i = 0; i < iSAS_BARBARIAN_CITY_SITE_TOP_LOG_COUNT; i++)
 			{
 				if (apTopPlots[i] == NULL)
 					continue;
-				logBBAI("  #%d raw=%d areaAdjusted=%d final=%d at %d,%d area=%d",
-					i + 1, aiTopRawValues[i], aiTopAreaValues[i], aiTopValues[i], apTopPlots[i]->getX(), apTopPlots[i]->getY(),
+				logBBAI("BARBARIAN_CITY_SITE_CANDIDATE turn=%d rank=%d raw=%d areaAdjusted=%d final=%d site=%d,%d area=%d",
+					getGameTurn(), i + 1, aiTopRawValues[i], aiTopAreaValues[i], aiTopValues[i], apTopPlots[i]->getX(), apTopPlots[i]->getY(),
 					apTopPlots[i]->getArea().getID());
 			}
 			// <!-- custom: Barbarian cities are spawned by a global scan rather than normal Settler city-site lists, and old Barbarian scoring can ignore outer-BFC seafood or other long-term capture value.
 			// Log nearby alternatives so cases like Yue-Chi, Sarmatian, Aryan, and Numidian can show whether the selected spawn tile or a one-tile shift was actually better. (GPT-5.5) -->
+			// <!-- custom: Removing CitySiteEvaluator::log() also removed its best adjacent/distance-2 summaries.
+			// Retain the best raw eligible alternative in each ring during this existing diagnostic scan, then compare with the actual chooser's selected raw score; do not mix randomized final scores with raw scores or repeat evaluations.
+			// Ineligible plots are reported but not scored. See KI#505.2. (GPT-6.1-Sol) -->
+			CvPlot const* apBestNearbyPlots[2] = { NULL, NULL };
+			int aiBestNearbyRawValues[2] = { -1, -1 };
 			CitySiteEvaluator diagnosticEval(citySiteEval);
 			// <!-- custom: Label these logging-only alternatives separately from the global chooser's real evaluations; setting context changes only the log label. See KI#505.2. (GPT-6.1-Sol) -->
 			diagnosticEval.setLogContext(SAS_FOUND_LOG_BARBARIAN_COMPARISON);
@@ -7505,8 +7510,8 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 					iTargetCities /= std::max(1, iUnownedTilesThreshold);
 					bool bAreaEligible = (a.getCitiesPerPlayer(BARBARIAN_PLAYER) < iTargetCities);
 					bool bSpawnEligible = (!pLoopPlot->isWater() && !pLoopPlot->isVisibleToCivTeam() && (!bSkipCivAreas || !bCivArea) && bAreaEligible);
-					int iNearbyRawValue = 0;
-					int iNearbyAreaValue = 0;
+					int iNearbyRawValue = -1;
+					int iNearbyAreaValue = -1;
 					if (bSpawnEligible)
 					{
 						iNearbyRawValue = diagnosticEval.evaluate(*pLoopPlot);
@@ -7519,17 +7524,32 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 							else iNearbyAreaValue *= iOwned + NUM_INNER_PLOTS;
 						}
 					}
-					logBBAI("  nearby chooser candidate %d,%d dist=%d raw=%d areaAdjusted=%d area=%d areaBarbCities=%d areaTarget=%d water=%d visibleToCivTeam=%d civArea=%d areaEligible=%d spawnEligible=%d",
-						pLoopPlot->getX(), pLoopPlot->getY(), plotDistance(pBestPlot, pLoopPlot), iNearbyRawValue, iNearbyAreaValue,
+					int const iDistance = plotDistance(pBestPlot, pLoopPlot);
+					FAssert(iDistance >= 1 && iDistance <= 2);
+					if (bSpawnEligible && iNearbyRawValue > aiBestNearbyRawValues[iDistance - 1])
+					{
+						apBestNearbyPlots[iDistance - 1] = pLoopPlot;
+						aiBestNearbyRawValues[iDistance - 1] = iNearbyRawValue;
+					}
+					logBBAI("BARBARIAN_CITY_SITE_NEARBY turn=%d selected=%d,%d candidate=%d,%d distance=%d evaluated=%d raw=%d areaAdjusted=%d area=%d areaBarbCities=%d areaTarget=%d water=%d visibleToCivTeam=%d civArea=%d areaEligible=%d spawnEligible=%d",
+						getGameTurn(), pBestPlot->getX(), pBestPlot->getY(), pLoopPlot->getX(), pLoopPlot->getY(), iDistance, bSpawnEligible, iNearbyRawValue, iNearbyAreaValue,
 						a.getID(), a.getCitiesPerPlayer(BARBARIAN_PLAYER), iTargetCities, pLoopPlot->isWater(),
 						pLoopPlot->isVisibleToCivTeam(), bCivArea, bAreaEligible, bSpawnEligible);
 				}
+			}
+			for (int iRing = 0; iRing < 2; iRing++)
+			{
+				CvPlot const* pAlternative = apBestNearbyPlots[iRing];
+				logBBAI("BARBARIAN_CITY_SITE_COMPARISON turn=%d selected=%d,%d scope=SPAWN_ELIGIBLE_RING distance=%d selectedRaw=%d hasAlternative=%d alternative=%d,%d alternativeRaw=%d rawDelta=%d",
+					getGameTurn(), pBestPlot->getX(), pBestPlot->getY(), iRing + 1, aiTopRawValues[0], pAlternative != NULL,
+					pAlternative == NULL ? -1 : pAlternative->getX(), pAlternative == NULL ? -1 : pAlternative->getY(),
+					aiBestNearbyRawValues[iRing], pAlternative == NULL ? 0 : aiBestNearbyRawValues[iRing] - aiTopRawValues[0]);
 			}
 		}
 		FAssert(iBestValue > 0); // advc.300
 		GET_PLAYER(BARBARIAN_PLAYER).found(pBestPlot->getX(), pBestPlot->getY());
 		// advc.300 (from MNAI):
-		if (gPlayerLogLevel > 0 || /* advc.031c: */ gFoundLogLevel > 0) logBBAI("Barbarian city created at plot %d, %d", pBestPlot->getX(), pBestPlot->getY());
+		if (gPlayerLogLevel > 0 || /* advc.031c: */ gFoundLogLevel > 0) logBBAI("BARBARIAN_CITY_CREATED turn=%d site=%d,%d", getGameTurn(), pBestPlot->getX(), pBestPlot->getY());
 	}
 }
 

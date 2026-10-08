@@ -414,15 +414,6 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 
 #### Logging (Common)
 
-- **BBAI logging is now XML-tunable:**
-  - BBAI AI-decision logging can now be enabled/disabled and adjusted through **SAS defines**, rather than editing and recompiling the DLL as in base AdvCiv.
-  - This is deemed valuable **not only for modders, but also for users** who can now view or generate `BBAI.log` files for review.
-  - Note: `LoggingEnabled=1` in `CivilizationIV.ini` is still required for Civ4 to write.
-  - This allowed for example to surgically identify and fix the root cause of a city not producing its first settler until ~T90 at normal game speed, which is way too late (`bWarPlan` was too aggressively gating settler production; now it only blocks settler production after early expansion has reached enough cities (inefficient at that point, better switch strategy)).
-  - Note: BBAI logs can be very long; for broad raw-log diagnosis, we usually give to an external LLM/AI such as ChatGPT the log file, as it is as of now agentic-token-free analysis (also good to give us a different point of view/review if needed).
-- (Requires AdvCiv-SAS 6602+) **Settler diagnostics are easier to search and compare:**
-  - First-city scouting, candidate summaries and ordinary Settler actions use stable `FIRST_CITY_*` / `SETTLER_*` event prefixes with named fields instead of prose-only messages.
-  - Duplicate target-only prose rows are removed where the structured mission row already preserves that information; log levels and AI decisions remain unchanged.
 - (Requires AdvCiv-SAS 6478+) **Disabled diagnostic logging is kept lightweight:**
   - after SASGameRecord and BBAI expanded across many more gameplay/AI paths, their effective XML log levels are cached once after all GlobalDefines/module overrides finish loading.
   - The widespread runtime gates are therefore direct cached reads rather than repeated out-of-line getter calls, while logging-only scans, snapshots, formatting, and other arguments remain pre-gated where relevant.
@@ -433,14 +424,6 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 - (Requires AdvCiv-SAS 6599+) **Explicit diagnostic log guards are easier to grep:**
   - simple one-statement guards keep the actual BBAI/SASGameRecord/domain logging pre-gate and log-call head on the same line, while long argument tails remain multiline.
   - Explicit guards distinguish logging requirements from gameplay conditions, making diagnostic coverage easier to inspect. AI decisions and gameplay conditions are preserved.
-- (Requires AdvCiv-SAS 6600+) **Clearer AI city-site diagnostics (KI#505.2):**
-  - For players and modders investigating Settler choices, Found logs now explain the evaluations the AI actually uses. Scores recalculated for hypothetical comparisons are labeled separately, so they are easier to distinguish from the original decision. For example, inherited `IFLOG` replay controls were replaced with explicit logging checks, and the unused AdvCiv `CvPlot::debugStr()` helper was retired after its descriptions exposed actual bonus/owner identities in player-known traces.
-  - Choose level 1 for brief selection/founding records, level 2 for numeric candidate-score breakdowns, or level 3 for detailed plot, resource and improvement explanations. Settling rules are preserved.
-  - Related plot details are combined into structured rows, but levels 2/3 still produce very large logs over full autoplays. Use their extra detail when investigating AI behavior; SASGameRecord provides compact whole-game context. See [KI#505.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-505.2) for implementation history, measured log sizes and test results.
-- (Requires AdvCiv-SAS 6479+) **Deeper disabled-diagnostic call-site cleanup:**
-  - shared gameplay/logging helpers now keep BBAI-only enrichment behind the relevant category gate instead of carrying it through ordinary AI work.
-  - Notably, Settler escort scans skip diagnostic unit classification/defender-need/list formatting unless requested, player-turn logging is not entered while PLAYER logging is disabled, AI production avoids several logging-only snapshots/name/value preparations, Worker Phase-0 logging retains only a cheap pre-mutation feature ID until the enabled log point, and Great Person weighting no longer constructs eight level-3 diagnostic maps when CULTURE logging is off.
-  - Enabled log semantics are unchanged; this pass removes diagnostic bookkeeping rather than AI/gameplay evaluation.
 - (Requires AdvCiv-SAS 6567+) **Literal percent signs in enabled BBAI/SASGameRecord logging no longer corrupt rows or intermittently crash the game:**
   - Civ4's EXE logger interpreted already-formatted diagnostic lines as printf text again, so a valid fragment such as `100% second=` could consume an unrelated integer as a string pointer.
   - One old run completed despite corrupting all 5,976 affected candidate rows and writing no literal percent bytes, while another crashed during Settler evaluation.
@@ -448,14 +431,6 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
   - Structured SASGameRecord fields continue using explicit `Percent`/`X100` names where appropriate.
   - Disabled logging incurs no added gameplay work.
   - See [KI#375.3](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-375.3).
-- **Timestamped BBAI log files:**
-  - Optionally log each new game and loaded save to a **new UTC-timestamped file** (e.g., `BBAI_20260705T071718Z_new1.log` or `BBAI_20260705T071718Z_load2.log`) instead of expanding the existing `BBAI.log`, which was very tedious to clean up or identify/store/read/review/upload, and so repeated save-file tests no longer require restarting Civ4.
-  - Each log begins notably with the new/load time, currently active BBAI log levels, turn/year, map and game settings (including `landheavy` and `navalheavy` actual game information), player counts, and RNG states, avoiding mixed logs and the need to restart Civ4 between repeated save-file tests.
-  - See also [README.md (BBAI logging and head example)](/README.md#bbai-logging-and-head-example).
-- (Requires AdvCiv-SAS 6343+) **SASGameRecord setup/provenance is more reproducible and explicit:**
-  - setup rows now notably record every stored map-script custom option, including hidden options, its numeric value, the currently installed script's default, whether the selection equals that default, and readable selected/default descriptions when the script is available.
-  - Advanced Start records both the configured points and the default recomputed from the current start-era/world-size XML.
-  - A separate war-AI settings row also resolves the active war/peace implementation (`UWAI` or legacy K-Mod), separately reports whether UWAI is full/background/disabled, and records only the few UWAI defines needed to explain that result; the ordinary `options=` field remains a compact list of enabled `GAMEOPTION_*` values rather than dumping disabled options or unrelated AI-tuning defines.
 - (Requires AdvCiv-SAS 6347+) **BBAI and SASGameRecord share canonical mod/DLL provenance:**
   - both diagnostic logs now place the same escaped mod context and exact loaded-DLL context immediately after the new/load lifecycle row and before log settings/game activity.
   - Shared helpers in `CvGameCoreUtils` provide the canonical fields instead of separate recorder-specific implementations.
@@ -468,6 +443,30 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 
 #### BBAI log
 
+- **BBAI logging is now XML-tunable:**
+  - BBAI AI-decision logging can now be enabled/disabled and adjusted through **SAS defines**, rather than editing and recompiling the DLL as in base AdvCiv.
+  - This is deemed valuable **not only for modders, but also for users** who can now view or generate `BBAI.log` files for review.
+  - Note: `LoggingEnabled=1` in `CivilizationIV.ini` is still required for Civ4 to write.
+  - This allowed for example to surgically identify and fix the root cause of a city not producing its first settler until ~T90 at normal game speed, which is way too late (`bWarPlan` was too aggressively gating settler production; now it only blocks settler production after early expansion has reached enough cities (inefficient at that point, better switch strategy)).
+  - Note: BBAI logs can be very long; for broad raw-log diagnosis, we usually give to an external LLM/AI such as ChatGPT the log file, as it is as of now agentic-token-free analysis (also good to give us a different point of view/review if needed).
+- (Requires AdvCiv-SAS 6600+) **Clearer AI city-site diagnostics (KI#505.2):**
+  - For players and modders investigating Settler choices, Found logs now explain the evaluations the AI actually uses. Scores recalculated for hypothetical comparisons are labeled separately, so they are easier to distinguish from the original decision. For example, inherited `IFLOG` replay controls were replaced with explicit logging checks, and the unused AdvCiv `CvPlot::debugStr()` helper was retired after its descriptions exposed actual bonus/owner identities in player-known traces.
+  - Choose level 1 for brief selection/founding records, level 2 for numeric candidate-score breakdowns, or level 3 for detailed plot, resource and improvement explanations. Settling rules are preserved.
+  - Related plot details are combined into structured rows, but levels 2/3 still produce very large logs over full autoplays. Use their extra detail when investigating AI behavior; SASGameRecord provides compact whole-game context. See [KI#505.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-505.2) for implementation history, measured log sizes and test results.
+- (Requires AdvCiv-SAS 6479+) **Deeper disabled-diagnostic call-site cleanup:**
+  - shared gameplay/logging helpers now keep BBAI-only enrichment behind the relevant category gate instead of carrying it through ordinary AI work.
+  - Notably, Settler escort scans skip diagnostic unit classification/defender-need/list formatting unless requested, player-turn logging is not entered while PLAYER logging is disabled, AI production avoids several logging-only snapshots/name/value preparations, Worker Phase-0 logging retains only a cheap pre-mutation feature ID until the enabled log point, and Great Person weighting no longer constructs eight level-3 diagnostic maps when CULTURE logging is off.
+  - Enabled log semantics are unchanged; this pass removes diagnostic bookkeeping rather than AI/gameplay evaluation.
+- **Timestamped BBAI log files:**
+  - Optionally log each new game and loaded save to a **new UTC-timestamped file** (e.g., `BBAI_20260705T071718Z_new1.log` or `BBAI_20260705T071718Z_load2.log`) instead of expanding the existing `BBAI.log`, which was very tedious to clean up or identify/store/read/review/upload, and so repeated save-file tests no longer require restarting Civ4.
+  - Each log begins notably with the new/load time, currently active BBAI log levels, turn/year, map and game settings (including `landheavy` and `navalheavy` actual game information), player counts, and RNG states, avoiding mixed logs and the need to restart Civ4 between repeated save-file tests.
+  - See also [README.md (BBAI logging and head example)](/README.md#bbai-logging-and-head-example).
+- (Requires AdvCiv-SAS 6603+) **BBAI helps compare founded city sites with alternatives:**
+  - Found level 2+ summarizes other shortlisted sites and coastal sites with known water resources; Barbarian diagnostics show the best eligible alternative one or two plots away. This helps investigate whether a nearby or coastal location looked stronger.
+  - Summaries identify cached shortlist values separately from evaluated Barbarian scores, so older cached values are not mistaken for fresh comparisons. They reuse available scores instead of repeating site evaluations. See [KI#505.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-505.2) for the diagnostic scope and limitations.
+- (Requires AdvCiv-SAS 6602+) **Settler diagnostics are easier to search and compare:**
+  - First-city scouting, candidate summaries and ordinary Settler actions use stable `FIRST_CITY_*` / `SETTLER_*` event prefixes with named fields instead of prose-only messages.
+  - Duplicate target-only prose rows are removed where the structured mission row already preserves that information; log levels and AI decisions remain unchanged.
 - **BBAI worker log split:**
   - added separate worker and Work Boat / `UNITAI_WORKER_SEA` BBAI log-level defines so ordinary `SAS_BBAI_UNIT_LOG_LEVEL` can focus on non-worker unit behavior such as scrapping, army movement, and combat-unit decisions.
   - Worker and worker-sea logs had become noisy enough to hide those unit decisions, and Work Boats use distinct logic from land workers, so they now have their own category as well.
@@ -519,6 +518,10 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 
 (Requires AdvCiv-SAS 6440+) Note: `SASGameRecord` log has its own revision system, see [`README_SASGameRecord_Revisions.md`](/_1_AdvCiv-SAS/Docs/README_SASGameRecord_Revisions.md) for details and miscellanous information.
 
+- (Requires AdvCiv-SAS 6343+) **SASGameRecord setup/provenance is more reproducible and explicit:**
+  - setup rows now notably record every stored map-script custom option, including hidden options, its numeric value, the currently installed script's default, whether the selection equals that default, and readable selected/default descriptions when the script is available.
+  - Advanced Start records both the configured points and the default recomputed from the current start-era/world-size XML.
+  - A separate war-AI settings row also resolves the active war/peace implementation (`UWAI` or legacy K-Mod), separately reports whether UWAI is full/background/disabled, and records only the few UWAI defines needed to explain that result; the ordinary `options=` field remains a compact list of enabled `GAMEOPTION_*` values rather than dumping disabled options or unrelated AI-tuning defines.
 - Added a separate `SASGameRecord_*.log` for compact autoplay and AI-strength review.
   - It notably records high-level run context such as initial map/landmass geography and bonus/yield context, economy, expansion, city and battle history, worked plots, diplomacy, unit composition, game state, and in-game bonus appearances/disappearances, complementing BBAI logs by recording what happened before or alongside detailed AI-decision traces.
   - It also logs autoplay start/end/change rows, explicit player appearance/revival/elimination rows, and compact run-status rows with alive/eliminated players, current winner/victory if any, and top score/power players, so stopped autoplay logs no longer require inferring these from missing snapshots.
