@@ -20,6 +20,8 @@ from pathlib import Path
 import re
 from typing import Iterable
 
+from reflow_cpp_logging_calls import _iter_active_calls
+
 CPP_SUFFIXES = {".cpp"}
 SKIP_IMPLEMENTATION_FILES = {"BBAILog.cpp", "SASGameRecordLog.cpp"}
 
@@ -221,16 +223,41 @@ def audit_file(path: Path, include_implementations: bool, report_late: bool) -> 
     return findings
 
 
+# <!-- custom: Guard/call formatters intentionally preserve message text and skip multi-call blocks.
+# Audit active literal BBAI prefixes separately so prose leftovers are visible even when their gates are correct; report only, since selecting names or removing duplicates needs semantic review. (GPT-6.1-Sol) -->
+def audit_message_style(text: str) -> list[tuple[int, str, str]]:
+    findings = []
+    for start, name, opening, _closing in _iter_active_calls(text):
+        if name != "logBBAI":
+            continue
+        literal = re.match(r'\s*"((?:[^"\\]|\\.)*)"', text[opening + 1:])
+        if literal is None:
+            continue
+        message = literal.group(1)
+        event = message.lstrip()
+        if not re.match(r"[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+(?=\s|$)", event):
+            kind = "BBAI_UNSTRUCTURED_PREFIX"
+        elif message != event:
+            kind = "BBAI_INDENTED_PREFIX"
+        else:
+            continue
+        findings.append((text.count("\n", 0, start) + 1, kind, message))
+    return findings
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Audit obvious C++ BBAI/SASGameRecord caller-side pre-gates.")
     parser.add_argument("paths", nargs="+", help="C++ files or directories to scan")
     parser.add_argument("--late-gates", action="store_true", help="also report same-line && conditions where the logging gate is not first")
     parser.add_argument("--include-log-implementations", action="store_true", help="also scan BBAILog.cpp and SASGameRecordLog.cpp")
+    parser.add_argument("--message-style", action="store_true", help="also report literal BBAI messages without a stable uppercase event prefix, or with leading indentation")
     args = parser.parse_args()
 
     total = 0
     for path in iter_files(args.paths):
         findings = audit_file(path, args.include_log_implementations, args.late_gates)
+        if args.message_style:
+            findings.extend(audit_message_style(path.read_text(encoding="utf-8", errors="replace")))
         for line_no, kind, text in findings:
             print(f"{path}:{line_no}: {kind}: {text}")
             total += 1

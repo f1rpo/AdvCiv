@@ -420,6 +420,9 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
   - Note: `LoggingEnabled=1` in `CivilizationIV.ini` is still required for Civ4 to write.
   - This allowed for example to surgically identify and fix the root cause of a city not producing its first settler until ~T90 at normal game speed, which is way too late (`bWarPlan` was too aggressively gating settler production; now it only blocks settler production after early expansion has reached enough cities (inefficient at that point, better switch strategy)).
   - Note: BBAI logs can be very long; for broad raw-log diagnosis, we usually give to an external LLM/AI such as ChatGPT the log file, as it is as of now agentic-token-free analysis (also good to give us a different point of view/review if needed).
+- (Requires AdvCiv-SAS 6602+) **Settler diagnostics are easier to search and compare:**
+  - First-city scouting, candidate summaries and ordinary Settler actions use stable `FIRST_CITY_*` / `SETTLER_*` event prefixes with named fields instead of prose-only messages.
+  - Duplicate target-only prose rows are removed where the structured mission row already preserves that information; log levels and AI decisions remain unchanged.
 - (Requires AdvCiv-SAS 6478+) **Disabled diagnostic logging is kept lightweight:**
   - after SASGameRecord and BBAI expanded across many more gameplay/AI paths, their effective XML log levels are cached once after all GlobalDefines/module overrides finish loading.
   - The widespread runtime gates are therefore direct cached reads rather than repeated out-of-line getter calls, while logging-only scans, snapshots, formatting, and other arguments remain pre-gated where relevant.

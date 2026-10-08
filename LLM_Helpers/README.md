@@ -856,6 +856,7 @@ Advisory C++ audit for obvious BBAI/SASGameRecord caller-side pre-gating omissio
 - Reports direct `logBBAI`, `logSASGameRecord...`, `recordSASGameRecord...`, `noteSASGameRecord...`, and custom `SAS_log...` calls that have no recognizable same-line or enclosing logging gate.
 - Understands ordinary outer gates such as `if (bLogPlotChange) { ... }`, so one gate around a logging-only loop is not mistaken for a missing per-call gate.
 - `--late-gates` also reports `&&` conditions where a recognizable logging gate appears after earlier predicates, including long calls whose argument tail continues on later lines; these are review candidates for moving the cheap gate first when evaluation order is genuinely independent.
+- `--message-style` additionally flags active literal BBAI messages with prose/dynamic prefixes or leading indentation. It skips commented-out calls and nonliteral formats; this is advisory and does not rename events or remove duplicates automatically. Guard collapsing alone does not normalize message text, and shared blocks with several calls still need manual review.
 - Heuristic only: caller topology, side effects, and unusual control flow cannot be proved from text. Do not auto-rewrite from this report and do not make it blocking CI.
 - `BBAILog.cpp` and `SASGameRecordLog.cpp` are skipped by default because their internal logger topology is intentionally special; use `--include-log-implementations` for a deeper manual audit.
 
