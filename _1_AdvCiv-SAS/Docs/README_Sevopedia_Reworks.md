@@ -49,7 +49,7 @@ Note 2: in below sample examples, click the images to view them full size.
 &emsp;[example 12: promotions category](/_1_AdvCiv-SAS/Docs/README_Sevopedia_Reworks.md#example-12-promotions-category)\
 &emsp;[example 13: civics category](/_1_AdvCiv-SAS/Docs/README_Sevopedia_Reworks.md#example-13-civics-category)\
 &emsp;[example 14: projects category](/_1_AdvCiv-SAS/Docs/README_Sevopedia_Reworks.md#example-14-projects-category)\
-&emsp;[example 15: corporations category](/_1_AdvCiv-SAS/Docs/README_Sevopedia_Reworks.md#example-15-corporations-category)\
+&emsp;[example 15: corporations category](/_1_AdvCiv-SAS/Docs/README_Sevopedia_Reworks.md#example-15-corporations-category)
 
 ## Some Lower Level Changes or new features
 

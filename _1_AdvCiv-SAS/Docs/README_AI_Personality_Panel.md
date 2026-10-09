@@ -25,7 +25,7 @@ AI attributes (at least i call them this way not sure it is their exact name but
 [If you want to mod](/_1_AdvCiv-SAS/Docs/README_AI_Personality_Panel.md#if-you-want-to-mod)\
 [Note about some ai attributes being ignored](/_1_AdvCiv-SAS/Docs/README_AI_Personality_Panel.md#note-about-some-ai-attributes-being-ignored)\
 [Currently if not always unfinished todo or(/and?) not or etc anyways](/_1_AdvCiv-SAS/Docs/README_AI_Personality_Panel.md#currently-if-not-always-unfinished-todo-orand-not-or-etc-anyways)\
-[Note about the value of 0 not always being 0, and a value > 0 sometimes being 0](/_1_AdvCiv-SAS/Docs/README_AI_Personality_Panel.md#note-about-the-value-of-0-not-always-being-0-and-a-value--0-sometimes-being-0)\
+[Note about the value of 0 not always being 0, and a value > 0 sometimes being 0](/_1_AdvCiv-SAS/Docs/README_AI_Personality_Panel.md#note-about-the-value-of-0-not-always-being-0-and-a-value--0-sometimes-being-0)
 
 ## Sources about XML AI Attributes and their meaning
 

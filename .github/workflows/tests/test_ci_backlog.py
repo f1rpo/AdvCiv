@@ -86,6 +86,23 @@ class MarkdownTests(unittest.TestCase):
         self.assertTrue(markdown.bold_errors('Intro\n\n**unclosed'))
         self.assertEqual(markdown.bold_errors(r'\*\*literal'), [])
 
+    def test_redundant_final_hard_break_and_menu_refresh(self):
+        redundant = '# D\n\n## Menu\n\n[A](#a)\\\n\n## A\n'
+        self.assertTrue(markdown.redundant_hard_break_errors(redundant))
+        refreshed = markdown.render_menu(redundant)
+        self.assertEqual(markdown.redundant_hard_break_errors(refreshed), [])
+        self.assertIn('[A](#a)\n\n## A\n', refreshed)
+
+    def test_hard_break_escapes_and_inline_code_content(self):
+        for count in (1, 2, 3, 4):
+            text = 'Literal or break: ' + '\\' * count + '\n\n'
+            with self.subTest(backslashes=count):
+                self.assertEqual(bool(markdown.redundant_hard_break_errors(text)), count % 2 == 1)
+        for text in ('First line\\\n`second line`\n', '`inline backslash: \\`\n\n', 'First line\\`code`\n\n', '```text\nbackslash\\\n\n```\n', '<!-- backslash\\\n\n-->\n', 'First line\\ \n\n'):
+            with self.subTest(text=text):
+                self.assertEqual(markdown.redundant_hard_break_errors(text), [])
+        self.assertTrue(markdown.redundant_hard_break_errors('Final line\\'))
+
 
 class HygieneTests(unittest.TestCase):
     def test_all_bom_signatures_and_long_paths(self):

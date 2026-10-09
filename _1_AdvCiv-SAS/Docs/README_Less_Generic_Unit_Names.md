@@ -8,7 +8,7 @@ Not sure it would be implemented, but ideally or maybe, here are some ideas i ha
 
 ## Menu
 
-[Less generic or inaccurate unit names or combat types (todo and non-exhaustive)](/_1_AdvCiv-SAS/Docs/README_Less_Generic_Unit_Names.md#less-generic-or-inaccurate-unit-names-or-combat-types-todo-and-non-exhaustive)\
+[Less generic or inaccurate unit names or combat types (todo and non-exhaustive)](/_1_AdvCiv-SAS/Docs/README_Less_Generic_Unit_Names.md#less-generic-or-inaccurate-unit-names-or-combat-types-todo-and-non-exhaustive)
 
 ## Less generic or inaccurate unit names or combat types (todo and non-exhaustive)
 

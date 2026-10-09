@@ -149,7 +149,7 @@ For license and reuse terms, including project-specific restrictions and express
 &emsp;[RFC Dawn of Civilization and Leoreth-controlled project restrictions](/LICENSE.md#rfc-dawn-of-civilization-and-leoreth-controlled-project-restrictions)\
 &emsp;[Expressly permitted RFC Dawn of Civilization derivatives](/LICENSE.md#expressly-permitted-rfc-dawn-of-civilization-derivatives)\
 &emsp;[Requests, exceptions, and future terms](/LICENSE.md#requests-exceptions-and-future-terms)\
-[Authors](/README.md#authors)\
+[Authors](/README.md#authors)
 
 ## Tech Tree
 

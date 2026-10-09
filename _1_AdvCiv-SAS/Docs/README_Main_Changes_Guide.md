@@ -90,7 +90,7 @@ Note: The main changes guide serves as an index that covers concisely most AdvCi
 [Military - Land](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#military---land)\
 [Military - Naval](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#military---naval)\
 [Military - Air](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#military---air)\
-[Fixes](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#fixes)\
+[Fixes](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#fixes)
 
 ## Full code diff (very long)
 

@@ -42,7 +42,7 @@ Here are a short info about the authors (as for LLMs, all may not be listed as s
 [Grok AI](#grok-ai)\
 [Kimi AI](#kimi-ai)\
 &emsp;[K2](#k2)\
-&emsp;[K2.5](#k25)\
+&emsp;[K2.5](#k25)
 
 ## me, wonderingabout
 

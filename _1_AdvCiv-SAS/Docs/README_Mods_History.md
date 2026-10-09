@@ -5,7 +5,7 @@ To create/use/repurpose this new "Mods Info" category starting from base AdvCiv 
 ## Menu
 
 [More details on previous mods changes (civ4 BTS, K-Mod)](/_1_AdvCiv-SAS/Docs/README_Mods_History.md#more-details-on-previous-mods-changes-civ4-bts-k-mod)\
-[Changes from one mod to another Sevopedia items/pages and mod history](/_1_AdvCiv-SAS/Docs/README_Mods_History.md#changes-from-one-mod-to-another-sevopedia-itemspages-and-mod-history)\
+[Changes from one mod to another Sevopedia items/pages and mod history](/_1_AdvCiv-SAS/Docs/README_Mods_History.md#changes-from-one-mod-to-another-sevopedia-itemspages-and-mod-history)
 
 ## More details on previous mods changes (civ4 BTS, K-Mod)
 

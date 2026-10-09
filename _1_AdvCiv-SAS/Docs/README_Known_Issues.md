@@ -1198,7 +1198,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#1067 - (Fixed UI AdvCiv-SAS Domestic Advisor repair regression) Debug-selected Free Colony availability executed for the active player](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-1067)\
 [KI#1068 - (Fixed AdvCiv-SAS Sevopedia repair regression) EventTrigger corporation-era inference ignored HQ-building technology gates](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-1068)\
 [KI#1069 - (Fixed UI AdvCiv-SAS World Advisor repair regression) Territory revealed live ownership changes under fog](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-1069)\
-[KI#1070 - (Provisional Pending audit cursor) Mechanical denominator and modulo scan remains active](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-1070)\
+[KI#1070 - (Provisional Pending audit cursor) Mechanical denominator and modulo scan remains active](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-1070)
 
 <a id="ki-1"></a>
 

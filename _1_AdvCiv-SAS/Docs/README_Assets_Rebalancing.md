@@ -46,7 +46,7 @@ Some of the asset rebalancing is shown here (not exhaustive)
 &emsp;&emsp;[Pericles](#pericles)\
 &emsp;&emsp;[Wang Kon](#wang-kon)\
 &emsp;[Other leaders](#other-leaders)\
-&emsp;[Summary of the favourite religion leaders' changes in advciv-sas](#summary-of-the-favourite-religion-leaders-changes-in-advciv-sas)\
+&emsp;[Summary of the favourite religion leaders' changes in advciv-sas](#summary-of-the-favourite-religion-leaders-changes-in-advciv-sas)
 
 ## How to
 

@@ -9,7 +9,7 @@ When i first tried/used making ai-generated images, i started with chatgpt for b
 &emsp;[Buildings buttons](/_1_AdvCiv-SAS/Docs/README_AI_Generated_Images.md#buildings-buttons)\
 &emsp;[Tech buttons](/_1_AdvCiv-SAS/Docs/README_AI_Generated_Images.md#tech-buttons)\
 [Using Creator Nightcafe Studio to generate it (1024x1024)](/_1_AdvCiv-SAS/Docs/README_AI_Generated_Images.md#using-creator-nightcafe-studio-to-generate-it-1024x1024)\
-[Then using then Pixelcut AI to expand it to 1920 x 1080 with new details very nicely](/_1_AdvCiv-SAS/Docs/README_AI_Generated_Images.md#then-using-then-pixelcut-ai-to-expand-it-to-1920-x-1080-with-new-details-very-nicely)\
+[Then using then Pixelcut AI to expand it to 1920 x 1080 with new details very nicely](/_1_AdvCiv-SAS/Docs/README_AI_Generated_Images.md#then-using-then-pixelcut-ai-to-expand-it-to-1920-x-1080-with-new-details-very-nicely)
 
 ## Using ChatGPT
 
@@ -85,4 +85,4 @@ Then i converted it to .dds with Paint.NET similarly than for other image files 
 As for how i used this image to replace default civ4 main menu background image (and also how to remove the blue rectangle in main menu, change text color to black, etc), see:
 
 - [How to change the mod's main menu background image (for example to add a static image instead of default base advciv +/- civ4 image)](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#how-to-change-the-mods-main-menu-background-image-for-example-to-add-a-static-image-instead-of-default-base-advciv---civ4-image)\
-- [How to remove the blue rectangle in main menu screen, change text color for example to black, etc. (in .thm files)](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#how-to-remove-the-blue-rectangle-in-main-menu-screen-change-text-color-for-example-to-black-etc-in-thm-files)\
+- [How to remove the blue rectangle in main menu screen, change text color for example to black, etc. (in .thm files)](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#how-to-remove-the-blue-rectangle-in-main-menu-screen-change-text-color-for-example-to-black-etc-in-thm-files)

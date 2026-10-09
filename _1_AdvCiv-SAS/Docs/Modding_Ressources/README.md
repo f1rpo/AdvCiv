@@ -51,7 +51,7 @@ This is a non-exhaustive page containing some ressources i found helpful and gen
 [Example of DLL modification of CvGameTextMgr.cpp and other related file(s) to add the new "This technology cannot be traded" flag in Sevopedia tech 's placeSpecial and in tech tree view (technology advisor)](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#example-of-dll-modification-of-cvgametextmgrcpp-and-other-related-files-to-add-the-new-this-technology-cannot-be-traded-flag-in-sevopedia-tech-s-placespecial-and-in-tech-tree-view-technology-advisor)\
 [Example of DLL modification 2: missing BBAI getters expose them to Sevopedia leader info in gc too for display](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#example-of-dll-modification-2-missing-bbai-getters-expose-them-to-sevopedia-leader-info-in-gc-too-for-display)\
 [Example of performance optimization of python loading time (as in when we load the code) and loading times](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#example-of-performance-optimization-of-python-loading-time-as-in-when-we-load-the-code-and-loading-times)\
-[Drive](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#drive)\
+[Drive](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#drive)
 
 ## Modding disclaimer and general information
 

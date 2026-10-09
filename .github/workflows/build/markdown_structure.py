@@ -133,6 +133,21 @@ def bold_errors(text):
             errors.append(f"line {line}: unpaired ** bold marker in paragraph")
     return errors
 
+def redundant_hard_break_errors(text):
+    visible = scan(text)
+    lines = visible.splitlines()
+    clean_lines = links.without_inline_code(visible).splitlines()
+    errors = []
+    # <!-- custom: The first check mistook escaped literal backslashes for hard breaks and erased inline-code-only following lines into apparent blanks. Check odd trailing backslash runs outside code, but retain inline code when deciding whether the next line has content. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+    for index, line in enumerate(lines):
+        if not re.search(r"(?<!\\)(?:\\\\)*\\$", line):
+            continue
+        if index >= len(clean_lines) or not clean_lines[index].endswith("\\"):
+            continue
+        if index + 1 >= len(lines) or not lines[index + 1].strip():
+            errors.append(f"line {index + 1}: trailing Markdown hard break is redundant before a blank line or end of file")
+    return errors
+
 def render_menu(text, known_issues=False, document=None):
     model = menu_model(text, known_issues)
     if model is None:
@@ -163,6 +178,14 @@ def render_menu(text, known_issues=False, document=None):
         destination = destinations.get(anchor, "#" + anchor)
         rows.append(f"{prefix}[{label}]({destination})" + ("" if bullet else "\\"))
         rows.extend(external_after.get(anchor, []))
+    # <!-- custom: A trailing backslash only forces a hard break before another line. Drop it from the final menu row instead of emitting redundant Markdown before the section-ending blank line. (ChatGPT-5.6-Sol) -->
+    if not bullet:
+        for index in range(len(rows) - 1, -1, -1):
+            if not rows[index].strip():
+                continue
+            if rows[index].endswith("\\"):
+                rows[index] = rows[index][:-1]
+            break
     return text[:start] + "\n\n" + "\n".join(rows) + "\n\n" + text[end:]
 
 def paths(root):
@@ -186,7 +209,7 @@ def main():
                 path.write_bytes(updated.replace("\n", newline).encode("utf-8"))
                 text = updated
         try:
-            findings = menu_errors(text, known, document) + bold_errors(text)
+            findings = menu_errors(text, known, document) + bold_errors(text) + redundant_hard_break_errors(text)
         except ValueError as error:
             findings = [str(error)]
         errors.extend(f"{path.relative_to(args.repo_root)}: {error}" for error in findings)

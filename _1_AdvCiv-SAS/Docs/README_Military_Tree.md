@@ -7,7 +7,7 @@ If any images below in this readme mention a google drive link, you can access i
 Here you go:
 
 [Military tree as of now](/_1_AdvCiv-SAS/Docs/README_Military_Tree.md#military-tree-as-of-now)\
-[Info about a more advanced prototype military tree](/_1_AdvCiv-SAS/Docs/README_Military_Tree.md#info-about-a-more-advanced-prototype-military-tree)\
+[Info about a more advanced prototype military tree](/_1_AdvCiv-SAS/Docs/README_Military_Tree.md#info-about-a-more-advanced-prototype-military-tree)
 
 ## Military tree as of now
 

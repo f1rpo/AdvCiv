@@ -13,7 +13,7 @@ If any images below in this readme mention a google drive link, you can access i
 [Earlier prototype / alternative version](/_1_AdvCiv-SAS/Docs/README_Tech_Tree.md#earlier-prototype--alternative-version)\
 [Earlier but much later version](/_1_AdvCiv-SAS/Docs/README_Tech_Tree.md#earlier-but-much-later-version)\
 [Starting techs rework](/_1_AdvCiv-SAS/Docs/README_Tech_Tree.md#starting-techs-rework)\
-[Recent tech rework](/_1_AdvCiv-SAS/Docs/README_Tech_Tree.md#recent-tech-rework)\
+[Recent tech rework](/_1_AdvCiv-SAS/Docs/README_Tech_Tree.md#recent-tech-rework)
 
 ## Current Tech Tree ingame
 
