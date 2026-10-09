@@ -448,6 +448,9 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 
 #### BBAI log
 
+- (Requires AdvCiv-SAS 6607+) **BBAI categories share one maintenance registry:**
+  - One category list connects XML log-level defines to their cached settings, keeping startup loading, enabled-category detection and the recorded diagnostic profile consistent when categories are added or changed.
+  - Runtime logging gates retain their direct cached reads, and CI recognizes the registry as real define usage only when its runtime lookup is present.
 - **BBAI logging is now XML-tunable:**
   - BBAI AI-decision logging can now be enabled/disabled and adjusted through **SAS defines**, rather than editing and recompiling the DLL as in base AdvCiv.
   - This is deemed valuable **not only for modders, but also for users** who can now view or generate `BBAI.log` files for review.

@@ -25,6 +25,11 @@ NAME_RE = re.compile(r"SAS_[A-Z0-9_]+$")
 CPP_LEXER = re.compile(r'//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|[A-Za-z_]\w*|\d+|[^\s]', re.S)
 # <!-- custom: This existing define is coverage metadata, deliberately consumed by mapscripts.py rather than the game. Keep its exception explicit, verify that checker still reads it, and report it separately from runtime uses. (GPT-6.1-Sol) -->
 METADATA = {"SAS_MAP_SCRIPT_NAMES_HEAVINESS_UNSPECIFIED": ".github/workflows/build/mapscripts.py"}
+# <!-- custom: BBAI log-level Defines are consumed through an iterable C++ descriptor table instead of one literal getter call per category.
+# Recognize only that exact field-pair shape when the same source also contains a dynamic helper lookup of descriptor names; arbitrary strings still do not satisfy runtime usage. (ChatGPT-5.6-Sol) -->
+BBAI_REGISTRY_PATH = "CvGameCoreDLL/BBAILog.cpp"
+BBAI_REGISTRY_CONSUMER_RE = re.compile(r"getClampedSASBBAILogLevel\s*\(\s*[A-Za-z_]\w*\s*\.\s*szDefineName\s*\)")
+
 
 
 def lex(text, python):
@@ -154,6 +159,27 @@ def resolve(expression, bindings, text, seen=frozenset()):
     raise ValueError(f"unresolved SAS define-name expression: {' '.join(t[0] for t in expression)}")
 
 
+def bbai_registry_names(tokens):
+    # <!-- custom: Searching raw source accepted a commented-out consumer as runtime usage. Match comment-free tokens with string literals masked so neither comments nor diagnostic text can activate an inert registry. (GPT-6.1-Sol) -->
+    code = " ".join(t[0] if not t[3] else '""' for t in tokens)
+    if not BBAI_REGISTRY_CONSUMER_RE.search(code):
+        return set()
+    result = set()
+    for index in range(len(tokens) - 8):
+        values = [tokens[index + offset][0] for offset in range(9)]
+        if (values[0] != "{" or not tokens[index + 1][3] or values[2] != "," or values[3] != "&" or
+                values[4] != "SASBBAILogSettings" or values[5] != ":" or values[6] != ":" or
+                re.fullmatch(r"[A-Za-z_]\w*", values[7]) is None or values[8] != "}"):
+            continue
+        try:
+            name = string_value(tokens[index + 1])
+        except (ValueError, SyntaxError):
+            continue
+        if isinstance(name, str) and NAME_RE.fullmatch(name):
+            result.add(name)
+    return result
+
+
 def check(repo):
     root = ET.parse(repo / DEFINES_PATH).getroot()
     declared = set()
@@ -192,6 +218,11 @@ def check(repo):
                 continue
             for define in sorted(names - declared):
                 errors.append(f"{path.relative_to(repo)}:{tokens[index][1]}: {define} has no declaration in {DEFINES_PATH}")
+            referenced.update(names)
+        if path.relative_to(repo).as_posix() == BBAI_REGISTRY_PATH:
+            names = bbai_registry_names(tokens)
+            for define in sorted(names - declared):
+                errors.append(f"{path.relative_to(repo)}: {define} has no declaration in {DEFINES_PATH}")
             referenced.update(names)
     for name, consumer in METADATA.items():
         if name not in declared:

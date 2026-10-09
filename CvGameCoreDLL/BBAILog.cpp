@@ -19,6 +19,50 @@ static int getClampedSASBBAILogLevel(char const* szDefineName)
 	return iLevel;
 }
 
+// <!-- custom: Keep each BBAI category Define paired with its cached field in one iterable registry.
+// Startup loading, any-category enabled detection and BBAI_LOG_SETTINGS profile output all walk this list, while widespread g*LogLevel caller guards remain direct field reads. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+struct SASBBAILogCategoryDescriptor
+{
+	char const* szDefineName;
+	int SASBBAILogSettings::* pLogLevel;
+};
+
+static SASBBAILogCategoryDescriptor const aSASBBAILogCategories[] =
+{
+	{ "SAS_BBAI_PLAYER_LOG_LEVEL", &SASBBAILogSettings::iPlayerLogLevel },
+	{ "SAS_BBAI_TEAM_LOG_LEVEL", &SASBBAILogSettings::iTeamLogLevel },
+	{ "SAS_BBAI_WAR_LOG_LEVEL", &SASBBAILogSettings::iWarLogLevel },
+	{ "SAS_BBAI_CITY_LOG_LEVEL", &SASBBAILogSettings::iCityLogLevel },
+	{ "SAS_BBAI_PRODUCTION_NO_TARGET_LOG_LEVEL", &SASBBAILogSettings::iProductionNoTargetLogLevel },
+	{ "SAS_BBAI_MILITARY_PRODUCTION_LOG_LEVEL", &SASBBAILogSettings::iMilitaryProductionLogLevel },
+	{ "SAS_BBAI_SPACE_PRODUCTION_LOG_LEVEL", &SASBBAILogSettings::iSpaceProductionLogLevel },
+	{ "SAS_BBAI_LIMITED_PROJECT_PRODUCTION_LOG_LEVEL", &SASBBAILogSettings::iLimitedProjectProductionLogLevel },
+	{ "SAS_BBAI_BUILDING_PRODUCTION_LOG_LEVEL", &SASBBAILogSettings::iBuildingProductionLogLevel },
+	{ "SAS_BBAI_CITIZEN_LOG_LEVEL", &SASBBAILogSettings::iCitizenLogLevel },
+	{ "SAS_BBAI_UNIT_LOG_LEVEL", &SASBBAILogSettings::iUnitLogLevel },
+	{ "SAS_BBAI_OVERSEAS_TRANSPORT_LOG_LEVEL", &SASBBAILogSettings::iOverseasTransportLogLevel },
+	{ "SAS_BBAI_GREAT_GENERAL_LOG_LEVEL", &SASBBAILogSettings::iGreatGeneralLogLevel },
+	{ "SAS_BBAI_SETTLER_LOG_LEVEL", &SASBBAILogSettings::iSettlerLogLevel },
+	{ "SAS_BBAI_FOUND_LOG_LEVEL", &SASBBAILogSettings::iFoundLogLevel },
+	{ "SAS_BBAI_EVACUATION_LOG_LEVEL", &SASBBAILogSettings::iEvacuationLogLevel },
+	{ "SAS_BBAI_WORKER_LOG_LEVEL", &SASBBAILogSettings::iWorkerLogLevel },
+	{ "SAS_BBAI_WORKER_SEA_LOG_LEVEL", &SASBBAILogSettings::iWorkerSeaLogLevel },
+	{ "SAS_BBAI_MAP_LOG_LEVEL", &SASBBAILogSettings::iMapLogLevel },
+	{ "SAS_BBAI_DEAL_CANCEL_LOG_LEVEL", &SASBBAILogSettings::iDealCancelLogLevel },
+	{ "SAS_BBAI_BONUS_LOG_LEVEL", &SASBBAILogSettings::iBonusLogLevel },
+	{ "SAS_BBAI_CULTURE_LOG_LEVEL", &SASBBAILogSettings::iCultureLogLevel },
+	{ "SAS_BBAI_UWAI_AGENT_LOG_LEVEL", &SASBBAILogSettings::iUWAIAgentLogLevel },
+	{ "SAS_BBAI_UWAI_MILITARY_ANALYST_LOG_LEVEL", &SASBBAILogSettings::iUWAIMilitaryAnalystLogLevel },
+	{ "SAS_BBAI_UWAI_INVASION_GRAPH_LOG_LEVEL", &SASBBAILogSettings::iUWAIInvasionGraphLogLevel },
+	{ "SAS_BBAI_UWAI_ARMAMENT_FORECAST_LOG_LEVEL", &SASBBAILogSettings::iUWAIArmamentForecastLogLevel },
+	{ "SAS_BBAI_UWAI_WAR_UTILITY_LOG_LEVEL", &SASBBAILogSettings::iUWAIWarUtilityLogLevel }
+};
+
+static int getSASBBAILogCategoryCount()
+{
+	return (int)(sizeof(aSASBBAILogCategories) / sizeof(aSASBBAILogCategories[0]));
+}
+
 // <!-- custom: Zero initialization keeps BBAI disabled during DLL/XML startup. CvXMLLoadUtility::SetGlobalDefines fills this once after every base/SAS/modular override has loaded, so the hundreds of category gates in ordinary gameplay are direct field reads rather than out-of-line cached-getter calls.
 // Runtime Define mutation was already unsupported because the old getters cached their first resolved values. (ChatGPT-5.6-Sol) -->
 SASBBAILogSettings gSASBBAILogSettings;
@@ -28,62 +72,17 @@ void cacheSASBBAILogSettings()
 	SASBBAILogSettings& kSettings = gSASBBAILogSettings;
 	bool const bMasterEnabled = (GC.getDefineINT("SAS_BBAI_LOG_ENABLE") > 0);
 	kSettings.bMasterEnabled = bMasterEnabled;
-	kSettings.iPlayerLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_PLAYER_LOG_LEVEL") : 0);
-	kSettings.iTeamLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_TEAM_LOG_LEVEL") : 0);
-	kSettings.iWarLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_WAR_LOG_LEVEL") : 0);
-	kSettings.iCityLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_CITY_LOG_LEVEL") : 0);
-	kSettings.iProductionNoTargetLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_PRODUCTION_NO_TARGET_LOG_LEVEL") : 0);
-	kSettings.iMilitaryProductionLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_MILITARY_PRODUCTION_LOG_LEVEL") : 0);
-	kSettings.iSpaceProductionLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_SPACE_PRODUCTION_LOG_LEVEL") : 0);
-	kSettings.iLimitedProjectProductionLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_LIMITED_PROJECT_PRODUCTION_LOG_LEVEL") : 0);
-	kSettings.iBuildingProductionLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_BUILDING_PRODUCTION_LOG_LEVEL") : 0);
-	kSettings.iCitizenLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_CITIZEN_LOG_LEVEL") : 0);
-	kSettings.iUnitLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_UNIT_LOG_LEVEL") : 0);
-	kSettings.iOverseasTransportLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_OVERSEAS_TRANSPORT_LOG_LEVEL") : 0);
-	kSettings.iGreatGeneralLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_GREAT_GENERAL_LOG_LEVEL") : 0);
-	kSettings.iSettlerLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_SETTLER_LOG_LEVEL") : 0);
-	kSettings.iFoundLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_FOUND_LOG_LEVEL") : 0);
-	kSettings.iEvacuationLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_EVACUATION_LOG_LEVEL") : 0);
-	kSettings.iWorkerLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_WORKER_LOG_LEVEL") : 0);
-	kSettings.iWorkerSeaLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_WORKER_SEA_LOG_LEVEL") : 0);
-	kSettings.iMapLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_MAP_LOG_LEVEL") : 0);
-	kSettings.iDealCancelLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_DEAL_CANCEL_LOG_LEVEL") : 0);
-	kSettings.iBonusLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_BONUS_LOG_LEVEL") : 0);
-	kSettings.iCultureLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_CULTURE_LOG_LEVEL") : 0);
-	kSettings.iUWAIAgentLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_UWAI_AGENT_LOG_LEVEL") : 0);
-	kSettings.iUWAIMilitaryAnalystLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_UWAI_MILITARY_ANALYST_LOG_LEVEL") : 0);
-	kSettings.iUWAIInvasionGraphLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_UWAI_INVASION_GRAPH_LOG_LEVEL") : 0);
-	kSettings.iUWAIArmamentForecastLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_UWAI_ARMAMENT_FORECAST_LOG_LEVEL") : 0);
-	kSettings.iUWAIWarUtilityLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel("SAS_BBAI_UWAI_WAR_UTILITY_LOG_LEVEL") : 0);
-	// <!-- custom: UWAI is part of the same BBAI category set now; one cached bit is enough for sink/session-level checks. Per-category caller gates remain authoritative for diagnostic work. See KI#505.3. (ChatGPT-5.6-Sol) -->
-	kSettings.bEnabled = (bMasterEnabled &&
-		(kSettings.iPlayerLogLevel > 0 ||
-		kSettings.iTeamLogLevel > 0 ||
-		kSettings.iWarLogLevel > 0 ||
-		kSettings.iCityLogLevel > 0 ||
-		kSettings.iProductionNoTargetLogLevel > 0 ||
-		kSettings.iMilitaryProductionLogLevel > 0 ||
-		kSettings.iSpaceProductionLogLevel > 0 ||
-		kSettings.iLimitedProjectProductionLogLevel > 0 ||
-		kSettings.iBuildingProductionLogLevel > 0 ||
-		kSettings.iCitizenLogLevel > 0 ||
-		kSettings.iUnitLogLevel > 0 ||
-		kSettings.iOverseasTransportLogLevel > 0 ||
-		kSettings.iGreatGeneralLogLevel > 0 ||
-		kSettings.iSettlerLogLevel > 0 ||
-		kSettings.iFoundLogLevel > 0 ||
-		kSettings.iEvacuationLogLevel > 0 ||
-		kSettings.iWorkerLogLevel > 0 ||
-		kSettings.iWorkerSeaLogLevel > 0 ||
-		kSettings.iMapLogLevel > 0 ||
-		kSettings.iDealCancelLogLevel > 0 ||
-		kSettings.iBonusLogLevel > 0 ||
-		kSettings.iCultureLogLevel > 0 ||
-		kSettings.iUWAIAgentLogLevel > 0 ||
-		kSettings.iUWAIMilitaryAnalystLogLevel > 0 ||
-		kSettings.iUWAIInvasionGraphLogLevel > 0 ||
-		kSettings.iUWAIArmamentForecastLogLevel > 0 ||
-		kSettings.iUWAIWarUtilityLogLevel > 0));
+	bool bAnyCategoryEnabled = false;
+	int const iCategoryCount = getSASBBAILogCategoryCount();
+	for (int iI = 0; iI < iCategoryCount; iI++)
+	{
+		SASBBAILogCategoryDescriptor const& kCategory = aSASBBAILogCategories[iI];
+		int& iLogLevel = kSettings.*(kCategory.pLogLevel);
+		iLogLevel = (bMasterEnabled ? getClampedSASBBAILogLevel(kCategory.szDefineName) : 0);
+		if (iLogLevel > 0)
+			bAnyCategoryEnabled = true;
+	}
+	kSettings.bEnabled = (bMasterEnabled && bAnyCategoryEnabled);
 }
 
 int getSASBBAIScoreLogInterval()
@@ -186,13 +185,16 @@ static void logSASBBAIProvenanceContext()
 // <!-- custom: Record the effective BBAI diagnostic profile in each new/load file so test runs with different category levels are not compared as if they contained the same diagnostics. (GPT-5.5) -->
 static void logSASBBAILogSettings()
 {
-	logBBAI("BBAI_LOG_SETTINGS SAS_BBAI_LOG_ENABLE=%d SAS_BBAI_LOG_USE_TIMESTAMPED_FILENAME=%d SAS_BBAI_PLAYER_LOG_LEVEL=%d SAS_BBAI_TEAM_LOG_LEVEL=%d SAS_BBAI_WAR_LOG_LEVEL=%d SAS_BBAI_CITY_LOG_LEVEL=%d SAS_BBAI_PRODUCTION_NO_TARGET_LOG_LEVEL=%d SAS_BBAI_MILITARY_PRODUCTION_LOG_LEVEL=%d SAS_BBAI_SPACE_PRODUCTION_LOG_LEVEL=%d SAS_BBAI_LIMITED_PROJECT_PRODUCTION_LOG_LEVEL=%d SAS_BBAI_BUILDING_PRODUCTION_LOG_LEVEL=%d SAS_BBAI_CITIZEN_LOG_LEVEL=%d SAS_BBAI_UNIT_LOG_LEVEL=%d SAS_BBAI_OVERSEAS_TRANSPORT_LOG_LEVEL=%d SAS_BBAI_GREAT_GENERAL_LOG_LEVEL=%d SAS_BBAI_SETTLER_LOG_LEVEL=%d SAS_BBAI_FOUND_LOG_LEVEL=%d SAS_BBAI_EVACUATION_LOG_LEVEL=%d SAS_BBAI_WORKER_LOG_LEVEL=%d SAS_BBAI_WORKER_SEA_LOG_LEVEL=%d SAS_BBAI_MAP_LOG_LEVEL=%d SAS_BBAI_DEAL_CANCEL_LOG_LEVEL=%d SAS_BBAI_BONUS_LOG_LEVEL=%d SAS_BBAI_CULTURE_LOG_LEVEL=%d SAS_BBAI_UWAI_AGENT_LOG_LEVEL=%d SAS_BBAI_UWAI_MILITARY_ANALYST_LOG_LEVEL=%d SAS_BBAI_UWAI_INVASION_GRAPH_LOG_LEVEL=%d SAS_BBAI_UWAI_ARMAMENT_FORECAST_LOG_LEVEL=%d SAS_BBAI_UWAI_WAR_UTILITY_LOG_LEVEL=%d SAS_BBAI_SCORE_LOG_INTERVAL_TURNS_UNSCALED_GAMESPEED=%d",
-		isSASBBAILogMasterEnabled(), isSASBBAILogTimestampedFilenameEnabled(), gPlayerLogLevel, gTeamLogLevel, gWarLogLevel, gCityLogLevel,
-		gProductionNoTargetLogLevel, gMilitaryProductionLogLevel, gSpaceProductionLogLevel, gLimitedProjectProductionLogLevel,
-		gBuildingProductionLogLevel, gCitizenLogLevel, gUnitLogLevel, gOverseasTransportLogLevel, gGreatGeneralLogLevel, gSettlerLogLevel,
-		gFoundLogLevel, gEvacuationLogLevel, gWorkerLogLevel, gWorkerSeaLogLevel, gMapLogLevel, gDealCancelLogLevel, gBonusLogLevel, gCultureLogLevel,
-		gUWAIAgentLogLevel, gUWAIMilitaryAnalystLogLevel, gUWAIInvasionGraphLogLevel, gUWAIArmamentForecastLogLevel, gUWAIWarUtilityLogLevel,
-		gScoreLogInterval);
+	CvString szCategorySettings;
+	int const iCategoryCount = getSASBBAILogCategoryCount();
+	for (int iI = 0; iI < iCategoryCount; iI++)
+	{
+		SASBBAILogCategoryDescriptor const& kCategory = aSASBBAILogCategories[iI];
+		szCategorySettings += CvString::format(" %s=%d", kCategory.szDefineName,
+				gSASBBAILogSettings.*(kCategory.pLogLevel));
+	}
+	logBBAI("BBAI_LOG_SETTINGS SAS_BBAI_LOG_ENABLE=%d SAS_BBAI_LOG_USE_TIMESTAMPED_FILENAME=%d%s SAS_BBAI_SCORE_LOG_INTERVAL_TURNS_UNSCALED_GAMESPEED=%d",
+		isSASBBAILogMasterEnabled(), isSASBBAILogTimestampedFilenameEnabled(), szCategorySettings.GetCString(), gScoreLogInterval);
 }
 
 // <!-- custom: Replace setup-time tech/diplomacy construction chatter with one authoritative finalized state shared with SASGameRecord.
@@ -235,6 +237,7 @@ static void logSASBBAIInitialState()
 		iTeamStateRows, iTechRows, getSASInitialDealSummaryFields(bDealDetailEnabled, iLoggedDealRows).GetCString());
 }
 
+// <!-- custom: The three startup entry points below are caller-pre-gated: CvGame checks isSASBBAILogEnabled() before new-game/load initialization, and CvEventReporter checks it before the finalized new-game report. This protects every nested logging call and its argument/setup work, including settings-string construction; individual calls do not need duplicate master-enable checks. (GPT-6.1-Sol) -->
 // <!-- custom: Roll over before new-game initialization can emit map-generation or starting-position diagnostics.
 // The complete metadata is logged later from CvEventReporter::gameStart, once the generated game state exists. (GPT-5.5) -->
 void startSASBBAILogForNewGame()
