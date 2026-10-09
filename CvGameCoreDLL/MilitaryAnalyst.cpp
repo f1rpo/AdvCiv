@@ -60,7 +60,8 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes eAgentPlayer, WarEvalParameters& kW
 	m_warTable.resize(MAX_CIV_PLAYERS, std::vector<bool>(MAX_CIV_PLAYERS, false));
 	m_nukedCities.resize(MAX_CIV_PLAYERS, std::vector<scaled>(MAX_CIV_PLAYERS, 0));
 	m_capitulationsAcceptedPerTeam.resize(MAX_CIV_TEAMS);
-	if (gUWAIMilitaryAnalystLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("Military analysis from the pov of %S", GET_PLAYER(m_eWe).getName(0));
+	if (gUWAIMilitaryAnalystLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_MILITARY_ANALYSIS_BEGIN turn=%d agentPlayer=%d agentTeam=%d targetTeam=%d scenario=%s",
+			GC.getGame().getGameTurn(), m_eWe, TEAMID(m_eWe), m_eTarget, m_bPeaceScenario ? "PEACE" : "WAR");
 	CvTeamAI const& kAgent = GET_TEAM(m_eWe);
 	PlyrSet currentlyAtWar; // ("atWar" is already a name of a global function)
 	PlyrSet ourFutureOpponents;
@@ -219,16 +220,18 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes eAgentPlayer, WarEvalParameters& kW
 		will still read the actual prep time from the WarEvalParameters) */
 	if (iPrepTime < 4)
 	{
-		if (bLogMilitaryAnalystContext && iPrepTime > 0) logBBAI("Skipping short prep. time (%d turns):", iPrepTime);
+		if (bLogMilitaryAnalystContext && iPrepTime > 0) logBBAI("UWAI_MILITARY_ANALYSIS_PREP_SKIPPED turn=%d agentPlayer=%d targetTeam=%d scenario=%s prepTurns=%d",
+				GC.getGame().getGameTurn(), m_eWe, m_eTarget, m_bPeaceScenario ? "PEACE" : "WAR", iPrepTime);
 		iTimeHorizon += iPrepTime; // Prolong 2nd phase instead
 		iPrepTime = 0;
 	}
 	else
 	{
 		// <!-- custom: Keep %S player-name arguments out of narrow-string ternaries; CvPlayer::getName(0) is wchar const* on the Civ4 toolchain. (ChatGPT-5.6-Sol) -->
-		if (bLogMilitaryAnalystContext && m_bPeaceScenario) logBBAI("Phase 1 (%d turns)", iPrepTime);
-		else if (bLogMilitaryAnalystContext) logBBAI("Phase 1: Prolog of simulation; %S is preparing war (%d turns)",
-				GET_PLAYER(m_eWe).getName(0), iPrepTime);
+		if (bLogMilitaryAnalystContext && m_bPeaceScenario) logBBAI("UWAI_MILITARY_ANALYSIS_PHASE1_PEACE turn=%d agentPlayer=%d targetTeam=%d turns=%d",
+			GC.getGame().getGameTurn(), m_eWe, m_eTarget, iPrepTime);
+		else if (bLogMilitaryAnalystContext) logBBAI("UWAI_MILITARY_ANALYSIS_PHASE1_WAR_PREPARATION turn=%d agentPlayer=%d targetTeam=%d turns=%d",
+			GC.getGame().getGameTurn(), m_eWe, m_eTarget, iPrepTime);
 		m_pInvGraph->simulate(iPrepTime);
 		m_iTurnsSimulated += iPrepTime;
 	}
@@ -238,8 +241,10 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes eAgentPlayer, WarEvalParameters& kW
 		defeats in phase I. */
 	if (m_bPeaceScenario)
 		m_pInvGraph->updateTargets();
-	if (bLogMilitaryAnalystContext && !m_bPeaceScenario && !kAgent.isAtWar(m_eTarget)) logBBAI("Phase 2: Simulation assuming DoW by %S (%d turns)", GET_PLAYER(m_eWe).getName(0), iTimeHorizon);
-	else if (bLogMilitaryAnalystContext) logBBAI("Phase 2 (%d turns)", iTimeHorizon);
+	if (bLogMilitaryAnalystContext && !m_bPeaceScenario && !kAgent.isAtWar(m_eTarget)) logBBAI("UWAI_MILITARY_ANALYSIS_PHASE2_ASSUMED_DOW turn=%d agentPlayer=%d targetTeam=%d turns=%d",
+		GC.getGame().getGameTurn(), m_eWe, m_eTarget, iTimeHorizon);
+	else if (bLogMilitaryAnalystContext) logBBAI("UWAI_MILITARY_ANALYSIS_PHASE2 turn=%d agentPlayer=%d targetTeam=%d scenario=%s turns=%d",
+		GC.getGame().getGameTurn(), m_eWe, m_eTarget, m_bPeaceScenario ? "PEACE" : "WAR", iTimeHorizon);
 	m_pInvGraph->simulate(iTimeHorizon);
 	m_iTurnsSimulated += iTimeHorizon;
 	prepareResults(); // ... of conventional war
@@ -570,12 +575,12 @@ void MilitaryAnalyst::logResults(PlayerTypes ePlayer)
 		return;
 	if (gUWAIMilitaryAnalystLogLevel >= 2)
 	{
-		logBBAI("Results about %S", GET_PLAYER(ePlayer).getName(0));
+		logBBAI("UWAI_MILITARY_ANALYSIS_PLAYER_RESULT turn=%d agentPlayer=%d targetTeam=%d scenario=%s player=%d investedProduction=%d",
+				GC.getGame().getGameTurn(), m_eWe, m_eTarget, m_bPeaceScenario ? "PEACE" : "WAR", ePlayer, militaryProduction(ePlayer).uround());
 		logCities(ePlayer, true);
 		logCities(ePlayer, false);
 		logPower(ePlayer, false);
 		logPower(ePlayer, true);
-		logBBAI("Invested production: %d", militaryProduction(ePlayer).uround());
 	}
 	logCapitulations(ePlayer);
 	logDoW(ePlayer);
@@ -592,9 +597,10 @@ void MilitaryAnalyst::logCities(PlayerTypes ePlayer, bool bConquests)
 			pResult->getLostCities());
 	if (kCities.empty())
 		return;
-	logBBAI("Cities %s:", bConquests ? "conquered" : "lost");
 	for (CitySetIter it = kCities.begin(); it != kCities.end(); ++it)
-		logBBAI("%S", (UWAICache::cvCityById(*it)).getName().GetCString());
+		logBBAI("UWAI_MILITARY_ANALYSIS_CITY turn=%d agentPlayer=%d targetTeam=%d scenario=%s player=%d result=%s city=%S",
+				GC.getGame().getGameTurn(), m_eWe, m_eTarget, m_bPeaceScenario ? "PEACE" : "WAR", ePlayer,
+				bConquests ? "CONQUERED" : "LOST", (UWAICache::cvCityById(*it)).getName().GetCString());
 }
 
 
@@ -603,26 +609,31 @@ void MilitaryAnalyst::logCapitulations(PlayerTypes ePlayer)
 	FAssert(gUWAIMilitaryAnalystLogLevel >= 1 && !m_kLogMuteState.isMuted());
 	if (isEliminated(ePlayer))
 	{
-		logBBAI("Eliminated");
+		logBBAI("UWAI_MILITARY_ANALYSIS_PLAYER_ELIMINATED turn=%d agentPlayer=%d targetTeam=%d scenario=%s player=%d",
+			GC.getGame().getGameTurn(), m_eWe, m_eTarget, m_bPeaceScenario ? "PEACE" : "WAR", ePlayer);
 		return;
 	}
 	TeamTypes const eTeam = TEAMID(ePlayer);
 	if (hasCapitulated(eTeam))
 	{
-		logBBAI("Team has capitulated");
+		logBBAI("UWAI_MILITARY_ANALYSIS_TEAM_CAPITULATED turn=%d agentPlayer=%d targetTeam=%d scenario=%s player=%d team=%d",
+			GC.getGame().getGameTurn(), m_eWe, m_eTarget, m_bPeaceScenario ? "PEACE" : "WAR", ePlayer, eTeam);
 		return;
 	}
 	TeamSet const& kCaps = m_capitulationsAcceptedPerTeam[eTeam];
 	if (kCaps.empty())
 		return;
-	logBBAI("Capitulation accepted from:");
 	for (TeamSetIter it = kCaps.begin(); it != kCaps.end(); ++it)
 	{
+		logBBAI("UWAI_MILITARY_ANALYSIS_CAPITULATION_ACCEPTED turn=%d agentPlayer=%d targetTeam=%d scenario=%s accepterTeam=%d surrenderedTeam=%d",
+				GC.getGame().getGameTurn(), m_eWe, m_eTarget, m_bPeaceScenario ? "PEACE" : "WAR", eTeam, *it);
 		// The team name (e.g. Team1) would not be helpful
+		// <!-- custom: Structured team IDs identify the capitulation; level-2 player rows retain the member names previously printed by the report. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 		if (gUWAIMilitaryAnalystLogLevel >= 2)
 		{
 			for (MemberIter itMember(*it); itMember.hasNext(); ++itMember)
-				logBBAI("%S", GET_PLAYER(itMember->getID()).getName(0));
+				logBBAI("UWAI_MILITARY_ANALYSIS_CAPITULATION_MEMBER turn=%d surrenderedTeam=%d player=%d name=%S",
+					GC.getGame().getGameTurn(), *it, itMember->getID(), GET_PLAYER(itMember->getID()).getName(0));
 		}
 	}
 }
@@ -637,32 +648,35 @@ void MilitaryAnalyst::logDoW(PlayerTypes ePlayer)
 	PlyrSet const& DoWBy = pResult->getDoWBy();
 	if (!DoWBy.empty())
 	{
-		logBBAI("Wars declared by %S:",
-				GET_PLAYER(ePlayer).getName(0));
+		logBBAI("UWAI_MILITARY_ANALYSIS_DOW_BY turn=%d agentPlayer=%d targetTeam=%d scenario=%s player=%d count=%d",
+			GC.getGame().getGameTurn(), m_eWe, m_eTarget, m_bPeaceScenario ? "PEACE" : "WAR", ePlayer, (int)DoWBy.size());
 		if (gUWAIMilitaryAnalystLogLevel >= 2)
 		{
 			for (PlyrSetIter it = DoWBy.begin(); it != DoWBy.end(); ++it)
-				logBBAI("%S", GET_PLAYER(*it).getName(0));
+				logBBAI("UWAI_MILITARY_ANALYSIS_DOW_BY_TARGET turn=%d player=%d otherPlayer=%d otherName=%S", GC.getGame().getGameTurn(), ePlayer, *it, GET_PLAYER(*it).getName(0));
 		}
 	}
 	PlyrSet const& DoWOn = pResult->getDoWOn();
 	if (!DoWOn.empty())
 	{
-		logBBAI("Wars declared on %S:", GET_PLAYER(ePlayer).getName(0));
+		logBBAI("UWAI_MILITARY_ANALYSIS_DOW_ON turn=%d agentPlayer=%d targetTeam=%d scenario=%s player=%d count=%d",
+			GC.getGame().getGameTurn(), m_eWe, m_eTarget, m_bPeaceScenario ? "PEACE" : "WAR", ePlayer, (int)DoWOn.size());
 		if (gUWAIMilitaryAnalystLogLevel >= 2)
 		{
 			for (PlyrSetIter it = DoWOn.begin(); it != DoWOn.end(); ++it)
-				logBBAI("%S", GET_PLAYER(*it).getName(0));
+				logBBAI("UWAI_MILITARY_ANALYSIS_DOW_ON_SOURCE turn=%d player=%d otherPlayer=%d otherName=%S", GC.getGame().getGameTurn(), ePlayer, *it, GET_PLAYER(*it).getName(0));
 		}
 	}
 	PlyrSet const& kWarsCont = pResult->getWarsContinued();
 	if (!kWarsCont.empty())
 	{
-		logBBAI("Wars continued:");
+		logBBAI("UWAI_MILITARY_ANALYSIS_WAR_CONTINUED turn=%d agentPlayer=%d targetTeam=%d scenario=%s player=%d count=%d",
+			GC.getGame().getGameTurn(), m_eWe, m_eTarget, m_bPeaceScenario ? "PEACE" : "WAR", ePlayer, (int)kWarsCont.size());
 		if (gUWAIMilitaryAnalystLogLevel >= 2)
 		{
 			for (PlyrSetIter it = kWarsCont.begin(); it != kWarsCont.end(); ++it)
-				logBBAI("%S", GET_PLAYER(*it).getName(0));
+				logBBAI("UWAI_MILITARY_ANALYSIS_WAR_CONTINUED_OPPONENT turn=%d player=%d otherPlayer=%d otherName=%S",
+					GC.getGame().getGameTurn(), ePlayer, *it, GET_PLAYER(*it).getName(0));
 		}
 	}
 }
@@ -672,8 +686,8 @@ void MilitaryAnalyst::logPower(PlayerTypes ePlayer, bool bGained)
 {
 	FAssert(gUWAIMilitaryAnalystLogLevel >= 2 && !m_kLogMuteState.isMuted());
 	// Some overlap with InvasionGraph::Node::logPower
-	char const* szChange = (bGained ? "Net power gain (build-up minus losses)" :
-			"Lost power from casualties");
+	// <!-- custom: Preserve the inherited distinction: the first measure is net build-up minus losses, while the second is power lost to casualties. A generic GAIN label obscured that the net value can be negative. (GPT-6.1-Sol) -->
+	char const* const szChange = (bGained ? "NET_BUILDUP_MINUS_LOSSES" : "CASUALTY_LOSS");
 	int iLogged = 0;
 	for (int i = 0; i < NUM_BRANCHES; i++)
 	{
@@ -683,8 +697,10 @@ void MilitaryAnalyst::logPower(PlayerTypes ePlayer, bool bGained)
 			lostPower(ePlayer, eBranch)).round();
 		if (iPowChange == 0)
 			continue;
-		logBBAI("%s: %s %d", szChange, MilitaryBranch::str(eBranch), iPowChange);
+		logBBAI("UWAI_MILITARY_ANALYSIS_POWER_CHANGE turn=%d agentPlayer=%d targetTeam=%d scenario=%s player=%d change=%s branch=%s power=%d",
+				GC.getGame().getGameTurn(), m_eWe, m_eTarget, m_bPeaceScenario ? "PEACE" : "WAR", ePlayer, szChange, MilitaryBranch::str(eBranch), iPowChange);
 		iLogged++;
 	}
-	if (iLogged == 0) logBBAI("%s: none", szChange);
+	if (iLogged == 0) logBBAI("UWAI_MILITARY_ANALYSIS_POWER_CHANGE_NONE turn=%d agentPlayer=%d targetTeam=%d scenario=%s player=%d change=%s",
+			GC.getGame().getGameTurn(), m_eWe, m_eTarget, m_bPeaceScenario ? "PEACE" : "WAR", ePlayer, szChange);
 }

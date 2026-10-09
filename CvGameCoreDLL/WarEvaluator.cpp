@@ -15,7 +15,6 @@
 
 using std::vector;
 using std::string;
-using std::ostringstream;
 
 /*	When a player trades with the AI, the EXE asks the DLL to compute trade values
 	several times in a row (usually about a dozen times), which is enough to cause
@@ -195,35 +194,28 @@ namespace
 		return false;
 	}
 
-	void appendSASBBAIWarAspectUtilities(std::ostringstream& kOut, std::vector<CvString> const& asNames, std::vector<int> const& aiUtilities)
-	{
-		bool bFirst = true;
-		for (size_t i = 0; i < aiUtilities.size(); i++)
-		{
-			if (aiUtilities[i] == 0)
-				continue;
-			if (!bFirst)
-				kOut << ",";
-			kOut << asNames[i].GetCString() << ":" << aiUtilities[i];
-			bFirst = false;
-		}
-	}
-
 	void logSASBBAINavalOpportunity(WarEvalParameters const& kParams, CvTeamAI const& kAgent, CvTeamAI const& kTarget, WarPlanTypes eWarPlan, int iPreparationTime, int iNearestCityDistance, int iWarScenarioUtility, int iPeaceScenarioUtility, int iFinalUtility, std::vector<CvString> const& asWarAspectNames, std::vector<int> const& aiWarAspectUtilities, std::vector<CvString> const& asPeaceAspectNames, std::vector<int> const& aiPeaceAspectUtilities)
 	{
-		std::ostringstream warComponents;
-		std::ostringstream peaceComponents;
-		appendSASBBAIWarAspectUtilities(warComponents, asWarAspectNames, aiWarAspectUtilities);
-		appendSASBBAIWarAspectUtilities(peaceComponents, asPeaceAspectNames, aiPeaceAspectUtilities);
 		int const iOurPower = std::max(1, kAgent.getPower(true));
 		int const iTargetPower = kTarget.getDefensivePower(kAgent.getID());
-		logBBAI("WAR_NAVAL_OPPORTUNITY turn=%d agentTeam=%d targetTeam=%d warPlan=%s finalUtility=%d warScenarioUtility=%d peaceScenarioUtility=%d prepTurns=%d attitude=%d attitudeValue=%d closeness=%d nearestCityDistance=%d ourPower=%d targetPower=%d targetPowerPercent=%d ourCities=%d targetCities=%d ourWars=%d targetWars=%d assaultTransports=%d attackUnits=%d attackCityUnits=%d warComponents=\"%s\" peaceComponents=\"%s\"",
+		logBBAI("WAR_NAVAL_OPPORTUNITY turn=%d agentTeam=%d targetTeam=%d warPlan=%s finalUtility=%d warScenarioUtility=%d peaceScenarioUtility=%d prepTurns=%d attitude=%d attitudeValue=%d closeness=%d nearestCityDistance=%d ourPower=%d targetPower=%d targetPowerPercent=%d ourCities=%d targetCities=%d ourWars=%d targetWars=%d assaultTransports=%d attackUnits=%d attackCityUnits=%d",
 			GC.getGame().getGameTurn(), kAgent.getID(), kTarget.getID(), getSASWarPlanType(eWarPlan), iFinalUtility, iWarScenarioUtility,
 			iPeaceScenarioUtility, iPreparationTime, kAgent.AI_getAttitude(kTarget.getID()), kAgent.AI_getAttitudeVal(kTarget.getID()),
 			kAgent.AI_teamCloseness(kTarget.getID()), iNearestCityDistance, iOurPower, iTargetPower, (100 * iTargetPower) / iOurPower,
 			kAgent.getNumCities(), kTarget.getNumCities(), kAgent.getNumWars(true, true), kTarget.getNumWars(true, true),
 			getSASBBAITeamUnitAICount(kAgent.getID(), UNITAI_ASSAULT_SEA), getSASBBAITeamUnitAICount(kAgent.getID(), UNITAI_ATTACK),
-			getSASBBAITeamUnitAICount(kAgent.getID(), UNITAI_ATTACK_CITY), warComponents.str().c_str(), peaceComponents.str().c_str());
+			getSASBBAITeamUnitAICount(kAgent.getID(), UNITAI_ATTACK_CITY));
+		// <!-- custom: One structured row per nonzero aspect is easier to grep/parse and avoids constructing temporary diagnostic strings solely for logging. (ChatGPT-5.6-Sol) -->
+		for (size_t i = 0; i < aiWarAspectUtilities.size(); i++)
+		{
+			if (aiWarAspectUtilities[i] != 0) logBBAI("WAR_NAVAL_OPPORTUNITY_WAR_COMPONENT turn=%d agentTeam=%d targetTeam=%d warPlan=%s aspect=%s utility=%d",
+					GC.getGame().getGameTurn(), kAgent.getID(), kTarget.getID(), getSASWarPlanType(eWarPlan), asWarAspectNames[i].GetCString(), aiWarAspectUtilities[i]);
+		}
+		for (size_t i = 0; i < aiPeaceAspectUtilities.size(); i++)
+		{
+			if (aiPeaceAspectUtilities[i] != 0) logBBAI("WAR_NAVAL_OPPORTUNITY_PEACE_COMPONENT turn=%d agentTeam=%d targetTeam=%d warPlan=%s aspect=%s utility=%d",
+					GC.getGame().getGameTurn(), kAgent.getID(), kTarget.getID(), getSASWarPlanType(eWarPlan), asPeaceAspectNames[i].GetCString(), aiPeaceAspectUtilities[i]);
+		}
 	}
 
 	int getSASHighWarUtilityLogThreshold()
@@ -253,22 +245,17 @@ namespace
 	{
 		CvTeamAI& kAgent = GET_TEAM(kParams.getAgent());
 		CvTeamAI& kTarget = GET_TEAM(kParams.getTarget());
-		ostringstream componentList;
-		bool bFirstComponent = true;
-		for (size_t i = 0; i < aiAspectUtilities.size(); i++)
-		{
-			if (aiAspectUtilities[i] == 0)
-				continue;
-			if (!bFirstComponent)
-				componentList << ",";
-			componentList << asAspectNames[i].GetCString() << ":" << aiAspectUtilities[i];
-			bFirstComponent = false;
-		}
-		logBBAI("WAR_PEACE_UTILITY_SCENARIO turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s scenario=%s scenarioUtility=%d naval=%d prepTurns=%d ourPower=%d targetPower=%d ourCities=%d targetCities=%d ourWarSuccess=%d targetWarSuccess=%d components=\"%s\"",
+		logBBAI("WAR_PEACE_UTILITY_SCENARIO turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s scenario=%s scenarioUtility=%d naval=%d prepTurns=%d ourPower=%d targetPower=%d ourCities=%d targetCities=%d ourWarSuccess=%d targetWarSuccess=%d",
 			GC.getGame().getGameTurn(), getUWAI().isEnabled(true), kAgent.getID(), kTarget.getID(), getSASWarPlanType(eWarPlan), szScenario,
 			iScenarioUtility, bNaval, iPreparationTime, kAgent.getPower(true), kTarget.getPower(true), kAgent.getNumCities(),
-			kTarget.getNumCities(), kAgent.AI_getWarSuccess(kTarget.getID()).round(), kTarget.AI_getWarSuccess(kAgent.getID()).round(),
-			componentList.str().c_str());
+			kTarget.getNumCities(), kAgent.AI_getWarSuccess(kTarget.getID()).round(), kTarget.AI_getWarSuccess(kAgent.getID()).round());
+		// <!-- custom: Keep suspicious-peace aspect detail as ordinary structured rows rather than a temporary comma-joined stream. (ChatGPT-5.6-Sol) -->
+		for (size_t i = 0; i < aiAspectUtilities.size(); i++)
+		{
+			if (aiAspectUtilities[i] != 0) logBBAI("WAR_PEACE_UTILITY_SCENARIO_COMPONENT turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s scenario=%s aspect=%s utility=%d",
+					GC.getGame().getGameTurn(), getUWAI().isEnabled(true), kAgent.getID(), kTarget.getID(), getSASWarPlanType(eWarPlan), szScenario,
+					asAspectNames[i].GetCString(), aiAspectUtilities[i]);
+		}
 	}
 
 	void logSASBBAISuspiciousPeaceFinal(WarEvalParameters const& kParams, WarPlanTypes eWarPlan, bool bNaval, int iPreparationTime, int iWarScenarioUtility, int iPeaceScenarioUtility, int iFinalUtility)
@@ -357,36 +344,39 @@ WarEvaluator::WarEvaluator(WarEvalParameters& kWarEvalParams, bool bUseCache)
 void WarEvaluator::logPreamble()
 {
 	FAssert(gUWAIWarUtilityLogLevel >= 2 && !m_kLogMuteState.isMuted());
-	logBBAI("Evaluating %s%s war between team=%d %S%s and team=%d %S%s",
-			m_kParams.isTotal() ? getSASWarPlanType(WARPLAN_TOTAL) : getSASWarPlanType(WARPLAN_LIMITED),
-			m_kParams.isNaval() ? " naval" : "", m_kAgent.getID(),
-			GET_TEAM(m_kAgent.getID()).getName().GetCString(), m_kAgent.isHuman() ? " (human)" : "",
-			m_kTarget.getID(), GET_TEAM(m_kTarget.getID()).getName().GetCString(),
-			m_kTarget.isHuman() ? " (human)" : "");
+	// <!-- custom: Replace the inherited report prose with compact stable events. The BEGIN row carries evaluation-wide context; member/relationship rows add only variable-length detail. (ChatGPT-5.6-Sol) -->
+	logBBAI("UWAI_WAR_EVALUATION_BEGIN turn=%d agentTeam=%d targetTeam=%d proposedPlan=%s naval=%d currentPlan=%s consideringPeace=%d prepTurns=%d immediateDoW=%d ignoreDistraction=%d agentHuman=%d targetHuman=%d",
+			GC.getGame().getGameTurn(), m_kAgent.getID(), m_kTarget.getID(),
+			m_kParams.isTotal() ? getSASWarPlanType(WARPLAN_TOTAL) : getSASWarPlanType(WARPLAN_LIMITED), m_kParams.isNaval(),
+			getSASWarPlanType(m_kAgent.AI_getWarPlan(m_kTarget.getID())), m_kParams.isConsideringPeace(), m_kParams.getPreparationTime(),
+			m_kParams.isImmediateDoW(), m_kParams.isIgnoreDistraction(), m_kAgent.isHuman(), m_kTarget.isHuman());
 	for (MemberIter agentIt(m_kAgent.getID()); agentIt.hasNext(); ++agentIt)
-		logBBAI("Agent member: player=%d name=%S", agentIt->getID(), GET_PLAYER(agentIt->getID()).getName(0));
+		logBBAI("UWAI_WAR_EVALUATION_AGENT_MEMBER turn=%d agentTeam=%d player=%d name=%S",
+			GC.getGame().getGameTurn(), m_kAgent.getID(), agentIt->getID(), GET_PLAYER(agentIt->getID()).getName(0));
 	for (MemberIter targetIt(m_kTarget.getID()); targetIt.hasNext(); ++targetIt)
-		logBBAI("Target member: player=%d name=%S", targetIt->getID(), GET_PLAYER(targetIt->getID()).getName(0));
-	logBBAI("Current actual war plan: %s", getSASWarPlanType(m_kAgent.AI_getWarPlan(m_kTarget.getID())));
-	if (m_kParams.isConsideringPeace()) logBBAI("Considering peace");
-	logBBAI("Preparation time vs. target: %d", m_kParams.getPreparationTime());
-	if (m_kParams.isImmediateDoW()) logBBAI("Immediate DoW assumed");
-	if (m_kAgent.isAVassal()) logBBAI("Agent is a vassal of %S", GET_TEAM(m_kAgent.getMasterTeam()).getName().GetCString());
-	if (m_kTarget.isAVassal()) logBBAI("Target is a vassal of %S", GET_TEAM(m_kTarget.getMasterTeam()).getName().GetCString());
+		logBBAI("UWAI_WAR_EVALUATION_TARGET_MEMBER turn=%d targetTeam=%d player=%d name=%S",
+			GC.getGame().getGameTurn(), m_kTarget.getID(), targetIt->getID(), GET_PLAYER(targetIt->getID()).getName(0));
+	if (m_kAgent.isAVassal()) logBBAI("UWAI_WAR_EVALUATION_AGENT_VASSAL turn=%d agentTeam=%d masterTeam=%d masterName=%S",
+		GC.getGame().getGameTurn(), m_kAgent.getID(), m_kAgent.getMasterTeam(), GET_TEAM(m_kAgent.getMasterTeam()).getName().GetCString());
+	if (m_kTarget.isAVassal()) logBBAI("UWAI_WAR_EVALUATION_TARGET_VASSAL turn=%d targetTeam=%d masterTeam=%d masterName=%S",
+		GC.getGame().getGameTurn(), m_kTarget.getID(), m_kTarget.getMasterTeam(), GET_TEAM(m_kTarget.getMasterTeam()).getName().GetCString());
 	FOR_EACH_ENUM2(Team, eAlly)
 	{
-		if (m_kParams.isWarAlly(eAlly)) logBBAI("Joint DoW by %S assumed", GET_TEAM(eAlly).getName().GetCString());
+		if (m_kParams.isWarAlly(eAlly)) logBBAI("UWAI_WAR_EVALUATION_WAR_ALLY turn=%d agentTeam=%d targetTeam=%d allyTeam=%d allyName=%S",
+			GC.getGame().getGameTurn(), m_kAgent.getID(), m_kTarget.getID(), eAlly, GET_TEAM(eAlly).getName().GetCString());
 	}
 	FOR_EACH_ENUM2(Team, eExtraTarget)
 	{
-		if (m_kParams.isExtraTarget(eExtraTarget)) logBBAI("Extra target: %S", GET_TEAM(eExtraTarget).getName().GetCString());
+		if (m_kParams.isExtraTarget(eExtraTarget)) logBBAI("UWAI_WAR_EVALUATION_EXTRA_TARGET turn=%d agentTeam=%d targetTeam=%d extraTargetTeam=%d extraTargetName=%S",
+			GC.getGame().getGameTurn(), m_kAgent.getID(), m_kTarget.getID(), eExtraTarget, GET_TEAM(eExtraTarget).getName().GetCString());
 	}
 	if (m_kParams.getSponsor() != NO_PLAYER)
 	{
-		logBBAI("Sponsored by %S", GET_PLAYER(m_kParams.getSponsor()).getName(0));
+		logBBAI("UWAI_WAR_EVALUATION_SPONSOR turn=%d agentTeam=%d targetTeam=%d sponsorPlayer=%d sponsorName=%S",
+			GC.getGame().getGameTurn(), m_kAgent.getID(), m_kTarget.getID(), m_kParams.getSponsor(),
+			GET_PLAYER(m_kParams.getSponsor()).getName(0));
 		FAssert(m_kParams.isImmediateDoW());
 	}
-	if (m_kParams.isIgnoreDistraction()) logBBAI("Computation ignoring Distraction cost");
 }
 
 
@@ -506,7 +496,8 @@ void WarEvaluator::evaluateForDiagnostics(WarPlanTypes eWarPlan, bool bNaval, in
 }
 
 
-// <!-- custom: Shared implementation for gameplay evaluation and the explicitly diagnostic-only selected-scenario rerun. bDiagnosticOnly is internal so ordinary callers cannot accidentally use a diagnostic pass as a gameplay evaluator. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Extracted the inherited fixed-naval evaluate implementation into evaluateScenario and added bDiagnosticOnly for logging-only reruns; the original public evaluate overload remains a gameplay wrapper passing false.
+// Diagnostic passes bypass evaluator caches. Keep this mode internal so ordinary callers cannot accidentally use a diagnostic pass as a gameplay evaluator. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 int WarEvaluator::evaluateScenario(bool bDiagnosticOnly, WarPlanTypes eWarPlan, bool bNaval, int iPreparationTime)
 {
 	PROFILE_FUNC(); // All war evaluation goes through here
@@ -545,15 +536,12 @@ int WarEvaluator::evaluateScenario(bool bDiagnosticOnly, WarPlanTypes eWarPlan, 
 	}
 	if (gUWAIWarUtilityLogLevel >= 2 && !m_kLogMuteState.isMuted())
 	{
-		if (m_bPeaceScenario)
-			logBBAI("Peace scenario");
-		else
-		{
-			/*  Normally, both are evaluated, and war goes first. Logging the preamble
-				once is enough. */
-			logPreamble();
-			logBBAI("War scenario");
-		}
+		/*  Normally, both are evaluated, and war goes first. Logging the preamble
+			once is enough. */
+		if (!m_bPeaceScenario) logPreamble();
+		logBBAI("UWAI_WAR_SCENARIO_BEGIN turn=%d agentTeam=%d targetTeam=%d scenario=%s warPlan=%s naval=%d prepTurns=%d diagnosticOnly=%d",
+				GC.getGame().getGameTurn(), m_kAgent.getID(), m_kTarget.getID(), m_bPeaceScenario ? "PEACE" : "WAR",
+				getSASWarPlanType(eWarPlan), bNaval, iPreparationTime, bDiagnosticOnly);
 	}
 	vector<WarUtilityAspect*> apAspects;
 	fillWithAspects(apAspects);
@@ -576,10 +564,12 @@ int WarEvaluator::evaluateScenario(bool bDiagnosticOnly, WarPlanTypes eWarPlan, 
 			asAspectNames.push_back(apAspects[i]->aspectName());
 			aiAspectUtilities.push_back(iDelta);
 		}
-		if (gUWAIWarUtilityLogLevel >= 2 && !m_kLogMuteState.isMuted() && iDelta != 0) logBBAI("%s total: %d", apAspects[i]->aspectName(), iDelta);
+		if (gUWAIWarUtilityLogLevel >= 2 && !m_kLogMuteState.isMuted() && iDelta != 0) logBBAI("UWAI_WAR_UTILITY_ASPECT turn=%d agentTeam=%d targetTeam=%d scenario=%s aspect=%s utility=%d",
+				GC.getGame().getGameTurn(), m_kAgent.getID(), m_kTarget.getID(), m_bPeaceScenario ? "PEACE" : "WAR", apAspects[i]->aspectName(), iDelta);
 		delete apAspects[i];
 	}
-	if (gUWAIWarUtilityLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("Bottom line: %d", iU);
+	if (gUWAIWarUtilityLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_WAR_SCENARIO_TOTAL turn=%d agentTeam=%d targetTeam=%d scenario=%s utility=%d",
+			GC.getGame().getGameTurn(), m_kAgent.getID(), m_kTarget.getID(), m_bPeaceScenario ? "PEACE" : "WAR", iU);
 	// <!-- custom: Preserve the recursive PEACE scenario's aspect decomposition in members.
 	// After recursion returns, the outer WAR call still has its local aspect vectors and emits both in one row. See KI#53.6. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (m_bPeaceScenario && m_bSASLogNavalOpportunity)
@@ -596,7 +586,8 @@ int WarEvaluator::evaluateScenario(bool bDiagnosticOnly, WarPlanTypes eWarPlan, 
 		int const iWarScenarioUtility = iU;
 		int const iPeaceScenarioUtility = evaluateScenario(bDiagnosticOnly, NO_WARPLAN, false, iPreparationTime); // Required for final war-minus-peace utility; stored only so high-utility diagnostics can show both sides.
 		iU -= iPeaceScenarioUtility;
-		if (gUWAIWarUtilityLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("Utility war minus peace: %d", iU);
+		if (gUWAIWarUtilityLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_WAR_UTILITY_FINAL turn=%d agentTeam=%d targetTeam=%d warUtility=%d peaceUtility=%d finalUtility=%d",
+				GC.getGame().getGameTurn(), m_kAgent.getID(), m_kTarget.getID(), iWarScenarioUtility, iPeaceScenarioUtility, iU);
 		if (bSASSuspiciousPeaceLog)
 			logSASBBAISuspiciousPeaceFinal(m_kParams, eWarPlan, bNaval, iPreparationTime, iWarScenarioUtility, iPeaceScenarioUtility, iU);
 		if (bSASHighUtilityLog && isSASHighWarUtility(iU))
@@ -678,8 +669,8 @@ void WarEvaluator::evaluate(PlayerTypes eAgentPlayer, vector<WarUtilityAspect*>&
 			if (!GET_TEAM(it->getID()).isCapitulated()) militaryAnalyst.logResults(it->getID());
 		}
 	}
-	if (gUWAIWarUtilityLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Computing utility of %S",
-			GET_PLAYER(eAgentPlayer).getName(0));
+	if (gUWAIWarUtilityLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_WAR_PLAYER_UTILITY_BEGIN turn=%d agentTeam=%d targetTeam=%d scenario=%s player=%d name=%S",
+			GC.getGame().getGameTurn(), m_kAgent.getID(), m_kTarget.getID(), m_bPeaceScenario ? "PEACE" : "WAR", eAgentPlayer, GET_PLAYER(eAgentPlayer).getName(0));
 	int iU = 0;
 	// <!-- custom: The first KI#53.6 aspect run showed that many strong/near island candidates had no GreedForAssets at all, meaning MilitaryAnalyst predicted no city gain from the target.
 	// Log the underlying naval simulation only for ordinary (non-hard-rejected) opportunity candidates so we can distinguish Army, Fleet, Logistics, and projected-conquest failures before changing behavior. (ChatGPT-5.6-Sol) -->
@@ -693,6 +684,6 @@ void WarEvaluator::evaluate(PlayerTypes eAgentPlayer, vector<WarUtilityAspect*>&
 	}
 	if (m_bSASLogNavalOpportunity && !m_bPeaceScenario && !bSASNavalOpportunityHardReject)
 		logSASBBAINavalOpportunitySimulation(m_kParams, militaryAnalyst, eAgentPlayer);
-	if (gUWAIWarUtilityLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("Total utility for %S: %d",
-			GET_PLAYER(eAgentPlayer).getName(0), iU);
+	if (gUWAIWarUtilityLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_WAR_PLAYER_UTILITY_TOTAL turn=%d agentTeam=%d targetTeam=%d scenario=%s player=%d utility=%d",
+			GC.getGame().getGameTurn(), m_kAgent.getID(), m_kTarget.getID(), m_bPeaceScenario ? "PEACE" : "WAR", eAgentPlayer, iU);
 }

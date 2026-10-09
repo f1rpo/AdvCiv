@@ -25283,6 +25283,16 @@ Found post-album while extending the KI#505.2 logging modernization with ChatGPT
 
 GPT-6.1-Sol independently reviewed the evolving refactor and identified a remaining selected-scenario diagnostic rerun that could still use ordinary evaluator cache semantics; the final design separates that observer path explicitly. Compile/runtime testing and repeated same-save validation were performed by wonderingabout, thanks.
 
+### Update (2026-10-09): the follow-up structured-diagnostics pass completed that output modernization
+
+`WarEvaluator`, `MilitaryAnalyst`, `ArmamentForecast`, `InvasionGraph`, `UWAIAgent` and `WarUtilityAspect` now expose 331 uniquely named `UWAI_*` BBAI event sites, using explicit fields and consolidated calculation/result rows instead of inherited narrative report prose where practical; genuine one-to-many detail remains separate. Those six files no longer use free-form UWAI `logBBAI` messages or stream aggregation.
+
+After the final cross-file pre-autoplay audit, an all-five-category level-3 same-save run produced 2,681,295,993 bytes (about 2.50 GiB) of BBAI output.
+
+Compared with the immediately preceding full run, SASGameRecord matched all 394 turn-complete rows, all 399 RNG checkpoints, all 44 run-status rows, all 1,869 victory-progress rows (including general rows), all 623 AI victory-stage snapshots and all 183 victory-stage changes exactly.
+
+All 399 CORE state checkpoints also matched after ignoring only `computeMilliseconds`. This confirms that the later structured/consolidation cleanup remained observation-only while making the enabled forensic stream substantially easier to grep, script and review.
+
 <a id="ki-506"></a>
 
 ## KI#506 - (Pending Architectural inherited UWAI/AdvCiv retry-state defect) reviewWarPlans retains superseded cross-pass state

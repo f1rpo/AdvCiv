@@ -133,7 +133,8 @@ public:
 
 		void initMilitary();
 		int countUnitsWithAI(std::vector<UnitAITypes> aeAITypes) const;
-		void logPower(char const* szMsg) const;
+		// <!-- custom: Structured BBAI power rows use a stable stage token (e.g. CURRENT/PREDICTED) instead of the inherited free-form message prefix. (ChatGPT-5.6-Sol) -->
+		void logPower(char const* szStage) const;
 		/*	eExtra: Team (and its vassals) to be considered as the target
 			(in addition to m_warOpponents). */
 		PlayerTypes findTarget(TeamTypes eExtra = NO_TEAM) const;

@@ -332,10 +332,11 @@ void UWAI::Team::doWar()
 			"Vassals shouldn't have non-preparatory war plans unless at war");
 	// <!-- custom: The Team now owns only this tiny nested mute-depth state. Assert that every prior evaluation balanced its push/pop pairs before starting another UWAI turn. See KI#505.3. (ChatGPT-5.6-Sol) -->
 	FAssert(!m_kLogMuteState.isMuted());
+	bool const bLogAgentDetail = (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted());
 	if (kAgent.isHuman() || kAgent.isAVassal())
 	{
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("%S is %s", GET_TEAM(kAgent.getID()).getName().GetCString(),
-				(kAgent.isHuman() ? "human" : "a vassal"));
+		if (bLogAgentDetail) logBBAI("UWAI_AGENT_TEAM_SKIPPED turn=%d agentTeam=%d reason=%s",
+				GC.getGame().getGameTurn(), kAgent.getID(), kAgent.isHuman() ? "HUMAN" : "VASSAL");
 		for (TeamIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> it(kAgent.getID());
 			it.hasNext(); ++it)
 		{
@@ -372,7 +373,8 @@ void UWAI::Team::doWar()
 				}
 			}
 		}
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Nothing more to do for this team");
+		if (bLogAgentDetail) logBBAI("UWAI_AGENT_TEAM_NO_FURTHER_ACTION turn=%d agentTeam=%d",
+			GC.getGame().getGameTurn(), kAgent.getID());
 		FAssert(!m_kLogMuteState.isMuted());
 		return;
 	}
@@ -390,7 +392,8 @@ void UWAI::Team::doWar()
 	}
 	else
 	{
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("No scheming b/c clearly busy with current wars");
+		if (bLogAgentDetail) logBBAI("UWAI_AGENT_SCHEMING_SKIPPED turn=%d agentTeam=%d reason=BUSY_WITH_CURRENT_WARS",
+				GC.getGame().getGameTurn(), kAgent.getID());
 		for (TeamIter<CIV_ALIVE> it; it.hasNext(); ++it)
 			kCache.setCanBeHiredAgainst(it->getID(), false);
 	}
@@ -447,15 +450,17 @@ namespace
 bool UWAI::Team::reviewWarPlans(set<TeamTypes>& aeChangedTargets)
 {
 	CvTeamAI& kAgent = GET_TEAM(m_eAgent);
+	// <!-- custom: Keep the NONE/BEGIN detail gates direct: the no-plan branch returns, so only one runs per call and caching would not avoid a repeated check. The summary gate below is cached because the review loop can reuse it. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	if (!kAgent.AI_isAnyWarPlan())
 	{
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("%S has no war plans to review",
-				GET_TEAM(kAgent.getID()).getName().GetCString());
+		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_WAR_PLAN_REVIEW_NONE turn=%d agentTeam=%d",
+				GC.getGame().getGameTurn(), kAgent.getID());
 		return true;
 	}
+	bool const bLogAgentSummary = (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted());
 	bool bScheme = true;
-	if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("%S reviews its war plans",
-			GET_TEAM(kAgent.getID()).getName().GetCString());
+	if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_WAR_PLAN_REVIEW_BEGIN turn=%d agentTeam=%d",
+			GC.getGame().getGameTurn(), kAgent.getID());
 	EagerEnumMap<TeamTypes,bool> abTargetDone;
 	bool bPlanChanged = false;
 	bool bAllNaval = true, bAnyNaval = false;
@@ -560,8 +565,8 @@ bool UWAI::Team::reviewWarPlans(set<TeamTypes>& aeChangedTargets)
 				abTargetDone.set(aPlans[i].eTarget, true);
 				if (abTargetDone.numNonDefault() < (int)aPlans.size())
 				{
-					if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("War plan against %S has changed, repeating review",
-							GET_TEAM(aPlans[i].eTarget).getName().GetCString());
+					if (bLogAgentSummary) logBBAI("UWAI_AGENT_WAR_PLAN_REVIEW_REPEAT turn=%d agentTeam=%d targetTeam=%d",
+							GC.getGame().getGameTurn(), kAgent.getID(), aPlans[i].eTarget);
 				}
 				break;
 			}
@@ -690,9 +695,9 @@ bool UWAI::Team::reviewPlan(TeamTypes eTarget, int iU, int iPrepTurns, bool bNav
 	bool bAtWar = kAgent.isAtWar(eTarget);
 	int iWPAge = kAgent.AI_getWarPlanStateCounter(eTarget);
 	FAssert(iWPAge >= 0);
-	if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Reviewing war plan \"%s\" (age: %d turns) against %S (%su=%d)",
-			getSASWarPlanType(eWP), iWPAge, GET_TEAM(eTarget).getName().GetCString(),
-			(bAtWar ? "at war; " : ""), iU);
+	bool const bLogAgentDetail = (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted());
+	if (bLogAgentDetail) logBBAI("UWAI_AGENT_WAR_PLAN_REVIEW turn=%d agentTeam=%d targetTeam=%d warPlan=%s age=%d atWar=%d utility=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iWPAge, bAtWar, iU);
 	if (bAtWar)
 	{
 		FAssert(eWP != WARPLAN_PREPARING_LIMITED && eWP != WARPLAN_PREPARING_TOTAL);
@@ -723,8 +728,8 @@ bool UWAI::Team::reviewPlan(TeamTypes eTarget, int iU, int iPrepTurns, bool bNav
 			getSASBBAITargetPowerPercent(kAgent, eTarget));
 		if (!canSchemeAgainst(eTarget, true))
 		{
-			if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("War plan \"%s\" canceled b/c %S is no longer a legal target",
-					getSASWarPlanType(eWP), GET_TEAM(eTarget).getName().GetCString());
+			if (bLogAgentDetail) logBBAI("UWAI_AGENT_WAR_PLAN_CANCEL_ILLEGAL_TARGET turn=%d agentTeam=%d targetTeam=%d warPlan=%s utility=%d",
+					GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iU);
 			if (gWarLogLevel >= 1) logBBAI("WAR_PREPARATION_CANCEL turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s reason=illegal_target utility=%d stateCounter=%d prepTurnsRemaining=%d",
 					GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iU, iWPAge, iPrepTurns);
 			if (!isInBackground())
@@ -757,7 +762,8 @@ bool UWAI::Team::reviewPlan(TeamTypes eTarget, int iU, int iPrepTurns, bool bNav
 					(isInBackground() && eWP == WARPLAN_DOGPILE));
 			if (iU < 0)
 			{
-				if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("Imminent war canceled; no longer worthwhile");
+				if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_IMMINENT_WAR_CANCEL_UTILITY turn=%d agentTeam=%d targetTeam=%d warPlan=%s utility=%d",
+						GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iU);
 				if (gWarLogLevel >= 1) logBBAI("WAR_PREPARATION_CANCEL turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s reason=imminent_negative_utility utility=%d stateCounter=%d prepTurnsRemaining=%d",
 						GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iU, iWPAge, iPrepTurns);
 				if (!isInBackground())
@@ -801,8 +807,8 @@ bool UWAI::Team::reviewPlan(TeamTypes eTarget, int iU, int iPrepTurns, bool bNav
 			}
 			if (iWPAge > iTimeout)
 			{
-				if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("Imminent war canceled b/c of timeout (%d turns)",
-						iTimeout);
+				if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_IMMINENT_WAR_CANCEL_TIMEOUT turn=%d agentTeam=%d targetTeam=%d warPlan=%s age=%d timeout=%d",
+						GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iWPAge, iTimeout);
 				if (gWarLogLevel >= 1) logBBAI("WAR_PREPARATION_CANCEL turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s reason=imminent_timeout utility=%d stateCounter=%d timeout=%d",
 						GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iU, iWPAge, iTimeout);
 				if (!isInBackground())
@@ -813,8 +819,8 @@ bool UWAI::Team::reviewPlan(TeamTypes eTarget, int iU, int iPrepTurns, bool bNav
 				}
 				return false;
 			}
-			if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("War remains imminent (%d turns until timeout)",
-					1 + iTimeout - iWPAge);
+			if (bLogAgentDetail) logBBAI("UWAI_AGENT_IMMINENT_WAR_RETAINED turn=%d agentTeam=%d targetTeam=%d warPlan=%s age=%d turnsUntilTimeout=%d",
+					GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iWPAge, 1 + iTimeout - iWPAge);
 		}
 		else
 		{
@@ -893,9 +899,12 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU, int iMajorWars, int iE
 			iTargetMilitaryInCities, getSASBBAINearestCityDistance(kAgent.getID(), eTarget), kAgent.AI_getAttitude(eTarget),
 			kAgent.AI_getAttitudeVal(eTarget));
 	}
+	bool const bLogAgentSummary = (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted());
+	bool const bLogAgentDetail = (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted());
 	if (bEmergencyPeaceMode && ePreferredEmergencyPeaceTarget != NO_TEAM && !bEmergencyPeace)
 	{
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Preserving this war while emergency peace is sought against the lower-utility target");
+		if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_PRESERVE_BETTER_WAR turn=%d agentTeam=%d targetTeam=%d preferredPeaceTargetTeam=%d utility=%d",
+				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, ePreferredEmergencyPeaceTarget, iU);
 		if (gWarLogLevel >= 1) logBBAI("WAR_PEACE_DECISION turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s initialUtility=%d decisionUtility=%d peaceThreshold=%d majorWars=%d enemyPowerPercent=%d adjustedEnemyPowerPercent=%d emergencyPeaceMode=1 preferredEmergencyPeaceTarget=%d sought=0 reason=preserve_better_war",
 			GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, getSASWarPlanType(kAgent.AI_getWarPlan(eTarget)),
 			iInitialU, iU, rPeaceThresh.round(), iMajorWars, iEnemyPowerPercent, iAdjustedEnemyPowerPercent, ePreferredEmergencyPeaceTarget);
@@ -904,7 +913,8 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU, int iMajorWars, int iE
 
 	if (bEmergencyPeace)
 	{
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Emergency peace mode: %d simultaneous wars vs majors — forcing negotiation.", iMajorWars);
+		if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_EMERGENCY_FORCED turn=%d agentTeam=%d targetTeam=%d majorWars=%d adjustedEnemyPowerPercent=%d",
+				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, iMajorWars, iAdjustedEnemyPowerPercent);
 		// Make sure the code doesn't early-out on "utility above threshold":
 		// push iU clearly below the threshold so we go to the negotiation block.
 		// <!-- custom: Emergency-peace thresholds are signed and normally nonpositive for inter-AI wars; uround asserts on negative input and rounds it with the wrong contract.
@@ -913,7 +923,8 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU, int iMajorWars, int iE
 	}
 	// keep the existing log (or adjust) after this
 	//
-	if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Threshold for seeking peace: %d", rPeaceThresh.round());
+	if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_THRESHOLD turn=%d agentTeam=%d targetTeam=%d utility=%d threshold=%d emergencyPeace=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget, iU, rPeaceThresh.round(), bEmergencyPeace);
 	TeamTypes eImminentWarTarget = NO_TEAM;
 	if (iU >= rPeaceThresh)
 	{
@@ -929,9 +940,8 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU, int iMajorWars, int iE
 				continue;
 			eImminentWarTarget = eOther;
 			FAssert(eOther != eTarget);
-			if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Considering peace with %S to focus on"
-					" imminent war against %S; evaluating two-front war:",
-					GET_TEAM(eTarget).getName().GetCString(), GET_TEAM(eOther).getName().GetCString());
+			if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_TWO_FRONT_EVALUATION_BEGIN turn=%d agentTeam=%d currentTargetTeam=%d imminentTargetTeam=%d",
+					GC.getGame().getGameTurn(), kAgent.getID(), eTarget, eOther);
 			WarEvalParameters params(kAgent.getID(), eOther, m_kLogMuteState, true);
 			params.addExtraTarget(eTarget);
 			/*  We're sure that we want to attack otherId.
@@ -946,13 +956,14 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU, int iMajorWars, int iE
 			int uTot = eval.evaluate(WARPLAN_TOTAL, 0) - iUWAI_MULTI_WAR_RELUCTANCE;
 			iU = std::min(uLim, uTot);
 			// Tbd.: If the war plan against otherId is TOTAL ...
-			if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Utility of a two-front war compared with a war "
-					"only against %S: %d", GET_TEAM(eOther).getName().GetCString(), iU);
+			if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_TWO_FRONT_UTILITY turn=%d agentTeam=%d currentTargetTeam=%d imminentTargetTeam=%d utility=%d",
+					GC.getGame().getGameTurn(), kAgent.getID(), eTarget, eOther, iU);
 			break; // Only one war can be imminent at a time
 		}
 		if (iU >= rPeaceThresh)
 		{
-			if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("No peace sought b/c war utility is above the peace threshold");
+			if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_REJECT_UTILITY_ABOVE_THRESHOLD turn=%d agentTeam=%d targetTeam=%d utility=%d threshold=%d",
+				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, iU, rPeaceThresh.round());
 			if (gWarLogLevel >= 2) logBBAI("WAR_PEACE_DECISION turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s initialUtility=%d decisionUtility=%d peaceThreshold=%d imminentWarTarget=%d emergencyPeace=%d sought=0 reason=utility_above_threshold",
 				GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, getSASWarPlanType(kAgent.AI_getWarPlan(eTarget)),
 				iInitialU, iU, rPeaceThresh.round(), eImminentWarTarget, bEmergencyPeace);
@@ -962,7 +973,8 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU, int iMajorWars, int iE
 	// We refuse to talk for 1 turn
 	if (kAgent.AI_getAtWarCounter(eTarget) <= 1)
 	{
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Too early to consider peace");
+		if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_REJECT_MINIMUM_WAR_AGE turn=%d agentTeam=%d targetTeam=%d atWarCounter=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget, kAgent.AI_getAtWarCounter(eTarget));
 		if (gWarLogLevel >= 2) logBBAI("WAR_PEACE_DECISION turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s initialUtility=%d decisionUtility=%d peaceThreshold=%d atWarCounter=%d emergencyPeace=%d sought=0 reason=minimum_war_age",
 			GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, getSASWarPlanType(kAgent.AI_getWarPlan(eTarget)),
 			iInitialU, iU, rPeaceThresh.round(), kAgent.AI_getAtWarCounter(eTarget), bEmergencyPeace);
@@ -972,8 +984,8 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU, int iMajorWars, int iE
 	CvPlayerAI& kAgentPlayer = GET_PLAYER(kAgent.getRandomMemberAlive(false));
 	if (!kAgentPlayer.canContact(kTargetPlayer.getID(), true))
 	{
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Can't talk to %S about peace",
-				GET_PLAYER(kTargetPlayer.getID()).getName(0));
+		if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_REJECT_CANNOT_CONTACT turn=%d agentTeam=%d targetTeam=%d targetPlayer=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget, kTargetPlayer.getID());
 		if (gWarLogLevel >= 2) logBBAI("WAR_PEACE_DECISION turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s initialUtility=%d decisionUtility=%d peaceThreshold=%d atWarCounter=%d emergencyPeace=%d sought=0 reason=cannot_contact",
 			GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, getSASWarPlanType(kAgent.AI_getWarPlan(eTarget)),
 			iInitialU, iU, rPeaceThresh.round(), kAgent.AI_getAtWarCounter(eTarget), bEmergencyPeace);
@@ -988,7 +1000,8 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU, int iMajorWars, int iE
 	if (bVictoryDenialPeaceBlocked)
 	{
 		bOfferPeace = false;
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Ordinary peace blocked while either side remains a configured victory threat");
+		if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_REJECT_VICTORY_DENIAL turn=%d agentTeam=%d targetTeam=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget);
 		if (gWarLogLevel >= 1) logBBAI("WAR_PEACE_DECISION turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s initialUtility=%d decisionUtility=%d peaceThreshold=%d atWarCounter=%d emergencyPeace=%d sought=0 reason=victory_denial_treaty_blocked",
 			GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, getSASWarPlanType(kAgent.AI_getWarPlan(eTarget)),
 			iInitialU, iU, rPeaceThresh.round(), kAgent.AI_getAtWarCounter(eTarget), bEmergencyPeace);
@@ -1006,15 +1019,16 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU, int iMajorWars, int iE
 		{
 			if (iContactDelay > 0)
 			{
-				if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("No peace with human sought b/c of contact delay: %d",
-						iContactDelay);
+				if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_HUMAN_CONTACT_DELAY turn=%d agentTeam=%d targetTeam=%d contactDelay=%d",
+						GC.getGame().getGameTurn(), kAgent.getID(), eTarget, iContactDelay);
 			}
 			else if (iContactRand <= 0)
 			{
-				if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("No peace sought b/c %S never seeks peace",
-						GET_PLAYER(kAgentPlayer.getID()).getName(0));
+				if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_HUMAN_CONTACT_DISABLED turn=%d agentTeam=%d targetTeam=%d agentPlayer=%d",
+						GC.getGame().getGameTurn(), kAgent.getID(), eTarget, kAgentPlayer.getID());
 			}
-			else if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("No peace sought b/c war too recent: %d turns", iAtWarCounter);
+			else if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_HUMAN_WAR_TOO_RECENT turn=%d agentTeam=%d targetTeam=%d atWarCounter=%d",
+					GC.getGame().getGameTurn(), kAgent.getID(), eTarget, iAtWarCounter);
 			rPeaceProb = 0; // Don't return; capitulation always needs to be checked.
 			bOfferPeace = false;
 		}
@@ -1038,7 +1052,8 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU, int iMajorWars, int iE
 				to sue for peace. Exponentiate rPeaceProb? Subtract a percentage point
 				or two before applying the rWinWinFactor? */
 			rPeaceProb *= rWinWinFactor;
-			if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Win-win factor: %d percent", rWinWinFactor.getPercent());
+			if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_WIN_WIN_FACTOR turn=%d agentTeam=%d targetTeam=%d percent=%d",
+				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, rWinWinFactor.getPercent());
 		}
 	}
 	else
@@ -1055,7 +1070,8 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU, int iMajorWars, int iE
 		else
 		{
 			bOfferPeace = false;
-			if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("No AI peace initiated b/c utility deficit %d is below decisive margin %d", rPeaceUtilityDeficit.round(), iDecisivePeaceMargin);
+			if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_AI_DEFICIT_BELOW_MARGIN turn=%d agentTeam=%d targetTeam=%d utilityDeficit=%d decisiveMargin=%d",
+				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, rPeaceUtilityDeficit.round(), iDecisivePeaceMargin);
 			if (gWarLogLevel >= 2) logBBAI("WAR_PEACE_DECISION turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s initialUtility=%d decisionUtility=%d peaceThreshold=%d utilityDeficit=%d decisiveMargin=%d emergencyPeace=%d sought=0 reason=utility_deficit_below_decisive_margin",
 				GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, getSASWarPlanType(kAgent.AI_getWarPlan(eTarget)),
 				iInitialU, iU, rPeaceThresh.round(), rPeaceUtilityDeficit.round(), iDecisivePeaceMargin, bEmergencyPeace);
@@ -1070,8 +1086,8 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU, int iMajorWars, int iE
 
 	if (bOfferPeace)
 	{
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Probability for peace negotiation: %d percent",
-				rPeaceProb.getPercent());
+		if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_NEGOTIATION_PROBABILITY turn=%d agentTeam=%d targetTeam=%d percent=%d",
+				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, rPeaceProb.getPercent());
 		bool const bRandomlySkipped = (rPeaceProb < 1 && SyncRandSuccess(1 - rPeaceProb));
 		if (gWarLogLevel >= 2) logBBAI("WAR_PEACE_NEGOTIATION_CHECK turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s initialUtility=%d decisionUtility=%d peaceThreshold=%d atWarCounter=%d majorWars=%d enemyPowerPercent=%d adjustedEnemyPowerPercent=%d emergencyPeace=%d imminentWarTarget=%d peaceProbabilityPercent=%d randomlySkipped=%d",
 			GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, getSASWarPlanType(kAgent.AI_getWarPlan(eTarget)),
@@ -1079,7 +1095,8 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU, int iMajorWars, int iE
 			iAdjustedEnemyPowerPercent, bEmergencyPeace, eImminentWarTarget, rPeaceProb.getPercent(), bRandomlySkipped);
 		if (bRandomlySkipped)
 		{
-			if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Peace negotiation randomly skipped");
+			if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_NEGOTIATION_RANDOM_SKIP turn=%d agentTeam=%d targetTeam=%d probabilityPercent=%d",
+				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, rPeaceProb.getPercent());
 			if (!bHuman)
 			{
 				// Don't consider capitulation to AI w/o having tried peace negotiation
@@ -1090,7 +1107,8 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU, int iMajorWars, int iE
 	}
 	if (iTheirReluct == MIN_INT)
 		iTheirReluct = kTarget.uwai().reluctanceToPeace(kAgent.getID(), false);
-	if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Their reluctance to peace: %d", iTheirReluct);
+	if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_TARGET_RELUCTANCE turn=%d agentTeam=%d targetTeam=%d reluctance=%d",
+		GC.getGame().getGameTurn(), kAgent.getID(), eTarget, iTheirReluct);
 	if (bOfferPeace)
 	{
 		if (iTheirReluct <= iMaxReparationUtility)
@@ -1109,7 +1127,8 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU, int iMajorWars, int iE
 					if (iDemandVal < kTargetPlayer.uwai().utilityToTradeVal(fixp(4.25)))
 						iDemandVal = 0;
 					else iDemandVal = (iDemandVal / rDiscountFactor).uround();
-					if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Seeking reparations with a trade value of %d", iDemandVal);
+					if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_REPARATION_DEMAND turn=%d agentTeam=%d targetTeam=%d tradeValue=%d",
+						GC.getGame().getGameTurn(), kAgent.getID(), eTarget, iDemandVal);
 					iTradeVal = 0;
 				}
 				else iTradeVal = (iTradeVal * rDiscountFactor).uround();
@@ -1125,8 +1144,8 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU, int iMajorWars, int iE
 			}
 			if (iTradeVal > 0 || iDemandVal == 0)
 			{
-				if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Trying to offer reparations with a trade value of %d",
-						iTradeVal);
+				if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_REPARATION_OFFER turn=%d agentTeam=%d targetTeam=%d tradeValue=%d",
+					GC.getGame().getGameTurn(), kAgent.getID(), eTarget, iTradeVal);
 			}
 			bool bPeace = false;
 			// <!-- custom: AI_negotiatePeace clears the war plan, counter and war-success state when peace succeeds. Cache the pre-negotiation values so the result row describes the decision that ended the war instead of logging reset zeros.
@@ -1153,14 +1172,11 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU, int iMajorWars, int iE
 			}
 			if (bHuman)
 			{
-				if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted())
-				{
-					if (bPeace)
-						logBBAI("Peace offer sent");
-					else logBBAI("Failed to find a peace offer");
-				}
+				if (bLogAgentSummary) logBBAI("UWAI_AGENT_PEACE_OFFER_RESULT turn=%d agentTeam=%d targetTeam=%d targetPlayer=%d success=%d",
+						GC.getGame().getGameTurn(), kAgent.getID(), eTarget, kTargetPlayer.getID(), bPeace);
 			}
-			else if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Peace negotiation %s", (bPeace ? "succeeded" : "failed"));
+			else if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_NEGOTIATION_RESULT turn=%d agentTeam=%d targetTeam=%d success=%d",
+					GC.getGame().getGameTurn(), kAgent.getID(), eTarget, bPeace);
 			bool const bWarEnded = !kAgent.isAtWar(eTarget);
 			if (gWarLogLevel >= 2 || (bPeace && gWarLogLevel >= 1)) logBBAI("WAR_PEACE_NEGOTIATION_RESULT turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s initialUtility=%d decisionUtility=%d peaceThreshold=%d atWarCounter=%d majorWars=%d enemyPowerPercent=%d adjustedEnemyPowerPercent=%d emergencyPeace=%d imminentWarTarget=%d peaceProbabilityPercent=%d theirReluctance=%d maxReparationUtility=%d tradeValue=%d demandValue=%d negotiationReturnedSuccess=%d warEnded=%d ourPower=%d targetDefensivePower=%d targetPowerPercent=%d ourCities=%d targetCities=%d ourWarSuccess=%d targetWarSuccess=%d",
 				GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, getSASWarPlanType(eLoggedWarPlan), iInitialU, iU,
@@ -1172,7 +1188,8 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU, int iMajorWars, int iE
 		}
 		else
 		{
-			if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("No peace negotiation attempted; they're too reluctant");
+			if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_NEGOTIATION_REJECT_RELUCTANCE turn=%d agentTeam=%d targetTeam=%d reluctance=%d maxReparationUtility=%d",
+				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, iTheirReluct, iMaxReparationUtility);
 			if (gWarLogLevel >= 2) logBBAI("WAR_PEACE_NEGOTIATION_RESULT turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s initialUtility=%d decisionUtility=%d peaceThreshold=%d atWarCounter=%d majorWars=%d enemyPowerPercent=%d adjustedEnemyPowerPercent=%d emergencyPeace=%d imminentWarTarget=%d peaceProbabilityPercent=%d theirReluctance=%d maxReparationUtility=%d negotiationReturnedSuccess=0 warEnded=0 reason=target_reluctant",
 				GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, getSASWarPlanType(kAgent.AI_getWarPlan(eTarget)),
 				iInitialU, iU, rPeaceThresh.round(), kAgent.AI_getAtWarCounter(eTarget), iMajorWars, iEnemyPowerPercent,
@@ -1195,13 +1212,14 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU, int iMajorWars, int iE
 	}
 	if (kAgent.getNumCities() != iCities)
 	{
-		if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("Empire split");
+		if (bLogAgentSummary) logBBAI("UWAI_AGENT_CAPITULATION_EMPIRE_SPLIT turn=%d agentTeam=%d targetTeam=%d citiesBefore=%d citiesAfter=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget, iCities, kAgent.getNumCities());
 		return false; // Leads to re-evaluation of war plans; may yet capitulate.
 	}
 	if (kAgentPlayer.AI_getContactTimer(kTargetPlayer.getID(), CONTACT_PEACE_TREATY) <= 0)
 	{
-		if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("%s capitulation to %S", bHuman ? "Offering" : "Implementing",
-				GET_PLAYER(kTargetPlayer.getID()).getName(0));
+		if (bLogAgentSummary) logBBAI("UWAI_AGENT_CAPITULATION_ACTION turn=%d agentTeam=%d targetTeam=%d targetPlayer=%d action=%s",
+				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, kTargetPlayer.getID(), bHuman ? "OFFER" : "IMPLEMENT");
 		if (!isInBackground())
 		{
 			kAgentPlayer.AI_offerCapitulation(kTargetPlayer.getID(), true);
@@ -1214,12 +1232,13 @@ bool UWAI::Team::considerPeace(TeamTypes eTarget, int iU, int iMajorWars, int iE
 
 bool UWAI::Team::considerCapitulation(TeamTypes eMaster, int iAgentWarUtility, int iMasterReluctancePeace)
 {
+	bool const bLogAgentDetail = (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted());
 	{
 		int const iUtilityThresh = -75;
 		if (iAgentWarUtility * 4 > iUtilityThresh)
 		{
-			if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Don't compute capitulation utility b/c probably"
-					" not low enough (%d>%d)", iAgentWarUtility, iUtilityThresh / 4);
+			if (bLogAgentDetail) logBBAI("UWAI_AGENT_CAPITULATION_SKIP_UTILITY_PRECHECK turn=%d agentTeam=%d masterTeam=%d utility=%d threshold=%d",
+					GC.getGame().getGameTurn(), m_eAgent, eMaster, iAgentWarUtility, iUtilityThresh / 4);
 			return true;
 		}
 		if (iAgentWarUtility > iUtilityThresh)
@@ -1233,8 +1252,9 @@ bool UWAI::Team::considerCapitulation(TeamTypes eMaster, int iAgentWarUtility, i
 					NB: Ideally, considerCapitulation should not rely on iAgentWarUtility
 					at all when there are multiple (free) war enemies, but that's
 					now difficult to change at the call site. */
-				if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Computing war utility of capitulation (%d>%d)",
-						iAgentWarUtility, iUtilityThresh);
+				if (bLogAgentDetail) logBBAI("UWAI_AGENT_CAPITULATION_REEVALUATE_MULTI_WAR turn=%d agentTeam=%d masterTeam=%d utility=%d threshold=%d wars=%d",
+						GC.getGame().getGameTurn(), m_eAgent, eMaster, iAgentWarUtility, iUtilityThresh,
+						GET_TEAM(m_eAgent).getNumWars(true, true));
 				WarEvalParameters params(m_eAgent, eMaster, m_kLogMuteState, false,
 						NO_PLAYER, eMaster);
 				WarEvaluator eval(params);
@@ -1242,8 +1262,8 @@ bool UWAI::Team::considerCapitulation(TeamTypes eMaster, int iAgentWarUtility, i
 			}
 			if (iCapitulationUtility > iUtilityThresh)
 			{
-				if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("No capitulation b/c utility not low enough (%d>%d)",
-						iCapitulationUtility, iUtilityThresh);
+				if (bLogAgentDetail) logBBAI("UWAI_AGENT_CAPITULATION_REJECT_UTILITY turn=%d agentTeam=%d masterTeam=%d utility=%d threshold=%d",
+						GC.getGame().getGameTurn(), m_eAgent, eMaster, iCapitulationUtility, iUtilityThresh);
 				return true;
 			}
 		}
@@ -1263,21 +1283,20 @@ bool UWAI::Team::considerCapitulation(TeamTypes eMaster, int iAgentWarUtility, i
 		if (iAgentCities <= 2)
 			rSkipProb -= fixp(0.25);
 	}
-	if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("%d percent probability to delay capitulation based on master's "
-			"reluctance to peace (%d)", rSkipProb.getPercent(), iMasterReluctancePeace);
-	if (SyncRandSuccess(rSkipProb))
-	{
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("No capitulation this turn");
+	// <!-- custom: The skip probability and its random outcome are one capitulation-delay decision; store the same roll result used by gameplay and report it once. (ChatGPT-5.6-Sol) -->
+	bool const bDelayed = SyncRandSuccess(rSkipProb);
+	if (bLogAgentDetail) logBBAI("UWAI_AGENT_CAPITULATION_DELAY_ROLL turn=%d agentTeam=%d masterTeam=%d percent=%d masterPeaceReluctance=%d cities=%d delayed=%d",
+			GC.getGame().getGameTurn(), m_eAgent, eMaster, rSkipProb.getPercent(), iMasterReluctancePeace, iAgentCities, bDelayed);
+	if (bDelayed)
 		return true;
-	}
-	if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted() && rSkipProb.isPositive()) logBBAI("Not skipped");
 	/*  Since capitulation trade denial is decided at the team level, it doesn't matter
 		which team members are used. */
 	CvPlayerAI const& kAgentLeader = GET_PLAYER(GET_TEAM(m_eAgent).getLeaderID());
 	CvTeamAI const& kMaster = GET_TEAM(eMaster);
 	if (!kAgentLeader.canTradeItem(kMaster.getLeaderID(), TradeData(TRADE_SURRENDER)))
 	{
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Capitulation to %S impossible", GET_TEAM(eMaster).getName().GetCString());
+		if (bLogAgentDetail) logBBAI("UWAI_AGENT_CAPITULATION_IMPOSSIBLE turn=%d agentTeam=%d masterTeam=%d",
+			GC.getGame().getGameTurn(), m_eAgent, eMaster);
 		return true;
 	}
 	bool const bHumanMaster = GET_TEAM(eMaster).isHuman();
@@ -1286,8 +1305,8 @@ bool UWAI::Team::considerCapitulation(TeamTypes eMaster, int iAgentWarUtility, i
 	bool const bCheckAccept = (!bHumanMaster && iMasterReluctancePeace >= 15);
 	if (!bCheckAccept && !bHumanMaster)
 	{
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Master accepts capitulation b/c of low reluctance to peace (%d)",
-				iMasterReluctancePeace);
+		if (bLogAgentDetail) logBBAI("UWAI_AGENT_CAPITULATION_MASTER_ACCEPTS_LOW_RELUCTANCE turn=%d agentTeam=%d masterTeam=%d masterPeaceReluctance=%d",
+				GC.getGame().getGameTurn(), m_eAgent, eMaster, iMasterReluctancePeace);
 	}
 	if (bHumanMaster)
 	{
@@ -1299,8 +1318,8 @@ bool UWAI::Team::considerCapitulation(TeamTypes eMaster, int iAgentWarUtility, i
 			eMaster, CvTeamAI::VASSAL_POWER_MOD_SURRENDER, bCheckAccept);
 	if (eDenial != NO_DENIAL)
 	{
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Not ready to capitulate%s; denial code: %d",
-				bCheckAccept ? " (or master refuses)" : "", (int)eDenial);
+		if (bLogAgentDetail) logBBAI("UWAI_AGENT_CAPITULATION_DENIED turn=%d agentTeam=%d masterTeam=%d denial=%d masterAcceptanceChecked=%d",
+				GC.getGame().getGameTurn(), m_eAgent, eMaster, (int)eDenial, bCheckAccept);
 		if (bHumanMaster)
 		{
 			/*  To ensure that the capitulation decision is made on an AI turn;
@@ -1309,14 +1328,16 @@ bool UWAI::Team::considerCapitulation(TeamTypes eMaster, int iAgentWarUtility, i
 		}
 		return true;
 	}
-	if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("%S ready to capitulate to %S", GET_TEAM(m_eAgent).getName().GetCString(),
-			GET_TEAM(eMaster).getName().GetCString());
+	if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_CAPITULATION_READY turn=%d agentTeam=%d masterTeam=%d",
+			GC.getGame().getGameTurn(), m_eAgent, eMaster);
 	return false;
 }
 
 
 bool UWAI::Team::tryFindingMaster(TeamTypes eEnemy)
 {
+	bool const bLogAgentSummary = (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted());
+	bool const bLogAgentDetail = (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted());
 	CvPlayerAI& kAgentPlayer = GET_PLAYER(GET_TEAM(m_eAgent).getRandomMemberAlive(false));
 	for (TeamAIRandIter<FREE_MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itMaster(syncRand(), m_eAgent);
 		itMaster.hasNext(); ++itMaster)
@@ -1341,8 +1362,8 @@ bool UWAI::Team::tryFindingMaster(TeamTypes eEnemy)
 			// Same contact memory for alliance and vassal agreement
 			CONTACT_PERMANENT_ALLIANCE) != 0)
 		{
-			if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("%S not asked for protection b/c recently contacted",
-					GET_PLAYER(kMasterPlayer.getID()).getName(0));
+			if (bLogAgentDetail) logBBAI("UWAI_AGENT_VASSAL_PROTECTION_SKIP_RECENT_CONTACT turn=%d agentTeam=%d enemyTeam=%d masterTeam=%d masterPlayer=%d",
+					GC.getGame().getGameTurn(), m_eAgent, eEnemy, kMaster.getID(), kMasterPlayer.getID());
 			continue;
 		}
 		// Checks both our and master's willingness
@@ -1350,11 +1371,11 @@ bool UWAI::Team::tryFindingMaster(TeamTypes eEnemy)
 			continue;
 		if (kMaster.isHuman())
 		{
-			if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("Asking human %S for vassal agreement",
-					GET_PLAYER(kMasterPlayer.getID()).getName(0));
+			if (bLogAgentSummary) logBBAI("UWAI_AGENT_VASSAL_PROTECTION_HUMAN_OFFER turn=%d agentTeam=%d enemyTeam=%d masterTeam=%d masterPlayer=%d",
+					GC.getGame().getGameTurn(), m_eAgent, eEnemy, kMaster.getID(), kMasterPlayer.getID());
 		}
-		else if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("Signing vassal agreement with %S",
-				GET_TEAM(kMaster.getID()).getName().GetCString());
+		else if (bLogAgentSummary) logBBAI("UWAI_AGENT_VASSAL_PROTECTION_AI_DEAL turn=%d agentTeam=%d enemyTeam=%d masterTeam=%d masterPlayer=%d",
+				GC.getGame().getGameTurn(), m_eAgent, eEnemy, kMaster.getID(), kMasterPlayer.getID());
 		if (!isInBackground())
 {
 			CLinkList<TradeData> ourList, theirList;
@@ -1382,7 +1403,8 @@ bool UWAI::Team::tryFindingMaster(TeamTypes eEnemy)
 		}
 		return false;
 	}
-	if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("No partner for a voluntary vassal agreement found");
+	if (bLogAgentDetail) logBBAI("UWAI_AGENT_VASSAL_PROTECTION_NONE turn=%d agentTeam=%d enemyTeam=%d",
+		GC.getGame().getGameTurn(), m_eAgent, eEnemy);
 	return true;
 }
 
@@ -1393,6 +1415,7 @@ bool UWAI::Team::considerPlanTypeChange(TeamTypes eTarget, int iU)
 	FAssert(kAgent.isAtWar(eTarget));
 	WarPlanTypes const eWP = kAgent.AI_getWarPlan(eTarget);
 	int const iWPAge = kAgent.AI_getWarPlanStateCounter(eTarget);
+	bool const bLogAgentDetail = (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted());
 	WarPlanTypes eAltWP = NO_WARPLAN;
 	switch (eWP)
 	{
@@ -1402,7 +1425,8 @@ bool UWAI::Team::considerPlanTypeChange(TeamTypes eTarget, int iU)
 		{
 			if (!GET_TEAM(eTarget).AI_isLandTarget(kAgent.getID()) || iWPAge >= 8)
 			{
-				if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Switching to war plan \"attacked\" after %d turns", iWPAge);
+				if (bLogAgentDetail) logBBAI("UWAI_AGENT_WAR_PLAN_TYPE_MATURED turn=%d agentTeam=%d targetTeam=%d oldWarPlan=%s newWarPlan=%s age=%d",
+						GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), getSASWarPlanType(WARPLAN_ATTACKED), iWPAge);
 				if (!isInBackground())
 				{
 					if (gGameRecordLogLevel >= 2) logSASGameRecordUWAIWarPlanDecision(kAgent.getID(), eTarget, SAS_UWAI_WAR_PLAN_ATTACKED_RECENT_MATURED, eWP, WARPLAN_ATTACKED, iU, iWPAge, -1);
@@ -1413,7 +1437,8 @@ bool UWAI::Team::considerPlanTypeChange(TeamTypes eTarget, int iU)
 				return false;
 			}
 		}
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Too early to switch to \"attacked\" war plan");
+		if (bLogAgentDetail) logBBAI("UWAI_AGENT_WAR_PLAN_TYPE_MATURITY_DEFERRED turn=%d agentTeam=%d targetTeam=%d warPlan=%s age=%d",
+				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iWPAge);
 		break;
 	// Treat these three as limited wars, and consider switching to total.
 	case WARPLAN_ATTACKED:
@@ -1433,8 +1458,8 @@ bool UWAI::Team::considerPlanTypeChange(TeamTypes eTarget, int iU)
 	WarEvalParameters params(kAgent.getID(), eTarget, silentLogMuteState);
 	WarEvaluator eval(params);
 	int iAltU = eval.evaluate(eAltWP);
-	if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Utility of alt. war plan (%s): %d",
-			getSASWarPlanType(eAltWP), iAltU);
+	if (bLogAgentDetail) logBBAI("UWAI_AGENT_WAR_PLAN_TYPE_ALT_UTILITY turn=%d agentTeam=%d targetTeam=%d currentWarPlan=%s alternateWarPlan=%s currentUtility=%d alternateUtility=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), getSASWarPlanType(eAltWP), iU, iAltU);
 	scaled rSwitchProb;
 	if (iAltU > iU)
 	{
@@ -1456,16 +1481,18 @@ bool UWAI::Team::considerPlanTypeChange(TeamTypes eTarget, int iU)
 		}
 		if (rLimitedWarWeight != 1)
 		{
-			if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Bias for/against limited war: %d percent",
-					rLimitedWarWeight.getPercent());
+			if (bLogAgentDetail) logBBAI("UWAI_AGENT_WAR_PLAN_TYPE_LIMITED_BIAS turn=%d agentTeam=%d targetTeam=%d limitedWarWeightPercent=%d",
+					GC.getGame().getGameTurn(), kAgent.getID(), eTarget, rLimitedWarWeight.getPercent());
 		}
 	}
-	if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Probability of switching: %d percent", rSwitchProb.getPercent());
+	if (bLogAgentDetail) logBBAI("UWAI_AGENT_WAR_PLAN_TYPE_SWITCH_PROBABILITY turn=%d agentTeam=%d targetTeam=%d currentWarPlan=%s alternateWarPlan=%s percent=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), getSASWarPlanType(eAltWP), rSwitchProb.getPercent());
 	if (!rSwitchProb.isPositive())
 		return true;
 	if (SyncRandSuccess(rSwitchProb))
 	{
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Switching to war plan \"%s\"", getSASWarPlanType(eAltWP));
+		if (bLogAgentDetail) logBBAI("UWAI_AGENT_WAR_PLAN_TYPE_SWITCHED turn=%d agentTeam=%d targetTeam=%d oldWarPlan=%s newWarPlan=%s",
+				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), getSASWarPlanType(eAltWP));
 		if (!isInBackground())
 		{
 			if (gGameRecordLogLevel >= 2) logSASGameRecordUWAIWarPlanDecision(kAgent.getID(), eTarget, SAS_UWAI_WAR_PLAN_ACTIVE_TYPE_SWITCH, eWP, eAltWP, iU, iWPAge, -1, NO_TEAM, iAltU, rSwitchProb.getPercent());
@@ -1474,7 +1501,8 @@ bool UWAI::Team::considerPlanTypeChange(TeamTypes eTarget, int iU)
 		}
 		return false;
 	}
-	if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("War plan not switched; still \"%s\"", getSASWarPlanType(eWP));
+	if (bLogAgentDetail) logBBAI("UWAI_AGENT_WAR_PLAN_TYPE_UNCHANGED turn=%d agentTeam=%d targetTeam=%d warPlan=%s",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP));
 	return true;
 }
 
@@ -1497,15 +1525,17 @@ bool UWAI::Team::considerAbandonPreparations(TeamTypes eTarget, int iU, int iTur
 			kAgent.AI_setWarPlan(eTarget, NO_WARPLAN);
 			showWarPlanAbandonedMsg(eTarget);
 		}
-		if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("More than one war in preparation, canceling the one against %S",
-				GET_TEAM(eTarget).getName().GetCString());
+		if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_PREPARATION_CANCEL_TOO_MANY_PLANS turn=%d agentTeam=%d targetTeam=%d warPlan=%s utility=%d warPlanCount=%d wars=%d",
+				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iU,
+				kAgent.AI_countWarPlans(), kAgent.getNumWars(true, true));
 		return false;
 	}
 	if (iU >= 0)
 		return true;
 	if (iTurnsRemaining <= 0)
 	{
-		if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("Time limit for preparations reached; plan abandoned");
+		if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_PREPARATION_CANCEL_DEADLINE turn=%d agentTeam=%d targetTeam=%d warPlan=%s utility=%d prepTurnsRemaining=%d",
+				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iU, iTurnsRemaining);
 		if (gWarLogLevel >= 1) logBBAI("WAR_PREPARATION_CANCEL turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s reason=preparation_deadline_negative_utility utility=%d stateCounter=%d prepTurnsRemaining=%d",
 				GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iU, kAgent.AI_getWarPlanStateCounter(eTarget), iTurnsRemaining);
 		if (!isInBackground())
@@ -1520,9 +1550,11 @@ bool UWAI::Team::considerAbandonPreparations(TeamTypes eTarget, int iU, int iTur
 	static int const iMinAge = GC.getDefineINT("SAS_UWAI_PREPARATION_ABANDON_MIN_AGE_TURNS_UNSCALED_GAMESPEED");
 	static int const iMinAbandonSeverityPercent = GC.getDefineINT("SAS_UWAI_PREPARATION_ABANDON_MIN_SEVERITY_PERCENT");
 	int const iAge = kAgent.AI_getWarPlanStateCounter(eTarget);
+	bool const bLogAgentDetail = (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted());
 	if (iAge < iMinAge)
 	{
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Preparation abandonment deferred until age %d (current age %d)", iMinAge, iAge);
+		if (bLogAgentDetail) logBBAI("UWAI_AGENT_PREPARATION_ABANDON_DEFERRED turn=%d agentTeam=%d targetTeam=%d warPlan=%s age=%d minAge=%d utility=%d",
+				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iAge, iMinAge, iU);
 		if (gWarLogLevel >= 2) logBBAI("WAR_PREPARATION_ABANDON_CHECK turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s utility=%d stateCounter=%d prepTurnsRemaining=%d reason=minimum_age minAbandonAge=%d warRand=-1 abandonSeverityPercent=-1 minAbandonSeverityPercent=%d abandoned=0 distance=%d targetVictoryCountdown=%d targetPowerPercent=%d",
 			GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iU, iAge, iTurnsRemaining,
 			iMinAge, iMinAbandonSeverityPercent, getSASBBAINearestCityDistance(kAgent.getID(), eTarget),
@@ -1547,14 +1579,17 @@ bool UWAI::Team::considerAbandonPreparations(TeamTypes eTarget, int iU, int iTur
 			getTrainPercent()) + 1;
 	rAbandonSeverity.decreaseTo(1);
 	bool const bAbandon = (rAbandonSeverity.getPercent() >= iMinAbandonSeverityPercent);
-	if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Preparation abandonment severity %d percent; threshold %d (warRand=%d)", rAbandonSeverity.getPercent(), iMinAbandonSeverityPercent, iWarRand);
+	if (bLogAgentDetail) logBBAI("UWAI_AGENT_PREPARATION_ABANDON_SEVERITY turn=%d agentTeam=%d targetTeam=%d warPlan=%s utility=%d warRand=%d severityPercent=%d thresholdPercent=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iU, iWarRand,
+			rAbandonSeverity.getPercent(), iMinAbandonSeverityPercent);
 	if (gWarLogLevel >= 2) logBBAI("WAR_PREPARATION_ABANDON_CHECK turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s utility=%d stateCounter=%d prepTurnsRemaining=%d warRand=%d abandonSeverityPercent=%d minAbandonSeverityPercent=%d abandoned=%d distance=%d targetVictoryCountdown=%d targetPowerPercent=%d",
 		GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iU, iAge, iTurnsRemaining, iWarRand,
 		rAbandonSeverity.getPercent(), iMinAbandonSeverityPercent, bAbandon, getSASBBAINearestCityDistance(kAgent.getID(), eTarget),
 		GET_TEAM(eTarget).AI_getLowestVictoryCountdown(), getSASBBAITargetPowerPercent(kAgent, eTarget));
 	if (bAbandon)
 	{
-		if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("Preparations abandoned");
+		if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_PREPARATION_ABANDONED turn=%d agentTeam=%d targetTeam=%d warPlan=%s utility=%d age=%d",
+				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iU, iAge);
 		if (gWarLogLevel >= 1) logBBAI("WAR_PREPARATION_CANCEL turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s reason=severe_negative_utility utility=%d stateCounter=%d prepTurnsRemaining=%d warRand=%d abandonSeverityPercent=%d minAbandonSeverityPercent=%d",
 			GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iU, iAge, iTurnsRemaining,
 			iWarRand, rAbandonSeverity.getPercent(), iMinAbandonSeverityPercent);
@@ -1566,7 +1601,8 @@ bool UWAI::Team::considerAbandonPreparations(TeamTypes eTarget, int iU, int iTur
 		}
 		return false;
 	}
-	else if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Preparations not abandoned");
+	else if (bLogAgentDetail) logBBAI("UWAI_AGENT_PREPARATION_RETAINED turn=%d agentTeam=%d targetTeam=%d warPlan=%s utility=%d age=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iU, iAge);
 	return true;
 }
 
@@ -1604,9 +1640,11 @@ bool UWAI::Team::considerSwitchTarget(TeamTypes eTarget, int iU, int iTurnsRemai
 			bAltQualms = bLoopQualms;
 		}
 	}
+	bool const bLogAgentDetail = (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted());
 	if (eBestAltTarget == NO_TEAM)
 	{
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("No other promising target for war preparations found");
+		if (bLogAgentDetail) logBBAI("UWAI_AGENT_TARGET_SWITCH_NONE turn=%d agentTeam=%d targetTeam=%d warPlan=%s utility=%d prepTurnsRemaining=%d",
+				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iU, iTurnsRemaining);
 		return true;
 	}
 	// <!-- custom: UWAI named this result rSwitchProb and rolled it on every review. Preserve its relative-target calculation but rename it rSwitchAdvantage, then compare it with a deterministic threshold so a clearly better target is reliably selected and a small fluctuation never redirects an established preparation. Save-file 452's default threshold accepts 15 of 71 comparisons instead of producing 22 roll-dependent switches. See KI#189. (GPT-5.6-Sol) -->
@@ -1625,8 +1663,9 @@ bool UWAI::Team::considerSwitchTarget(TeamTypes eTarget, int iU, int iTurnsRemai
 		rSwitchAdvantage += fixp(1.8);
 	static int const iMinSwitchAdvantagePercent = GC.getDefineINT("SAS_UWAI_PREPARATION_TARGET_SWITCH_MIN_ADVANTAGE_PERCENT");
 	bool const bSwitch = (rSwitchAdvantage.getPercent() >= iMinSwitchAdvantagePercent);
-	if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Best alternative target %S (u=%d) has advantage score %d percent; threshold %d",
-			GET_TEAM(eBestAltTarget).getName().GetCString(), iBestUtility, rSwitchAdvantage.getPercent(), iMinSwitchAdvantagePercent);
+	if (bLogAgentDetail) logBBAI("UWAI_AGENT_TARGET_SWITCH_CANDIDATE turn=%d agentTeam=%d oldTargetTeam=%d newTargetTeam=%d warPlan=%s oldUtility=%d newUtility=%d advantagePercent=%d thresholdPercent=%d oldQualms=%d newQualms=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget, eBestAltTarget, getSASWarPlanType(eWP), iU, iBestUtility,
+			rSwitchAdvantage.getPercent(), iMinSwitchAdvantagePercent, bQualms, bAltQualms);
 	if (gWarLogLevel >= 1) logBBAI("WAR_TARGET_SWITCH_CHECK turn=%d background=%d agentTeam=%d oldTargetTeam=%d newTargetTeam=%d warPlan=%s oldUtility=%d newUtility=%d prepTurnsRemaining=%d stateCounter=%d switchAdvantagePercent=%d minSwitchAdvantagePercent=%d switched=%d oldQualms=%d newQualms=%d oldDistance=%d newDistance=%d oldAttitude=%d newAttitude=%d oldAttitudeValue=%d newAttitudeValue=%d oldTargetPowerPercent=%d newTargetPowerPercent=%d",
 		GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, eBestAltTarget, getSASWarPlanType(eWP), iU, iBestUtility,
 		iTurnsRemaining, kAgent.AI_getWarPlanStateCounter(eTarget), rSwitchAdvantage.getPercent(), iMinSwitchAdvantagePercent, bSwitch,
@@ -1636,10 +1675,12 @@ bool UWAI::Team::considerSwitchTarget(TeamTypes eTarget, int iU, int iTurnsRemai
 		getSASBBAITargetPowerPercent(kAgent, eBestAltTarget));
 	if (!bSwitch)
 	{
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Target not switched");
+		if (bLogAgentDetail) logBBAI("UWAI_AGENT_TARGET_SWITCH_REJECTED turn=%d agentTeam=%d oldTargetTeam=%d candidateTeam=%d warPlan=%s",
+				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, eBestAltTarget, getSASWarPlanType(eWP));
 		return true;
 	}
-	if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("Target switched");
+	if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_TARGET_SWITCHED turn=%d agentTeam=%d oldTargetTeam=%d newTargetTeam=%d warPlan=%s oldUtility=%d newUtility=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget, eBestAltTarget, getSASWarPlanType(eWP), iU, iBestUtility);
 	if (gWarLogLevel >= 1) logBBAI("WAR_TARGET_SWITCHED turn=%d background=%d agentTeam=%d oldTargetTeam=%d newTargetTeam=%d warPlan=%s oldUtility=%d newUtility=%d prepTurnsRemaining=%d stateCounter=%d oldDistance=%d newDistance=%d oldAttitudeValue=%d newAttitudeValue=%d oldTargetPowerPercent=%d newTargetPowerPercent=%d",
 		GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, eBestAltTarget, getSASWarPlanType(eWP), iU, iBestUtility,
 		iTurnsRemaining, kAgent.AI_getWarPlanStateCounter(eTarget), getSASBBAINearestCityDistance(kAgent.getID(), eTarget),
@@ -1669,11 +1710,12 @@ bool UWAI::Team::considerConcludePreparations(TeamTypes eTarget, int iU, int iTu
 		// More than 1 war in preparation; let considerAbandonPreparations handle it.
 		return true;
 	}
+	bool const bLogAgentDetail = (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted());
 	int const iTurnsOfPeace = kAgent.turnsOfForcedPeaceRemaining(eTarget);
 	if (iTurnsOfPeace > 3)
 	{
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Can't finish preparations b/c of peace treaty (%d turns"
-				" to cancel)", iTurnsOfPeace);
+		if (bLogAgentDetail) logBBAI("UWAI_AGENT_PREPARATION_CONCLUDE_FORCED_PEACE turn=%d agentTeam=%d targetTeam=%d utility=%d forcedPeaceTurns=%d prepTurnsRemaining=%d",
+				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, iU, iTurnsOfPeace, iTurnsRemaining);
 		if (gWarLogLevel >= 2) logBBAI("WAR_PREPARATION_CONCLUDE_CHECK turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s utility=%d stateCounter=%d prepTurnsRemaining=%d reason=forced_peace forcedPeaceTurns=%d concluded=0",
 			GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, getSASWarPlanType(kAgent.AI_getWarPlan(eTarget)), iU,
 			kAgent.AI_getWarPlanStateCounter(eTarget), iTurnsRemaining, iTurnsOfPeace);
@@ -1692,7 +1734,8 @@ bool UWAI::Team::considerConcludePreparations(TeamTypes eTarget, int iU, int iTu
 					GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iU, kAgent.AI_getWarPlanStateCounter(eTarget), iTurnsRemaining);
 			return true; // Let considerAbandonPreparations handle it
 		}
-		if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("Time limit for preparation reached; adopting direct war plan");
+		if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_PREPARATION_CONCLUDE_DEADLINE turn=%d agentTeam=%d targetTeam=%d oldWarPlan=%s newWarPlan=%s utility=%d",
+				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), getSASWarPlanType(eDirectWP), iU);
 		if (gWarLogLevel >= 2) logBBAI("WAR_PREPARATION_CONCLUDE_CHECK turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s utility=%d stateCounter=%d prepTurnsRemaining=%d reason=deadline_reached concluded=1",
 				GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), iU, kAgent.AI_getWarPlanStateCounter(eTarget), iTurnsRemaining);
 		if (gGameRecordLogLevel >= 2 && !isInBackground()) logSASGameRecordUWAIWarPlanDecision(kAgent.getID(), eTarget, SAS_UWAI_WAR_PLAN_PREPARATION_DEADLINE_REACHED, eWP, eDirectWP, iU, kAgent.AI_getWarPlanStateCounter(eTarget), iTurnsRemaining, NO_TEAM, -1, -1, -1, iVictoryDenialBoost);
@@ -1704,7 +1747,8 @@ bool UWAI::Team::considerConcludePreparations(TeamTypes eTarget, int iU, int iTu
 		WarEvalParameters params(kAgent.getID(), eTarget, silentLogMuteState);
 		WarEvaluator eval(params);
 		int iDirectU = eval.evaluate(eDirectWP) + iVictoryDenialBoost;
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Utility of immediate switch to direct war plan: %d", iDirectU);
+		if (bLogAgentDetail) logBBAI("UWAI_AGENT_PREPARATION_DIRECT_UTILITY turn=%d agentTeam=%d targetTeam=%d currentWarPlan=%s directWarPlan=%s preparationUtility=%d directUtility=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), getSASWarPlanType(eDirectWP), iU, iDirectU);
 		if (iDirectU > 0)
 		{
 			// <!-- custom: UWAI randomly selected a new threshold on every review, so an unchanged preparation could unpredictably conclude or continue. Keep the inherited random lines and original explanation below commented out for reference; the active midpoint preserves the intended time/readiness progression deterministically. See KI#189. (GPT-5.6-Sol) -->
@@ -1718,13 +1762,15 @@ bool UWAI::Team::considerConcludePreparations(TeamTypes eTarget, int iU, int iTu
 			rRandPortion.decreaseTo(fixp(0.4));
 			// scaled rThresh = iU * ((1 - rRandPortion) + rRandWeight * rRandPortion);
 			scaled rThresh = iU * ((1 - rRandPortion) + fixp(0.5) * rRandPortion);
-			if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Utility threshold for direct war plan: %d", rThresh.round());
+			if (bLogAgentDetail) logBBAI("UWAI_AGENT_PREPARATION_DIRECT_THRESHOLD turn=%d agentTeam=%d targetTeam=%d threshold=%d directUtility=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget, rThresh.round(), iDirectU);
 			if (iDirectU >= rThresh)
 			{
 				if (gGameRecordLogLevel >= 2 && !isInBackground()) logSASGameRecordUWAIWarPlanDecision(kAgent.getID(), eTarget, SAS_UWAI_WAR_PLAN_DIRECT_UTILITY_THRESHOLD, eWP, eDirectWP, iU, kAgent.AI_getWarPlanStateCounter(eTarget), iTurnsRemaining, NO_TEAM, -1, iDirectU, rThresh.round(), iVictoryDenialBoost);
 				bConclude = true;
 			}
-			if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("%sirect war plan adopted", (bConclude ? "D" : "No d"));
+			if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_PREPARATION_DIRECT_DECISION turn=%d agentTeam=%d targetTeam=%d oldWarPlan=%s directWarPlan=%s concluded=%d preparationUtility=%d directUtility=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), getSASWarPlanType(eDirectWP), bConclude, iU, iDirectU);
 			if (gWarLogLevel >= 2) logBBAI("WAR_PREPARATION_CONCLUDE_CHECK turn=%d background=%d agentTeam=%d targetTeam=%d warPlan=%s directWarPlan=%s utility=%d directUtility=%d threshold=%d stateCounter=%d prepTurnsRemaining=%d reason=direct_utility_threshold concluded=%d",
 				GC.getGame().getGameTurn(), isInBackground(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), getSASWarPlanType(eDirectWP),
 				iU, iDirectU, rThresh.round(), kAgent.AI_getWarPlanStateCounter(eTarget), iTurnsRemaining, bConclude);
@@ -1813,13 +1859,8 @@ int UWAI::Team::uJointWar(TeamTypes eTarget, TeamTypes eAlly) const
 		eTarget = GET_TEAM(eTarget).getMasterTeam();
 	}
 	UWAILogMuteState logMuteState(bMuteLog);
-	if (!bMuteLog)
-	{
-		if (gUWAIAgentLogLevel >= 2 && !logMuteState.isMuted()) logBBAI("Negotiation of joint war");
-		if (gUWAIAgentLogLevel >= 2 && !logMuteState.isMuted()) logBBAI("%S is evaluating the utility of %S joining the war"
-				" against %S\n", GET_TEAM(m_eAgent).getName().GetCString(),
-				GET_TEAM(eAlly).getName().GetCString(), GET_TEAM(eTarget).getName().GetCString());
-	}
+	if (gUWAIAgentLogLevel >= 2 && !logMuteState.isMuted()) logBBAI("UWAI_AGENT_JOINT_WAR_EVALUATION_BEGIN turn=%d agentTeam=%d targetTeam=%d allyTeam=%d",
+		GC.getGame().getGameTurn(), m_eAgent, eTarget, eAlly);
 	WarEvalParameters params(m_eAgent, eTarget, logMuteState);
 	params.addWarAlly(eAlly);
 	params.setImmediateDoW(true);
@@ -1981,6 +2022,7 @@ namespace
 void UWAI::Team::scheme(set<TeamTypes> const& aeChangedTargets)
 {
 	CvTeamAI& kAgent = GET_TEAM(m_eAgent);
+	// <!-- custom: Keep Agent log guards direct in this function because m_kLogMuteState is temporarily pushed/popped around scenario evaluation; a function-wide cached gate could become stale across that scope. (ChatGPT-5.6-Sol) -->
 	if (kAgent.AI_countWarPlans() > kAgent.getNumWars(true, true))
 	{
 		// <!-- custom: Save-file 449 ended with India launching on turn 299 while the strongest rival continued preparing an unrelated Ottoman war and did not evaluate a new anti-Space war before India won on turn 311.
@@ -2019,7 +2061,8 @@ void UWAI::Team::scheme(set<TeamTypes> const& aeChangedTargets)
 					kAgent.AI_getAttitudeVal(eThreat));
 			}
 		}
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("No scheming b/c already a war in preparation");
+		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_SCHEME_BLOCKED_PREPARATION turn=%d agentTeam=%d warPlanCount=%d wars=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), kAgent.AI_countWarPlans(), kAgent.getNumWars(true, true));
 		return;
 	}
 	for (TeamAIIter<CIV_ALIVE> itMinor; itMinor.hasNext(); ++itMinor)
@@ -2031,8 +2074,8 @@ void UWAI::Team::scheme(set<TeamTypes> const& aeChangedTargets)
 			itMinor->AI_isLandTarget(kAgent.getID()) &&
 			kAgent.AI_isLandTarget(itMinor->getID()))
 		{
-			if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("No scheming b/c busy fighting minor civ %S at closeness %d",
-					GET_TEAM(itMinor->getID()).getName().GetCString(), iCloseness);
+			if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_SCHEME_BLOCKED_MINOR_WAR turn=%d agentTeam=%d minorTeam=%d closeness=%d",
+					GC.getGame().getGameTurn(), kAgent.getID(), itMinor->getID(), iCloseness);
 			return;
 		}
 	}
@@ -2062,9 +2105,11 @@ void UWAI::Team::scheme(set<TeamTypes> const& aeChangedTargets)
 			kAgent.getNumCities(), GET_TEAM(eTarget).getNumCities(), GET_TEAM(eTarget).isAVassal());
 		if (!bCanSchemeIgnoringPlanAndDP) kCache.setCanBeHiredAgainst(eTarget, false);
 		if (!bCanSchemeNow) continue;
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Scheming against %S", GET_TEAM(eTarget).getName().GetCString());
+		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_SCHEME_TARGET_BEGIN turn=%d agentTeam=%d targetTeam=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget);
 		bool bShortWork = kAgent.AI_isPushover(eTarget);
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted() && bShortWork) logBBAI("Target assumed to be short work");
+		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted() && bShortWork) logBBAI("UWAI_AGENT_SCHEME_TARGET_SHORT_WORK turn=%d agentTeam=%d targetTeam=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget);
 		bool bSkipTotal = (kAgent.AI_isAnyWarPlan() || bShortWork);
 		/*  Skip scheming entirely if already in a total war? Probably too
 			restrictive in the lategame. Perhaps have reviewWarPlans compute the
@@ -2097,8 +2142,8 @@ void UWAI::Team::scheme(set<TeamTypes> const& aeChangedTargets)
 			scaled const rLimitedWarWeight = limitedWarWeight();
 			if (rLimitedWarWeight != 1)
 			{
-				if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Bias for/against limited war: %d percent",
-						rLimitedWarWeight.uround());
+				if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_SCHEME_LIMITED_WAR_WEIGHT turn=%d agentTeam=%d targetTeam=%d percent=%d",
+						GC.getGame().getGameTurn(), kAgent.getID(), eTarget, rLimitedWarWeight.uround());
 			}
 			int const iPadding = SyncRandNum(40);
 			bTotal = (iTotalU + iPadding > (iPadding + iLimitedU) * rLimitedWarWeight);
@@ -2136,9 +2181,10 @@ void UWAI::Team::scheme(set<TeamTypes> const& aeChangedTargets)
 		}
 		else
 		{
-			if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("%s %s war has %d utility", bTotal ? "total" : "limited",
-					((bTotal && bTotalNaval) || (!bTotal && bLimitedNaval)) ?
-					"naval" : "", iU);
+			if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_SCHEME_SELECTED_WAR_UTILITY turn=%d agentTeam=%d targetTeam=%d warPlan=%s naval=%d utility=%d",
+					GC.getGame().getGameTurn(), kAgent.getID(), eTarget,
+					getSASWarPlanType(bTotal ? WARPLAN_PREPARING_TOTAL : WARPLAN_PREPARING_LIMITED),
+					((bTotal && bTotalNaval) || (!bTotal && bLimitedNaval)), iU);
 		}
 		if (gWarLogLevel >= 2) logSASBBAIWarTargetEval(kAgent, eTarget, bTotal ? WARPLAN_PREPARING_TOTAL : WARPLAN_PREPARING_LIMITED, iU, iLimitedU, iTotalU, bLimitedNaval, bTotalNaval, iLimitedPrepTime, iTotalPrepTime, bShortWork, isInBackground());
 		bool const bCanHireOld = kCache.canBeHiredAgainst(eTarget);
@@ -2146,9 +2192,8 @@ void UWAI::Team::scheme(set<TeamTypes> const& aeChangedTargets)
 		bool const bCanHireNew = kCache.canBeHiredAgainst(eTarget);
 		if (bCanHireOld != bCanHireNew && (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()))
 		{
-			if (bCanHireNew)
-				logBBAI("Can now (possibly) be hired for war");
-			else logBBAI("Can no longer be hired for war");
+			logBBAI("UWAI_AGENT_SCHEME_HIRE_AVAILABILITY_CHANGED turn=%d agentTeam=%d targetTeam=%d canBeHired=%d",
+				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, bCanHireNew);
 		}
 		if (iU <= 0)
 			continue;
@@ -2275,7 +2320,8 @@ void UWAI::Team::scheme(set<TeamTypes> const& aeChangedTargets)
 		// <!-- custom: Victory-denial direct-war candidates have already passed declaration, power, distance and naval gates.
 		// Convert only those from preparation to immediate limited/total war so ordinary UWAI preparation behavior stays intact. See KI#184 and KI#515. (GPT-5.5 + ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		WarPlanTypes const eWP = (aTargets[i].bTotal ? (aTargets[i].bDirect ? WARPLAN_TOTAL : WARPLAN_PREPARING_TOTAL) : (aTargets[i].bDirect ? WARPLAN_LIMITED : WARPLAN_PREPARING_LIMITED));
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Drive for %s against %S: %d percent", aTargets[i].bDirect ? "direct war" : "war preparations", GET_TEAM(eTarget).getName().GetCString(), rDrive.getPercent());
+		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_SCHEME_TARGET_DRIVE turn=%d agentTeam=%d targetTeam=%d warPlan=%s direct=%d drivePercent=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), aTargets[i].bDirect, rDrive.getPercent());
 		if (gWarLogLevel >= 2) logSASBBAIWarTargetDrive(kAgent, eTarget, eWP, aTargets[i].iU, rDrive, aTargets[i].bShortWork, isInBackground());
 		// <!-- custom: Keep diagnostics for every eligible rival, but when KI#191 is enabled, only the highest final-drive candidate reaches the roll. This prevents a failed best-target roll from falling through to a rival the AI rated worse. (GPT-5.6-Sol) -->
 		if (bOnlyRollBestEligibleTarget && (int)i != iBestEligibleTargetIndex)
@@ -2345,34 +2391,35 @@ void UWAI::Team::scheme(set<TeamTypes> const& aeChangedTargets)
 				if (!aTargets[i].bDirect)
 					showWarPrepStartedMsg(eTarget);
 			}
-			if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("War plan initiated (%s)", getSASWarPlanType(eWP));
+			if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_SCHEME_WAR_PLAN_INITIATED turn=%d agentTeam=%d targetTeam=%d warPlan=%s direct=%d",
+				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, getSASWarPlanType(eWP), aTargets[i].bDirect);
 			break; // Prepare only one war at a time
 		}
 		iHigherRankRollFailures++;
-		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("No preparations begun this turn");
+		if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_SCHEME_TARGET_ROLL_FAILED turn=%d agentTeam=%d targetTeam=%d drivePercent=%d targetRank=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget, rDrive.getPercent(), (int)i + 1);
 		if (GET_TEAM(eTarget).isHuman() && aTargets[i].iU <= 23)
 		{
 			PlayerTypes eTargetPlayer = GET_TEAM(eTarget).getRandomMemberAlive(true);
 			CvPlayerAI& kAgentPlayer = GET_PLAYER(kAgent.getRandomMemberAlive(false));
 			if (kAgentPlayer.canContact(eTargetPlayer, true))
 			{
-				if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Trying to amend tensions with human %S",
-						GET_TEAM(eTarget).getName().GetCString());
+				if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_SCHEME_AMEND_TENSIONS_ATTEMPT turn=%d agentTeam=%d targetTeam=%d targetPlayer=%d",
+						GC.getGame().getGameTurn(), kAgent.getID(), eTarget, eTargetPlayer);
 				if (!isInBackground())
 				{
 					bool const bAmendedTensions = kAgentPlayer.uwai().amendTensions(eTargetPlayer);
 					if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted())
 					{
-						if (bAmendedTensions)
-							logBBAI("Diplo message sent");
-						else logBBAI("No diplo message sent");
+						logBBAI("UWAI_AGENT_SCHEME_AMEND_TENSIONS_RESULT turn=%d agentTeam=%d targetTeam=%d targetPlayer=%d success=%d",
+							GC.getGame().getGameTurn(), kAgent.getID(), eTarget, eTargetPlayer, bAmendedTensions);
 					}
 				}
 			}
 			else
 			{
-				if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("Can't amend tension b/c can't contact %S",
-						GET_PLAYER(eTargetPlayer).getName(0));
+				if (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_SCHEME_AMEND_TENSIONS_NO_CONTACT turn=%d agentTeam=%d targetTeam=%d targetPlayer=%d",
+						GC.getGame().getGameTurn(), kAgent.getID(), eTarget, eTargetPlayer);
 			}
 		}
 	}
@@ -2461,17 +2508,13 @@ int UWAI::Team::declareWarTradeVal(TeamTypes eTarget, TeamTypes eSponsor) const
 	CvTeamAI const& kAgent = GET_TEAM(m_eAgent);
 	bool const bMuteLog = GET_TEAM(eSponsor).isHuman();
 	UWAILogMuteState logMuteState(bMuteLog);
-	if (!bMuteLog)
-	{
-		if (gUWAIAgentLogLevel >= 2 && !logMuteState.isMuted()) logBBAI("Considering sponsored war");
-		if (gUWAIAgentLogLevel >= 2 && !logMuteState.isMuted()) logBBAI("%S is considering to declare war on %S at the request of %S",
-				GET_TEAM(kAgent.getID()).getName().GetCString(), GET_TEAM(eTarget).getName().GetCString(),
-				GET_TEAM(eSponsor).getName().GetCString());
-		/*  Will see the above lines multiple times in the log when this team
-			agrees to declare war b/c CvGame::implementDeal causes the dealValue
-			to be recomputed twice for diplomatic consequences ("traded with enemy",
-			"fair and forthright"). */
-	}
+	bool const bLogAgentDetail = (gUWAIAgentLogLevel >= 2 && !logMuteState.isMuted());
+	if (bLogAgentDetail) logBBAI("UWAI_AGENT_SPONSORED_WAR_EVALUATION_BEGIN turn=%d agentTeam=%d targetTeam=%d sponsorTeam=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget, eSponsor);
+	/*  Will see the above line multiple times in the log when this team
+		agrees to declare war b/c CvGame::implementDeal causes the dealValue
+		to be recomputed twice for diplomatic consequences ("traded with enemy",
+		"fair and forthright"). */
 	CvTeamAI const& kSponsor = GET_TEAM(eSponsor);
 	// Don't log details of war evaluation
 	UWAILogMuteState silentLogMuteState(true);
@@ -2510,7 +2553,8 @@ int UWAI::Team::declareWarTradeVal(TeamTypes eTarget, TeamTypes eSponsor) const
 		our economy and his, otherwise, base it only on our economy. */
 	scaled rPrice = (rPriceOurEconomy +
 			std::max(rPriceOurEconomy, rPriceSponsorEconomy)) / 2;
-	if (gUWAIAgentLogLevel >= 2 && !logMuteState.isMuted()) logBBAI("War utility: %d, base price: %d", iU, rPrice.round());
+	if (bLogAgentDetail) logBBAI("UWAI_AGENT_SPONSORED_WAR_BASE_PRICE turn=%d agentTeam=%d targetTeam=%d sponsorTeam=%d utility=%d basePrice=%d",
+		GC.getGame().getGameTurn(), kAgent.getID(), eTarget, eSponsor, iU, rPrice.round());
 	/*  Adjust the price based on our attitude and obscure it so that humans
 		can't learn how willing we are exactly */
 	AttitudeTypes const eTowardSponsor = kAgent.AI_getAttitude(eSponsor);
@@ -2537,8 +2581,8 @@ int UWAI::Team::declareWarTradeVal(TeamTypes eTarget, TeamTypes eSponsor) const
 	scaled rModifierWeight = fixp(0.6) * scaled::hash(aiInputs, kAgent.getLeaderID());
 	scaled rObscuredPrice = rPrice * (1 + rAttitudeModifier * rModifierWeight);
 	int iR = rObscuredPrice.roundToMultiple(10); // Makes gold cost a multiple of 5
-	if (gUWAIAgentLogLevel >= 2 && !logMuteState.isMuted()) logBBAI("Obscured price: %d (attitude modifier: %d percent)", iR,
-			rAttitudeModifier.getPercent());
+	if (bLogAgentDetail) logBBAI("UWAI_AGENT_SPONSORED_WAR_FINAL_PRICE turn=%d agentTeam=%d targetTeam=%d sponsorTeam=%d price=%d sponsorAttitude=%d attitudeModifierPercent=%d",
+		GC.getGame().getGameTurn(), kAgent.getID(), eTarget, eSponsor, iR, eTowardSponsor, rAttitudeModifier.getPercent());
 	return iR;
 }
 
@@ -2804,15 +2848,15 @@ int UWAI::Team::uEndAllWars(VoteSourceTypes eVS) const
 		return 0;
 	}
 	UWAILogMuteState logMuteState;
-	if (gUWAIAgentLogLevel >= 2) logBBAI("Peace vote");
-	if (gUWAIAgentLogLevel >= 2) logBBAI("%S is evaluating the utility of war against %S in order to "
-			"decide whether to vote for peace between self and everyone",
-			GET_TEAM(m_eAgent).getName().GetCString(), GET_TEAM(aeWarEnemies[0]).getName().GetCString());
+	bool const bLogAgentDetail = (gUWAIAgentLogLevel >= 2 && !logMuteState.isMuted());
+	if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_VOTE_EVALUATION_BEGIN turn=%d agentTeam=%d voteSource=%d firstEnemyTeam=%d enemyCount=%d",
+		GC.getGame().getGameTurn(), m_eAgent, eVS, aeWarEnemies[0], (int)aeWarEnemies.size());
 	WarEvalParameters params(m_eAgent, aeWarEnemies[0], logMuteState);
 	for (size_t i = 1; i < aeWarEnemies.size(); i++)
 	{
 		params.addExtraTarget(aeWarEnemies[i]);
-		if (gUWAIAgentLogLevel >= 2 && !logMuteState.isMuted()) logBBAI("War enemy: %S", GET_TEAM(aeWarEnemies[i]).getName().GetCString());
+		if (bLogAgentDetail) logBBAI("UWAI_AGENT_PEACE_VOTE_WAR_ENEMY turn=%d agentTeam=%d enemyTeam=%d",
+			GC.getGame().getGameTurn(), m_eAgent, aeWarEnemies[i]);
 	}
 	WarEvaluator eval(params);
 	int iR = -eval.evaluate();
@@ -2823,9 +2867,9 @@ int UWAI::Team::uEndAllWars(VoteSourceTypes eVS) const
 int UWAI::Team::uJointWar(TeamTypes eTarget, VoteSourceTypes eVS) const
 {
 	UWAILogMuteState logMuteState;
-	if (gUWAIAgentLogLevel >= 2) logBBAI("War vote");
-	if (gUWAIAgentLogLevel >= 2) logBBAI("%S is evaluating the utility of war against %S through diplo vote",
-			GET_TEAM(m_eAgent).getName().GetCString(), GET_TEAM(eTarget).getName().GetCString());
+	bool const bLogAgentDetail = (gUWAIAgentLogLevel >= 2 && !logMuteState.isMuted());
+	if (bLogAgentDetail) logBBAI("UWAI_AGENT_WAR_VOTE_EVALUATION_BEGIN turn=%d agentTeam=%d targetTeam=%d voteSource=%d",
+		GC.getGame().getGameTurn(), m_eAgent, eTarget, eVS);
 	vector<TeamTypes> aeAllies;
 	for(PlayerIter<FREE_MAJOR_CIV,POTENTIAL_ENEMY_OF> itAlly(eTarget);
 		itAlly.hasNext(); ++itAlly)
@@ -2833,8 +2877,8 @@ int UWAI::Team::uJointWar(TeamTypes eTarget, VoteSourceTypes eVS) const
 		if (itAlly->isVotingMember(eVS) && itAlly->getTeam() != m_eAgent &&
 			!GET_TEAM(itAlly->getTeam()).isAtWar(eTarget))
 		{
-			if (gUWAIAgentLogLevel >= 2 && !logMuteState.isMuted()) logBBAI("%S would join as a war ally",
-					GET_PLAYER(itAlly->getID()).getName(0));
+			if (bLogAgentDetail) logBBAI("UWAI_AGENT_WAR_VOTE_ALLY turn=%d agentTeam=%d targetTeam=%d allyPlayer=%d allyTeam=%d",
+					GC.getGame().getGameTurn(), m_eAgent, eTarget, itAlly->getID(), itAlly->getTeam());
 			aeAllies.push_back(itAlly->getTeam());
 		}
 	}
@@ -2950,15 +2994,16 @@ DenialTypes UWAI::Team::acceptVassal(TeamTypes eVassal) const
 		I'm using only the cached part of that computation. */
 	bool const bMuteLog = kAgent.isHuman();
 	UWAILogMuteState logMuteState(bMuteLog);
-	if (!bMuteLog)
+	bool const bLogAgentSummary = (gUWAIAgentLogLevel >= 1 && !logMuteState.isMuted());
+	bool const bLogAgentDetail = (gUWAIAgentLogLevel >= 2 && !logMuteState.isMuted());
+	if (bLogAgentDetail)
 	{
-		if (gUWAIAgentLogLevel >= 2 && !logMuteState.isMuted()) logBBAI("Considering war to accept vassal");
-		if (gUWAIAgentLogLevel >= 2 && !logMuteState.isMuted()) logBBAI("%S is considering to accept %S as its vassal; implied DoW on:",
-				GET_TEAM(kAgent.getID()).getName().GetCString(), GET_TEAM(eVassal).getName().GetCString());
-		if (gUWAIAgentLogLevel >= 2 && !logMuteState.isMuted())
+		logBBAI("UWAI_AGENT_VASSAL_ACCEPTANCE_EVALUATION_BEGIN turn=%d agentTeam=%d vassalTeam=%d newWarEnemyCount=%d",
+				GC.getGame().getGameTurn(), kAgent.getID(), eVassal, (int)aeWarEnemies.size());
+		for (size_t i = 0; i < aeWarEnemies.size(); i++)
 		{
-			for (size_t i = 0; i < aeWarEnemies.size(); i++)
-				logBBAI("%S", GET_TEAM(aeWarEnemies[i]).getName().GetCString());
+			logBBAI("UWAI_AGENT_VASSAL_ACCEPTANCE_WAR_ENEMY turn=%d agentTeam=%d vassalTeam=%d enemyTeam=%d",
+					GC.getGame().getGameTurn(), kAgent.getID(), eVassal, aeWarEnemies[i]);
 		}
 	}
 	int iResourceScore = 0;
@@ -2971,10 +3016,10 @@ DenialTypes UWAI::Team::acceptVassal(TeamTypes eVassal) const
 		iTechScore += leaderCache().vassalTechScore(
 				itVassalMember->getID());
 	}
+	// <!-- custom: Name the inherited tech-score conversion once for both the gameplay sum and the consolidated result row; unlike resourceScore, the tech score must first be converted to utility. This adds no second conversion for logging. (GPT-6.1-Sol) -->
 	// resourceScore is already utility
-	scaled rVassalUtility = tradeValToUtility(iTechScore) + iResourceScore;
-	if (gUWAIAgentLogLevel >= 2 && !logMuteState.isMuted()) logBBAI("%d utility from vassal resources, %d from tech", iResourceScore,
-			(rVassalUtility - iResourceScore).round());
+	scaled const rTechUtility = tradeValToUtility(iTechScore);
+	scaled rVassalUtility = rTechUtility + iResourceScore;
 	rVassalUtility += scaled(GET_TEAM(eVassal).getNumCities() * 30,
 			kAgent.getNumCities() + 1);
 	if (kAgent.AI_anyMemberAtVictoryStage(
@@ -2993,29 +3038,27 @@ DenialTypes UWAI::Team::acceptVassal(TeamTypes eVassal) const
 		military build-up.
 		Except, maybe, if we're Friendly toward the vassal (see below). */
 	rVassalUtility.decreaseTo(25);
-	if (gUWAIAgentLogLevel >= 2 && !logMuteState.isMuted()) logBBAI("Utility after adding vassal cities: %d", rVassalUtility.round());
 	/*  CvTeamAI::AI_vassalTrade already does an attitude check - we know we don't
 		_dislike_ the vassal */
-	if (kAgent.AI_getAttitude(eVassal) >= ATTITUDE_FRIENDLY)
-	{
+	bool const bFriendlyBonus = (kAgent.AI_getAttitude(eVassal) >= ATTITUDE_FRIENDLY);
+	if (bFriendlyBonus)
 		rVassalUtility += 5;
-		if (gUWAIAgentLogLevel >= 2 && !logMuteState.isMuted()) logBBAI("Utility increased b/c of attitude");
-	}
 	//UWAILogMuteState silentLogMuteState(true); // use this one for fewer details
 	WarEvalParameters params(kAgent.getID(), aeWarEnemies[0], logMuteState);
 	for (size_t i = 1; i < aeWarEnemies.size(); i++)
 		params.addExtraTarget(aeWarEnemies[i]);
 	params.setImmediateDoW(true);
 	WarEvaluator eval(params);
-	int iWarUtility = eval.evaluate(WARPLAN_LIMITED);
-	if (gUWAIAgentLogLevel >= 2 && !logMuteState.isMuted()) logBBAI("War utility: %d", iWarUtility);
-	int iTotalUtility = rVassalUtility.round() + iWarUtility;
-	if (iTotalUtility > 0)
-	{
-		if (gUWAIAgentLogLevel >= 1 && !logMuteState.isMuted()) logBBAI("Accepting vassal");
+	int const iWarUtility = eval.evaluate(WARPLAN_LIMITED);
+	int const iVassalUtility = rVassalUtility.round();
+	int const iTotalUtility = iVassalUtility + iWarUtility;
+	bool const bAccepted = (iTotalUtility > 0);
+	// <!-- custom: Resource/tech value, the capped vassal contribution, Friendly bonus, war utility and acceptance are one decision result. Keep the enemy list above one-to-many, but avoid five adjacent scalar narration rows here. (ChatGPT-5.6-Sol) -->
+	if (bLogAgentDetail || (bLogAgentSummary && bAccepted)) logBBAI("UWAI_AGENT_VASSAL_ACCEPTANCE_RESULT turn=%d agentTeam=%d vassalTeam=%d resourceUtility=%d techUtility=%d friendlyBonus=%d vassalUtility=%d warUtility=%d totalUtility=%d accepted=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eVassal, iResourceScore, rTechUtility.round(),
+			bFriendlyBonus ? 5 : 0, iVassalUtility, iWarUtility, iTotalUtility, bAccepted);
+	if (bAccepted)
 		return NO_DENIAL;
-	}
-	if (gUWAIAgentLogLevel >= 2 && !logMuteState.isMuted()) logBBAI("Vassal not accepted");
 	// Doesn't matter which denial; no one gets to read this.
 	return DENIAL_POWER_THEM;
 }
