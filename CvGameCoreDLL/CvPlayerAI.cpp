@@ -1905,7 +1905,8 @@ void CvPlayerAI::AI_makeProductionDirty()
 
 // <!-- custom: added smarter more aggressive razing which now gives very good results ingame (see below and known issue as of now 64 for details), refactored a bit the relevant parts although otherwise and in general mostly the same -->
 // BETTER_BTS_AI_MOD, War tactics AI, 05/16/10, jdog5000:
-// advc.003u: param was CvCity* <!-- custom: hoisted from multiline signature between `kCity` and `bEverOwned` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.003u: param was CvCity*
+// <!-- custom: hoisted from multiline signature between `kCity` and `bEverOwned` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 void CvPlayerAI::AI_conquerCity(CvCityAI& kCity, bool bEverOwned) // advc.ctr: We already own it; but had we ever previously owned it?
 {
 	if (!canRaze(kCity))
@@ -4006,8 +4007,10 @@ CvCityAI* CvPlayerAI::AI_findTargetCity(CvArea const& kArea, int* piBestValue) c
 
 /*	advc: Merged AI_getAnyPlotDamnger (now named "AI_isAnyPlotDanger") into AI_getPlotDanger.
 	I haven't bothered with AI_isPlotThreatened and AI_getWaterDanger, which are also similar. */
-// Stop counting at iLimit, i.e. the return value can be at most iLimit. When pLowHPCounter is used, stop only when pLowHPCounter also reaches iLimit. <!-- custom: hoisted from multiline signature between `bTestMoves` and `iLimit` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-// advc.104: Unless NO_PLAYER, count only danger from eAttackPlayer. <!-- custom: hoisted from multiline signature between `bCheckBorder` and `eAttackPlayer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// Stop counting at iLimit, i.e. the return value can be at most iLimit. When pLowHPCounter is used, stop only when pLowHPCounter also reaches iLimit.
+// <!-- custom: hoisted from multiline signature between `bTestMoves` and `iLimit` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.104: Unless NO_PLAYER, count only danger from eAttackPlayer.
+// <!-- custom: hoisted from multiline signature between `bCheckBorder` and `eAttackPlayer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvPlayerAI::AI_getPlotDanger(/* BtS parameters: */ CvPlot const& kPlot, int iRange, bool bTestMoves, int iLimit, /* K-Mod:*/ bool bCheckBorder, PlayerTypes eAttackPlayer) const
 {
 	FAssert(iLimit > 0);
@@ -5241,8 +5244,10 @@ void CvPlayerAI::AI_calculateTechRevealBonuses(EagerEnumMap<BonusClassTypes, int
 	4 = 1 commerce per turn. Afterwards it is arbitrary.
 	(Compared to the original numbers, this is * 1/100 * 7 * 4. 28/100)
 	BBAI (05/14/10, jdog5000): This function was split off AI_bestTech. */
-// advc.144 <!-- custom: hoisted from multiline signature between `eFromPlayer` and `bRandomize` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-// advc: Not needed after all (but may yet want to use it; if only for debug output). false implies that the game state mustn't be modified - may or may not be run in-sync. <!-- custom: hoisted from multiline signature between `eFromPlayer` and `bRandomize` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.144
+// <!-- custom: hoisted from multiline signature between `eFromPlayer` and `bRandomize` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc: Not needed after all (but may yet want to use it; if only for debug output). false implies that the game state mustn't be modified - may or may not be run in-sync.
+// <!-- custom: hoisted from multiline signature between `eFromPlayer` and `bRandomize` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech, bool bAsync, EagerEnumMap<BonusClassTypes, int> const& kBonusClassRevealed, EagerEnumMap<BonusClassTypes, int> const& kBonusClassUnrevealed, EagerEnumMap<BonusClassTypes, int> const& kBonusClassHave, PlayerTypes eFromPlayer, bool bRandomize) const
 {
 	FAssert(iPathLength >= 1); // advc
@@ -7773,7 +7778,8 @@ int CvPlayerAI::AI_techUnitValue(TechTypes eTech, int iPathLength, bool& bEnable
 	Note: not a lot of thought has gone into this. I've basically just copied
 	the original code [from AI_techValue] and tweaked it a little bit.
 	The scale is roughly 4 = 1 commerce per turn. */
-// advc (note): currently unused <!-- custom: hoisted from multiline signature between `iPathLength` and `bEnablesProjectWonder` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc (note): currently unused
+// <!-- custom: hoisted from multiline signature between `iPathLength` and `bEnablesProjectWonder` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvPlayerAI::AI_techProjectValue(TechTypes eTech, int iPathLength, bool& bEnablesProjectWonder) const
 {
 	// <!-- custom: performance optimization: cache repetitive calls -->
@@ -10506,9 +10512,12 @@ int CvPlayerAI::AI_defianceAngerCost(VoteSourceTypes eVS) const
 }
 
 
-// advc.550a <!-- custom: hoisted from multiline signature between `bIgnoreDiscount` and `bIgnorePeace` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-// advc.130p  <advc.ctr> <!-- custom: hoisted from multiline signature between `bIgnorePeace` and `bCountLiberation` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-// AI asks for help or tribute <!-- custom: hoisted from multiline signature between `bAIRequest` and `bDiploVal` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.550a
+// <!-- custom: hoisted from multiline signature between `bIgnoreDiscount` and `bIgnorePeace` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.130p  <advc.ctr>
+// <!-- custom: hoisted from multiline signature between `bIgnorePeace` and `bCountLiberation` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// AI asks for help or tribute
+// <!-- custom: hoisted from multiline signature between `bAIRequest` and `bDiploVal` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvPlayerAI::AI_dealVal(PlayerTypes eFromPlayer, CLinkList<TradeData> const& kList, bool bIgnoreAnnual, int iChange, bool bIgnoreDiscount, bool bIgnorePeace, bool bCountLiberation, bool bAIRequest, bool bDiploVal) const // When recording trade memory </advc.ctr>
 {
 	FAssertMsg(eFromPlayer != getID(), "shouldn't call this function on ourselves");
@@ -10768,7 +10777,8 @@ namespace
 /*	In this function the AI considers whether or not to accept another player's proposal.
 	This is used when considering proposals from the human player made in the
 	diplomacy window as well as a couple of other places. */
-// advc: Renamed, turned into references (b/c caller ensures non-NULL). <!-- custom: hoisted from multiline signature between `ePlayer` and `kTheyGive` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc: Renamed, turned into references (b/c caller ensures non-NULL).
+// <!-- custom: hoisted from multiline signature between `ePlayer` and `kTheyGive` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvPlayerAI::AI_considerOffer(PlayerTypes ePlayer, CLinkList<TradeData> const& kTheyGive, CLinkList<TradeData> const& kWeGive, int iChange, /* advc.133: */ int iDealAge, bool bHypothetical) // advc.130o
 {
 	CvTeamAI const& kOurTeam = GET_TEAM(getTeam()); // K-Mod
@@ -11535,7 +11545,8 @@ bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer, CLinkList<TradeData> con
 	may offer an extra large portion of its treasury.
 
 	advc.036: Returning true means force-accept. False leaves it up to the caller. */
-// advc.705 <!-- custom: hoisted from multiline signature between `rLeniency` and `bTheyGenerous` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.705
+// <!-- custom: hoisted from multiline signature between `rLeniency` and `bTheyGenerous` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvPlayerAI::AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const& kTheirInventory, PlayerTypes ePlayer, int iTheyReceive, int& iWeReceive, CLinkList<TradeData>& kWeWant, CLinkList<TradeData> const& kWeGive, scaled rLeniency, bool bTheyGenerous, int iHappyLeft, int iHealthLeft, int iOtherListLength) const // advc.036
 {
 	PROFILE_FUNC(); // advc.opt
@@ -12078,7 +12089,8 @@ int CvPlayerAI::AI_tradeValToGold(int iTradeVal, bool bOverpay, int iMaxGold, bo
 	Based on K-Mod code in AI_doDiplo; karadoc's comment cut from there:
 	"unfortunately, the API is pretty clumsy for setting up this counter proposal.
 	 please just bear with me. */
-// advc.705: Multiplier for the value counted for the items of the side that does not give more. <!-- custom: hoisted from multiline signature between `bWeMayGiveMore` and `rLeniency` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.705: Multiplier for the value counted for the items of the side that does not give more.
+// <!-- custom: hoisted from multiline signature between `bWeMayGiveMore` and `rLeniency` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvPlayerAI::AI_counterPropose(PlayerTypes ePlayer, CLinkList<TradeData>& kTheyGive, CLinkList<TradeData>& kWeGive, bool bTheyMayGiveMore, bool bWeMayGiveMore, scaled rLeniency) const
 {
 	PROFILE_FUNC();
@@ -13878,7 +13890,8 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer, 
 	3)	If eToPlayer is NO_PLAYER: The sum of 1) and 2). That's useful for
 		balancing out trade deals - which is the main purpose of this function.
 	I'm keeping it in one function b/c all three require similar computations. */
-// advc.003u: param was CvCity* <!-- custom: hoisted from multiline signature between `kCity` and `eToPlayer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.003u: param was CvCity*
+// <!-- custom: hoisted from multiline signature between `kCity` and `eToPlayer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvPlayerAI::AI_cityTradeVal(CvCityAI const& kCity, PlayerTypes eToPlayer, LiberationWeightTypes eLibWeight, bool bConquest, bool bAIRequest, bool bDiploVal) const
 {
 	PROFILE_FUNC(); // Fine - for most cities, trade isn't even allowed.
@@ -17417,8 +17430,10 @@ bool CvPlayerAI::AI_isTargetForMissionaries(PlayerTypes eTarget, ReligionTypes e
 }
 
 
-// advc: params switched <!-- custom: hoisted from multiline signature after `pArea` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-// advc.171: Param unused. Tbd.: Add a function AI_missionaryTargetValue(PlayerTypes eTarget) to replace AI_isTargetForMissionaries and the overlapping target player evaluations here and in CvUnitAI::AI_spreadReligion. <!-- custom: hoisted from multiline signature after `pArea` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc: params switched
+// <!-- custom: hoisted from multiline signature after `pArea` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.171: Param unused. Tbd.: Add a function AI_missionaryTargetValue(PlayerTypes eTarget) to replace AI_isTargetForMissionaries and the overlapping target player evaluations here and in CvUnitAI::AI_spreadReligion.
+// <!-- custom: hoisted from multiline signature after `pArea` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvPlayerAI::AI_missionaryValue(ReligionTypes eReligion, CvArea const* pArea /*, PlayerTypes* peBestPlayer*/) const
 {
 	CvTeam const& kTeam = GET_TEAM(getTeam());
@@ -17573,7 +17588,8 @@ int CvPlayerAI::AI_missionaryValue(ReligionTypes eReligion, CvArea const* pArea 
 	more comparable to the missionary value. The original code is deleted.
 	Currently, the return value has units of roughly (and somewhat arbitrarily)
 	1000 * commerce per turn. */
-// advc: switched these two params <!-- custom: hoisted from multiline signature before `eCorporation` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc: switched these two params
+// <!-- custom: hoisted from multiline signature before `eCorporation` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvPlayerAI::AI_executiveValue(CorporationTypes eCorporation, CvArea const* pArea, PlayerTypes* peBestPlayer, bool bSpreadOnly) const
 {
 	PROFILE_FUNC();
@@ -18167,8 +18183,10 @@ void CvPlayerAI::AI_humanEnemyStackMovedInTerritory(CvPlot const& kFrom, CvPlot 
 /*	advc: Body cut from CvUnitAI::AI_stackOfDoomExtra b/c the result doesn't
 	really depend on the unit leading the group, or even on the group or its plot.
 	Code not tagged with comments is from K-Mod. */
-// advc.104p <!-- custom: hoisted from multiline signature between `kArea` and `iHash` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-// For randomization, based on whatever context the caller deems relevant. -1 (default) to disable randomization. <!-- custom: hoisted from multiline signature between `kArea` and `iHash` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.104p
+// <!-- custom: hoisted from multiline signature between `kArea` and `iHash` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// For randomization, based on whatever context the caller deems relevant. -1 (default) to disable randomization.
+// <!-- custom: hoisted from multiline signature between `kArea` and `iHash` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvPlayerAI::AI_neededCityAttackers(CvArea const& kArea, int iHash) const
 {
 	CvTeamAI const& kOurTeam = GET_TEAM(getTeam());
@@ -30371,7 +30389,8 @@ int CvPlayerAI::AI_countNumAreaHostileUnits(CvArea const& kArea, bool bPlayer, b
 }
 
 //this doesn't include the minimal one or two garrison units in each city.
-// advc: was CvArea* <!-- custom: hoisted from multiline signature between `kArea` and `bDebug` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc: was CvArea*
+// <!-- custom: hoisted from multiline signature between `kArea` and `bDebug` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvPlayerAI::AI_getTotalFloatingDefendersNeeded(CvArea const& kArea, bool bDebug) const // advc.007: For displaying the correct count for humans in Debug text
 {
 	PROFILE_FUNC();
@@ -30574,7 +30593,8 @@ RouteTypes CvPlayerAI::AI_bestAdvancedStartRoute(CvPlot* pPlot, int* piYieldValu
 	return eBestRoute;
 }
 
-// advc: CvPlot const& <!-- custom: hoisted from multiline signature between `kPlot` and `eUnitAI` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc: CvPlot const&
+// <!-- custom: hoisted from multiline signature between `kPlot` and `eUnitAI` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 UnitTypes CvPlayerAI::AI_bestAdvancedStartUnitAI(CvPlot const& kPlot, UnitAITypes eUnitAI) const
 {
 	FAssertMsg(eUnitAI != NO_UNITAI, "UnitAI is not assigned a valid value");

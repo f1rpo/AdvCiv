@@ -44,7 +44,8 @@ public:
 
 	//FAStarNode* getPathLastNode() const; // disabled by K-Mod
 	CvPlot& getPathEndTurnPlot() const;																		// Exposed to Python
-	// K-Mod <!-- custom: hoisted from multiline signature between `iMaxPath` and `bUseTempFinder` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// K-Mod
+	// <!-- custom: hoisted from multiline signature between `iMaxPath` and `bUseTempFinder` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool generatePath(CvPlot const& kTo, MovementFlags eFlags = NO_MOVEMENT_FLAGS, bool bReuse = false, int* piPathTurns = NULL, int iMaxPath = -1, bool bUseTempFinder = false) const; // advc.128; Exposed to Python
 	GroupPathFinder& getPathFinder() const; // K-Mod
 	// <advc>
@@ -52,7 +53,8 @@ public:
 
 	bool canEnterTerritory(TeamTypes eTeam, bool bIgnoreRightOfPassage = false, CvArea const* pArea = NULL) const; // advc: canEnterArea merged into canEnterTerritory; Exposed to Python
 	TeamTypes getDeclareWarMove(const CvPlot* pPlot) const;													// Exposed to Python
-	// K-Mod <!-- custom: hoisted from multiline signature between `bAssumeVisible` and `bDangerCheck` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// K-Mod
+	// <!-- custom: hoisted from multiline signature between `bAssumeVisible` and `bDangerCheck` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool canMoveInto(CvPlot const& kPlot, bool bAttack = false, bool bDeclareWar = false, bool bIgnoreLoad = false, bool bAssumeVisible = true, bool bDangerCheck = false) const; // advc.001k; Exposed to Python
 	bool canMoveOrAttackInto(CvPlot const& kPlot, bool bDeclareWar = false, bool bDangerCheck = false) const; // advc.001k; Exposed to Python
 	// bool canMoveThrough(const CvPlot* pPlot, bool bDeclareWar = false) const; // disabled by K-Mod (was exposed to Python)
@@ -81,7 +83,8 @@ public:
 	void attack(CvPlot* pPlot, bool bQuick, /* advc.004c: */ bool* pbIntercepted = NULL, bool bSeaPatrol = false); // advc
 	void attackForDamage(CvUnit *pDefender, int attackerDamageChange, int defenderDamageChange);
 	void fightInterceptor(CvPlot const& kPlot, bool bQuick);
-	// advc: 1st param was CvPlot* (not const b/c of possible feature change) <!-- custom: hoisted from multiline signature between `bShow` and `bJump` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc: 1st param was CvPlot* (not const b/c of possible feature change)
+	// <!-- custom: hoisted from multiline signature between `bShow` and `bJump` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	void move(CvPlot& kPlot, bool bShow, bool bJump = false, bool bGroup = true); // advc.163
 	// K-Mod added bForceMove and bGroup
 	bool jumpToNearestValidPlot(bool bGroup = false, bool bForceMove = false, bool bFreeMove = false); // advc.163; Exposed to Python
@@ -148,7 +151,8 @@ public:
 	bool canAirBombAt(CvPlot const& kTarget, CvPlot const* pFrom = NULL) const; // </advc>					// Exposed to Python
 	// <advc.255>
 	enum StructureTypes { NO_STRUCTURE, STRUCTURE_IMPROVEMENT, STRUCTURE_ROUTE };
-	// </advc.255> <!-- custom: hoisted from multiline signature between `bTestVisibility` and `bForceImprovement` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// </advc.255>
+	// <!-- custom: hoisted from multiline signature between `bTestVisibility` and `bForceImprovement` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	StructureTypes getDestructibleStructureAt(CvPlot const& kTarget, bool bTestVisibility, bool bForceImprovement = false) const; // advc.111
 	int airBombDefenseDamage(CvCity const& kCity) const; // advc
 	bool airBomb(CvPlot& kTarget, /* advc.004c: */ bool* pbIntercepted = NULL, bool bForceImprovement = false); // advc.111
@@ -170,7 +174,8 @@ public:
 	bool canPlunder(CvPlot const& kPlot, bool bTestVisible = false) const;									// Exposed to Python
 	bool plunder();
 	void updatePlunder(int iChange, bool bUpdatePlotGroups);
-	// advc <!-- custom: hoisted from multiline signature between `iExtra` and `bCheckCanPlunder` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc
+	// <!-- custom: hoisted from multiline signature between `iExtra` and `bCheckCanPlunder` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	void blockadeRange(std::vector<CvPlot*>& r, int iExtra = 0, bool bCheckCanPlunder = true) const; // advc.033
 
 	int sabotageCost(const CvPlot* pPlot) const;															// Exposed to Python
@@ -340,7 +345,8 @@ public:
 	void setBaseCombatStr(int iCombat);																		// Exposed to Python
 	int baseCombatStr() const { return m_iBaseCombat; } // Exposed to Python // advc: Default values - to make clear that these can be NULL.
 	int maxCombatStr(CvPlot const* pPlot = NULL, CvUnit const* pAttacker = NULL, CombatDetails* pCombatDetails = NULL, bool bGarrisonStrength = false) const; // advc.500b; Exposed to Python
-	// Exposed to Python <!-- custom: hoisted from multiline signature between `pAttacker` and `pCombatDetails` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// Exposed to Python
+	// <!-- custom: hoisted from multiline signature between `pAttacker` and `pCombatDetails` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int currCombatStr(CvPlot const* pPlot = NULL, CvUnit const* pAttacker = NULL, CombatDetails* pCombatDetails = NULL) const { return ((maxCombatStr(pPlot, pAttacker, pCombatDetails) * currHitPoints()) / maxHitPoints()); }
 	int currFirepower(const CvPlot* pPlot = NULL, const CvUnit* pAttacker = NULL) const { return ((maxCombatStr(pPlot, pAttacker) + currCombatStr(pPlot, pAttacker) + 1) / 2); } // Exposed to Python
 	int currEffectiveStr(CvPlot const* pPlot = NULL, CvUnit const* pAttacker = NULL, CombatDetails* pCombatDetails = NULL, int iCurrentHP = -1) const; // advc.139
@@ -510,7 +516,8 @@ public:
 
 	int getExperience() const { return m_iExperience; }														// Exposed to Python
 	void setExperience(int iNewValue, int iMax = -1);														// Exposed to Python
-	// bool bUpdateGlobal = false <!-- custom: hoisted from multiline signature between `bInBorders` and `iGlobalPercent` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// bool bUpdateGlobal = false
+	// <!-- custom: hoisted from multiline signature between `bInBorders` and `iGlobalPercent` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	void changeExperience(int iChange, int iMax = -1, bool bFromCombat = false, bool bInBorders = false, int iGlobalPercent = 0); // advc.312; Exposed to Python
 	int getGlobalXPPercent() const; // advc.312
 
@@ -810,7 +817,8 @@ public:
 
 	bool isWorker() const; // advc.154  (Exposed to Python)
 
-	// Lead From Behind (UncutDragon, edited for K-Mod): START <!-- custom: hoisted from multiline signature between `pAttacker` and `pBestDefenderRank` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// Lead From Behind (UncutDragon, edited for K-Mod): START
+	// <!-- custom: hoisted from multiline signature between `pAttacker` and `pBestDefenderRank` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker, int* pBestDefenderRank, bool bPreferUnowned = false) const; // advc.061
 	int LFBgetAttackerRank(const CvUnit* pDefender, int& iUnadjustedRank) const;
 	int LFBgetDefenderRank(const CvUnit* pAttacker) const;

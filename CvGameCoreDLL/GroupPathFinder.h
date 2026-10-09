@@ -80,7 +80,8 @@ class GroupPathFinder : public KmodPathFinder<GroupStepMetric, GroupPathNode>,
 {
 public:
 	void invalidateGroup(CvSelectionGroup const& kGroup);
-	// was "SetSettings" <!-- custom: hoisted from multiline signature before `kGroup` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// was "SetSettings"
+	// <!-- custom: hoisted from multiline signature before `kGroup` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	void setGroup(CvSelectionGroup const& kGroup, MovementFlags eFlags = NO_MOVEMENT_FLAGS, int iMaxPath = -1, int iHeuristicWeight = -1);
 	bool generatePath(CvPlot const& kTo);
 	#if VERIFY_PATHF == 0 // advc.test

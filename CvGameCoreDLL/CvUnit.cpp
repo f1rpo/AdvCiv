@@ -2856,7 +2856,8 @@ bool CvUnit::canMoveInto(CvPlot const& kPlot, bool bAttack, bool bDeclareWar, bo
 }
 
 
-// advc: 1st param was a pointer <!-- custom: hoisted from multiline signature between `bDeclareWar` and `bDangerCheck` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc: 1st param was a pointer
+// <!-- custom: hoisted from multiline signature between `bDeclareWar` and `bDangerCheck` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvUnit::canMoveOrAttackInto(CvPlot const& kPlot, bool bDeclareWar, bool bDangerCheck) const // advc.001k
 {
 	return (canMoveInto(kPlot, false, bDeclareWar) || canMoveInto(kPlot, true, bDeclareWar,
@@ -4697,8 +4698,10 @@ bool CvUnit::nuke(int iX, int iY)
 }
 
 // advc.650:
-// Optional out-param <!-- custom: hoisted from multiline signature between `pBestTeam` and `pTeamsAffected` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-// Allow caller to provide set of affected teams (just to save time) <!-- custom: hoisted from multiline signature between `pBestTeam` and `pTeamsAffected` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// Optional out-param
+// <!-- custom: hoisted from multiline signature between `pBestTeam` and `pTeamsAffected` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// Allow caller to provide set of affected teams (just to save time)
+// <!-- custom: hoisted from multiline signature between `pBestTeam` and `pTeamsAffected` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvUnit::nukeInterceptionChance(CvPlot const& kTarget, TeamTypes eObs, TeamTypes* pBestTeam, EagerEnumMap<TeamTypes, bool> const* pTeamsAffected) const
 {
 	LOCAL_REF(TeamTypes, eBestTeam, pBestTeam, NO_TEAM);
@@ -6568,7 +6571,8 @@ bool CvUnit::trade()
 }
 
 
-// <advc.251> For help text <!-- custom: hoisted from multiline signature between `pPlot` and `piPerEra` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// <advc.251> For help text
+// <!-- custom: hoisted from multiline signature between `pPlot` and `piPerEra` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvUnit::getGreatWorkCulture(const CvPlot* pPlot, int* piPerEra) const
 {
 	LOCAL_REF(int, iPerEra, piPerEra, m_pUnitInfo->getGreatWorkCulture());
@@ -8649,7 +8653,8 @@ bool CvUnit::canBeAttackedBy(PlayerTypes eAttackingPlayer, CvUnit const* pAttack
 }
 
 
-// Lead From Behind by UncutDragon <!-- custom: hoisted from multiline signature between `pBestDefenderRank` and `bPreferUnowned` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// Lead From Behind by UncutDragon
+// <!-- custom: hoisted from multiline signature between `pBestDefenderRank` and `bPreferUnowned` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvUnit::isBetterDefenderThan(const CvUnit* pDefender, const CvUnit* pAttacker, int* pBestDefenderRank, bool bPreferUnowned) const // advc.061
 {
 	TeamTypes eAttackerTeam = NO_TEAM;

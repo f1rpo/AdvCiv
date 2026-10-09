@@ -64,7 +64,8 @@ private:
 		UWAICache, i.e. a cheat. */
 	bool canReachEither(TeamTypes eFirst, TeamTypes eSecond) const;
 	// Both directly increase the power values in m_kMilitary
-	// rAdditionalProduction: Currently, that's unit upgrades converted into production. <!-- custom: hoisted from multiline signature between `rPerTurnProduction` and `rAdditionalProduction` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// rAdditionalProduction: Currently, that's unit upgrades converted into production.
+	// <!-- custom: hoisted from multiline signature between `rPerTurnProduction` and `rAdditionalProduction` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	void predictArmament(int iTurnsBuildUp, scaled rPerTurnProduction, scaled rAdditionalProduction, Intensity eIntensity, bool bDefensive, bool bNavalArmament);
 	scaled productionFromUpgrades();
 	/*	The Area AI differentiates between continents, the forecast doesn't

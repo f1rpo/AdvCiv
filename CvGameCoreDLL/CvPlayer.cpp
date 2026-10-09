@@ -1443,7 +1443,8 @@ std::vector<std::pair<int,int> > CvPlayer::findStartingAreas(bool* pbFoundByMapS
 }
 
 
-// advc.027: (bRandomize param replaced with m_bRandomWBStart) <!-- custom: hoisted from multiline signature before `pbPlotFoundByMapScript` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.027: (bRandomize param replaced with m_bRandomWBStart)
+// <!-- custom: hoisted from multiline signature before `pbPlotFoundByMapScript` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 CvPlot* CvPlayer::findStartingPlot(bool* pbPlotFoundByMapScript, bool* pbAreaFoundByMapScript)
 {
 	PROFILE_FUNC();
@@ -6783,7 +6784,8 @@ int CvPlayer::calculateInflatedCosts() const
 	return iNetGold;
 }*/
 
-// <advc.910> <!-- custom: hoisted from multiline signature between `eTech` and `piFromOtherKnown` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// <advc.910>
+// <!-- custom: hoisted from multiline signature between `eTech` and `piFromOtherKnown` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvPlayer::calculateResearchModifier(TechTypes eTech, int* piFromOtherKnown, int* piFromPaths, int* piFromTeam) const
 {
 	LOCAL_REF(int, iFromOtherKnown, piFromOtherKnown, 0);
@@ -20254,7 +20256,8 @@ void CvPlayer::updateTradeList(PlayerTypes eOtherPlayer, CLinkList<TradeData>& k
 	mark it as m_bOffering=true.
 	(This is usually done somewhere in the game engine,
 	or when the offer list is being generated or something.) */
-// advc: Was const, but we do change the bOffering status. <!-- custom: hoisted from multiline signature between `kOurInventory` and `kOurOffer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc: Was const, but we do change the bOffering status.
+// <!-- custom: hoisted from multiline signature between `kOurInventory` and `kOurOffer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 void CvPlayer::markTradeOffers(CLinkList<TradeData>& kOurInventory, CLinkList<TradeData>& kOurOffer) const
 {
 	FOR_EACH_TRADE_ITEM_VAR2(pOfferItem, kOurOffer)

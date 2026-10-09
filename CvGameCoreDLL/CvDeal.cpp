@@ -167,7 +167,8 @@ void CvDeal::kill(bool bKillTeam, /* advc.130p: */ PlayerTypes eCancelPlayer, bo
 	killSilent(bKillTeam, /* advc.130p: */ true, eCancelPlayer);
 }
 // advc: Cut from 'kill' above
-// advc.106j <!-- custom: hoisted from multiline signature between `bForce` and `bNoSound` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.106j
+// <!-- custom: hoisted from multiline signature between `bForce` and `bNoSound` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 void CvDeal::announceCancel(PlayerTypes eMsgTarget, PlayerTypes eOther, bool bForce, bool bNoSound) const // advc.002l
 {
 	CvWString szString;
@@ -185,7 +186,8 @@ void CvDeal::announceCancel(PlayerTypes eMsgTarget, PlayerTypes eOther, bool bFo
 			GET_PLAYER(eOther).getCapitalY(eMsgTarget)); // </advc.127b>
 }
 
-// </advc.036> <!-- custom: hoisted from multiline signature between `bUpdateAttitude` and `eCancelPlayer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// </advc.036>
+// <!-- custom: hoisted from multiline signature between `bUpdateAttitude` and `eCancelPlayer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 void CvDeal::killSilent(bool bKillTeam, bool bUpdateAttitude, PlayerTypes eCancelPlayer) // advc.130p
 {
 	if (gGameRecordLogLevel >= 2 && (getLengthFirst() > 0 || getLengthSecond() > 0)) logSASGameRecordDealEndAction(*this, bKillTeam, bUpdateAttitude, eCancelPlayer);
@@ -205,7 +207,8 @@ void CvDeal::killSilent(bool bKillTeam, bool bUpdateAttitude, PlayerTypes eCance
 }
 
 // advc: renamed from "addTrades"
-// advc (note): Not const b/c bHidden status of items can be changed <!-- custom: hoisted from multiline signature before `kFirstList` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc (note): Not const b/c bHidden status of items can be changed
+// <!-- custom: hoisted from multiline signature before `kFirstList` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 void CvDeal::addTradeItems(CLinkList<TradeData>& kFirstList, CLinkList<TradeData>& kSecondList, bool bCheckAllowed)
 {
 	if (isVassalTrade(kFirstList) && isVassalTrade(kSecondList))

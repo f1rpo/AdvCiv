@@ -51,7 +51,8 @@ public:
 	int AI_countMilitaryWeight(CvArea const* pArea = NULL) const;
 	// <advc.104>, advc.038, advc.132:
 	scaled AI_estimateDemographic(PlayerTypes ePlayer, PlayerHistoryTypes eDemographic, int iSamples = 5) const;
-	// (exposed to Python) <!-- custom: hoisted from multiline signature between `eYield` and `iSamples` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// (exposed to Python)
+	// <!-- custom: hoisted from multiline signature between `eYield` and `iSamples` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	scaled AI_estimateYieldRate(PlayerTypes ePlayer, YieldTypes eYield, int iSamples = 5) const; // </advc.104>
 	int AI_estimateTotalYieldRate(YieldTypes eYield) const; // K-Mod
 	bool AI_deduceCitySite(CvCity const& kCity) const; // K-Mod
@@ -94,13 +95,15 @@ public:
 	void AI_preMakePeace(TeamTypes eTarget, CLinkList<TradeData> const* pReparations);
 	void AI_postMakePeace(TeamTypes eTarget);
 	//int AI_startWarVal(TeamTypes eTeam) const;
-	// K-Mod <!-- custom: hoisted from multiline signature between `eWarPlan` and `bConstCache` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// K-Mod
+	// <!-- custom: hoisted from multiline signature between `eWarPlan` and `bConstCache` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int AI_startWarVal(TeamTypes eTarget, WarPlanTypes eWarPlan, bool bConstCache = false) const; // advc.001n
 	int AI_endWarVal(TeamTypes eTeam) const;
 
 	scaled CvTeamAI::AI_knownTechValModifier(TechTypes eTech) const; // K-Mod
 
-	// advc.550a <!-- custom: hoisted from multiline signature between `bIgnoreDiscount` and `bPeaceDeal` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.550a
+	// <!-- custom: hoisted from multiline signature between `bIgnoreDiscount` and `bPeaceDeal` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int AI_techTradeVal(TechTypes eTech, TeamTypes eFromTeam, bool bIgnoreDiscount = false, bool bPeaceDeal = false) const; // advc.140h
 	DenialTypes AI_techTrade(TechTypes eTech, TeamTypes eToTeam) const;
 	// <!-- custom: Identify the complete master/vassal/sibling-vassal preference locus so internal sellers are not mistaken for outsiders. See KI#312. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
@@ -266,7 +269,8 @@ public:
 	// advc.158:
 	AIStrengthMemoryMap& AI_strengthMemory() const { return m_strengthMemory; }
 	// advc.104:
-	// advc.104o <!-- custom: hoisted from multiline signature between `bConsiderLandTarget` and `bConstCache` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.104o
+	// <!-- custom: hoisted from multiline signature between `bConsiderLandTarget` and `bConstCache` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int AI_teamCloseness(TeamTypes eIndex, int iMaxDistance = DEFAULT_PLAYER_CLOSENESS, bool bConsiderLandTarget = false, bool bConstCache = false) const; // advc.001n
 
 	// <advc.104>

@@ -596,8 +596,10 @@ void CvMap::combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvP
 }
 
 
-// advc.300: Renamed from iMinUnitDistance <!-- custom: hoisted from multiline signature between `iMinCivUnitDistance` and `iTimeout` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-// Number of valid tiles <!-- custom: hoisted from multiline signature between `piValidCount` and `pWeights` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.300: Renamed from iMinUnitDistance
+// <!-- custom: hoisted from multiline signature between `iMinCivUnitDistance` and `iTimeout` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// Number of valid tiles
+// <!-- custom: hoisted from multiline signature between `piValidCount` and `pWeights` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 CvPlot* CvMap::syncRandPlot(RandPlotFlags eFlags, CvArea const* pArea, int iMinCivUnitDistance, int iTimeout, /* <advc.304> */ int* piValidCount, RandPlotWeightMap const* pWeights)
 {
 	LOCAL_REF(int, iValid, piValidCount, 0);
@@ -683,7 +685,8 @@ bool CvMap::isValidRandPlot(CvPlot const& kPlot, RandPlotFlags eFlags, CvArea co
 }
 
 
-// advc: const city <!-- custom: hoisted from multiline signature between `pSkipCity` and `eObserver` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc: const city
+// <!-- custom: hoisted from multiline signature between `pSkipCity` and `eObserver` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 CvCity* CvMap::findCity(int iX, int iY, PlayerTypes eOwner, TeamTypes eTeam, bool bSameArea, bool bCoastalOnly, TeamTypes eTeamAtWarWith, DirectionTypes eDirection, CvCity const* pSkipCity, TeamTypes eObserver) const // advc.004r
 {
 	PROFILE_FUNC();

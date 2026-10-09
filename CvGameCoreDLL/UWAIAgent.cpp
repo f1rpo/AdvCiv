@@ -3484,7 +3484,8 @@ bool UWAI::Player::isPeaceDealPossible(PlayerTypes eHuman) const
 }
 
 
-// (advc.ctr: Now unused b/c the AI will always accept cities as payment) <!-- custom: hoisted from multiline signature between `piAvailableTradeVal` and `bIgnoreCities` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// (advc.ctr: Now unused b/c the AI will always accept cities as payment)
+// <!-- custom: hoisted from multiline signature between `piAvailableTradeVal` and `bIgnoreCities` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool UWAI::Player::canTradeAssets(int iTargetTradeVal, PlayerTypes eHuman, int* piAvailableTradeVal, bool bIgnoreCities) const
 {
 	if (piAvailableTradeVal != NULL)

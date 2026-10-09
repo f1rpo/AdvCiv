@@ -40,7 +40,8 @@ void CvMessageControl::sendTurnComplete()
 		gDLL->sendMessageData(new CvNetTurnComplete(getActivePlayer()));
 }
 
-// bool bAlt, bool bShift, bool bCtrl) <!-- custom: hoisted from multiline signature between `iData` and `bSave` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// bool bAlt, bool bShift, bool bCtrl)
+// <!-- custom: hoisted from multiline signature between `iData` and `bSave` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 void CvMessageControl::sendPushOrder(int iCityID, OrderTypes eOrder, int iData, bool bSave, bool bPop, int iPosition) // K-Mod
 {
 	if (isActive())

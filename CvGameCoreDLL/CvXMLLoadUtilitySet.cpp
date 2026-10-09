@@ -1244,7 +1244,8 @@ void CvXMLLoadUtility::SetGameText(const char* szTextGroup, const char* szTagNam
 	Takes the szTagName parameter and loads the ppszString with the text values
 	under the tags. This will be the hints displayed during game initialization and load. */
 template <class T>
-// advc.rh: Renamed from bTwoPass <!-- custom: hoisted from multiline signature between `bPassTwo` and `bFinalCall` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.rh: Renamed from bTwoPass
+// <!-- custom: hoisted from multiline signature between `bPassTwo` and `bFinalCall` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 void CvXMLLoadUtility::SetGlobalClassInfo(std::vector<T*>& aInfos, const char* szTagName, bool bPassTwo, bool bFinalCall) // advc.xmldefault
 {
 	char szLog[256];

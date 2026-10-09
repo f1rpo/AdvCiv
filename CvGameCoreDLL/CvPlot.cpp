@@ -2023,7 +2023,8 @@ bool CvPlot::canSeeDisplacementPlot(TeamTypes eTeam, int iDX, int iDY, int iOrig
 }
 
 
-// int iRange, // advc: unused <!-- custom: hoisted from multiline signature between `iDY` and `eFacingDirection` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// int iRange, // advc: unused
+// <!-- custom: hoisted from multiline signature between `iDY` and `eFacingDirection` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvPlot::shouldProcessDisplacementPlot(int iDX, int iDY, DirectionTypes eFacingDirection) const
 {
 	if (eFacingDirection == NO_DIRECTION)
@@ -2161,7 +2162,8 @@ void CvPlot::updateSeeFromSight(bool bIncrement, bool bUpdatePlotGroups)
 }
 
 
-// advc.129 <!-- custom: hoisted from multiline signature between `bIgnoreFeature` and `bIgnoreCurrentBonus` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.129
+// <!-- custom: hoisted from multiline signature between `bIgnoreFeature` and `bIgnoreCurrentBonus` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvPlot::canHaveBonus(BonusTypes eBonus, bool bIgnoreLatitude, bool bIgnoreFeature, bool bIgnoreCurrentBonus) const // advc.tsl
 {
 	if (eBonus == NO_BONUS)
@@ -2689,7 +2691,8 @@ int CvPlot::getUnitPower(PlayerTypes eOwner) const
 }
 
 
-// advc.012 <!-- custom: hoisted from multiline signature between `eAttacker` and `bHelp` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.012
+// <!-- custom: hoisted from multiline signature between `eAttacker` and `bHelp` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvPlot::defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding, TeamTypes eAttacker, bool bHelp, /* advc.500b: */ bool bGarrisonStrength) const
 {
 	int iModifier = GC.getInfo(getTerrainType()).getDefenseModifier();
@@ -2745,7 +2748,8 @@ int CvPlot::defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding, TeamTypes
 }
 
 
-// advc.001i <!-- custom: hoisted from multiline signature between `bAssumeRevealed` and `bIgnoresRoute` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.001i
+// <!-- custom: hoisted from multiline signature between `bAssumeRevealed` and `bIgnoresRoute` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvPlot::movementCost(CvUnit const& kUnit, CvPlot const& kFrom, bool bAssumeRevealed, bool bIgnoresRoute) const // advc.001t
 {
 	// <advc.162>
@@ -8370,7 +8374,8 @@ void CvPlot::applyEvent(EventTypes eEvent)
 }
 
 
-// advc.001b <!-- custom: hoisted from multiline signature between `bCheckAirUnitCap` and `eAssumeAvailable` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.001b
+// <!-- custom: hoisted from multiline signature between `bCheckAirUnitCap` and `eAssumeAvailable` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvPlot::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool bCheckAirUnitCap, BonusTypes eAssumeAvailable) const // advc.001u
 {
 	CvCity const* pCity = getPlotCity();

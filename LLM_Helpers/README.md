@@ -416,7 +416,7 @@ Conservative signature-only source-rewrite helper for C/C++ files.
 - Allows trailing end-of-signature `//` comments (for example `) const // advc.031`) and inline one-line `/* ... */` tail comments; comments inside the parameter list are skipped unless a trace-hoisting mode below handles them.
 - Uses a generous default `--max-line-len 600` and `--max-span-lines 16` because this helper is meant to make safe signatures one-line-first; lower them for a narrower review.
 - `--hoist-comments` can move whole-line comments from inside a collapsed signature above the signature, while still skipping inline comments inside the parameter list.
-- `--trace-hoisted-comments` also appends a custom trace note to hoisted comments, recording whether the comment was before, after, or between specific parameters. Use `--trace-credit "GPT-5.5 (reviewed script output)"` or similar when the generated comments were externally reviewed.
+- `--trace-hoisted-comments` also adds a separate custom trace line after each hoisted comment, recording whether the comment was before, after, or between specific parameters without making the preserved comment text look newly authored. Use `--trace-credit "GPT-5.5 (reviewed script output)"` or similar when the generated comments were externally reviewed.
 - `--trace-inline-comments` similarly hoists inline `//` comments and extractable multiline `/* ... */` comments from inside the parameter list, strips them from the collapsed signature line, and appends trace metadata for their original parameter position.
 - Existing whole-line `<!-- custom: ... -->` comments inside signatures receive the same hoist-position trace note as other whole-line comments.
 - `--tail-exposed-to-python-comments` handles the common header-only case where `// Exposed to Python` was placed inside a multiline declaration; it moves that metadata to the final tail comment, after any existing tail comment.
@@ -526,7 +526,8 @@ bool CvUnitAI::AI_cityAttack(int iRange, int iOddsThreshold,
 Example 3 (traceable hoisted comment) (after):
 
 ```cpp
-// advc (comment): No caller uses eFlags anymore (not since K-Mod 1.15) <!-- custom: hoisted from multiline signature between `iOddsThreshold` and `eFlags` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc (comment): No caller uses eFlags anymore (not since K-Mod 1.15)
+// <!-- custom: hoisted from multiline signature between `iOddsThreshold` and `eFlags` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvUnitAI::AI_cityAttack(int iRange, int iOddsThreshold, MovementFlags eFlags, bool bFollow)
 ```
 

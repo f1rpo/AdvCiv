@@ -587,7 +587,8 @@ void CvGame::cycleCities(bool bForward, bool bAdd) const
 }
 
 // advc.154: Extracted the const part out of cycleSelectionGroups
-// out-params <!-- custom: hoisted from multiline signature between `pCycleUnit` and `pCycledGroups` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// out-params
+// <!-- custom: hoisted from multiline signature between `pCycleUnit` and `pCycledGroups` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 CvSelectionGroup* CvGame::getNextGroupInCycle(bool bForward, bool bWorkers, bool& bWrap, CvUnit*& pCycleUnit, std::set<int>* pCycledGroups) const
 {
 	bWrap = false;

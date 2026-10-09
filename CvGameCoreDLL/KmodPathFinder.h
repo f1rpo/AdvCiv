@@ -362,7 +362,8 @@ template<class StepMetric, class Node>
 int KmodPathFinder<StepMetric,Node>::iAdmissibleScaledWeight = 1;
 
 template<class StepMetric, class Node>
-// advc: Let CvMap compute these; don't want to include CvInfo_Terrain.h here. <!-- custom: hoisted from multiline signature before `iMinMovementCost` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc: Let CvMap compute these; don't want to include CvInfo_Terrain.h here.
+// <!-- custom: hoisted from multiline signature before `iMinMovementCost` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 void KmodPathFinder<StepMetric,Node>::initHeuristicWeights(int iMinMovementCost, int iMinFlatMovementCost)
 {
 	iAdmissibleBaseWeight = std::min(GC.getMOVE_DENOMINATOR() / 2, iMinMovementCost);

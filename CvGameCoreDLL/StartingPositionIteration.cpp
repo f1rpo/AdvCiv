@@ -1381,7 +1381,8 @@ scaled StartingPositionIteration::weightedDistance(vector<short>& kDistances)
 }
 
 
-// To save time if caller happens to have it <!-- custom: hoisted from multiline signature between `pMedian` and `pbNegativeOutlier` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// To save time if caller happens to have it
+// <!-- custom: hoisted from multiline signature between `pMedian` and `pbNegativeOutlier` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 scaled StartingPositionIteration::outlierValue(EagerEnumMap<PlayerTypes, scaled> const& kStartValues, PlayerTypes eIndex, scaled& rPercentage, scaled rNegativeOutlierExtraWeight, scaled const* pMedian, bool* pbNegativeOutlier) const // Out-param
 {
 	if (pbNegativeOutlier != NULL)
@@ -1487,7 +1488,8 @@ scaled StartingPositionIteration::startingPositionValue(SolutionAttributes& kRes
 }
 
 
-// (Low first val means high priority) <!-- custom: hoisted from multiline signature between `eCurrSitePlayer` and `pair` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// (Low first val means high priority)
+// <!-- custom: hoisted from multiline signature between `eCurrSitePlayer` and `pair` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 void StartingPositionIteration::currAltSites(PlayerTypes eCurrSitePlayer, vector<pair<short, PlotNumTypes> >& kAltSitesByPriority, bool bIncludeRemote, PlotNumTypes eTakenSite) const
 {
 	VoronoiCell const* pCell = m_pPotentialSites->getCell(eCurrSitePlayer);

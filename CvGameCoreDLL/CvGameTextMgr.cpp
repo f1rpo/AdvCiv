@@ -401,10 +401,14 @@ void CvGameTextMgr::setEspionageMissionHelp(CvWStringBuffer &szBuffer, const CvU
 }
 
 
-// advc.048 <!-- custom: hoisted from multiline signature between `bColorAllegiance` and `bOmitOwner` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-// advc.061 <!-- custom: hoisted from multiline signature between `bOmitOwner` and `bIndicator` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-// advc.007 <!-- custom: hoisted from multiline signature between `bIndicator` and `iPromotionIconSize` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-// <!-- custom: Promotion icon size was formerly hardcoded as 16; pass it through so external UI wrappers can control the generated image markup cleanly. (GPT-5.5) --> <!-- custom: hoisted from multiline signature between `bIndicator` and `iPromotionIconSize` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.048
+// <!-- custom: hoisted from multiline signature between `bColorAllegiance` and `bOmitOwner` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.061
+// <!-- custom: hoisted from multiline signature between `bOmitOwner` and `bIndicator` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.007
+// <!-- custom: hoisted from multiline signature between `bIndicator` and `iPromotionIconSize` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// <!-- custom: Promotion icon size was formerly hardcoded as 16; pass it through so external UI wrappers can control the generated image markup cleanly. (GPT-5.5) -->
+// <!-- custom: hoisted from multiline signature between `bIndicator` and `iPromotionIconSize` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, bool bOneLine, bool bShort, bool bColorAllegiance, bool bOmitOwner, bool bIndicator, int iPromotionIconSize)
 {
 	PROFILE_FUNC();
@@ -1970,7 +1974,8 @@ void CvGameTextMgr::setPlotListHelpPerOwner(CvWStringBuffer& szString, CvPlot co
 } // </advc.061>
 
 
-// advc: was CvPlot* <!-- custom: hoisted from multiline signature between `kPlot` and `bOneLine` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc: was CvPlot*
+// <!-- custom: hoisted from multiline signature between `kPlot` and `bOneLine` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 void CvGameTextMgr::setPlotListHelp(CvWStringBuffer &szString, CvPlot const& kPlot, bool bOneLine, bool bShort, bool bIndicator) // advc.061, advc.007
 {
 	PROFILE_FUNC();
@@ -5367,7 +5372,8 @@ void CvGameTextMgr::getOtherRelationsString(CvWStringBuffer& szString, TeamTypes
 	}
 } // BULL - Leaderhead Relations - end
 
-// advc.003u: Was CvCity*; this function is for AI debugging. <!-- custom: hoisted from multiline signature between `pCity` and `iPlotIndex` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.003u: Was CvCity*; this function is for AI debugging.
+// <!-- custom: hoisted from multiline signature between `pCity` and `iPlotIndex` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 void CvGameTextMgr::setCityPlotYieldValueString(CvWStringBuffer &szString, CvCityAI* pCity, int iPlotIndex, bool bIgnoreFood, int iGrowthValue)
 {
 	PROFILE_FUNC();
@@ -14132,7 +14138,8 @@ void CvGameTextMgr::setBonusHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus, b
 }
 
 // This function has been effectly rewritten for K-Mod. (there were a lot of things to change.)
-// BULL - Trade Denial - end <!-- custom: hoisted from multiline signature between `eTradePlayer` and `bImport` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// BULL - Trade Denial - end
+// <!-- custom: hoisted from multiline signature between `eTradePlayer` and `bImport` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 void CvGameTextMgr::setBonusTradeHelp(CvWStringBuffer &szBuffer, BonusTypes eBonus, bool bCivilopediaText, PlayerTypes eTradePlayer, bool bImport, bool bForeignAdvisor) // advc.073
 {
 	if (eBonus == NO_BONUS)
@@ -16370,7 +16377,8 @@ void CvGameTextMgr::setImprovementHelp(CvWStringBuffer &szBuffer, ImprovementTyp
 }
 
 // advc: Merge of two getDealString functions. One was just a wrapper.
-// <advc.004w> <!-- custom: hoisted from multiline signature between `ePlayerPerspective` and `bCancel` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// <advc.004w>
+// <!-- custom: hoisted from multiline signature between `ePlayerPerspective` and `bCancel` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 void CvGameTextMgr::getDealString(CvWStringBuffer& szBuffer, CvDeal const& kDeal, PlayerTypes ePlayerPerspective, bool bCancel)
 {
 	int const iTurnsToCancel = (bCancel ? -1 : kDeal.turnsToCancel()); // </advc.004w>

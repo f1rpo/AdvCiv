@@ -66,9 +66,12 @@ protected:
 		expected with the address, if any, at which the sequence is actually found.
 		Returns the difference between expected and actual address as a byte offset
 		or MIN_INT if no such offset has been found. */
-	// Sequence that we search for and address at which we expect it to start <!-- custom: hoisted from multiline signature before `pNeedleBytes` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-	// Shorter sequence to check for upfront, to save time. If found at uiQuckTestStart, then an offset of 0 is returned w/o checking pNeedleBytes. <!-- custom: hoisted from multiline signature between `uiExpectedStart` and `pQuickTestBytes` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-	// How big an offset we contemplate. Not going to search the entire virtual memory <!-- custom: hoisted from multiline signature between `uiQuickTestStart` and `iMaxAbsOffset` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// Sequence that we search for and address at which we expect it to start
+	// <!-- custom: hoisted from multiline signature before `pNeedleBytes` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// Shorter sequence to check for upfront, to save time. If found at uiQuckTestStart, then an offset of 0 is returned w/o checking pNeedleBytes.
+	// <!-- custom: hoisted from multiline signature between `uiExpectedStart` and `pQuickTestBytes` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// How big an offset we contemplate. Not going to search the entire virtual memory
+	// <!-- custom: hoisted from multiline signature between `uiQuickTestStart` and `iMaxAbsOffset` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int findAddressOffset(byte* pNeedleBytes, int iNeedleBytes, uint uiExpectedStart, byte* pQuickTestBytes = NULL, int iQuickTestBytes = 0, uint uiQuickTestStart = 0, int iMaxAbsOffset = 256 * 1024)
 	{
 		// Preserve the (most recent) offset in m_iAddressOffset

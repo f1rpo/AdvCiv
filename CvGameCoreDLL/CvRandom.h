@@ -77,11 +77,13 @@ public:
 	void shuffle(std::vector<int>& kIndices); // Caller sets the vector size
 	// advc.304 (may find other uses too):
 	template<class ItemType>
-	// NULL means uniform weights. Uniform choice isn't what this function is for, but it's convenient to have as an option. <!-- custom: hoisted from multiline signature between `kItems` and `pWeights` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// NULL means uniform weights. Uniform choice isn't what this function is for, but it's convenient to have as an option.
+	// <!-- custom: hoisted from multiline signature between `kItems` and `pWeights` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	ItemType* weightedChoice(std::vector<ItemType*> const& kItems, std::vector<int> const* pWeights = NULL);
 
 protected:
-	// advc.007c <!-- custom: hoisted from multiline signature between `usNum` and `iData1` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.007c
+	// <!-- custom: hoisted from multiline signature between `usNum` and `iData1` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	virtual void printToLog(TCHAR const* szMsg, unsigned short usNum, int iData1, int iData2); // advc.001n
 
 	unsigned int m_uiRandomSeed;

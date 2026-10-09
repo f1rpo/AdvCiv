@@ -77,7 +77,8 @@ public:
 	bool startingPlotWithinRange(CvPlot const& kPlot, PlayerTypes ePlayer, int iRange, int iPass) const;			// Exposed to Python
 	int startingPlotDistanceFactor(CvPlot const& kPlot, PlayerTypes ePlayer, int iRange) const;
 	//int findStartingArea() const;
-	// kekm.35 <!-- custom: hoisted from multiline signature before `pbFoundByMapScript` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// kekm.35
+	// <!-- custom: hoisted from multiline signature before `pbFoundByMapScript` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	std::vector<std::pair<int,int> > findStartingAreas(bool* pbFoundByMapScript = NULL) const; // advc.027
 	// advc.027: New auxiliary function (public only for Debug mode info)
 	int coastRiverStartingAreaScore(CvArea const& a) const;
@@ -94,7 +95,8 @@ public:
 	// <!-- custom: Accept raw canonical keys or literal names so city-name identity remains stable across language changes. See KI#325. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	bool isCityNameValid(CvWString const& szName, bool bTestPast = true) const;
 
-	// advc.003u: Set this default here rather than in CvUnit::init <!-- custom: hoisted from multiline signature between `eUnitAI` and `eFacingDirection` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.003u: Set this default here rather than in CvUnit::init
+	// <!-- custom: hoisted from multiline signature between `eUnitAI` and `eFacingDirection` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	CvUnit* initUnit(UnitTypes eUnit, int iX, int iY, UnitAITypes eUnitAI = NO_UNITAI, DirectionTypes eFacingDirection = DIRECTION_SOUTH); // Exposed to Python
 	void disbandUnit(bool bAnnounce);																				// Exposed to Python
 	void killUnits();																								// Exposed to Python
@@ -221,7 +223,8 @@ public:
 
 	// <advc> To match CvTeam::canContact
 	DllExport bool canContact(PlayerTypes ePlayer) const { return canContact(ePlayer, false); } // Exposed to Python
-	// </advc> <!-- custom: hoisted from multiline signature between `ePlayer` and `bCheckWillingness` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// </advc>
+	// <!-- custom: hoisted from multiline signature between `ePlayer` and `bCheckWillingness` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool canContact(PlayerTypes ePlayer, bool bCheckWillingness) const; // K-Mod. this checks willingness to talk on both sides
 	void contact(PlayerTypes ePlayer);																				// Exposed to Python
 	DllExport void handleDiploEvent(DiploEventTypes eDiploEvent, PlayerTypes ePlayer, int iData1, int iData2);
@@ -240,7 +243,8 @@ public:
 	// advc: Said "IncludeCancelable", but actually does the opposite.
 	bool isTradingWithTeam(TeamTypes eTeam, bool bIncludeUncancelable) const;
 	bool canStopTradingWithTeam(TeamTypes eTeam, bool bContinueNotTrading = false) const;							// Exposed to Python
-	// <advc.130f> <!-- custom: hoisted from multiline signature between `eTeam` and `bDiploPenalty` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// <advc.130f>
+	// <!-- custom: hoisted from multiline signature between `eTeam` and `bDiploPenalty` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	void stopTradingWithTeam(TeamTypes eTeam, bool bDiploPenalty = true); // Exposed to Python
 	bool isAnyDealTooRecentToCancel(TeamTypes eTeam) const; // </advc.130f>
 	void killAllDeals();																							// Exposed to Python
@@ -254,7 +258,8 @@ public:
 
 	bool canReceiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit) const;									// Exposed to Python
 	void receiveGoody(CvPlot* pPlot, GoodyTypes eGoody, CvUnit* pUnit, bool bNoRecursion = false); // advc.314; Exposed to Python
-	// advc.314: Set this when rolling an additional outcome <!-- custom: hoisted from multiline signature between `pUnit` and `eTaboo` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.314: Set this when rolling an additional outcome
+	// <!-- custom: hoisted from multiline signature between `pUnit` and `eTaboo` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	void doGoody(CvPlot* pPlot, CvUnit* pUnit, GoodyTypes eTaboo = NO_GOODY); // Exposed to Python
 
 	DllExport bool canFound(int iX, int iY, bool bTestVisible = false) const;										// Exposed to Python
@@ -314,7 +319,8 @@ public:
 	void setGwPercentAnger(int iNewValue); // K-Mod
 
 	int getUnitCostMultiplier() const; // K-Mod
-	// K-Mod: changed iBaseUnitCost to iUnitCost <!-- custom: hoisted from multiline signature between `iPaidUnits` and `iPaidMilitaryUnits` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// K-Mod: changed iBaseUnitCost to iUnitCost
+	// <!-- custom: hoisted from multiline signature between `iPaidUnits` and `iPaidMilitaryUnits` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	// <!-- custom: Add `iExtraMilitaryUnits` to both overloads because AdvCiv's `iExtraUnits` prospective total-unit delta also changed military support, including for Settlers and Workers. Keep the populations distinct as they are at runtime. See KI#769. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	int calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& iPaidUnits, int& iPaidMilitaryUnits, int& iUnitCost, int& iMilitaryCost, int& iExtraCost, int iExtraPop = 0, int iExtraUnits = 0, int iExtraMilitaryUnits = 0) const; // advc.004b
 	int calculateUnitCost(int iExtraPop = 0, int iExtraUnits = 0, int iExtraMilitaryUnits = 0) const; // advc.004b; Exposed to Python
@@ -326,7 +332,8 @@ public:
 
 	//int calculateBaseNetGold() const; // disabled by K-Mod
 	//int calculateBaseNetResearch(TechTypes eTech = NO_TECH) const; // disabled by K-Mod (was exposed to Python)
-	// <advc.910> <!-- custom: hoisted from multiline signature between `eTech` and `piFromOtherKnown` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// <advc.910>
+	// <!-- custom: hoisted from multiline signature between `eTech` and `piFromOtherKnown` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int calculateResearchModifier(TechTypes eTech, int* piFromOtherKnown = NULL, int* piFromPaths = NULL, int* piFromTeam = NULL) const; // </advc.910>; Exposed to Python
 	int calculateGoldRate() const;																					// Exposed to Python
 	int calculateResearchRate(TechTypes eTech = NO_TECH) const;														// Exposed to Python
@@ -421,9 +428,11 @@ public:
 	void changeAdvancedStartPoints(int iChange);																	// Exposed to Python
 
 	int getEspionageSpending(TeamTypes eAgainstTeam) const;															// Exposed to Python
-	// advc: Same default values added as for getEspionageMissionCost <!-- custom: hoisted from multiline signature between `eTargetPlayer` and `pPlot` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc: Same default values added as for getEspionageMissionCost
+	// <!-- custom: hoisted from multiline signature between `eTargetPlayer` and `pPlot` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool canDoEspionageMission(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, CvPlot const* pPlot = NULL, int iExtraData = -1, const CvUnit* pUnit = NULL, bool bCheckPoints = true) const; // advc.085; Exposed to Python
-	// advc: Same default values added as for getEspionageMissionCost <!-- custom: hoisted from multiline signature between `eTargetPlayer` and `pPlot` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc: Same default values added as for getEspionageMissionCost
+	// <!-- custom: hoisted from multiline signature between `eTargetPlayer` and `pPlot` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int getEspionageMissionBaseCost(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, CvPlot const* pPlot = NULL, int iExtraData = -1, const CvUnit* pSpyUnit = NULL) const;
 	int getEspionageMissionCost(EspionageMissionTypes eMission, PlayerTypes eTargetPlayer, CvPlot const* pPlot = NULL, int iExtraData = -1, const CvUnit* pSpyUnit = NULL) const; // Exposed to Python
 	// kekm.33/advc:

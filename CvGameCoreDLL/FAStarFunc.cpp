@@ -21,7 +21,8 @@ int pathHeuristic(int iFromX, int iFromY, int iToX, int iToY)
 }
 
 
-// advc (note): unused <!-- custom: hoisted from multiline signature between `data` and `pointer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc (note): unused
+// <!-- custom: hoisted from multiline signature between `data` and `pointer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int pathCost(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder)
 {	// <advc.pf>
 	return GroupStepMetric::cost(
@@ -96,7 +97,8 @@ BOOL stepDestValid(int iToX, int iToY, void const* pointer, FAStar* finder)
 }
 
 
-// advc (note): unused <!-- custom: hoisted from multiline signature between `data` and `pointer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc (note): unused
+// <!-- custom: hoisted from multiline signature between `data` and `pointer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 BOOL stepValid(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder)
 {
 	if (parent == NULL)
@@ -118,7 +120,8 @@ BOOL stepValid(FAStarNode* parent, FAStarNode* node, int data, void const* point
 }
 
 
-// advc (note): unused <!-- custom: hoisted from multiline signature between `data` and `pointer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc (note): unused
+// <!-- custom: hoisted from multiline signature between `data` and `pointer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 BOOL stepAdd(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder)
 {
 	if (data == ASNC_INITIALADD)
@@ -142,7 +145,8 @@ int stepCost(FAStarNode* parent, FAStarNode* node, int data, void const* pointer
 }
 
 
-// advc (note): unused <!-- custom: hoisted from multiline signature between `data` and `pointer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc (note): unused
+// <!-- custom: hoisted from multiline signature between `data` and `pointer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 BOOL routeValid(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder)
 {
 	if (parent == NULL)
@@ -205,7 +209,8 @@ BOOL joinArea(FAStarNode* parent, FAStarNode* node, int data, void const* pointe
 }
 
 
-// advc (note): unused <!-- custom: hoisted from multiline signature between `data` and `pointer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc (note): unused
+// <!-- custom: hoisted from multiline signature between `data` and `pointer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 BOOL plotGroupValid(FAStarNode* parent, FAStarNode* node, int data, void const* pointer, FAStar* finder)
 {
 	//PROFILE_FUNC(); // advc.003o

@@ -1753,7 +1753,8 @@ void CvGame::rearrangeTeamStarts(/* advc.027: */ bool bOnlyWithinArea, scaled rI
 	the players' starting locations are.
 	Note: for the purposes of this function, player i will be assumed to start
 	in the location of player kStartingLocs[i] */
-// advc: params used to be arrays <!-- custom: hoisted from multiline signature before `kDistances` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc: params used to be arrays
+// <!-- custom: hoisted from multiline signature before `kDistances` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvGame::getTeamClosenessScore(ArrayEnumMap2D<PlayerTypes, PlayerTypes, int> const& kDistances, std::vector<PlayerTypes> const& kStartingLocs)
 {
 	int iScore = 0;
@@ -11008,7 +11009,8 @@ void CvGame::processBuilding(BuildingTypes eBuilding, int iChange)
 }
 
 // advc.314: Between 0 and GOODY_BUFF_PEAK_MULTIPLIER, depending on game turn.
-// Use true when a goody hut effect is supposed to increase with the game speed. When set to false, the turn numbers in this function are still game-speed adjusted. <!-- custom: hoisted from multiline signature before `bSpeedAdjust` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// Use true when a goody hut effect is supposed to increase with the game speed. When set to false, the turn numbers in this function are still game-speed adjusted.
+// <!-- custom: hoisted from multiline signature before `bSpeedAdjust` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 scaled CvGame::goodyHutEffectFactor(bool bSpeedAdjust) const
 {
 	static int const iGOODY_BUFF_START_TURN = GC.getDefineINT("GOODY_BUFF_START_TURN");

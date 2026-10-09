@@ -1575,7 +1575,8 @@ void CvCity::verifyProduction()
 }
 
 
-// advc.001b <!-- custom: hoisted from multiline signature between `bCheckAirUnitCap` and `eAssumeAvailable` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.001b
+// <!-- custom: hoisted from multiline signature between `bCheckAirUnitCap` and `eAssumeAvailable` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 // <!-- custom: eAssumeTech is normally NO_TECH and forwards one prospective technology to player-level unit legality, which also recognizes its guaranteed XML prerequisites. See KI#48.14. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 bool CvCity::canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool bIgnoreCost, bool bIgnoreUpgrades, bool bCheckAirUnitCap, BonusTypes eAssumeAvailable, TechTypes eAssumeTech) const // advc.001u
 {
@@ -2602,7 +2603,8 @@ int CvCity::getProductionModifier(ProjectTypes eProject) const
 }
 
 
-// <advc.064bc> <!-- custom: hoisted from multiline signature between `bOverflow` and `bIgnoreFeatureProd` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// <advc.064bc>
+// <!-- custom: hoisted from multiline signature between `bOverflow` and `bIgnoreFeatureProd` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvCity::getProductionDifference(int iProductionNeeded, int iProduction, int iProductionModifier, bool bFoodProduction, bool bOverflow, bool bIgnoreFeatureProd, bool bIgnoreYieldRate, bool bForceFeatureProd, int* piFeatureProd) const // </advc.064bc>
 {
 	if (isDisorder() /* advc.004x: */ && !bForceFeatureProd)
@@ -2650,7 +2652,8 @@ int CvCity::getProductionDifference(int iProductionNeeded, int iProduction, int 
 }
 
 
-// <advc.064bc> <!-- custom: hoisted from multiline signature between `bOverflow` and `bIgnoreFeatureProd` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// <advc.064bc>
+// <!-- custom: hoisted from multiline signature between `bOverflow` and `bIgnoreFeatureProd` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvCity::getCurrentProductionDifference(bool bIgnoreFood, bool bOverflow, bool bIgnoreFeatureProd, bool bIgnoreYieldRate, bool bForceFeatureProd, int* piFeatureProd) const // </advc.064bc>
 {
 	return getProductionDifference(getProductionNeeded(), getProduction(),
@@ -4213,7 +4216,8 @@ int CvCity::cultureDistance(int iDX, int iDY)
 }
 
 // advc.101: Replaced most of the code, but it's still the same structure as in BtS.
-// advc.023 <!-- custom: hoisted from multiline signature between `bIgnoreOccupation` and `paGrievances` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.023
+// <!-- custom: hoisted from multiline signature between `bIgnoreOccupation` and `paGrievances` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvCity::cultureStrength(PlayerTypes ePlayer, bool bIgnoreWar, bool bIgnoreOccupation, std::vector<GrievanceTypes>* paGrievances) const // Out parameter for UI support
 {
 	//int iStrength = 1 + getHighestPopulation() * 2; // BtS
@@ -4479,7 +4483,8 @@ int CvCity::getNumActiveBuilding(BuildingTypes eBuilding) const
 }
 
 // UNOFFICIAL_PATCH, War tactics AI, 03/04/10, Mongoose & jdog5000:
-// advc <!-- custom: hoisted from multiline signature between `iStopCountAt` and `eOwner` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc
+// <!-- custom: hoisted from multiline signature between `iStopCountAt` and `eOwner` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvCity::getNumActiveWorldWonders(int iStopCountAt, PlayerTypes eOwner) const // advc.104d
 {
 	PROFILE_FUNC(); // advc.opt (tbd.): Cache the return value
@@ -10025,7 +10030,8 @@ void CvCity::pushOrder(OrderTypes eOrder, int iData1, int iData2, bool bSave, bo
 }
 
 
-// advc.064d (was bool bChoose) <!-- custom: hoisted from multiline signature between `eChoose` and `bEndOfTurn` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.064d (was bool bChoose)
+// <!-- custom: hoisted from multiline signature between `eChoose` and `bEndOfTurn` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 void CvCity::popOrder(int iNum, bool bFinish, ChooseProductionPlayers eChoose, bool bEndOfTurn) // advc.001x
 {
 	// <!-- custom: SASGameRecord completion gates intentionally remain inside the mutually exclusive ORDER_TRAIN / ORDER_CONSTRUCT / ORDER_CREATE finish branches.
@@ -13239,7 +13245,8 @@ int CvCity::calculateMaintenanceDistance(CvPlot const* pCityPlot, PlayerTypes eO
 }
 
 // advc.004b, advc.104: Parameters added
-// (unused - not relevant for NumCitiesMaintenance) <!-- custom: hoisted from multiline signature between `kCityPlot` and `eOwner` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// (unused - not relevant for NumCitiesMaintenance)
+// <!-- custom: hoisted from multiline signature between `kCityPlot` and `eOwner` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvCity::calculateNumCitiesMaintenanceTimes100(CvPlot const& kCityPlot, PlayerTypes eOwner, int iPopulation, int iExtraCities)
 {
 	if(iPopulation < 0)

@@ -773,7 +773,16 @@ def parameter_name_before_inline_comment(bodies: list[str], start: int, comment_
 	return param_name_from_segment(segments[-1]) if segments else None
 
 
-def hoisted_inline_trace_comment(bodies: list[str], start: int, end: int, comment_index: int, inline_prefix: str, payload: str, indent: str, trace_credit: str) -> str:
+def hoisted_comment_lines_with_trace(indent: str, payload: str, position: str, trace_credit: str) -> list[str]:
+	credit = sanitized_xml_comment_text(trace_credit)
+	trace = f"{indent}// <!-- custom: hoisted from multiline signature {position} by collapse_cpp_signatures.py. ({credit}) -->"
+	if not payload:
+		return [trace]
+	# <!-- custom: Keep preserved inherited/custom comment text physically separate from the script-authored provenance marker. Appending both to one `//` line made an inherited sentence look jointly authored by the tracing pass. (ChatGPT-5.6-Sol) -->
+	return [f"{indent}// {payload}", trace]
+
+
+def hoisted_inline_trace_comment(bodies: list[str], start: int, end: int, comment_index: int, inline_prefix: str, payload: str, indent: str, trace_credit: str) -> list[str]:
 	before = parameter_name_before_inline_comment(bodies, start, comment_index, inline_prefix)
 	after = next_parameter_name(bodies, comment_index, end)
 	if before is not None and after is not None:
@@ -784,11 +793,10 @@ def hoisted_inline_trace_comment(bodies: list[str], start: int, end: int, commen
 		position = f"before `{after}`"
 	else:
 		position = "inside multiline signature"
-	credit = sanitized_xml_comment_text(trace_credit)
-	return f"{indent}// {payload} <!-- custom: hoisted from multiline signature {position} by collapse_cpp_signatures.py. ({credit}) -->"
+	return hoisted_comment_lines_with_trace(indent, payload, position, trace_credit)
 
 
-def hoisted_block_trace_comment(bodies: list[str], start: int, end: int, span: BlockCommentSpan, indent: str, trace_credit: str) -> str:
+def hoisted_block_trace_comment(bodies: list[str], start: int, end: int, span: BlockCommentSpan, indent: str, trace_credit: str) -> list[str]:
 	before = parameter_name_before_inline_comment(bodies, start, span.start, bodies[span.start][:span.start_column])
 	after = next_parameter_name(bodies, span.end, end)
 	if before is not None and after is not None:
@@ -799,11 +807,10 @@ def hoisted_block_trace_comment(bodies: list[str], start: int, end: int, span: B
 		position = f"before `{after}`"
 	else:
 		position = "inside multiline signature"
-	credit = sanitized_xml_comment_text(trace_credit)
-	return f"{indent}// {span.payload} <!-- custom: hoisted from multiline signature {position} by collapse_cpp_signatures.py. ({credit}) -->"
+	return hoisted_comment_lines_with_trace(indent, span.payload, position, trace_credit)
 
 
-def hoisted_trace_comment(bodies: list[str], start: int, end: int, comment_index: int, indent: str, trace_credit: str) -> str:
+def hoisted_trace_comment(bodies: list[str], start: int, end: int, comment_index: int, indent: str, trace_credit: str) -> list[str]:
 	before = previous_parameter_name(bodies, start, comment_index)
 	after = next_parameter_name(bodies, comment_index, end)
 	if before is not None and after is not None:
@@ -815,8 +822,7 @@ def hoisted_trace_comment(bodies: list[str], start: int, end: int, comment_index
 	else:
 		position = "inside multiline signature"
 	payload = stripped_comment_payload(bodies[comment_index])
-	credit = sanitized_xml_comment_text(trace_credit)
-	return f"{indent}// {payload} <!-- custom: hoisted from multiline signature {position} by collapse_cpp_signatures.py. ({credit}) -->"
+	return hoisted_comment_lines_with_trace(indent, payload, position, trace_credit)
 
 
 def append_tail_line_comment(text: str, payload: str) -> str:
@@ -848,13 +854,13 @@ def collapsed_range_lines(bodies: list[str], eols: list[str], start: int, end: i
 				bodies_for_rewrite[blank_index] = ""
 	for index in range(start, end + 1):
 		for span in block_comments_by_start.get(index, []):
-			comment_lines.append(hoisted_block_trace_comment(bodies, start, end, span, indent, trace_credit or "uncredited"))
+			comment_lines.extend(hoisted_block_trace_comment(bodies, start, end, span, indent, trace_credit or "uncredited"))
 		body = bodies_for_rewrite[index]
 		stripped = body.strip()
 		if is_whole_line_comment(body):
 			if hoist_comments:
 				if trace_hoisted_comments:
-					comment_lines.append(hoisted_trace_comment(bodies_for_rewrite, start, end, index, indent, trace_credit or "uncredited"))
+					comment_lines.extend(hoisted_trace_comment(bodies_for_rewrite, start, end, index, indent, trace_credit or "uncredited"))
 				else:
 					comment_lines.append(indent + stripped)
 			continue
@@ -866,7 +872,7 @@ def collapsed_range_lines(bodies: list[str], eols: list[str], start: int, end: i
 			comment_index = lone_line_comment_index(body)
 			comment_payload = body[comment_index + 2 :].strip()
 			body = body[:comment_index]
-			comment_lines.append(hoisted_inline_trace_comment(bodies_for_rewrite, start, end, index, body, comment_payload, indent, trace_credit or "uncredited"))
+			comment_lines.extend(hoisted_inline_trace_comment(bodies_for_rewrite, start, end, index, body, comment_payload, indent, trace_credit or "uncredited"))
 		code_pieces.append(body.strip())
 
 	collapsed = collapse_whitespace(" ".join(code_pieces))
@@ -1094,8 +1100,8 @@ def main() -> int:
 	parser.add_argument("--ignored-file", nargs="?", const="auto", default=None, help="write skipped signature-like multiline candidates to a file; without a path, writes a timestamped ignored-candidates file under LLM_Helpers/outputs/")
 	parser.add_argument("--include-nonsignature-ignored", action="store_true", help="with --ignored-file, also report ordinary multiline calls/local statements that were skipped as non-signatures; very verbose")
 	parser.add_argument("--hoist-comments", action="store_true", help="hoist whole-line comments from inside a collapsed signature above the signature")
-	parser.add_argument("--trace-hoisted-comments", action="store_true", help="when hoisting whole-line comments, append custom trace metadata that records their original parameter position")
-	parser.add_argument("--trace-inline-comments", action="store_true", help="hoist inline // comments from inside a collapsed signature and append custom trace metadata for their original parameter position")
+	parser.add_argument("--trace-hoisted-comments", action="store_true", help="when hoisting whole-line comments, add a separate custom trace line that records their original parameter position")
+	parser.add_argument("--trace-inline-comments", action="store_true", help="hoist inline // comments from inside a collapsed signature and add a separate custom trace line for their original parameter position")
 	parser.add_argument("--trace-credit", default=DEFAULT_TRACE_CREDIT, help=f"credit suffix for trace comments; default: \"{DEFAULT_TRACE_CREDIT}\"")
 	parser.add_argument("--tail-exposed-to-python-comments", action="store_true", help="for header declarations only, move inline // Exposed to Python comments inside the parameter list to the final signature tail comment")
 	parser.add_argument("--max-line-len", type=int, default=600, help="skip collapses that would exceed this physical line length")

@@ -19,7 +19,8 @@ CvMapGenerator& CvMapGenerator::GetInstance() // singleton accessor
 }
 
 
-// refactored <!-- custom: hoisted from multiline signature between `iY` and `bIgnoreLatitude` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// refactored
+// <!-- custom: hoisted from multiline signature between `iY` and `bIgnoreLatitude` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIgnoreLatitude, /* advc.129: */ bool bCheckRange) const
 {
 	PROFILE_FUNC();

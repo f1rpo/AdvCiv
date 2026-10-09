@@ -40,7 +40,8 @@ public:
 
 	/* int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0) const;
 	int AI_buildingValueThreshold(BuildingTypes eBuilding, int iFocusFlags = 0, int iThreshold = 0) const; */
-	// advc.121b <!-- custom: hoisted from multiline signature between `bIgnoreSpecialists` and `bObsolete` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.121b
+	// <!-- custom: hoisted from multiline signature between `bIgnoreSpecialists` and `bObsolete` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	// <!-- custom: eAssumeTech distinguishes current-state valuation from AI_techBuildingValue's candidate technology and guaranteed-prerequisite context. See KI#48.14. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	int AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags = 0, int iThreshold = 0, bool bConstCache = false, bool bAllowRecursion = true, bool bIgnoreSpecialists = false, bool bObsolete = false, TechTypes eAssumeTech = NO_TECH) const; // advc.004c
 	// <advc.179>
@@ -67,7 +68,8 @@ public:
 	int AI_minDefenders() const;
 	int AI_neededFloatingDefenders(/* advc.139: */ bool bIgnoreEvac = false, /* <advc.001n> */ bool bConstCache = false, bool bIgnoreCulture = false) const; // advc.099c
 	// was void AI_updateNeededFloatingDefenders()
-	// </advc.001n> <!-- custom: hoisted from multiline signature between `bConstCache` and `bIgnoreCulture` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// </advc.001n>
+	// <!-- custom: hoisted from multiline signature between `bConstCache` and `bIgnoreCulture` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int AI_calculateNeededFloatingDefenders(bool bConstCache, /* <advc.099c> */ bool bIgnoreCulture = false) const;
 	int AI_neededCultureDefenders() const; // </advc.099c>
 	// <advc.139>
@@ -152,7 +154,8 @@ public:
 	int AI_countNumImprovableBonuses(bool bIncludeNeutral, TechTypes eExtraTech = NO_TECH, bool bLand = true, bool bWater = false) const; // BBAI
 
 	int AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance /* advc: */ = DEFAULT_PLAYER_CLOSENESS, bool bConstCache = false) const; // advc.001n
-	// K-Mod <!-- custom: hoisted from multiline signature between `eTeam` and `bConstCache` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// K-Mod
+	// <!-- custom: hoisted from multiline signature between `eTeam` and `bConstCache` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int AI_highestTeamCloseness(TeamTypes eTeam, bool bConstCache) const; // advc.001n
 	//bool AI_isFrontlineCity() const; // K-Mod // advc.003j: unused
 	int AI_calculateMilitaryOutput() const; // K-Mod

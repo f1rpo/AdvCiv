@@ -336,7 +336,8 @@ bool TrueStarts::canHaveBonus(CvPlot const& kPlot, BonusTypes eBonus, bool bIgno
 }
 
 
-// Optional out param. Add this vegetation feature to make eBonus valid. <!-- custom: hoisted from multiline signature between `eBonus` and `peFeature` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// Optional out param. Add this vegetation feature to make eBonus valid.
+// <!-- custom: hoisted from multiline signature between `eBonus` and `peFeature` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool TrueStarts::changingVegetationMakesBonusValid(CvPlot const& kPlot, BonusTypes eBonus, FeatureTypes* peFeature) const
 {
 	LOCAL_REF(FeatureTypes, eFeature, peFeature, NO_FEATURE);

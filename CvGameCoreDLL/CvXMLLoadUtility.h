@@ -70,10 +70,12 @@ public:
 	bool GetChildXmlValByName(wchar* r, TCHAR const* szName, wchar const* szDefault = NULL);
 	/*  (advc: Returning by reference would be nicer than by pointer, but I don't want to change
 		hundreds of call locations.) */
-	// advc.006b: Was 0. Instead use a value that no one wants to use so that the callee can check if the param was set. <!-- custom: hoisted from multiline signature between `szName` and `iDefault` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.006b: Was 0. Instead use a value that no one wants to use so that the callee can check if the param was set.
+	// <!-- custom: hoisted from multiline signature between `szName` and `iDefault` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool GetChildXmlValByName(int* r, TCHAR const* szName, int iDefault = MIN_INT);
 	bool GetChildXmlValByName(float* r, TCHAR const* szName, float fDefault = arithm_traits<float>::min); // advc.006b: was 0.0f
-	// advc.006b: Caller will have to set this to false to avoid an error if szName isn't found <!-- custom: hoisted from multiline signature between `szName` and `bMandatory` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.006b: Caller will have to set this to false to avoid an error if szName isn't found
+	// <!-- custom: hoisted from multiline signature between `szName` and `bMandatory` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool GetChildXmlValByName(bool* r, TCHAR const* szName, bool bMandatory = true, bool bDefault = false);
 	/*	advc.006j: Had required int type; can now work with enum types too,
 		and will assert their bounds. */
@@ -239,7 +241,8 @@ public:
 		tDefaultListVal is 0 and no pairs are found or if all (index,value) pairs
 		have the value 0. */
 	template<typename T>
-	// advc.003x: Unused param iInfoBaseSize removed <!-- custom: hoisted from multiline signature between `szRootTagName` and `iInfoBaseLength` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.003x: Unused param iInfoBaseSize removed
+	// <!-- custom: hoisted from multiline signature between `szRootTagName` and `iInfoBaseLength` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	void SetVariableListTagPair(T** pptList, TCHAR const* szRootTagName, int iInfoBaseLength, T tDefaultListVal = 0)
 	{
 		if (iInfoBaseLength <= 0)

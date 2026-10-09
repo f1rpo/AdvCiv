@@ -40,10 +40,14 @@ public:
 	void setNetStats(CvWString& szString, PlayerTypes ePlayer);
 	DllExport void setMinimizePopupHelp(CvWString& szString, const CvPopupInfo & info);
 
-	// advc.048 <!-- custom: hoisted from multiline signature between `bColorAllegiance` and `bOmitOwner` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-	// advc.061 <!-- custom: hoisted from multiline signature between `bOmitOwner` and `bIndicator` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-	// advc.007 <!-- custom: hoisted from multiline signature between `bIndicator` and `iPromotionIconSize` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-	// <!-- custom: Promotion icon size was hardcoded inside setUnitHelp; expose it as a parameter so Python UI callers can request a clean advisor-specific size instead of rewriting emitted image markup. (GPT-5.5) --> <!-- custom: hoisted from multiline signature between `bIndicator` and `iPromotionIconSize` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.048
+	// <!-- custom: hoisted from multiline signature between `bColorAllegiance` and `bOmitOwner` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.061
+	// <!-- custom: hoisted from multiline signature between `bOmitOwner` and `bIndicator` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.007
+	// <!-- custom: hoisted from multiline signature between `bIndicator` and `iPromotionIconSize` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// <!-- custom: Promotion icon size was hardcoded inside setUnitHelp; expose it as a parameter so Python UI callers can request a clean advisor-specific size instead of rewriting emitted image markup. (GPT-5.5) -->
+	// <!-- custom: hoisted from multiline signature between `bIndicator` and `iPromotionIconSize` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	void setUnitHelp(CvWStringBuffer &szString, const CvUnit* pUnit, bool bOneLine = false, bool bShort = false, bool bColorAllegiance = false, bool bOmitOwner = false, bool bIndicator = false, int iPromotionIconSize = 16);
 	// advc.004 (Exposed to Python, replacing redundant code in CyMainInterface.py)
 	void setHurtUnitStrength(CvWString& szBuffer, CvUnit const& kUnit, int iHP = -1); // advc.048c
@@ -310,7 +314,8 @@ private:
 	void getActiveTeamRelationsString(CvWStringBuffer& szString, TeamTypes eThisTeam);
 	void getOtherRelationsString(CvWStringBuffer& szString, TeamTypes eThisTeam, TeamTypes eOtherTeam, TeamTypes eSkipTeam);
 	// BULL - Leaderhead Relations - end
-	// bool bAvoidGrowth, bool bIgnoreGrowth, bool bIgnoreFood = false); <!-- custom: hoisted from multiline signature between `pCity` and `iPlotIndex` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// bool bAvoidGrowth, bool bIgnoreGrowth, bool bIgnoreFood = false);
+	// <!-- custom: hoisted from multiline signature between `pCity` and `iPlotIndex` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	void setCityPlotYieldValueString(CvWStringBuffer &szString, CvCityAI* pCity, int iPlotIndex, bool bIgnoreFood, int iGrowthValue);
 	void setYieldValueString(CvWStringBuffer &szString, int iValue, bool bActive = false, bool bMakeWhitespace = false);
 	// <advc.059>

@@ -5391,7 +5391,8 @@ int CvUnitAI::AI_sacrificeValue(const CvPlot* pPlot) const
 }
 
 // Lead From Behind, by UncutDragon, edited for K-Mod
-// advc.003u: param was CvUnit** <!-- custom: hoisted from multiline signature between `ppAttacker` and `pPlot` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.003u: param was CvUnit**
+// <!-- custom: hoisted from multiline signature between `ppAttacker` and `pPlot` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 void CvUnitAI::LFBgetBetterAttacker(CvUnitAI** ppAttacker, CvPlot const* pPlot, bool bPotentialEnemy, int& iAIAttackOdds, int& iAttackerValue)
 {
 	CvUnit const* pDefender = pPlot->getBestDefender(NO_PLAYER, getOwner(), this,
@@ -16517,7 +16518,8 @@ bool CvUnitAI::AI_omniGroup(UnitAITypes eUnitAI, int iMaxGroup, int iMaxOwnUnitA
 } // K-Mod end
 
 // Returns true if a group was joined or a mission was pushed...
-// BETTER_BTS_AI_MOD, Unit AI, 02/22/10, jdog5000: Added new options to aid transport grouping <!-- custom: hoisted from multiline signature between `bAllowRegrouping` and `bWithCargoOnly` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// BETTER_BTS_AI_MOD, Unit AI, 02/22/10, jdog5000: Added new options to aid transport grouping
+// <!-- custom: hoisted from multiline signature between `bAllowRegrouping` and `bWithCargoOnly` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvUnitAI::AI_group(UnitAITypes eUnitAI, int iMaxGroup, int iMaxOwnUnitAI, int iMinUnitAI, bool bIgnoreFaster, bool bIgnoreOwnUnitType, bool bStackOfDoom, int iMaxPath, bool bAllowRegrouping, bool bWithCargoOnly, bool bInCityOnly, MissionAITypes eIgnoreMissionAIType)
 {
 	// K-Mod. I've completely gutted this function. It's now basically just a wrapper for AI_omniGroup.
@@ -16681,8 +16683,10 @@ CvUnit* CvUnitAI::AI_findTransport(UnitAITypes eUnitAI, MovementFlags eFlags, in
 } // K-Mod end
 
 // Returns true if we loaded onto a transport or a mission was pushed...
-// BETTER_BTS_AI_MOD, War tactics AI, Unit AI, 04/18/10, jdog5000 (and various changes in the body) <!-- custom: hoisted from multiline signature between `iMaxPath` and `iMaxTransportPath` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-// advc: Restructured (untangled) the body a bit <!-- custom: hoisted from multiline signature between `iMaxPath` and `iMaxTransportPath` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// BETTER_BTS_AI_MOD, War tactics AI, Unit AI, 04/18/10, jdog5000 (and various changes in the body)
+// <!-- custom: hoisted from multiline signature between `iMaxPath` and `iMaxTransportPath` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc: Restructured (untangled) the body a bit
+// <!-- custom: hoisted from multiline signature between `iMaxPath` and `iMaxTransportPath` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvUnitAI::AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI, UnitAITypes eTransportedUnitAI, int iMinCargo, int iMinCargoSpace, int iMaxCargoSpace, int iMaxCargoOurUnitAI, MovementFlags eFlags, int iMaxPath, int iMaxTransportPath)
 {
 	PROFILE_FUNC();
@@ -17015,7 +17019,8 @@ bool CvUnitAI::AI_guardCityMinDefender(bool bSearch)
 	and duplicated code and double-counting mistakes...
 	I've deleted the bulk of the old code, and rewritten it
 	to be much much simpler - and also better. */
-// <advc.300> Go up to this much beyond defensive needs if no city needs defenders <!-- custom: hoisted from multiline signature between `eFlags` and `iExtraDefenders` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// <advc.300> Go up to this much beyond defensive needs if no city needs defenders
+// <!-- custom: hoisted from multiline signature between `eFlags` and `iExtraDefenders` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 // <!-- custom: Added bDangerOnly and bFillShortfall so threatened-city responses can ignore routine shortages and detach enough defenders without changing ordinary guard assignments. (GPT-5.6-Sol) -->
 bool CvUnitAI::AI_guardCity(bool bLeave, bool bSearch, int iMaxPath, MovementFlags eFlags, int iExtraDefenders, bool bDangerOnly, bool bFillShortfall)
 {
@@ -21154,7 +21159,8 @@ bool CvUnitAI::AI_bombardCity()
 }
 
 // This function has been been heavily edited for K-Mod.
-// advc (comment): No caller uses eFlags anymore (not since K-Mod 1.15) <!-- custom: hoisted from multiline signature between `iOddsThreshold` and `eFlags` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc (comment): No caller uses eFlags anymore (not since K-Mod 1.15)
+// <!-- custom: hoisted from multiline signature between `iOddsThreshold` and `eFlags` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvUnitAI::AI_cityAttack(int iRange, int iOddsThreshold, MovementFlags eFlags, bool bFollow)
 {
 	PROFILE_FUNC();
@@ -22812,7 +22818,8 @@ bool CvUnitAI::AI_foundFollow()
 namespace
 {
 	// K-Mod. helper function for AI_assaultSeaTransport. (just to avoid code duplication)
-	// advc.003u: was CvCity* <!-- custom: hoisted from multiline signature between `pCity` and `city_defence_cache` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.003u: was CvCity*
+	// <!-- custom: hoisted from multiline signature between `pCity` and `city_defence_cache` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int estimateAndCacheCityDefence(CvPlayerAI& kPlayer, CvCityAI const* pCity, std::map<CvCityAI const*, int>& city_defence_cache)
 	{
 		// calculate the city's defences, or read from the cache if we've already done it.
@@ -24738,7 +24745,8 @@ bool CvUnitAI::AI_connectPlot(CvPlot const& kPlot, int iRange, char const* szCon
 
 // advc: Cut from AI_improveCity to reduce code duplication; MovementFlags& eFlags, // in-out param
 // <!-- custom: ppszRouteReason reports only an accepted condition already evaluated here; callers pass NULL when Worker diagnostics are disabled, avoiding diagnostic-only writes without repeating pathfinding or changing the decision. (GPT-5.6-Sol) -->
-// in-out param <!-- custom: hoisted from multiline signature between `eFlags` and `pDestCity` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// in-out param
+// <!-- custom: hoisted from multiline signature between `eFlags` and `pDestCity` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvUnitAI::AI_shouldRouteWhileImproving(CvPlot const& kDest, MovementFlags& eFlags, CvCity const* pDestCity, char const** ppszRouteReason) const
 {
 	bool bRoute = false;
@@ -25551,7 +25559,8 @@ bool CvUnitAI::AI_fortTerritory(bool bCanal, bool bAirbase)
 // <!-- custom: Earlier SAS experiments tried disabling this path for land Workers because its separate improvement scoring could conflict with AI_bestCityBuild, but doing so also lost useful bonus-connection/route behavior and interfered with Work Boats; keep AI_improveBonus as the strategic bonus-target/connection path.
 // Workable BFC bonus Builds now reuse the shared city-aware Food/Production/Commerce transition from ordinary Worker valuation, while dynamic resource value, pathing/routing, outside-BFC targets and sea-Worker responsibilities remain deliberately separate. See KI#30. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 //bool CvUnitAI::AI_improveBonus(int iMinValue, CvPlot** ppBestPlot, BuildTypes* peBestBuild, int* piBestValue)
-// K-Mod. (all that junk wasn't being used anyway.) <!-- custom: hoisted from multiline signature before `iMissingWorkersInArea` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// K-Mod. (all that junk wasn't being used anyway.)
+// <!-- custom: hoisted from multiline signature before `iMissingWorkersInArea` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvUnitAI::AI_improveBonus(int iMissingWorkersInArea) // advc.121
 {
 	PROFILE_FUNC();
@@ -26925,7 +26934,8 @@ bool CvUnitAI::AI_handleStranded(MovementFlags eFlags)
 }
 
 
-// BETTER_BTS_AI_MOD, Naval AI, 01/15/09, jdog5000: <!-- custom: hoisted from multiline signature between `eUnitAI` and `bCountProduction` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// BETTER_BTS_AI_MOD, Naval AI, 01/15/09, jdog5000:
+// <!-- custom: hoisted from multiline signature between `eUnitAI` and `bCountProduction` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvUnitAI::AI_pickup(UnitAITypes eUnitAI, bool bCountProduction, int iMaxPath)
 {
 	PROFILE_FUNC();

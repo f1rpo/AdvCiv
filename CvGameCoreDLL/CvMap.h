@@ -244,14 +244,18 @@ public: // advc: made several functions const
 
 	void verifyUnitValidPlot();
 	void combinePlotGroups(PlayerTypes ePlayer, CvPlotGroup* pPlotGroup1, CvPlotGroup* pPlotGroup2, bool bVerifyProduction = true); // advc.064d
-	// advc: was iArea <!-- custom: hoisted from multiline signature between `pArea` and `iMinCivUnitDistance` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-	// <advc.304> Default timeout was 100 <!-- custom: hoisted from multiline signature between `iMinCivUnitDistance` and `iTimeout` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-	// NULL means uniform <!-- custom: hoisted from multiline signature between `piValidCount` and `pWeights` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc: was iArea
+	// <!-- custom: hoisted from multiline signature between `pArea` and `iMinCivUnitDistance` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// <advc.304> Default timeout was 100
+	// <!-- custom: hoisted from multiline signature between `iMinCivUnitDistance` and `iTimeout` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// NULL means uniform
+	// <!-- custom: hoisted from multiline signature between `piValidCount` and `pWeights` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	CvPlot* syncRandPlot(RandPlotFlags eFlags = RANDPLOT_ANY, CvArea const* pArea = NULL, int iMinCivUnitDistance = -1, int iTimeout = -1, int* piValidCount = NULL, RandPlotWeightMap const* pWeights = NULL); // </advc.304>; Exposed to Python
 	// <advc>
 	bool isValidRandPlot(CvPlot const& kPlot, RandPlotFlags eFlags, CvArea const* pArea, int iMinCivUnitDistance) const; // </advc>
 
-	// Exposed to Python <!-- custom: hoisted from multiline signature between `iY` and `eOwner` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// Exposed to Python
+	// <!-- custom: hoisted from multiline signature between `iY` and `eOwner` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	// <advc.004r>
 	DllExport CvCity* findCity(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM, bool bSameArea = true, bool bCoastalOnly = false, TeamTypes eTeamAtWarWith = NO_TEAM, DirectionTypes eDirection = NO_DIRECTION, CvCity* pSkipCity = NULL) { return findCity(iX, iY, eOwner, eTeam, bSameArea, bCoastalOnly, eTeamAtWarWith, eDirection, pSkipCity, NO_TEAM); }
 	CvCity* findCity(int iX, int iY, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM, bool bSameArea = true, bool bCoastalOnly = false, TeamTypes eTeamAtWarWith = NO_TEAM, DirectionTypes eDirection = NO_DIRECTION, CvCity const* pSkipCity = NULL, TeamTypes eObserver = NO_TEAM) const;

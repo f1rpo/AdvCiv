@@ -839,7 +839,8 @@ int CvGlobals::getDefineINTExternal(char const* szName) const
 	return getDefineINT(szName);
 }
 
-// BETTER_BTS_AI_MOD, 02/21/10, jdog5000: START <!-- custom: hoisted from multiline signature between `szName` and `iDefault` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// BETTER_BTS_AI_MOD, 02/21/10, jdog5000: START
+// <!-- custom: hoisted from multiline signature between `szName` and `iDefault` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvGlobals::getDefineINT(char const* szName, int iDefault) const
 {
 	int iReturn = iDefault;

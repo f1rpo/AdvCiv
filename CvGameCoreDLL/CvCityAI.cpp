@@ -9105,7 +9105,8 @@ private:
 	city unique (more likely to build airports if there already is a harbor...) */
 /*	This function has been heavily edited for K-Mod
 	Scale is roughly 4 = 1 commerce / turn */
-// advc.121b <!-- custom: hoisted from multiline signature between `bIgnoreSpecialists` and `bObsolete` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.121b
+// <!-- custom: hoisted from multiline signature between `bIgnoreSpecialists` and `bObsolete` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 // <!-- custom: eAssumeTech is NO_TECH for current production and the candidate technology for AI_techBuildingValue; player-level unit legality also recognizes its guaranteed prerequisites. See KI#48.14. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iThreshold, bool bConstCache, bool bAllowRecursion, bool bIgnoreSpecialists, bool bObsolete, TechTypes eAssumeTech) const // advc.004c
 {
@@ -12750,7 +12751,8 @@ int CvCityAI::AI_countExcessDefenders() const
 	I may put some more work into this stuff in the future
 	if I ever work through CvUnitAI::AI_defenseAirMove.
 	function signature changed to match bbai usage. */
-// advc (note): Either way, only aircraft are currently counted. <!-- custom: hoisted from multiline signature between `bCountLand` and `iExtra` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc (note): Either way, only aircraft are currently counted.
+// <!-- custom: hoisted from multiline signature between `bCountLand` and `iExtra` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvCityAI::AI_isAirDefended(bool bCountLand, int iExtra) /* advc: */ const
 {
 	PROFILE_FUNC();
@@ -12953,7 +12955,8 @@ int CvCityAI::AI_minDefenders() const
 }
 
 
-// advc.001n <!-- custom: hoisted from multiline signature between `bConstCache` and `bIgnoreCulture` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.001n
+// <!-- custom: hoisted from multiline signature between `bConstCache` and `bIgnoreCulture` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvCityAI::AI_neededFloatingDefenders(/* <advc.139> */ bool bIgnoreEvac, bool bConstCache, bool bIgnoreCulture) const // advc.099c
 {
 	if(!bIgnoreEvac && AI_isEvacuating())
@@ -17559,7 +17562,8 @@ bool CvCityAI::AI_chooseProcess(CommerceTypes eCommerceType)
 }
 
 // Returns true if a citizen was added to a plot...
-// advc.enum: CityPlotTypes <!-- custom: hoisted from multiline signature between `peBestPlot` and `peBestSpecialist` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.enum: CityPlotTypes
+// <!-- custom: hoisted from multiline signature between `peBestPlot` and `peBestSpecialist` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvCityAI::AI_addBestCitizen(bool bWorkers, bool bSpecialists, CityPlotTypes* peBestPlot, SpecialistTypes* peBestSpecialist)
 {
 	PROFILE_FUNC();
@@ -19681,7 +19685,8 @@ bool CvCityAI::AI_finalImprovementYieldDifference(/* advc: */ CvPlot const& kPlo
 	~63% of the weight is in the time from now until 'time_scale' turns have past.
 	(More precisely, the weight drops exponentially w.r.t. the number of turns,
 	decreasing by a factor of `e` for each `time_scale` turns.) */
-// advc.912f (note): 0 now means infinity <!-- custom: hoisted from multiline signature between `iTimeScale` and `kWeightedYields` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.912f (note): 0 now means infinity
+// <!-- custom: hoisted from multiline signature between `iTimeScale` and `kWeightedYields` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvCityAI::AI_timeWeightedImprovementYields(CvPlot const& kPlot, ImprovementTypes eImprovement, int iTimeScale, EagerEnumMap<YieldTypes, scaled>& kWeightedYields) const // advc: was vector<float>&
 {
 	PROFILE_FUNC();
@@ -20164,7 +20169,8 @@ bool CvCityAI::AI_emphasizeIrrigatingPlot(CvPlot const& kPlot) const
 }
 
 
-// advc (note): obsolete <!-- custom: hoisted from multiline signature between `iHealthAdjust` and `iDesiredFoodChange` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc (note): obsolete
+// <!-- custom: hoisted from multiline signature between `iHealthAdjust` and `iDesiredFoodChange` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 void CvCityAI::AI_bestPlotBuild(CvPlot const& kPlot, int* piBestValue, BuildTypes* peBestBuild, int iFoodPriority, int iProductionPriority, int iCommercePriority, bool bChop, int iHappyAdjust, int iHealthAdjust, int iDesiredFoodChange) const
 {
 	PROFILE_FUNC();

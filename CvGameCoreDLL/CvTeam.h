@@ -68,12 +68,16 @@ public:
 	bool canChangeWarPeace(TeamTypes eTeam, bool bAllowVassal = false) const;																			// Exposed to Python
 	DllExport bool canDeclareWar(TeamTypes eTeam) const;																// Exposed to Python
 	bool canEventuallyDeclareWar(TeamTypes eTeam) const; // bbai, Exposed to Python
-	// advc.100 <!-- custom: hoisted from multiline signature between `eSponsor` and `bRandomEvent` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.100
+	// <!-- custom: hoisted from multiline signature between `eSponsor` and `bRandomEvent` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	// <!-- custom: Added eCause so direct and queued war declarations retain their origin for SASGameRecord; defaults preserve all existing callers and Python exposure. (GPT-5.6-Sol) -->
 	void declareWar(TeamTypes eTeam, bool bNewDiplo, WarPlanTypes eWarPlan, bool bPrimaryDoW = true, PlayerTypes eSponsor = NO_PLAYER, bool bRandomEvent = false, WarDeclarationCause eCause = WAR_DECLARATION_DIRECT); // advc.106g; K-Mod added bPrimaryDoW, Exposed to Python
-	// advc.100b <!-- custom: hoisted from multiline signature between `eBroker` and `bCapitulate` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-	// advc.034 <!-- custom: hoisted from multiline signature between `bCapitulate` and `pReparations` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-	// advc.039 <!-- custom: hoisted from multiline signature between `pReparations` and `bRandomEvent` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.100b
+	// <!-- custom: hoisted from multiline signature between `eBroker` and `bCapitulate` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.034
+	// <!-- custom: hoisted from multiline signature between `bCapitulate` and `pReparations` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.039
+	// <!-- custom: hoisted from multiline signature between `pReparations` and `bRandomEvent` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	// <!-- custom: Carry the actual reparations-giving player so announcement formatting can resolve player-local city IDs on multi-member teams. See KI#412. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	void makePeace(TeamTypes eTarget, bool bBumpUnits = true, TeamTypes eBroker = NO_TEAM, bool bCapitulate = false, CLinkList<TradeData> const* pReparations = NULL, bool bRandomEvent = false, PlayerTypes eReparationsFrom = NO_PLAYER); // advc.106g; Exposed to Python
 	bool canContact(TeamTypes eTeam, bool bCheckWillingness = false) const; // K-Mod, Exposed to Python
@@ -101,8 +105,10 @@ public:
 	//int getWarPlanCount(WarPlanTypes eWarPlan, bool bIgnoreMinors = true) const;
 	int getHasMetCivCount(bool bIgnoreMinors = true) const;												// Exposed to Python
 
-	// kekm.3 <!-- custom: hoisted from multiline signature between `eOther` and `bCheckBothWays` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-	// advc.130f: If false, check only if the war enemies of this team are included in those of otherId (set inclusion). <!-- custom: hoisted from multiline signature between `eOther` and `bCheckBothWays` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// kekm.3
+	// <!-- custom: hoisted from multiline signature between `eOther` and `bCheckBothWays` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.130f: If false, check only if the war enemies of this team are included in those of otherId (set inclusion).
+	// <!-- custom: hoisted from multiline signature between `eOther` and `bCheckBothWays` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool allWarsShared(TeamTypes eOther, bool bCheckBothWays = true) const;
 	bool hasMetHuman() const;																			// Exposed to Python
 	bool isInContactWithBarbarians() const; // advc.302
@@ -131,8 +137,10 @@ public:
 	// K-Mod:
 	int getTypicalUnitValue(UnitAITypes eUnitAI, DomainTypes eDomain = NO_DOMAIN) const;
 
-	// bool bGlobalModifiers = true, // K-Mod <!-- custom: hoisted from multiline signature between `eTech` and `bFreeBarbarianResearch` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-	// advc.301 <!-- custom: hoisted from multiline signature between `bFreeBarbarianResearch` and `bTeamSizeModifiers` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// bool bGlobalModifiers = true, // K-Mod
+	// <!-- custom: hoisted from multiline signature between `eTech` and `bFreeBarbarianResearch` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.301
+	// <!-- custom: hoisted from multiline signature between `bFreeBarbarianResearch` and `bTeamSizeModifiers` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int getResearchCost(TechTypes eTech, bool bFreeBarbarianResearch = false, bool bTeamSizeModifiers = true) const; // K-Mod; Exposed to Python
 	int getResearchLeft(TechTypes eTech) const;																// Exposed to Python
 
@@ -621,7 +629,8 @@ protected:
 	// <!-- custom: Trade-item formatting needs the giving player for player-local city IDs; team-global items derive the team from that player. See KI#412. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	CvWString const tradeItemString(TradeableItems eItem, int iData, PlayerTypes eFrom) const; // </advc.039>
 	bool isTechSplash() const; // advc
-	// advc.156 <!-- custom: hoisted from multiline signature between `eDiscoverPlayer` and `bPartial` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.156
+	// <!-- custom: hoisted from multiline signature between `eDiscoverPlayer` and `bPartial` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	void announceTechToPlayers(TechTypes eIndex, PlayerTypes eDiscoverPlayer, bool bPartial = false);
 	// <advc>
 	void announceWar(TeamTypes eTarget, bool bPrimaryDoW, PlayerTypes eSponsor = NO_PLAYER, bool bRandomEvent = false);

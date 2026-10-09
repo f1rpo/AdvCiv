@@ -598,7 +598,8 @@ void CvSelectionGroup::playActionSound()  // advc: refactored
 }
 
 
-// advc: 2x const <!-- custom: hoisted from multiline signature between `pMissionAIUnit` and `bModified` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc: 2x const
+// <!-- custom: hoisted from multiline signature between `pMissionAIUnit` and `bModified` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 void CvSelectionGroup::pushMission(MissionTypes eMission, int iData1, int iData2, MovementFlags eFlags, bool bAppend, bool bManual, MissionAITypes eMissionAI, CvPlot const* pMissionAIPlot, CvUnit const* pMissionAIUnit, bool bModified) // advc.011b
 {
 	PROFILE_FUNC();
@@ -755,7 +756,8 @@ CvPlot* CvSelectionGroup::lastMissionPlot() const
 }
 
 
-// advc: was int <!-- custom: hoisted from multiline signature between `eMission` and `iData1` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc: was int
+// <!-- custom: hoisted from multiline signature between `eMission` and `iData1` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvSelectionGroup::canStartMission(MissionTypes eMission, int iData1, int iData2, CvPlot const* pPlot, bool bTestVisible, bool bUseCache) /* advc: */ const
 {
 	if (bUseCache)
@@ -2760,7 +2762,8 @@ RouteTypes CvSelectionGroup::getBestBuildRoute(CvPlot const& kPlot, BuildTypes* 
 }
 
 // Returns true if attack was made...
-// advc (note): out-parameter <!-- custom: hoisted from multiline signature between `bFailedAlreadyFighting` and `bMaxSurvival` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc (note): out-parameter
+// <!-- custom: hoisted from multiline signature between `bFailedAlreadyFighting` and `bMaxSurvival` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool CvSelectionGroup::groupAttack(int iX, int iY, MovementFlags eFlags, bool& bFailedAlreadyFighting, bool bMaxSurvival) // advc.048
 {
 	PROFILE_FUNC();
@@ -3845,7 +3848,8 @@ void CvSelectionGroup::changeMissionTimer(int iChange)
 }
 
 
-// advc: refactored <!-- custom: hoisted from multiline signature between `iSteps` and `pFromPlot` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc: refactored
+// <!-- custom: hoisted from multiline signature between `iSteps` and `pFromPlot` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 void CvSelectionGroup::updateMissionTimer(int iSteps, CvPlot* pFromPlot) // advc.102
 {
 	CvGame const& kGame = GC.getGame();

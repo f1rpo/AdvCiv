@@ -149,7 +149,8 @@ public:
 
 	// BETTER_BTS_AI_MOD, 08/20/09, jdog5000: START
 	bool isSafeRangeCacheValid() const; // K-Mod
-	// advc  <advc.104> <!-- custom: hoisted from multiline signature between `iLimit` and `bCheckBorder` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc  <advc.104>
+	// <!-- custom: hoisted from multiline signature between `iLimit` and `bCheckBorder` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int AI_getPlotDanger(CvPlot const& kPlot, int iRange = -1, bool bTestMoves = true, int iLimit = MAX_INT, bool bCheckBorder = true, PlayerTypes eAttackPlayer = NO_PLAYER) const;
 			// </advc.104>
 	// advc: Merged with the plot danger counting function
@@ -172,7 +173,8 @@ public:
 	// advc:
 	void AI_calculateTechRevealBonuses(EagerEnumMap<BonusClassTypes, int>& kBonusClassRevealed, EagerEnumMap<BonusClassTypes, int>& viBonusClassUnrevealed, EagerEnumMap<BonusClassTypes, int>& viBonusClassHave) const;
 	// BETTER_BTS_AI_MOD, Tech AI, 03/18/10, jdog5000: START
-	// advc.144 <!-- custom: hoisted from multiline signature between `eFromPlayer` and `bRandomize` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.144
+	// <!-- custom: hoisted from multiline signature between `eFromPlayer` and `bRandomize` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech, bool bAsync, EagerEnumMap<BonusClassTypes, int> const& kBonusClassRevealed, EagerEnumMap<BonusClassTypes, int> const& viBonusClassUnrevealed, EagerEnumMap<BonusClassTypes, int> const& viBonusClassHave, PlayerTypes eFromPlayer = NO_PLAYER, bool bRandomize = true) const; // advc
 	int AI_obsoleteBuildingPenalty(TechTypes eTech, bool bConstCache) const; // K-Mod
 	int AI_techBuildingValue(TechTypes eTech, bool bConstCache, bool& bEnablesWonder) const;
@@ -197,7 +199,8 @@ public:
 	bool AI_hasTradedWithTeam(TeamTypes eTeam) const;
 
 	void AI_updateAttitude(); // K-Mod (toward all other players)
-	// K-Mod <!-- custom: hoisted from multiline signature between `ePlayer` and `bUpdateWorstEnemy` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// K-Mod
+	// <!-- custom: hoisted from multiline signature between `ePlayer` and `bUpdateWorstEnemy` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	void AI_updateAttitude(PlayerTypes ePlayer, bool bUpdateWorstEnemy = true); // advc.130e
 	void AI_changeCachedAttitude(PlayerTypes ePlayer, int iChange); // K-Mod
 	AttitudeTypes AI_getAttitude(PlayerTypes ePlayer, bool bForced = true) const { FAssert(ePlayer != getID()); return (AI_getAttitudeFromValue(AI_getAttitudeVal(ePlayer, bForced))); } // Exposed to Python
@@ -241,12 +244,16 @@ public:
 	// <!-- custom: Optional triggered-vote id is diagnostic only: real ballot calls pass it so SASGameRecord can join AI reasoning to the authoritative triggered/result rows; proposal/hypothetical callers keep the default and do not emit ballot provenance. (ChatGPT-5.6-Sol) -->
 	PlayerVoteTypes AI_diploVote(const VoteSelectionSubData& kVoteData, VoteSourceTypes eVoteSource, bool bPropose, int iTriggeredVoteId = -1);
 
-	// advc: was called iExtra, which didn't make sense and differed from the parameter name in CvPlayerAI.cpp. <!-- custom: hoisted from multiline signature between `iChange` and `bIgnoreDiscount` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-	// advc.550a <!-- custom: hoisted from multiline signature between `bIgnoreDiscount` and `bIgnorePeace` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-	// advc.130p  <advc.ctr> <!-- custom: hoisted from multiline signature between `bIgnorePeace` and `bCountLiberation` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc: was called iExtra, which didn't make sense and differed from the parameter name in CvPlayerAI.cpp.
+	// <!-- custom: hoisted from multiline signature between `iChange` and `bIgnoreDiscount` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.550a
+	// <!-- custom: hoisted from multiline signature between `bIgnoreDiscount` and `bIgnorePeace` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.130p  <advc.ctr>
+	// <!-- custom: hoisted from multiline signature between `bIgnorePeace` and `bCountLiberation` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int AI_dealVal(PlayerTypes eFromPlayer, CLinkList<TradeData> const& kList, bool bIgnoreAnnual = false, int iChange = 1, bool bIgnoreDiscount = false, bool bIgnorePeace = false, bool bCountLiberation = false, bool bAIRequest = false, bool bDiploVal = false) const; // </advc.ctr>
 	//bool AI_goldDeal(CLinkList<TradeData> const* pList) const; // advc: See goldDeal in implementation file
-	// <advc.130o> May change diplo memory if true; const qualifier removed. <!-- custom: hoisted from multiline signature between `iDealAge` and `bHypothetical` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// <advc.130o> May change diplo memory if true; const qualifier removed.
+	// <!-- custom: hoisted from multiline signature between `iDealAge` and `bHypothetical` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool AI_considerOffer(PlayerTypes ePlayer, CLinkList<TradeData> const& kTheyGive, CLinkList<TradeData> const& kWeGive, int iChange = 1, /* advc.133: */ int iDealAge = 0, bool bHypothetical = false);
 	// const wrapper
 	bool AI_considerHypotheticalOffer(PlayerTypes ePlayer, CLinkList<TradeData> const& kTheyGive, CLinkList<TradeData> const& kWeGive, int iChange = 1, /* advc.133: */ int iDealAge = 0) const { return const_cast<CvPlayerAI*>(this)->AI_considerOffer(ePlayer, kTheyGive, kWeGive, iChange, iDealAge, true); } // </advc.130o>
@@ -255,8 +262,10 @@ public:
 	int AI_maxGoldTrade(PlayerTypes ePlayer, /* advc.134a: */ bool bTeamTrade = false) const;
 	int AI_maxGoldPerTurnTrade(PlayerTypes ePlayer, bool bCheckOverdraft = false) const; // advc.133; Exposed to Python
 	int AI_goldPerTurnTradeVal(int iGoldPerTurn) const;
-	// K-Mod <!-- custom: hoisted from multiline signature between `bAssumeEnabled` and `bTrade` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-	// advc.036: Whether baseBonusVal is computed for a resource trade <!-- custom: hoisted from multiline signature between `bAssumeEnabled` and `bTrade` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// K-Mod
+	// <!-- custom: hoisted from multiline signature between `bAssumeEnabled` and `bTrade` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.036: Whether baseBonusVal is computed for a resource trade
+	// <!-- custom: hoisted from multiline signature between `bAssumeEnabled` and `bTrade` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled = false, bool bTrade = false) const;
 	int AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade = false) const;
 	int AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes eFromPlayer, int iChange, bool bExtraHappyOrHealth = false) const; // advc.036
@@ -271,8 +280,10 @@ public:
 		LIBERATION_WEIGHT_REDUCED,
 		LIBERATION_WEIGHT_FULL
 	}; // </advc.ctr>
-	// <advc.ctr> <!-- custom: hoisted from multiline signature between `kCity` and `eToPlayer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-	// (The function will ignore this in some situations) <!-- custom: hoisted from multiline signature between `eToPlayer` and `eLibWeight` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// <advc.ctr>
+	// <!-- custom: hoisted from multiline signature between `kCity` and `eToPlayer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// (The function will ignore this in some situations)
+	// <!-- custom: hoisted from multiline signature between `eToPlayer` and `eLibWeight` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int AI_cityTradeVal(CvCityAI const& kCity, PlayerTypes eToPlayer = NO_PLAYER, LiberationWeightTypes eLibWeight = LIBERATION_WEIGHT_ZERO, bool bConquest = false, bool bAIRequest = false, bool bDiploVal = false) const; // </advc.ctr>
 	DenialTypes AI_cityTrade(CvCityAI const& kCity, PlayerTypes ePlayer) const;
 
@@ -361,10 +372,12 @@ public:
 	bool AI_isAnyUnitTargetMissionAI(CvUnit const& kUnit, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL) const { return (AI_unitTargetMissionAIs(kUnit, eMissionAI, pSkipSelectionGroup, 1) >= 1); }
 	bool AI_isAnyUnitTargetMissionAI(CvUnit const& kUnit, MissionAITypes* aeMissionAI, int iMissionAICount, CvSelectionGroup* pSkipSelectionGroup = NULL, int iMaxPathTurns = -1) const { return (AI_unitTargetMissionAIs(kUnit, aeMissionAI, iMissionAICount, pSkipSelectionGroup, iMaxPathTurns, 1) >= 1); } // </advc.opt>
 	int AI_unitTargetMissionAIs(CvUnit const& kUnit, MissionAITypes eMissionAI, CvSelectionGroup* pSkipSelectionGroup = NULL, int iMaxCount = MAX_INT) const { return AI_unitTargetMissionAIs(kUnit, &eMissionAI, 1, pSkipSelectionGroup, -1, iMaxCount); }
-	// BBAI (advc: merged into the BtS function) <!-- custom: hoisted from multiline signature between `iMaxPathTurns` and `iMaxCount` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// BBAI (advc: merged into the BtS function)
+	// <!-- custom: hoisted from multiline signature between `iMaxPathTurns` and `iMaxCount` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int AI_unitTargetMissionAIs(CvUnit const& kUnit, MissionAITypes* aeMissionAI, int iMissionAICount, CvSelectionGroup* pSkipSelectionGroup = NULL, int iMaxPathTurns = -1, int iMaxCount = MAX_INT) const;
 	// BBAI start
-	// <advc.opt> <!-- custom: hoisted from multiline signature between `pSkipSelectionGroup` and `iMaxCount` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// <advc.opt>
+	// <!-- custom: hoisted from multiline signature between `pSkipSelectionGroup` and `iMaxCount` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int AI_enemyTargetMissions(TeamTypes eTargetTeam, CvSelectionGroup* pSkipSelectionGroup = NULL, int iMaxCount = MAX_INT) const; // BBAI end
 	bool AI_isAnyEnemyTargetMission(TeamTypes eTargetTeam, CvSelectionGroup* pSkipSelectionGroup = NULL) const { return (AI_enemyTargetMissions(eTargetTeam, pSkipSelectionGroup, 1) >= 1); } // </advc.opt>
 	// advc.003j: unused
@@ -475,7 +488,8 @@ public:
 	void AI_rememberEvent(PlayerTypes ePlayer, MemoryTypes eMemoryType);
 	void AI_rememberLiberation(CvCity const& kCity, bool bConquest); // advc.ctr
 	// <advc.130p>
-	// </advc.130p> <!-- custom: hoisted from multiline signature between `eWarTradeTarget` and `bAIRequest` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// </advc.130p>
+	// <!-- custom: hoisted from multiline signature between `eWarTradeTarget` and `bAIRequest` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool AI_processTradeValue(CLinkList<TradeData> const& kItems, PlayerTypes eFromPlayer, bool bGift, bool bPeace, TeamTypes ePeaceTradeTarget = NO_TEAM, TeamTypes eWarTradeTarget = NO_TEAM, bool bAIRequest = false); // advc.ctr
 	void AI_processRazeMemory(CvCity const& kCity); // advc.003n
 
@@ -542,8 +556,10 @@ public:
 	int AI_averageCommerceExchange(CommerceTypes eCommerce) const;
 
 	int AI_playerCloseness(PlayerTypes eIndex, int iMaxDistance /* advc: */ = DEFAULT_PLAYER_CLOSENESS, bool bConstCache = false) const; // advc.001n
-	// advc <!-- custom: hoisted from multiline signature between `iOurDefPow` and `bReduceWhenHopeless` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-	// advc.104: <!-- custom: hoisted from multiline signature between `iOurDefPow` and `bReduceWhenHopeless` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc
+	// <!-- custom: hoisted from multiline signature between `iOurDefPow` and `bReduceWhenHopeless` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.104:
+	// <!-- custom: hoisted from multiline signature between `iOurDefPow` and `bReduceWhenHopeless` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int AI_paranoiaRating(PlayerTypes eRival, int iOurDefPow, bool bReduceWhenHopeless = true, bool bConstCache = false) const;
 
 	int AI_getTotalCityThreat() const;
@@ -786,16 +802,19 @@ protected:
 	enum IdeologicMarker { SAME_RELIGION, DIFFERENT_RELIGION, SAME_CIVIC };
 	int AI_ideologyAttitudeChange(PlayerTypes eOther, IdeologicMarker eMarker, int iCounter, int iDivisor, int iLimit) const; // </advc.130n>
 	// advc.130r: Are they at war with a partner of ours?
-	// advc.130h: If CheckPartnerAttacked==true, then only partners with war plan "attacked" or "attacked recent" count. <!-- custom: hoisted from multiline signature between `eOtherTeam` and `bCheckPartnerAttacked` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.130h: If CheckPartnerAttacked==true, then only partners with war plan "attacked" or "attacked recent" count.
+	// <!-- custom: hoisted from multiline signature between `eOtherTeam` and `bCheckPartnerAttacked` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool AI_atWarWithPartner(TeamTypes eOtherTeam, bool bCheckPartnerAttacked = false) const;
 	// <advc.104h>
 	int AI_negotiatePeace(PlayerTypes eRecipient, PlayerTypes eGiver, int iDelta, int* iGold, TechTypes* eBestTech, CvCity const** pBestCity); // </advc.104h>
-	// advc: was public <!-- custom: hoisted from multiline signature between `ePlayer` and `kTheyGive` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc: was public
+	// <!-- custom: hoisted from multiline signature between `ePlayer` and `kTheyGive` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool AI_counterPropose(PlayerTypes ePlayer, CLinkList<TradeData> const& kTheyGive, CLinkList<TradeData> const& kWeGive, CLinkList<TradeData> const& kTheirInventory, CLinkList<TradeData> const& kOurInventory, CLinkList<TradeData>& kTheyAlsoGive, CLinkList<TradeData>& kWeAlsoGive, scaled rLeniency = 1) const; // advc.705
 	// <advc>
 	// Variant that writes the proposal into pTheirList and pOurList
 	bool AI_counterPropose(PlayerTypes ePlayer, CLinkList<TradeData>& kTheyGive, CLinkList<TradeData>& kWeGive, bool bTheyMayGiveMore, bool bWeMayGiveMore, scaled rLeniency = 1) const;
-	// advc.705 <!-- custom: hoisted from multiline signature between `rLeniency` and `bTheyGenerous` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.705
+	// <!-- custom: hoisted from multiline signature between `rLeniency` and `bTheyGenerous` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool AI_balanceDeal(bool bGoldDeal, CLinkList<TradeData> const& kTheirInventory, PlayerTypes ePlayer, int iTheyReceive, int& iWeReceive, CLinkList<TradeData>& kWeWant, CLinkList<TradeData> const& kWeGive, scaled rLeniency, bool bTheyGenerous, int iHappyLeft, int iHealthLeft, int iOtherListLength) const; // advc.036
 	int AI_tradeValToGold(int iTradeVal, bool bOverpay, int iMaxGold = MAX_INT, bool* bEnough = NULL) const;
 	// <advc.ctr>

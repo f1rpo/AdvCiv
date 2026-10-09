@@ -121,7 +121,8 @@ public:
 	void setGlobeView(bool b); // advc
 
 	DllExport void implementDeal(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirList, bool bForce = false);
-	// advc (note): Not const; callee may perform in-place preprocessing. <!-- custom: hoisted from multiline signature between `eOtherWho` and `kOurList` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc (note): Not const; callee may perform in-place preprocessing.
+	// <!-- custom: hoisted from multiline signature between `eOtherWho` and `kOurList` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	void implementDeal(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<TradeData>& kOurList, CLinkList<TradeData>& kTheirList, bool bForce = false);
 	// <advc.036>
 	CvDeal* implementAndReturnDeal(PlayerTypes eWho, PlayerTypes eOtherWho, CLinkList<TradeData>& kOurList, CLinkList<TradeData>& kTheirList, bool bForce = false); // </advc.036>
@@ -577,7 +578,8 @@ public:
 	bool checkInSync(); // advc.001n
 	void doFPCheck(int iChecksum, PlayerTypes ePlayer); // advc.003g
 
-	// <advc> Move coords to the end - or to the start. <!-- custom: hoisted from multiline signature between `szText` and `eColor` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// <advc> Move coords to the end - or to the start.
+	// <!-- custom: hoisted from multiline signature between `szText` and `eColor` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	// <!-- custom: Allow private replay events to retain their exact historical observer audience instead of becoming global when shown in Timeline. See KI#337. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	void addReplayMessage(ReplayMessageTypes eType = NO_REPLAY_MESSAGE, PlayerTypes ePlayer = NO_PLAYER, CvWString szText = L"", ColorTypes eColor = NO_COLOR, int iPlotX = INVALID_PLOT_COORD, int iPlotY = INVALID_PLOT_COORD, qword uiVisibilityMask = ~(qword)0);
 	void addReplayMessage(CvPlot const& kPlot, ReplayMessageTypes eType = NO_REPLAY_MESSAGE, PlayerTypes ePlayer = NO_PLAYER, CvWString szText = L"", ColorTypes eColor = NO_COLOR); // </advc>
@@ -966,7 +968,8 @@ protected:
 	void applyStartingLocHandicaps(/* advc.027: */ NormalizationTarget const* pStartValues);
 	template<class Agent>
 	void sortByStartingLocHandicap(std::vector<std::pair<Agent*, int> > const& kStartingLocPercentPerAgent, std::vector<Agent*>& kResult); // </advc.108b>
-	// <advc> <!-- custom: hoisted from multiline signature before `kDistances` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// <advc>
+	// <!-- custom: hoisted from multiline signature before `kDistances` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int getTeamClosenessScore(ArrayEnumMap2D<PlayerTypes, PlayerTypes, int> const& kDistances, std::vector<PlayerTypes> const& kStartingLocs); // </advc>
 	void normalizeAddRiver();
 	void normalizeRemovePeaks();

@@ -20,7 +20,8 @@ public:
 	void reset(int iID = 0, PlayerTypes eFirstPlayer = NO_PLAYER, PlayerTypes eSecondPlayer = NO_PLAYER);
 
 	DllExport void kill(bool bKillTeam = true) { kill(bKillTeam, NO_PLAYER); } // <advc.130p>
-	// </advc.130p> <!-- custom: hoisted from multiline signature between `eCancelPlayer` and `bNoSound` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// </advc.130p>
+	// <!-- custom: hoisted from multiline signature between `eCancelPlayer` and `bNoSound` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	void kill(bool bKillTeam, PlayerTypes eCancelPlayer, bool bNoSound = false); // advc.002l
 	// advc.036:
 	void killSilent(bool bKillTeam = true, bool bUpdateAttitude = true, PlayerTypes eCancelPlayer = NO_PLAYER); // advc.130p
@@ -124,12 +125,15 @@ protected:
 	CLinkList<TradeData>& getSecondListVar() { return m_secondList; } // </advc>
 
 	bool startTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer, bool bPeace, bool& bPeaceTreatyImplied); // advc.ctr
-	// advc.036 <!-- custom: hoisted from multiline signature between `bUpdateAttitude` and `eCancelPlayer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.036
+	// <!-- custom: hoisted from multiline signature between `bUpdateAttitude` and `eCancelPlayer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	void endTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer, bool bTeam, bool bUpdateAttitude = true, PlayerTypes eCancelPlayer = NO_PLAYER); // advc.130p
 	void startTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam, bool bDual);
 	void endTeamTrade(TradeableItems eItem, TeamTypes eFromTeam, TeamTypes eToTeam);
-	// advc <!-- custom: hoisted from multiline signature between `eOther` and `bForce` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-	// advc.106j <!-- custom: hoisted from multiline signature between `bForce` and `bNoSound` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc
+	// <!-- custom: hoisted from multiline signature between `eOther` and `bForce` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.106j
+	// <!-- custom: hoisted from multiline signature between `bForce` and `bNoSound` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	void announceCancel(PlayerTypes eMsgTarget, PlayerTypes eOther, bool bForce, bool bNoSound) const; // advc.002l
 	// <!-- custom: Optional context is NULL unless SASGameRecord level 2+ is active; the helper preserves the live first-failure reason without repeating any validity query. (ChatGPT-5.6-Sol) -->
 	bool verify(PlayerTypes eRecipient, PlayerTypes eGiver, SASGameRecordDealInvalidationContext* pSASContext = NULL);

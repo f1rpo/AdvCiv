@@ -33,9 +33,11 @@ public:
 	/*	Smoothness varies with 2^grain.
 		Totally random is grain=min{iFracXExp,iFracYExp}.
 		As smooth as possible is grain=0. */
-	// <advc.137> Let fracInitInternal work this out <!-- custom: hoisted from multiline signature between `pRifts` and `iFracXExp` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// <advc.137> Let fracInitInternal work this out
+	// <!-- custom: hoisted from multiline signature between `pRifts` and `iFracXExp` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	DllExport void fracInit(int iNewXs, int iNewYs, int iGrain, CvRandom& random, int iFlags, CvFractal* pRifts=NULL, int iFracXExp = /*DEFAULT_FRAC_X_EXP*/-1, int iFracYExp = /*DEFAULT_FRAC_Y_EXP*/-1); // </advc.137>; Exposed to Python
-	// <advc.137> <!-- custom: hoisted from multiline signature between `pRifts` and `iFracXExp` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// <advc.137>
+	// <!-- custom: hoisted from multiline signature between `pRifts` and `iFracXExp` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	DllExport void fracInitHinted(int iNewXs, int iNewYs, int iGrain, CvRandom& random, byte* pbyHints, int iHintsLength, int iFlags, CvFractal* pRifts, int iFracXExp = /*DEFAULT_FRAC_X_EXP*/-1, int iFracYExp = /*DEFAULT_FRAC_Y_EXP*/-1); // </advc.137>; Exposed to Python
 
 	DllExport int getHeight(int x, int y);												// Exposed to Python
@@ -62,7 +64,8 @@ protected:
 
 	int **m_aaiFrac; //[FRAC_X + 1][FRAC_Y + 1];
 
-	// advc.enum <!-- custom: hoisted from multiline signature between `eFlags` and `pRifts` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.enum
+	// <!-- custom: hoisted from multiline signature between `eFlags` and `pRifts` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	void fracInitInternal(int iNewXs, int iNewYs, int iGrain, CvRandom& random, byte* pbyHints, int iHintsLength, Flags eFlags, CvFractal* pRifts, int iFracXExp, int iFracYExp);
 	void tectonicAction(CvFractal* pRifts);
 	int yieldX(int iBadX);

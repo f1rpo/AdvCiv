@@ -160,12 +160,14 @@ protected:
 	int AI_promotionValue(PromotionTypes ePromotion);
 
 // advc (comment): The boolean functions below return true iff a mission was pushed
-	// BETTER_BTS_AI_MOD (Unit AI), 04/01/10, jdog5000: <!-- custom: hoisted from multiline signature between `bWithCargoOnly` and `bOutsideCityOnly` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// BETTER_BTS_AI_MOD (Unit AI), 04/01/10, jdog5000:
+	// <!-- custom: hoisted from multiline signature between `bWithCargoOnly` and `bOutsideCityOnly` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool AI_shadow(UnitAITypes eUnitAI, int iMax = -1, int iMaxRatio = -1, bool bWithCargoOnly = true, bool bOutsideCityOnly = false, int iMaxPath = MAX_INT);
 	// K-Mod. I've created AI_omniGroup with the intention of using it to phase out AI_group and AI_groupMergeRange.
 	bool AI_omniGroup(UnitAITypes eUnitAI, int iMaxGroup = -1, int iMaxOwnUnitAI = -1, bool bStackOfDoom = false, MovementFlags eFlags = NO_MOVEMENT_FLAGS, int iMaxPath = -1, bool bMergeGroups = true, bool bSafeOnly = true, bool bIgnoreFaster = false, bool bIgnoreOwnUnitType = false, bool bBiggerOnly = true, int iMinUnitAI = -1, bool bWithCargoOnly = false, bool bIgnoreBusyTransports = false);
 	bool AI_group(UnitAITypes eUnitAI, int iMaxGroup = -1, int iMaxOwnUnitAI = -1, int iMinUnitAI = -1, bool bIgnoreFaster = false, bool bIgnoreOwnUnitType = false, bool bStackOfDoom = false, int iMaxPath = MAX_INT, bool bAllowRegrouping = false, bool bWithCargoOnly = false, bool bInCityOnly = false, MissionAITypes eIgnoreMissionAIType = NO_MISSIONAI);
-	// BETTER_BTS_AI_MOD, War tactics AI, Unit AI, 04/18/10, jdog5000: <!-- custom: hoisted from multiline signature between `iMaxPath` and `iMaxTransportPath` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// BETTER_BTS_AI_MOD, War tactics AI, Unit AI, 04/18/10, jdog5000:
+	// <!-- custom: hoisted from multiline signature between `iMaxPath` and `iMaxTransportPath` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool AI_load(UnitAITypes eUnitAI, MissionAITypes eMissionAI, UnitAITypes eTransportedUnitAI = NO_UNITAI, int iMinCargo = -1, int iMinCargoSpace = -1, int iMaxCargoSpace = -1, int iMaxCargoOurUnitAI = -1, MovementFlags eFlags = NO_MOVEMENT_FLAGS, int iMaxPath = MAX_INT, int iMaxTransportPath = MAX_INT);
 
 	bool AI_guardCityBestDefender();
@@ -270,7 +272,8 @@ protected:
 	bool AI_irrigateTerritory();
 	bool AI_fortTerritory(bool bCanal, bool bAirbase);
 	//bool AI_improveBonus(int iMinValue = 0, CvPlot** ppBestPlot = NULL, BuildTypes* peBestBuild = NULL, int* piBestValue = NULL);
-	// K-Mod <!-- custom: hoisted from multiline signature before `iMissingWorkersInArea` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// K-Mod
+	// <!-- custom: hoisted from multiline signature before `iMissingWorkersInArea` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool AI_improveBonus(int iMissingWorkersInArea = 0); // advc.121
 	bool AI_improvePlot(CvPlot const& kPlot, BuildTypes eBuild);
 	// <!-- custom: ppszRouteReason optionally reports why the accepted result is a route Build, without changing the selected Build. (GPT-5.6-Sol) -->

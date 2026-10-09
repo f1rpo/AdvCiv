@@ -1199,8 +1199,10 @@ bool CvTeam::canEventuallyDeclareWar(TeamTypes eTeam) const
 }
 
 // K-Mod note: I've shuffled things around a bit in this function.  // advc: refactored
-// K-Mod <!-- custom: hoisted from multiline signature between `bPrimaryDoW` and `eSponsor` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-// advc.100 <!-- custom: hoisted from multiline signature between `eSponsor` and `bRandomEvent` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// K-Mod
+// <!-- custom: hoisted from multiline signature between `bPrimaryDoW` and `eSponsor` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.100
+// <!-- custom: hoisted from multiline signature between `eSponsor` and `bRandomEvent` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 // <!-- custom: Added eCause to preserve the direct or cascading origin until SASGameRecord logs the declaration. (GPT-5.6-Sol) -->
 void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan, bool bPrimaryDoW, PlayerTypes eSponsor, bool bRandomEvent, WarDeclarationCause eCause) // advc.106g
 {
@@ -1409,10 +1411,14 @@ void CvTeam::triggerDefensivePacts(TeamTypes eTarget, bool bNewDiplo, bool bPrim
 }
 
 
-// advc: refactored <!-- custom: hoisted from multiline signature between `bBumpUnits` and `eBroker` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-// advc.100b <!-- custom: hoisted from multiline signature between `eBroker` and `bCapitulate` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-// advc.034 <!-- custom: hoisted from multiline signature between `bCapitulate` and `pReparations` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-// advc.039 <!-- custom: hoisted from multiline signature between `pReparations` and `bRandomEvent` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc: refactored
+// <!-- custom: hoisted from multiline signature between `bBumpUnits` and `eBroker` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.100b
+// <!-- custom: hoisted from multiline signature between `eBroker` and `bCapitulate` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.034
+// <!-- custom: hoisted from multiline signature between `bCapitulate` and `pReparations` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.039
+// <!-- custom: hoisted from multiline signature between `pReparations` and `bRandomEvent` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 // <!-- custom: Carry the reparations-giving player from CvDeal through the announcement path; TeamTypes alone cannot resolve player-local city IDs. See KI#412. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 void CvTeam::makePeace(TeamTypes eTarget, bool bBumpUnits, TeamTypes eBroker, bool bCapitulate, CLinkList<TradeData> const* pReparations, bool bRandomEvent, PlayerTypes eReparationsFrom) // advc.106g
 {
@@ -2378,7 +2384,8 @@ int CvTeam::getTypicalUnitValue(UnitAITypes eUnitAI, DomainTypes eDomain) const
 }
 
 
-// advc.301: Replacing K-Mod's bGlobalModifiers <!-- custom: hoisted from multiline signature between `bFreeBarbarianResearch` and `bTeamSizeModifiers` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.301: Replacing K-Mod's bGlobalModifiers
+// <!-- custom: hoisted from multiline signature between `bFreeBarbarianResearch` and `bTeamSizeModifiers` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvTeam::getResearchCost(TechTypes eTech, bool bFreeBarbarianResearch, bool bTeamSizeModifiers) const // K-Mod
 {
 	CvGame const& kGame = GC.getGame();

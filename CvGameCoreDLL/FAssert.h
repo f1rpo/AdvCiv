@@ -16,7 +16,8 @@
 
 #ifdef WIN32
 
-// advc.006f (from C2C): const char* param added. And changed the two call locations below so that __FUNCTION__ is passed. <!-- custom: hoisted from multiline signature inside multiline signature by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.006f (from C2C): const char* param added. And changed the two call locations below so that __FUNCTION__ is passed.
+// <!-- custom: hoisted from multiline signature inside multiline signature by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 bool FAssertDlg(const char*, const char*, const char*, unsigned int, const char*, bool&);
 
 // <advc.006h>: Evaluate expr once more when debugging

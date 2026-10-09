@@ -160,7 +160,8 @@ public:
 	bool isPeaceDealPossible(PlayerTypes eHuman) const;
 	/*	Can eHuman trade assets to us with a total value of at least
 		iTargetTradeVal? */
-	// If this is not NULL, then it is used to return the trade value of all assets that the human can trade, but only up to targetTradeVal. <!-- custom: hoisted from multiline signature between `eHuman` and `piAvailableTradeVal` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// If this is not NULL, then it is used to return the trade value of all assets that the human can trade, but only up to targetTradeVal.
+	// <!-- custom: hoisted from multiline signature between `eHuman` and `piAvailableTradeVal` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool canTradeAssets(int iTargetTradeVal, PlayerTypes eHuman, int* piAvailableTradeVal = NULL, bool bIgnoreCities = false) const;
 	scaled utilityToTradeVal(scaled rUtility) const;
 	scaled tradeValToUtility(scaled rTradeVal) const;

@@ -433,7 +433,8 @@ int CvSelectionGroupAI::AI_getWeightedOdds(CvPlot const* pPlot, bool bPotentialE
 }
 
 
-// <advc.048> <!-- custom: hoisted from multiline signature between `bNoBlitz` and `bSacrifice` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// <advc.048>
+// <!-- custom: hoisted from multiline signature between `bNoBlitz` and `bSacrifice` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 CvUnitAI* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot, bool bPotentialEnemy, int& iUnitOdds, bool bForce, bool bNoBlitz, bool bSacrifice, bool bMaxSurvival, bool bPreferLowPower) const
 {
 	int const iOddsThresh = 68; // Should this be lower if bHuman?

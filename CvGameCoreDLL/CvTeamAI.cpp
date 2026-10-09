@@ -2081,7 +2081,8 @@ bool CvTeamAI::AI_hasLocusTechTradeSource(TechTypes eTech, TeamTypes eExcludedSo
 }
 
 // advc (comment): How much this CvTeam is willing to pay to eFromTeam for eTech
-// advc.550a <!-- custom: hoisted from multiline signature between `bIgnoreDiscount` and `bPeaceDeal` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.550a
+// <!-- custom: hoisted from multiline signature between `bIgnoreDiscount` and `bPeaceDeal` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvTeamAI::AI_techTradeVal(TechTypes eTech, TeamTypes eFromTeam, bool bIgnoreDiscount, bool bPeaceDeal) const // advc.140h
 {
 	PROFILE_FUNC(); // advc.550: Still seems completely harmless wrt. performance
@@ -4082,7 +4083,8 @@ int CvTeamAI::AI_declareWarTradeVal(TeamTypes eTarget, TeamTypes eSponsor) const
 }
 
 
-// advc: params renamed <!-- custom: hoisted from multiline signature before `eTarget` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc: params renamed
+// <!-- custom: hoisted from multiline signature before `eTarget` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 DenialTypes CvTeamAI::AI_declareWarTrade(TeamTypes eTarget, TeamTypes eSponsor, bool bConsiderPower) const
 {
 	PROFILE_FUNC();
@@ -4731,8 +4733,10 @@ void CvTeamAI::AI_changeWarSuccess(TeamTypes eTeam, scaled rChange)
 	Either eWarAlly has inflicted a war success on eEnemy or vice versa.
 	This team is being informed about the war success, and
 	rIntensity says how significant the war success was. */
-// (doesn't currently matter) <!-- custom: hoisted from multiline signature between `eEnemy` and `bIgnoreDistress` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-// True means: don't check if this team needs the assistance <!-- custom: hoisted from multiline signature between `eEnemy` and `bIgnoreDistress` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// (doesn't currently matter)
+// <!-- custom: hoisted from multiline signature between `eEnemy` and `bIgnoreDistress` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// True means: don't check if this team needs the assistance
+// <!-- custom: hoisted from multiline signature between `eEnemy` and `bIgnoreDistress` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 void CvTeamAI::AI_reportSharedWarSuccess(scaled rIntensity, TeamTypes eWarAlly, TeamTypes eEnemy, bool bIgnoreDistress)
 {
 	/*  War success against us as a measure of how distressed we are, i.e. how
@@ -5224,7 +5228,8 @@ bool CvTeamAI::AI_wasRecentlyNuked(CvPlot const& kPlot) const
 
 /*	if this number is over 0 the teams are "close"
 	this may be expensive to run, kinda O(N^2)... */
-// advc.104o <!-- custom: hoisted from multiline signature between `bConsiderLandTarget` and `bConstCache` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// advc.104o
+// <!-- custom: hoisted from multiline signature between `bConsiderLandTarget` and `bConstCache` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int CvTeamAI::AI_teamCloseness(TeamTypes eIndex, int iMaxDistance, bool bConsiderLandTarget, bool bConstCache) const // advc.001n
 {
 	//PROFILE_FUNC(); // advc.003o (the cache seems to be very effective)

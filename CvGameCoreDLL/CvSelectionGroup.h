@@ -191,7 +191,8 @@ public:
 	// FAStarNode* getPathLastNode() const; // disabled by K-Mod. Use pathFinder() instead.
 	CvPlot& getPathFirstPlot() const;																																		// Exposed to Python
 	CvPlot& getPathEndTurnPlot() const;																																	// Exposed to Python
-	// K-Mod <!-- custom: hoisted from multiline signature between `iMaxPath` and `bUseTempFinder` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// K-Mod
+	// <!-- custom: hoisted from multiline signature between `iMaxPath` and `bUseTempFinder` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool generatePath(CvPlot const& kFrom, CvPlot const& kTo, MovementFlags eFlags = NO_MOVEMENT_FLAGS, bool bReuse = false, int* piPathTurns = NULL, int iMaxPath = -1, bool bUseTempFinder = false) const; // advc.128; Exposed to Python
 
 	DllExport void clearUnits();

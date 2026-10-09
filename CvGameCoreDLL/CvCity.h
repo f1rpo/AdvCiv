@@ -73,7 +73,8 @@ public:
 	bool isBuildingsMaxed() const;																				// Exposed to Python
 
 	void verifyProduction(); // advc.064d: public wrapper for doCheckProduction
-	// advc.001b <!-- custom: hoisted from multiline signature between `bCheckAirUnitCap` and `eAssumeVailable` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.001b
+	// <!-- custom: hoisted from multiline signature between `bCheckAirUnitCap` and `eAssumeVailable` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	// <!-- custom: eAssumeTech passes one prospective technology through ordinary city/player legality; player-level checks also recognize its guaranteed XML prerequisites. See KI#48.14. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	bool canTrain(UnitTypes eUnit, bool bContinue = false, bool bTestVisible = false, bool bIgnoreCost = false, bool bIgnoreUpgrades = false, bool bCheckAirUnitCap = true, BonusTypes eAssumeVailable = NO_BONUS, TechTypes eAssumeTech = NO_TECH) const; // advc.001u; Exposed to Python
 	bool canUpgradeTo(UnitTypes eUnit) const; // advc.001b
@@ -131,10 +132,12 @@ public:
 	int getProductionModifier(ProjectTypes eProject) const;														// Exposed to Python
 	// advc.003j: Vanilla Civ 4 declaration that never had an implementation
 	//int getOverflowProductionDifference(int iProductionNeeded, int iProduction, int iProductionModifier, int iDiff, int iModifiedProduction) const;
-	// <advc.064bc> <!-- custom: hoisted from multiline signature between `bOverflow` and `bIgnoreFeatureProd` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// <advc.064bc>
+	// <!-- custom: hoisted from multiline signature between `bOverflow` and `bIgnoreFeatureProd` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int getProductionDifference(int iProductionNeeded, int iProduction, int iProductionModifier, bool bFoodProduction, bool bOverflow, bool bIgnoreFeatureProd = false, bool bIgnoreYieldRate = false, bool bForceFeatureProd = false, int* piFeatureProd = NULL) const;
 			// </advc.064bc>
-	// <advc.064bc> <!-- custom: hoisted from multiline signature between `bOverflow` and `bIgnoreFeatureProd` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// <advc.064bc>
+	// <!-- custom: hoisted from multiline signature between `bOverflow` and `bIgnoreFeatureProd` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int getCurrentProductionDifference(bool bIgnoreFood, bool bOverflow, bool bIgnoreFeatureProd = false, bool bIgnoreYieldRate = false, bool bForceFeatureProd = false, int* iFeatureProdReturn = NULL) const; // Exposed to Python
 			// </advc.064bc>
 	int getExtraProductionDifference(int iExtra) const { return getExtraProductionDifference(iExtra, getProductionModifier()); } // Exposed to Python
@@ -252,7 +255,8 @@ public:
 
 	static int cultureDistance(int iDX, int iDY); // advc: static												// Exposed to Python
 	enum GrievanceTypes { GRIEVANCE_HURRY, GRIEVANCE_CONSCRIPT, GRIEVANCE_RELIGION }; // advc.101
-	// advc.023 <!-- custom: hoisted from multiline signature between `bIgnoreOccupation` and `paGrievances` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.023
+	// <!-- custom: hoisted from multiline signature between `bIgnoreOccupation` and `paGrievances` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int cultureStrength(PlayerTypes ePlayer, bool bIgnoreWar = false, bool bIgnoreOccupation = false, std::vector<GrievanceTypes>* paGrievances = NULL) const; // advc.101; Exposed to Python
 	int cultureGarrison(PlayerTypes ePlayer) const;																// Exposed to Python
 	PlayerTypes calculateCulturalOwner() const; // advc.099c
@@ -718,7 +722,8 @@ public:
 	int getSpecialistCommerce(CommerceTypes eCommerce) const { return m_aiSpecialistCommerce.get(eCommerce); } // Exposed to Python
 	void changeSpecialistCommerce(CommerceTypes eCommerce, int iChange);										// Exposed to Python
 	// BUG - Specialist Additional Commerce - start
-	// Exposed to Python <!-- custom: hoisted from multiline signature between `eCommerce` and `eSpecialist` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// Exposed to Python
+	// <!-- custom: hoisted from multiline signature between `eCommerce` and `eSpecialist` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int getAdditionalCommerceBySpecialist(CommerceTypes eCommerce, SpecialistTypes eSpecialist, int iChange = 1) const { return getAdditionalCommerceTimes100BySpecialist(eCommerce, eSpecialist, iChange) / 100; }
 	int getAdditionalCommerceTimes100BySpecialist(CommerceTypes eCommerce, SpecialistTypes eSpecialist, int iChange = 1) const; // Exposed to Python
 	int getAdditionalBaseCommerceRateBySpecialist(CommerceTypes eCommerce, SpecialistTypes eSpecialist, int iChange = 1) const; // Exposed to Python
@@ -760,7 +765,8 @@ public:
 	int countTotalCultureTimes100() const;																		// Exposed to Python
 	PlayerTypes findHighestCulture() const;																		// Exposed to Python
 	// advc.101:  (advc.ctr: exposed to Python)
-	// <advc.023> <!-- custom: hoisted from multiline signature before `bIgnoreWar` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// <advc.023>
+	// <!-- custom: hoisted from multiline signature before `bIgnoreWar` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	scaled revoltProbability(bool bIgnoreWar = false, bool biIgnoreGarrison = false, bool bIgnoreOccupation = false) const;
 	scaled probabilityOccupationDecrement() const; // </advc.023>
 	// K-Mod: (advc.ctr: exposed to Python)

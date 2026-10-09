@@ -104,24 +104,29 @@ public:
 	void changeAdjacentSight(TeamTypes eTeam, int iRange, bool bIncrement, CvUnit const* pUnit, bool bUpdatePlotGroups);
 	bool canSeePlot(CvPlot const* pPlot, TeamTypes eTeam, int iRange, DirectionTypes eFacingDirection /* advc: */ = NO_DIRECTION) const;
 	bool canSeeDisplacementPlot(TeamTypes eTeam, int iDX, int iDY, int iOriginalDX, int iOriginalDY, bool bFirstPlot, bool bOuterRing) const;
-	// int range, // advc: unused <!-- custom: hoisted from multiline signature between `iDY` and `eFacingDirection` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// int range, // advc: unused
+	// <!-- custom: hoisted from multiline signature between `iDY` and `eFacingDirection` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool shouldProcessDisplacementPlot(int iDX, int iDY, DirectionTypes eFacingDirection) const;
 	void updateSight(bool bIncrement, bool bUpdatePlotGroups);
 	void updateSeeFromSight(bool bIncrement, bool bUpdatePlotGroups);
 
-	// advc.129 <!-- custom: hoisted from multiline signature between `bIgnoreFeature` and `bIgnoreCurrentBonus` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.129
+	// <!-- custom: hoisted from multiline signature between `bIgnoreFeature` and `bIgnoreCurrentBonus` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool canHaveBonus(BonusTypes eBonus, bool bIgnoreLatitude = false, bool bIgnoreFeature = false, bool bIgnoreCurrentBonus = false) const; // advc.tsl; Exposed to Python
 	bool canHaveImprovement(ImprovementTypes eImprovement, TeamTypes eTeam = NO_TEAM, bool bPotential = false, BuildTypes eBuild = NO_BUILD, bool bAnyBuild = true) const; // kekm.9; Exposed to Python
 	bool canBuild(BuildTypes eBuild, PlayerTypes ePlayer = NO_PLAYER, bool bTestVisible = false, bool bIgnoreFoW = true) const; // advc.181; Exposed to Python
 	int getBuildTime(BuildTypes eBuild, PlayerTypes ePlayer) const; // advc.251; Exposed to Python
-	// <advc.011c> <!-- custom: hoisted from multiline signature between `iThenExtra` and `bIncludeUnits` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// <advc.011c>
+	// <!-- custom: hoisted from multiline signature between `iThenExtra` and `bIncludeUnits` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int getBuildTurnsLeft(BuildTypes eBuild, /* advc.251: */ PlayerTypes ePlayer, int iNowExtra, int iThenExtra, bool bIncludeUnits = true) const; // Exposed to Python
 	int getBuildTurnsLeft(BuildTypes eBuild, PlayerTypes ePlayer) const;
 	// </advc.011c>
 	int getFeatureProduction(BuildTypes eBuild, TeamTypes eTeam, CvCity** ppCity, CvPlot const* pCityPlot = NULL, PlayerTypes eCityOwner = NO_PLAYER) const; // advc.031; Exposed to Python
 
-	// Exposed to Python <!-- custom: hoisted from multiline signature between `eAttackingPlayer` and `pAttacker` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-	// advc.028: Replacing bTestCanMove. False by default b/c invisible units are generally able to defend - they just choose not to (CvUnit::isBetterDefenderThan). <!-- custom: hoisted from multiline signature between `bTestPotentialEnemy` and `bTestVisible` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// Exposed to Python
+	// <!-- custom: hoisted from multiline signature between `eAttackingPlayer` and `pAttacker` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.028: Replacing bTestCanMove. False by default b/c invisible units are generally able to defend - they just choose not to (CvUnit::isBetterDefenderThan).
+	// <!-- custom: hoisted from multiline signature between `bTestPotentialEnemy` and `bTestVisible` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	DllExport CvUnit* getBestDefender(PlayerTypes eOwner, PlayerTypes eAttackingPlayer = NO_PLAYER, CvUnit const* pAttacker = NULL, bool bTestAtWar = false, bool bTestPotentialEnemy = false, bool bTestVisible = false) const
 	// <advc> Need some more params
 	{
@@ -163,9 +168,11 @@ public:
 	CvUnit* getSelectedUnit() const;																// Exposed to Python
 	int getUnitPower(PlayerTypes eOwner = NO_PLAYER) const;											// Exposed to Python
 
-	// advc.012: NO_TEAM means rival defense applies; moved bHelp to the end b/c that parameter is rarely set <!-- custom: hoisted from multiline signature between `bIgnoreBuilding` and `eAttacker` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.012: NO_TEAM means rival defense applies; moved bHelp to the end b/c that parameter is rarely set
+	// <!-- custom: hoisted from multiline signature between `bIgnoreBuilding` and `eAttacker` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int defenseModifier(TeamTypes eDefender, bool bIgnoreBuilding, TeamTypes eAttacker = NO_TEAM, bool bHelp = false, bool bGarrisonStrength = false) const; // advc.500b; Exposed to Python
-	// advc.001i <!-- custom: hoisted from multiline signature between `bAssumeRevealed` and `bIgnoreRoutes` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.001i
+	// <!-- custom: hoisted from multiline signature between `bAssumeRevealed` and `bIgnoreRoutes` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int movementCost(CvUnit const& kUnit, CvPlot const& kFrom, bool bAssumeRevealed = true, bool bIgnoreRoutes = false) const; // advc.001t; Exposed to Python
 	// advc.enum: Still exposed to Python, obsolete within the DLL.
 	/*int getExtraMovePathCost() const;																// Exposed to Python
@@ -189,7 +196,8 @@ public:
 	void setBorderDangerCache(TeamTypes eTeam, bool bNewValue) const { m_abBorderDangerCache.set(eTeam, bNewValue); }
 	void invalidateBorderDangerCache();
 	// BETTER_BTS_AI_MOD: END
-	// advc.099c <!-- custom: hoisted from multiline signature between `bIgnoreCultureRange` and `bOwnExclusiveRadius` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.099c
+	// <!-- custom: hoisted from multiline signature between `bIgnoreCultureRange` and `bOwnExclusiveRadius` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	PlayerTypes calculateCulturalOwner(bool bIgnoreCultureRange = false, bool bOwnExclusiveRadius = false) const; // advc.035
 
 	void plotAction(PlotUnitFunc func, int iData1 = -1, int iData2 = -1, PlayerTypes eOwner = NO_PLAYER, TeamTypes eTeam = NO_TEAM);
@@ -282,7 +290,8 @@ public:
 	bool isArea(CvArea const& kArea) const { return (area() == &kArea); }
 	bool sameArea(CvPlot const& kPlot) const { return isArea(kPlot.getArea()); }
 	void initArea(); // </advc>
-	// BETTER_BTS_AI_MOD, General AI, 01/02/09, jdog5000 <!-- custom: hoisted from multiline signature before `bNoImpassable` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// BETTER_BTS_AI_MOD, General AI, 01/02/09, jdog5000
+	// <!-- custom: hoisted from multiline signature before `bNoImpassable` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	CvArea* waterArea(bool bNoImpassable = false) const;
 	CvArea* secondWaterArea() const;
 	void setArea(CvArea* pArea = NULL, /* advc.310: */ bool bProcess = true);
@@ -510,7 +519,8 @@ public:
 	void setRevealedRouteType(TeamTypes eTeam, RouteTypes eNewValue);
 	// advc.inl:
 	int getBuildProgress(BuildTypes eBuild) const { return m_aiBuildProgress.get(eBuild); } // Exposed to Python
-	// TeamTypes eTeam = NO_TEAM <!-- custom: hoisted from multiline signature between `iChange` and `ePlayer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// TeamTypes eTeam = NO_TEAM
+	// <!-- custom: hoisted from multiline signature between `iChange` and `ePlayer` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool changeBuildProgress(BuildTypes eBuild, int iChange, PlayerTypes ePlayer); // advc.251; Exposed to Python
 	bool isBuildProgressDecaying(bool bWarn = false) const; // advc.011
 	void decayBuildProgress(); // advc.011
@@ -547,14 +557,18 @@ public:
 	DllExport CvUnit* getDebugCenterUnit() const;
 	bool setCenterUnit(CvUnit* pNewValue);
 
-	// Exposed to Python <!-- custom: hoisted from multiline signature between `eOwnerIndex` and `eRangeIndex` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// Exposed to Python
+	// <!-- custom: hoisted from multiline signature between `eOwnerIndex` and `eRangeIndex` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int getCultureRangeCities(PlayerTypes eOwnerIndex, CultureLevelTypes eRangeIndex) const { return m_aaiCultureRangeCities.get(eOwnerIndex, eRangeIndex); } // advc.enum
-	// Exposed to Python <!-- custom: hoisted from multiline signature between `eOwnerIndex` and `eRangeIndex` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// Exposed to Python
+	// <!-- custom: hoisted from multiline signature between `eOwnerIndex` and `eRangeIndex` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool isCultureRangeCity(PlayerTypes eOwnerIndex, CultureLevelTypes eRangeIndex) const { return (getCultureRangeCities(eOwnerIndex, eRangeIndex) > 0); } // advc.enum
 	void changeCultureRangeCities(PlayerTypes eOwnerIndex, CultureLevelTypes eRangeIndex, int iChange, bool bUpdatePlotGroups);
-	// Exposed to Python <!-- custom: hoisted from multiline signature between `eTeam` and `eInvisible` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// Exposed to Python
+	// <!-- custom: hoisted from multiline signature between `eTeam` and `eInvisible` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int getInvisibleVisibilityCount(TeamTypes eTeam, InvisibleTypes eInvisible) const { return m_aaiInvisibleVisibilityCount.get(eTeam, eInvisible); }
-	// Exposed to Python <!-- custom: hoisted from multiline signature between `eTeam` and `eInvisible` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// Exposed to Python
+	// <!-- custom: hoisted from multiline signature between `eTeam` and `eInvisible` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool isInvisibleVisible(TeamTypes eTeam, InvisibleTypes eInvisible) const { return (getInvisibleVisibilityCount(eTeam, eInvisible) > 0); }
 	void changeInvisibleVisibilityCount(TeamTypes eTeam, InvisibleTypes eInvisible, int iChange); // Exposed to Python
 
@@ -589,7 +603,8 @@ public:
 	bool canApplyEvent(EventTypes eEvent) const;
 	void applyEvent(EventTypes eEvent);
 
-	// advc.001b <!-- custom: hoisted from multiline signature between `bCheckAirUnitCap` and `eAssumeAvailable` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+	// advc.001b
+	// <!-- custom: hoisted from multiline signature between `bCheckAirUnitCap` and `eAssumeAvailable` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	bool canTrain(UnitTypes eUnit, bool bContinue, bool bTestVisible, bool bCheckAirUnitCap = true, BonusTypes eAssumeAvailable = NO_BONUS) const; // advc.001u
 	bool canConstruct(BuildingTypes eBuilding) const; // advc
 	bool isEspionageCounterSpy(TeamTypes eTeam) const;

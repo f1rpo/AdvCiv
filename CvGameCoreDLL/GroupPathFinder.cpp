@@ -249,7 +249,8 @@ bool GroupStepMetric::isValidDest(CvPlot const& kPlot, CvSelectionGroup const& k
 // "pathCost" in BtS/ K-Mod
 /*	This function has been completely rewritten for K-Mod.
 	(the rewrite includes some bug fixes as well as some new features) */
-// (advc: Moves left when at kFrom) <!-- custom: hoisted from multiline signature between `iCurrMoves` and `bAtStart` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
+// (advc: Moves left when at kFrom)
+// <!-- custom: hoisted from multiline signature between `iCurrMoves` and `bAtStart` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 int GroupStepMetric::cost(CvPlot const& kFrom, CvPlot const& kTo, CvSelectionGroup const& kGroup, MovementFlags eFlags, int iCurrMoves, bool bAtStart) // (advc: True if kFrom is the start of the path)
 {
 	//PROFILE_FUNC(); // advc.003o
