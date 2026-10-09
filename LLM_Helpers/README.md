@@ -60,6 +60,10 @@ Always review diffs before committing generated source changes.
   - [`convert_advciv_manual_to_txt.py`](#convert_advciv_manual_to_txtpy)
 - [Source packaging and generated-history helpers](#source-packaging-and-generated-history-helpers)
   - [`make_light_source_zip.py`](#make_light_source_zippy)
+    - [General](#general)
+    - [Example of creating a light source ZIP in Downloads folder (light_source ZIP) (Git Bash)](#example-of-creating-a-light-source-zip-in-downloads-folder-light_source-zip-git-bash)
+    - [Example of output (light_source ZIP) (Git Bash)](#example-of-output-light_source-zip-git-bash)
+    - [Notes (light_source ZIP)](#notes-light_source-zip)
   - [`refresh_commit_diffs.py`](#refresh_commit_diffspy)
 - [Workflow rule for timeline tuning](#workflow-rule-for-timeline-tuning)
 - [General notes for future LLM helpers](#general-notes-for-future-llm-helpers)
@@ -1106,18 +1110,35 @@ git diff -- "_0_Common_Docs/AdvCiv_Base_Doc/manual.txt"
 
 ### `make_light_source_zip.py`
 
+#### General
+
 - Creates a timestamped light source ZIP for a Civ4 mod, mainly for compact local/LLM/code-agent review handoffs.
 - Uses repo-relative archive paths and `ZIP_DEFLATED` compression by default.
   - ZIP is intentionally used instead of 7z because 7z uploads caused errors before, while ZIP is currently an as of now seemingly easily compatible format for ChatGPT/code-agent review.
   - Use `--compression-level 0` for the old `ZIP_STORED` / no-compression behavior.
 - Compression applies to the whole archive, not only images: JPG/PNG screenshots are already compressed and shrink little, while XML/Python/docs shrink a lot, so whole-ZIP compression is the useful default once selected screenshot folders are included.
 - Adds an archive-only `_SNAPSHOT_CONTEXT/` folder generated automatically from the local Git repository. The neutral name reflects that these files are extra context for the archive snapshot rather than repository files; they can help human reviewers, LLMs, or other tools. It contains:
+  - `packaging_summary.txt`: the compact pre-write summary also printed in the console, with UTC start/context-preparation timestamps, current branch/HEAD and practical commit count, default-branch comparison, staged/unstaged tracked-file counts, archive filename/options and history summary.
+    - Timestamps use UTC with millisecond precision and a `Z` suffix (for example `2026-10-09T07:40:30.123Z`), matching the millisecond units used for durations. Durations are measured with a monotonic performance counter rather than by subtracting wall-clock timestamps.
+    - Changed-file names appear when the combined staged and unstaged lists contain at most 100 entries. A partially staged file counts in both lists; general untracked files are excluded. Full tracked status remains available in `git_repository_state.txt`.
+    - On Windows, the console and this summary also record a timestamped check for `Civ4BeyondSword.exe`, `VCExpress.exe` (Visual C++ 2010 Express), `devenv.exe`, `MSBuild.exe`, `nmake.exe`, `cl.exe` and `link.exe`, with matching PIDs.
+    - This is a point-in-time observation, not proof of active autoplay or compilation, and does not prevent processes from starting or exiting during packaging. Unsupported or failed checks are explicitly reported as unavailable.
+    - `MSBuild.exe` workers can persist after compilation when node reuse is enabled (`/nr`), as observed locally. The console and archived summary explain that their presence alone does not identify an active build.
+    - Local testing indicates light-source creation succeeds during Civ4 autoplay.
+    - With Visual C++ 2010 Express open, however, one attempt failed with `PermissionError` while reading `CvGameCoreDLL/Project/AdvCiv.opensdf`, even without compilation running.
+    - For that specific failure, close the IDE and retry; these observations do not guarantee access to every file during future runs.
+    - This is not a verbatim transcript of the whole command. Completion time, elapsed durations, final ZIP size and local-context refresh results are console-only because they are known after the snapshot is prepared or the ZIP closes.
   - `repo_file_manifest.txt`: every tracked path from `git ls-files` (including files intentionally omitted from the light ZIP), with the exact current working-tree byte size before each path.
     - This is deliberately only tracked-file inventory/state, so an external/ZIP-only reviewer can distinguish "not included in this light archive" from "not present in the local repository" and can still see useful size clues for omitted binaries such as `Assets/CvGameCoreDLL.dll`.
     - A tracked path missing from the working tree is marked `MISSING`.
     - Tracked paths preserve Git's canonical path spelling/casing.
     - Untracked paths are intentionally not enumerated to avoid exposing unrelated local filenames; selected untracked source files can still be included normally by the exporter.
   - `git_repository_state.txt`: current branch/HEAD, total commit count, locally known upstream plus ahead/behind counts, active `MERGE_HEAD`/matched merge target when applicable, tracked `git status --short --untracked-files=no` output, and any files already selected for the ZIP that are not tracked by Git.
+    - The default branch is detected from locally known `origin/HEAD`, without hardcoding `main` or fetching.
+    - Its local branch is used for comparison when available; otherwise the remote-tracking ref is used.
+    - The remote count is shown separately and may be stale.
+    - Missing default-branch metadata is reported as unavailable.
+    - Current-only/default-only counts describe commits reachable from only one side. They distinguish feature-branch progress from the default branch, but merges and squashes mean they are not necessarily a contiguous tail or a simple practical-version offset. Uncommitted changes do not contribute to commit counts.
     - AdvCiv-SAS commonly uses that total commit count as its practical version number in documentation (e.g. the `X` in `requires AdvCiv-SAS X+`), while `HEAD` is the exact source-state identifier.
     - Git short status uses two columns (`X` = index/staged state, `Y` = working-tree/unstaged state), e.g. `M ` for staged modification, ` M` for unstaged modification, and `MM` for a staged file modified again afterward.
     - General untracked paths are still not enumerated.
@@ -1126,6 +1147,34 @@ git diff -- "_0_Common_Docs/AdvCiv_Base_Doc/manual.txt"
   - `git_ignored_paths_tree.txt`: compact ASCII tree of paths ignored by Git's effective standard ignore rules.
     - Entire ignored directories can be collapsed to one entry, so it can reveal useful local/generated/build context that is absent from the tracked manifest without exploding into a list of every file underneath those directories.
     - It is separate from `repo_file_manifest.txt` because ignored paths are local repository state, not tracked repository contents.
+  - `branch_comparison_log.txt`: the committed history unique to each side of the current/default comparison, with full SHAs, parent SHAs, author names (emails hidden), dates, full messages and per-commit practical counts.
+    - The shared merge-base SHA/count anchors the two sides; each list is ordered oldest to newest topologically.
+    - The console and packaging summary also list each side's commit count and, up to 100 commits per side, practical count/SHA/title. The ordinary current-HEAD history remains available separately; default-only commits are context, not part of current source.
+    - A practical number is the total number of commits reachable from that SHA, not a branch-relative sequence or unique identity. Divergent commits can share a number; merges and squashes affect counts. Parent SHAs establish ancestry, while cherry-pick origin notes preserved in full messages document copied changes without making the original commit a parent.
+  - `omitted_dll_comparison.txt`: exact byte sizes and SHA-256 hashes for tracked DLLs at the default tip, HEAD, captured index and current working-file state, with byte-identity results and signed size deltas.
+    - DLL payloads remain excluded; the console and packaging summary show a concise HEAD/working comparison.
+    - Working-file modification timestamps are informational, not proof of content age.
+    - Equal sizes do not prove equal bytes, and different bytes do not establish a functional change or Release/Debug-opt configuration.
+    - Unavailable baselines, read failures and detected changes during hashing are explicit.
+  - `head_files/` and `index_files/`: immediate pre-edit reference files for reviewing uncommitted work without reconstructing whole files from patches.
+    - HEAD copies cover paths affected by staged or unstaged edits; index copies cover paths with unstaged edits, including partially staged files.
+    - Together with current source in the ZIP, these provide the `HEAD -> index -> working tree` layers.
+    - Original filenames, extensions, repo-relative paths and Git blob bytes are preserved.
+    - `head_files_manifest.txt` identifies the exact HEAD commit; `index_files_manifest.txt` records captured stage-0 index blob IDs.
+    - These are Git snapshots, not a history of every intermediate editing step.
+    - New files may have no HEAD counterpart; staged deletions or unresolved merges may have no stage-0 index counterpart.
+    - Manifests report missing blobs, excluded binaries and size limits (2 MiB/file, 16 MiB per reference layer).
+    - Untracked files, generated history and EOL-noise-only changes are excluded; selected untracked files remain included separately by the normal source exporter.
+  - `default_branch_files/`: reference copies of changed text files from the exact default-branch comparison tip, retaining repository-relative paths (for example `_SNAPSHOT_CONTEXT/default_branch_files/CvGameCoreDLL/InvasionGraph.cpp`). They support side-by-side review or copying an explicitly chosen baseline, without replacing the current source files elsewhere in the ZIP.
+    - Source/configuration/documentation files such as `.cpp`, `.h`, `.xml`, `.py` and `.md` retain their original filenames, extensions, encoding and exact Git blob bytes; they are not converted to `.txt`.
+    - Together with current source, the cumulative branch patch and the separate staged/unstaged diffs, these baseline files let ZIP-only reviewers inspect the overall change and its before/after code without reconstructing whole files from historical patches or guessing which branch version they have. This supports source review; compilation and runtime validation remain separate.
+    - These copies represent the default tip, whereas the cumulative patch below starts at the merge base. Those commits can differ; `default_branch_files_manifest.txt` records the exact tip, copied paths and omissions. Deleted/renamed original paths are included when a default counterpart exists.
+    - Binary/excluded files, missing default counterparts and files exceeding 2 MiB each or the 16 MiB combined budget are recorded rather than copied. The console and packaging summary show the cumulative changed-path count and names up to 100 entries, plus the copy count and manifest path.
+  - The `no_eol` review patches ignore CRLF/LF line-ending differences and trailing whitespace, preventing line-ending conversions from producing giant whole-file diffs. Meaningful indentation and content changes remain visible; generating these patches does not normalize or rewrite source files.
+  - `branch_committed_changes_no_eol.diff`: one cumulative review patch from the same merge base to captured HEAD, containing committed changes only. Compare this with the working-tree patch below to review the committed PR separately from ongoing edits; both use the same EOL filtering and generated-history exclusions.
+  - `branch_changes_no_eol.diff`: one cumulative review patch from the merge base of current HEAD and the detected default-branch comparison tip to the current tracked working tree, covering committed, staged and unstaged changes together while ignoring end-of-line whitespace noise.
+    - Using the shared ancestor avoids presenting newer default-only commits as deletions. The patch header, repository state and console summary identify the exact default/current tips, merge-base SHA and scope. This is a feature-review patch, not a direct diff against the latest default tree.
+    - Untracked files and generated history context are excluded; selected untracked files remain available separately in the ZIP. Unavailable default metadata, unrelated histories or multiple merge bases produce an explicit unavailable message instead of a guessed comparison.
   - `staged_changes_no_eol.diff`: raw staged tracked changes (`HEAD -> index`) using Git's end-of-line whitespace/CR ignore options so line-ending-only noise does not dominate review. An empty file means there are no staged tracked changes.
   - `unstaged_changes_no_eol.diff`: raw unstaged tracked changes (`index -> working tree`) with the same end-of-line-noise filtering. An empty file means there are no unstaged tracked changes.
   - `git_log_since_tracked_advciv_sas_log.txt`: anonymized commit messages after the newest commit already present in [`git_log_anonymized_email_003_AdvCiv-SAS.txt`](/_1_AdvCiv-SAS/Docs/git_logs/git_log_anonymized_email_003_AdvCiv-SAS.txt) through the snapshot's `HEAD`; the already-recorded boundary commit is excluded to avoid duplication.
@@ -1206,7 +1255,7 @@ git diff -- "_0_Common_Docs/AdvCiv_Base_Doc/manual.txt"
 
 Tools like here WizTree helped find which folders/files are heavy to exclude.
 
-Example of creating a light source ZIP in Downloads folder (Git Bash):
+#### Example of creating a light source ZIP in Downloads folder (light_source ZIP) (Git Bash)
 
 ```bash
 cd "C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS" && python ./LLM_Helpers/make_light_source_zip.py --output-dir "C:\Users\PC\Downloads"
@@ -1218,26 +1267,135 @@ Same handoff while first refreshing locally known base AdvCiv release refs:
 python ./LLM_Helpers/make_light_source_zip.py --fetch-upstream --output-dir "C:\Users\PC\Downloads"
 ```
 
-Example of output (Git Bash):
+#### Example of output (light_source ZIP) (Git Bash)
+
+This command-output example is short enough to keep here beside the usage instructions rather than in the examples/outputs folders. It illustrates the packaging report; the generated artifact is the light-source ZIP itself.
 
 ```text
+Started:   2026-10-09T14:05:35.097Z
+History preparation: inspecting reachable commits and reusable patches...
+History cache: reusing entries from C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\.git\advciv_sas_light_source_commit_diffs\v2_6be79479a47b
+History cache miss: no reusable patch for a8604aafcd4e034d077c856b793729f1fbe1034c; regenerating missing/new/rewritten entries under the current policy.
+History preparation: many missing patches can take several minutes or more; subsequent runs normally reuse them rather than rebuilding everything.
+History preparation complete: 6 patches regenerated, 6617 reused. Continuing snapshot preparation.
 Repo root: C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS
+Branch: codex/uwai-structured-diagnostics
+HEAD: a8604aafcd4e034d077c856b793729f1fbe1034c
+Commit count: 6623
+Default branch: main (locally known origin/HEAD; no fetch)
+Default comparison ref: refs/heads/main
+Default HEAD: fe8b16962fb39d60225657e9ec587716f6d87b24
+Default commit count: 6606
+Default remote commit count: 6606 (refs/remotes/origin/main; may be stale)
+Current-only / default-only commits: 19 / 2
+Branch diff: _SNAPSHOT_CONTEXT/branch_changes_no_eol.diff
+Branch diff default ref: refs/heads/main (fe8b16962fb39d60225657e9ec587716f6d87b24)
+Branch diff current HEAD: a8604aafcd4e034d077c856b793729f1fbe1034c
+Branch diff merge base: c72209630232a49c617c9c639d66fe6f850e4380
+Branch diff scope: merge base -> tracked working tree (committed + staged + unstaged; excludes untracked files and generated history context).
+Branch committed diff: _SNAPSHOT_CONTEXT/branch_committed_changes_no_eol.diff
+Branch committed diff scope: merge base -> captured HEAD (committed only; excludes generated history context).
+Branch comparison log: _SNAPSHOT_CONTEXT/branch_comparison_log.txt
+Branch comparison shared ancestor: 6604 / c72209630232a49c617c9c639d66fe6f850e4380
+Branch commits CURRENT-ONLY: 19 (practical count / SHA / title below; full messages and parents in branch_comparison_log.txt)
+Branch commit CURRENT-ONLY: 6605 / df69134e02b71bbd76a7050dbf6351a2974bcf5a / Structure UWAI scenario-analysis diagnostics
+Branch commit CURRENT-ONLY: 6606 / a19cee3d26e4edaf81ac744691fd07fed7de8ef9 / Expose light-source branch, change and runtime context
+Branch commit CURRENT-ONLY: 6607 / 2baad35905ef1f2c3f5fd9e67cdfc4345e3612d4 / Structure UWAI InvasionGraph topology diagnostics
+Branch commit CURRENT-ONLY: 6608 / 034253c9105e89b198b6ae0d467237cb92807391 / Add branch review diffs, baseline files and history to light-source ZIPs
+Branch commit CURRENT-ONLY: 6609 / 41ff29feaa234fded9cfb4394244df9ac5286d35 / Structure UWAI InvasionGraph combat diagnostics
+Branch commit CURRENT-ONLY: 6610 / d74d40f333fd8f5ecb3520feb2328837bc319d29 / Preserve pre-edit source references and show history-cache progress
+Branch commit CURRENT-ONLY: 6611 / 968e9eea10e519cc21c0b2987fa6e7c84deb56fb / Report omitted DLL identity and clarify light-source history summaries
+Branch commit CURRENT-ONLY: 6612 / fb79023cfc683745764f14d613f3676c9305bcd4 / Structure UWAI war-plan lifecycle diagnostics
+Branch commit CURRENT-ONLY: 6613 / 6dc5650deabc126bb4b2aa7222a738b40b673c1d / Structure UWAI peace and capitulation diagnostics
+Branch commit CURRENT-ONLY: 6614 / 6c1df4cda1e28ce39801653da776896a51a529e3 / Make light-source packaging documentation easier to scan
+Branch commit CURRENT-ONLY: 6615 / 5bc5c8d03c4f00f11bac3a1b1c7ce6b0c8748754 / Structure remaining UWAI Agent decision diagnostics
+Branch commit CURRENT-ONLY: 6616 / abfd0ff21df40d35513ed1e763f60d8d9724359a / Structure core UWAI war-utility diagnostics
+Branch commit CURRENT-ONLY: 6617 / a77100ff26ff8366798524f82a90bb9467ae65bc / Clarify persistent MSBuild workers in light-source process reports
+Branch commit CURRENT-ONLY: 6618 / ded27960d9a31268d9313609467d4aff79fe0d17 / Structure and consolidate UWAI material-gain diagnostics
+Branch commit CURRENT-ONLY: 6619 / 41de8c75f4ffb62852e16d21adf15d834be4049d / Structure UWAI loathing and military-victory diagnostics
+Branch commit CURRENT-ONLY: 6620 / ddd906d131814f77ba128ac10f9e0e9222e9bd04 / Structure and consolidate UWAI assistance and diplomacy diagnostics
+Branch commit CURRENT-ONLY: 6621 / 49e520e5c458d080077c3713691ac68693073dc8 / Structure and consolidate UWAI strategic-threat diagnostics
+Branch commit CURRENT-ONLY: 6622 / 8b2df59cbe5e97e1eed72ce41f82d9761c4b5b86 / Structure and consolidate UWAI effort, risk and ill-will diagnostics
+Branch commit CURRENT-ONLY: 6623 / a8604aafcd4e034d077c856b793729f1fbe1034c / Structure and consolidate UWAI social and fairness diagnostics
+Branch commits DEFAULT-ONLY: 2 (practical count / SHA / title below; full messages and parents in branch_comparison_log.txt)
+Branch commit DEFAULT-ONLY: 6605 / 75295ecf03ce483352054757b2553c8f57bc094f / Make light-source ZIPs self-contained for branch review
+Branch commit DEFAULT-ONLY: 6606 / fe8b16962fb39d60225657e9ec587716f6d87b24 / Preserve pre-edit source context and report omitted DLL identity in light-source ZIPs
+Branch changed files: 14 (diff: _SNAPSHOT_CONTEXT/branch_changes_no_eol.diff; names listed below)
+Branch changed: AGENTS.md
+Branch changed: Assets/CvGameCoreDLL.dll
+Branch changed: Assets/XML/GlobalDefines_advciv_sas.xml
+Branch changed: CvGameCoreDLL/ArmamentForecast.cpp
+Branch changed: CvGameCoreDLL/InvasionGraph.cpp
+Branch changed: CvGameCoreDLL/InvasionGraph.h
+Branch changed: CvGameCoreDLL/MilitaryAnalyst.cpp
+Branch changed: CvGameCoreDLL/UWAIAgent.cpp
+Branch changed: CvGameCoreDLL/WarEvaluator.cpp
+Branch changed: CvGameCoreDLL/WarUtilityAspect.cpp
+Branch changed: LLM_Helpers/README.md
+Branch changed: LLM_Helpers/make_light_source_zip.py
+Branch changed: README.md
+Branch changed: _1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md
+Default file copies: 13 text files in _SNAPSHOT_CONTEXT/default_branch_files/ (1927206 bytes)
+Default file copies manifest: _SNAPSHOT_CONTEXT/default_branch_files_manifest.txt
+Uncommitted HEAD file copies: 4 files for 5 affected paths in _SNAPSHOT_CONTEXT/head_files/ (776845 bytes)
+Uncommitted HEAD manifest: _SNAPSHOT_CONTEXT/head_files_manifest.txt
+Uncommitted INDEX file copies: 4 files for 5 affected paths in _SNAPSHOT_CONTEXT/index_files/ (780567 bytes)
+Uncommitted INDEX manifest: _SNAPSHOT_CONTEXT/index_files_manifest.txt
+Omitted DLL comparison: 1 tracked DLL paths; report: _SNAPSHOT_CONTEXT/omitted_dll_comparison.txt
+Omitted DLL Assets/CvGameCoreDLL.dll: HEAD -> WORKING BYTE-DIFFERENT; sizeDeltaBytes=+5828608
+Staged files: 1 (diff: _SNAPSHOT_CONTEXT/staged_changes_no_eol.diff; names listed below)
+  Staged: CvGameCoreDLL/WarUtilityAspect.cpp
+Unstaged tracked files: 5 (diff: _SNAPSHOT_CONTEXT/unstaged_changes_no_eol.diff; names listed below)
+  Unstaged tracked: Assets/CvGameCoreDLL.dll
+  Unstaged tracked: Assets/XML/GlobalDefines_advciv_sas.xml
+  Unstaged tracked: CvGameCoreDLL/WarUtilityAspect.cpp
+  Unstaged tracked: LLM_Helpers/README.md
+  Unstaged tracked: LLM_Helpers/make_light_source_zip.py
+A partially staged file counts in both lists; untracked files are excluded (selected untracked paths are in git_repository_state.txt).
+Runtime process check: 2026-10-09T14:05:42.067Z
+Civ4BeyondSword.exe running: no
+VCExpress.exe running: no
+devenv.exe running: no
+MSBuild.exe running: yes (PID=28204)
+nmake.exe running: no
+cl.exe running: no
+link.exe running: no
+Process presence is a point-in-time observation, not proof of active autoplay or compilation; processes may start or exit during packaging.
+MSBuild.exe workers can persist after compilation when node reuse is enabled (/nr); their presence alone does not identify an active build.
 Mod name:  AdvCiv-SAS
 Prefix:    AdvCiv-SAS_light_source
-Archive:   C:\Users\PC\Downloads\AdvCiv-SAS_light_source_20260902T225239.zip
-Files:     1327 selected + 6458 generated context files
-Size:      404,940,754 bytes before ZIP container overhead
+Archive:   C:\Users\PC\Downloads\AdvCiv-SAS_light_source_20261009T160535.zip
+Files:     1366 selected + 6665 generated context files
+Size:      454,151,963 bytes before ZIP container overhead
 Mode:      ZIP_DEFLATED / compression level 6
-History:   commit diffs: 6386 included (SASBranch:2043,AdvCivPreSAS:3094,KMod:1249), 6385 private-cache hit(s), 0 local-mirror hit(s), 1 rendered, 0 not cached; versions=dag-from-one-log; cache=C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\.git\advciv_sas_light_source_commit_diffs\v2_1e731b350907; pending upstream: 59 commit(s) union from 16 selected ref(s); presentation=upstream/1.14; extra-vs-presentation=48
-Context:   refreshed LLM_Helpers/context/commit_diffs (added=1, updated=2, removed=0, unchanged=6385)
-Wrote:     7785 file(s)
-ZIP size:  132,807,311 bytes
-Duration:  16,586 ms total (6,765 ms generated context; 8,328 ms ZIP write; 1,228 ms local-context refresh)
+History:
+  commit diffs: 6623 included (SASBranch:2280,AdvCivPreSAS:3094,KMod:1249)
+  6617 private-cache hit(s)
+  0 local-mirror hit(s)
+  6 rendered
+  0 not cached
+  versions=dag-from-one-log
+  cache=C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\.git\advciv_sas_light_source_commit_diffs\v2_6be79479a47b
+  pending upstream: no fetched release-like ref detected
+ZIP build: writing selected source files and prepared snapshot/history context...
+Context:   refreshed LLM_Helpers/context/commit_diffs (added=6, updated=2, removed=0, unchanged=6617)
+Wrote:     8031 file(s)
+ZIP size:  145,033,357 bytes
+Duration:  18,010 ms total (6,771 ms generated context; 9,314 ms ZIP write; 1,466 ms local-context refresh)
+Finished:  2026-10-09T14:05:53.094Z
 ```
 
-Note: Light-source ZIP creation is usually quick because historical commit patches are cached. A first run with a missing cache, or the first run after a cache-format or history-selection policy change, can instead remain quiet for several minutes while thousands of patches are regenerated; subsequent runs reuse the rebuilt cache and become fast again.
+#### Notes (light_source ZIP)
 
-Note 2: During development with LLMs, as of now, we do not necessarily generate compact light-source ZIP at each prompt: for example, we may use a command like `git diff --staged --ignore-space-at-eol > "uncommitted_staged_changes_no_eol_$(date +%Y%m%dT%H%M%S).diff"` to give the LLM the difference (staged e.g. with the help of VS Code's UI thanks) since a light-source ZIP, for example during an intermediate implementation/review step, saving on upload costs/time.
+- Light-source ZIP creation is usually quick because historical commit patches are cached.
+  - The console announces history preparation, the observed cache namespace and the first missing reusable patch, then reports processed/cache-hit/mirror-hit/regenerated counts roughly every 10 seconds during patch processing.
+  - A missing cache or changed format/policy can require several minutes or more when many patches need regeneration; subsequent runs normally reuse them.
+  - New or rewritten commits need their own entries but do not invalidate unchanged SHA entries.
+  - When all selected patches are reusable, the console explicitly reports that no patch regeneration was needed; this does not claim the branch/history itself is unchanged.
+  - ZIP writing is announced separately after snapshot preparation.
+  - Dry runs or unavailable cache writes do not persist regenerated patches.
+  - Progress is reported between commits, so a single slow patch can exceed the reporting interval.
+- During development with LLMs, as of now, we do not necessarily generate compact light-source ZIP at each prompt: for example, we may use a command like `git diff --staged --ignore-space-at-eol > "uncommitted_staged_changes_no_eol_$(date +%Y%m%dT%H%M%S).diff"` to give the LLM the difference (staged e.g. with the help of VS Code's UI thanks) since a light-source ZIP, for example during an intermediate implementation/review step, saving on upload costs/time.
 
 ### `refresh_commit_diffs.py`
 

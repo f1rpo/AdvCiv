@@ -11,11 +11,13 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import re
 import shlex
 import shutil
 import subprocess
-from datetime import datetime
+import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from time import perf_counter
 from typing import Iterable, Iterator
@@ -130,6 +132,9 @@ GENERATED_GIT_STATE_NAME = f"{GENERATED_CONTEXT_DIR}/git_repository_state.txt"
 GENERATED_GIT_IGNORED_TREE_NAME = f"{GENERATED_CONTEXT_DIR}/git_ignored_paths_tree.txt"
 GENERATED_STAGED_DIFF_NAME = f"{GENERATED_CONTEXT_DIR}/staged_changes_no_eol.diff"
 GENERATED_UNSTAGED_DIFF_NAME = f"{GENERATED_CONTEXT_DIR}/unstaged_changes_no_eol.diff"
+GENERATED_BRANCH_DIFF_NAME = f"{GENERATED_CONTEXT_DIR}/branch_changes_no_eol.diff"
+GENERATED_COMMITTED_BRANCH_DIFF_NAME = f"{GENERATED_CONTEXT_DIR}/branch_committed_changes_no_eol.diff"
+GENERATED_BRANCH_LOG_NAME = f"{GENERATED_CONTEXT_DIR}/branch_comparison_log.txt"
 GENERATED_INCREMENTAL_GIT_LOG_NAME = f"{GENERATED_CONTEXT_DIR}/git_log_since_tracked_advciv_sas_log.txt"
 # <!-- custom: Generate commit history freshly for the archive at its canonical shared repository path rather than duplicating it under _SNAPSHOT_CONTEXT. (GPT-5.6-Sol) -->
 GENERATED_COMMIT_DIFF_DIR = COMMIT_DIFF_CONTEXT_DIR
@@ -553,6 +558,86 @@ def build_git_manifest(repo_root: Path) -> str:
         *rows,
     ]
     return "\n".join(lines) + "\n"
+def utc_timestamp() -> str:
+    # <!-- custom: Use UTC with millisecond precision and the Z suffix for readable timing context consistent with millisecond duration units. Elapsed durations still use perf_counter so wall-clock adjustments do not affect them. (GPT-6.1-Sol) -->
+    return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+
+
+def runtime_process_summary_lines() -> list[str]:
+    # <!-- custom: Record only relevant process names/PIDs, not window titles or unrelated processes. This point-in-time check helps explain active-game/build constraints and file locks; it cannot establish autoplay or compilation activity. (GPT-6.1-Sol) -->
+    lines = [f"Runtime process check: {utc_timestamp()}"]
+    if sys.platform != "win32":
+        return lines + ["Runtime processes: unavailable (Windows process check only)"]
+    command = "ConvertTo-Json -Compress -InputObject @(Get-Process -Name Civ4BeyondSword,VCExpress,devenv,MSBuild,nmake,cl,link -ErrorAction SilentlyContinue | Select-Object ProcessName,Id)"
+    try:
+        result = subprocess.run(["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", command], capture_output=True, text=True, timeout=10, check=True)
+        processes = json.loads(result.stdout)
+        if isinstance(processes, dict):
+            processes = [processes]
+    except (OSError, subprocess.SubprocessError, ValueError) as exc:
+        return lines + [f"Runtime processes: unavailable ({exc})"]
+    for name in ("Civ4BeyondSword", "VCExpress", "devenv", "MSBuild", "nmake", "cl", "link"):
+        pids = sorted(process["Id"] for process in processes if process["ProcessName"].lower() == name.lower())
+        details = ", ".join(str(pid) for pid in pids)
+        lines.append(f"{name}.exe running: {'yes (PID=' + details + ')' if pids else 'no'}")
+    lines.append("Process presence is a point-in-time observation, not proof of active autoplay or compilation; processes may start or exit during packaging.")
+    lines.append("MSBuild.exe workers can persist after compilation when node reuse is enabled (/nr); their presence alone does not identify an active build.")
+    return lines
+
+
+def working_tree_summary_lines(repo_root: Path) -> list[str]:
+    # <!-- custom: Count staged and unstaged tracked-file changes separately; a partially staged file belongs to both lists. NUL-separated Git paths preserve spaces and rename destinations. Keep large lists in the existing full repository-state context instead of flooding the console. (GPT-6.1-Sol) -->
+    groups: list[tuple[str, list[str] | None, str | None]] = []
+    for label, extra_args in (("Staged", ("--cached",)), ("Unstaged tracked", ())):
+        raw, error = run_git(repo_root, "diff", *extra_args, "--name-only", "-z", "--no-ext-diff", "--")
+        paths = [path for path in raw.split("\0") if path] if raw is not None else None
+        groups.append((label, paths, error))
+    show_names = sum(len(paths) for _, paths, _ in groups if paths is not None) <= 100
+    lines = []
+    for label, paths, error in groups:
+        if paths is None:
+            lines.append(f"{label} files: unavailable ({error})")
+            continue
+        name_note = "names listed below" if paths and show_names else ("names omitted; see git_repository_state.txt" if paths else "none")
+        diff_path = GENERATED_STAGED_DIFF_NAME if label == "Staged" else GENERATED_UNSTAGED_DIFF_NAME
+        lines.append(f"{label} files: {len(paths)} (diff: {diff_path}; {name_note})")
+        if show_names:
+            lines.extend(f"  {label}: {path!r}" if "\n" in path or "\r" in path else f"  {label}: {path}" for path in paths)
+    if not show_names:
+        lines.append("Changed-file names omitted above 100 combined entries; see git_repository_state.txt for full status.")
+    lines.append("A partially staged file counts in both lists; untracked files are excluded (selected untracked paths are in git_repository_state.txt).")
+    return lines
+
+
+def default_branch_state_lines(repo_root: Path) -> list[str]:
+    # <!-- custom: Detect the default from locally known origin/HEAD, not a hardcoded branch name. Compare against the local default branch when present so its practical count is distinct from feature-branch history; report the remote count too because it may lag local work. No fetch is performed. (GPT-6.1-Sol) -->
+    remote_raw, error = run_git(repo_root, "symbolic-ref", "--quiet", "refs/remotes/origin/HEAD")
+    if not remote_raw:
+        return [f"Default branch: unavailable (locally known origin/HEAD missing: {error})"]
+    remote_ref = remote_raw.strip()
+    branch = remote_ref.removeprefix("refs/remotes/origin/")
+    local_ref = f"refs/heads/{branch}"
+    local_head, _ = run_git(repo_root, "rev-parse", "--verify", f"{local_ref}^{{commit}}")
+    comparison_ref = local_ref if local_head else remote_ref
+    default_head, head_error = run_git(repo_root, "rev-parse", "--verify", f"{comparison_ref}^{{commit}}")
+    default_count, count_error = run_git(repo_root, "rev-list", "--count", comparison_ref)
+    remote_count, remote_error = run_git(repo_root, "rev-list", "--count", remote_ref)
+    divergence, divergence_error = run_git(repo_root, "rev-list", "--left-right", "--count", f"HEAD...{comparison_ref}")
+    lines = [
+        f"Default branch: {branch} (locally known origin/HEAD; no fetch)",
+        f"Default comparison ref: {comparison_ref}",
+        f"Default HEAD: {default_head.strip() if default_head else 'unavailable: ' + str(head_error)}",
+        f"Default commit count: {default_count.strip() if default_count else 'unavailable: ' + str(count_error)}",
+        f"Default remote commit count: {remote_count.strip() if remote_count else 'unavailable: ' + str(remote_error)} ({remote_ref}; may be stale)",
+    ]
+    if divergence:
+        current_only, default_only = divergence.split()
+        lines.append(f"Current-only / default-only commits: {current_only} / {default_only}")
+    else:
+        lines.append(f"Current-only / default-only commits: unavailable ({divergence_error})")
+    return lines
+
+
 def build_git_repository_state(repo_root: Path, selected_files: Iterable[Path], explicit_upstream_refs: Iterable[str] = ()) -> str:
     """Build compact repository, upstream, tracked-worktree, and selected-untracked state."""
     branch_raw, branch_error = run_git(repo_root, "rev-parse", "--abbrev-ref", "HEAD")
@@ -611,6 +696,7 @@ def build_git_repository_state(repo_root: Path, selected_files: Iterable[Path], 
         f"HEAD: {head}",
         f"Commit count: {commit_count}",
     ]
+    lines.extend(default_branch_state_lines(repo_root))
     if upstream:
         lines.append(f"Upstream: {upstream}")
         if ahead is not None and behind is not None:
@@ -739,6 +825,267 @@ def build_git_diff(repo_root: Path, cached: bool) -> bytes:
         # Keep archive creation useful even when the supplied folder is not a Git checkout.
         return f"# Git diff unavailable: {error}\n".encode("utf-8")
     return raw.encode("utf-8")
+
+
+def build_branch_diff(repo_root: Path, repository_state: str, *, committed_only: bool = False) -> tuple[bytes, list[str]]:
+    # <!-- custom: Compare the shared ancestor with the current tracked working tree so one patch covers committed, staged and unstaged feature work without reversing newer default-only commits. Pin both tips from snapshot metadata; unrelated histories or multiple merge bases are reported rather than selecting an arbitrary base. (GPT-6.1-Sol) -->
+    # <!-- custom: Also export merge base -> captured HEAD separately, so reviewers can distinguish committed feature work from the combined working snapshot using identical base selection and EOL filtering. (GPT-6.1-Sol) -->
+    # <!-- custom: The no_eol patches ignore CRLF/LF and trailing-whitespace differences to avoid whole-file review churn; they retain meaningful indentation and content changes and do not normalize the source files. (GPT-6.1-Sol) -->
+    fields = dict(line.split(": ", 1) for line in repository_state.splitlines() if line.startswith(("HEAD: ", "Default HEAD: ", "Default comparison ref: ")))
+    head = fields.get("HEAD")
+    default_head = fields.get("Default HEAD")
+    default_ref = fields.get("Default comparison ref")
+    if not head or not default_head or not default_ref or not re.fullmatch(r"[0-9a-f]{40,64}", head) or not re.fullmatch(r"[0-9a-f]{40,64}", default_head):
+        error = "current/default commit metadata unavailable; see git_repository_state.txt"
+        return f"# Cumulative branch diff unavailable: {error}\n".encode("utf-8"), [f"Branch diff: unavailable ({error})"]
+    bases, error = run_git(repo_root, "merge-base", "--all", head, default_head)
+    base_list = bases.splitlines() if bases else []
+    if len(base_list) != 1:
+        error = f"expected one merge base, found {len(base_list)} ({error or ', '.join(base_list)})"
+        return f"# Cumulative branch diff unavailable: {error}\n".encode("utf-8"), [f"Branch diff: unavailable ({error})"]
+    base = base_list[0]
+    raw, error = run_git(repo_root, "diff", "--no-ext-diff", "--no-textconv", "--no-color", "--ignore-space-at-eol", "--ignore-cr-at-eol", base, *([head] if committed_only else []), "--", *commit_diff_pathspec_args())
+    if raw is None:
+        return f"# Cumulative branch diff unavailable: {error}\n".encode("utf-8"), [f"Branch diff: unavailable ({error})"]
+    summary = [
+        f"Branch diff: {GENERATED_COMMITTED_BRANCH_DIFF_NAME if committed_only else GENERATED_BRANCH_DIFF_NAME}",
+        f"Branch diff default ref: {default_ref} ({default_head})",
+        f"Branch diff current HEAD: {head}",
+        f"Branch diff merge base: {base}",
+        "Branch diff scope: merge base -> captured HEAD (committed only; excludes generated history context)." if committed_only else
+        "Branch diff scope: merge base -> tracked working tree (committed + staged + unstaged; excludes untracked files and generated history context).",
+    ]
+    header = "\n".join(f"# {line}" for line in summary) + "\n\n"
+    return (header + raw).encode("utf-8"), summary
+
+
+def build_branch_comparison_log(repo_root: Path, branch_summary: list[str]) -> tuple[bytes, list[str]]:
+    # <!-- custom: Current-HEAD history alone cannot describe default-only commits after a cherry-pick or divergence. Export both exclusive sides with full messages, parent SHAs and per-commit reachable counts; equal practical numbers do not imply equal commits, and cherry-pick origin notes remain visible in messages. (GPT-6.1-Sol) -->
+    fields = dict(line.split(": ", 1) for line in branch_summary if line.startswith(("Branch diff current HEAD: ", "Branch diff default ref: ", "Branch diff merge base: ")))
+    head = fields.get("Branch diff current HEAD")
+    default = fields.get("Branch diff default ref")
+    base = fields.get("Branch diff merge base")
+    if not head or not default or not base:
+        message = "Branch comparison log: unavailable (cumulative branch comparison unavailable)"
+        return (message + "\n").encode("utf-8"), [message]
+    default_head = default.rsplit(" (", 1)[1].rstrip(")")
+    base_count, base_error = run_git(repo_root, "rev-list", "--count", base)
+    lines = ["# Two-sided branch comparison log", f"Current HEAD: {head}", f"Default comparison: {default}",
+             f"Shared merge base: {base}", f"Shared merge-base practical count: {base_count.strip() if base_count else 'unavailable: ' + str(base_error)}",
+             "Order within each side: oldest -> newest (topological). Only commits absent from the opposite tip are listed.",
+             "Practical counts are total commits reachable from each individual SHA; they can repeat across branches and are not sequential indexes.",
+             "Full SHAs and Parents identify ancestry. Cherry-picks have different SHAs; origin notes in messages document copies without creating parent links.",
+             "Author emails are hidden. Uncommitted changes are not commits; see the cumulative and staged/unstaged diffs.", ""]
+    summary = [f"Branch comparison log: {GENERATED_BRANCH_LOG_NAME}", f"Branch comparison shared ancestor: {base_count.strip() if base_count else 'unavailable'} / {base}"]
+    for label, tip, other in (("CURRENT-ONLY", head, default_head), ("DEFAULT-ONLY", default_head, head)):
+        hashes, error = run_git(repo_root, "rev-list", "--reverse", "--topo-order", tip, f"^{other}")
+        lines.append(f"[{label} COMMITS]")
+        if hashes is None:
+            lines.extend([f"Unavailable: {error}", ""])
+            summary.append(f"Branch commits {label}: unavailable ({error})")
+            continue
+        commits = hashes.splitlines()
+        summary.append(f"Branch commits {label}: {len(commits)} (practical count / SHA / title below; full messages and parents in branch_comparison_log.txt)" if len(commits) <= 100 else f"Branch commits {label}: {len(commits)} (see branch_comparison_log.txt)")
+        if not commits:
+            lines.append("(none)")
+        for sha in commits:
+            count, count_error = run_git(repo_root, "rev-list", "--count", sha)
+            practical = count.strip() if count else f"unavailable ({count_error})"
+            detail, detail_error = run_git(repo_root, "show", "--no-patch", "--no-color", "--format=commit %H%nParents: %P%nAuthor: %an <hidden>%nDate: %aI%nSubject: %s%n%n%B", sha)
+            lines.extend([f"Practical commit count: {practical}", detail.rstrip() if detail is not None else f"Commit {sha} unavailable: {detail_error}", ""])
+            if len(commits) <= 100:
+                subject = next((line.removeprefix("Subject: ") for line in (detail or "").splitlines() if line.startswith("Subject: ")), "message unavailable")
+                summary.append(f"Branch commit {label}: {practical} / {sha} / {subject}")
+        lines.append("")
+    return ("\n".join(lines) + "\n").encode("utf-8"), summary
+
+
+def build_omitted_dll_context(repo_root: Path, repository_state: str) -> tuple[dict[str, bytes], list[str]]:
+    # <!-- custom: Shipped/test DLLs are omitted from the light ZIP, so source reference copies cannot establish binary identity. Report exact sizes and SHA-256 for default/HEAD/index/working bytes without bundling DLLs; timestamps are informational, and identity/size do not establish build configuration or gameplay equivalence. (GPT-6.1-Sol) -->
+    report_path = f"{GENERATED_CONTEXT_DIR}/omitted_dll_comparison.txt"
+    fields = dict(line.split(": ", 1) for line in repository_state.splitlines() if line.startswith(("HEAD: ", "Default HEAD: ")))
+    raw, error = run_git(repo_root, "ls-files", "--stage", "-z")
+    if raw is None:
+        message = f"Omitted DLL comparison: unavailable ({error})"
+        return {report_path: (message + "\n").encode("utf-8")}, [message]
+    index_blobs: dict[str, str | None] = {}
+    for entry in raw.split("\0"):
+        if entry:
+            metadata, rel = entry.split("\t", 1)
+            _, sha, stage = metadata.split()
+            if Path(rel).suffix.lower() == ".dll":
+                index_blobs.setdefault(rel, None)
+                if stage == "0":
+                    index_blobs[rel] = sha
+    for field in ("HEAD", "Default HEAD"):
+        revision = fields.get(field, "")
+        if re.fullmatch(r"[0-9a-f]{40,64}", revision):
+            committed_paths, _ = run_git(repo_root, "ls-tree", "-r", "--name-only", "-z", revision)
+            if committed_paths is not None:
+                for rel in committed_paths.split("\0"):
+                    if rel and Path(rel).suffix.lower() == ".dll":
+                        index_blobs.setdefault(rel, None)
+    report = ["# Omitted tracked DLL byte comparison", f"Observed: {utc_timestamp()}",
+              f"HEAD commit: {fields.get('HEAD', 'unavailable')}", f"Default tip: {fields.get('Default HEAD', 'unavailable')}",
+              "DLL payloads are not included. SHA-256 compares exact bytes; equal sizes alone do not prove identity.",
+              "File modification times are informational, not version ordering. No build configuration or gameplay equivalence is inferred.", ""]
+    summary = [f"Omitted DLL comparison: {len(index_blobs)} tracked DLL paths; report: {report_path}"]
+    blob_cache: dict[str, tuple[int, str] | None] = {}
+    for rel, index_blob in sorted(index_blobs.items()):
+        report.append(f"[FILE] {rel}")
+        identities: dict[str, tuple[int, str] | None] = {}
+        for label, revision in (("DEFAULT", fields.get("Default HEAD")), ("HEAD", fields.get("HEAD")), ("INDEX", None)):
+            blob = index_blob if label == "INDEX" else None
+            if label != "INDEX" and revision and re.fullmatch(r"[0-9a-f]{40,64}", revision):
+                resolved, _ = run_git(repo_root, "rev-parse", "--verify", f"{revision}:{rel}")
+                blob = resolved.strip() if resolved else None
+            if not blob:
+                identities[label] = None
+                report.append(f"{label}: unavailable (no baseline/stage-0 blob)")
+                continue
+            if blob not in blob_cache:
+                result = subprocess.run(["git", "cat-file", "blob", blob], cwd=repo_root, capture_output=True, check=False)
+                blob_cache[blob] = (len(result.stdout), hashlib.sha256(result.stdout).hexdigest()) if result.returncode == 0 else None
+            identity = blob_cache[blob]
+            identities[label] = identity
+            report.append(f"{label}: bytes={identity[0]} sha256={identity[1]} gitBlob={blob}" if identity else f"{label}: unavailable (Git blob read failed: {blob})")
+        path = repo_root / rel
+        try:
+            before = path.stat()
+            digest = hashlib.sha256()
+            size = 0
+            with path.open("rb") as handle:
+                for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                    size += len(chunk)
+                    digest.update(chunk)
+            after = path.stat()
+            timestamp = datetime.fromtimestamp(after.st_mtime, timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+            if (before.st_size, before.st_mtime_ns, before.st_ino) != (after.st_size, after.st_mtime_ns, after.st_ino) or size != after.st_size:
+                identities["WORKING"] = None
+                report.append("WORKING: unavailable (file changed while being read)")
+            else:
+                identities["WORKING"] = (size, digest.hexdigest())
+                report.append(f"WORKING: bytes={size} sha256={digest.hexdigest()} modified={timestamp}")
+        except OSError as exc:
+            identities["WORKING"] = None
+            report.append(f"WORKING: unavailable ({exc})")
+        for old, new in (("DEFAULT", "WORKING"), ("HEAD", "INDEX"), ("INDEX", "WORKING"), ("HEAD", "WORKING")):
+            first, second = identities[old], identities[new]
+            comparison = f"{'BYTE-IDENTICAL' if first == second else 'BYTE-DIFFERENT'}; sizeDeltaBytes={second[0] - first[0]:+d}" if first and second else "unavailable"
+            report.append(f"{old} -> {new}: {comparison}")
+            if old == "HEAD" and new == "WORKING":
+                summary.append(f"Omitted DLL {rel}: HEAD -> WORKING {comparison}")
+        report.append("")
+    return {report_path: ("\n".join(report) + "\n").encode("utf-8")}, summary
+
+
+def copy_git_reference_blobs(repo_root: Path, blobs: list[tuple[str, str | None, bool]], folder: str, manifest: list[str]) -> tuple[dict[str, bytes], int]:
+    # <!-- custom: Share byte-preserving reference extraction across default-tip, HEAD and index snapshots. Read immutable Git blobs rather than working files; record every omission and preserve the existing compact-source size/binary limits. (GPT-6.1-Sol) -->
+    context: dict[str, bytes] = {}
+    total_bytes = 0
+    for rel, blob, binary in blobs:
+        path = Path(rel)
+        if path.is_absolute() or ".." in path.parts or should_skip_file(path) or binary:
+            manifest.append(f"OMITTED binary/excluded path: {rel}")
+            continue
+        if blob is None:
+            manifest.append(f"UNAVAILABLE baseline blob: {rel} (no stage-0 index entry; deleted or unmerged)")
+            continue
+        size_raw, size_error = run_git(repo_root, "cat-file", "-s", blob)
+        if size_raw is None:
+            manifest.append(f"UNAVAILABLE baseline blob: {rel} ({size_error})")
+            continue
+        size = int(size_raw.strip())
+        if size > 2 * 1024 * 1024 or total_bytes + size > 16 * 1024 * 1024:
+            manifest.append(f"OMITTED size limit: {rel} ({size} bytes)")
+            continue
+        result = subprocess.run(["git", "cat-file", "blob", blob], cwd=repo_root, capture_output=True, check=False)
+        if result.returncode:
+            manifest.append(f"UNAVAILABLE blob: {rel} ({result.stderr.decode('utf-8', errors='replace').strip()})")
+            continue
+        if b"\0" in result.stdout:
+            manifest.append(f"OMITTED binary baseline blob: {rel}")
+            continue
+        context[f"{folder}/{rel}"] = result.stdout
+        total_bytes += len(result.stdout)
+        manifest.append(f"COPIED: {rel} ({len(result.stdout)} bytes; Git blob: {blob})")
+    return context, total_bytes
+
+
+def build_uncommitted_file_context(repo_root: Path, repository_state: str) -> tuple[dict[str, bytes], list[str]]:
+    # <!-- custom: Default-tip copies do not show the immediate pre-edit state on a feature branch. Export HEAD copies for all staged/unstaged affected paths and index copies for unstaged paths, enabling direct HEAD -> index -> working-tree review. Pin index entries to their captured blob IDs without writing trees or modifying the index. (GPT-6.1-Sol) -->
+    fields = dict(line.split(": ", 1) for line in repository_state.splitlines() if line.startswith("HEAD: "))
+    head = fields.get("HEAD", "")
+    paths_by_layer: list[dict[str, bool]] = []
+    error = None
+    if not re.fullmatch(r"[0-9a-f]{40,64}", head):
+        error = "current HEAD unavailable"
+    else:
+        for extra in (("--cached",), ()):
+            raw, error = run_git(repo_root, "diff", *extra, "--numstat", "-z", "--no-renames", "--no-ext-diff", "--no-textconv", "--ignore-space-at-eol", "--ignore-cr-at-eol", "--", *commit_diff_pathspec_args())
+            if raw is None:
+                break
+            paths_by_layer.append({rel: added == "-" or removed == "-" for added, removed, rel in (entry.split("\t", 2) for entry in raw.split("\0") if entry)})
+    index_raw = None
+    if len(paths_by_layer) == 2:
+        index_raw, error = run_git(repo_root, "ls-files", "--stage", "-z")
+    if len(paths_by_layer) != 2 or index_raw is None:
+        message = f"Uncommitted file copies: unavailable ({error})"
+        return {f"{GENERATED_CONTEXT_DIR}/{layer}_files_manifest.txt": (message + "\n").encode("utf-8") for layer in ("head", "index")}, [message]
+    index_blobs = {}
+    for entry in index_raw.split("\0"):
+        if entry:
+            metadata, rel = entry.split("\t", 1)
+            _, sha, stage = metadata.split()
+            if stage == "0":
+                index_blobs[rel] = sha
+    staged, unstaged = paths_by_layer
+    all_paths = {rel: staged.get(rel, False) or unstaged.get(rel, False) for rel in sorted(staged.keys() | unstaged.keys())}
+    context: dict[str, bytes] = {}
+    summary = []
+    for layer, paths in (("head", all_paths), ("index", unstaged)):
+        folder = f"{GENERATED_CONTEXT_DIR}/{layer}_files"
+        manifest_path = f"{GENERATED_CONTEXT_DIR}/{layer}_files_manifest.txt"
+        manifest = [f"HEAD commit: {head}",
+                    "Reference layer: " + ("committed HEAD before staged/unstaged edits" if layer == "head" else "captured stage-0 index before unstaged edits; exact blob identities recorded per file"),
+                    "Original filenames, repo paths and exact blob bytes; missing counterparts and omissions are explicit.",
+                    "Text blobs only: maximum 2 MiB per file and 16 MiB total per reference layer; EOL-noise-only changes and generated history excluded.", ""]
+        blobs = [(rel, f"{head}:{rel}" if layer == "head" else index_blobs.get(rel), binary) for rel, binary in sorted(paths.items())]
+        copies, total_bytes = copy_git_reference_blobs(repo_root, blobs, folder, manifest)
+        summary.extend([f"Uncommitted {layer.upper()} file copies: {len(copies)} files for {len(paths)} affected paths in {folder}/ ({total_bytes} bytes)",
+                        f"Uncommitted {layer.upper()} manifest: {manifest_path}"])
+        context.update(copies)
+        context[manifest_path] = ("\n".join(manifest) + "\n").encode("utf-8")
+    return context, summary
+
+
+def build_default_branch_file_context(repo_root: Path, repository_state: str, branch_summary: list[str]) -> tuple[dict[str, bytes], list[str]]:
+    # <!-- custom: Pair the cumulative review patch with exact default-tip text blobs in repository-relative folders. These are reference copies, not current source and not merge-base copies; additions without a default counterpart and omitted binaries/large files are explicit in the manifest. Disable rename detection when collecting paths so deleted/renamed originals remain available too. (GPT-6.1-Sol) -->
+    folder = f"{GENERATED_CONTEXT_DIR}/default_branch_files"
+    manifest_path = f"{GENERATED_CONTEXT_DIR}/default_branch_files_manifest.txt"
+    fields = dict(line.split(": ", 1) for line in [*repository_state.splitlines(), *branch_summary] if line.startswith(("Default HEAD: ", "Branch diff merge base: ")))
+    default_head = fields.get("Default HEAD")
+    base = fields.get("Branch diff merge base")
+    if not default_head or not base:
+        message = "Default file copies: unavailable (cumulative branch comparison unavailable)"
+        return {manifest_path: (message + "\n").encode("utf-8")}, [message]
+    raw, error = run_git(repo_root, "diff", "--numstat", "-z", "--no-renames", "--no-ext-diff", "--no-textconv", "--ignore-space-at-eol", "--ignore-cr-at-eol", base, "--", *commit_diff_pathspec_args())
+    if raw is None:
+        message = f"Default file copies: unavailable ({error})"
+        return {manifest_path: (message + "\n").encode("utf-8")}, [message]
+    entries = [entry.split("\t", 2) for entry in raw.split("\0") if entry]
+    manifest = [f"Default tip: {default_head}", f"Changed-path selection merge base: {base}",
+                "Reference copies from the default tip, not the merge base or current working tree. Paths retain repository structure.",
+                "Text blobs only: maximum 2 MiB per file and 16 MiB total; binary/excluded/unavailable files are listed below.", ""]
+    blobs = [(rel, f"{default_head}:{rel}", added == "-" or removed == "-") for added, removed, rel in entries]
+    context, total_bytes = copy_git_reference_blobs(repo_root, blobs, folder, manifest)
+    summary = [f"Branch changed files: {len(entries)} (diff: {GENERATED_BRANCH_DIFF_NAME}; names {'listed below' if len(entries) <= 100 else 'in default_branch_files_manifest.txt'})"]
+    if len(entries) <= 100:
+        summary.extend(f"Branch changed: {rel!r}" if "\n" in rel or "\r" in rel else f"Branch changed: {rel}" for _, _, rel in entries)
+    summary.extend([f"Default file copies: {len(context)} text files in {folder}/ ({total_bytes} bytes)",
+                    f"Default file copies manifest: {manifest_path}"])
+    context[manifest_path] = ("\n".join(manifest) + "\n").encode("utf-8")
+    return context, summary
 
 
 def latest_commit_in_tracked_git_log(repo_root: Path) -> tuple[str | None, str | None]:
@@ -1527,6 +1874,7 @@ def build_commit_diff_history_context(repo_root: Path, commit_count: int, write_
     if commit_count == 0:
         return {}, "commit diff history disabled"
 
+    print("History preparation: inspecting reachable commits and reusable patches...", flush=True)
     commits, history_error = parse_commit_history_metadata(repo_root)
     if not commits:
         message = f"Git history unavailable: {history_error or 'no commits found'}"
@@ -1540,6 +1888,13 @@ def build_commit_diff_history_context(repo_root: Path, commit_count: int, write_
 
     cache_dir, cache_error = commit_diff_cache_dir(repo_root)
     cache_writable = bool(cache_dir and write_cache)
+    # <!-- custom: History regeneration previously stayed quiet while many patches were rendered. Report the observed cache state and first miss, then periodic progress; a changed history alone does not invalidate reusable SHA entries. (GPT-6.1-Sol) -->
+    if cache_dir is None:
+        print(f"History cache: unavailable ({cache_error}); missing patches will be generated in memory.", flush=True)
+    elif cache_dir.is_dir():
+        print(f"History cache: reusing entries from {cache_dir}", flush=True)
+    else:
+        print(f"History cache: current format/policy namespace is absent: {cache_dir} (first use, removed cache or changed format/policy).", flush=True)
     if cache_writable:
         try:
             cache_dir.mkdir(parents=True, exist_ok=True)
@@ -1570,7 +1925,8 @@ def build_commit_diff_history_context(repo_root: Path, commit_count: int, write_
     path_history: dict[str, list[tuple[str, str, str]]] = {}
     reused = mirror_reused = rendered = in_memory = cache_migrations = 0
     segment_counts: dict[str, int] = {}
-    for commit in commits:
+    last_progress_time = perf_counter()
+    for position, commit in enumerate(commits, 1):
         full_hash = commit["hash"]
         segment_id = commit.get("history_segment_id", "Other")
         segment_counts[segment_id] = segment_counts.get(segment_id, 0) + 1
@@ -1598,6 +1954,11 @@ def build_commit_diff_history_context(repo_root: Path, commit_count: int, write_
                 version, coverage = mirror_info
                 mirror_reused += 1
             else:
+                if rendered == 0:
+                    print(f"History cache miss: no reusable patch for {full_hash}; regenerating missing/new/rewritten entries under the current policy.", flush=True)
+                    print("History preparation: many missing patches can take several minutes or more; subsequent runs normally reuse them rather than rebuilding everything.", flush=True)
+                    if not cache_writable:
+                        print("History cache: writes disabled/unavailable; regenerated patches will not be persisted by this run.", flush=True)
                 data, version, coverage = render_commit_diff(repo_root, commit)
                 rendered += 1
                 if cache_writable and cache_path is not None:
@@ -1623,6 +1984,10 @@ def build_commit_diff_history_context(repo_root: Path, commit_count: int, write_
         index_lines.append(f"{segment_id}\t{version}\t{full_hash[:10]}\t{coverage}\t{safe_subject}")
         for path in changed_paths_from_commit_diff(value):
             path_history.setdefault(path, []).append((segment_id, version, full_hash[:10]))
+        now = perf_counter()
+        if now - last_progress_time >= 10:
+            print(f"History preparation: {position}/{len(commits)} commits processed; {reused} cache hits, {mirror_reused} mirror hits, {rendered} regenerated.", flush=True)
+            last_progress_time = now
 
     pruned_cache_dirs = 0
     prune_errors: list[str] = []
@@ -1641,6 +2006,10 @@ def build_commit_diff_history_context(repo_root: Path, commit_count: int, write_
     if segment_warnings:
         segment_note += f"; segment warnings={len(segment_warnings)}"
     summary = f"commit diffs: {len(commits)} included ({segment_note}), {reused} private-cache hit(s), {mirror_reused} local-mirror hit(s), {rendered} rendered, {in_memory} not cached; versions={version_mode}; cache={cache_note}{migration_note}{prune_note}"
+    if rendered == 0:
+        print(f"History preparation complete: all {len(commits)} selected patches reused; no patch regeneration needed. Continuing snapshot preparation.", flush=True)
+    else:
+        print(f"History preparation complete: {rendered} patches regenerated, {reused + mirror_reused} reused. Continuing snapshot preparation.", flush=True)
     return generated, summary
 
 
@@ -1654,8 +2023,13 @@ def build_snapshot_context_readme() -> str:
         "  Canonical tracked Git paths from git ls-files, each prefixed by its exact current working-tree byte size.\n"
         "  This includes size context for tracked binaries/assets intentionally omitted from the light ZIP; missing tracked\n"
         "  working-tree paths are marked MISSING.\n\n"
+        "packaging_summary.txt\n"
+        "  Start/context-preparation timestamps (UTC), current/default branch counts, staged/unstaged tracked-file counts\n"
+        "  and names (up to 100 combined entries), Windows game/IDE/build process observations, archive options and history summary.\n"
+        "  This is a pre-write snapshot, not a completion receipt; final ZIP size and completion time are console-only.\n\n"
         "git_repository_state.txt\n"
-        "  Current branch/HEAD, commit count, locally known upstream/ahead-behind state, active MERGE_HEAD/target\n"
+        "  Current branch/HEAD, commit count, locally known default branch and current/default reachability counts,\n"
+        "  tracking upstream/ahead-behind state, active MERGE_HEAD/target\n"
         "  when merging, tracked git status --short output, and ZIP-selected files that are not tracked by Git. X is\n"
         "  staged/index state; Y is unstaged/working-tree state (for example M<space>, <space>M, and MM).\n"
         "  AdvCiv-SAS commonly uses Commit count as its practical version number (for example X in\n"
@@ -1664,6 +2038,32 @@ def build_snapshot_context_readme() -> str:
         "  Compact ASCII tree of paths ignored by Git's effective standard ignore rules. Entire ignored\n"
         "  directories can be collapsed to one entry, so this adds useful local context without listing\n"
         "  every generated/build file beneath them.\n\n"
+        "omitted_dll_comparison.txt\n"
+        "  Exact sizes/SHA-256 and byte-identity/size-delta comparisons for tracked DLLs at default, HEAD, index and working state.\n"
+        "  Working-file modification times are informational; DLL payloads remain excluded. Unreadable/changing files are explicit.\n\n"
+        "head_files/ + head_files_manifest.txt; index_files/ + index_files_manifest.txt\n"
+        "  Immediate pre-edit references: HEAD copies for staged/unstaged affected paths, index copies for unstaged paths.\n"
+        "  Compare HEAD -> index -> current working tree directly without reconstructing files from patches.\n"
+        "  Manifests identify the HEAD commit and captured index blob IDs, missing/deleted/unmerged counterparts,\n"
+        "  binary exclusions and limits (2 MiB/file, 16 MiB per layer). Original names/paths/bytes are preserved.\n\n"
+        "default_branch_files/ and default_branch_files_manifest.txt\n"
+        "  Exact default-tip text copies of changed paths, preserving repo-relative structure for side-by-side review.\n"
+        "  These are not current source or merge-base copies. The manifest records the exact tip and omissions,\n"
+        "  including absent counterparts, binary/excluded files and size limits (2 MiB/file, 16 MiB total).\n\n"
+        "branch_comparison_log.txt\n"
+        "  Current-only and default-only commit histories, oldest -> newest, with full SHAs, parents, messages\n"
+        "  and per-commit practical counts; shared merge-base SHA/count anchors both sides. Emails are hidden.\n"
+        "  Counts can repeat across branches; SHAs identify commits. Default-only commits are not current source.\n\n"
+        "Review-diff filtering: no_eol means CRLF/LF and trailing-whitespace differences are ignored.\n"
+        "  Meaningful indentation/content changes remain visible; source files are not normalized.\n\n"
+        "branch_committed_changes_no_eol.diff\n"
+        "  One cumulative diff from the same current/default merge base to captured HEAD (committed changes only).\n"
+        "  Uses the same EOL filtering and generated-history exclusions as the combined working-tree patch below.\n\n"
+        "branch_changes_no_eol.diff\n"
+        "  One cumulative EOL-noise-filtered diff from the current/default merge base to the tracked working tree.\n"
+        "  Covers committed, staged and unstaged changes; does not reverse newer default-only commits.\n"
+        "  Exact tips/base and scope are recorded in the patch header and repository state. Untracked files are excluded.\n"
+        "  Missing default metadata, unrelated histories or multiple merge bases are reported as unavailable.\n\n"
         "staged_changes_no_eol.diff\n"
         "  Raw staged diff (HEAD -> index), with end-of-line whitespace/CR-only noise ignored. Changes to the generated\n"
         f"  history context at {COMMIT_DIFF_CONTEXT_DIR}/ are omitted here so hundreds of MB of patch text do not recur;\n"
@@ -1715,15 +2115,34 @@ def build_snapshot_context_readme() -> str:
 def build_generated_context(repo_root: Path, selected_files: Iterable[Path], commit_diff_count: int, write_cache: bool, explicit_upstream_refs: Iterable[str] = ()) -> tuple[dict[str, bytes | Path], str]:
     """Return snapshot-only metadata plus freshly generated canonical history keyed by ZIP-relative path."""
     selected_files = list(selected_files)
+    repository_state = build_git_repository_state(repo_root, selected_files, explicit_upstream_refs)
+    dll_context, dll_summary = build_omitted_dll_context(repo_root, repository_state)
+    uncommitted_files, uncommitted_summary = build_uncommitted_file_context(repo_root, repository_state)
+    branch_diff, branch_summary = build_branch_diff(repo_root, repository_state)
+    committed_branch_diff, committed_summary = build_branch_diff(repo_root, repository_state, committed_only=True)
+    branch_summary.extend(line.replace("Branch diff:", "Branch committed diff:", 1).replace("Branch diff scope:", "Branch committed diff scope:", 1) for line in committed_summary if line.startswith(("Branch diff:", "Branch diff scope:")))
+    branch_log, branch_log_summary = build_branch_comparison_log(repo_root, branch_summary)
+    branch_summary.extend(branch_log_summary)
+    default_files, default_files_summary = build_default_branch_file_context(repo_root, repository_state, branch_summary)
+    branch_summary.extend(default_files_summary)
+    repository_state += "\n[CUMULATIVE BRANCH DIFF]\n" + "\n".join(branch_summary) + "\n"
+    repository_state += "\n[UNCOMMITTED REFERENCE FILES]\n" + "\n".join(uncommitted_summary) + "\n"
+    repository_state += "\n[OMITTED DLL BYTE COMPARISON]\n" + "\n".join(dll_summary) + "\n"
     context: dict[str, bytes | Path] = {
         GENERATED_CONTEXT_README_NAME: build_snapshot_context_readme().encode("utf-8"),
         GENERATED_GIT_MANIFEST_NAME: build_git_manifest(repo_root).encode("utf-8"),
-        GENERATED_GIT_STATE_NAME: build_git_repository_state(repo_root, selected_files, explicit_upstream_refs).encode("utf-8"),
+        GENERATED_GIT_STATE_NAME: repository_state.encode("utf-8"),
         GENERATED_GIT_IGNORED_TREE_NAME: build_git_ignored_paths_tree(repo_root).encode("utf-8"),
         GENERATED_STAGED_DIFF_NAME: build_git_diff(repo_root, cached=True),
         GENERATED_UNSTAGED_DIFF_NAME: build_git_diff(repo_root, cached=False),
+        GENERATED_BRANCH_DIFF_NAME: branch_diff,
+        GENERATED_COMMITTED_BRANCH_DIFF_NAME: committed_branch_diff,
+        GENERATED_BRANCH_LOG_NAME: branch_log,
         GENERATED_INCREMENTAL_GIT_LOG_NAME: build_incremental_git_log(repo_root).encode("utf-8"),
     }
+    context.update(default_files)
+    context.update(uncommitted_files)
+    context.update(dll_context)
     commit_context, commit_diff_summary = build_commit_diff_history_context(repo_root, commit_diff_count, write_cache)
     context.update(commit_context)
     pending_context, pending_summary = build_pending_upstream_context(repo_root, explicit_upstream_refs)
@@ -1892,6 +2311,8 @@ def write_zip(zip_path: Path, repo_root: Path, files: Iterable[Path], compressio
 def main() -> int:
     total_start_time = perf_counter()
     args = parse_args()
+    started_at = utc_timestamp()
+    print(f"Started:   {started_at}", flush=True)
     repo_root = find_repo_root(args.repo_root)
     if args.fetch_upstream:
         fetch_upstream_or_fail(repo_root)
@@ -1902,17 +2323,45 @@ def main() -> int:
     context_start_time = perf_counter()
     generated_context, commit_diff_summary = build_generated_context(repo_root, files, args.commit_diff_count, write_cache=not args.dry_run, explicit_upstream_refs=args.upstream_ref)
     context_duration_ms = int((perf_counter() - context_start_time) * 1000)
-    total_bytes = sum(path.stat().st_size for path in files) + sum(data.stat().st_size if isinstance(data, Path) else len(data) for data in generated_context.values())
     compression_mode = "ZIP_STORED / no compression" if args.compression_level <= 0 else f"ZIP_DEFLATED / compression level {args.compression_level}"
 
+    state_summary = [line for line in generated_context[GENERATED_GIT_STATE_NAME].decode("utf-8").splitlines()
+                     if line.startswith(("Branch:", "HEAD:", "Commit count:", "Default ", "Current-only /", "Branch diff", "Branch committed diff", "Branch changed", "Branch compar", "Branch commit", "Default file copies", "Uncommitted ", "Omitted DLL", "Git error:"))]
+    change_summary = working_tree_summary_lines(repo_root)
+    runtime_summary = runtime_process_summary_lines()
+    history_summary = ["History:"]
+    for field in commit_diff_summary.split("; "):
+        history_summary.extend("  " + part for part in re.split(r", (?=\d+ (?:private-cache hit|local-mirror hit|rendered|not cached))", field))
+    packaging_summary = [
+        f"Started: {started_at}",
+        f"Snapshot context prepared: {utc_timestamp()}",
+        *state_summary,
+        *change_summary,
+        *runtime_summary,
+        f"Archive filename: {zip_path.name}",
+        f"Mod name: {mod_name}",
+        f"History commit limit: {args.commit_diff_count} (-1 = all reachable; 0 = disabled; positive = newest N)",
+        f"Files: {len(files)} selected + {len(generated_context) + 1} generated context files",
+        f"Mode: {compression_mode}",
+        *history_summary,
+        "Scope: current HEAD ancestry and selected working-tree files; counts do not include uncommitted changes.",
+        "Current-only/default-only are reachability counts, not necessarily a contiguous tail or an additive practical-version offset.",
+        "Completion time and final ZIP size are reported only in the console after the archive closes.",
+    ]
+    generated_context[f"{GENERATED_CONTEXT_DIR}/packaging_summary.txt"] = ("\n".join(packaging_summary) + "\n").encode("utf-8")
+    total_bytes = sum(path.stat().st_size for path in files) + sum(data.stat().st_size if isinstance(data, Path) else len(data) for data in generated_context.values())
+
     print(f"Repo root: {repo_root}")
+    for line in (*state_summary, *change_summary, *runtime_summary):
+        print(line)
     print(f"Mod name:  {mod_name}")
     print(f"Prefix:    {prefix}")
     print(f"Archive:   {zip_path}")
     print(f"Files:     {len(files)} selected + {len(generated_context)} generated context files")
     print(f"Size:      {total_bytes:,} bytes before ZIP container overhead")
     print(f"Mode:      {compression_mode}")
-    print(f"History:   {commit_diff_summary}")
+    for line in history_summary:
+        print(line)
 
     if args.dry_run:
         for path in files:
@@ -1920,8 +2369,10 @@ def main() -> int:
         for rel in sorted(generated_context):
             print(f"(generated) {rel}")
         print("Dry run only; no archive written.")
+        print(f"Finished:  {utc_timestamp()}")
         return 0
 
+    print("ZIP build: writing selected source files and prepared snapshot/history context...", flush=True)
     zip_start_time = perf_counter()
     count = write_zip(zip_path, repo_root, files, args.compression_level, generated_context)
     zip_duration_ms = int((perf_counter() - zip_start_time) * 1000)
@@ -1944,6 +2395,7 @@ def main() -> int:
     print(f"ZIP size:  {zip_path.stat().st_size:,} bytes")
     if not args.no_duration:
         print(f"Duration:  {total_duration_ms:,} ms total ({context_duration_ms:,} ms generated context; {zip_duration_ms:,} ms ZIP write; {refresh_duration_ms:,} ms local-context refresh)")
+    print(f"Finished:  {utc_timestamp()}")
     return 0
 
 
