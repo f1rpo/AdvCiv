@@ -11843,6 +11843,122 @@ void logSASGameRecordAISettlerSiteDecision(CvUnitAI const& kSettler, CvPlot cons
 		(pPreviousMissionTarget == NULL ? -1 : pPreviousMissionTarget->getX()), (pPreviousMissionTarget == NULL ? -1 : pPreviousMissionTarget->getY()));
 }
 
+static char const* getSASGameRecordAISettlerScoutEndReason(SASGameRecordAISettlerScoutEndReason eReason)
+{
+	switch (eReason)
+	{
+	case SAS_AI_SETTLER_SCOUT_END_DEADLINE: return "DEADLINE";
+	case SAS_AI_SETTLER_SCOUT_END_LOW_UPSIDE: return "LOW_UPSIDE";
+	case SAS_AI_SETTLER_SCOUT_END_NO_SAFE_STEP: return "NO_SAFE_STEP";
+	}
+	FAssert(false);
+	return "UNKNOWN";
+}
+
+void logSASGameRecordAIFirstCityCoreScoutStep(CvUnitAI const& kSettler, CvPlot const& kTargetPlot, CvPlot const* pEndTurnPlot, int iCurrentFoundValue, int iTargetFoundValue, int iCurrentBest6, int iCurrentBest10, int iTargetBest6, int iTargetBest10, int iCoreGrowthValue, int iAdjustedValue, int iPathTurns, int iElapsedTurns, int iMaxFirstCityTurns)
+{
+	CvSelectionGroupAI const* pGroup = kSettler.AI_getGroup();
+	logSASGameRecord("GAME_RECORD_AI_FIRST_CITY_CORE_SCOUT_STEP turn=%d player=%d unitId=%d groupId=%d fromX=%d fromY=%d endTurnX=%d endTurnY=%d targetX=%d targetY=%d currentFoundValue=%d targetFoundValue=%d currentBest6=%d currentBest10=%d targetBest6=%d targetBest10=%d coreGrowthValue=%d adjustedValue=%d pathTurns=%d elapsed=%d maxFirstCityTurns=%d",
+		GC.getGame().getGameTurn(), kSettler.getOwner(), kSettler.getID(), (pGroup == NULL ? -1 : pGroup->getID()), kSettler.getX(), kSettler.getY(),
+		(pEndTurnPlot == NULL ? -1 : pEndTurnPlot->getX()), (pEndTurnPlot == NULL ? -1 : pEndTurnPlot->getY()), kTargetPlot.getX(), kTargetPlot.getY(),
+		iCurrentFoundValue, iTargetFoundValue, iCurrentBest6, iCurrentBest10, iTargetBest6, iTargetBest10, iCoreGrowthValue, iAdjustedValue, iPathTurns, iElapsedTurns, iMaxFirstCityTurns);
+}
+
+void logSASGameRecordAIFirstCityScoutStep(CvUnitAI const& kSettler, CvPlot const& kEndTurnPlot, CvPlot const* pScoutOrigin, CvPlot const* pSettleNowPlot, int iSettleNowFoundValue, int iSettleNowBest6, int iSettleNowBest10, int iSettleNowCoreQualityPercent, int iInformationValue, int iDiscountedInformationValue, int iScoutOpportunityLinearPercent, int iScoutOpportunityPercent, int iEndTurnFoundValue, int iSettleNowFoundValueGain, int iScoutExpectedGain, int iScoutDelayBaseCost, int iScoutWindowProgressPercent, int iScoutTimePressurePercent, int iScoutDelayCost, int iDirectionScore, int iElapsedTurns, int iMaxFirstCityTurns)
+{
+	CvSelectionGroupAI const* pGroup = kSettler.AI_getGroup();
+	logSASGameRecord("GAME_RECORD_AI_FIRST_CITY_SCOUT_STEP turn=%d player=%d unitId=%d groupId=%d fromX=%d fromY=%d endTurnX=%d endTurnY=%d scoutOriginX=%d scoutOriginY=%d settleNowX=%d settleNowY=%d settleNowFoundValue=%d settleNowBest6=%d settleNowBest10=%d settleNowCoreQualityPercent=%d endTurnFoundValue=%d settleNowFoundValueGain=%d informationValue=%d discountedInformationValue=%d scoutOpportunityLinearPercent=%d scoutOpportunityPercent=%d scoutExpectedGain=%d scoutDelayBaseCost=%d scoutWindowProgressPercent=%d scoutTimePressurePercent=%d scoutDelayCost=%d directionScore=%d elapsed=%d maxFirstCityTurns=%d",
+		GC.getGame().getGameTurn(), kSettler.getOwner(), kSettler.getID(), (pGroup == NULL ? -1 : pGroup->getID()), kSettler.getX(), kSettler.getY(),
+		kEndTurnPlot.getX(), kEndTurnPlot.getY(), (pScoutOrigin == NULL ? -1 : pScoutOrigin->getX()), (pScoutOrigin == NULL ? -1 : pScoutOrigin->getY()),
+		(pSettleNowPlot == NULL ? -1 : pSettleNowPlot->getX()), (pSettleNowPlot == NULL ? -1 : pSettleNowPlot->getY()), iSettleNowFoundValue, iSettleNowBest6,
+		iSettleNowBest10, iSettleNowCoreQualityPercent, iEndTurnFoundValue, iSettleNowFoundValueGain, iInformationValue, iDiscountedInformationValue,
+		iScoutOpportunityLinearPercent, iScoutOpportunityPercent, iScoutExpectedGain, iScoutDelayBaseCost, iScoutWindowProgressPercent, iScoutTimePressurePercent,
+		iScoutDelayCost, iDirectionScore, iElapsedTurns, iMaxFirstCityTurns);
+}
+
+void logSASGameRecordAIFirstCityScoutEnd(CvUnitAI const& kSettler, SASGameRecordAISettlerScoutEndReason eReason, bool bFoundNow, CvPlot const* pTargetPlot, int iSettleNowFoundValue, int iAdjustedValue, int iSettleNowBest6, int iSettleNowBest10, int iSettleNowCoreQualityPercent, int iScoutOpportunityLinearPercent, int iScoutOpportunityPercent, int iBestScoutExpectedGain, int iScoutDelayBaseCost, int iScoutWindowProgressPercent, int iScoutTimePressurePercent, int iScoutDelayCost, int iPathTurns, int iElapsedTurns, int iMaxFirstCityTurns)
+{
+	CvSelectionGroupAI const* pGroup = kSettler.AI_getGroup();
+	char const* szAction = (pTargetPlot == NULL ? "WAIT" : (bFoundNow ? "FOUND_NOW" : "RETURN_TO_SITE"));
+	logSASGameRecord("GAME_RECORD_AI_FIRST_CITY_SCOUT_END turn=%d player=%d unitId=%d groupId=%d reason=%s action=%s fromX=%d fromY=%d targetX=%d targetY=%d settleNowFoundValue=%d adjustedValue=%d settleNowBest6=%d settleNowBest10=%d settleNowCoreQualityPercent=%d scoutOpportunityLinearPercent=%d scoutOpportunityPercent=%d bestScoutExpectedGain=%d scoutDelayBaseCost=%d scoutWindowProgressPercent=%d scoutTimePressurePercent=%d scoutDelayCost=%d pathTurns=%d elapsed=%d maxFirstCityTurns=%d",
+		GC.getGame().getGameTurn(), kSettler.getOwner(), kSettler.getID(), (pGroup == NULL ? -1 : pGroup->getID()), getSASGameRecordAISettlerScoutEndReason(eReason),
+		szAction, kSettler.getX(), kSettler.getY(), (pTargetPlot == NULL ? -1 : pTargetPlot->getX()), (pTargetPlot == NULL ? -1 : pTargetPlot->getY()),
+		iSettleNowFoundValue, iAdjustedValue, iSettleNowBest6, iSettleNowBest10, iSettleNowCoreQualityPercent, iScoutOpportunityLinearPercent, iScoutOpportunityPercent,
+		iBestScoutExpectedGain, iScoutDelayBaseCost, iScoutWindowProgressPercent, iScoutTimePressurePercent, iScoutDelayCost, iPathTurns, iElapsedTurns, iMaxFirstCityTurns);
+}
+
+void logSASGameRecordAISettlerFogScoutStep(CvUnitAI const& kSettler, CvPlot const& kSelectedSite, CvPlot const& kScoutSite, CvPlot const& kEndTurnPlot, int iSelectedFoundValue, int iScoutFoundValue, int iSelectedRevealedBFC, int iSelectedUnrevealedBFC, int iScoutRevealedBFC, int iScoutUnrevealedBFC, int iSelectedPathTurns, int iScoutPathTurns)
+{
+	CvSelectionGroupAI const* pGroup = kSettler.AI_getGroup();
+	int const iSelectedAverageX100 = (iSelectedRevealedBFC <= 0 ? -1 : (100 * iSelectedFoundValue) / iSelectedRevealedBFC);
+	int const iScoutAverageX100 = (iScoutRevealedBFC <= 0 ? -1 : (100 * iScoutFoundValue) / iScoutRevealedBFC);
+	logSASGameRecord("GAME_RECORD_AI_SETTLER_FOG_SCOUT_STEP turn=%d player=%d unitId=%d groupId=%d fromX=%d fromY=%d endTurnX=%d endTurnY=%d selectedSiteX=%d selectedSiteY=%d scoutSiteX=%d scoutSiteY=%d selectedFoundValue=%d scoutFoundValue=%d selectedRevealedBFC=%d selectedUnrevealedBFC=%d scoutRevealedBFC=%d scoutUnrevealedBFC=%d selectedAverageX100=%d scoutAverageX100=%d selectedPathTurns=%d scoutPathTurns=%d",
+		GC.getGame().getGameTurn(), kSettler.getOwner(), kSettler.getID(), (pGroup == NULL ? -1 : pGroup->getID()), kSettler.getX(), kSettler.getY(),
+		kEndTurnPlot.getX(), kEndTurnPlot.getY(), kSelectedSite.getX(), kSelectedSite.getY(), kScoutSite.getX(), kScoutSite.getY(), iSelectedFoundValue,
+		iScoutFoundValue, iSelectedRevealedBFC, iSelectedUnrevealedBFC, iScoutRevealedBFC, iScoutUnrevealedBFC, iSelectedAverageX100, iScoutAverageX100,
+		iSelectedPathTurns, iScoutPathTurns);
+}
+
+static int getSASGameRecordCargoAssetValue(CvUnit const& kUnit)
+{
+	if (!kUnit.hasCargo())
+		return 0;
+	int iCargoAssetValue = 0;
+	std::vector<CvUnit*> aCargoUnits;
+	kUnit.getCargoUnits(aCargoUnits);
+	for (uint i = 0; i < aCargoUnits.size(); ++i)
+		iCargoAssetValue += aCargoUnits[i]->getUnitInfo().getAssetValue();
+	return iCargoAssetValue;
+}
+
+// <!-- custom: Mirror only the inherited K-Mod cargo term from CvUnit::LFBgetValueAdjustedOdds for diagnostics; this helper never participates in defender ranking. (ChatGPT-5.6-Sol) -->
+static int getSASGameRecordCargoProtectionPenalty(CvUnit const& kUnit, CvUnit const& kAttacker, int iDefenderOdds, int iCargoAssetValue)
+{
+	if (iCargoAssetValue <= 0 || kUnit.maxHitPoints() > kAttacker.combatLimit())
+		return 0;
+	int const iUnitAssetValue = std::max(1, kUnit.getUnitInfo().getAssetValue());
+	return 2 * (1000 - iDefenderOdds) * iCargoAssetValue / std::max(1, iUnitAssetValue + iCargoAssetValue);
+}
+
+void logSASGameRecordNavalTransportDefenderSelection(CvUnit const& kAttacker, CvUnit const& kSelectedDefender, CvPlot const& kPlot)
+{
+	if (kAttacker.getDomainType() != DOMAIN_SEA)
+		return;
+	int iEligibleDefenders = 0;
+	int iLoadedEligibleDefenders = 0;
+	CvUnit const* pBestAlternative = NULL;
+	int iBestAlternativeRank = -1;
+	FOR_EACH_UNIT_IN(pLoopUnit, kPlot)
+	{
+		CvUnit const& kCandidate = *pLoopUnit;
+		if (kCandidate.isCargo() || !kCandidate.canBeAttackedBy(kAttacker.getOwner(), &kAttacker, true, false, false, true))
+			continue;
+		++iEligibleDefenders;
+		if (kCandidate.hasCargo())
+			++iLoadedEligibleDefenders;
+		if (&kCandidate != &kSelectedDefender && kCandidate.isBetterDefenderThan(pBestAlternative, &kAttacker, &iBestAlternativeRank))
+			pBestAlternative = &kCandidate;
+	}
+	if (iLoadedEligibleDefenders <= 0 || iEligibleDefenders <= 1 || pBestAlternative == NULL)
+		return;
+	int const iSelectedOdds = kSelectedDefender.LFBgetDefenderOdds(&kAttacker);
+	int const iSelectedRank = kSelectedDefender.LFBgetDefenderRank(&kAttacker);
+	int const iSelectedCargoAssetValue = getSASGameRecordCargoAssetValue(kSelectedDefender);
+	int const iSelectedCargoPenalty = getSASGameRecordCargoProtectionPenalty(kSelectedDefender, kAttacker, iSelectedOdds, iSelectedCargoAssetValue);
+	int const iAlternativeOdds = pBestAlternative->LFBgetDefenderOdds(&kAttacker);
+	int const iAlternativeRank = pBestAlternative->LFBgetDefenderRank(&kAttacker);
+	int const iAlternativeCargoAssetValue = getSASGameRecordCargoAssetValue(*pBestAlternative);
+	int const iAlternativeCargoPenalty = getSASGameRecordCargoProtectionPenalty(*pBestAlternative, kAttacker, iAlternativeOdds, iAlternativeCargoAssetValue);
+	logSASGameRecord("GAME_RECORD_NAVAL_TRANSPORT_DEFENDER_SELECTION turn=%d attackerPlayer=%d attackerUnitId=%d attackerUnit=%s attackerDamage=%d defenderPlayer=%d x=%d y=%d eligibleDefenders=%d loadedEligibleDefenders=%d lfbEnabled=%d selectedUnitId=%d selectedUnit=%s selectedDamage=%d selectedLevel=%d selectedExperience=%d selectedHasLeader=%d selectedCargoCount=%d selectedCargoAssetValue=%d selectedDefenderOdds=%d selectedRelativeValue=%d selectedDefensiveAdjustment=%d selectedSameTileHeal=%d selectedValueAdjustmentApplies=%d selectedCargoProtectionPenalty=%d selectedRank=%d alternativePlayer=%d alternativeUnitId=%d alternativeUnit=%s alternativeDamage=%d alternativeLevel=%d alternativeExperience=%d alternativeHasLeader=%d alternativeCargoCount=%d alternativeCargoAssetValue=%d alternativeDefenderOdds=%d alternativeRelativeValue=%d alternativeDefensiveAdjustment=%d alternativeSameTileHeal=%d alternativeValueAdjustmentApplies=%d alternativeCargoProtectionPenalty=%d alternativeRank=%d",
+		GC.getGame().getGameTurn(), kAttacker.getOwner(), kAttacker.getID(), kAttacker.getUnitInfo().getType(), kAttacker.getDamage(), kSelectedDefender.getOwner(),
+		kPlot.getX(), kPlot.getY(), iEligibleDefenders, iLoadedEligibleDefenders, GC.getDefineBOOL(CvGlobals::LFB_ENABLE), kSelectedDefender.getID(),
+		kSelectedDefender.getUnitInfo().getType(), kSelectedDefender.getDamage(), kSelectedDefender.getLevel(), kSelectedDefender.getExperience(), (kSelectedDefender.getLeaderUnitType() != NO_UNIT),
+		kSelectedDefender.getCargo(), iSelectedCargoAssetValue, iSelectedOdds, kSelectedDefender.LFBgetRelativeValueRating(), kSelectedDefender.LFGgetDefensiveValueAdjustment(),
+		kSelectedDefender.getSameTileHeal(), (kSelectedDefender.maxHitPoints() <= kAttacker.combatLimit()), iSelectedCargoPenalty, iSelectedRank, pBestAlternative->getOwner(), pBestAlternative->getID(), pBestAlternative->getUnitInfo().getType(), pBestAlternative->getDamage(),
+		pBestAlternative->getLevel(), pBestAlternative->getExperience(), (pBestAlternative->getLeaderUnitType() != NO_UNIT), pBestAlternative->getCargo(), iAlternativeCargoAssetValue,
+		iAlternativeOdds, pBestAlternative->LFBgetRelativeValueRating(), pBestAlternative->LFGgetDefensiveValueAdjustment(), pBestAlternative->getSameTileHeal(), (pBestAlternative->maxHitPoints() <= kAttacker.combatLimit()), iAlternativeCargoPenalty, iAlternativeRank);
+}
+
 void logSASGameRecordCityFoundingSite(CvPlayer const& kPlayer, CvPlot const& kPlot)
 {
 	if (kPlayer.isBarbarian())

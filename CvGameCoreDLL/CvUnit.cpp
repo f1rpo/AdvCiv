@@ -1478,6 +1478,10 @@ void CvUnit::updateCombat(bool bQuick, /* <advc.004c> */ bool* pbIntercepted, bo
 		return;
 	}
 
+	// <!-- custom: Level-3 SASGameRecord only: when a sea attack reaches a stack where a loaded ship competes with another eligible defender, preserve the selected defender and LFB/cargo context.
+	// Cargo units themselves are already excluded from defender candidates and inherited K-Mod LFB already protects loaded transports through value/cargo ranking, so keep this diagnostic-only until an anomalous selection is reproduced in SAS. (ChatGPT-5.6-Sol) -->
+	if (gGameRecordLogLevel >= 3 && !bFinish) logSASGameRecordNavalTransportDefenderSelection(*this, *pDefender, *pPlot);
+
 	//check if quick combat
 	bool const bVisible = (bQuick ? false : isCombatVisible(pDefender,
 			bSeaPatrol)); // advc.004k

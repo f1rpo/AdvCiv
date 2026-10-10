@@ -28,7 +28,7 @@ int getSASGameRecordTurnInterval();
 // Standalone docs/example-log/package refreshes do not require a bump.
 // Keep the matching revision-history entry in the same commit.
 // An anonymous enum keeps this a C++03 compile-time integer without a separate storage/linkage definition. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-enum { SAS_GAME_RECORD_REVISION = 138 };
+enum { SAS_GAME_RECORD_REVISION = 139 };
 // <!-- custom: Finalize buffered observations in the old game state before a new game or loaded save resets/replaces it. See KI#382. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 void finalizeSASGameRecordLogSession();
 void startSASGameRecordLogForNewGame();
@@ -574,6 +574,22 @@ enum SASGameRecordAISettlerSiteDecisionSource
 	SAS_AI_SETTLER_SITE_DECISION_CURRENT_PLOT_RECHECK
 };
 void logSASGameRecordAISettlerSiteDecision(CvUnitAI const& kSettler, CvPlot const& kTargetPlot, bool bFoundNow, SASGameRecordAISettlerSiteDecisionSource eSource, int iDecisionRawFoundValue, int iDecisionSelectionFoundValue, int iPathTurns, int iPathAdjustedScore, bool bSafe, MissionAITypes ePreviousMissionAI, CvPlot const* pPreviousMissionTarget);
+// <!-- custom: MISSIONAI_EXPLORE bypasses the ordinary Settler-site assignment row, so preserve only realized scouting actions rather than BBAI's rejected-candidate dump.
+// First-city rows retain the already-computed information/upside/delay terms that explain whether another scouting turn was worth postponing the capital; later promising-fog rows retain the selected-site versus scout-site evidence that caused the detour. (ChatGPT-5.6-Sol) -->
+enum SASGameRecordAISettlerScoutEndReason
+{
+	SAS_AI_SETTLER_SCOUT_END_DEADLINE = 0,
+	SAS_AI_SETTLER_SCOUT_END_LOW_UPSIDE,
+	SAS_AI_SETTLER_SCOUT_END_NO_SAFE_STEP
+};
+void logSASGameRecordAIFirstCityCoreScoutStep(CvUnitAI const& kSettler, CvPlot const& kTargetPlot, CvPlot const* pEndTurnPlot, int iCurrentFoundValue, int iTargetFoundValue, int iCurrentBest6, int iCurrentBest10, int iTargetBest6, int iTargetBest10, int iCoreGrowthValue, int iAdjustedValue, int iPathTurns, int iElapsedTurns, int iMaxFirstCityTurns);
+void logSASGameRecordAIFirstCityScoutStep(CvUnitAI const& kSettler, CvPlot const& kEndTurnPlot, CvPlot const* pScoutOrigin, CvPlot const* pSettleNowPlot, int iSettleNowFoundValue, int iSettleNowBest6, int iSettleNowBest10, int iSettleNowCoreQualityPercent, int iInformationValue, int iDiscountedInformationValue, int iScoutOpportunityLinearPercent, int iScoutOpportunityPercent, int iEndTurnFoundValue, int iSettleNowFoundValueGain, int iScoutExpectedGain, int iScoutDelayBaseCost, int iScoutWindowProgressPercent, int iScoutTimePressurePercent, int iScoutDelayCost, int iDirectionScore, int iElapsedTurns, int iMaxFirstCityTurns);
+void logSASGameRecordAIFirstCityScoutEnd(CvUnitAI const& kSettler, SASGameRecordAISettlerScoutEndReason eReason, bool bFoundNow, CvPlot const* pTargetPlot, int iSettleNowFoundValue, int iAdjustedValue, int iSettleNowBest6, int iSettleNowBest10, int iSettleNowCoreQualityPercent, int iScoutOpportunityLinearPercent, int iScoutOpportunityPercent, int iBestScoutExpectedGain, int iScoutDelayBaseCost, int iScoutWindowProgressPercent, int iScoutTimePressurePercent, int iScoutDelayCost, int iPathTurns, int iElapsedTurns, int iMaxFirstCityTurns);
+void logSASGameRecordAISettlerFogScoutStep(CvUnitAI const& kSettler, CvPlot const& kSelectedSite, CvPlot const& kScoutSite, CvPlot const& kEndTurnPlot, int iSelectedFoundValue, int iScoutFoundValue, int iSelectedRevealedBFC, int iSelectedUnrevealedBFC, int iScoutRevealedBFC, int iScoutUnrevealedBFC, int iSelectedPathTurns, int iScoutPathTurns);
+// <!-- custom: Diagnose only the rare naval case where a loaded ship competes with another eligible defender.
+// The row is level-3-only and records the selected ship plus the best alternative under the same defender rules, including LFB odds/value/cargo protection context.
+// Keep it observational: transported cargo is not a defender candidate and inherited K-Mod LFB already contains loaded-transport protection, so an external report alone is not evidence for changing combat selection. (ChatGPT-5.6-Sol) -->
+void logSASGameRecordNavalTransportDefenderSelection(CvUnit const& kAttacker, CvUnit const& kSelectedDefender, CvPlot const& kPlot);
 // <!-- custom: Preserve the strategic shortlist plus one cold quality summary for the site that is actually founded, immediately before normal founding mutates the plot/city state.
 // Level 2 deliberately rescans only that rare chosen BFC from player-known and diagnostic-omniscient perspectives; rejected-candidate reasons remain BBAI territory and periodic snapshots do no settlement rescoring. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordCityFoundingSite(CvPlayer const& kPlayer, CvPlot const& kPlot);

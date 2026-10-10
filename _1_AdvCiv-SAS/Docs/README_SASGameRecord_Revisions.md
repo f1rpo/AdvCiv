@@ -28,7 +28,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=138 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=139 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -71,10 +71,28 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
+### Revision 139 - SAS practical 6615
+
+- **Date:** 2026-10-10
+- **Git commit:** `pending`
+- **Change:** Added compact realized Settler-scout provenance and rare loaded-transport defender-selection diagnostics without changing AI or combat behavior.
+
+Settler scouting now preserves only realized actions rather than BBAI's rejected-candidate search:
+	- `GAME_RECORD_AI_FIRST_CITY_CORE_SCOUT_STEP` records the bounded stronger-growth-core investigation that can begin a capital search.
+	- `GAME_RECORD_AI_FIRST_CITY_SCOUT_STEP` records chosen capital-scout moves with the already-computed settle-now quality, information/upside and delay terms.
+	- `GAME_RECORD_AI_FIRST_CITY_SCOUT_END` records stops caused by the hard deadline, low expected upside, or absence of a safe scout step.
+	- `GAME_RECORD_AI_SETTLER_FOG_SCOUT_STEP` separately records later promising-fog detours with the selected-site versus scout-site evidence that caused the move.
+
+At level 3, `GAME_RECORD_NAVAL_TRANSPORT_DEFENDER_SELECTION` is emitted only when a sea attack selects among at least two eligible defenders and at least one is carrying cargo.
+
+The row preserves the chosen ship and best alternative with damage, level/experience/leader state, cargo count/asset value, LFB defender odds/rank, value-adjustment applicability, relative-value/healer/defensive adjustments and the explicit cargo-protection penalty.
+
+It is deliberately diagnostic-only: transported cargo is already excluded from defender candidates and inherited K-Mod LFB already applies loaded-transport protection, so an external report alone is not evidence for changing defender choice.
+
 ### Revision 138 - SAS practical 6611
 
 - **Date:** 2026-10-10
-- **Git commit:** pending
+- **Git commit:** `2cfce0006eacdadca77c5ab7601287622ca6661f`
 - **Change:** Reflowed AdvCiv-SAS custom prose comments in recorder implementation, declarations, call sites and checker code at logical sentence boundaries as part of the shared source-comment maintenance pass.
 
 Preserves technical wording, credits and KI references while separating substantial sentences and joining arbitrary physical wraps. Recorder fields, recording conditions and emitted rows are unchanged; this revision signals the intentional recorder-related code-comment update.
