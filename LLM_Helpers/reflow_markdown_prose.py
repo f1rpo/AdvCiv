@@ -37,7 +37,7 @@ import re
 import sys
 from pathlib import Path
 
-DEFAULT_MIN_LINE_LEN = 320
+DEFAULT_MIN_LINE_LEN = 400
 
 # Conservative false-positive protection. Missing a possible split is preferable to splitting an abbreviation incorrectly.
 ABBREVIATION_SUFFIXES = (
@@ -216,6 +216,8 @@ def split_prose_line(line, min_line_len):
     if " ".join(parts) != body:
         return [line]
 
+    # <!-- custom: A full-document cleanup using only these soft newlines left the rendered paragraphs just as bulky; source reflow alone did not fix visible readability.
+    # Review the rendered result and add blank-line paragraphs or nested child bullets for distinct thoughts, retaining list indentation; a passing reflow check does not verify that step. (GPT-6.1-Sol) -->
     return [prefix + parts[0]] + [continuation + part for part in parts[1:]]
 
 
@@ -227,9 +229,19 @@ def transform_text(text, newline, min_line_len):
     in_fence = False
     fence_char = None
     fence_len = 0
+    in_html_comment = False
 
     for line in source_lines:
         stripped = line.lstrip()
+
+        # <!-- custom: Changed-prose CI must not reflow prose-looking lines inside a multiline HTML comment; preserve these blocks verbatim, including mixed comment/visible lines that need manual review. (GPT-6.1-Sol) -->
+        if not in_fence and (in_html_comment or "<!--" in line):
+            if "<!--" in line:
+                in_html_comment = "-->" not in line[line.rfind("<!--") + 4:]
+            elif "-->" in line:
+                in_html_comment = False
+            output_lines.append(line)
+            continue
 
         fence_match = re.match(r"^(`{3,}|~{3,})", stripped)
         if fence_match:
@@ -284,7 +296,7 @@ def main(argv):
     parser.add_argument(
         "--check",
         action="store_true",
-        help="return nonzero if the helper would change any file (manual/reporting use; not intended as a strict CI style gate)",
+        help="return nonzero if any file needs reflow; CI uses markdown_prose_changes.py to restrict enforcement to edited lines",
     )
     parser.add_argument("--min-line-len", type=int, default=DEFAULT_MIN_LINE_LEN)
     args = parser.parse_args(argv)

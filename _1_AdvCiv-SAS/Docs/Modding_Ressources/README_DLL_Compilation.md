@@ -62,7 +62,9 @@ cmd.exe /d /s /c 'call "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\b
 
 A clean Debug-opt build writes both `CvGameCoreDLL.dll` and its exact matching `CvGameCoreDLL.pdb` under `CvGameCoreDLL/Project/temp_files/Debug-opt`. The linked DLL records that build-time PDB path.
 
-Installing only the DLL in `Assets` while retaining the successful build folder therefore lets automatic WinDbg dump analysis resolve private symbols, source files and line numbers without copying the PDB into `Assets` or manually extending the debugger's symbol path. This was confirmed empirically during KI#475.2: after `temp_files/Debug-opt` was removed, a later matching Debug-opt crash report lost the useful source frames despite copying a PDB beside the installed Assets DLL; retaining the freshly rebuilt target restored them.
+Installing only the DLL in `Assets` while retaining the successful build folder therefore lets automatic WinDbg dump analysis resolve private symbols, source files and line numbers without copying the PDB into `Assets` or manually extending the debugger's symbol path.
+
+This was confirmed empirically during KI#475.2: after `temp_files/Debug-opt` was removed, a later matching Debug-opt crash report lost the useful source frames despite copying a PDB beside the installed Assets DLL; retaining the freshly rebuilt target restored them.
 
 Keep the successful `temp_files/Debug-opt` folder while its installed DLL may need crash analysis. The folder is locally Git-ignored because retaining its exact PDB is now the normal Debug-opt workflow.
 

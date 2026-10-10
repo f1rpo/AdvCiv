@@ -115,9 +115,13 @@ Finally, the last main point to know regarding this AI personality panel is the 
 
 Screenshots about this part of the readme are in this [google drive link folder](https://drive.google.com/drive/folders/1D8RIy6iqkADMXtCl1VuWkEInrpqtIzrU?usp=sharing) with screenshots for details or example of how we me and chatgpt implemented it together even though i skipped some prompts where i feel its response was not adequate or i mean correct or optimal or as i wanted, but it did help me lot.
 
-I am very happy that the AI Personality panel is coded in a way that i find is very efficient and performant. Even though i should say first that i am not an expert in this topic or too knowledgeable about these, i believe still and also thanks to the help of chatgpt i could do this as well thanks a lot, that the system is very efficient in terms of memory consumption and load times in particular.
+I am very happy that the AI Personality panel is coded in a way that i find is very efficient and performant.
 
-For example, we store almost all data as cached precomputed tuples (in [SevoPediaLeaderCachePredumped.py](/Assets/Python/Contrib/Sevopedia/SevoPediaLeaderCachePredumped.py)), and if there are strings it is almost only byte strings not unicode strings. At leader selection, there is barely anything left to do except unpack and display as is fully precomputed display with their label, normalized value, and scale.
+Even though i should say first that i am not an expert in this topic or too knowledgeable about these, i believe still and also thanks to the help of chatgpt i could do this as well thanks a lot, that the system is very efficient in terms of memory consumption and load times in particular.
+
+For example, we store almost all data as cached precomputed tuples (in [SevoPediaLeaderCachePredumped.py](/Assets/Python/Contrib/Sevopedia/SevoPediaLeaderCachePredumped.py)), and if there are strings it is almost only byte strings not unicode strings.
+
+At leader selection, there is barely anything left to do except unpack and display as is fully precomputed display with their label, normalized value, and scale.
 
 We also do not cache at module load, and we do not cache at all if we never click at the Leaders category in Sevopedia, but we load the precomputed cache before any leader is selected, and we don't reload cache even if Sevopedia is closed or a save file loaded during the entire game session (i.e. until game is exited).
 
@@ -129,7 +133,9 @@ Using a function call gives us also more control than hardcoded code in Sevopedi
 
 This is also very nice because now in VS Code in Sevopedia leader we can also "unwrap" or rather "wrap" maybe i mean "undevelop" the function i don't know how to explain but click on the arrow at left of function name at line number, and we compress=hide all this caching code very nicely to directly and only read the Sevopedia leader remaining code we want so i hadn't planend it as such but is very nice side effect.
 
-Also, loading the precache rather than pre-caching and recomputing at each civ4 game launch, has the advantage for players that they don't need to always recompute these values that do not change on their end, and rarely so even for modders, every time they start civ4. Plus, as the AI Personality Panel is purely only a UI feature, no need to spend so much computation on it, only fetch the precomputed result directly rather.
+Also, loading the precache rather than pre-caching and recomputing at each civ4 game launch, has the advantage for players that they don't need to always recompute these values that do not change on their end, and rarely so even for modders, every time they start civ4.
+
+Plus, as the AI Personality Panel is purely only a UI feature, no need to spend so much computation on it, only fetch the precomputed result directly rather.
 
 Also, this should scale better computationally so it is cheaper (calculate the max among more leaders or with more xml attributes would be more than linearily more expensive if i'm not mistaken, vs just fetching the precomputed value for say Leader number 150 in a heavy mod if not more). So the burden to update it is on the modder.
 
@@ -148,7 +154,9 @@ If you modify leader XML values or shared AIP display logic, the predumped cache
 3. To refresh locally without launching Civ4, run `python .github/workflows/build/aip_predump_values.py --write`, review the diff, and rerun the checker. The generated file has no timestamp, so no-op `--write` runs stay byte-identical when cache data is unchanged instead of producing false diffs.
 4. Manual fallback: set `SAS_SEVOPEDIA_LEADER_AI_PERSONALITY_CACHE_USE_PREDUMPED = 0` and `SAS_SEVOPEDIA_LEADER_AI_PERSONALITY_CACHE_DUMP_TO_LOG = 1`, open the Leaders / AI Personality panel once, copy the generated `PythonDbg.log` block into `SevoPediaLeaderCachePredumped.py`, restore the defaults, and rerun `aip_predump_values.py`.
 
-This means ordinary player builds stay fast by loading the predumped cache, while modders/LLMs get automatic stale-cache detection, bot-assisted predump refreshes, and a normal outside-Civ4 local refresh path. During development, the full-tuple checker caught 394 stale label entries, including labels like `Build Unit (52)` that were missing the updated `%` text (`Build Unit % (52)`); write mode can now refresh that kind of drift without relying only on the old manual PythonDbg.log copy path.
+This means ordinary player builds stay fast by loading the predumped cache, while modders/LLMs get automatic stale-cache detection, bot-assisted predump refreshes, and a normal outside-Civ4 local refresh path.
+
+During development, the full-tuple checker caught 394 stale label entries, including labels like `Build Unit (52)` that were missing the updated `%` text (`Build Unit % (52)`); write mode can now refresh that kind of drift without relying only on the old manual PythonDbg.log copy path.
 
 ## Note about some ai attributes being ignored
 

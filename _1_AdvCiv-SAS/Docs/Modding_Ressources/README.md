@@ -91,7 +91,9 @@ See the detailed [AdvCiv/K-Mod historical bug-archeology progress tracker](/_1_A
 
 ### C++ File Audit Album
 
-The active [C++ File Audit Album](/_1_AdvCiv-SAS/Docs/Source_Analysis/cpp_file_audit_album.txt) complements commit-oriented archaeology by reviewing every current `.cpp` file from longest to shortest with the associated headers, data and neighboring contracts needed to judge it. It is especially useful for cross-file and cross-commit interactions that survive only in the final combined tree, and records clean files and false positives alongside findings.
+The active [C++ File Audit Album](/_1_AdvCiv-SAS/Docs/Source_Analysis/cpp_file_audit_album.txt) complements commit-oriented archaeology by reviewing every current `.cpp` file from longest to shortest with the associated headers, data and neighboring contracts needed to judge it.
+
+It is especially useful for cross-file and cross-commit interactions that survive only in the final combined tree, and records clean files and false positives alongside findings.
 
 Future Python, XML or other file-oriented analyses belong in [`Docs/Source_Analysis/`](/_1_AdvCiv-SAS/Docs/Source_Analysis/).
 
@@ -123,7 +125,9 @@ In case the information of this second link disappears someday, here is a copy o
 
 Thanks for help thanks
 
-Here is now (I like this theatrical performance of an announcer i am performing xd and very excited to do so in my mind) an example of how to download one, for an audio asset for example here ! (,) As civ4 expects .mp3 files of a music without copyright claim on it, or "royalty free music" as it seems they call it (note: to be honest i think it's kinda shit (the music) but it is helpful and maybe not too bad, but thanks for that), for/to download(ing/) the entire media file as mp3 in this case if i'm not mistaken.
+Here is now (I like this theatrical performance of an announcer i am performing xd and very excited to do so in my mind) an example of how to download one, for an audio asset for example here !
+
+(,) As civ4 expects .mp3 files of a music without copyright claim on it, or "royalty free music" as it seems they call it (note: to be honest i think it's kinda shit (the music) but it is helpful and maybe not too bad, but thanks for that), for/to download(ing/) the entire media file as mp3 in this case if i'm not mistaken.
 
 But while writing this, it now played this very nice or cool/relaxing from [this youtube playlist](https://www.youtube.com/watch?v=MM2-z8inpY8&list=PLfP6i5T0-DkLlj5LDluZcpP9n6YlATpSG&index=3) for example; also adding `-x` in yt-dlp.
 
@@ -661,7 +665,9 @@ note: many many many other things global search can be useful for, for example t
 
 ## Example of how to fast replace many redundant entries (e.g. 400+ strategy entries to obsolete) using regexp (with chatgpt 5's help) and vs code
 
-This is a very nice idea i got since i knew thanks to those who taught me about regexp, but i was doing this task of replacing the old strategy entries now not used in our mod for most if not all as tedious and outdated for most if not all, but there are 400+ entries (found using global search of `<Strategy>`)! And it's always the same task, i started to do it manually for the first few dozen entries but it's extremely tiring xd.
+This is a very nice idea i got since i knew thanks to those who taught me about regexp, but i was doing this task of replacing the old strategy entries now not used in our mod for most if not all as tedious and outdated for most if not all, but there are 400+ entries (found using global search of `<Strategy>`)!
+
+And it's always the same task, i started to do it manually for the first few dozen entries but it's extremely tiring xd.
 
 Entries are like this
 
@@ -1095,7 +1101,9 @@ Note 2: Among all those sizes, only 64px doesn't crash with default settings it 
 
 ## How to change the mod's main menu background image (for example to add a static image instead of default base advciv +/- civ4 image)
 
-Used on the middle-earth mod's civ4mainmenubg.nif thanks to have a static image instead of a nif animation, and then just replaced their RingMainMenu.dds with our AdvCiv-SAS's wallpaper dds, using the same file name. Then updated in XML the path to where our nif is, see `MAINMENU_SCENE_CLASSICAL` (main menu background) and `MAINMENU_LOAD_CLASSICAL` (loading screen (e.g. loading a save file, loading a new map, etc.) background) in [/Assets/XML/Art/CIV4ArtDefines_Interface.xml](/Assets/XML/Art/CIV4ArtDefines_Interface.xml).
+Used on the middle-earth mod's civ4mainmenubg.nif thanks to have a static image instead of a nif animation, and then just replaced their RingMainMenu.dds with our AdvCiv-SAS's wallpaper dds, using the same file name.
+
+Then updated in XML the path to where our nif is, see `MAINMENU_SCENE_CLASSICAL` (main menu background) and `MAINMENU_LOAD_CLASSICAL` (loading screen (e.g. loading a save file, loading a new map, etc.) background) in [/Assets/XML/Art/CIV4ArtDefines_Interface.xml](/Assets/XML/Art/CIV4ArtDefines_Interface.xml).
 
 Note: added top and bottom empty bands with Paint.NET to convert it ingame to 16:9 (else image was trimmed vertically).
 
@@ -1181,7 +1189,9 @@ See [README_Known_Issues.md#ki-17](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki
 
 ## Example of performance optimization of python loading time (as in when we load the code) and loading times
 
-The AI Personality feature in/of Sevopedia leader has a very or at least quite optimized precaching system, i think it is a good example or maybe at least time to show how i did it if it helps. Even though i am not too knowledgeable, i hope this info and general process of how i did this can be informative or pleasant/enjoyable maybe too, see this doc section for details with google drive link with (= that has) screenshots and such: [README_AI_Personality_Panel.md#notes-about-performance-optimization-of-the-ai-personality-panel-caching](/_1_AdvCiv-SAS/Docs/README_AI_Personality_Panel.md#notes-about-performance-optimization-of-the-ai-personality-panel-caching)
+The AI Personality feature in/of Sevopedia leader has a very or at least quite optimized precaching system, i think it is a good example or maybe at least time to show how i did it if it helps.
+
+Even though i am not too knowledgeable, i hope this info and general process of how i did this can be informative or pleasant/enjoyable maybe too, see this doc section for details with google drive link with (= that has) screenshots and such: [README_AI_Personality_Panel.md#notes-about-performance-optimization-of-the-ai-personality-panel-caching](/_1_AdvCiv-SAS/Docs/README_AI_Personality_Panel.md#notes-about-performance-optimization-of-the-ai-personality-panel-caching)
 
 ## Drive
 

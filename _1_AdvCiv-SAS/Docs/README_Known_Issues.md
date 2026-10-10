@@ -2548,11 +2548,9 @@ There are many related changes as well, please view code there for details.
 In screenshots, it can be seen that:
 
 - at turn 50, before any of our changes to this function(screenshot 1525), mecca has farms on grapes plains although plantations are unavailable, and it barely improved its much more profitable grassland tiles.
-  Also, there is a hamlet (!!!) on plains iron which is now destroyed so all investment is lost, and not using this to improve other tiles and now have say a hamlet grassland ideally for example or something similar.
-  It seems a plains has a cottage on it instead of grassland, very inefficient and waste of good tiles.
+  - Also, there is a hamlet (!!!) on plains iron which is now destroyed so all investment is lost, and not using this to improve other tiles and now have say a hamlet grassland ideally for example or something similar. It seems a plains has a cottage on it instead of grassland, very inefficient and waste of good tiles.
 - at turn 50 again, but after our changes, in an early and conservative and much earlier version of our changes (screenshot 1571), mecca is beyond comparison so much more improved, with many villages at turn 50 on grassland, and the grapes have been ignored since we don't have plantation, so workers were not wasted.
-  Needless to say AI is tremendously stronger now with these changes, the iron is ignored as well, although in some runs there seemed to be a cottage at the time in the aztec city (if not always, improving without bonus specific improvement tiles with bonuses should now happen much less often).
-  Plains are ignored succesfully now until we build on higher food tiles first as intended.
+  - Needless to say AI is tremendously stronger now with these changes, the iron is ignored as well, although in some runs there seemed to be a cottage at the time in the aztec city (if not always, improving without bonus specific improvement tiles with bonuses should now happen much less often). Plains are ignored succesfully now until we build on higher food tiles first as intended.
 - at turn 50 again again (screenshot 1641), mecca is still strongly developed, although a bit less advanced cottages but they are present, but it is better settled (not on hill grassland anymore due to some unrelated changes i made in the meantime, and its production potential is stronger The aztec cities are doing very well too, not improving nor capitalizing on any plains tile until grass for example are handled first, and bonuses are improved very early in the game as per past changes now fine tuned a bit if i may say or enforced/made sure no issue).
   AI is now amazingly stronger and more efficient at improving its cities.
 
@@ -2675,9 +2673,8 @@ The balanced candidate keeps the simple hard-override architecture but splits it
 
 - **CORE Worker/Settler production:** `SAS_WORKER_AI_PHASE0_PRODUCTIVE_FEATURE_CHOP_CORE_FOOD_UNIT_MIN_ELIGIBLE_PLOTS = 3` by default, so the city can spend down toward about two reserves.
   This still runs before `AI_improveBonus`, because accelerating the current food-production Worker/Settler is the strongest chop context.
-- **NORMAL production:** `SAS_WORKER_AI_PHASE0_PRODUCTIVE_FEATURE_CHOP_NORMAL_MIN_ELIGIBLE_PLOTS = 6` by default.
-  Immediate bonus improvement now gets first claim; generic productive-feature chopping runs afterward but before city Roads/ordinary tile work.
-  An eight-feature city therefore makes roughly three generic chops (8 -> 7 -> 6 -> 5) and then returns to Cottages/Farms/etc. until a later CORE window lowers the threshold.
+- **NORMAL production:** `SAS_WORKER_AI_PHASE0_PRODUCTIVE_FEATURE_CHOP_NORMAL_MIN_ELIGIBLE_PLOTS = 6` by default. Immediate bonus improvement now gets first claim; generic productive-feature chopping runs afterward but before city Roads/ordinary tile work.
+  - An eight-feature city therefore makes roughly three generic chops (8 -> 7 -> 6 -> 5) and then returns to Cottages/Farms/etc. until a later CORE window lowers the threshold.
 - A removal that directly relieves current unhealth/unhappiness can still bypass the normal reserve.
 - The separate `AI_improveBonus` reserve block now applies only during CORE Worker/Settler production. Outside CORE, a useful bonus is intentionally allowed to consume a productive feature.
 
@@ -2853,7 +2850,7 @@ For every feature whose XML removal tech is the candidate and whose XML removal 
 
 - it owns at least `SAS_AI_TECH_VALUE_PRODUCTIVE_FEATURE_REMOVE_MIN_FEATURES_PER_CITY` non-bonus workable BFC copies of that feature currently assigned to the city (default **4**);
 - one actual chop represents at least `SAS_AI_TECH_VALUE_PRODUCTIVE_FEATURE_REMOVE_MIN_CHOP_BASE_PRODUCTION_TURNS_NORMAL_GAMESPEED_EQUIVALENT` Normal-speed-equivalent turns of that city's current base production (default **2**).
-  The code scales this threshold with the current game speed's `FeatureProductionPercent`, matching the scaling already applied by `CvPlot::getFeatureProduction`; this keeps the leverage decision comparable across game speeds while leaving the tested Normal-speed behavior unchanged.
+  - The code scales this threshold with the current game speed's `FeatureProductionPercent`, matching the scaling already applied by `CvPlot::getFeatureProduction`; this keeps the leverage decision comparable across game speeds while leaving the tested Normal-speed behavior unchanged.
 
 For the SAS extension, the scan independently chooses a positive-production removal Build that would be available once the candidate technology is learned, preferring a pure removal Build over an improvement/route Build.
 
@@ -2956,13 +2953,12 @@ I noticed them while still in save file 334 which is a save file which helped me
 About the issues fixed here or patched if not fully fixed, as can be seen in screenshots, before the fixes/patches:
 
 - Screenshots 1573 and 1574 (the "Ulundi screenshots"): a city is starving while having one unhappy citizen, but this could be avoided by allocating any of the pig flatland grass or sheep flatland grass tiles.
-  Although there would be no benefit to do so as city can't grow, starving is not good either, as if the food situation is resolved in the future, we'd be happy to start from a higher point, even if it costs a bit short term production, no need to starve ourselves to death just to produce a bit faster, pay a bit more food ideally to sustain our population during this time even if a bit and even if production is a bit less (ideally only a bit) relatively
-- Screenshots 1595 and 1596 (the "Prague screenshots"): a city is stagnant while unhappy as well (1 citizen).
-  Problem: the city allocates a 2 food 1 hammer tile instead of a 5 food 1 commerce tile.
-  I don't believe 1 hammer is better than 3 food, we may want to grow, even if unhappy, and who knows, slave later, or maybe in the meantime unhappiness situation would improve, and we'd be happy to have the extra citizen, potentially also the food bar full and growing in the meantime.
-  But don't overdo this, no point in growing too much if too many citizens are unhappy, but it needs some help here i think, even at the cost of some production, value food a bit more i think, but be careful to not overdo it
+  - Although there would be no benefit to do so as city can't grow, starving is not good either, as if the food situation is resolved in the future, we'd be happy to start from a higher point, even if it costs a bit short term production, no need to starve ourselves to death just to produce a bit faster, pay a bit more food ideally to sustain our population during this time even if a bit and even if production is a bit less (ideally only a bit) relatively
+- Screenshots 1595 and 1596 (the "Prague screenshots"): a city is stagnant while unhappy as well (1 citizen). Problem: the city allocates a 2 food 1 hammer tile instead of a 5 food 1 commerce tile.
+  - I don't believe 1 hammer is better than 3 food, we may want to grow, even if unhappy, and who knows, slave later, or maybe in the meantime unhappiness situation would improve, and we'd be happy to have the extra citizen, potentially also the food bar full and growing in the meantime.
+  - But don't overdo this, no point in growing too much if too many citizens are unhappy, but it needs some help here i think, even at the cost of some production, value food a bit more i think, but be careful to not overdo it
 - Screenshots 1472 (and 1475 too if it is indeed from same time) (the "Boston Screenshots" again if i may say): a city is building a worker (food is production (same for the settler too and as of now)), but it could allocate the fish in anticipation of the worker being completed, so that city could grow at end of project.
-  3 hammer (and 1 commerce) is same as 3 food (and 1 commerce as well) to produce a worker, but the food is more likely than not, in most cases to be useful, especially for this tundra city that is low on food, so allocate rather the food than the hammer, if all other things are equal).
+  - 3 hammer (and 1 commerce) is same as 3 food (and 1 commerce as well) to produce a worker, but the food is more likely than not, in most cases to be useful, especially for this tundra city that is low on food, so allocate rather the food than the hammer, if all other things are equal).
 - Screenshot 1473 (the "Mycenian screenshot"): a city is stagnant, but it has many food tiles it could use to grow.
   Even if city is barbarian, the flatland grass tiles could be allocated.
   Note: the specialist usage seems a bit aggressive so we may want to tone it down early so cities can grow more, maybe, but not sure, kept as reference if want to see it later/again
@@ -2970,27 +2966,19 @@ About the issues fixed here or patched if not fully fixed, as can be seen in scr
 The fixes: they are tentative and quite conservative, perhaps patches in some cases, i am not really sure i found the exact or all causes, but i hope these changes help a lot, as seen in these screenshots, not in same order as before in order to make explanation easier for me (sorry for inconsistency or inconvenience hopefully fine or not too bad to read but as it is maybe too but or not but or yes):
 
 - the "Boston Screenshots" issue: i didn't test it, but i think one of the lines if not the line triggering it or related to it was `iValue += bFoodIsProduction ? 0 : (iFoodYieldTimes100+50)/100;` in `CvCityAI::AI_yieldValue`.
-  Problem of this approach is that to produce a worker or settler, 3 hammer or 3 food is the exact same, it is 3 production, therefore food should be valued just as much, not 0.
-  When worker is completed, city would be in a position to continue to grow, instead of stagnate or starve, even if a bit.
-  I am not sure this is the only way or thing to fix and didn't check since, but i hope this helps.
-  As of now, it is as such: `iValue += ((iFoodYieldTimes100+50)/100);` with some implementations differences (see below).
-  It seems that in screenshots 1665 and 1666 (screenshot 1673 with the milder final version of the patch seems to indicate a good response as well, with the 2 food tile being used to produce a worker rather than the 1 food 1 hammer one, which should be better after this production (i.e. of a worker i mean) ends if), although it used a more exteme approach to try to fix and debug it (see below at ulundi screenshots), when producing a settler, the city does use food yields now even if it is just a small sampel and it could have happened due to other reasons (such as no good hammer tile to compete with the food yields maybe), but indirectly this would also mean developing cottages and such more while producing a settler or worker, here in a flood plains cottage, which is a bit stronger than a 2 food 1 hammer flatland grass forest tile.
-  Although i am no sure this fixes it, it does seem to be better or at least not worse in this sample, while not deteriorating city behaviour early, hopefully helps and better this way.
+  - Problem of this approach is that to produce a worker or settler, 3 hammer or 3 food is the exact same, it is 3 production, therefore food should be valued just as much, not 0.
+  - When worker is completed, city would be in a position to continue to grow, instead of stagnate or starve, even if a bit. I am not sure this is the only way or thing to fix and didn't check since, but i hope this helps. As of now, it is as such: `iValue += ((iFoodYieldTimes100+50)/100);` with some implementations differences (see below).
+  - It seems that in screenshots 1665 and 1666 (screenshot 1673 with the milder final version of the patch seems to indicate a good response as well, with the 2 food tile being used to produce a worker rather than the 1 food 1 hammer one, which should be better after this production (i.e. of a worker i mean) ends if), although it used a more exteme approach to try to fix and debug it (see below at ulundi screenshots), when producing a settler, the city does use food yields now even if it is just a small sampel and it could have happened due to other reasons (such as no good hammer tile to compete with the food yields maybe), but indirectly this would also mean developing cottages and such more while producing a settler or worker, here in a flood plains cottage, which is a bit stronger than a 2 food 1 hammer flatland grass forest tile.
+  - Although i am no sure this fixes it, it does seem to be better or at least not worse in this sample, while not deteriorating city behaviour early, hopefully helps and better this way.
 - the "Ulundi screenshots" issue: in screenshots 1573 and 1574, similarly here, or rather not my bad, but i would say at least that we can maybe fix it or patch it at that line.
-  I tried and implemented other tentative ways to boost food quite conservatively, else cities are very unhappy, low production and high pop (screenshot 1663 and 1664), and similarly the same at aachen (screenshots 1666 and 1667), which is inefficient, but at least all food plots were allocated, very nice !
-  This indicated that issue could be addressed this way, even if in a milder way.
-  So i added a check that if we are unhappy (reusing old k-mod or civ4 bits for that but with a new check) value food only a bit more, but if we are happy (i.e. that we'd have room to grow), value food quite a bit extra more (but not too much i tried else we'd go back to high pop low production very angry inefficient city).
-  So by giving a food boost but relatively milder one, we now grow but only a bit more, when angry, not a lot more (and when not angry (i.e. happy city) we'd grow a lot more although not shown here)).
-  I didn't contine to check what happens at next turns, but in screenshots 1669 and 1670 for example after this fix or tentative patch, plot allocation seems now to be very very good.
-  Production is high, and city is not starving, growing moderately, which is about perfect i'd say.
-  After all we could slave as said before and would very much need or want the pop if our unhappiness solves.
-  Aachen (screenshot 1672, but difference is city is not unhappy (i.e. is happy)) has also a very good food profile, with high plot plots all allocated and fast growth and quite high production, about perfect too!!
-  Very good response or behaviour in screenshot 1674 as well in karakoum, which is happy too with high food and high production.
+  - I tried and implemented other tentative ways to boost food quite conservatively, else cities are very unhappy, low production and high pop (screenshot 1663 and 1664), and similarly the same at aachen (screenshots 1666 and 1667), which is inefficient, but at least all food plots were allocated, very nice ! This indicated that issue could be addressed this way, even if in a milder way.
+  - So i added a check that if we are unhappy (reusing old k-mod or civ4 bits for that but with a new check) value food only a bit more, but if we are happy (i.e. that we'd have room to grow), value food quite a bit extra more (but not too much i tried else we'd go back to high pop low production very angry inefficient city).
+  - So by giving a food boost but relatively milder one, we now grow but only a bit more, when angry, not a lot more (and when not angry (i.e. happy city) we'd grow a lot more although not shown here)). I didn't contine to check what happens at next turns, but in screenshots 1669 and 1670 for example after this fix or tentative patch, plot allocation seems now to be very very good.
+  - Production is high, and city is not starving, growing moderately, which is about perfect i'd say. After all we could slave as said before and would very much need or want the pop if our unhappiness solves.
+  - Aachen (screenshot 1672, but difference is city is not unhappy (i.e. is happy)) has also a very good food profile, with high plot plots all allocated and fast growth and quite high production, about perfect too!! Very good response or behaviour in screenshot 1674 as well in karakoum, which is happy too with high food and high production.
 - As for the "Prague screenshots" (stagnant city not allocating food), i didn't retest it since prague was settled elsewhere many times, as shown in screnshot 1673, and consistently, i don't know if my change caused this somehow, but this is a fine choice too and a good location, after removing the jungle it is a quite strong grass spot, although a bit weak before that, and is coastal too so good for late game.
-  So i don't have a definitive repsonse but i hope all in all these changes help a lot.
-  Also, i don't know when i took this screenshot but seemingly later during the test changes phase, but seemingly AI would prefer a 1 food 1 hammer 1 commerce flatland plains cottage over an improved 5 food 1 commerce sheep grassland, just because it has 1 unhappy citizen.
-  1 hammer is not superior to 5 food!!!
-  (or 4 food with the diff even), even if unhappy, extra pop could be used later to slave or when unhapiness is solved food would be more full even if we produce slightly less to do so!!!
+  - So i don't have a definitive repsonse but i hope all in all these changes help a lot. Also, i don't know when i took this screenshot but seemingly later during the test changes phase, but seemingly AI would prefer a 1 food 1 hammer 1 commerce flatland plains cottage over an improved 5 food 1 commerce sheep grassland, just because it has 1 unhappy citizen. 1 hammer is not superior to 5 food!!!
+  - (or 4 food with the diff even), even if unhappy, extra pop could be used later to slave or when unhapiness is solved food would be more full even if we produce slightly less to do so!!!
 
 The code that seemed to make a nice and decisive positive difference it seems to me at leastwas as of now this one i added:
 
@@ -3352,36 +3340,24 @@ I think i have found several issues with AI unitAIs and overall strategy, and as
 Here are the things i changed:
 
 - disabled for AIs the unreliable unitais that are unreliable (`UNITAI_COLLATERAL` to aim for less suicides and getting baited and more focused defense or offense units, `UNITAI_PILLAGE` (no time to waste running around, this unit will not be focused attacking or defending, avoid this, inefficient), and `UNITAI_PIRATE_SEA` again not efficient and annoying, is also part of reducing naval warfare influence (see below for details), as a result we use our hammers more efficiently to have a more effective and efficient unitais.
-  Say a swordsman will be an attacker or a defender, but not a pillager, so the stack will be stronger, and the cities more guarded, at least in theory, results seem good, as Khmer AI could pull an early rush on Medina and capture it with a strong stack.)
-- restricted settlers for AIs to be built only in capital, and only if city pop >= 5 (i.e. not <= 4).
-  This is so they can use more efficiently the food as production, as it's much easier to produce a settler using food from the many population count additionally to existing hammer yields as well, than it is at low pop.
-  And if city stagnates, it is very efficient too, at least food is put to use instead of stagnating.
-  There are other advantages, such as seemingly a bit less barbarian captures, and more units early.
-  We may use 1 or 2 spots, but barbarian captures happen much less, and secondary cities can grow more.
-  This change is in line with the settler now being a national unit as of now (1 allowed for whole empire including existing unit, check the [README_Main_Changes_Guide.md](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md) for updated values or info, or Sevopedia or xml).
-  As for small new cities, it guarantees they grow as well instead of being stuck producing a settler for a long time, as hapepned many times and was the original reason why i did this to begin with, then expanded on it.
-  I added a patch, although should never happen with the settler being a national unit and only in capital, but that if city is very small and stagnant, switch to worker instead, but since only cpaital as of now produces them and it grows fast, this shouldn't happen but if changed this patch would help as well small cities being stuck in a very lnog settler production and being stagnant, in fact it's necessary now else our capital can't produce a settler, as chatgpt 5 noticed or noted as well.
-  Update: also as it mentioned to me to add here as well, there are exceptions such as a city somehow being stagnant, then even if pop is small, we are not using the food anyway, so may as well take our chances and build a settler, as it rightly told me to add to this doc hehe which i forogt but i think this is a quite good summary otherwise...
-- free window: during the first as of now 75 turns at normal game speed (adjusted based on game speed), the AI will have free production of settler (minus restrictions said before).
-  So it can take its time and grow freely.
-  Then after this window, it will consider which strategy to take, either offense mode, or defense mode, or other maybe which i added hardcoded in cvcityAI.
-  Based on these, it may not build settlers anymore and start to stack units.
-  This is something i had a problem with in base advciv, of AI expanding again and again while it was near me, instead of preparing for the likely war.
-  Hopefully AI would react better to these.
-- additionally, tweaked unitais, although i don't know how effective these changes will be or if i did them at the right place, in `CvCityAI::AI_bestUnit` and `CvCityAI::AI_bestUnitAI` and `CvCityAI::AI_chooseProduction` functions as of now in cvcityai.
-  It does seem though as of now to be taken quite well into acocunt, but test to be sure.
-  This also depends on map type (less on naval maps, a lot more on land maps, hybrid in other maps, see above links in this known issue for details), but now for example if an AI enters offense mode, and the map is a land map, say pangea, continents, etc, as best as we could classify them i mean with chatgpt 5 if i may say so check if accurate and if works as intended test to be sure, AI will more or less ignore unitais that don't help it directly in war as we instructed it, so it will value a lot more `UNITAI_ATTACK` or `UNITAI_ATTACK_CITY` for example, a bit of `UNITAI_RESERVE` (visible in debug mode (ctrl+z and "chipotle") by holding ctrl or alt i forgot which while hovering on a unit or unit stack), and this means its units won't wander or such and attack more decisively at least in theory, and vice versa in defense mode they'd value these less and unitais such as `UNITAI_CITY_DEFENSE`, `UNITAI_CITY_SPECIAL`, `UNITAI_RESERVE` etc if any more as well i mean too, for the most part.
-  Hopefully helps the AI better execute its attacks but many things could influence it.
-  It will not care to produce any naval or such unitais units.
-  So it can produce say a swordsman with the attack_city or attack or even reserve unitais maybe, but naval units can't have these, and their unitais like `UNITAI_ATTACK_SEA` or such are tremendously less valued.
-  This avoids the issue i had in base advciv of AI having 10 galleons but barely any land defender on a pangea if i'm not mistaken, see above links for details as well.
-  In naval maps, if detcted as such with our code, this is toned down a bit, but the general idea remains to protect our cities first and foremost, and aim for most effiicent roles, see cvcityai for details.
-  Also, is this galleon / trireme / galley really worth the 2-3 extra axemen / swordsmen / extra worker or half settler?
-  Probably not, and wastes turns time to build not just ressources as in yields, so we are delayed in war plans, tech etc. I believe it is more efficient to do so at least for AIs and in most cases.
-  I didn't test code too much, but based on it semeingly having much less barbarian successful invasions, and on the theory of efficiency behind it as i explained and ideas i got and autoplay results, it seems better for the AI to go slower, even if we lose 1-2 city spots or wonders, the benefits are larger it seems. This is a summary i attempted to do of the changes and again didn't test too much so far; while i hope it helps the AI, i am not necessarily too open to feedback, so i would suggest you best share your experience regarding this on a forum, such as CFC forum, i do hope that it helps and is enjoyable to play though.
-  I also hope these changes fix base advciv issue of AI abandonning capital city, sometimes in a way that ruins the entire game, just to attack 1 unit.
-  I didn't test it, but i hope with these unitais that now exclude colalteral, pillage, etc, units would be more efficient in not doing so, and better guard cities, as well as be, when on offense mode, more focused on their goal, at least in theory, but many other parts of the code could interfere or i could have gotten the logic wrong somehow.
-  It seems to be applied quite well in few autoplays at a quick glance, which maybe helps making AI stronger but test to be sure.
+  - Say a swordsman will be an attacker or a defender, but not a pillager, so the stack will be stronger, and the cities more guarded, at least in theory, results seem good, as Khmer AI could pull an early rush on Medina and capture it with a strong stack.)
+- restricted settlers for AIs to be built only in capital, and only if city pop >= 5 (i.e. not <= 4). This is so they can use more efficiently the food as production, as it's much easier to produce a settler using food from the many population count additionally to existing hammer yields as well, than it is at low pop.
+  - And if city stagnates, it is very efficient too, at least food is put to use instead of stagnating. There are other advantages, such as seemingly a bit less barbarian captures, and more units early. We may use 1 or 2 spots, but barbarian captures happen much less, and secondary cities can grow more.
+  - This change is in line with the settler now being a national unit as of now (1 allowed for whole empire including existing unit, check the [README_Main_Changes_Guide.md](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md) for updated values or info, or Sevopedia or xml).
+  - As for small new cities, it guarantees they grow as well instead of being stuck producing a settler for a long time, as hapepned many times and was the original reason why i did this to begin with, then expanded on it.
+  - I added a patch, although should never happen with the settler being a national unit and only in capital, but that if city is very small and stagnant, switch to worker instead, but since only cpaital as of now produces them and it grows fast, this shouldn't happen but if changed this patch would help as well small cities being stuck in a very lnog settler production and being stagnant, in fact it's necessary now else our capital can't produce a settler, as chatgpt 5 noticed or noted as well.
+  - Update: also as it mentioned to me to add here as well, there are exceptions such as a city somehow being stagnant, then even if pop is small, we are not using the food anyway, so may as well take our chances and build a settler, as it rightly told me to add to this doc hehe which i forogt but i think this is a quite good summary otherwise...
+- free window: during the first as of now 75 turns at normal game speed (adjusted based on game speed), the AI will have free production of settler (minus restrictions said before). So it can take its time and grow freely. Then after this window, it will consider which strategy to take, either offense mode, or defense mode, or other maybe which i added hardcoded in cvcityAI.
+  - Based on these, it may not build settlers anymore and start to stack units. This is something i had a problem with in base advciv, of AI expanding again and again while it was near me, instead of preparing for the likely war. Hopefully AI would react better to these.
+- additionally, tweaked unitais, although i don't know how effective these changes will be or if i did them at the right place, in `CvCityAI::AI_bestUnit` and `CvCityAI::AI_bestUnitAI` and `CvCityAI::AI_chooseProduction` functions as of now in cvcityai. It does seem though as of now to be taken quite well into acocunt, but test to be sure.
+  - This also depends on map type (less on naval maps, a lot more on land maps, hybrid in other maps, see above links in this known issue for details), but now for example if an AI enters offense mode, and the map is a land map, say pangea, continents, etc, as best as we could classify them i mean with chatgpt 5 if i may say so check if accurate and if works as intended test to be sure, AI will more or less ignore unitais that don't help it directly in war as we instructed it, so it will value a lot more `UNITAI_ATTACK` or `UNITAI_ATTACK_CITY` for example, a bit of `UNITAI_RESERVE` (visible in debug mode (ctrl+z and "chipotle") by holding ctrl or alt i forgot which while hovering on a unit or unit stack), and this means its units won't wander or such and attack more decisively at least in theory, and vice versa in defense mode they'd value these less and unitais such as `UNITAI_CITY_DEFENSE`, `UNITAI_CITY_SPECIAL`, `UNITAI_RESERVE` etc if any more as well i mean too, for the most part.
+  - Hopefully helps the AI better execute its attacks but many things could influence it. It will not care to produce any naval or such unitais units. So it can produce say a swordsman with the attack_city or attack or even reserve unitais maybe, but naval units can't have these, and their unitais like `UNITAI_ATTACK_SEA` or such are tremendously less valued.
+  - This avoids the issue i had in base advciv of AI having 10 galleons but barely any land defender on a pangea if i'm not mistaken, see above links for details as well. In naval maps, if detcted as such with our code, this is toned down a bit, but the general idea remains to protect our cities first and foremost, and aim for most effiicent roles, see cvcityai for details.
+  - Also, is this galleon / trireme / galley really worth the 2-3 extra axemen / swordsmen / extra worker or half settler? Probably not, and wastes turns time to build not just ressources as in yields, so we are delayed in war plans, tech etc. I believe it is more efficient to do so at least for AIs and in most cases.
+  - I didn't test code too much, but based on it semeingly having much less barbarian successful invasions, and on the theory of efficiency behind it as i explained and ideas i got and autoplay results, it seems better for the AI to go slower, even if we lose 1-2 city spots or wonders, the benefits are larger it seems. This is a summary i attempted to do of the changes and again didn't test too much so far; while i hope it helps the AI, i am not necessarily too open to feedback, so i would suggest you best share your experience regarding this on a forum, such as CFC forum, i do hope that it helps and is enjoyable to play though.
+  - I also hope these changes fix base advciv issue of AI abandonning capital city, sometimes in a way that ruins the entire game, just to attack 1 unit.
+  - I didn't test it, but i hope with these unitais that now exclude colalteral, pillage, etc, units would be more efficient in not doing so, and better guard cities, as well as be, when on offense mode, more focused on their goal, at least in theory, but many other parts of the code could interfere or i could have gotten the logic wrong somehow.
+  - It seems to be applied quite well in few autoplays at a quick glance, which maybe helps making AI stronger but test to be sure.
 
 Update: now caching mapname is landheavy or mapname is navalheavy info as boolean only once per map load (new game, load save, etc if anymore we hopefully handle, see the new `CvGame::recomputeMapnameHeaviness` we added for details and their corresponding new `m_bLandHeavyMapname` and `m_bNavalHeavyMapname` (check if accurate as i don't know too much about these, done with the help of chatgpt 5).
 
@@ -3399,21 +3375,14 @@ A few changes in this issue, with i believe more potential for long term better 
 
 For now and as of now, here are the main changes, in `CvUnitAI::AI_foundFirstCity` and other more minor functions (see below for details) i made to base advciv's founding first city logic, with the help of chatgpt 5 and claude ai:
 
-- no more hurry/panic fast settling and no penalty per turn not found, i.e. in old base advciv system, there was say a 15% penalty to the value of all plots per turn.
-  So no matter what, a tile to found city at would only have say 85% of the value it had at turn 0, no matter how good it was.
-  I believe this was done to encourage fast growth or such maybe or maybe for other reasons or not, but i believe giving AIs time would lead to better long term outcomes, especially when starters are really bad, like tundra, not enough land tiles, etc. For now, i am only addressing the issue in a general way, so our new system now gives AI settlers as of 5 turns to path to consider best site without any penalty, meaning as long as a site can be reached in 5 path turns (i.e. to walk there), then only best value will be considered, no penalty per turn.
-  This window is longer than in base advciv.
-- after the free window ends, we get stronger penalties to quickly encourage settling, i.e. if a tile gets say 6 turns from turn 0 to get there, it loses 50% value, meaning unless it's super high value, it would be highly unlikely to be chosen, but still not totally impossible.
-  Then for 7+ tiles no tile is considered, only the best from before is taken.
-  Meaning in total we have a window of up to 6 turns to choose our best city, with 5 no penalty free ones.
-  In save file 336 i often do auto play on as of now at least, spain AI founded its capital on 5th turn only, it chose a strong starting point, although it didn't develop it totally optimally, but in theory it could do well.
-  Its early game was slower as a result, but with more land tiles, river so more commerce and health if not before (not here but in theory), and many commerce bonuses which would help a lot with plantations later.
-  Food is lower but potential higher, as more land tiles can be grown.
-  Most AIs didn't change their preferred best tile in this save file, so it may not make a huge difference, but may, especially for bad starts.
-- Another change is non-coastal sites are not penalized anymore, by disabling the code that did that in `AIFoundValue::evaluateYield` no non-coastal penalty is applied.
-  I.e. if a city site is not coastal, it will still be considered best if it was the best, and not be discarded like in base advciv.
-  I believe to just take the best, and if it happens to be coastal great, if not land is probably stronger then.
-  We added code in evaluate function to tell AI when coast is better (such as when terrain is rich in high food, or if there are water bonuses)
+- no more hurry/panic fast settling and no penalty per turn not found, i.e. in old base advciv system, there was say a 15% penalty to the value of all plots per turn. So no matter what, a tile to found city at would only have say 85% of the value it had at turn 0, no matter how good it was.
+  - I believe this was done to encourage fast growth or such maybe or maybe for other reasons or not, but i believe giving AIs time would lead to better long term outcomes, especially when starters are really bad, like tundra, not enough land tiles, etc. For now, i am only addressing the issue in a general way, so our new system now gives AI settlers as of 5 turns to path to consider best site without any penalty, meaning as long as a site can be reached in 5 path turns (i.e. to walk there), then only best value will be considered, no penalty per turn. This window is longer than in base advciv.
+- after the free window ends, we get stronger penalties to quickly encourage settling, i.e. if a tile gets say 6 turns from turn 0 to get there, it loses 50% value, meaning unless it's super high value, it would be highly unlikely to be chosen, but still not totally impossible. Then for 7+ tiles no tile is considered, only the best from before is taken.
+  - Meaning in total we have a window of up to 6 turns to choose our best city, with 5 no penalty free ones. In save file 336 i often do auto play on as of now at least, spain AI founded its capital on 5th turn only, it chose a strong starting point, although it didn't develop it totally optimally, but in theory it could do well.
+  - Its early game was slower as a result, but with more land tiles, river so more commerce and health if not before (not here but in theory), and many commerce bonuses which would help a lot with plantations later. Food is lower but potential higher, as more land tiles can be grown.
+  - Most AIs didn't change their preferred best tile in this save file, so it may not make a huge difference, but may, especially for bad starts.
+- Another change is non-coastal sites are not penalized anymore, by disabling the code that did that in `AIFoundValue::evaluateYield` no non-coastal penalty is applied. I.e. if a city site is not coastal, it will still be considered best if it was the best, and not be discarded like in base advciv.
+  - I believe to just take the best, and if it happens to be coastal great, if not land is probably stronger then. We added code in evaluate function to tell AI when coast is better (such as when terrain is rich in high food, or if there are water bonuses)
 - Also, we now don't discard sites that are not on fresh water or river unlike in base advciv. If they are otherwise the best, it woud be a really bad move to discard them just to get river and a worse site. Similar logic than before for coast.
 
 As for examples, as i said Spain AI, screenshots 2100 and 2101 show how it was before this change (minus all other changes we did since base advciv that are here though), and then remaining existing screenshots between 2092 and 2107 show how the AI behaved with this change with the other site it took.
@@ -3586,7 +3555,7 @@ So adding, rather and instead some sanity checks that hopefully help the AI be m
   See example of AI issues addressed with(/by?) this change in screenshots of this known issue.
   Hopefully helps AI a lot be competitive if i may say in this case.
 - mid size cities (as of now <= 7) with other conditions such as happy extra happiness (as of now >= 1 surplus (e.g. 8 happiness 6 unhappiness)) and extra food to accommodate this growth (as of now food difference >= 2 and not food is production that changes this formula) should favour growth and not assign any specialist.
-  Hopefully this helps AI grow its cities faster while not killing versatility, as when they stagnate or are too big, they would fall back again to previous rules which seem otherwise to work quite well minus the edge case of low pop cities that don't grow at all due to too early specialist, which i hope these intend to patch/work around while making AI stronger as a result too as well in most cases at least
+  - Hopefully this helps AI grow its cities faster while not killing versatility, as when they stagnate or are too big, they would fall back again to previous rules which seem otherwise to work quite well minus the edge case of low pop cities that don't grow at all due to too early specialist, which i hope these intend to patch/work around while making AI stronger as a result too as well in most cases at least
 - for barbarians, on top of these rules, which should affect most of its cities, only allow the scientist specialist, as they have no use for the priest or spy or such, but the scientist specifically may help them stay relevant longer in tech without killing versatility, especially if we make them stronger later in the game so they don't disappear too soon but as of now hopefully this helps the AI as well in case it assigned such specialists.
 
 Hopefully they help AI be stronger and more reliable in its specialist choices or rather maybe non-choices here
@@ -3908,19 +3877,16 @@ You can see the difference between the 2 runs (48 is the old DLL, before the cha
 As for the results ingame, the difference is very significant:
 
 - it seems AIs build world wonders much less in particular: at turn 100, only the stonehenge was built, but at turn 150 there seems to be 4 world wonders built (including the apostolic palace by the byzantine empire, quite historically accurate xd although i didn't check this part of history's info/data to know for sure but it's not about a faraway land at least), vs a long list of wonders with old DLL at both turn 100 and 150.
-  This means AI deems it not worth to invest hammers in these, despite being free to as long as our checks are passed (no hard forbidden as in black listed world wonder if i'm not mistaken), maybe this is why there are a few more built by turn 150, but this is quite good, as these can be hammers sink especially early, so their choice makes sense here i would say.
-  Some are built so it's still fine, and even if not fine as such, but that some are still built is cool i would say at least i like it but i prefer that they build much less now as well.
+  - This means AI deems it not worth to invest hammers in these, despite being free to as long as our checks are passed (no hard forbidden as in black listed world wonder if i'm not mistaken), maybe this is why there are a few more built by turn 150, but this is quite good, as these can be hammers sink especially early, so their choice makes sense here i would say.
+  - Some are built so it's still fine, and even if not fine as such, but that some are still built is cool i would say at least i like it but i prefer that they build much less now as well.
 - as for national wonders, almost everyone built heroic epic by turn 100 it seems or something close to it, so they value it veeery highly now, if it is so then all good, again i didn't give a hard obligation but a build it first if you are in danger or plan war or something, in your core cities not low hammer ones, which seems to work well, i didn't check how it was in old DLL but i don't remember anything like this (so much heroic (or national epics here as well it seems) epics so early).
-  All in all i am very satisfied of this change.
-  These also seem to go well with the theme of our AIs now being more self-focused and opportunistic rather than role-play, as they hate they do at least do too much.
-  So i very much like this direction.
+  - All in all i am very satisfied of this change. These also seem to go well with the theme of our AIs now being more self-focused and opportunistic rather than role-play, as they hate they do at least do too much. So i very much like this direction.
 - still, the few cities i looked in at a few players, cf screenshots, show very developped infrastructure, all the core buildings are there for most if not all, and it seems walls are being built later as i had intended although i didn't check too much but i saw a player build them later.
-  Should investigate more, but from a quick glance, building profile is preserved in this new DLL for most so great, no hard military spamming, but AI players seem much more competent now, at least quite a bit, in hammer managing, they do seem to have a bit more units but again i didn't look too much.
-  Some players that would be boxed in like Persia AI now properly take the military lead instead of being average (their land start is good but still), so all in all good in this area i would say.
+  - Should investigate more, but from a quick glance, building profile is preserved in this new DLL for most so great, no hard military spamming, but AI players seem much more competent now, at least quite a bit, in hammer managing, they do seem to have a bit more units but again i didn't look too much.
+  - Some players that would be boxed in like Persia AI now properly take the military lead instead of being average (their land start is good but still), so all in all good in this area i would say.
 - one change is that they often go for the process "Research" or "Wealth" in their cities, i guess they don't have anything better to build, and too much military may crush their economy so fine as well, no need to change it too much i guess.
-- military performance seems a bit better, as i saw less barbarian city captures of the AI cities and more AI capturing barbarians and earlier than usual.
-  I should ideally improve AI players forces spreading so they don't lose their core cities early as this is very crippling and easily for a human avoidable, but this is another issue.
-  For now, it seems they are military more competent and powerful, although again i only glanced, but i see more often military units being produced, at least so it seems from a quick glance again.
+- military performance seems a bit better, as i saw less barbarian city captures of the AI cities and more AI capturing barbarians and earlier than usual. I should ideally improve AI players forces spreading so they don't lose their core cities early as this is very crippling and easily for a human avoidable, but this is another issue.
+  - For now, it seems they are military more competent and powerful, although again i only glanced, but i see more often military units being produced, at least so it seems from a quick glance again.
 
 Please look at the screenshots i have provided for the old and new DLL for comparison (lacks (most of the) military data but hopefully quite informative otherwise).
 
@@ -4576,21 +4542,15 @@ The defensive half could interrupt units, higher-valued buildings and heavily in
 
 The audit itself then exposed three independent correctness/observability problems before policy tuning continued:
 
-1. **Disorder boundary violation (KI#51.2).**
-   **23/332** emergency actions happened while `isDisorder()` was true: 16 filled intentionally empty queues and 7 replaced existing targets.
-   The fix made the outer emergency paths respect K-Mod's disorder boundary.
-   In the validating same-seed run, all **226/226** remaining emergency actions had `disorder=0`, and the first core-state divergence occurred at turn 70 in disordered Cuzco: old SAS had preselected Harbor with stored production while the fixed run correctly left the queue untouched.
-   RNG did not diverge until turn 73.
-   See KI#51.2 for the exact scope and the important distinction that this never granted free disorder-time hammers.
+1. **Disorder boundary violation (KI#51.2).** **23/332** emergency actions happened while `isDisorder()` was true: 16 filled intentionally empty queues and 7 replaced existing targets. The fix made the outer emergency paths respect K-Mod's disorder boundary.
+   - In the validating same-seed run, all **226/226** remaining emergency actions had `disorder=0`, and the first core-state divergence occurred at turn 70 in disordered Cuzco: old SAS had preselected Harbor with stored production while the fixed run correctly left the queue untouched. RNG did not diverge until turn 73.
+   - See KI#51.2 for the exact scope and the important distinction that this never granted free disorder-time hammers.
 2. **Harbor audit scope bug.**
    The first logger sat inside the later defense/Port wrapper, so a successful `SEA_FOOD` path set the emergency flag and skipped its own logger.
    Moving the final audit outside that wrapper exposed **185 Harbor overrides** while preserving the preceding fixed run exactly: **386/386** game-state and RNG-stream checkpoints matched.
-3. **Continuation semantics bug.**
-   `SASTryEmergencyBuilding` and the sea-yield selector called `canConstruct(..., bContinue=false, ...)` before checking whether the requested building was already the current target.
-   Civ4 therefore rejected the queued building before the helper could reach its intended `already doing it` branch.
-   After using continuation legality only for the already-queued same building, the formerly impossible states became active: **1,126 `ALREADY_TARGET`** cases (685 Port, 313 Harbor, 66 Walls, 62 Castle), **128 `KEEP_EMERGENCY_PRIORITY`** and 14 `RELEASE_EMERGENCY_PRIORITY` decisions.
-   Direct Harbor<->Port emergency cross-overrides fell from **10 to 0**.
-   The first same-seed state divergence was exactly the corrected turn-216 Oxhuitza case where Harbor remained the active higher-priority emergency instead of being replaced by Walls.
+3. **Continuation semantics bug.** `SASTryEmergencyBuilding` and the sea-yield selector called `canConstruct(..., bContinue=false, ...)` before checking whether the requested building was already the current target. Civ4 therefore rejected the queued building before the helper could reach its intended `already doing it` branch.
+   - After using continuation legality only for the already-queued same building, the formerly impossible states became active: **1,126 `ALREADY_TARGET`** cases (685 Port, 313 Harbor, 66 Walls, 62 Castle), **128 `KEEP_EMERGENCY_PRIORITY`** and 14 `RELEASE_EMERGENCY_PRIORITY` decisions. Direct Harbor<->Port emergency cross-overrides fell from **10 to 0**.
+   - The first same-seed state divergence was exactly the corrected turn-216 Oxhuitza case where Harbor remained the active higher-priority emergency instead of being replaced by Walls.
 
 Correcting those bugs did not rescue the architecture itself.
 
@@ -6890,9 +6850,8 @@ The results are extremely good it seems!!!
 
 - in existing screenshots between 2996 and 2998, lisbon ai has one extra turn of no production, then it is solved. Hard to tell if this is just delay of one turn lag or such since we started from a save file that already had it, but we don't have it anymore the turn after (may have been so before but is not worse)
 - most importantly, in existing screenshots between 2999 and 3006, in turns between 37 and 44 as before and even much after, japan ai never enters at all the no production anymore.
-  Even more importantly, no other AI city at all does as other ai cities had the issue such as ulundi ai or moscow ai, i zoomed out as much as possible, and didn't see any at all if i saw correctly, so this is tremendously better.
-  Also, we still bounce back to a settler a few turns later in japan ai city, and all cities don't get trapped in an archer or such fallback either, they produce settlers, workers, perhaps buildings maybe although i didn't check too much.
-  So all in all it seems so much better than it was, and quite clean and effective.
+  - Even more importantly, no other AI city at all does as other ai cities had the issue such as ulundi ai or moscow ai, i zoomed out as much as possible, and didn't see any at all if i saw correctly, so this is tremendously better.
+  - Also, we still bounce back to a settler a few turns later in japan ai city, and all cities don't get trapped in an archer or such fallback either, they produce settlers, workers, perhaps buildings maybe although i didn't check too much. So all in all it seems so much better than it was, and quite clean and effective.
 
 I still don't know why the no production happened/happens, but it seems we now cleanly and reliably always override it with a fallback, and if not almost always.
 
@@ -7128,11 +7087,8 @@ I didn't implement any economy check, but it seems we don't go bankrupt at least
 So what this changes in short is:
 
 - prevent naval overproduction and such: don't overproduce naval units when in danger or such and even if not add some sanity max quotas or limits per unitai (prevents overproducing naval units from any short circuit code as we block the order itself now (unless some other unknown code emits orders, else we should now handle most if not all)): helps react better to threat and map type and produce optimal unitais (with some flexibility is not too strict but quite guided for the AIs's sake and for efficiency of the AI)
-- prevent naval dementia: don't go like: "oh i need one more unit, let's produce it".
-  (Production completes...)
-  "Oh i have one too many unit, let's scrap 1 or 2 just because xd no one will notice it" (i mean yes but it's horrible and hurts AI strength and aesthetic too), then AI is like "oh, i need one more unit, let's produce it" (ofc you do, you just scrapped it xd).
-  This was the issue with workboats, possibly with privateers, maybe with other units.
-  At this point i don't trust the code anymore xd, not sure that i did though but now i definitely don't, although it works not too bad otherwise, so i implemented global sanity checks for almost all unitAIs if not all then almost.
+- prevent naval dementia: don't go like: "oh i need one more unit, let's produce it". (Production completes...) "Oh i have one too many unit, let's scrap 1 or 2 just because xd no one will notice it" (i mean yes but it's horrible and hurts AI strength and aesthetic too), then AI is like "oh, i need one more unit, let's produce it" (ofc you do, you just scrapped it xd).
+  - This was the issue with workboats, possibly with privateers, maybe with other units. At this point i don't trust the code anymore xd, not sure that i did though but now i definitely don't, although it works not too bad otherwise, so i implemented global sanity checks for almost all unitAIs if not all then almost.
 
 Results are tremendously positive, i started from a very desperate save at turn 200, 20 turns more or less before capital fell with the naval dementia or overproduction issue.
 
@@ -8081,19 +8037,15 @@ It seems to enhance our roading logic too although i only checked or glanced rat
 A few notes now that this is seemingly solved reliably and nicely enhanced it seems:
 
 - this is a rare crash, a few games autoplayed end to end fine after the fix of crash at turn 156 in [56 - (Fixed) Most likely base advciv +/- civ4 crash at turn 156 fixed by commenting out the !getPlot().isSamePlotGroup(*pBestPlot, getOwner()) check in CvUnitAI::AI_nextCityToImprove else block (old code)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-56) (btw coincidence of issue 56 and turn 156 crash xd i just noticed but purely coincidental really(but still cool)).
-  It is reliably reproducible 100% though from same save file it seems though so rare in the sense that many other maps play fine after our last fix, so hopefully code is even mre robust now (and not just going back and forth between fixing and unfixing xd, at least i think so (that code is more robust))
-- observation: if i autoplay 35 turns only, so 50->85, then autoplay X amount of turns, say 20 turns, to say 85->105 then we don't crash anymore weirdly.
-  Despite me not reloading nor anything but just holding off for a little while to save.
-  This is consistent though with what i had observed in known issue as of now 56 where i couldn't reproduce the crash if starting from a closer save point but always could from a farther one, very weird though but there must be some explanation, it also means saving could maybe help somehow workaround unknown crashes for players?
-- while attempting to fix, i added an extra safety in `CvUnitAI::AI_betterPlotBuild`.
-  Although it didn't help fix it and seemingly wasn't related to our crash (didn't cause it, didn't help fix it) but it seems fine and safe to add, as recommended and provided by chatgpt 5 thanks to my prompts and such too.
-  In case a future crash happens there, hopefully this would help prevent it, and hopefully it doesn't break anything.
-  Consider tinkering with it to troubleshoot and see if it is still needed or not now, or if it makes any difference.
-  Seems like a good practice to add, but i didn't rewrite the other functions (that call it) so i don't know too much if at all what this would cause in terms of gameplay.
-  Cities seem to mostly be improved fine so kept as such, check if accurate (also added for my sanity xd)
+  - It is reliably reproducible 100% though from same save file it seems though so rare in the sense that many other maps play fine after our last fix, so hopefully code is even mre robust now (and not just going back and forth between fixing and unfixing xd, at least i think so (that code is more robust))
+- observation: if i autoplay 35 turns only, so 50->85, then autoplay X amount of turns, say 20 turns, to say 85->105 then we don't crash anymore weirdly. Despite me not reloading nor anything but just holding off for a little while to save.
+  - This is consistent though with what i had observed in known issue as of now 56 where i couldn't reproduce the crash if starting from a closer save point but always could from a farther one, very weird though but there must be some explanation, it also means saving could maybe help somehow workaround unknown crashes for players?
+- while attempting to fix, i added an extra safety in `CvUnitAI::AI_betterPlotBuild`. Although it didn't help fix it and seemingly wasn't related to our crash (didn't cause it, didn't help fix it) but it seems fine and safe to add, as recommended and provided by chatgpt 5 thanks to my prompts and such too.
+  - In case a future crash happens there, hopefully this would help prevent it, and hopefully it doesn't break anything. Consider tinkering with it to troubleshoot and see if it is still needed or not now, or if it makes any difference.
+  - Seems like a good practice to add, but i didn't rewrite the other functions (that call it) so i don't know too much if at all what this would cause in terms of gameplay. Cities seem to mostly be improved fine so kept as such, check if accurate (also added for my sanity xd)
 - game now plays end to end until some ai wins at turn 270+ a space victory so all seems good.
 - finally below chatgpt 5 recommended upon re review at next prompt this extra safety when i told it issue is fixed.
-  I didn't want to complicate anything since our code is clean and simple, but consider adding it if helps (i also don't know too much about these so check if accurate too and all the more reason not to mess xd at least since we have no issue nor thing to improve here it seems at least but check if accurate or if this is possibly useful as grok also recommended after seeing the solution chatgpt 5 had provided before this extra safety it recommended)
+  - I didn't want to complicate anything since our code is clean and simple, but consider adding it if helps (i also don't know too much about these so check if accurate too and all the more reason not to mess xd at least since we have no issue nor thing to improve here it seems at least but check if accurate or if this is possibly useful as grok also recommended after seeing the solution chatgpt 5 had provided before this extra safety it recommended)
 
 >Extra-safe city fallback
 >
@@ -8242,12 +8194,10 @@ To fix this, i added a max distance to us risk hard reject if distance is too hi
 Now, resuming from this save file 200 (i tried it a few times and with value of 2 and 3 to be sure, results seem more or less very consistent minus possible small variations if any but same trend), as a result, depending on if we go for the 2 turn or 3 turn route, it seems that we (our autoplay attack) generally, from the same turn 200 save file:
 
 - in the 2 turn (existing screenshots between 203 and 204) version of the code / route: attack the very obvious weak and nearby contiguous to us maya ai, an easy and safe target, at turn 250 maya ai is already our vassal it seems, and our empire is super strong, japan ai is expanding instead but we seem to not care and keep our units focused on this invasion, our military is very strong too (49 camel cuirassiers, 28 cannons, 22 pikemen, etc for minor in number unitsat turn 250).
-  We then at turn 280 also have alexander ai vassalized, a strong and focused empire, and our strongest rival is only at 0.5 ratio of us militarily so essentially won it seems
+  - We then at turn 280 also have alexander ai vassalized, a strong and focused empire, and our strongest rival is only at 0.5 ratio of us militarily so essentially won it seems
 - then in the 3 turn (existing screenshots between 205 and 206) version to try it tooand maybe add versatility or such, we attacked alexander ai instead (due to turn window wider possibly as he is bit farther but still contiguous to us or some politics made it so i didn't look) who is now our vassal, while maya ai is unattacked and now grows strong; as for cyrus ai he doesn't seem a threat to us, and our units are focused and not overspread like before our change, at turn 250.
-  Our military is very good: 33 camel cuirassiers, 22 cannons, 17 pikemen, etc for lower count units.
-  At this point also we are in fact already at war with cyrus ai, who is weaker than us, and i think it's a great move.
-  At turn 300, it's even better, cyrus ai has collapsed, and usa ai and maya ai are the big top dogs now, with a military close to us in military ratio.
-  As for us our troops are mostly focused (issue with attacking islands on pangea but we didnt send that much units so suboptimal to fix ideally but not as urgent vs how it was), we have lost units overall but our ennemies don't have that much more, i didn't check in detail but i guess many wars happened xd, all in all it's a good outcome for us.
+  - Our military is very good: 33 camel cuirassiers, 22 cannons, 17 pikemen, etc for lower count units. At this point also we are in fact already at war with cyrus ai, who is weaker than us, and i think it's a great move. At turn 300, it's even better, cyrus ai has collapsed, and usa ai and maya ai are the big top dogs now, with a military close to us in military ratio.
+  - As for us our troops are mostly focused (issue with attacking islands on pangea but we didnt send that much units so suboptimal to fix ideally but not as urgent vs how it was), we have lost units overall but our ennemies don't have that much more, i didn't check in detail but i guess many wars happened xd, all in all it's a good outcome for us.
 
 Based on this data, it seems cyrus ai who is sandwiched between most rival to his central position was actually the most vulnerable, and could mostly prey on everyone due to most ais playing stupid and getting baited, leaving their core cities defenseless and in easy reach with their troops being very far.
 
@@ -10960,20 +10910,14 @@ Earlier revisions of `SevoPediaIndex.buildIndex()` normalized the alphabetical s
 
 Both were dropped in favour of using the raw name directly. Reasoning:
 
-1. **Cross-page inconsistency *within* Sevopedia.**
-   Only Index ran this cleanup; the type-specific pedia pages (Techs, Units, Buildings, ...) show raw names sorted naturally via `getSortedList()`.
-   So the *same* item appeared under different letters depending on the page — `"The Wheel"` was under **W** in Index but **T** in Techs; an untranslated `TXT_KEY_UNIT_WARRIOR` was under **W** in Index but **T** in Units.
-   Two contradictory sort orders side by side, confusing anyone flipping between Index and a type-specific page.
-2. **Lost diagnostic signal — and Index is the natural place for that signal.**
-   The strip scattered untranslated entries across the alphabet (sorted under their cleaned-up first letter) while still showing the raw `TXT_KEY_X` in the cell, so broken keys looked like isolated glitches instead of a single visible cluster under "T" — harder for both mod authors *and* players to notice, report, or batch-fix.
-   This matters especially for Index, because it's the *only* pedia page that flattens every content type into one alphabetical view; auditing missing translations elsewhere means opening Techs, then Units, then Buildings, etc., one type at a time.
-   Bonus: with the strip gone, the search bar can now filter every broken entry at once by typing `txt`, since search compares against the same sort key.
+1. **Cross-page inconsistency *within* Sevopedia.** Only Index ran this cleanup; the type-specific pedia pages (Techs, Units, Buildings, ...) show raw names sorted naturally via `getSortedList()`.
+   - So the *same* item appeared under different letters depending on the page — `"The Wheel"` was under **W** in Index but **T** in Techs; an untranslated `TXT_KEY_UNIT_WARRIOR` was under **W** in Index but **T** in Units. Two contradictory sort orders side by side, confusing anyone flipping between Index and a type-specific page.
+2. **Lost diagnostic signal — and Index is the natural place for that signal.** The strip scattered untranslated entries across the alphabet (sorted under their cleaned-up first letter) while still showing the raw `TXT_KEY_X` in the cell, so broken keys looked like isolated glitches instead of a single visible cluster under "T" — harder for both mod authors *and* players to notice, report, or batch-fix.
+   - This matters especially for Index, because it's the *only* pedia page that flattens every content type into one alphabetical view; auditing missing translations elsewhere means opening Techs, then Units, then Buildings, etc., one type at a time. Bonus: with the strip gone, the search bar can now filter every broken entry at once by typing `txt`, since search compares against the same sort key.
 3. **Code complexity for no functional benefit.** Each loop had 2-3 conditional branches doing per-entry slice-and-compare. List-building is now one direct `list.append(...)` per type — easier to read and maintain.
-4. **Needless per-entry cost, especially harsh for any future non-English locale.**
-   The work is one-shot (gated by `if self.index: return`) so the English runtime cost was small, but still paid across hundreds of items on nearly-always-false checks.
-   The `"The X"` comma-flip is *literally* English: in German (`"Das Rad"`), French (`"La Roue"`), etc. the `item[0][0:4] == "The "` check would never match, but the slice-and-compare would still run across the whole catalog with a 100% miss rate.
-   Tiny future-proofing for any eventual localization.
-   (The `TXT_KEY_*` strip is locale-neutral in detection, so this critique applies cleanly only to the `"The X"` flip.)
+4. **Needless per-entry cost, especially harsh for any future non-English locale.** The work is one-shot (gated by `if self.index: return`) so the English runtime cost was small, but still paid across hundreds of items on nearly-always-false checks.
+   - The `"The X"` comma-flip is *literally* English: in German (`"Das Rad"`), French (`"La Roue"`), etc. the `item[0][0:4] == "The "` check would never match, but the slice-and-compare would still run across the whole catalog with a 100% miss rate. Tiny future-proofing for any eventual localization.
+   - (The `TXT_KEY_*` strip is locale-neutral in detection, so this critique applies cleanly only to the `"The X"` flip.)
 
 Side-effect: also fixes incorrect alphabetical ordering.
 
@@ -11055,9 +10999,8 @@ Screenshots/files for this issue: [google drive folder link](https://drive.googl
 Observed issue:
 
 - The "What would you like X to work on?" popup fires correctly when a city is founded, but does NOT re-fire when an existing city finishes its current production. The city then sits at empty production for many turns, wasting hammers. Manually opening the city screen still lets the player pick production normally.
-- Reproduced across savegames and versions: AdvCiv-SAS 5814 (current) and 5500 (last stable) show the "empty production" form.
-  5400 (previous stable) and unmodified Base AdvCiv show a sibling form ("no production when production finishes").
-  So this is NOT a recent AdvCiv-SAS regression: it predates 5500 and a related behavior exists in Base AdvCiv (or could it be a local installation/configuration issue?).
+- Reproduced across savegames and versions: AdvCiv-SAS 5814 (current) and 5500 (last stable) show the "empty production" form. 5400 (previous stable) and unmodified Base AdvCiv show a sibling form ("no production when production finishes").
+  - So this is NOT a recent AdvCiv-SAS regression: it predates 5500 and a related behavior exists in Base AdvCiv (or could it be a local installation/configuration issue?).
 
 Investigation (with the help of Claude code Opus 4.7 thanks) (no fix applied):
 
@@ -11134,10 +11077,8 @@ Fix applied:
 
 Remaining caveat:
 
-- Showing both attitude numbers and smilies adds an extra attitude glyph next to text in tight Glance-tab cells.
-  After Glance-tab pagination capped the number of players per page, Large Pangaea/default-player testing showed the combined mode still renders well when upscaled, including a long `-17` plus at-war and worst-enemy icon case.
-  Higher-player games were not tested here and may behave differently.
-  This is why AdvCiv-SAS defaults to Both while keeping the display mode configurable and the Glance players-per-page cap tunable for tighter cases.
+- Showing both attitude numbers and smilies adds an extra attitude glyph next to text in tight Glance-tab cells. After Glance-tab pagination capped the number of players per page, Large Pangaea/default-player testing showed the combined mode still renders well when upscaled, including a long `-17` plus at-war and worst-enemy icon case.
+  - Higher-player games were not tested here and may behave differently. This is why AdvCiv-SAS defaults to Both while keeping the display mode configurable and the Glance players-per-page cap tunable for tighter cases.
 
 Files changed:
 
@@ -11183,9 +11124,8 @@ Investigation:
 
 - `CyAudioGame().Play3DSoundWithId(iSoundId, 0, 0, 0)` (original implementation before the fix) played the right 3D script, but very quietly.
 - `CyInterface().playGeneralSoundByID(iSoundId)` played sound at the right volume ingame (loud enough), but it was the wrong sound because 3D script IDs are not the same namespace as general/2D sound IDs.
-- `CyInterface().playGeneralSound("AS3D_...")` played the right sound at normal volume when given the actual script string.
-  The problem was that the Sevopedia civilization Select/Order entries only had the integer 3D script ID from APIs such as `getSelectionSoundScriptId()` / `getActionSoundScriptId()`.
-  Calling `CyInterface().playGeneralSoundByID(iSoundId)` with that integer did not work because it interpreted the same number in the general/2D sound namespace and therefore played the wrong sound.
+- `CyInterface().playGeneralSound("AS3D_...")` played the right sound at normal volume when given the actual script string. The problem was that the Sevopedia civilization Select/Order entries only had the integer 3D script ID from APIs such as `getSelectionSoundScriptId()` / `getActionSoundScriptId()`.
+  - Calling `CyInterface().playGeneralSoundByID(iSoundId)` with that integer did not work because it interpreted the same number in the general/2D sound namespace and therefore played the wrong sound.
 
 Fix applied:
 
@@ -11450,15 +11390,13 @@ Follow-up fix after testing:
 - Added an anti-bounce/competitive-current-site guard: if the settler is already on a non-bad foundable first-city plot and the cached city-site target is only marginally better after the same small movement penalty, found instead of walking away and circling back.
 - Kept the Karakorum-style fix: clearly bad high-bad-plot starts can still scout/roam during the bounded first-city window, and after reaching a heuristic-good-enough recovery plot, the settler still rechecks nearby visible reachable plots before founding.
 - Added more BBAI logging, including high-detail BFC diagnostics at Settler log level 3, to show candidate coordinates, found values, adjusted values, path turns, revealed/unrevealed BFC counts, food bonuses, bad plots, and per-tile BFC yields/terrain/feature/bonus data.
-  ChatGPT 5.5 reviewed the logs and helped identify the final narrow anti-bounce/tie-breaker cleanup.
-  Implementation and changes with the help of GPT-5.5 on codex too thanks.
+  - ChatGPT 5.5 reviewed the logs and helped identify the final narrow anti-bounce/tie-breaker cleanup. Implementation and changes with the help of GPT-5.5 on codex too thanks.
 - Retesting preserved the good Karakorum result and fixed the London wasted-wandering case.
 
 Update 2: Fix AI Settler first-city gate and starting-site scoring treating low-food or unusable resources as food bonuses
 
-- The first-city stop-roaming gate and first-city resource scaling could count natural/XML food as a food bonus.
-  In AdvCiv-SAS, Elephants have +1 natural food but their Camp improvement adds no food, so they were incorrectly treated like Pig/Corn-tier food resources; e.g., 3 Elephants could compete too strongly with a Pig + Corn site despite Pig + Corn giving much more food when improved.
-  Inland seafood could also be counted even when the candidate city was not coastal and therefore could not use it like a coastal seafood capital.
+- The first-city stop-roaming gate and first-city resource scaling could count natural/XML food as a food bonus. In AdvCiv-SAS, Elephants have +1 natural food but their Camp improvement adds no food, so they were incorrectly treated like Pig/Corn-tier food resources; e.g., 3 Elephants could compete too strongly with a Pig + Corn site despite Pig + Corn giving much more food when improved.
+  - Inland seafood could also be counted even when the candidate city was not coastal and therefore could not use it like a coastal seafood capital.
 - For land resources, count first-city food only when the resource's normal improvement adds food.
   For water resources, count XML food only when the candidate city is coastal; water improvements are outside the land bonus-improvement helper, but inland seafood should not satisfy the first-city good-enough food gate or capital food-resource scaling.
 - This fixed the Karakorum case where the settler could move back toward the tundra-heavy cached start instead of continuing toward the stronger river/pig site, and kept the Maya recovery improved in testing.
@@ -11477,12 +11415,10 @@ First-city scouting efficiency follow-up:
 
 - The correct sites still took too long to found because the seven-turn window bounded only outbound scouting. In save file 431, Cuzco scouted through turn 7, then returned three turns to `(38,44)` and founded around turn 10; in save file 360, Karakorum similarly ended far from `(50,40)`.
 - Candidate-directed scouting toward the currently highest-valued incomplete BFC was tested and reverted: Cuzco prematurely chose `(41,46)`, while Karakorum oscillated and chose `(43,42)`.
-  Exact immediate line-of-sight scoring was also tested and reverted because it made Berlin miss `(33,13)`, Karakorum choose `(49,41)`, and Cuzco return to `(41,46)`.
-  The existing generic fog direction was therefore retained.
+  - Exact immediate line-of-sight scoring was also tested and reverted because it made Berlin miss `(33,13)`, Karakorum choose `(49,41)`, and Cuzco return to `(41,46)`. The existing generic fog direction was therefore retained.
 - Before each further generic scouting step, the settler now compares its current plot and other revealed reachable sites by complete found value minus the per-turn cost derived from `SAS_AI_FOUND_FIRST_CITY_RETURN_TRAVEL_REFERENCE_PLOT_PERCENT`.
-  If another step would make the best return exceed the search window, it commits to that site; movement and founding are queued together so the settler cannot restart scouting on arrival.
-  The current plot is included so a strong site such as Aztec `(34,24)` is not abandoned for a weaker return target.
-  The original implementation used a fixed `SAS_AI_FOUND_FIRST_CITY_RETURN_TRAVEL_VALUE_PER_TURN`; the reference-plot percentage now keeps the same default cost while following XML yield valuation.
+  - If another step would make the best return exceed the search window, it commits to that site; movement and founding are queued together so the settler cannot restart scouting on arrival. The current plot is included so a strong site such as Aztec `(34,24)` is not abandoned for a weaker return target.
+  - The original implementation used a fixed `SAS_AI_FOUND_FIRST_CITY_RETURN_TRAVEL_VALUE_PER_TURN`; the reference-plot percentage now keeps the same default cost while following XML yield valuation.
 - Final regression testing preserved Berlin `(33,13)` on turn 6 in save file 442.
   Karakorum committed on turn 5 to `(50,40)` two turns away in save file 360, and Cuzco committed on turn 5 to `(38,44)` two turns away instead of founding around turn 10 in save file 431.
   The same save file 431 test kept the Aztec capital at `(34,24)` and founded it on turn 6; no return/restart loops occurred.
@@ -11491,33 +11427,27 @@ Later save-file-442 Berlin return regression:
 
 - In a later run, Berlin's settler wandered from its `(35,10)` start to `(39,19)`.
   At turn 6, the deadline check still saw strong `(33,13)` at raw found value `3961`, but because it was now five return turns away, the travel adjustment let nearby `(41,18)` win despite its lower raw value of `3640`; Berlin then founded there.
-- The deadline now protects the highest raw found-value reachable site and uses return cost only to break an exact tie.
-  This makes the settler turn back before its own outbound wandering can progressively replace the strongest known capital site with a weaker nearby endpoint.
-  BBAI retesting with save file 442 fixed Berlin by founding at `(33,13)` on turn 7 instead of `(41,18)`.
-  The post-window safety fallback still uses travel-adjusted value when choosing between returning sites.
+- The deadline now protects the highest raw found-value reachable site and uses return cost only to break an exact tie. This makes the settler turn back before its own outbound wandering can progressively replace the strongest known capital site with a weaker nearby endpoint. BBAI retesting with save file 442 fixed Berlin by founding at `(33,13)` on turn 7 instead of `(41,18)`.
+  - The post-window safety fallback still uses travel-adjusted value when choosing between returning sites.
 - Detailed regression testing then preserved Karakorum at `(50,40)` in save file 360, but exposed the opposite Cuzco case in save file 431.
-  Cuzco had deliberately left poor `(41,46)` to keep scouting; at the deadline, that fully revealed origin still scored `3488`, while nearby `(38,44)` scored only `3355` with four BFC plots still unrevealed.
-  Strict raw priority pulled the settler back to `(41,46)`.
-- Raw priority therefore protects a newly discovered best site, as in Berlin and Karakorum, but not the abandoned scout origin itself.
-  When the raw winner is that origin, sites are compared after subtracting their return-path cost so nearby scouting can finish rather than being undone.
-  Final three-map BBAI retesting preserved Berlin at `(33,13)` in save file 442 and Karakorum at `(50,40)` in save file 360, and restored Cuzco to `(38,44)` in save file 431.
+  - Cuzco had deliberately left poor `(41,46)` to keep scouting; at the deadline, that fully revealed origin still scored `3488`, while nearby `(38,44)` scored only `3355` with four BFC plots still unrevealed. Strict raw priority pulled the settler back to `(41,46)`.
+- Raw priority therefore protects a newly discovered best site, as in Berlin and Karakorum, but not the abandoned scout origin itself. When the raw winner is that origin, sites are compared after subtracting their return-path cost so nearby scouting can finish rather than being undone.
+  - Final three-map BBAI retesting preserved Berlin at `(33,13)` in save file 442 and Karakorum at `(50,40)` in save file 360, and restored Cuzco to `(38,44)` in save file 431.
 
 Update during the XML-driven Settler site-valuation rework:
 
 - The heuristic-good-enough local recheck still subtracted a fixed `75` per path turn, even though this branch examines only sites reachable within two turns and the broader AdvCiv-SAS first-city policy deliberately tolerates nearby movement to obtain the strongest capital.
-  This made Aachen found immediately on Grassland at `(137,72)` instead of moving to the slightly stronger Oil Desert at `(136,72)`: the Desert led by 16 complete found-value points and 38 growth-core points, but lost after the redundant 75-point charge for its `pathTurns=1` route.
-  The fixed replay moved there and still founded Aachen on turn 0, confirming that this path count did not represent a lost capital turn.
-- Remove travel cost from this strictly local recheck and compare its nearby candidates by complete found value plus the existing turn-0 growth-core information value.
-  Longer first-city movement remains constrained by the separate seven-turn scouting/founding window and return-path rules, so this does not make distant sites free.
-  This restores the intended separation: the local two-turn branch chooses the best nearby yields/site, while the broader scouting logic decides how far the Settler may roam.
+  - This made Aachen found immediately on Grassland at `(137,72)` instead of moving to the slightly stronger Oil Desert at `(136,72)`: the Desert led by 16 complete found-value points and 38 growth-core points, but lost after the redundant 75-point charge for its `pathTurns=1` route.
+  - The fixed replay moved there and still founded Aachen on turn 0, confirming that this path count did not represent a lost capital turn.
+- Remove travel cost from this strictly local recheck and compare its nearby candidates by complete found value plus the existing turn-0 growth-core information value. Longer first-city movement remains constrained by the separate seven-turn scouting/founding window and return-path rules, so this does not make distant sites free.
+  - This restores the intended separation: the local two-turn branch chooses the best nearby yields/site, while the broader scouting logic decides how far the Settler may roam.
 - The same audit found a second hardcoded `75 * pathTurns` in the later anti-bounce guard.
   It could likewise found on a lower-value current site instead of returning to a better cached site.
   The guard now prevents cycling only when the current site's complete value equals or exceeds the cached target; genuinely better sites remain preferred within the already bounded window.
 - Level-3 candidate rows contained enough data to reconstruct the Aachen failure, but only after the city placement was noticed visually.
-  New level-2 `FIRST_CITY_LOCAL_RECHECK_RESULT` and `FIRST_CITY_CACHED_SITE_COMPARISON` rows state the strongest local/cached alternative, both compared values, path turns and final action directly; level 3 now also identifies first-city site, local-recheck and scout-step rejection reasons, every eligible return candidate, and ordinary post-capital city-site eligibility/path scoring.
+  - New level-2 `FIRST_CITY_LOCAL_RECHECK_RESULT` and `FIRST_CITY_CACHED_SITE_COMPARISON` rows state the strongest local/cached alternative, both compared values, path turns and final action directly; level 3 now also identifies first-city site, local-recheck and scout-step rejection reasons, every eligible return candidate, and ordinary post-capital city-site eligibility/path scoring.
 - Detailed BFC dumps remain level 3, while level-2 `SETTLER_FOUND_RESULT` identifies an ordinary Settler for which no candidate survived and `SETTLER_FLOW_*` covers first-city fallback, financial suppression, overseas loading/coast movement and escort rendezvous that return outside the normal city-site mission path.
-  Transport-internal cargo decisions remain in their dedicated category.
-  Implemented with the help of GPT-5.6-Sol, thanks.
+  - Transport-internal cargo decisions remain in their dedicated category. Implemented with the help of GPT-5.6-Sol, thanks.
 
 <a id="ki-145"></a>
 
@@ -11570,9 +11500,8 @@ The initial first-city value was intentionally much higher because capital coast
 Update following the KI#173 and related city-site scoring changes:
 
 - Save file 420 now chooses the strong coastal Cuzco site at `(11,35)` with the first-city coastal extra value disabled: it scores `4874` against the strongest nearby alternative's `4394`. Restoring the old `1800` merely raises the same chosen site to `6674`.
-- A turn-100 Japan retest with both coastal extra values disabled founded Kyoto at `(71,18)`, Osaka at `(73,15)`, and Tokyo at `(67,16)`.
-  Attractive `(73,23)` was still valued strongly at `5344` before normal distance shaping, while the old tundra-heavy candidate areas around `(74,11)` and `(79,12)` were no longer top candidates.
-  The strongest northern alternative was the defensible `(77,14)` river/Grass site with Copper, Sheep, and Silver.
+- A turn-100 Japan retest with both coastal extra values disabled founded Kyoto at `(71,18)`, Osaka at `(73,15)`, and Tokyo at `(67,16)`. Attractive `(73,23)` was still valued strongly at `5344` before normal distance shaping, while the old tundra-heavy candidate areas around `(74,11)` and `(79,12)` were no longer top candidates.
+  - The strongest northern alternative was the defensible `(77,14)` river/Grass site with Copper, Sheep, and Silver.
 - The extra biases were therefore reduced heavily, to keep a small strategic pressure for naval settling only as this may generally be strategically better in naval-heavy maps.
   Normal coastal valuation remains active, and the defines remain available if a fairly small additional naval-map preference is wanted; the old large values are no longer recommended.
 
@@ -12859,11 +12788,9 @@ Removing the runtime starting-surroundings adjustment eliminated the major artif
 Continued BBAI testing exposed additional overlapping first-city filters and scouting behavior that could still exclude or fail to reveal the best complete found-value candidate.
 
 - Recovery candidates now require a fully revealed BFC before interrupting bounded scouting, and when the scouting window ends the settler rechecks revealed reachable sites instead of blindly founding wherever scouting stopped.
-  Candidate ranking uses complete first-city found value rather than separate food-bonus or food-environment filters; those diagnostics still decide whether a poor start warrants scouting.
-- Karakorum follow-up testing then exposed a broader bonus overvaluation: older SAS logic weighted bonus-improvement Food x3 and Production x2 before AdvCiv's obscure hardcoded nonlinear `evaluateSpecialYields` path weighted the aggregated yields again.
-  Six resources contributed 5015 points to the low-food `(49,43)` candidate, overwhelming stronger river/grass alternatives.
-  The redundant AdvCiv path is now disabled for reference, and actual bonus-improvement Food/Production/Commerce changes are valued once through simple XML tunables.
-  Natural-yield weights were also externalized, while unsupported small Barbarian and first-era Commerce exceptions were disabled for one consistent valuation.
+  - Candidate ranking uses complete first-city found value rather than separate food-bonus or food-environment filters; those diagnostics still decide whether a poor start warrants scouting.
+- Karakorum follow-up testing then exposed a broader bonus overvaluation: older SAS logic weighted bonus-improvement Food x3 and Production x2 before AdvCiv's obscure hardcoded nonlinear `evaluateSpecialYields` path weighted the aggregated yields again. Six resources contributed 5015 points to the low-food `(49,43)` candidate, overwhelming stronger river/grass alternatives.
+  - The redundant AdvCiv path is now disabled for reference, and actual bonus-improvement Food/Production/Commerce changes are valued once through simple XML tunables. Natural-yield weights were also externalized, while unsupported small Barbarian and first-era Commerce exceptions were disabled for one consistent valuation.
 - After these follow-up changes, Berlin naturally ranks fully revealed `(33,13)` above `(35,11)` by `4027` to `3957` and founds there in the save file 442 regression test.
   Save file 360 improved from tundra/resource-heavy `(49,43)` to river Grassland `(50,40)` with Pig and Maize; save file 431 selected reasonable river Grassland `(38,44)` in a generally poor starting region.
 
@@ -14510,9 +14437,8 @@ The same run's new distance razes also looked strategically justified:
 
 - Bulgar was razed at same-area distance 15 on turn 103; the existing early-remote rules independently selected it too, and nobody resettled nearby.
 - Yue-Chi was razed at same-area distance 17 on turn 180, and nobody founded within three plots through turn 300.
-- Orleans was razed at same-area distance 10 on turn 257 despite population 13, but France had lost it to Maya on turn 254 and Maya lost it to Persia only three turns later.
-  Persia owned only the city-center plot, all 20 surrounding plots had third-party culture, and nobody founded within three plots during the remaining 43 turns.
-  The history supported the conclusion that this developed city was exposed and unlikely to provide Persia durable value.
+- Orleans was razed at same-area distance 10 on turn 257 despite population 13, but France had lost it to Maya on turn 254 and Maya lost it to Persia only three turns later. Persia owned only the city-center plot, all 20 surrounding plots had third-party culture, and nobody founded within three plots during the remaining 43 turns.
+  - The history supported the conclusion that this developed city was exposed and unlikely to provide Persia durable value.
 
 The next run in `BBAI_20260715T195321Z_load1.log` and `SASGameRecord_20260715T195321Z_load1.log` reinforced the intrinsic-versus-distance split.
 
@@ -16357,23 +16283,15 @@ Replacing those final 50 values with 40 reduced later forced production but coul
 
 The three strongest **tested** candidates retained for comparison on other save files are:
 
-1. **`20 / 20 / 20 / 30 / 35 / 40 / 40` — strongest single-run military/economic compromise so far.**
-   It reproduced the 20/20/20/30 history through T200, then tested whether the Industrial jump directly from 30 to 40 was unnecessarily large.
-   At T250 it had 59 cities, 847 population, 1,679 production, 3,030 research, 593 current combat units, 609 produced offensive units, 653 completed buildings and 26,754 production lost in combat.
-   The repeated Industrial-40 curve had almost the same population, army and buildings at that checkpoint (846, 599 and 657), but only 1,558 production and 2,321 research.
-   By T350, the 35 curve had 866 current combat units despite producing only 1,106 offensive units and losing 77,662 production in combat; the two Industrial-40 runs averaged about 848 current combat units after producing about 1,192 offensive units and losing about 86,179 production.
-   This suggests that Industrial 35 retained military strength more efficiently while preserving more economic room.
-   Its history then entered destructive late wars: by T400 the current combat army had fallen to 426 and cumulative combat loss had risen to 197,759 before the T422 Space victory.
-   This reinforces the late-history variance caveat, and one run is not enough to rank the curve definitively above the repeated candidate.
-2. **`20 / 20 / 20 / 30 / 40 / 40 / 40` — strongest repeated military/economic compromise.**
-   Its two repetitions exactly matched the successful flat-20 history through T150, then diverged from one another only on T260.
-   At T250 both had 60 cities, 846 population, 1,558 production, 2,321 research, 599 current combat units, 627 produced offensive units, 657 completed buildings and 25,594 production lost in combat.
-   Compared with flat 20, it therefore added military strength while preserving building output and improving population/production in the shared history; compared with flat 40, it retained a much stronger economy and lost less military production.
-   The repetitions won Space on T373 and T426.
-3. **Flat `20 / 20 / 20 / 20 / 20 / 20 / 20` — strongest peaceful scaling and ordinary-strategy freedom in save file 461.**
-   It had the best T350 population, research and completed-building totals, the lowest combat-production loss among the three flat baselines, and a T373 Space victory.
-   Because this is only a minimum floor, flat 20 does not prevent personalities, wars, danger or composition needs from producing more units.
-   Its weakness is that it applies no extra correction to the specifically observed late-era military shortfall.
+1. **`20 / 20 / 20 / 30 / 35 / 40 / 40` — strongest single-run military/economic compromise so far.** It reproduced the 20/20/20/30 history through T200, then tested whether the Industrial jump directly from 30 to 40 was unnecessarily large.
+   - At T250 it had 59 cities, 847 population, 1,679 production, 3,030 research, 593 current combat units, 609 produced offensive units, 653 completed buildings and 26,754 production lost in combat. The repeated Industrial-40 curve had almost the same population, army and buildings at that checkpoint (846, 599 and 657), but only 1,558 production and 2,321 research.
+   - By T350, the 35 curve had 866 current combat units despite producing only 1,106 offensive units and losing 77,662 production in combat; the two Industrial-40 runs averaged about 848 current combat units after producing about 1,192 offensive units and losing about 86,179 production. This suggests that Industrial 35 retained military strength more efficiently while preserving more economic room.
+   - Its history then entered destructive late wars: by T400 the current combat army had fallen to 426 and cumulative combat loss had risen to 197,759 before the T422 Space victory. This reinforces the late-history variance caveat, and one run is not enough to rank the curve definitively above the repeated candidate.
+2. **`20 / 20 / 20 / 30 / 40 / 40 / 40` — strongest repeated military/economic compromise.** Its two repetitions exactly matched the successful flat-20 history through T150, then diverged from one another only on T260.
+   - At T250 both had 60 cities, 846 population, 1,558 production, 2,321 research, 599 current combat units, 627 produced offensive units, 657 completed buildings and 25,594 production lost in combat.
+   - Compared with flat 20, it therefore added military strength while preserving building output and improving population/production in the shared history; compared with flat 40, it retained a much stronger economy and lost less military production. The repetitions won Space on T373 and T426.
+3. **Flat `20 / 20 / 20 / 20 / 20 / 20 / 20` — strongest peaceful scaling and ordinary-strategy freedom in save file 461.** It had the best T350 population, research and completed-building totals, the lowest combat-production loss among the three flat baselines, and a T373 Space victory.
+   - Because this is only a minimum floor, flat 20 does not prevent personalities, wars, danger or composition needs from producing more units. Its weakness is that it applies no extra correction to the specifically observed late-era military shortfall.
 
 The tested `10 / 10 / 20 / 30 / 40 / 40 / 40` curve remains a useful early-freedom boundary even though it ranks below these three on save file 461.
 
@@ -17423,35 +17341,27 @@ Comparing the current code with the latest available Base AdvCiv source and revi
 The 15 reviewed logs contained 1,137 Great General births, 1,101 Military Instructor joins, 18 Military Academy constructions and 7 explicit deaths of the free `UNIT_GREAT_GENERAL` itself; 6 of the 7 deaths occurred in or immediately around cities that were already collapsing, while the seventh General moved out of Poverty Point and was killed by a Gunship on a non-city plot the next turn.
 
 - **Fixed Base AdvCiv issue - unsafe automatic Great General birth city:** `CvPlayer::setCombatExperience` selected the automatic Great-General birth city from all cities using randomized yield/population ranks without checking city safety, so a defenseless General could be created directly in a besieged city despite safer cities existing.
-  AdvCiv-SAS keeps the original scoring but restricts selection to safe cities whenever at least one safe city exists; if every city is unsafe, it falls back to the original all-city selection.
-  The synchronized random roll is still consumed for every city before filtering so the safety correction does not unnecessarily alter the synchronized RNG stream.
+  - AdvCiv-SAS keeps the original scoring but restricts selection to safe cities whenever at least one safe city exists; if every city is unsafe, it falls back to the original all-city selection. The synchronized random roll is still consumed for every city before filtering so the safety correction does not unnecessarily alter the synchronized RNG stream.
 - **Fixed Base AdvCiv bug - inverted Military Academy city-safety test:** `CvUnitAI::AI_construct` used `pLoopCity->AI_isSafe()` as a reason to reject a city, which skipped safe cities while leaving unsafe cities eligible for Military Academy targeting.
   This is now corrected to reject cities that are not safe, matching the nearby `AI_join` logic.
 - **Hardened inherited AdvCiv/K-Mod limitation - movement flags were not tactical safety:** Great General joining relied on `MOVE_SAFE_TERRITORY`, whose pathfinder meaning is ownership/revelation safety rather than protection from attack on the actual end-turn plot; Academy movement had a similar exposure.
-  Instructor/Academy travel now also avoids enemy pressure and checks the actual end-turn radius-2 danger.
-  A General starting from safety will not deliberately end on a dangerous travel tile, while a General already trapped in danger may use a nonzero-danger path only when its end-turn plot is strictly safer than its current plot, avoiding a safety rule that would itself pin the unit in a collapsing city.
-- **Fixed Base AdvCiv issue - zero-turn unsafe-city retreat trap:** the K-Mod-derived `AI_retreatToCity` could let a threatened defenseless land unit choose its current unsafe city as the best retreat destination.
-  Its path length is zero, so it could beat every genuine escape city and return `MISSION_SKIP`.
-  AdvCiv-SAS now excludes a threatened non-defender's current city while searching for a retreat destination; if no real alternative exists, the existing fallback remains unchanged and can still leave the unit there rather than manufacturing an impossible escape.
-- **Improved SAS Great General policy - era-tunable Military Instructor-first behavior:** Base AdvCiv can attach a threatened Great General to a combat unit before the normal Academy/Instructor sequence.
-  AdvCiv-SAS deliberately gates weak attachments very heavily because Military Instructors are currently preferred for balance.
-  `SAS_GREAT_GENERAL_AS_MILITARY_INSTRUCTOR_PREFER_FIRST_THROUGH_ERA` now makes the additional Instructor-first priority tunable: `-1` disables it, nonnegative values apply it through the corresponding era index, and the dynamically resolved `ERA_FUTURE` index or higher applies it in all eras.
-  The ordinary Academy, attachment, retreat and safety fallbacks remain available when a suitable Instructor action cannot be made.
-  A later autoplay exposed one narrow consistency gap: Portugal's General `1777738` was already standing in Guimarães on turn 277 with `citySafe=1` and `currentPlotDangerR2=2`; `AI_join` rejected the city for radius-2 danger, then the very next Great-General decision selected `AI_construct(1)` and SASGameRecord recorded a Military Academy in that same city.
-  Because both Instructor joining and Academy construction consume the General immediately when it is already on the city plot, only the Instructor was being blocked by a travel-oriented danger gate despite having no travel exposure.
-  `AI_join` now allows that immediate current-city join while keeping the radius-2 danger rejection for destinations that require travel.
-- **Improved Great General death reporting and Timeline persistence:** Base AdvCiv passed `getNameKey()` to Great General death notifications, so a named casualty could show only its personal name and hide whether it was the free General or e.g. a named Longbowman carrying one.
-  AdvCiv-SAS now uses `getReplayName()` for these messages so unit type and personal name stay together.
-  Player-caused Great General deaths are also persisted as replay major events, allowing the Info Screen Timeline to display them instead of leaving the event only in the transient top-center message stream.
-- **Improved SASGameRecord/BBAI observability:** a defenseless Great Person destroyed directly through a player-caused `CvUnit::kill` path could bypass the existing combat-result record.
-  That player-kill path now records the death without duplicating ordinary combat rows.
-  Great-Person birth rows also record the newborn `unitId` and spawn coordinates, while dedicated BBAI Great General level-3 diagnostics record candidate rejection reasons and numeric current/city/path-end danger.
-  This allows one General to be followed from birth through AI decisions to Instructor/Academy/attachment/death outcome.
-- **Post-fix autoplay validation:** a 457-turn test with only Great General BBAI diagnostics enabled produced 91 Great General births, 90 Military Instructor joins, no Academy/attachment outcomes and 1 free-General death.
-  75 of the 90 successful Generals joined on their birth turn, 12 one turn later and 3 two turns later; 41 settled in a city other than their birth city.
-  All 6 Generals whose first AI decision began with radius-2 danger above zero successfully reached an Instructor outcome, including starts at danger 22 and 28.
-  The sole death was qualitatively different and appears unavoidable by the AI movement fixes: Russia's General `1114142` was born in Rostov on turn 362 and killed there during Rostov's capture on the same turn, after Moscow had already fallen earlier that turn.
-  Rostov was therefore Russia's only remaining city, the safe-birth-city selector had no alternative, and BBAI contains no Great General move for the unit because it died before Russia received an AI turn.
+  - Instructor/Academy travel now also avoids enemy pressure and checks the actual end-turn radius-2 danger.
+  - A General starting from safety will not deliberately end on a dangerous travel tile, while a General already trapped in danger may use a nonzero-danger path only when its end-turn plot is strictly safer than its current plot, avoiding a safety rule that would itself pin the unit in a collapsing city.
+- **Fixed Base AdvCiv issue - zero-turn unsafe-city retreat trap:** the K-Mod-derived `AI_retreatToCity` could let a threatened defenseless land unit choose its current unsafe city as the best retreat destination. Its path length is zero, so it could beat every genuine escape city and return `MISSION_SKIP`.
+  - AdvCiv-SAS now excludes a threatened non-defender's current city while searching for a retreat destination; if no real alternative exists, the existing fallback remains unchanged and can still leave the unit there rather than manufacturing an impossible escape.
+- **Improved SAS Great General policy - era-tunable Military Instructor-first behavior:** Base AdvCiv can attach a threatened Great General to a combat unit before the normal Academy/Instructor sequence. AdvCiv-SAS deliberately gates weak attachments very heavily because Military Instructors are currently preferred for balance.
+  - `SAS_GREAT_GENERAL_AS_MILITARY_INSTRUCTOR_PREFER_FIRST_THROUGH_ERA` now makes the additional Instructor-first priority tunable: `-1` disables it, nonnegative values apply it through the corresponding era index, and the dynamically resolved `ERA_FUTURE` index or higher applies it in all eras.
+  - The ordinary Academy, attachment, retreat and safety fallbacks remain available when a suitable Instructor action cannot be made.
+  - A later autoplay exposed one narrow consistency gap: Portugal's General `1777738` was already standing in Guimarães on turn 277 with `citySafe=1` and `currentPlotDangerR2=2`; `AI_join` rejected the city for radius-2 danger, then the very next Great-General decision selected `AI_construct(1)` and SASGameRecord recorded a Military Academy in that same city.
+  - Because both Instructor joining and Academy construction consume the General immediately when it is already on the city plot, only the Instructor was being blocked by a travel-oriented danger gate despite having no travel exposure. `AI_join` now allows that immediate current-city join while keeping the radius-2 danger rejection for destinations that require travel.
+- **Improved Great General death reporting and Timeline persistence:** Base AdvCiv passed `getNameKey()` to Great General death notifications, so a named casualty could show only its personal name and hide whether it was the free General or e.g. a named Longbowman carrying one. AdvCiv-SAS now uses `getReplayName()` for these messages so unit type and personal name stay together.
+  - Player-caused Great General deaths are also persisted as replay major events, allowing the Info Screen Timeline to display them instead of leaving the event only in the transient top-center message stream.
+- **Improved SASGameRecord/BBAI observability:** a defenseless Great Person destroyed directly through a player-caused `CvUnit::kill` path could bypass the existing combat-result record. That player-kill path now records the death without duplicating ordinary combat rows.
+  - Great-Person birth rows also record the newborn `unitId` and spawn coordinates, while dedicated BBAI Great General level-3 diagnostics record candidate rejection reasons and numeric current/city/path-end danger. This allows one General to be followed from birth through AI decisions to Instructor/Academy/attachment/death outcome.
+- **Post-fix autoplay validation:** a 457-turn test with only Great General BBAI diagnostics enabled produced 91 Great General births, 90 Military Instructor joins, no Academy/attachment outcomes and 1 free-General death. 75 of the 90 successful Generals joined on their birth turn, 12 one turn later and 3 two turns later; 41 settled in a city other than their birth city.
+  - All 6 Generals whose first AI decision began with radius-2 danger above zero successfully reached an Instructor outcome, including starts at danger 22 and 28.
+  - The sole death was qualitatively different and appears unavoidable by the AI movement fixes: Russia's General `1114142` was born in Rostov on turn 362 and killed there during Rostov's capture on the same turn, after Moscow had already fallen earlier that turn.
+  - Rostov was therefore Russia's only remaining city, the safe-birth-city selector had no alternative, and BBAI contains no Great General move for the unit because it died before Russia received an AI turn.
 
 This remains a mixed issue rather than one Civ4 bug or one SAS regression.
 
@@ -17469,12 +17379,14 @@ Screenshots/files for this issue: [google drive folder link](https://drive.googl
 
 [A player had previously reported](https://forums.civfanatics.com/threads/advciv-sas-simple-advanced-strategy.699716/post-16971507) that the AI seemed not to build ordinary World Wonders, especially on a slow game speed. That report predated many later AdvCiv-SAS balance changes and initially looked likely to be obsolete because recent Normal-speed autoplays do build and contest many World Wonders.
 
-A fresh Huge Donut / Slow-speed autoplay nevertheless reproduced the concern dramatically: through turn 601 with 16 players, SASGameRecord in save file 477 (Huge, Donut, Slow) contained 11 `WONDER_BUILT` rows by T601 (1406 AD), but these were only 4 religious shrines, 6 Heroic Epics and 1 National Epic. No ordinary World Wonder was completed. The Info Screen likewise showed only the four shrines in the World Wonders table.
+A fresh Huge Donut / Slow-speed autoplay nevertheless reproduced the concern dramatically: through turn 601 with 16 players, SASGameRecord in save file 477 (Huge, Donut, Slow) contained 11 `WONDER_BUILT` rows by T601 (1406 AD), but these were only 4 religious shrines, 6 Heroic Epics and 1 National Epic.
+
+No ordinary World Wonder was completed. The Info Screen likewise showed only the four shrines in the World Wonders table.
 
 The investigation found two independent World-Wonder AI defects:
 
 - **Fixed AdvCiv-SAS game-speed regression in the cheap-Wonder catch-up gate:** `CvCityAI::AI_buildingValue` compared `getProductionNeeded(eBuilding)` against the then-XML-tunable era-based cheap-Wonder thresholds.
-  The cost returned by `getProductionNeeded` is not raw XML cost: `CvPlayer::getProductionNeeded(BuildingTypes)` multiplies building cost by the current game speed's `ConstructPercent` (along with the existing start-era/handicap adjustments).
+  - The cost returned by `getProductionNeeded` is not raw XML cost: `CvPlayer::getProductionNeeded(BuildingTypes)` multiplies building cost by the current game speed's `ConstructPercent` (along with the existing start-era/handicap adjustments).
 
 The cap therefore has to be scaled by the same game-speed factor to preserve the intended Normal-speed threshold.
 
@@ -17490,10 +17402,8 @@ The original game-speed scaling is now restored.
 
 Normal-speed behavior is unchanged by this correction.
 
-- **Fixed inherited K-Mod World-Wonder focus inversion:** when `BUILDINGFOCUS_WORLDWONDER` is explicitly requested, current inherited code rejected the candidate whenever `iProductionRank <= 3`.
-  Production rank 1 is the best production city, so this excluded the AI's three strongest hammer cities.
-  The recently included full K-Mod commit history makes the origin unusually clear.
-  Before K-Mod commit 1030 (`418581f6bd`), the corresponding World-Wonder logic positively accepted/boosted a candidate when `findBaseYieldRateRank(YIELD_PRODUCTION) <= 3`.
+- **Fixed inherited K-Mod World-Wonder focus inversion:** when `BUILDINGFOCUS_WORLDWONDER` is explicitly requested, current inherited code rejected the candidate whenever `iProductionRank <= 3`. Production rank 1 is the best production city, so this excluded the AI's three strongest hammer cities. The recently included full K-Mod commit history makes the origin unusually clear.
+  - Before K-Mod commit 1030 (`418581f6bd`), the corresponding World-Wonder logic positively accepted/boosted a candidate when `findBaseYieldRateRank(YIELD_PRODUCTION) <= 3`.
 
 Commit 1030 refactored that check out of the large evaluation loop and into an early veto, describing it as essentially the same original check moved earlier, but retained the same `<= 3` comparison underneath `return 0`.
 
@@ -21430,7 +21340,9 @@ This is an inherited AdvCiv diagnostic defect, not an AdvCiv-SAS change and not 
 
 Update (2026-10-08, KI#505.2): the Found diagnostic redesign and final ChatGPT review removed the remaining `CvPlot::debugStr()` calls from player-known Found rows. Besides its former lifetime defect, this general debug helper prints actual bonus/owner data, which could contradict the evaluator's known-information context.
 
-Those rows now use plot coordinates and explicit scoring fields. After a tracked-source search confirmed no remaining production callers, the unused declaration and implementation were retired as part of KI#505.2. The five-call wording above describes the original repair, not the current tree; its lifetime fix remains part of the historical record. The unrelated `StartingPositionIteration::Step::debugStr()` still has a caller and is unchanged.
+Those rows now use plot coordinates and explicit scoring fields. After a tracked-source search confirmed no remaining production callers, the unused declaration and implementation were retired as part of KI#505.2.
+
+The five-call wording above describes the original repair, not the current tree; its lifetime fix remains part of the historical record. The unrelated `StartingPositionIteration::Step::debugStr()` still has a caller and is unchanged.
 
 Retain KI#349 as a fixed historical finding rather than deleting its provenance or declaring its original defect unfounded. Final changes reviewed locally with GPT-6.1-Sol; the earlier contributor credits below remain applicable.
 
@@ -25161,13 +25073,19 @@ The repaired Debug-opt DLL compiled successfully, and a full Continents autoplay
 
 ## KI#505.2 - (Fixed and refactored inherited AdvCiv found-value diagnostics; post-album rediscovery) Restore suppressed settings and trace actual evaluations instead of replaying scores
 
-AdvCiv practical 1851 / commit `078fc9bd7c` (2019-12-15, "Move AI_foundValue computation into a new class") introduced `CitySiteEvaluator`, the `IFLOG` control-flow macro and the constructor call `IFLOG logSettings()` together. K-Mod 1.46's pre-refactor `CvFoundSettings` has no equivalent `CitySiteEvaluator` logging mechanism, and Base AdvCiv 1.14 retains the AdvCiv pattern unchanged; this is therefore an inherited AdvCiv defect rather than an AdvCiv-SAS regression.
+AdvCiv practical 1851 / commit `078fc9bd7c` (2019-12-15, "Move AI_foundValue computation into a new class") introduced `CitySiteEvaluator`, the `IFLOG` control-flow macro and the constructor call `IFLOG logSettings()` together.
 
-`IFLOG` expands to an `if` combining the Found BBAI level with `AIFoundValue::isLoggingEnabled()`. The macro hid the real caller-side logging contract across roughly one hundred found-value diagnostics and produced awkward forms such as `IFLOG if (...)` and `else IFLOG ...`. This became especially undesirable after AdvCiv-SAS made BBAI logging runtime-tunable and standardized explicit caller pre-gating.
+K-Mod 1.46's pre-refactor `CvFoundSettings` has no equivalent `CitySiteEvaluator` logging mechanism, and Base AdvCiv 1.14 retains the AdvCiv pattern unchanged; this is therefore an inherited AdvCiv defect rather than an AdvCiv-SAS regression.
+
+`IFLOG` expands to an `if` combining the Found BBAI level with `AIFoundValue::isLoggingEnabled()`. The macro hid the real caller-side logging contract across roughly one hundred found-value diagnostics and produced awkward forms such as `IFLOG if (...)` and `else IFLOG ...`.
+
+This became especially undesirable after AdvCiv-SAS made BBAI logging runtime-tunable and standardized explicit caller pre-gating.
 
 It also causes a concrete diagnostic defect: the generic `CitySiteEvaluator` constructor calls `IFLOG logSettings()`, but `AIFoundValue::isLoggingEnabled()` is still false during construction and is enabled only later around explicit `evaluateWithLogging()` calls. Consequently, the intended settings block is suppressed in the normal found-value logging path.
 
-The initial prepared fix replaced the macro with an ordinary inline predicate and explicit guards, and moved settings output into `CitySiteEvaluator::log()` after `setDebug(true)`. That repaired the suppressed header, but discussion and source review exposed a broader diagnostic-design problem: the logger replayed evaluations afterward, ignored the maintained tentative-site list, and could therefore report a different context from the original AI computation.
+The initial prepared fix replaced the macro with an ordinary inline predicate and explicit guards, and moved settings output into `CitySiteEvaluator::log()` after `setDebug(true)`.
+
+That repaired the suppressed header, but discussion and source review exposed a broader diagnostic-design problem: the logger replayed evaluations afterward, ignored the maintained tentative-site list, and could therefore report a different context from the original AI computation.
 
 The recent plot-potential cache also deliberately bypassed reuse when detailed logging was enabled. These are source-observed differences; they do not establish that toggling Found logging changed a real AI decision or synchronized RNG.
 
@@ -25175,31 +25093,45 @@ Rather than preserve that replay machinery and then replace it in another commit
 
 - Ordinary Found guards read `gFoundLogLevel` directly; the hidden global `AIFoundValue::bLoggingEnabled` switch, forced-inline predicate and `evaluateWithLogging()` replay API are removed.
 - Found logging is deliberately tiered so observing the real evaluation does not turn level 1 into a whole-map trace: level 1 keeps high-level selected/founded/start-site lifecycle rows; level 2 adds compact `FOUND_SITE_BEGIN`/`FOUND_SITE_RESULT`, `FOUND_SITE_BREAKDOWN`, and stored-value rows for the actual evaluations; level 3 adds settings, component/rejection, plot, cache and improvement-candidate detail from those same passes.
-- Every component row has a greppable `FOUND_SITE_*` event name plus `turn`, `player`, `site`, `context` and `scope` fields. Payloads retain useful explanations and measured values; simple reasons are stated once by the event name, and resource-status rows identify the known bonus and plot instead of repeating the event as prose. Notably `FOUND_SITE_VERY_BAD_BFC_PLOT` exposes named plot, terrain, score and threshold fields. Shared SPI helper output is labeled `scope=WORKABLE_PLOT` so it cannot be mistaken for a complete site evaluation. Player-known rows avoid `CvPlot::debugStr()` because it exposes true-map bonus/owner data; coordinates and evaluator-scoped fields preserve the declared information scope. Caller context is stored as a typed enum and converted through the shared `getSASFoundLogContextType` helper only when emitting a row. Breakdown accounting checks the Found logging gate first; a non-null output pointer independently requests accounting for the caller, without enabling Found output.
+- Every component row has a greppable `FOUND_SITE_*` event name plus `turn`, `player`, `site`, `context` and `scope` fields.
+  - Payloads retain useful explanations and measured values; simple reasons are stated once by the event name, and resource-status rows identify the known bonus and plot instead of repeating the event as prose. Notably `FOUND_SITE_VERY_BAD_BFC_PLOT` exposes named plot, terrain, score and threshold fields.
+  - Shared SPI helper output is labeled `scope=WORKABLE_PLOT` so it cannot be mistaken for a complete site evaluation. Player-known rows avoid `CvPlot::debugStr()` because it exposes true-map bonus/owner data; coordinates and evaluator-scoped fields preserve the declared information scope.
+  - Caller context is stored as a typed enum and converted through the shared `getSASFoundLogContextType` helper only when emitting a row. Breakdown accounting checks the Found logging gate first; a non-null output pointer independently requests accounting for the caller, without enabling Found output.
 - Plot-potential cache reuse no longer depends on the logging level. Level 3 reports `potentialCacheHit` in the consolidated `FOUND_SITE_PLOT` row and candidate-scan detail for scans that actually occurred, rather than triggering extra scans for logging.
-- `FOUND_SITE_STORED` records the value actually cached after Python overrides or the initial starting-plot preference, and after genuine planned-site recalculations. For the initial C++ pass it explicitly separates `evaluatedValue`, the inherited `startingPlotPreference`, and `storedValue`, so the +5% assigned-start preference cannot masquerade as a logging mismatch. `FOUND_SITE_SELECTED` records the selected cached value before appending the site changes overlap context. Founding records the cached value without claiming it is a fresh capital evaluation.
+- `FOUND_SITE_STORED` records the value actually cached after Python overrides or the initial starting-plot preference, and after genuine planned-site recalculations. For the initial C++ pass it explicitly separates `evaluatedValue`, the inherited `startingPlotPreference`, and `storedValue`, so the +5% assigned-start preference cannot masquerade as a logging mismatch.
+  - `FOUND_SITE_SELECTED` records the selected cached value before appending the site changes overlap context. Founding records the cached value without claiming it is a fresh capital evaluation.
 - The generic selected-site/adjacent-site BBAI replay is removed, as is the redundant player-known Settler breakdown replay. Real AI recalculations and replacement-site scouting still run, including their deliberate `setDebug(true)` context; those gameplay rules are unchanged.
 - Useful explicit comparisons remain separately labeled: UI previews, level-2+ Barbarian chooser alternatives, Settler true-map comparisons, and SASGameRecord's known-map/true-map founding rescores. Their results remain outside AI selection. The Settler true-map delta now uses the already-computed candidate score as its baseline.
 
-This redesign is intended to preserve gameplay scoring, synchronized RNG and AI policy while making logs describe the computation being investigated. Source review confirms that the planned-site/gameplay paths remain. Rebuilt-DLL full autoplays at Found levels 3 and 2 now match all recorded RNG and semantic CORE checkpoints (details below); a matched Found-disabled comparison has not been verified.
+This redesign is intended to preserve gameplay scoring, synchronized RNG and AI policy while making logs describe the computation being investigated. Source review confirms that the planned-site/gameplay paths remain.
+
+Rebuilt-DLL full autoplays at Found levels 3 and 2 now match all recorded RNG and semantic CORE checkpoints (details below); a matched Found-disabled comparison has not been verified.
 
 Test identical starts and actions, compare selected sites and cached values, and use level-3 SASGameRecord RNG comparison when available. Disabled logging should produce no Found rows; enabled traces should pair site-evaluation beginnings and results, identify early rejection, and label hypothetical comparisons separately.
 
 The first level-3 autoplay sample exceeded 1 GB by turn 50. Full-map candidate sweeps repeatedly inspected overlapping BFCs, and separate cache-hit, potential, plot-yield, culture, resource and feature rows repeated the full evaluation context.
 
-Before committing, the prepared fix was refined to retain the recorded values with fewer rows and shorter repeated prefixes: `FOUND_SITE_PLOT` combines yields, nature/potential scores, cache provenance, culture, hidden-resource presence and feature state; `FOUND_SITE_PLOT_RESOURCE` reports known resource identity and the actual availability/access flags. Invariant information/settings flags are emitted in `FOUND_SITE_BEGIN`; each detail row retains turn/player/site/context/scope for correlation.
+Before committing, the prepared fix was refined to retain the recorded values with fewer rows and shorter repeated prefixes: `FOUND_SITE_PLOT` combines yields, nature/potential scores, cache provenance, culture, hidden-resource presence and feature state; `FOUND_SITE_PLOT_RESOURCE` reports known resource identity and the actual availability/access flags.
+
+Invariant information/settings flags are emitted in `FOUND_SITE_BEGIN`; each detail row retains turn/player/site/context/scope for correlation.
 
 Standalone `scope=WORKABLE_PLOT` rows keep those flags because they have no site-evaluation BEGIN. The level-3 settings row also combines site description, coastal status and city counts. Candidate scans, rejection reasons and scoring adjustments remain detailed, with no sampling or extra evaluations. Rebuilt-DLL measurements and the level-3/level-2 parity comparison are recorded below.
 
-Further volume review: early expansion is a particularly useful period for detailed Found diagnostics, so retain unrestricted level 3 for the next test before adding filters or diagnostic deduplication caches. Output follows evaluations rather than only city founding: map refreshes and planned-site recalculations can continue after expansion slows. Similar-looking rows are not automatically redundant, because overlapping sites and later evaluations can use different scoring contexts or world state.
+Further volume review: early expansion is a particularly useful period for detailed Found diagnostics, so retain unrestricted level 3 for the next test before adding filters or diagnostic deduplication caches. Output follows evaluations rather than only city founding: map refreshes and planned-site recalculations can continue after expansion slows.
+
+Similar-looking rows are not automatically redundant, because overlapping sites and later evaluations can use different scoring contexts or world state.
 
 The consolidation above removes repeated formatting while preserving candidate coverage; a longer rebuilt-DLL test should measure whether growth slows later. Roughly 2 GB by turn 100 gives about 10 GB by turn 500 only under a linear-growth assumption, not as a measured forecast. No further filtering or cross-evaluation suppression is implemented.
 
-Completed rebuilt-DLL volume/parity tests on 2026-10-08: the Huge Archipelago test used a 120x84 map with 16 starting players and ended at internal turn 394. Found level 3 produced 20,780,745,128 bytes (20.78 GB decimal) in `BBAI_20261008T081921Z_load1.log`; the newer level-2 replay produced 11,184,140,649 bytes (11.18 GB decimal) in `BBAI_20261008T084840Z_load1.log`, roughly 46% less. These are complete BBAI file sizes, including Settler/other diagnostics, not isolated Found-byte totals.
+Completed rebuilt-DLL volume/parity tests on 2026-10-08: the Huge Archipelago test used a 120x84 map with 16 starting players and ended at internal turn 394. Found level 3 produced 20,780,745,128 bytes (20.78 GB decimal) in `BBAI_20261008T081921Z_load1.log`; the newer level-2 replay produced 11,184,140,649 bytes (11.18 GB decimal) in `BBAI_20261008T084840Z_load1.log`, roughly 46% less.
+
+These are complete BBAI file sizes, including Settler/other diagnostics, not isolated Found-byte totals.
 
 The corresponding SASGameRecord files were about 72.48 MB each. The user observed slow stretches followed by renewed spikes; the completed sizes show that a linear projection from turn 100 understated this run's final size. No Tiny-map size comparison has been measured.
 
-Bounded readability/format review sampled 512 KiB from the beginning, middle and end of each BBAI file (6,429 level-3 rows and 9,988 level-2 rows). The level-3 sample contained consolidated plot/resource rows, candidate-improvement detail and context-bearing evaluation rows; the level-2 sample contained BEGIN/RESULT/STORED/BREAKDOWN and lifecycle rows. No sampled row reported a nonzero `formatError`; this is a sample review, not a claim that the whole 20.78 GB file was audited or that all repeated-looking output is redundant.
+Bounded readability/format review sampled 512 KiB from the beginning, middle and end of each BBAI file (6,429 level-3 rows and 9,988 level-2 rows). The level-3 sample contained consolidated plot/resource rows, candidate-improvement detail and context-bearing evaluation rows; the level-2 sample contained BEGIN/RESULT/STORED/BREAKDOWN and lifecycle rows.
+
+No sampled row reported a nonzero `formatError`; this is a sample review, not a claim that the whole 20.78 GB file was audited or that all repeated-looking output is redundant.
 
 The dedicated `compare_sasgamerecord_rng.py` comparison validated both records and found all 399 authoritative RNG checkpoints and all 399 semantic CORE state checkpoints identical, including autoplay-end, victory and game-end boundaries. This verifies recorded level-3/level-2 parity for this test, not logging-off parity or every unrecorded game field.
 
@@ -25207,9 +25139,13 @@ Usage conclusion: level 3 remains valuable for detailed early-expansion or focus
 
 Use level 1 for compact Found lifecycle output and SASGameRecord for whole-game context, requesting levels 2/3 when their additional detail is needed. Retain candidate coverage and context distinctions rather than suppressing similar-looking evaluations without proving their data redundant. Exact level meanings and a brief volume warning remain beside the XML define; measured sizes belong here.
 
-Final review follow-up (2026-10-08): ChatGPT tightened Barbarian chooser tracking, multiplier details and nearby comparison output to Found level 2+, preserving level-1 lifecycle scope and independent SASGameRecord level-2 snapshots. It also removed the remaining `CvPlot::debugStr()` payloads from Found diagnostics and tightened the settings-helper assertion to level 3. KI#349 documents the earlier lifetime repair; its current-use wording has been updated, and the uncalled `CvPlot::debugStr()` declaration/implementation have been retired.
+Final review follow-up (2026-10-08): ChatGPT tightened Barbarian chooser tracking, multiplier details and nearby comparison output to Found level 2+, preserving level-1 lifecycle scope and independent SASGameRecord level-2 snapshots. It also removed the remaining `CvPlot::debugStr()` payloads from Found diagnostics and tightened the settings-helper assertion to level 3.
 
-Information flags describe evaluator settings, not a spoiler-free promise: `hiddenBonus` deliberately records hidden-resource presence, and separately labeled true-map comparisons remain diagnostic. Avoid accidentally printing actual bonus/owner names through generic debug descriptions. The 399-checkpoint parity results above predate these final output/assertion/threshold refinements; source checks were repeated afterward, but no new rebuilt-DLL test of the final refinements is claimed.
+KI#349 documents the earlier lifetime repair; its current-use wording has been updated, and the uncalled `CvPlot::debugStr()` declaration/implementation have been retired.
+
+Information flags describe evaluator settings, not a spoiler-free promise: `hiddenBonus` deliberately records hidden-resource presence, and separately labeled true-map comparisons remain diagnostic. Avoid accidentally printing actual bonus/owner names through generic debug descriptions.
+
+The 399-checkpoint parity results above predate these final output/assertion/threshold refinements; source checks were repeated afterward, but no new rebuilt-DLL test of the final refinements is claimed.
 
 Deferred recorder follow-up after validating this repair: consider capturing the original site-selection evaluation turn/context and the score actually used, rather than reconstructing that decision at founding time. SASGameRecord already records cached shortlist scores and explicitly labeled founding-time quality rescores; retain those distinctions and avoid duplicate fields.
 
@@ -25230,18 +25166,25 @@ Reviewed against current source, inherited AdvCiv source and the introducing com
 Reviewing deleted rows against commit `89a9db59b` found that retiring the replay API also removed useful comparison summaries. Actual-evaluation logging preserved most scoring detail, but did not fully replace the selected/next/coastal or best adjacent/distance-2 summaries. Earlier blanket assurances of complete diagnostic preservation were too broad.
 
 - The prepared follow-up restores founding year and the current minimum-found-value threshold beside `FOUND_SITE_FOUNDED`.
-- `FOUND_SITE_CACHED_COMPARISON` summarizes the highest cached alternative in the maintained shortlist and the highest cached coastal alternative with player-known water bonuses. It includes selected/alternative values, coordinates, deltas, water-bonus context and explicit absence. `source=MAINTAINED_CITY_SITE_CACHE` distinguishes these possibly older, planned-site-adjusted values from the deleted fresh replay; it does not claim movement legality or that the Settler should have chosen the highest cached value regardless of travel.
-- `BARBARIAN_CITY_SITE_COMPARISON` restores the best raw eligible alternative at distance 1 and 2 using values from the existing diagnostic scan, compared with the actual selected raw chooser score. It adds no evaluations or RNG draws. Top candidates, randomization and nearby eligibility rows now use structured event names. Nearby ineligible candidates retain their rejection context with `evaluated=0` and scores `-1`, rather than a misleading numeric zero score.
-- Deliberately not restored: unconstrained best-neighbor/Barbarian comparisons that score water, visible or area-ineligible sites, and fresh ordinary-site replay comparisons. Those require additional hypothetical evaluations, whereas the restored summaries reuse available evidence. This is a documented coverage difference, not a claim that all old hypothetical data remains available. A specific missing diagnostic case can justify a separately labelled comparison later.
+- `FOUND_SITE_CACHED_COMPARISON` summarizes the highest cached alternative in the maintained shortlist and the highest cached coastal alternative with player-known water bonuses. It includes selected/alternative values, coordinates, deltas, water-bonus context and explicit absence.
+  - `source=MAINTAINED_CITY_SITE_CACHE` distinguishes these possibly older, planned-site-adjusted values from the deleted fresh replay; it does not claim movement legality or that the Settler should have chosen the highest cached value regardless of travel.
+- `BARBARIAN_CITY_SITE_COMPARISON` restores the best raw eligible alternative at distance 1 and 2 using values from the existing diagnostic scan, compared with the actual selected raw chooser score. It adds no evaluations or RNG draws. Top candidates, randomization and nearby eligibility rows now use structured event names.
+  - Nearby ineligible candidates retain their rejection context with `evaluated=0` and scores `-1`, rather than a misleading numeric zero score.
+- Deliberately not restored: unconstrained best-neighbor/Barbarian comparisons that score water, visible or area-ineligible sites, and fresh ordinary-site replay comparisons. Those require additional hypothetical evaluations, whereas the restored summaries reuse available evidence.
+  - This is a documented coverage difference, not a claim that all old hypothetical data remains available. A specific missing diagnostic case can justify a separately labelled comparison later.
 - Settings, component/rejection rows, plot/resource details and breakdowns remain in the actual-evaluation traces; normalization/start-site lifecycle markers remain. No separate replay is added just to reproduce their old prose headings.
 
 This follow-up changes BBAI diagnostics only; SASGameRecord rows/revision remain unchanged. Source review checked format/argument counts, unchanged RNG call expressions, and the absence of scoring/pathfinding/cache-mutation calls in the cached comparison helper; recorder contracts, diagnostic-log safety, repository hygiene and Markdown checks passed.
 
-Workflow tests passed 89/90, with the existing ignored deferred XML draft causing the sole Long_Comments failure. Debug-opt compilation and the turn-100 replay passed. Targeted BBAI validation checked 110 cached comparisons and 22 Barbarian ring comparisons: scores, deltas, eligibility and absence markers were consistent, including 13 positive cached deltas and 122 explicitly unevaluated nearby candidates.
+Workflow tests passed 89/90, with the existing ignored deferred XML draft causing the sole Long_Comments failure. Debug-opt compilation and the turn-100 replay passed.
+
+Targeted BBAI validation checked 110 cached comparisons and 22 Barbarian ring comparisons: scores, deltas, eligibility and absence markers were consistent, including 13 positive cached deltas and 122 explicitly unevaluated nearby candidates.
 
 Against the earlier revision-137 baseline, all shared CORE state fingerprints matched through turn 99; authoritative RNG states, cumulative counts and cumulative value-stream fingerprints matched through turn 100. Call-provenance fingerprints differed across the source builds, whose labels include source locations.
 
-Log-volume comparison: the earlier `BBAI_20261008T100045Z_load1.log` was 1,908,798,076 bytes; the new `BBAI_20261008T124844Z_load1.log` was 1,908,834,494 bytes, an increase of 36,418 bytes (about 35.6 KiB, 0.00191%). Both used Found/Settler level 3 and ended with the same turn-101 site-list audit. This comparison spans the intervening Settler logging changes as well as this follow-up, so it is not an isolated measurement of this commit; the combined added diagnostics had negligible impact on total log size.
+Log-volume comparison: the earlier `BBAI_20261008T100045Z_load1.log` was 1,908,798,076 bytes; the new `BBAI_20261008T124844Z_load1.log` was 1,908,834,494 bytes, an increase of 36,418 bytes (about 35.6 KiB, 0.00191%). Both used Found/Settler level 3 and ended with the same turn-101 site-list audit.
+
+This comparison spans the intervening Settler logging changes as well as this follow-up, so it is not an isolated measurement of this commit; the combined added diagnostics had negligible impact on total log size.
 
 The replay ended autoplay at turn 100 while the baseline continued: its extra `AUTOPLAY_END` checkpoint split the final RNG interval, and the final player/combined state fingerprints differed, so this is not a claim of identical final lifecycle checkpoints.
 
@@ -25251,7 +25194,9 @@ The replay ended autoplay at turn 100 while the baseline continued: its extra `A
 
 Base AdvCiv's UWAI diagnostics used a separate `UWAIReport` path with per-turn `uwai<turn>.log` files, Textile-oriented formatting, XML interval/utility thresholds and nested mute state. Muted `UWAIReport::log` calls returned without formatting or writing, but that sink check happened only after C++ had already evaluated the caller's logging arguments and entered any logging helper.
 
-This was especially relevant in `WarUtilityAspect`: the inherited helper itself warned that its muted call overhead could reach roughly 100,000 calls per game turn and mentioned diagnostic argument work such as `ScaledNum::getPercent`. Similar UWAI callers still entered report helpers, constructed diagnostic strings/names or performed reporting-only setup before the muted sink could discard the row.
+This was especially relevant in `WarUtilityAspect`: the inherited helper itself warned that its muted call overhead could reach roughly 100,000 calls per game turn and mentioned diagnostic argument work such as `ScaledNum::getPercent`.
+
+Similar UWAI callers still entered report helpers, constructed diagnostic strings/names or performed reporting-only setup before the muted sink could discard the row.
 
 The separate report architecture also made ordinary SAS BBAI analysis span `BBAI.log` plus many turn-scoped UWAI files.
 
@@ -25259,7 +25204,9 @@ The later finding does not invalidate the historical C++ File Audit Album result
 
 KI#505.3 is a cross-file caller-side performance/architecture finding outside that file-local audit scope, discovered later while continuing the KI#505.2 diagnostic pre-gating modernization. The album remains unchanged as the historical audit record.
 
-The repair/refactor removes the standalone UWAI report sink and its ordinary runtime `uwai<turn>.log`/Textile machinery. UWAI now uses five startup-cached XML-tunable BBAI categories for Agent, Military Analyst, Invasion Graph, Armament Forecast and War Utility diagnostics. Callers pre-gate logging-only arguments/setup before entering helpers, and enabled output uses the normal timestamped BBAI sink.
+The repair/refactor removes the standalone UWAI report sink and its ordinary runtime `uwai<turn>.log`/Textile machinery. UWAI now uses five startup-cached XML-tunable BBAI categories for Agent, Military Analyst, Invasion Graph, Armament Forecast and War Utility diagnostics.
+
+Callers pre-gate logging-only arguments/setup before entering helpers, and enabled output uses the normal timestamped BBAI sink.
 
 The old `REPORT_INTERVAL`, `UWAI_REPORT_THRESH` and `UWAI_REPORT_THRESH_HUMAN` controls are removed from AdvCiv-SAS with migration comments pointing to the new `SAS_BBAI_UWAI_*` levels.
 
@@ -25267,7 +25214,9 @@ The old report object is not retained as a hidden second logger. `UWAILogMuteSta
 
 Those alternatives calculate normally but can remain diagnostically silent so they are not mistaken for the selected scenario in the shared BBAI stream. The mute state carries no formatting, file, cache or gameplay data.
 
-Logging-only selected-scenario reruns are observation-only by construction. `WarEvaluator::evaluateForDiagnostics` returns no utility to gameplay and bypasses WarEvaluator cache reads/writes and focused structured WAR diagnostics; the ordinary gameplay overload remains separate for callers such as `UWAICache`. Source review found no synchronized RNG calls in the WarEvaluator/MilitaryAnalyst/InvasionGraph/ArmamentForecast/WarUtilityAspect evaluation chain.
+Logging-only selected-scenario reruns are observation-only by construction. `WarEvaluator::evaluateForDiagnostics` returns no utility to gameplay and bypasses WarEvaluator cache reads/writes and focused structured WAR diagnostics; the ordinary gameplay overload remains separate for callers such as `UWAICache`.
+
+Source review found no synchronized RNG calls in the WarEvaluator/MilitaryAnalyst/InvasionGraph/ArmamentForecast/WarUtilityAspect evaluation chain.
 
 A Debug-opt build compiled successfully. With `SAS_BBAI_LOG_ENABLE=1` and all five UWAI categories deliberately set to level 3, a full same-save autoplay reached the same turn-394 Space Race result.
 
@@ -25722,11 +25671,9 @@ This arithmetic defect was introduced by AdvCiv practical 114b and remains in Ba
 ### Side notes about this run (based on the SASGameRecord log)
 
 - The replay was unusually violent even for this deliberately aggressive roster: its almost six recorded player combat wins per turn are about 16% above the initial run's rate, eight of the 16 civilizations were eliminated, and Genghis Khan finished with the winning score and strongest military.
-  In less formal terms, SASGameRecord shows that it became a useful "den of tigers" stress sample as well as controlled KI#523 validation.
-  Its long timeline, heavy combat, eliminations, production history and explicit build/source/save metadata also make it a richer replacement for the maintained SASGameRecord example.
-- The raw replacement example deliberately retains the source commit hash captured when the game ran.
-  This documentation and example replacement were then added by amending that commit, so the recorded hash names its pre-amend object; the commit count/version remains correct because an amend replaces one commit with one commit.
-  Rewriting generated evidence to contain the later hash would falsely imply that the amended documentation existed in the DLL's runtime source context.
+  - In less formal terms, SASGameRecord shows that it became a useful "den of tigers" stress sample as well as controlled KI#523 validation. Its long timeline, heavy combat, eliminations, production history and explicit build/source/save metadata also make it a richer replacement for the maintained SASGameRecord example.
+- The raw replacement example deliberately retains the source commit hash captured when the game ran. This documentation and example replacement were then added by amending that commit, so the recorded hash names its pre-amend object; the commit count/version remains correct because an amend replaces one commit with one commit.
+  - Rewriting generated evidence to contain the later hash would falsely imply that the amended documentation existed in the DLL's runtime source context.
 
 Oh yes. Violent. Very violent. 😄
 
@@ -25734,14 +25681,9 @@ Not merely “Aggressive AI produced a few more wars.” This run eventually tur
 
 A few headline numbers from the record:
 
-16 civilizations started; only 8 survived.
-2,752 lethal civ-vs-civ battles, plus 709 nonlethal combat-limit engagements.
-Another 323 lethal battles involved Barbarians, mostly early-game.
-147 cities were conquered directly from one civilization by another.
-23 cities were deliberately razed by civilizations, destroying 235 population at the moment of razing. Barbarians razed another 3 tiny cities.
-The logger reconstructs 99 war-pair episodes. Of those, 54 were direct declarations; much of the remainder came from vassal alignment.
-There was at least one active war during roughly 375 of the 501 turns, and at peak there were 9 simultaneous war pairs.
-The game actually ended with 9 wars still active. 😄
+16 civilizations started; only 8 survived. 2,752 lethal civ-vs-civ battles, plus 709 nonlethal combat-limit engagements. Another 323 lethal battles involved Barbarians, mostly early-game. 147 cities were conquered directly from one civilization by another. 23 cities were deliberately razed by civilizations, destroying 235 population at the moment of razing. Barbarians razed another 3 tiny cities.
+
+The logger reconstructs 99 war-pair episodes. Of those, 54 were direct declarations; much of the remainder came from vassal alignment. There was at least one active war during roughly 375 of the 501 turns, and at peak there were 9 simultaneous war pairs. The game actually ended with 9 wars still active. 😄
 
 And then there's the nuclear part.
 

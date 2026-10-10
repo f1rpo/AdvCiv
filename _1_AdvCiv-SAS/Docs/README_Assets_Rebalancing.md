@@ -70,7 +70,9 @@ See below in the main table after changes as it includes the before values as we
 
 ### after most recent as of now rework
 
-After a few or quite many back and forth and reviewing rounds with chatgpt 5 which helped me tons but also me hehe and my own ideas but it helped lot too, here are (below) the adjusted starting techs for civs as of now in advciv-sas, written by chatgpt 5. This was mostly to remove/replace old now removed tech_agriculture and tech_the_wheel starters that are now no longer starting techs, as well as quite along with it rebalance it and rework it all.
+After a few or quite many back and forth and reviewing rounds with chatgpt 5 which helped me tons but also me hehe and my own ideas but it helped lot too, here are (below) the adjusted starting techs for civs as of now in advciv-sas, written by chatgpt 5.
+
+This was mostly to remove/replace old now removed tech_agriculture and tech_the_wheel starters that are now no longer starting techs, as well as quite along with it rebalance it and rework it all.
 
 I think the result is really good at least much better than it was check if accurate.
 
@@ -311,13 +313,17 @@ Features use 10%, 20%, and 40% tiers. Features are removed when a city is founde
 
 Generic units normally use the lower tiers. When a civ-specific unit and its generic counterpart share the same terrain/feature identity, the civ-specific unit should normally receive the stronger specialization rather than merely copying the generic value.
 
-Attack and defense do not need to mirror each other: offensive/mobile units can specialize on attack, defensive units on defense, and units with `bNoDefensiveBonus` should normally not regain positive explicit terrain/feature defense through these XML modifiers. A small deliberate exception can still be used when holding that specific terrain is part of the unit identity, such as the Camel Archer's minor Desert defense affinity.
+Attack and defense do not need to mirror each other: offensive/mobile units can specialize on attack, defensive units on defense, and units with `bNoDefensiveBonus` should normally not regain positive explicit terrain/feature defense through these XML modifiers.
+
+A small deliberate exception can still be used when holding that specific terrain is part of the unit identity, such as the Camel Archer's minor Desert defense affinity.
 
 Negative terrain/feature defense penalties can still be used on such units to represent a genuine disadvantage. City attack/defense modifiers are a separate, more controllable balance system and are not limited by these terrain/feature caps.
 
 Combat-capable civ-specific units are intentionally given at least one **terrain or feature** identity as part of AdvCiv-SAS tactical variety; noncombat civilians are the main exception. Plot-type effects such as Hills combat bonuses or Peak access can complement that identity, but are tracked separately and do not by themselves replace the intended terrain/feature distinction.
 
-To keep that identity readable rather than domineering, a civ-specific unit's added positive terrain specialization normally uses either one strong 20% terrain or at most two weak 10% terrains. Relevant affinities or weaknesses already belonging to the generic counterpart can still carry through, and a shared generic affinity can instead be strengthened by the civ-specific unit without counting as another unrelated specialization.
+To keep that identity readable rather than domineering, a civ-specific unit's added positive terrain specialization normally uses either one strong 20% terrain or at most two weak 10% terrains.
+
+Relevant affinities or weaknesses already belonging to the generic counterpart can still carry through, and a shared generic affinity can instead be strengthened by the civ-specific unit without counting as another unrelated specialization.
 
 Positive terrain defense is often smaller than attack for offensive units (for example, +20% attack / +10% defense). Feature bonuses are budgeted separately because they are narrower and, including Flood Plains in the current rules, disappear under cities; a defining feature specialization can therefore coexist with a small inherited terrain effect.
 
@@ -426,7 +432,9 @@ Only civ-specific units with a current terrain/feature/Hills effect are listed h
 | Holy Roman Houfnice | Tundra/Plains +10% A; Forest +20% A | Like Hwacha, the Cannon replacement gets a modest attack-only specialty while generic later artillery remains terrain-neutral. |
 | Portuguese Caçador | Grass +10% A/D; Forest +10% A/D | Uses two minor affinities rather than a strong terrain bonus: Grass supplies a weak general terrain identity while Forest gives a narrower light-infantry/skirmisher feature identity. Combat III, a chance first strike and slightly higher withdrawal remain the broader UU value. |
 
-`FEATURE_FLOOD_PLAINS` can also use this system and provides another strategically distinct feature specialization; the Sumerian Vulture currently uses it for its Mesopotamian river-valley identity. Flood Plains are fertile river floodplains rather than a generic swamp and currently have normal feature movement, so any additional future use should be justified as floodplain/river-valley fighting rather than as movement through marshland.
+`FEATURE_FLOOD_PLAINS` can also use this system and provides another strategically distinct feature specialization; the Sumerian Vulture currently uses it for its Mesopotamian river-valley identity.
+
+Flood Plains are fertile river floodplains rather than a generic swamp and currently have normal feature movement, so any additional future use should be justified as floodplain/river-valley fighting rather than as movement through marshland.
 
 ## Civ-specific units rework
 
@@ -436,7 +444,9 @@ General system context from the SAS docs: combat types are refined/split (archer
 
 Legend: `str` = combat strength; `h` = hammer cost; `mv` = movement; `tech` = required tech(s); `bonus` = required bonus; `free` = free promotion(s); `mods` = selected modifier changes; `vsClass`/`vsCombat` = modifiers against a unit class/combat type.
 
-Note: terrain/feature combat effects are a mostly new, currently optional cross-cutting AdvCiv-SAS system that also affects generic units. To keep this roster focused on each civ-specific unit's actual gameplay replacement and role, terrain/feature values and their shared reasoning are omitted here; see [Unit terrain and feature combat modifiers](/_1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md#unit-terrain-and-feature-combat-modifiers).
+Note: terrain/feature combat effects are a mostly new, currently optional cross-cutting AdvCiv-SAS system that also affects generic units.
+
+To keep this roster focused on each civ-specific unit's actual gameplay replacement and role, terrain/feature values and their shared reasoning are omitted here; see [Unit terrain and feature combat modifiers](/_1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md#unit-terrain-and-feature-combat-modifiers).
 
 Exact current values remain visible in XML and Sevopedia Unit.
 
@@ -908,7 +918,9 @@ as for lincoln, according to sources i read, lincoln was not christian, not stro
 - [https://www.thegospelcoalition.org/blogs/justin-taylor/was-abraham-lincoln-a-christian/](https://www.thegospelcoalition.org/blogs/justin-taylor/was-abraham-lincoln-a-christian/)
 - [https://www.reddit.com/r/todayilearned/comments/llardq/til_that_abraham_lincolns_religious_views_are/](https://www.reddit.com/r/todayilearned/comments/llardq/til_that_abraham_lincolns_religious_views_are/)
 
-i did not look at them in (long) detail, but i think in detail enough hopefully. that i can assert quite faithfully/strongly but anyways maybe that he was definitely leaning more agnostic than christian, reddit comments also lean in that direction, was not christian even though had a strong christian education. Lincoln seems more agnostic or not strongly favouring a religion, so for civ4 i changed it to none rather than christianity, he seems to be a free person rather which i like i mean.
+i did not look at them in (long) detail, but i think in detail enough hopefully. that i can assert quite faithfully/strongly but anyways maybe that he was definitely leaning more agnostic than christian, reddit comments also lean in that direction, was not christian even though had a strong christian education.
+
+Lincoln seems more agnostic or not strongly favouring a religion, so for civ4 i changed it to none rather than christianity, he seems to be a free person rather which i like i mean.
 
 (But also even if he were not such free man and really christian, he is free to do so to (else it would defeat the purpose xd i mean.)).
 

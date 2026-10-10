@@ -21,7 +21,9 @@ According to ChatGPT-5.5:
 - `build.yml` is the authoritative list of build checks
 - The `.github/` workflow folder is development infrastructure and should stay excluded from player release archives through `.gitattributes`.
 
-For example, this helped spot [map scripts that were previously unclassified in SAS map-script heaviness defines](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27198308080/job/80295526028); they are now listed explicitly for exhaustiveness. This also helped spot and fix duplicate parent XML keys [found by new GitHub workflow check](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27258698041/job/80498936912) (See if needed [KI#148](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-148)).
+For example, this helped spot [map scripts that were previously unclassified in SAS map-script heaviness defines](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27198308080/job/80295526028); they are now listed explicitly for exhaustiveness.
+
+This also helped spot and fix duplicate parent XML keys [found by new GitHub workflow check](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27258698041/job/80498936912) (See if needed [KI#148](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-148)).
 
 ## AIP predump refresh workflow
 
@@ -59,7 +61,9 @@ The [PR #31](https://github.com/wonderingabout/AdvCiv-SAS/pull/31) body keeps th
 
 The local config keeps legacy Civ4/Python 2.4 false-positive noise manageable in the user's IDE, while GitHub should show the broader repository picture. Both configurations exclude the verbatim `LLM_Helpers/context/mapscript_refs` archaeology corpus because downloaded reference sources are not AdvCiv-SAS runtime code and should not be lint-modified.
 
-The workflow first prints the full `ruff check . --isolated --select ALL` grouped report so all findings are visible, then fails on a practical critical gate (ignoring only those deemed non-critical and too noisy after empirical review) for syntax/parse errors and Pyflakes bug checks. The first GitHub run showed that only a few rules were clearly too noisy, so this is the first cautious narrowing step; narrow further only from actual failure output.
+The workflow first prints the full `ruff check . --isolated --select ALL` grouped report so all findings are visible, then fails on a practical critical gate (ignoring only those deemed non-critical and too noisy after empirical review) for syntax/parse errors and Pyflakes bug checks.
+
+The first GitHub run showed that only a few rules were clearly too noisy, so this is the first cautious narrowing step; narrow further only from actual failure output.
 
 For example, this helped spot shadowed duplicate Python callbacks in the base Civ4 `Oasis.py` map script (see [KI#164](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-164)) and a dormant undefined `Point` (instead of `PointLayout`) helper in `RectLayout.py` (see [KI#165](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-165)).
 
@@ -100,6 +104,7 @@ A [test run confirmed it fails](https://github.com/wonderingabout/AdvCiv-SAS/act
 - [`build/temp_files.py`](#buildtemp_filespy)
 - [`build/line_endings.py`](#buildline_endingspy)
 - [`build/source_change_provenance.py`](#buildsource_change_provenancepy)
+- [`build/markdown_prose_changes.py`](#buildmarkdown_prose_changespy)
 - [`LLM_Helpers/reflow_custom_comments.py --check`](#custom-comment-logical-reflow)
 - [`build/assets_dlls.py`](#buildassets_dllspy)
 - [`build/dll_commit_message.py`](#builddll_commit_messagepy)
@@ -200,7 +205,9 @@ It enforces four review rules introduced after repeated provenance mistakes:
 - edits to existing-file C/C++ `#include` or Python import dependencies have a nearby newly added custom rationale comment;
 - parameter-list changes on existing non-SAS C++/Python functions have a nearby newly added custom comment explaining the interface change. Clearly SAS-named helpers are intentionally optional.
 
-The check is deliberately conservative rather than a full C++ parser. New files are exempt from dependency/parameter-diff requirements, standard repository header/directive comments are exempt from the new-comment rule, and source-file deletion is allowed without a tombstone comment. Comment wording quality remains a human-review concern; CI verifies provenance/rationale presence, not whether the rationale is persuasive.
+The check is deliberately conservative rather than a full C++ parser. New files are exempt from dependency/parameter-diff requirements, standard repository header/directive comments are exempt from the new-comment rule, and source-file deletion is allowed without a tombstone comment.
+
+Comment wording quality remains a human-review concern; CI verifies provenance/rationale presence, not whether the rationale is persuasive.
 
 Run locally against the previous commit with:
 
@@ -214,9 +221,22 @@ Or provide the same explicit base used by CI:
 python .github/workflows/build/source_change_provenance.py --base-ref <base-sha>
 ```
 
+### `build/markdown_prose_changes.py`
+
+Checks added/edited Markdown prose blocks against the push/PR base (local default: `HEAD^`). Untouched historical blocks are exempt.
+
+- Flags blocks of at least 400 characters only when the existing prose helper finds a safe sentence boundary with at least 100 characters on each side; single long sentences and short attached follow-ups remain valid.
+- Soft-wrapped lines still form one rendered paragraph. Split distinct thoughts into a few blank-line paragraphs or child bullets, keeping short related sentences together.
+- Excludes fenced/indented code, tables, blockquotes, HTML comments, copied/generated context and numbered archived changelogs.
+- Reports affected paths and line numbers without rewriting files. Run locally with `python .github/workflows/build/markdown_prose_changes.py --base-ref HEAD`.
+
+The [existing helper](/LLM_Helpers/README.md#reflow_markdown_prosepy) previews sentence boundaries; its source-only output still needs review for visible structure. Passing CI does not establish that the chosen paragraphs or bullets are coherent.
+
 ### Custom-comment logical reflow
 
-The build workflow runs `python LLM_Helpers/reflow_custom_comments.py --check` against maintained C++/Python/XML source. It fails when an eligible marked custom prose comment needs logical sentence/clause reflow, prints the affected paths and leaves all files untouched. It does not impose a character-width limit or reflow inherited comments; structured, code-like and ambiguous blocks remain explicit skips for manual review.
+The build workflow runs `python LLM_Helpers/reflow_custom_comments.py --check` against maintained C++/Python/XML source. It fails when an eligible marked custom prose comment needs logical sentence/clause reflow, prints the affected paths and leaves all files untouched.
+
+It does not impose a character-width limit or reflow inherited comments; structured, code-like and ambiguous blocks remain explicit skips for manual review.
 
 Preview with `python LLM_Helpers/reflow_custom_comments.py --diff`, then use `--apply` on selected files and review the result. See [the helper documentation](/LLM_Helpers/README.md#custom-comment-logical-reflow) for scope and examples.
 
@@ -297,11 +317,15 @@ IDs remain stable and are not renumbered when stale entries are removed.
 
 ### `build/sas_text_references.py`
 
-Verifies every `TXT_KEY` defined across all SAS-owned GameText files (`Assets/XML/Text/AdvCiv-SAS*.xml`) is referenced by active mod XML, BUG configuration, Python, map-script Python, or C++. It also verifies that buildings, units, civilizations, and leaders with SAS-owned descriptions reference Civilopedia keys defined in the mod's GameText files, unless the pedia text is explicitly confirmed as inherited from the base game or expansion.
+Verifies every `TXT_KEY` defined across all SAS-owned GameText files (`Assets/XML/Text/AdvCiv-SAS*.xml`) is referenced by active mod XML, BUG configuration, Python, map-script Python, or C++.
+
+It also verifies that buildings, units, civilizations, and leaders with SAS-owned descriptions reference Civilopedia keys defined in the mod's GameText files, unless the pedia text is explicitly confirmed as inherited from the base game or expansion.
 
 Other explicit exceptions cover confirmed inherited base references, empirically confirmed EXE runtime references with no static reference, and BUG option-key families constructed dynamically at runtime. Every passing run prints the exact keys in each exception group so accepted uncertainty stays visible in CI.
 
-The two sea-level recommendation labels are runtime exceptions because changing the High label changed its Custom Game list text in-game, and Low uses the matching EXE convention. Inherited AdvCiv/BUG/BULL text remains outside the blocking unused-key check because a full static scan produces hundreds of uncertain legacy and dynamic candidates; the broader manual [`audit_unused_text_keys.py`](/LLM_Helpers/README.md#audit_unused_text_keyspy) remains available for optional review audits.
+The two sea-level recommendation labels are runtime exceptions because changing the High label changed its Custom Game list text in-game, and Low uses the matching EXE convention.
+
+Inherited AdvCiv/BUG/BULL text remains outside the blocking unused-key check because a full static scan produces hundreds of uncertain legacy and dynamic candidates; the broader manual [`audit_unused_text_keys.py`](/LLM_Helpers/README.md#audit_unused_text_keyspy) remains available for optional review audits.
 
 ### `build/global_defines_nonempty.py`
 
@@ -311,7 +335,9 @@ We check this because we suspect they may possibly cause unclear errors; for int
 
 ### `build/version_metadata.py`
 
-Verifies the tracked `Assets/SASModVersion.txt` archive marker retains its Git `export-subst` version-anchor describe, commit, and commit-date placeholders, and that `.gitattributes` still marks the file `export-subst`. The version placeholder uses one immutable `SAS_VERSION_ANCHOR_<exact-commit-count>` tag: Git's describe distance is the count of commits in `anchor..target`, so AdvCiv-SAS can reconstruct the same practical commit-count version in ordinary GitHub/git-archive downloads without a per-commit VERSION file.
+Verifies the tracked `Assets/SASModVersion.txt` archive marker retains its Git `export-subst` version-anchor describe, commit, and commit-date placeholders, and that `.gitattributes` still marks the file `export-subst`.
+
+The version placeholder uses one immutable `SAS_VERSION_ANCHOR_<exact-commit-count>` tag: Git's describe distance is the count of commits in `anchor..target`, so AdvCiv-SAS can reconstruct the same practical commit-count version in ordinary GitHub/git-archive downloads without a per-commit VERSION file.
 
 The anchor is one-time repository infrastructure and must not be moved or renamed after creation.
 
@@ -383,7 +409,9 @@ Verifies AdvCiv-SAS-owned GameText XML files (`Assets/XML/Text/AdvCiv-SAS*.xml`)
 
 ### `build/xml_text_duplicate_tags.py`
 
-Verifies each GameText `TXT_KEY`-style `<TEXT>/<Tag>` entry under `Assets/XML/Text` is defined only once, with source line numbers for duplicate definitions. Inspired by the old AdvCiv-SAS blind [scan_xml_duplicates-3.3.py](/LLM_Helpers/scan_xml_duplicates-3.3.py) (see [Legacy XML duplicate discovery scanner (``scan_xml_duplicates-3.3.py``)](/LLM_Helpers/README.md#legacy-xml-duplicate-discovery-scanner-scan_xml_duplicates-33py)).
+Verifies each GameText `TXT_KEY`-style `<TEXT>/<Tag>` entry under `Assets/XML/Text` is defined only once, with source line numbers for duplicate definitions.
+
+Inspired by the old AdvCiv-SAS blind [scan_xml_duplicates-3.3.py](/LLM_Helpers/scan_xml_duplicates-3.3.py) (see [Legacy XML duplicate discovery scanner (``scan_xml_duplicates-3.3.py``)](/LLM_Helpers/README.md#legacy-xml-duplicate-discovery-scanner-scan_xml_duplicates-33py)).
 
 This helped [spot](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27332010214/job/80746523894) and fix XML text duplicate errors. See [KI#149](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-149).
 
@@ -393,13 +421,17 @@ Verifies parent-style XML objects are not defined twice with the same key, such 
 
 ### `build/xml_child_duplicates.py`
 
-Checks suspicious duplicate child/list XML entries inside the same parent object, failing on high-confidence duplicates such as duplicate flavors, leader memory/contact keys, civilization city names, and unit/promotion lists; reports lower-confidence duplicates such as exact duplicate event trigger `Text + Era` entries without failing, prints source line numbers, and hides known allowed/noisy duplicates such as weighted goody huts and reused world-picker art paths unless run with `--show-ignored`. This helped [spot](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27336768909/job/80762873956) and fix XML text duplicate errors.
+Checks suspicious duplicate child/list XML entries inside the same parent object, failing on high-confidence duplicates such as duplicate flavors, leader memory/contact keys, civilization city names, and unit/promotion lists; reports lower-confidence duplicates such as exact duplicate event trigger `Text + Era` entries without failing, prints source line numbers, and hides known allowed/noisy duplicates such as weighted goody huts and reused world-picker art paths unless run with `--show-ignored`.
+
+This helped [spot](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27336768909/job/80762873956) and fix XML text duplicate errors.
 
 See [KI#150](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-150).
 
 ### `build/xml_redundant_defaults.py`
 
-Verifies a small set of XML representations that are known to be semantically redundant in Civ4/AdvCiv-SAS: explicit zero-valued entries inside `Flavors`, where an omitted flavor already evaluates to 0, and non-empty `TechTypes` lists containing only `NONE`/`NO_TECH`, where an empty `TechTypes` list has the same effective meaning. This was added after the flavor audit found both patterns in inherited/stale XML (see [KI#22.7](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-22.7)).
+Verifies a small set of XML representations that are known to be semantically redundant in Civ4/AdvCiv-SAS: explicit zero-valued entries inside `Flavors`, where an omitted flavor already evaluates to 0, and non-empty `TechTypes` lists containing only `NONE`/`NO_TECH`, where an empty `TechTypes` list has the same effective meaning.
+
+This was added after the flavor audit found both patterns in inherited/stale XML (see [KI#22.7](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-22.7)).
 
 The check is deliberately conservative rather than a generic "zero is bad" rule. Many scalar zero fields are mandatory or meaningful defaults, and some padded list formats may depend on loader/schema behavior.
 
@@ -417,7 +449,9 @@ Great Person-founded shrines/corporation headquarters (`iCost=-1`) are excluded,
 
 ### `build/wonder_culture_gpp_columns.py`
 
-Verifies normally constructible world wonders follow an era-relative flat-culture progression: 4 in the first two Ancient-era columns, 6 through the rest of the Ancient and Classical eras, and 8 through the Medieval and Renaissance eras. From the start of the Industrial era, culture-advisor wonders without a culture percentage modifier have 10 flat culture and other wonders have none; a wonder with a local or global culture modifier has no flat culture in every era.
+Verifies normally constructible world wonders follow an era-relative flat-culture progression: 4 in the first two Ancient-era columns, 6 through the rest of the Ancient and Classical eras, and 8 through the Medieval and Renaissance eras.
+
+From the start of the Industrial era, culture-advisor wonders without a culture percentage modifier have 10 flat culture and other wonders have none; a wonder with a local or global culture modifier has no flat culture in every era.
 
 World-wonder Great Person point rates (`iGreatPeopleRateChange`) must match within each column and never decrease in later populated columns; GP-producing national wonders and ordinary buildings cannot exceed the latest world-wonder rate available by their direct or shared special-building prerequisite tech column. Great Person-founded shrines/corporation headquarters (`iCost=-1`) are excluded.
 
@@ -429,7 +463,9 @@ Era starts and tech-graph guarantees are derived from current XML, so moving or 
 
 ### `build/civ_specific_assets.py`
 
-Verifies that civilization and leader references resolve to existing leader, art, trait, civic, and religion entries, and that each civilization's building and unit replacement class matches the class declared by the referenced asset. It also verifies civ-specific building and unit assets do not require a later starting tech-tree column (`iGridX`) or an earlier obsolete tech-tree column than the generic asset they replace; same-column parallel tech variation is allowed for flavor.
+Verifies that civilization and leader references resolve to existing leader, art, trait, civic, and religion entries, and that each civilization's building and unit replacement class matches the class declared by the referenced asset.
+
+It also verifies civ-specific building and unit assets do not require a later starting tech-tree column (`iGridX`) or an earlier obsolete tech-tree column than the generic asset they replace; same-column parallel tech variation is allowed for flavor.
 
 For example, this helped [spot](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27461191223/job/81175197986) and fix `BUILDING_AZTEC_SACRIFICIAL_ALTAR: building class BUILDINGCLASS_MONUMENT replacement uses later tech column than default BUILDING_MONUMENT: TECH_CALENDAR (GridX=2, GridY=11) after TECH_MYSTICISM (GridX=1, GridY=11)`, but `BUILDING_JAPAN_DOUJOU` (JAIL) requiring `TECH_MEDITATION` parallel (`iGridY=9`) to `TECH_CONSTITUTION` required by the generic `BUILDING_JAIL` is fine so it does not need a fix.
 
@@ -481,7 +517,9 @@ The only explicit nonzero exceptions are `SAS_BBAI_SCORE_LOG_INTERVAL_TURNS_UNSC
 
 ### `build/sas_game_record_log.py`
 
-Verifies the independent `SASGameRecord` report is disabled by default in `Assets/XML/GlobalDefines_advciv_sas.xml`. `SAS_GAME_RECORD_LOG_LEVEL` must stay `0`; the snapshot interval, timestamped filenames, default-on anonymous performance metrics, and default level-2 display/runtime context are also checked because they configure how enabled records behave but do not enable record logging themselves.
+Verifies the independent `SASGameRecord` report is disabled by default in `Assets/XML/GlobalDefines_advciv_sas.xml`.
+
+`SAS_GAME_RECORD_LOG_LEVEL` must stay `0`; the snapshot interval, timestamped filenames, default-on anonymous performance metrics, and default level-2 display/runtime context are also checked because they configure how enabled records behave but do not enable record logging themselves.
 
 It also checks that the public `SAS_GAME_RECORD_REVISION` matches the newest contiguous entry in the maintained revision history, that the history's current emitted `recordRevision` example is not stale, and that the emitted `GAME_RECORD_SOURCE_CONTEXT recordRevision` field remains wired to that constant.
 
@@ -489,13 +527,17 @@ The same check pins the cheap `GAME_RECORD_TURN_COMPLETED` bridge to the authori
 
 Every revision heading must follow the documented format; the newest entry must also contain its Date, Git commit field (latest-entry `pending` is allowed), and a completed Change description. Regression tests reject a source-only revision bump, a missing latest entry, a stale example, malformed extra headings and missing metadata.
 
-The same check keeps readable AI-strategy diagnostics synchronized with `AIStrategies.h`: the enum must remain the contiguous power-of-two bitfield used by the recorder's shift scans, every `AIStrategy` value must map to its identical canonical raw token in `getSASAIStrategyType`, and the complete CORE/snapshot/transition scans must still reach the enum's current final strategy. This makes a future `AI_STRATEGY_*` addition or incompatible bit-layout change fail CI instead of silently disappearing from `GAME_RECORD_AI_STRATEGIES` or transition history.
+The same check keeps readable AI-strategy diagnostics synchronized with `AIStrategies.h`: the enum must remain the contiguous power-of-two bitfield used by the recorder's shift scans, every `AIStrategy` value must map to its identical canonical raw token in `getSASAIStrategyType`, and the complete CORE/snapshot/transition scans must still reach the enum's current final strategy.
+
+This makes a future `AI_STRATEGY_*` addition or incompatible bit-layout change fail CI instead of silently disappearing from `GAME_RECORD_AI_STRATEGIES` or transition history.
 
 The check also guards exact AreaAI and AI target-city provenance. AreaAI raw-name coverage and its normal/UWAI writer bridges must remain synchronized; target-city checks require every current setter writer plus the city-removal effective-clear path to remain covered by exact transitions and the periodic `GAME_RECORD_AI_TARGET_CITIES` checkpoint.
 
 A new target writer therefore fails CI instead of silently bypassing target history.
 
-The check also keeps level-3 `GAME_RECORD_DIPLO_ATTITUDE_BREAKDOWN` synchronized with `CvPlayerAI::AI_updateAttitude`: the recorder component labels/order are validated against the current additive attitude getter sequence, including aggregate memories and the final partial-sum-dependent war modifier. If attitude arithmetic changes later, CI requires the diagnostic breakdown to be reviewed in the same change instead of silently becoming incomplete.
+The check also keeps level-3 `GAME_RECORD_DIPLO_ATTITUDE_BREAKDOWN` synchronized with `CvPlayerAI::AI_updateAttitude`: the recorder component labels/order are validated against the current additive attitude getter sequence, including aggregate memories and the final partial-sum-dependent war modifier.
+
+If attitude arithmetic changes later, CI requires the diagnostic breakdown to be reviewed in the same change instead of silently becoming incomplete.
 
 ### `build/fonts.py`
 
@@ -515,7 +557,9 @@ Validates effective AIP predump values outside Civ4. It compares committed entri
 
 This script is intentionally separate from [`build/aip.py`](#buildaippy). `aip.py` remains the lightweight release-safety check, while this deeper value mirror checks the committed predump against effective XML+DLL-style values.
 
-It currently checks full cached tuples for direct scalar getter keys, scalar attitude-threshold getters, flavors, no-war attitude probabilities, contact aggregate values, and displayed positive/negative memory aggregate values. Contact and memory aggregate formulas are shared with the in-game AIP helper code; unit AI modifiers and improvement modifiers are not checked because they are not currently displayed/predumped.
+It currently checks full cached tuples for direct scalar getter keys, scalar attitude-threshold getters, flavors, no-war attitude probabilities, contact aggregate values, and displayed positive/negative memory aggregate values.
+
+Contact and memory aggregate formulas are shared with the in-game AIP helper code; unit AI modifiers and improvement modifiers are not checked because they are not currently displayed/predumped.
 
 The script fails by default when mismatches or missing/unparsed entries are found; use `--allow-mismatch` only for exploratory/debug runs such as `--no-uwai`.
 
@@ -607,7 +651,9 @@ Refresh declared menus with `python .github/workflows/build/markdown_structure.p
 
 ### `build/art_define_structure.py`
 
-Checks all mod-local `CIV4ArtDefines_*.xml` files for the `Civ4ArtDefines` root, exactly one recognized ArtInfos collection, the required ArtInfo wrapper around each entry, one nonempty Type per entry, and no stray collection/root text. Missing the Tipi's BuildingArtInfo wrapper caused a startup crash even though its loose child tags were valid XML; this check covers that gap alongside `xml_element_only_content.py`.
+Checks all mod-local `CIV4ArtDefines_*.xml` files for the `Civ4ArtDefines` root, exactly one recognized ArtInfos collection, the required ArtInfo wrapper around each entry, one nonempty Type per entry, and no stray collection/root text.
+
+Missing the Tipi's BuildingArtInfo wrapper caused a startup crash even though its loose child tags were valid XML; this check covers that gap alongside `xml_element_only_content.py`.
 
 ### `build/asset_primary_tech.py`
 

@@ -371,7 +371,8 @@ Conservative readability formatter for C++ logging calls.
 
 - The default wrapping mode targets active diagnostic log-like calls across the project (`logBBAI(...)`, `logSASGameRecord...(...)`, `SAS_log...(...)`, `myLog...(...)`-style helpers, etc.); bare/member `.log(...)` calls are wrapped only in the familiar string-first diagnostic form, and commented-out code is ignored.
 - Keeps a leading diagnostic format string byte-for-byte intact when present and wraps only at top-level commas between C++ arguments; typed recorder/helper calls without a format string can also be split conservatively at those argument boundaries.
-- `--collapse-short` additionally collapses simple multiline log-like calls that fit within `--collapse-width` (default 180). It recognizes logging families rather than only `logBBAI`: e.g. `logSASGameRecord...(...)`, `SAS_log...(...)`, `myLog...(...)`-style helpers, and string-first ordinary member `.log(...)` calls. This is opt-in so existing intentional multiline layout does not churn by default.
+- `--collapse-short` additionally collapses simple multiline log-like calls that fit within `--collapse-width` (default 180).
+  - It recognizes logging families rather than only `logBBAI`: e.g. `logSASGameRecord...(...)`, `SAS_log...(...)`, `myLog...(...)`-style helpers, and string-first ordinary member `.log(...)` calls. This is opt-in so existing intentional multiline layout does not churn by default.
 - The log-like recognizer is deliberately prefix/role based rather than "contains `Log`": unrelated gameplay/event callbacks such as `combatLogHit(...)` are not treated as diagnostic emitters merely because their name contains that substring.
 - Does not reflow or merge existing prose comments; comment layout remains author-maintained, and calls containing comments are skipped for manual review.
 - Skips preprocessor directives and continued macro bodies entirely. Physical `\` line-splicing is semantic before C++ tokenization, so macro logging calls require manual formatting.
@@ -1101,8 +1102,10 @@ Conservative source-rewrite helper for active Markdown documentation.
 - That is intentionally only the mechanical first step: for rendered readability, use a blank line for a real new paragraph/thought chunk and a real nested sub-bullet (normally two-space indentation in this repository) for a distinct child point rather than plain continuation indentation.
 - Do not use trailing `\` hard breaks as a substitute for paragraph structure: if prose is a separate thought, use a blank-line paragraph; if it is still one paragraph, leave it as such.
 - Skips fenced/indented code, headings, blockquotes, tables, HTML-like lines, raw logs/data rows, hard-break lines, URLs, link destinations, inline code spans, decimal/version punctuation, and common abbreviations where automatic sentence detection would be risky.
-- Default threshold is 320 physical characters. The threshold only decides which long lines are candidates; split positions are still semantic sentence boundaries rather than character-count boundaries.
-- `--check` is available for manual/reporting use, but this helper is intentionally **not** a strict CI style gate: valid long lines exist and semantic sub-bullet decisions require context.
+- Default threshold is 400 physical characters. The threshold only decides which long lines are candidates; split positions are still semantic sentence boundaries rather than character-count boundaries.
+- `--check` checks source-line reflow locally. CI uses `.github/workflows/build/markdown_prose_changes.py` to flag added/edited prose blocks of at least 400 characters with safe sentence boundaries; untouched historical blocks and single long sentences remain valid. A split needs at least 100 characters on each side so short headings/follow-ups stay attached.
+  - Soft newlines do not satisfy the block check: use a few coherent blank-line paragraphs or child bullets, keeping related short sentences together.
+  - The earlier broad cleanup over-split ordinary prose. Review candidate boundaries rather than automatically making every sentence a paragraph.
 - Semantic visible restructuring remains a human/LLM review task. In particular, convert evidence/validation/update/part-2 material into nested sub-bullets only when it genuinely belongs to the same change; distinct changes remain peer bullets.
 - Preserves the input line-ending style and is idempotent after a successful pass.
 - Always review the diff before committing.
@@ -1119,11 +1122,15 @@ python LLM_Helpers\reflow_markdown_prose.py _1_AdvCiv-SAS\Docs\README_Main_Chang
 
 `scan_xml_duplicates-3.3.py` is an older broad XML duplicate scanner kept here for reference and discovery work, on [AdvCiv-SAS@python-scripts branch's GitHub repository](https://github.com/wonderingabout/AdvCiv-SAS/blob/python-scripts/scan_xml_duplicates-3.3.py).
 
-This script scans `Assets/XML` recursively and reports repeated sibling XML entries based on a broad heuristic: if sibling tags repeat, it compares either their first child field/value or their direct text value. Because this is intentionally broad, it can find useful suspicious patterns, but it can also report valid Civ4 XML structures where repetition is intentional, weighted, or structurally normal.
+This script scans `Assets/XML` recursively and reports repeated sibling XML entries based on a broad heuristic: if sibling tags repeat, it compares either their first child field/value or their direct text value.
+
+Because this is intentionally broad, it can find useful suspicious patterns, but it can also report valid Civ4 XML structures where repetition is intentional, weighted, or structurally normal.
 
 It should not be treated as a release gate or as proof that every reported duplicate is wrong. Instead, it is useful as an exploratory audit tool: run it when looking for possible XML cleanup targets, review the output manually, and then move high-confidence findings into the curated GitHub workflow checks.
 
-This legacy scanner notably helped inspire and calibrate the newer `.github/workflows/build` XML audits, including the parent duplicate-key checker, child/list duplicate checker, and duplicate text-tag checker. The newer workflow scripts are stricter and more conservative: they check reviewed XML patterns with clearer semantics, print source line numbers, and avoid known noisy cases such as weighted goody hut entries or reused world-picker UI art paths.
+This legacy scanner notably helped inspire and calibrate the newer `.github/workflows/build` XML audits, including the parent duplicate-key checker, child/list duplicate checker, and duplicate text-tag checker.
+
+The newer workflow scripts are stricter and more conservative: they check reviewed XML patterns with clearer semantics, print source line numbers, and avoid known noisy cases such as weighted goody hut entries or reused world-picker UI art paths.
 
 In short: this script is kept as a historical and practical discovery helper, while the GitHub workflow checks are the maintained release-safety layer.
 

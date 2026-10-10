@@ -142,7 +142,9 @@ Note: while `WIDGET_PYTHON` is excellent for custom redirects, it does not provi
 
 See [KI#113](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-113).
 
-We then also used this approach to replace the old clunky base advciv's `CONCEPT_TRAIT` with now instead the `WIDGET_PYTHON` (with an id as of now of `6799`), which preserves linking and allowed us to delete old XML clutter. See also [example 1.5: traits category (Traits Charts and other changes)](/_1_AdvCiv-SAS/Docs/README_Sevopedia_Reworks.md#example-15-traits-category-traits-charts-and-other-changes).
+We then also used this approach to replace the old clunky base advciv's `CONCEPT_TRAIT` with now instead the `WIDGET_PYTHON` (with an id as of now of `6799`), which preserves linking and allowed us to delete old XML clutter.
+
+See also [example 1.5: traits category (Traits Charts and other changes)](/_1_AdvCiv-SAS/Docs/README_Sevopedia_Reworks.md#example-15-traits-category-traits-charts-and-other-changes).
 
 #### example 0.40 builds category (e.g. "Remove Jungle", "Build Road", "Create a Farm")
 
@@ -382,7 +384,9 @@ Then added 2 sortable Traits Charts that show all trait pairs and their represen
 
 Among other enhancements, the Leaders'panel's header has been enhanced with similar info, as of now for example "Leader 12/53 (22%)", and we now display new txt keys that are fairly mod-agnostic (added with the help of ChatGPT 5.2 thanks a lot). Implementation with the help of Claude code Opus 4.5 and GPT-5.2-Codex thanks a lot.
 
-Also added caching at category click for the entire session similarly to how was done in Sevopedia Leader (See [AI Personality panel caching](/_1_AdvCiv-SAS/Docs/README_AI_Personality_Panel.md#notes-about-performance-optimization-of-the-ai-personality-panel-caching).). The data doesn't change during the entire session, and in particular for the combinations panel is as of now always the same, may as well cache it.
+Also added caching at category click for the entire session similarly to how was done in Sevopedia Leader (See [AI Personality panel caching](/_1_AdvCiv-SAS/Docs/README_AI_Personality_Panel.md#notes-about-performance-optimization-of-the-ai-personality-panel-caching).).
+
+The data doesn't change during the entire session, and in particular for the combinations panel is as of now always the same, may as well cache it.
 
 <img src="../Images/sevopedia/0.624_sevopedia_traits (1).JPG" alt="0.624_sevopedia_traits (1).JPG" width="250"></img>
 <img src="../Images/sevopedia/0.624_sevopedia_traits (2).JPG" alt="0.624_sevopedia_traits (2).JPG" width="250"></img>
@@ -398,7 +402,9 @@ And after that, added a new Obsoletes panel with the help of Claude code Sonnet 
 
 See [README.md#redx-new-art-button](/_1_AdvCiv-SAS/Docs/README_Authors.md#redx-new-art-button).
 
-Also, with the help of Claude Opus 4.5 thanks a lot, i reworked and beautified, as well as reordered the panels for a much cleaner and prettier read! Then, merged the old Units Enabled and Buildings Enabled into a new Enables Panel enriched with more information (Civics, Promotions, Bonuses, various effects such as "Centers World Map", "Can Adjust Commerce Rate", etc.), and then also added with the additional help of GPT-5.2-Codex thanks a lot too a new First to Discover panel (Founds Religion, Receives a Great Person, Receives a Free Tech).
+Also, with the help of Claude Opus 4.5 thanks a lot, i reworked and beautified, as well as reordered the panels for a much cleaner and prettier read!
+
+Then, merged the old Units Enabled and Buildings Enabled into a new Enables Panel enriched with more information (Civics, Promotions, Bonuses, various effects such as "Centers World Map", "Can Adjust Commerce Rate", etc.), and then also added with the additional help of GPT-5.2-Codex thanks a lot too a new First to Discover panel (Founds Religion, Receives a Great Person, Receives a Free Tech).
 
 Since then, redesigned the UI to free some vertical and horizontal room. Then added new sortable Starting Techs Charts, and clickable buttons, mirroring the Traits' (showing Civilization pairs and combinations for each starting tech or starting tech combination) Charts approach.
 
@@ -443,7 +449,9 @@ The core changes is on the panel header naming, to help clarify the maning of th
 
 More recently, i also added the improvement's build time (`iTime` in XML (note: related to the build's iTime, not the FeatureStruct's `iTime` which is about time to remove the feature as part building this build if i may say and, which is something different not displayed here but in Sevopedia feature, see there or the [sevopedia feature's section in this readme](/_1_AdvCiv-SAS/Docs/README_Sevopedia_Reworks.md#example-3-features-category) for details, thanks,)).
 
-Also refactored and beautified it (for example moved base yields on top in the improvement_pane, reordered and resized panels, etc if any other or yes or not or etc), as well as added new TerrainMakesValids, FeatureMakesValids, and History info/panels (txt_key s imported from m-e mod (see [/README.md#credits](/README.md#credits) for details). As for placeMostYields in particular, beautified it especially more by now using buttons (images) instead of text such as ("(with Irrigation)" or "(with Guids)"), based on m-e mod's placeImprovements code, with the help of claude ai and gemini ai thanks).
+Also refactored and beautified it (for example moved base yields on top in the improvement_pane, reordered and resized panels, etc if any other or yes or not or etc), as well as added new TerrainMakesValids, FeatureMakesValids, and History info/panels (txt_key s imported from m-e mod (see [/README.md#credits](/README.md#credits) for details).
+
+As for placeMostYields in particular, beautified it especially more by now using buttons (images) instead of text such as ("(with Irrigation)" or "(with Guids)"), based on m-e mod's placeImprovements code, with the help of claude ai and gemini ai thanks).
 
 Note: you can hover and click on the buttons in placeMostYields, as shown in one of the screenshots below when hovering on the steam power tech button, we can see which button/image it is, so no need to memorize them all, it also tells unknown effects of the tech or civic or other type of asset etc, as well as redirects on click.
 

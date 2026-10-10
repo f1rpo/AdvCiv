@@ -22,7 +22,9 @@ Significant changes have been made to upgrade paths, unit costs, stats and such,
 
 Unlikely to be implemented as such because actually too tedious not only in terms of implementing it i mean but also mostly in terms of gameplay, it is most likely better as in in terms of gameplay and AI efficiency and reliability and balance (since AI upgrade units cheaper even though it can be changed), to have a clean and simple straighforward military tree.
 
-Still i had made this one before, and have also found some info like which buttons (image of the unit ingame (not its animation but the sort of icon even though icons in civ4 are something different i mean (the smaller textual images))), so here is the military tree that was originally planned in AdvCiv-SAS. While making it, i had tweaked the existing one of base AdvCiv/civ4 BTS for historical accuracy and gameplay diversity.
+Still i had made this one before, and have also found some info like which buttons (image of the unit ingame (not its animation but the sort of icon even though icons in civ4 are something different i mean (the smaller textual images))), so here is the military tree that was originally planned in AdvCiv-SAS.
+
+While making it, i had tweaked the existing one of base AdvCiv/civ4 BTS for historical accuracy and gameplay diversity.
 
 ![0.43 military tree_modified.png](https://drive.google.com/thumbnail?id=1jewdORGIHYA6--M8_y_1DpAt-agf9n0l&sz=w2000)
 
