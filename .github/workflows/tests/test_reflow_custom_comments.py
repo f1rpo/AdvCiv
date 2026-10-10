@@ -1,8 +1,13 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
-# <!-- custom: The shared comment-reflow helper touches C++, Python and XML source. These regression cases protect exact technical wording, existing credits/KI references, structured comments and source content while checking logical reflow and repeat-run stability. (GPT-6.1-Sol) -->
+# <!-- custom: The shared comment-reflow helper touches C++, Python and XML source.
+# These regression cases protect exact technical wording, existing credits/KI references, structured comments and source content while checking logical reflow and repeat-run stability. (GPT-6.1-Sol) -->
 import importlib.util
 from pathlib import Path
+# <!-- custom: Add subprocess, sys and tempfile to verify the real check command reports failing paths and exit codes without rewriting the source fixture. (GPT-6.1-Sol) -->
+import subprocess
+import sys
+import tempfile
 import unittest
 
 
@@ -14,6 +19,27 @@ spec.loader.exec_module(module)
 
 
 class ReflowCustomCommentsTests(unittest.TestCase):
+    # <!-- custom: CI now runs check mode automatically; prove eligible comments fail without edits, repaired comments pass and intentional structured skips remain non-blocking. (GPT-6.1-Sol) -->
+    def test_cli_check_is_read_only_and_reports_paths(self):
+        with tempfile.TemporaryDirectory(prefix="sas-reflow-check-") as folder:
+            source = Path(folder) / "sample.py"
+            original = b'# <!-- custom: First sentence. Second sentence. (GPT-6.1-Sol) -->\nvalue = 1\n'
+            source.write_bytes(original)
+            result = subprocess.run([sys.executable, str(HELPER), str(source), "--check"], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            self.assertIn("needs logical reflow:", result.stdout)
+            self.assertIn(str(source), result.stdout)
+            self.assertEqual(source.read_bytes(), original)
+            subprocess.run([sys.executable, str(HELPER), str(source), "--apply"], capture_output=True, check=True)
+            result = subprocess.run([sys.executable, str(HELPER), str(source), "--check"], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertNotIn("needs logical reflow:", result.stdout)
+            structured = b'# <!-- custom: List:\n# - first item\n# - second item -->\n'
+            source.write_bytes(structured)
+            result = subprocess.run([sys.executable, str(HELPER), str(source), "--check"], capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertEqual(source.read_bytes(), structured)
+
     def transform(self, text, suffix=".cpp"):
         return module.transform_text(text, suffix)[0]
 

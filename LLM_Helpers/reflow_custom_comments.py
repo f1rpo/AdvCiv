@@ -468,6 +468,10 @@ def main():
 
         totals["files_changed"] += 1
         rel = display_path(path, root)
+        # <!-- custom: CI check mode previously reported only totals, leaving no source path to repair.
+        # Name each eligible file while keeping check mode read-only. (GPT-6.1-Sol) -->
+        if args.check:
+            print("needs logical reflow: %s" % rel)
         if args.diff:
             sys.stdout.write("".join(difflib.unified_diff(
                 normalized.splitlines(True), new.splitlines(True),

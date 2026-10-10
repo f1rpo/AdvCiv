@@ -99,6 +99,8 @@ A [test run confirmed it fails](https://github.com/wonderingabout/AdvCiv-SAS/act
 
 - [`build/temp_files.py`](#buildtemp_filespy)
 - [`build/line_endings.py`](#buildline_endingspy)
+- [`build/source_change_provenance.py`](#buildsource_change_provenancepy)
+- [`LLM_Helpers/reflow_custom_comments.py --check`](#custom-comment-logical-reflow)
 - [`build/assets_dlls.py`](#buildassets_dllspy)
 - [`build/dll_commit_message.py`](#builddll_commit_messagepy)
 - [`build/art_button_paths.py`](#buildart_button_pathspy)
@@ -186,6 +188,37 @@ Assets/Python/Contrib/Sevopedia/SevoPediaLeaderAIPValues.py
 But it passed on [GitHub Actions test](https://github.com/wonderingabout/AdvCiv-SAS/pull/29/commits/c0e4c7624edafb022946267c606692071784dbf0): GitHub Actions checks its own post-checkout bytes, so local/exported mixed line endings can still need cleanup even when CI passes. When this happens in a Git checkout, the script notes failing worktree files that are already clean in the Git index.
 
 To make this clearer, the checker now prints its scan mode and can note when a failing worktree file is already clean in the Git index.
+
+### `build/source_change_provenance.py`
+
+Diff-aware source-history guard for maintained C/C++, Python and XML source. It compares the selected push/PR range with its base instead of linting old source in isolation.
+
+It enforces four review rules introduced after repeated provenance mistakes:
+
+- newly authored or substantively rewritten source comments use `<!-- custom: ... (model credit) -->`; model-authored comments need the credit, while user-authored comments may omit it. Missing model credits are advisory warnings, not CI failures; unchanged/moved inherited comments and whitespace-only reflow remain valid, while stale inherited comments may simply be removed;
+- if an inherited comment is replaced by a nearby custom comment, known provenance markers such as `advc.xxx`, `KI#...` and `Long_Comments_... #N` are retained;
+- edits to existing-file C/C++ `#include` or Python import dependencies have a nearby newly added custom rationale comment;
+- parameter-list changes on existing non-SAS C++/Python functions have a nearby newly added custom comment explaining the interface change. Clearly SAS-named helpers are intentionally optional.
+
+The check is deliberately conservative rather than a full C++ parser. New files are exempt from dependency/parameter-diff requirements, standard repository header/directive comments are exempt from the new-comment rule, and source-file deletion is allowed without a tombstone comment. Comment wording quality remains a human-review concern; CI verifies provenance/rationale presence, not whether the rationale is persuasive.
+
+Run locally against the previous commit with:
+
+```bash
+python .github/workflows/build/source_change_provenance.py
+```
+
+Or provide the same explicit base used by CI:
+
+```bash
+python .github/workflows/build/source_change_provenance.py --base-ref <base-sha>
+```
+
+### Custom-comment logical reflow
+
+The build workflow runs `python LLM_Helpers/reflow_custom_comments.py --check` against maintained C++/Python/XML source. It fails when an eligible marked custom prose comment needs logical sentence/clause reflow, prints the affected paths and leaves all files untouched. It does not impose a character-width limit or reflow inherited comments; structured, code-like and ambiguous blocks remain explicit skips for manual review.
+
+Preview with `python LLM_Helpers/reflow_custom_comments.py --diff`, then use `--apply` on selected files and review the result. See [the helper documentation](/LLM_Helpers/README.md#custom-comment-logical-reflow) for scope and examples.
 
 ### `build/assets_dlls.py`
 

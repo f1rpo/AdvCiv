@@ -26,6 +26,11 @@ jobs:
         env:
           BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
           EVENT_NAME: ${{ github.event_name }}
+      - run: python .github/workflows/build/source_change_provenance.py --base-ref "$BASE_REF" --event-name "$EVENT_NAME"
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+          EVENT_NAME: ${{ github.event_name }}
+      - run: python LLM_Helpers/reflow_custom_comments.py --check
       - run: python .github/workflows/build/line_endings.py
       - run: python .github/workflows/build/assets_dlls.py
       - run: python .github/workflows/build/dll_commit_message.py --event-name "$EVENT_NAME" --event-path "$GITHUB_EVENT_PATH"

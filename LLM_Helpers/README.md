@@ -93,7 +93,7 @@ Logical-layout helper for AdvCiv-SAS `<!-- custom: ... -->` prose comments in ac
 - Skips structured lists/layout notes, code-like or assignment-like commented material, malformed/unclosed markers and genuinely ambiguous physical boundaries instead of guessing. Those skips are intended for LLM/manual review when desired.
 - C++ includes `.cpp`, `.h` and `.inl`; Python is `.py`; XML is `.xml`. Reference/history corpora such as `_0_Common_Docs`, `_SNAPSHOT_CONTEXT`, `LLM_Helpers/context`, and generated outputs are excluded.
 - Python rewrites must preserve the significant token stream; the helper refuses a Python change if its token-safety comparison changes executable code. Original text encoding and line-ending style are preserved.
-- Review the diff before committing. The helper is suitable as a reusable audit/reflow pass; wire `--check` into CI only after the repo has intentionally adopted the current rule and its remaining skips are understood.
+- The build workflow runs `--check` automatically and fails if an eligible custom comment needs logical reflow; it reports the affected paths without rewriting source. Structured/ambiguous comments are reported as skips, not failures. Preview with `--diff`, apply selected files locally with `--apply`, and review the diff before committing.
 
 From the repo root, audit all supported active source without writing:
 

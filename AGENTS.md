@@ -135,9 +135,9 @@ If you find yourself stuck like for audio stopping issues, feel free to ask the 
 
 ## Comment Editing Rules
 
-- When adding new comments, use the format `<!-- custom: ... (model name) -->` (with `//` or `#` prefix as appropriate), and model name in the suffix with a `-->` at the end if not already done (e.g., `(GPT-5.3-Codex) -->`, `(Claude code Sonnet 4.5 (summarized)) -->`).
-  - Do not use other tags like `advc.` (which we do not use, as they do not belong to us: e.g., base advciv uses `advc.sas` to reference our AdvCiv-SAS changes).
-- If model name is missing in the suffix, it is likely a user comment (not from an LLM) and if so it is not something that needs to be fixed.
+- When adding new comments, use the format `<!-- custom: ... (model credit) -->` (with `//` or `#` prefix as appropriate), and put the model credit in the suffix before `-->` (e.g., `(GPT-5.3-Codex) -->`, `GPT-5.5`, `(ChatGPT-5.6-Sol) -->`, `(Claude code Sonnet 4.5 (summarized)) -->`).
+  - Do not use other tags like `advc.` as the authorship marker (they do not belong to us: e.g., base AdvCiv uses `advc.sas` to reference our AdvCiv-SAS changes).
+  - Model-authored comments need a model credit. User-authored comments may remain uncredited; do not add the user's name or bulk-clean existing uncredited comments. CI reports missing model credits only as advisory warnings because Git cannot distinguish user and model authorship.
 - Simplify verbose comments without changing meaning or technical details.
 - Focus on rewording/rephrasing - the goal is to remove prose and conversational filler while preserving all technical information. Don't over-summarize to the point of losing important technical context.
 - Do not requalify subjective wording (e.g., keep "nicer display" instead of rephrasing as "tighter look") to avoid misinterpreting meaning.
@@ -176,6 +176,7 @@ If you find yourself stuck like for audio stopping issues, feel free to ask the 
 - Preserve problem descriptions, observed behaviors, empirical results (e.g., "city C fully improved at turn 105"), and intended fixes while removing verbosity
 - Pattern: Keep technical details and "why" verbose, remove conversational filler
 - Preserve the existing physical line structure of pre-existing comments unless you are changing that comment for content/correctness, the user explicitly asks to reflow it, or a dedicated custom-comment logical-reflow pass is being run. Never join or split comment lines merely to satisfy a width target.
+- Do not silently rewrite inherited/non-custom comment wording. Pure reflow means changing only physical wrapping/whitespace while preserving the normalized wording and punctuation; it is allowed without changing authorship. Otherwise leave the inherited comment intact and add a separate custom note, or remove the inherited comment if it is stale. If a replacement custom comment supersedes an inherited comment that carries a provenance marker such as `advc.xxx`, `KI#...`, or `Long_Comments_... #N`, retain that reference in the new custom comment.
 - Keep distinct adjacent comments distinct, especially an untagged/base/upstream comment followed by an AdvCiv-SAS `<!-- custom: ... -->` comment; adjacency does not make them one comment.
 - For AdvCiv-SAS `<!-- custom: ... -->` prose comments, physical lines follow logical sentences/clauses rather than character count. Wrap only at natural logical boundaries when needed (normally complete sentences or independent clauses), and do not arbitrarily split one sentence across `//`, `#`, or XML-comment lines.
   - A reasonably readable long sentence can stay on one physical line; do not strand a short ending, `See KI#...`, or the model credit on its own line just to meet a width target.
@@ -368,7 +369,10 @@ These are general guidelines, not irrevocable requirements; adjust based on task
   - For structured SASGameRecord fields, continue preferring names such as `Percent`/`X100` when they are clearer for parsers, but do not rely on that naming convention for safety.
   - The `diagnostic_log_safety.py` build check guards this contract.
   - See KI#375.3.
-- In `.cpp` definitions as well as headers, comment new functions and changes to existing functions, explaining what changed from the previous implementation and why. Keep the rationale near the affected definition or logic; a header comment alone does not replace implementation context.
+- In C++ declarations and definitions, document new functions and changes to existing functions, including renames, parameters/defaults/return types and responsibilities. Explain the previous versus current contract and why it changed beside each affected declaration/definition; a header comment alone does not replace implementation context. Document new or changed structural members similarly so headers remain a concise interface summary.
+- When adding, removing or changing parameters on an existing non-SAS function, add a nearby custom comment explaining what changed in the interface and why. Do this beside each affected declaration/definition that is edited; clearly SAS-named helper functions are optional because their custom ownership is already explicit.
+- When adding, removing or changing a C/C++ `#include` or Python `import`/`from ... import` in an existing file, add a nearby custom comment explaining which dependency changed and why. One comment may cover a coherent group of dependency edits. New files are exempt from this dependency-diff rule because their import/include list has no previous contract to explain. For C++ includes, explain why a forward declaration is insufficient where relevant; do not bulk-annotate unrelated inherited includes.
+- If implementation encounters a compilation failure, preserve the verified pitfall and working correction in a nearby custom comment, including the exact API/type/toolchain constraint when useful. Put it beside the affected declaration, include or implementation; do not claim an untested theory as the cause.
 
 Example based on the inherited `WarEvaluator::evaluate(WarPlanTypes, bool, int)`: its implementation moved into `evaluateScenario` with a new diagnostic-only parameter. The original public overload remains a gameplay wrapper; the comment explains both the change and why the new parameter is internal.
 
@@ -377,13 +381,6 @@ Example based on the inherited `WarEvaluator::evaluate(WarPlanTypes, bool, int)`
 // Diagnostic passes bypass evaluator caches. Keep this mode internal so ordinary callers cannot accidentally use a diagnostic pass as a gameplay evaluator. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 int WarEvaluator::evaluateScenario(bool bDiagnosticOnly, WarPlanTypes eWarPlan, bool bNaval, int iPreparationTime)
 ```
-
-### C++ header changes (.h)
-
-- Always comment each new or changed header `#include`, explaining which dependency needs it and why a forward declaration is insufficient where that distinction matters. Apply this when editing the dependency; do not bulk-annotate unrelated inherited includes.
-- Treat headers as a concise summary of the interface and its evolution: always document new functions and changes to existing functions, including renamed functions, changed parameters/defaults/return types, or changed responsibilities. Explain the previous versus current contract and why it changed beside the declaration, so readers can understand the change without a historical diff; document new or changed structural members similarly.
-  - Preserve relevant inherited comments and credits; add a separate custom comment rather than silently rewriting upstream history. Follow the general comment format and exact KI references where applicable.
-- If implementation encounters a compilation failure, preserve the verified pitfall and working correction in a concise nearby custom comment, including the exact API/type/toolchain constraint when useful. Put it beside the affected header declaration/include or implementation as appropriate; do not claim an untested theory as the cause.
 
 ### DLL compilation
 
