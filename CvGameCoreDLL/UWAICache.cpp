@@ -109,7 +109,8 @@ void UWAICache::clear(bool bBeforeUpdate)
 		m_aiBounty.reset();
 		m_aeSponsorPerTarget.reset();
 		m_abCanBeHiredAgainst.reset();
-		// <!-- custom: Full init/read/uninit resets previously left serialized human-capitulation authorization in the reused cache. Erase it here, while preserving it across the ordinary clear(true) turn refresh. See KI#536. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: Full init/read/uninit resets previously left serialized human-capitulation authorization in the reused cache.
+		// Erase it here, while preserving it across the ordinary clear(true) turn refresh. See KI#536. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		m_readyToCapitulateTo.clear();
 	}
 }
@@ -826,7 +827,8 @@ void UWAICache::updateWarAnger()
 	for (PlayerIter<CIV_ALIVE,ENEMY_OF> itEnemy(kOwner.getTeam());
 		itEnemy.hasNext(); ++itEnemy)
 	{
-		// <!-- custom: aiAngerContrib is keyed by the enemy team and consumed once per living enemy player. Split it by that enemy team's living members; AdvCiv divided by our team size instead. See KI#435. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: aiAngerContrib is keyed by the enemy team and consumed once per living enemy player.
+		// Split it by that enemy team's living members; AdvCiv divided by our team size instead. See KI#435. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		int const iEnemyTeamMembers = PlayerIter<CIV_ALIVE,MEMBER_OF>::count(itEnemy->getTeam());
 		FAssert(iEnemyTeamMembers > 0);
 		// Turn per-team into per-civ
@@ -864,7 +866,8 @@ void UWAICache::updateTransports()
 		CvUnitInfo const& kUnit = GC.getInfo(eUnit);
 		if (!kUnit.getUnitAIType(UNITAI_ASSAULT_SEA) || !kOwner.canTrain(eUnit))
 			continue;
-		// <!-- custom: CvPlayer::canTrain ignores city resources and placement. Require one real city that can train the transport so SAS's obsolete resource-free ships do not make an Oil-less post-Combustion empire appear to retain naval lift production. See KI#541. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: CvPlayer::canTrain ignores city resources and placement.
+		// Require one real city that can train the transport so SAS's obsolete resource-free ships do not make an Oil-less post-Combustion empire appear to retain naval lift production. See KI#541. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		bool bCityCanTrain = false;
 		FOR_EACH_CITY(pCity, kOwner)
 		{
@@ -1214,7 +1217,8 @@ void UWAICache::updateTargetMissionCount(PlayerTypes ePlayer)
 
 scaled UWAICache::calculateThreatRating(PlayerTypes eRival) const
 {
-	// <!-- custom: Yield rates are unreliable off the bat, but waiting to leave the starting era never ends for a terminal-era start. Keep the era-advance shortcut and bound the grace period to 25 normalized turns, matching DramaticArc's startup clock. See KI#444. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Yield rates are unreliable off the bat, but waiting to leave the starting era never ends for a terminal-era start.
+	// Keep the era-advance shortcut and bound the grace period to 25 normalized turns, matching DramaticArc's startup clock. See KI#444. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	CvGame const& kGame = GC.getGame();
 	CvGameSpeedInfo const& kSpeed = GC.getInfo(kGame.getGameSpeedType());
 	scaled const rStartupSpeed = 2 / per100(kGame.getSpeedPercent() + kSpeed.getTrainPercent());
@@ -1516,7 +1520,8 @@ void UWAICache::reportCityDestroyed(CvCity const& kCity)
 	bool const bOwnCity = (kCity.getOwner() == m_eOwner);
 	if (!remove(kCity))
 		return;
-	// <!-- custom: The greedy attack-priority order depends on the previously selected city's area, so erasing a city does not necessarily leave the surviving vector in the order a fresh cache would produce. Re-sort after each actual removal, including a raze with no later creation callback. See KI#550. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: The greedy attack-priority order depends on the previously selected city's area, so erasing a city does not necessarily leave the surviving vector in the order a fresh cache would produce.
+	// Re-sort after each actual removal, including a raze with no later creation callback. See KI#550. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	sortCitiesByAttackPriority();
 	// <!-- custom: Keep the cache owner's total assets coherent with its mid-turn city removal; observers' own holdings did not change and need no aggregate refresh. See KI#547. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (bOwnCity)
@@ -1584,7 +1589,8 @@ void UWAICache::addTeam(PlayerTypes eOtherLeader)
 {
 	// Get the team-related data from the other team's leader
 	UWAICache& kOther = GET_PLAYER(eOtherLeader).uwai().getCache();
-	// <!-- custom: Persistent history can remain meaningful for a dead civilization team if it is later revived. Merge the full key domain rather than only currently alive major teams; the caller separately restores the original pre-merge recipient boundary. See KI#539. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Persistent history can remain meaningful for a dead civilization team if it is later revived.
+	// Merge the full key domain rather than only currently alive major teams; the caller separately restores the original pre-merge recipient boundary. See KI#539. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	FOR_EACH_ENUM(CivTeam)
 	{
 		TeamTypes const eTeam = (TeamTypes)eLoopCivTeam;
@@ -1659,7 +1665,8 @@ void UWAICache::onTeamLeaderChanged(PlayerTypes eFormerLeader)
 				m_aiWarUtilityIgnoringDistraction.set(eTeam, GET_PLAYER(eFormerLeader).
 				uwai().getCache().m_aiWarUtilityIgnoringDistraction.get(eTeam));
 	}
-	// <!-- custom: ReadyToCapitulate is copied above; only CanBeHired starts false until normal war planning updates it. This corrects the old comment that grouped both states together. See KI#538. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: ReadyToCapitulate is copied above; only CanBeHired starts false until normal war planning updates it.
+	// This corrects the old comment that grouped both states together. See KI#538. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 }
 
 

@@ -28,8 +28,9 @@ TRAIT_STATS_ICON_COL_W = INCHART_ICON_SIZE + INCHART_ICON_SPACING
 TRAIT_STATS_RIGHT_TABLE_SCROLLBAR_TAIL_W = 18
 TRAIT_STATS_MOVE_LEFT_TO_RIGHT_W = 30
 
-# <!-- custom: Module-level cache for trait statistics. Computed once on first Traits category click,
-# then reused for the entire session. Similar pattern to SevoPediaLeader's LEADERS_INFO_CACHED. (Claude Opus 4.5) -->
+# <!-- custom: Module-level cache for trait statistics.
+# Computed once on first Traits category click, then reused for the entire session.
+# Similar pattern to SevoPediaLeader's LEADERS_INFO_CACHED. (Claude Opus 4.5) -->
 # traitLeaders: dict of traitId -> [leaderIds] - used to quickly compute per-trait pairing data
 # allPairsData: list of (trait1, trait2, count, [leaderIds]) - all trait combinations globally
 # allPairsMinMax: (minCount, maxCount) - for ranking bar normalization
@@ -217,7 +218,8 @@ class SevoPediaTrait:
 		self.W_HISTORY = self.R_CONTENT - self.X_HISTORY
 		self.H_HISTORY = H_BOTTOM_ROW
 
-		# <!-- custom: Row height for statistics tables. Icon size and spacing now use centralized INCHART_* constants. (Claude Opus 4.5) -->
+		# <!-- custom: Row height for statistics tables.
+		# Icon size and spacing now use centralized INCHART_* constants. (Claude Opus 4.5) -->
 		# LEADER_ICON_SIZE and LEADER_BUTTON_COLUMN_SPACING replaced by INCHART_ICON_SIZE and INCHART_ICON_SPACING from _sevopedia_helpers
 
 	# <!-- custom: Updated to receive trait ID directly via WIDGET_PYTHON approach (no longer concept-based). (Claude code Opus 4.5) -->
@@ -369,7 +371,8 @@ class SevoPediaTrait:
 		return pairingData
 
 	def _getAllTraitPairsData(self):
-		# <!-- custom: Return cached all-pairs data. Computed once per session. (Claude Opus 4.5) -->
+		# <!-- custom: Return cached all-pairs data.
+		# Computed once per session. (Claude Opus 4.5) -->
 		cache = TRAIT_STATISTICS_CACHE
 		if cache is None:
 			return [], (0, 0), 0

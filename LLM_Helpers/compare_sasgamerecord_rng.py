@@ -437,7 +437,8 @@ def main(argv=None):
             if rng_index is None and revision_comparable:
                 lines.append("The authoritative RNG checkpoints still match, so this is evidence of deterministic/non-RNG state divergence within the recorded CORE coverage.")
 
-        # <!-- custom: Interpret relative divergence only when both records expose the same explicit official revision, which identifies the exact state-hash recipe. Missing revision metadata must not accidentally compare equal as <unknown> == <unknown>. (ChatGPT-5.6-Sol) -->
+        # <!-- custom: Interpret relative divergence only when both records expose the same explicit official revision, which identifies the exact state-hash recipe.
+        # Missing revision metadata must not accidentally compare equal as <unknown> == <unknown>. (ChatGPT-5.6-Sol) -->
         if not revision_comparable:
             if revision_a is None or revision_b is None:
                 lines.append("Combined RNG/state ordering interpretation is intentionally suppressed because explicit matching recordRevision metadata is unavailable.")

@@ -778,7 +778,8 @@ def hoisted_comment_lines_with_trace(indent: str, payload: str, position: str, t
 	trace = f"{indent}// <!-- custom: hoisted from multiline signature {position} by collapse_cpp_signatures.py. ({credit}) -->"
 	if not payload:
 		return [trace]
-	# <!-- custom: Keep preserved inherited/custom comment text physically separate from the script-authored provenance marker. Appending both to one `//` line made an inherited sentence look jointly authored by the tracing pass. (ChatGPT-5.6-Sol) -->
+	# <!-- custom: Keep preserved inherited/custom comment text physically separate from the script-authored provenance marker.
+	# Appending both to one `//` line made an inherited sentence look jointly authored by the tracing pass. (ChatGPT-5.6-Sol) -->
 	return [f"{indent}// {payload}", trace]
 
 
@@ -945,7 +946,9 @@ def try_signature_rewrite(
 	is_declaration = tail_allows_signature_declaration(tail)
 	is_root_cpp_declaration = is_unindented_root_cpp_declaration_candidate(body, depth, suffix)
 
-	# <!-- custom: Default mode must not rewrite ordinary local calls/constructors such as logBBAI(...), scaled r(...), or CvWString szMsg(...). Function definitions are normally top-level, namespace-level, or inline inside a class; declarations ending in ';' are safe enough in headers/class declarations and unindented root-scope .cpp declarations. Trailing end-of-signature // comments are allowed, but comments inside the parameter list are still skipped unless trace-hoisted. (GPT-5.5) -->
+	# <!-- custom: Default mode must not rewrite ordinary local calls/constructors such as logBBAI(...), scaled r(...), or CvWString szMsg(...).
+	# Function definitions are normally top-level, namespace-level, or inline inside a class; declarations ending in ';' are safe enough in headers/class declarations and unindented root-scope .cpp declarations.
+	# Trailing end-of-signature // comments are allowed, but comments inside the parameter list are still skipped unless trace-hoisted. (GPT-5.5) -->
 	if is_definition:
 		if depth > 2:
 			reject(f"definition-like candidate is inside nested scope (brace depth {depth})", close_index)

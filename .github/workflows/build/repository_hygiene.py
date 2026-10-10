@@ -2,7 +2,8 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 
-# <!-- custom: Check every tracked file, including inherited references and project files, so encoding signatures and Windows install-path failures cannot hide outside the active-source scan. Binary assets are checked only for a leading encoding signature. (GPT-6.1-Sol) -->
+# <!-- custom: Check every tracked file, including inherited references and project files, so encoding signatures and Windows install-path failures cannot hide outside the active-source scan.
+# Binary assets are checked only for a leading encoding signature. (GPT-6.1-Sol) -->
 import argparse
 from pathlib import Path
 import subprocess

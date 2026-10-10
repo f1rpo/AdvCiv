@@ -19,7 +19,8 @@ class FDataStreamBase;
 #define getUWAI() GC.AI_getGame().uwai()
 
 
-// <!-- custom: Base AdvCiv used DISABLE_UWAI_REPORT as a compile-time escape hatch for its standalone UWAI logger. AdvCiv-SAS removes that separate logger; cached SAS_BBAI_UWAI_* caller gates suppress disabled diagnostics without recompilation. See KI#505.3. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Base AdvCiv used DISABLE_UWAI_REPORT as a compile-time escape hatch for its standalone UWAI logger.
+// AdvCiv-SAS removes that separate logger; cached SAS_BBAI_UWAI_* caller gates suppress disabled diagnostics without recompilation. See KI#505.3. (ChatGPT-5.6-Sol) -->
 
 class UWAI : private boost::noncopyable
 {
@@ -32,7 +33,8 @@ public:
 	void invalidateUICache();
 	// When a colonial vassal is created
 	void initNewPlayerInGame(PlayerTypes eNewPlayer);
-	// <!-- custom: A player already dead when a save is loaded has no deserialized UWAI owner/cache. Initialize that player and reconstruct its already-existing units before processing a later revival.
+	// <!-- custom: A player already dead when a save is loaded has no deserialized UWAI owner/cache.
+	// Initialize that player and reconstruct its already-existing units before processing a later revival.
 	// CvTeam::changeAliveCount separately initializes a team returning from zero alive members. See KI#475.3. See KI#548. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	void initRevivedPlayerInGame(PlayerTypes eRevivedPlayer);
 	// When the colonial vassal has received a capital and tech

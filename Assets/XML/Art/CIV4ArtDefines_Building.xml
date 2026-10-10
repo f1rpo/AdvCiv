@@ -541,7 +541,8 @@
 			<KFM/>
 			<Button>,Art/Interface/Buttons/Buildings/Colosseum.dds,Art/Interface/Buttons/Warlords_Atlas_1.dds,4,1</Button>
 		</BuildingArtInfo>
-		<!-- custom: Vedic temple from ri mod thanks. Guessedly set fScale to 2.2 which seems qutie fine but i don't know much about these. -->
+		<!-- custom: Vedic temple from ri mod thanks.
+		Guessedly set fScale to 2.2 which seems qutie fine but i don't know much about these. -->
 		<BuildingArtInfo>
 			<Type>ART_DEF_BUILDING_KHMER_HALL_OF_DANCERS</Type>
 			<LSystem>LSYSTEM_1x2</LSystem>
@@ -623,7 +624,8 @@
 			<KFM/>
 			<Button>Art/AdvCiv_SAS/Buildings/Chinese_Changpingcang/sengoku_atlas_4_3_modified.dds</Button>
 		</BuildingArtInfo>
-		<!-- custom: art from BASE 6.4 mod's Ksar thanks. Note: the values were 20 for fScale high in BASE 6.4 mod, and using lower expected values caused the art to be very small, hardly visible, so increased even more to match seemingly usual SAS buildings size. -->
+		<!-- custom: art from BASE 6.4 mod's Ksar thanks.
+		Note: the values were 20 for fScale high in BASE 6.4 mod, and using lower expected values caused the art to be very small, hardly visible, so increased even more to match seemingly usual SAS buildings size. -->
 		<BuildingArtInfo>
 			<Type>ART_DEF_BUILDING_SPANISH_LONJA</Type>
 			<LSystem>LSYSTEM_3x3</LSystem>

@@ -450,7 +450,8 @@ void CvCity::kill(bool bUpdatePlotGroups, /* advc.001: */ bool bBumpUnits)
 	kPlot.setImprovementType(GC.getRUINS_IMPROVEMENT());
 	if (bLogPlotChange) recordSASGameRecordPlotChange(kPlot, kOldPlotState, "cityPlotChanges", "CITY_REMOVED", true);
 	CvEventReporter::getInstance().cityLost(this);
-	// <!-- custom: CvTeam::resetVictoryProgress runs only after this city object has been deleted. Preserve the active launch and old-capital identity first so SASGameRecord can explicitly explain why the spaceship disappeared. (GPT-5.6-Sol) -->
+	// <!-- custom: CvTeam::resetVictoryProgress runs only after this city object has been deleted.
+	// Preserve the active launch and old-capital identity first so SASGameRecord can explicitly explain why the spaceship disappeared. (GPT-5.6-Sol) -->
 	if (bLogPlotChange && bCapital) logSASGameRecordVictoryProgressResetForCapital(this);
 	// <!-- custom: CvArea stores target cities as IDInfo, so deleting the city makes AI_getTargetCity effectively become NULL without an AI_setTargetCity call.
 	// Record that effective transition while the old city is still valid, but deliberately do not mutate gameplay target storage solely for logging.
@@ -547,7 +548,8 @@ void CvCity::kill(bool bUpdatePlotGroups, /* advc.001: */ bool bBumpUnits)
 		} // </advc.106>
 		GET_TEAM(eOwner).resetVictoryProgress();
 	}
-	// <!-- custom: The earlier AI_cityKilled callback removed the wrapper while this CvCity was still valid. Now that deletion and any replacement-capital selection are complete, rebuild city-derived UWAI geometry/value from the stable city set.
+	// <!-- custom: The earlier AI_cityKilled callback removed the wrapper while this CvCity was still valid.
+	// Now that deletion and any replacement-capital selection are complete, rebuild city-derived UWAI geometry/value from the stable city set.
 	// Barbarian cities are outside this cache. See KI#554. See KI#557. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (kOwner.isMajorCiv())
 	{
@@ -660,7 +662,8 @@ void CvCity::doTurn()
 			}
 			else if (bHuman && bSAS_DO_TURN_CONVENIENCE_HUMAN_FORCE_ARTIST_IF_NO_BFC_AND_LOW_CULTURE)
 			{
-				// <!-- custom: The old cleanup guessed that any forced Artist in a narrow post-BFC culture window belonged to this helper. Record ownership when we add one, and let any manual Artist adjustment permanently transfer control to the human instead. See KI#313. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				// <!-- custom: The old cleanup guessed that any forced Artist in a narrow post-BFC culture window belonged to this helper.
+				// Record ownership when we add one, and let any manual Artist adjustment permanently transfer control to the human instead. See KI#313. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 				const int iForcedArtists = getForceSpecialistCount(eArtist);
 				if (m_iSASAutoBFCHumanArtistState == SAS_AUTO_BFC_HUMAN_ARTIST_FORCED && iForcedArtists <= 0)
 					m_iSASAutoBFCHumanArtistState = SAS_AUTO_BFC_HUMAN_ARTIST_FINISHED;
@@ -682,7 +685,8 @@ void CvCity::doTurn()
 						}
 					}
 				}
-				// <!-- custom: Preserve the existing game-speed-aware cleanup delay, but remove one Artist only when this helper still owns it. The former upper-window guess is unnecessary once provenance is exact. See KI#313. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				// <!-- custom: Preserve the existing game-speed-aware cleanup delay, but remove one Artist only when this helper still owns it.
+				// The former upper-window guess is unnecessary once provenance is exact. See KI#313. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 				else if (m_iSASAutoBFCHumanArtistState == SAS_AUTO_BFC_HUMAN_ARTIST_FORCED)
 				{
 					const int iCityCulture = getCulture(getOwner());
@@ -978,7 +982,8 @@ bool CvCity::canBeSelected() const
 {
 	CvGame const& kGame = GC.getGame();
 
-	// <!-- custom: Check for NO_PLAYER before any early selectable-city return. During autoplay/turn transitions, the EXE can still ask for city UI bars while no active player exists; allowing isActiveTeam/debug/investigate to bypass this guard can re-enter CvCity::getProductionBarPercentages in an unsafe UI state. See KI#162. (Claude code Opus 4.5 + ChatGPT-5.5) -->
+	// <!-- custom: Check for NO_PLAYER before any early selectable-city return.
+	// During autoplay/turn transitions, the EXE can still ask for city UI bars while no active player exists; allowing isActiveTeam/debug/investigate to bypass this guard can re-enter CvCity::getProductionBarPercentages in an unsafe UI state. See KI#162. (Claude code Opus 4.5 + ChatGPT-5.5) -->
 	PlayerTypes const eActivePlayer = kGame.getActivePlayer();
 	if (eActivePlayer == NO_PLAYER)
 		return false;
@@ -8454,7 +8459,8 @@ void CvCity::setName(const wchar* szNewValue, bool bFound, /* advc.106k: */ bool
 
 	if (!szName.empty())
 	{
-		// <!-- custom: Initial/internal city-name assignment already receives a selected city name from getNewCityName or preserves an acquired city name. Do not run the translated duplicate-name scan in that path; this avoids extra city-name text lookups during city acquisition. See KI#161.2. (ChatGPT-5.5) -->
+		// <!-- custom: Initial/internal city-name assignment already receives a selected city name from getNewCityName or preserves an acquired city name.
+		// Do not run the translated duplicate-name scan in that path; this avoids extra city-name text lookups during city acquisition. See KI#161.2. (ChatGPT-5.5) -->
 		if (bInitial || GET_PLAYER(getOwner()).isCityNameValid(szName, false))
 		{	// <advc.106k>
 			if (bInitial)
@@ -8462,7 +8468,8 @@ void CvCity::setName(const wchar* szNewValue, bool bFound, /* advc.106k: */ bool
 			else if (m_szPreviousName.empty())
 				m_szPreviousName = m_szName; // </advc.106k>
 			// <advc.005c>
-			// <!-- custom: Do not record the temporary placeholder name assigned by CvCity::init as a past city name when acquireCity immediately replaces it with the preserved old-city name. This also avoids an unnecessary getName text lookup in the city-transfer path. See KI#161.2. (ChatGPT-5.5) -->
+			// <!-- custom: Do not record the temporary placeholder name assigned by CvCity::init as a past city name when acquireCity immediately replaces it with the preserved old-city name.
+			// This also avoids an unnecessary getName text lookup in the city-transfer path. See KI#161.2. (ChatGPT-5.5) -->
 			// <!-- custom: Replace the old getName() call with m_szName below so the past-name registry stores the old raw key/literal as stable identity rather than its current translated display. See KI#325. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			if (!bInitial && !m_szName.empty())
 				GC.getGame().addPastCityName(m_szName); // </advc.005c>
@@ -8856,7 +8863,8 @@ void CvCity::alterSpecialistCount(SpecialistTypes eSpecialist, int iChange)
 {
 	if(iChange == 0)
 		return;
-	// <!-- custom: Any human adjustment of the Artist count takes ownership away from the automatic BFC helper. It must neither re-add nor later remove an Artist chosen by the human. See KI#313. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Any human adjustment of the Artist count takes ownership away from the automatic BFC helper.
+	// It must neither re-add nor later remove an Artist chosen by the human. See KI#313. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	static SpecialistTypes const eArtist = (SpecialistTypes)GC.getInfoTypeForString("SPECIALIST_ARTIST");
 	if (isHuman() && eSpecialist == eArtist)
 		m_iSASAutoBFCHumanArtistState = SAS_AUTO_BFC_HUMAN_ARTIST_FINISHED;
@@ -10068,7 +10076,8 @@ void CvCity::popOrder(int iNum, bool bFinish, ChooseProductionPlayers eChoose, b
 	int iMaxedBuildingOrProject = NO_BUILDING; // advc.123f
 
 	OrderTypes eOrderType = pOrderNode->m_data.eOrderType;
-	// <!-- custom: Reuse handleOverflow's exact gameplay result on the corresponding level-3 production-completion row instead of emitting a second routine overflow row. These stay zero when there is no positive overflow. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Reuse handleOverflow's exact gameplay result on the corresponding level-3 production-completion row instead of emitting a second routine overflow row.
+	// These stay zero when there is no positive overflow. (ChatGPT-5.6-Sol) -->
 	int iRawModifiedOverflow = 0;
 	int iUnmodifiedOverflow = 0;
 	int iKeptOverflow = 0;
@@ -10105,7 +10114,8 @@ void CvCity::popOrder(int iNum, bool bFinish, ChooseProductionPlayers eChoose, b
 		// Rebuild the authoritative cache after the completed Worker exists so the next production choice sees it exactly once, including after unexpected same-turn completion. See KI#861. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if (eTrainAIUnit == UNITAI_WORKER)
 			AI().AI_updateWorkersHaveAndNeeded();
-		// <!-- custom: Record completion before air-capacity relocation. A produced air unit with no valid destination can be destroyed below before the ordinary unitBuilt event fires. (GPT-5.6-Sol) -->
+		// <!-- custom: Record completion before air-capacity relocation.
+		// A produced air unit with no valid destination can be destroyed below before the ordinary unitBuilt event fires. (GPT-5.6-Sol) -->
 		if (gGameRecordLogLevel >= 2) logSASGameRecordUnitCompleted(this, pUnit, SAS_UNIT_COMPLETION_PRODUCTION, iRawModifiedOverflow, iUnmodifiedOverflow, iKeptOverflow, iLostOverflowProduction, iUnusedOverflowCapacity, iOverflowGold);
 		CvPlot* pRallyPlot = getRallyPlot(); // (advc.001b: moved up)
 		if (GC.getInfo(eTrainUnit).getDomainType() == DOMAIN_AIR &&
@@ -10178,7 +10188,8 @@ void CvCity::popOrder(int iNum, bool bFinish, ChooseProductionPlayers eChoose, b
 		{
 			iMaxedBuildingOrProject = eConstructBuilding;
 		} // </advc.123f>
-		// <!-- custom: buildingBuilt also fires when a unit constructs a building without city production. Aggregate production completions here, where ORDER_CONSTRUCT proves that the city spent its production. (GPT-5.6-Sol + GPT-5.6 Thinking) -->
+		// <!-- custom: buildingBuilt also fires when a unit constructs a building without city production.
+		// Aggregate production completions here, where ORDER_CONSTRUCT proves that the city spent its production. (GPT-5.6-Sol + GPT-5.6 Thinking) -->
 		if (gGameRecordLogLevel >= 2) logSASGameRecordBuildingCompletedByProduction(this, eConstructBuilding, iRawModifiedOverflow, iUnmodifiedOverflow, iKeptOverflow, iLostOverflowProduction, iUnusedOverflowCapacity, iOverflowGold);
 		CvEventReporter::getInstance().buildingBuilt(this, eConstructBuilding);
 		if (gCityLogLevel >= 1) // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
@@ -10197,7 +10208,8 @@ void CvCity::popOrder(int iNum, bool bFinish, ChooseProductionPlayers eChoose, b
 			break;
 		/*	Event reported to Python before the project is built, so that we can
 			show the movie before awarding free techs, for example */
-		// <!-- custom: Record the project here rather than inside CvEventReporter. This keeps the exact overflow calculated above on the same PROJECT_BUILT row. (ChatGPT-5.6-Sol) -->
+		// <!-- custom: Record the project here rather than inside CvEventReporter.
+		// This keeps the exact overflow calculated above on the same PROJECT_BUILT row. (ChatGPT-5.6-Sol) -->
 		if (gGameRecordLogLevel >= 2) logSASGameRecordProjectBuilt(this, eCreateProject, iRawModifiedOverflow, iUnmodifiedOverflow, iKeptOverflow, iLostOverflowProduction, iUnusedOverflowCapacity, iOverflowGold);
 		CvEventReporter::getInstance().projectBuilt(this, eCreateProject);
 		GET_TEAM(getTeam()).changeProjectCount(eCreateProject, 1);
@@ -10642,7 +10654,8 @@ void CvCity::doGrowth()
 	{
 		if (AI().AI_isEmphasizeAvoidGrowth())
 		{
-			// <!-- custom: Avoid Growth itself is factual population-flow context; compact repeated prevention into interval totals and count only food actually discarded above the threshold. The original setFood call/order remains unchanged. (ChatGPT-5.6-Sol) -->
+			// <!-- custom: Avoid Growth itself is factual population-flow context; compact repeated prevention into interval totals and count only food actually discarded above the threshold.
+			// The original setFood call/order remains unchanged. (ChatGPT-5.6-Sol) -->
 			int const iFoodDiscardedByAvoidGrowth = bLogPopulationFlow ? std::max(0, getFood() - growthThreshold()) : 0;
 			setFood(growthThreshold());
 			if (bLogPopulationFlow) logSASGameRecordCityGrowthPrevented(this, iFoodDiscardedByAvoidGrowth);
@@ -10857,7 +10870,8 @@ bool CvCity::doCheckProduction()
 				}*/
 				// <!-- custom: iStoredProduction was already required for the loop's gameplay skip test; reuse it here instead of calling getUnitProduction a second time solely to populate the optional recorder row. (ChatGPT-5.6-Sol) -->
 				bool const bLogProductionInvalidated = (gGameRecordLogLevel >= 2);
-				// <!-- custom: Active-target/queue lookups exist only for SASGameRecord. Preserve their pre-erasure state, but skip them entirely below recorder level 2. (ChatGPT-5.6-Sol) -->
+				// <!-- custom: Active-target/queue lookups exist only for SASGameRecord.
+				// Preserve their pre-erasure state, but skip them entirely below recorder level 2. (ChatGPT-5.6-Sol) -->
 				bool const bActiveTarget = (bLogProductionInvalidated && getProductionUnit() == eUnit);
 				bool const bQueued = (bLogProductionInvalidated && getFirstUnitOrder(eUnit) >= 0);
 				setUnitProduction(eUnit, 0);
@@ -12206,7 +12220,8 @@ bool CvCity::getFoodBarPercentages(std::vector<float>& afPercentages) const
 bool CvCity::getProductionBarPercentages(std::vector<float>& afPercentages) const
 {
 	// <!-- custom: Two consecutive (but not reproduced besides these two) T281 crash dumps pointed to CvCity::getProductionBarPercentages; the crash and its cause remains unknown.
-	// As tentative hardening, require a valid owner/id and confirm that this is still the city registered in that owner's container before reading production state. We do not know whether an unregistered city caused either crash. See KI#162.2. (GPT-5.5) -->
+	// As tentative hardening, require a valid owner/id and confirm that this is still the city registered in that owner's container before reading production state.
+	// We do not know whether an unregistered city caused either crash. See KI#162.2. (GPT-5.5) -->
 	PlayerTypes const eOwner = getOwner();
 	int const iCityID = getID();
 	if (eOwner < 0 || eOwner >= MAX_PLAYERS || iCityID < 0 || GET_PLAYER(eOwner).getCity(iCityID) != this)
@@ -12233,7 +12248,9 @@ bool CvCity::getProductionBarPercentages(std::vector<float>& afPercentages) cons
 	}
 	// <!-- custom: End - Guard against corrupted order data causing out-of-bounds array access. See KI#103. (GPT-5.2-Codex + Claude code Opus 4.5) -->
 
-	// <!-- custom: Reproducible T259 dumps again hit this callback at +0x522. KI#162.2's earlier crashes were at +0x4e2 before the owner/city-registration guard above was added; the +0x40 shift strongly suggests the same underlying instruction survived that hardening. Snapshot the already validated order and use its typed production accessors throughout instead of repeatedly re-reading the queue through isProductionProcess/getCurrentProductionDifference/getProduction.
+	// <!-- custom: Reproducible T259 dumps again hit this callback at +0x522.
+	// KI#162.2's earlier crashes were at +0x4e2 before the owner/city-registration guard above was added; the +0x40 shift strongly suggests the same underlying instruction survived that hardening.
+	// Snapshot the already validated order and use its typed production accessors throughout instead of repeatedly re-reading the queue through isProductionProcess/getCurrentProductionDifference/getProduction.
 	// This keeps one UI callback internally consistent even if a nested cost/Python call re-enters or changes production state; it is a tentative targeted hardening because the dump alone still cannot prove re-entrant queue mutation. See KI#162.3. (ChatGPT-5.5 + GPT-5.6 Thinking) -->
 	int iProductionNeeded = MAX_INT;
 	int iProduction = 0;
@@ -12892,7 +12909,8 @@ void CvCity::liberate(bool bConquest, /* advc.ctr: */ bool bPeaceDeal)
 	PlayerTypes ePlayer = getLiberationPlayer(bConquest);
 	if(ePlayer == NO_PLAYER)
 		return; // advc
-	// <!-- custom: acquireCity destroys and replaces this CvCity later in the function. Preserve its original player/team identity before that lifetime boundary. See KI#486.2. (GPT-5.6-Sol) -->
+	// <!-- custom: acquireCity destroys and replaces this CvCity later in the function.
+	// Preserve its original player/team identity before that lifetime boundary. See KI#486.2. (GPT-5.6-Sol) -->
 	PlayerTypes const eOldOwner = getOwner();
 	TeamTypes const eOldTeam = getTeam();
 	// kekm.23: No longer used
@@ -12937,7 +12955,8 @@ void CvCity::liberate(bool bConquest, /* advc.ctr: */ bool bPeaceDeal)
 		GET_PLAYER(ePlayer).AI_rememberLiberation(*this, bConquest); // </advc.ctr>
 	GET_PLAYER(ePlayer).acquireCity(this, false, true, true);
 
-	// <!-- custom: The old CvCity is invalid from here onward. Using its cached IDs fixes the reproduced liberation crash and the later stale attitude-update dereference. See KI#486.2. (GPT-5.6-Sol) -->
+	// <!-- custom: The old CvCity is invalid from here onward.
+	// Using its cached IDs fixes the reproduced liberation crash and the later stale attitude-update dereference. See KI#486.2. (GPT-5.6-Sol) -->
 	if (kLiberationTeam.isVassal(eOldTeam))
 	{
 		int iNewMasterLand = GET_TEAM(eOldTeam).getTotalLand();
@@ -13467,7 +13486,9 @@ void CvCity::handleOverflow(int iRawOverflow, int iProductionModifier, OrderType
 	if (piLostProduction != NULL) *piLostProduction = iPositiveLostProduction;
 	if (piUnusedOverflowCapacity != NULL) *piUnusedOverflowCapacity = iUnusedCapacity;
 	if (piOverflowGold != NULL) *piOverflowGold = iProductionGold;
-	// <!-- custom: Preserve every civilization overflow in the interval production-flow aggregate. Level 3 carries the same exact values on the corresponding UNIT_COMPLETED/BUILDING_COMPLETED/PROJECT_BUILT row instead of a second routine action. Level 2 still keeps standalone exceptional overflow, and Barbarian overflow because Barbarians have no ordinary production-flow row.
+	// <!-- custom: Preserve every civilization overflow in the interval production-flow aggregate.
+	// Level 3 carries the same exact values on the corresponding UNIT_COMPLETED/BUILDING_COMPLETED/PROJECT_BUILT row instead of a second routine action.
+	// Level 2 still keeps standalone exceptional overflow, and Barbarian overflow because Barbarians have no ordinary production-flow row.
 	// The internal signed difference means production lost when positive and unused overflow capacity when negative, so expose both as separate nonnegative fields. (ChatGPT-5.6-Sol) -->
 	if (gGameRecordLogLevel >= 2) logSASGameRecordProductionOverflow(this, iRawOverflow, iUnmodifiedOverflow, iOverflow, iPositiveLostProduction, iUnusedCapacity, iProductionGold);
 	if(iProductionGold > 0 || iLostProduction > 0)

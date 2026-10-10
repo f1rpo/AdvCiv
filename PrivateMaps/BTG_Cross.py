@@ -89,7 +89,8 @@ def getCustomMapOptionName(argsList):
 
 def getNumCustomMapOptionValues(argsList):
 	[iOption] = argsList
-	# <!-- custom: SAS exposed BTG's dormant fourth Positioning label, but Crossed executed the same mapping as Together. Restore the original three selectable modes until a distinct Crossed policy exists. See KI#272. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: SAS exposed BTG's dormant fourth Positioning label, but Crossed executed the same mapping as Together.
+	# Restore the original three selectable modes until a distinct Crossed policy exists. See KI#272. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	option_values = {
 		0:	3,
 		1:	4,
@@ -229,7 +230,8 @@ def getGridSize(argsList):
 	[eWorldSize] = argsList
 	iDistanceOption = CyMap().getCustomMapOption(9)
 	if (iDistanceOption == 0):
-		# <!-- custom: BTG Cross dimensions were too small for each base world size in current tuning. Use direct grid rows instead of hiding the change behind a shifted calibration formula, so each base size is visible and tunable; SAS24+ calibrates from the explicit Huge row. (GPT-5.5) -->
+		# <!-- custom: BTG Cross dimensions were too small for each base world size in current tuning.
+		# Use direct grid rows instead of hiding the change behind a shifted calibration formula, so each base size is visible and tunable; SAS24+ calibrates from the explicit Huge row. (GPT-5.5) -->
 		grid_sizes = {
 			WorldSizeTypes.WORLDSIZE_ARENA: (7, 7),
 			WorldSizeTypes.WORLDSIZE_DUEL: (8, 8),
@@ -271,7 +273,8 @@ def getGridSize(argsList):
 		}
 
 	iWorld = int(eWorldSize)
-	# <!-- custom: BTG Cross used the Huge grid for every world size of Huge and below, including our SAS ARENA size, so they collapsed to one effective map size such as 60x60 plots. Scale them from the Huge anchor and keep the existing SAS24+ formula below. See KI#137. (GPT-5.5) -->
+	# <!-- custom: BTG Cross used the Huge grid for every world size of Huge and below, including our SAS ARENA size, so they collapsed to one effective map size such as 60x60 plots.
+	# Scale them from the Huge anchor and keep the existing SAS24+ formula below. See KI#137. (GPT-5.5) -->
 	if iWorld <= WorldSizeTypes.WORLDSIZE_HUGE:
 		return sas_lookup_world_size(eWorldSize, grid_sizes)
 
@@ -416,7 +419,8 @@ class GridMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 		thisRegion = remaining_regions[region_roll]
 		regions_in_use.append(thisRegion)
 		del remaining_regions[region_roll]
-		# <!-- custom: BTG's second region pool still contained the already-generated mirror source, so open maps generated that hub twice and all modes recorded it twice. Consume the source in both pools. See KI#274. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: BTG's second region pool still contained the already-generated mirror source, so open maps generated that hub twice and all modes recorded it twice.
+		# Consume the source in both pools. See KI#274. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		remaining_regionsTwo.remove(thisRegion)
 
 		# Region dimensions
@@ -562,7 +566,8 @@ class GridMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 
 			#duplicate land for other used regions
 			other_regions = []
-			# <!-- custom: Record each physical mirrored hub once, including the source once, then crop every copy to the largest common in-bounds footprint. BTG duplicated the source ID and assumed rounded source/target dimensions were equal, reading neighboring map data when they differed. See KI#273 and KI#274. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			# <!-- custom: Record each physical mirrored hub once, including the source once, then crop every copy to the largest common in-bounds footprint.
+			# BTG duplicated the source ID and assumed rounded source/target dimensions were equal, reading neighboring map data when they differed. See KI#273 and KI#274. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			for region_loop in range(len(region_coords)):
 				if len(regions_in_use) >= iNumRegions:
 					break
@@ -697,7 +702,8 @@ def assignStartingPlots():
 	if iPlayers < 1 or iPlayers > gc.getMAX_CIV_PLAYERS():
 		CyPythonMgr().allowDefaultImpl()
 		return
-	# <!-- custom: SAS reused Cross's fixed 4/5/7/9 physical hubs with modulo assignment for larger player counts, producing duplicate regions and exact duplicate starts under positional mirroring. Fall back before assigning any custom start when unique hub capacity is insufficient. See KI#271. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: SAS reused Cross's fixed 4/5/7/9 physical hubs with modulo assignment for larger player counts, producing duplicate regions and exact duplicate starts under positional mirroring.
+	# Fall back before assigning any custom start when unique hub capacity is insufficient. See KI#271. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if len(regions_in_use) < iPlayers:
 		CyPythonMgr().allowDefaultImpl()
 		return
@@ -838,7 +844,8 @@ def assignStartingPlots():
 				player_list.append(plrCheckLoop)
 
 	# Shuffle start points so that players are assigned regions at random.
-	# <!-- custom: Preserve the actual ordered player IDs before consuming the list for shuffling. BTG's Numerical/Together branches substituted compact loop positions, assigning dead open slots and omitting sparse alive IDs. See KI#267. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: Preserve the actual ordered player IDs before consuming the list for shuffling.
+	# BTG's Numerical/Together branches substituted compact loop positions, assigning dead open slots and omitting sparse alive IDs. See KI#267. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	orderedPlayers = player_list[:]
 	shuffledPlayers = []
 	for playerLoopTwo in range(gc.getGame().countCivPlayersEverAlive()):
@@ -1244,7 +1251,8 @@ def normalizeAddExtras():
 							p.setBonusType(silver)
 							has_precious = True
 							break
-					# <!-- custom: The inherited forced-Silver fallback indexed an unproven nonempty boundary list. If the boundary list is empty, use an empty legal land plot already collected within seven tiles; if neither list has a plot, safely leave the optional normalization unmet. See KI#329. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+					# <!-- custom: The inherited forced-Silver fallback indexed an unproven nonempty boundary list.
+					# If the boundary list is empty, use an empty legal land plot already collected within seven tiles; if neither list has a plot, safely leave the optional normalization unmet. See KI#329. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 					if not has_precious:
 						plotsforced = plotsboundaries
 						if len(plotsforced) == 0:
@@ -1350,7 +1358,8 @@ def mirrorizeMap():
 	iH = map.getGridHeight()
 
 	region_duplicated_ID, iWestX, iSouthY, iWidth, iHeight = region_duplicated
-	# <!-- custom: Mirror only the common source/target footprint chosen during plot generation. Rounded third-based Cross regions can differ by one row/column; the inherited full-target loops read outside the source hub. See KI#273. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: Mirror only the common source/target footprint chosen during plot generation.
+	# Rounded third-based Cross regions can differ by one row/column; the inherited full-target loops read outside the source hub. See KI#273. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	minW = min([item[3] for item in other_regions])
 	minH = min([item[4] for item in other_regions])
 

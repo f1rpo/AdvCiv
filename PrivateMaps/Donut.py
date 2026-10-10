@@ -146,7 +146,9 @@ def getGridSize(argsList):
 		WorldSizeTypes.WORLDSIZE_TINY: (8,8),
 		WorldSizeTypes.WORLDSIZE_SMALL: (10,10),
 		WorldSizeTypes.WORLDSIZE_STANDARD: (13,13),
-		# <!-- custom: Donut felt somewhat oversized at larger world sizes in AdvCiv-SAS testing. Keep the square map shape, but reduce Large from 16 x 16 to 15 x 15 (256 -> 225 plots, about 12% fewer) and Huge from 20 x 20 to 19 x 19 (400 -> 361 plots, about 10% fewer); smaller square sizes are too coarse to shrink by only 5-10%. SAS world sizes calibrate from the Huge anchor too. (GPT-5.5) -->
+		# <!-- custom: Donut felt somewhat oversized at larger world sizes in AdvCiv-SAS testing.
+		# Keep the square map shape, but reduce Large from 16 x 16 to 15 x 15 (256 -> 225 plots, about 12% fewer) and Huge from 20 x 20 to 19 x 19 (400 -> 361 plots, about 10% fewer); smaller square sizes are too coarse to shrink by only 5-10%.
+		# SAS world sizes calibrate from the Huge anchor too. (GPT-5.5) -->
 		WorldSizeTypes.WORLDSIZE_LARGE: (15,15),
 		WorldSizeTypes.WORLDSIZE_HUGE: (19,19)
 	}
@@ -213,7 +215,8 @@ class DonutFractalWorld(CvMapGeneratorUtil.FractalWorld):
 def generatePlotTypes():
 	NiTextOut("Setting Plot Types (Python Donut) ...")
 	fractal_world = DonutFractalWorld()
-	# <!-- custom: Generic wrapped-map seam shifting rotated Donut's handcrafted plot disk while its later terrain pass remained centered on fixed coordinates, misaligning special center plots and terrain. Donut already guarantees ocean at its boundaries, so disabling the needless shift fixed the mismatch. See KI#283. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: Generic wrapped-map seam shifting rotated Donut's handcrafted plot disk while its later terrain pass remained centered on fixed coordinates, misaligning special center plots and terrain.
+	# Donut already guarantees ocean at its boundaries, so disabling the needless shift fixed the mismatch. See KI#283. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	return fractal_world.generatePlotTypes(shift_plot_types=False)
 
 # subclass TerrainGenerator to create a lush grassland utopia.

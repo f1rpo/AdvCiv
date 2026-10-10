@@ -850,7 +850,8 @@ int CvGlobals::getDefineINT(char const* szName, int iDefault) const
 	bool bSuccess =
 	#endif // </advc.003c>
 	getDefinesVarSystem()->GetValue(szName, iReturn);
-	// <!-- custom: Preserve the richer missing-define diagnostic in every assertion-enabled build. `_DEBUG` omitted it from AdvCiv's optimized Assert target even though lookup success is captured under `FASSERT_ENABLE`. See KI#596. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Preserve the richer missing-define diagnostic in every assertion-enabled build.
+	// `_DEBUG` omitted it from AdvCiv's optimized Assert target even though lookup success is captured under `FASSERT_ENABLE`. See KI#596. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	// FAssert(bSuccess); // advc.003c
 	#ifdef FASSERT_ENABLE
 	if (!bSuccess)

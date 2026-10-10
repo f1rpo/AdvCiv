@@ -367,7 +367,8 @@ class CvVictoryScreen:
 		screen.setTableColumnHeader(szTable, 0, "", self.TABLE2_WIDTH_0)
 		screen.setTableColumnHeader(szTable, 1, "", self.TABLE2_WIDTH_1)
 
-		# <!-- custom: shared fallback table for empty vote-source tabs (Voting/Members). Keep exhaustive tab navigation, show caller-specific intro text, and list required vote wonders with built/active state. (GPT-5.3-Codex) -->
+		# <!-- custom: shared fallback table for empty vote-source tabs (Voting/Members).
+		# Keep exhaustive tab navigation, show caller-specific intro text, and list required vote wonders with built/active state. (GPT-5.3-Codex) -->
 		iRow = screen.appendTableRow(szTable)
 		SASTextScale.setTableTextLabel(screen, szTable, 0, iRow, szIntroText, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
@@ -562,7 +563,8 @@ class CvVictoryScreen:
 			self.drawVoteSourceInactiveFallback(self.TEXT_MEMBERS_NO_VOTING_YET, [])
 			return
 
-		# <!-- custom: K-Mod imported this advanced BUG poll disabled and without a visible options checkbox. An exact DLL prediction was runtime-tested but rejected because it would expose hidden AI vote state while retaining statistical-poll labels; keep the supported plain Members view as the default. See KI#327. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: K-Mod imported this advanced BUG poll disabled and without a visible options checkbox.
+		# An exact DLL prediction was runtime-tested but rejected because it would expose hidden AI vote state while retaining statistical-poll labels; keep the supported plain Members view as the default. See KI#327. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if AdvisorOpt.isMembers():
 			if  iRelVote == -1:
 				self.VoteBody = 2 # AP Not active
@@ -1241,7 +1243,8 @@ class CvVictoryScreen:
 		SASTextScale.appendListBoxStringNoUpdateLabel(screen, szSettingsTable, " ", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		SASTextScale.appendListBoxStringNoUpdateLabel(screen, szSettingsTable, m.getMapScriptName(), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 
-		# <!-- custom: append the actual generated grid (CyMap getGridWidth/Height) so the real map size is verifiable, exposing scripts whose getGridSize ignores the WorldInfo size. This helped catch the old SAS_WorldSizes import-star compact-size leak. (Claude code Opus 4.7) -->
+		# <!-- custom: append the actual generated grid (CyMap getGridWidth/Height) so the real map size is verifiable, exposing scripts whose getGridSize ignores the WorldInfo size.
+		# This helped catch the old SAS_WorldSizes import-star compact-size leak. (Claude code Opus 4.7) -->
 		SASTextScale.appendListBoxStringNoUpdateLabel(screen, szSettingsTable, localText.getText("TXT_KEY_SETTINGS_MAP_SIZE", (gc.getWorldInfo(m.getWorldSize()).getTextKey(), )) + (u" (%d x %d)" % (m.getGridWidth(), m.getGridHeight())), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		SASTextScale.appendListBoxStringNoUpdateLabel(screen, szSettingsTable, localText.getText("TXT_KEY_SETTINGS_CLIMATE", (gc.getClimateInfo(m.getClimate()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		SASTextScale.appendListBoxStringNoUpdateLabel(screen, szSettingsTable, localText.getText("TXT_KEY_SETTINGS_SEA_LEVEL", (gc.getSeaLevelInfo(m.getSeaLevel()).getTextKey(), )), WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
@@ -2041,7 +2044,9 @@ class CvVictoryScreen:
 					eVictoryLevel = victory.getCityCulture()
 					iCultureThresh = gc.getGame().getCultureThreshold(eVictoryLevel)
 					# <!-- custom: add culture icon before text and use thousand separator (claude opus 4.5) -->
-					# <!-- custom: The TXT_KEY_VICTORY_SCREEN_CITY_CULTURE's output is hard to handle with numbers sometimes coming or a culture char or whatnot not at the position we want, in the victory screen's Legendary cities header as part of prettifying it. It seems easier to create one if i didn't do a mistake thinking so (check if accurate as i don't know too much about these). Simplified Cultural victory text for Victory Screen (claude opus 4.5). -->
+					# <!-- custom: The TXT_KEY_VICTORY_SCREEN_CITY_CULTURE's output is hard to handle with numbers sometimes coming or a culture char or whatnot not at the position we want, in the victory screen's Legendary cities header as part of prettifying it.
+					# It seems easier to create one if i didn't do a mistake thinking so (check if accurate as i don't know too much about these).
+					# Simplified Cultural victory text for Victory Screen (claude opus 4.5). -->
 					# <!-- note: uses TXT_KEY_VICTORY_SCREEN_LEGENDARY_CITIES instead of TXT_KEY_VICTORY_SCREEN_CITY_CULTURE for cleaner display -->
 					szCultureVictoryText = u"%c %d %s (%s)" % (self.iCultureIcon, victory.getNumCultureCities(), self.TEXT_LEGENDARY_CITIES, separateThousands(iCultureThresh, self.TEXT_THOUSANDS_SEPARATOR_COMMA))
 					SASTextScale.setTableTextLabel(screen, szTable, 0, iRow, szCultureVictoryText, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)

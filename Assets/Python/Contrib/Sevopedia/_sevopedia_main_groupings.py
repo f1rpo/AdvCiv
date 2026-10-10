@@ -51,7 +51,8 @@ def _SAS_findAssetXmlPath(szFileName, szSubDir):
 
 	candidates = []
 	try:
-		# <!-- custom: fallback independent from __file__: derive mod Assets from current BTS cwd + AdvCiv's actual EXE-detected mod folder, exposed through CvModName. Do not use the branded display name here: users may rename the installed folder.
+		# <!-- custom: fallback independent from __file__: derive mod Assets from current BTS cwd + AdvCiv's actual EXE-detected mod folder, exposed through CvModName.
+		# Do not use the branded display name here: users may rename the installed folder.
 		# This still avoids calling BugPath during early startup. See KI#110. (GPT-5.3-Codex + ChatGPT-5.6-Sol) -->
 		import CvModName
 		szModName = CvModName.getFolderName()
@@ -88,7 +89,8 @@ def SAS_isFoodYieldImprovement(iImprovement):
 
 	return False
 
-# <!-- custom: in sevopedia improvement list, group improvements by whether their terrain is a water type or not (e.g. Land Improvements -> Farm/Pasture, Water Improvements -> Fishing Boats/Offshore Platform) an idea i got from seeing ingame how it is in the Middle-Earth mod which i find very polished and took ideas from btw  thanks; plus other subgroups we added in advciv-sas. Implemented with chatgpt 5.2's help as for as of now the other ones thanks a lot -->
+# <!-- custom: in sevopedia improvement list, group improvements by whether their terrain is a water type or not (e.g. Land Improvements -> Farm/Pasture, Water Improvements -> Fishing Boats/Offshore Platform) an idea i got from seeing ingame how it is in the Middle-Earth mod which i find very polished and took ideas from btw thanks; plus other subgroups we added in advciv-sas.
+# Implemented with chatgpt 5.2's help as for as of now the other ones thanks a lot -->
 # Group improvements as:
 # - Land (Growth): land improvements in an upgrade chain (e.g. Cottage -> Hamlet -> Village -> Town)
 # - Land (Bonus-capable): land improvements that can interact with bonuses (trade/connect or bonus yields)
@@ -214,7 +216,8 @@ def SAS_getTerrainsGroupedByLandWater_fromBaseList(baseList, bSortLists, highIds
 
 	return r
 
-# <!-- custom: in sevopedia feature list, group features by Land (Removable), Land (Other), and Water. Added with the help of chatgpt 5.2 thanks. -->
+# <!-- custom: in sevopedia feature list, group features by Land (Removable), Land (Other), and Water.
+# Added with the help of chatgpt 5.2 thanks. -->
 # Implementation note:
 # - We detect "Water" features by checking if the feature can appear on any true water terrain using FeatureInfo.isTerrain(iTerrain).
 # - We detect "Removable" land features by scanning CvBuildInfo for a build that removes that feature.
@@ -357,7 +360,8 @@ def SAS_getBonusesGroupedByImprovement_fromBaseList(baseList, bSortLists):
 
 	return bonusesList
 
-# <!-- custom: in sevopedia improvement list, group improvements by whether their terrain is a water type or not (e.g. Land Improvements -> Farm/Pasture, Water Improvements -> Fishing Boats/Offshore Platform) an idea i got from seeing ingame how it is in the Middle-Earth mod which i find very polished and took ideas from btw  thanks; plus other subgroups we added in advciv-sas. Implemented with chatgpt 5.2's help as for as of now the other ones thanks a lot -->
+# <!-- custom: in sevopedia improvement list, group improvements by whether their terrain is a water type or not (e.g. Land Improvements -> Farm/Pasture, Water Improvements -> Fishing Boats/Offshore Platform) an idea i got from seeing ingame how it is in the Middle-Earth mod which i find very polished and took ideas from btw thanks; plus other subgroups we added in advciv-sas.
+# Implemented with chatgpt 5.2's help as for as of now the other ones thanks a lot -->
 # Group improvements as:
 # - Land (Growth): land improvements in an upgrade chain (e.g. Cottage -> Hamlet -> Village -> Town)
 # - Land (Bonus-capable): land improvements that can interact with bonuses (trade/connect or bonus yields)
@@ -401,16 +405,14 @@ def SAS_getImprovementsGroupedByTerrain_fromBaseList(baseList, bSortLists):
 
 	for (szName, iImprovement) in baseList:
 		info = gc.getImprovementInfo(iImprovement)
-		# <!-- custom: Expose graphical-only improvements such as worked-land/water markers in Sevopedia, mirroring how
-		# Sevopedia Terrain shows graphical-only Peak/Hill because they provide useful map and rules context. Keep these
-		# separate from gameplay improvements because helper predicates intentionally ignore graphical-only infos. (GPT-5.5) -->
+		# <!-- custom: Expose graphical-only improvements such as worked-land/water markers in Sevopedia, mirroring how Sevopedia Terrain shows graphical-only Peak/Hill because they provide useful map and rules context.
+		# Keep these separate from gameplay improvements because helper predicates intentionally ignore graphical-only infos. (GPT-5.5) -->
 		if info and info.isGraphicalOnly():
 			graphicalOnly.append((szName, iImprovement))
 			continue
-		# <!-- custom: Show special map improvements separately from Worker improvements. These are not graphical-only
-		# infos; they are map/engine-placed improvements with no creating Build, so they fail AdvCiv's old filter for
-		# Worker improvements with pillage/features/outside-border rules. World Advisor Territory and BFC 2 can expose
-		# them on real plots, so Sevopedia should document them too. (GPT-5.5) -->
+		# <!-- custom: Show special map improvements separately from Worker improvements.
+		# These are not graphical-only infos; they are map/engine-placed improvements with no creating Build, so they fail AdvCiv's old filter for Worker improvements with pillage/features/outside-border rules.
+		# World Advisor Territory and BFC 2 can expose them on real plots, so Sevopedia should document them too. (GPT-5.5) -->
 		if SAS_isSpecialMapImprovement(iImprovement):
 			specialMap.append((szName, iImprovement))
 			continue
@@ -783,7 +785,8 @@ def SAS_getBuildingAvailabilityEra(iBuilding, iNumAndTechs):
 	iEra = -1
 
 	# Main AND prereq tech (<PrereqTech>)
-	# <!-- custom: it seems getPrereqOrTechs does not exist causing a python error, but with the help of chatgpt 5.2 found the correct way to fetch tech prereqs that addresses and fixes it and that works as intended in displaying the building at latest tech prereq of the building's corresponding era. Seems to run fine in testing/empirically -->
+	# <!-- custom: it seems getPrereqOrTechs does not exist causing a python error, but with the help of chatgpt 5.2 found the correct way to fetch tech prereqs that addresses and fixes it and that works as intended in displaying the building at latest tech prereq of the building's corresponding era.
+	# Seems to run fine in testing/empirically -->
 	# When first implementing era-tiered building lists, we hit a crash: AttributeError: 'CvBuildingInfo' object has no attribute 'getPrereqOrTechs' (Python traceback from SevoPediaMain.getBuildingList). We verified the cause by inspecting our exported Cy/Cv infos (see as of now Sevopedia/Debug/): CvBuildingInfo in this DLL exposes getPrereqAndTech() + getPrereqAndTechs(i), but NOT getPrereqOrTechs(i) (unlike some other mods / DLLs). (Mapping to our XML schema: <PrereqTech> maps to getPrereqAndTech(), and <TechTypes><PrereqTech>...</PrereqTech></TechTypes> maps to getPrereqAndTechs(i).)
 	# Fix: compute the building "availability era" using only these AND-tech prereqs: start with getPrereqAndTech(), then scan additional prereqs via getPrereqAndTechs(i) for i in range(gc.getNUM_BUILDING_AND_TECH_PREREQS()). We bucket the building into the LATEST (max) era among these prereq techs, so it shows up in the era when it actually becomes buildable.
 	# Empirical sanity check: we tested a building with two widely separated PrereqTech and TechTypes (e.g. TECH_MATHEMATICS (Classical) and TECH_FUSION (Future)) in both permutations (A then B, and B then A), and in both cases the building was listed under the later era (Future), confirming the "max era of prereqs" rule behaves correctly in practice.
@@ -801,7 +804,10 @@ def SAS_getBuildingAvailabilityEra(iBuilding, iNumAndTechs):
 				iEra = iEra2
 
 	# SpecialBuilding tech prereq (eg monasteries gated by SPECIALBUILDING tech)
-	# <!-- custom: special buildings need also to be checked for a tech prereq. For example the buddhist monastery as of now has no TechPrereq and TechTypes NONE, but the parent specialbuilding_monastery requires TECH_MONARCHY. Yet, without taking special buildings into account, the buddhist monastery is incorrectly listed at the "No Tech Prereq" part instead of at the "Classical Era" part. Fix this by taking their actual tech prereq into account properly with the help of chatgpt 5.2 thanks -->
+	# <!-- custom: special buildings need also to be checked for a tech prereq.
+	# For example the buddhist monastery as of now has no TechPrereq and TechTypes NONE, but the parent specialbuilding_monastery requires TECH_MONARCHY.
+	# Yet, without taking special buildings into account, the buddhist monastery is incorrectly listed at the "No Tech Prereq" part instead of at the "Classical Era" part.
+	# Fix this by taking their actual tech prereq into account properly with the help of chatgpt 5.2 thanks -->
 	# Yep — that’s exactly why: for "special buildings" (Temple/Cathedral/Monastery/etc.), the real tech gate often lives in CIV4SpecialBuildingInfos.xml (e.g. SPECIALBUILDING_MONASTERY has TechPrereq = TECH_MONARCHY). So your era-bucketing currently sees "no building tech prereq" and dumps it into All Eras.
 	# Also consider SpecialBuilding tech prereq (e.g. Monastery -> TECH_MONARCHY in CIV4SpecialBuildingInfos.xml)
 	iSpecialBuildingType = info.getSpecialBuildingType()
@@ -860,7 +866,8 @@ def SAS_getUnitAvailabilityEra(iUnit, iNumUnitAndTechs, iNumBuildingAndTechs):
 			if iReligionEra > iEra:
 				iEra = iReligionEra
 
-	# <!-- custom: note: executives's tech actual requirement not implemented here, as in advciv-sas they also have a prereq tech (see XML code comments or main changes guide or such for rationale). Otherwise the implementation so they are listed at e.g. "Industrial" Era and not "No Tech Prerequisite" (which does not reflect their effective ingame availabilty: not until later eras) would be tedious from what i understand of chatgpt 5.2's explanation and solution (plus we don't need to so better not); check if accurate -->
+	# <!-- custom: note: executives's tech actual requirement not implemented here, as in advciv-sas they also have a prereq tech (see XML code comments or main changes guide or such for rationale).
+	# Otherwise the implementation so they are listed at e.g. "Industrial" Era and not "No Tech Prerequisite" (which does not reflect their effective ingame availabilty: not until later eras) would be tedious from what i understand of chatgpt 5.2's explanation and solution (plus we don't need to so better not); check if accurate -->
 	# Yes — for your mod, adding a tech prereq directly on Executive units is the simplest and arguably the cleanest fix, and it also matches the design logic you already used for shrines ("captured thing exists locally, but you can’t mass-produce/spread it without understanding the tech").
 
 	return iEra  # -1 means "no tech prereq bucket"
@@ -1246,8 +1253,7 @@ def SAS_getCivicsGroupedByCivicOption(bSortLists):
 
 	return civicsList
 
-# <!-- custom: in sevopedia leaders, group leaders by civilization so same-civ leaders are adjacent
-# under each civ header (e.g. Persia -> Cyrus, Darius). (GPT-5.3-Codex) -->
+# <!-- custom: in sevopedia leaders, group leaders by civilization so same-civ leaders are adjacent under each civ header (e.g. Persia -> Cyrus, Darius). (GPT-5.3-Codex) -->
 def SAS_getLeadersGroupedByCivilization(bSortLists):
 	leadersList = []
 	iNumLeaders = gc.getNumLeaderHeadInfos()
@@ -1291,8 +1297,7 @@ def SAS_getLeadersGroupedByCivilization(bSortLists):
 
 	return leadersList
 
-# <!-- custom: in sevopedia civilizations, group civs by ArtStyleType so visually related civs are
-# adjacent (e.g. European/Asian/Middle East groups). (GPT-5.3-Codex) -->
+# <!-- custom: in sevopedia civilizations, group civs by ArtStyleType so visually related civs are adjacent (e.g. European/Asian/Middle East groups). (GPT-5.3-Codex) -->
 def SAS_getCivilizationsGroupedByArtStyle(bSortLists):
 	grouped = {}  # iArtStyle -> [(civName, iCiv), ...]
 
@@ -1341,10 +1346,9 @@ def _SAS_addSection(listEntries, szHeader, items):
 	for x in items:
 		listEntries.append(x)
 
-# <!-- custom: shorten vote labels in the left list so they fit in the item bar without
-# changing global list width. We strip source prefixes (already shown by section headers),
-# then abbreviate Election -> E: and Resolution # -> R#. Full vote names remain visible on
-# the vote page itself. (GPT-5.4?) -->
+# <!-- custom: shorten vote labels in the left list so they fit in the item bar without changing global list width.
+# We strip source prefixes (already shown by section headers), then abbreviate Election -> E: and Resolution # -> R#.
+# Full vote names remain visible on the vote page itself. (GPT-5.4?) -->
 def _SAS_shortenVoteListLabel(szLabel):
 	if not szLabel:
 		return szLabel
@@ -1365,10 +1369,9 @@ def _SAS_shortenVoteListLabel(szLabel):
 		return "R#"
 	return szOut
 
-# <!-- custom: sort vote sources from oldest to newest using the hosting building's
-# prerequisite AND tech progression (era, then grid X). This places Apostolic Palace
-# before United Nations in default XML. Fallback keeps deterministic order by source id.
-# (GPT-5.4?) -->
+# <!-- custom: sort vote sources from oldest to newest using the hosting building's prerequisite AND tech progression (era, then grid X).
+# This places Apostolic Palace before United Nations in default XML.
+# Fallback keeps deterministic order by source id. (GPT-5.4?) -->
 def _SAS_getVoteSourceOldestFirstSortKey(iVoteSource):
 	for iBuilding in range(gc.getNumBuildingInfos()):
 		bi = gc.getBuildingInfo(iBuilding)
@@ -1381,10 +1384,9 @@ def _SAS_getVoteSourceOldestFirstSortKey(iVoteSource):
 			return (999, 999, iVoteSource)
 	return (999, 999, iVoteSource)
 
-# <!-- custom: Sevopedia Votes grouped by vote source. Each vote in current
-# CIV4VoteInfo.xml has exactly one source (isVoteSourceType true for one iVoteSource),
-# so we attribute each vote to the first matching source. Modders adding multi-source votes
-# would need custom duplication/grouping logic. (Claude code Opus 4.7 + GPT-5.4?) -->
+# <!-- custom: Sevopedia Votes grouped by vote source.
+# Each vote in current CIV4VoteInfo.xml has exactly one source (isVoteSourceType true for one iVoteSource), so we attribute each vote to the first matching source.
+# Modders adding multi-source votes would need custom duplication/grouping logic. (Claude code Opus 4.7 + GPT-5.4?) -->
 def SAS_getVotesGroupedByVoteSource(bSortLists):
 	listEntries = []
 	iNumVoteSources = gc.getNumVoteSourceInfos()
@@ -1462,7 +1464,8 @@ def _SAS_getUnitClassEra(iUnitClass):
 	return _SAS_getTechEra(unitInfo.getPrereqAndTech())
 
 def _SAS_getThresholdEra(aiEras, iRequiredCount):
-	# <!-- custom: Return the earliest era in which the requested number of distinct eligible types can exist. Keep -1 entries: a type without a tech prerequisite is available before any era gate and must win a one-of pool instead of letting a later alternative delay it. See KI#225. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: Return the earliest era in which the requested number of distinct eligible types can exist.
+	# Keep -1 entries: a type without a tech prerequisite is available before any era gate and must win a one-of pool instead of letting a later alternative delay it. See KI#225. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if iRequiredCount <= 0 or len(aiEras) <= 0:
 		return -1
 	aiSortedEras = aiEras[:]
@@ -1482,15 +1485,11 @@ def _SAS_getEventTriggerForEvent(iEvent):
 	return -1
 
 def _SAS_getEventTriggerEarliestEraAndSource(iTrigger, seenTriggers=None):
-	# <!-- custom: returns (iEra, bDirect). bDirect is True when the trigger declares
-	# at least one entry in <OrPreReqs> or <AndPreReqs> — i.e. the era is visible at
-	# a glance on the trigger itself. bDirect is False when the era had to be inferred
-	# indirectly via chain lookups (OtherPlayerHasTech, prerequisite event chains,
-	# required civic/building/unit/religion/corporation). The grouping function uses this to split each era section
-	# into "Ancient" vs "Ancient (indirect)" so readers can tell at-a-glance which
-	# triggers are obviously era-gated vs which rely on our indirect inference.
-	# iEra is -1 only when NO prereq of any kind gives an era — in that case bDirect
-	# is irrelevant (caller puts those in the "Any era" bucket). (Claude code Opus 4.7; GPT-5.5 update) -->
+	# <!-- custom: returns (iEra, bDirect).
+	# bDirect is True when the trigger declares at least one entry in <OrPreReqs> or <AndPreReqs> — i.e. the era is visible at a glance on the trigger itself.
+	# bDirect is False when the era had to be inferred indirectly via chain lookups (OtherPlayerHasTech, prerequisite event chains, required civic/building/unit/religion/corporation).
+	# The grouping function uses this to split each era section into "Ancient" vs "Ancient (indirect)" so readers can tell at-a-glance which triggers are obviously era-gated vs which rely on our indirect inference.
+	# iEra is -1 only when NO prereq of any kind gives an era — in that case bDirect is irrelevant (caller puts those in the "Any era" bucket). (Claude code Opus 4.7; GPT-5.5 update) -->
 	if seenTriggers is None:
 		seenTriggers = {}
 	if iTrigger in seenTriggers:
@@ -1552,7 +1551,8 @@ def _SAS_getEventTriggerEarliestEraAndSource(iTrigger, seenTriggers=None):
 				aiUnitEras.append(_SAS_getUnitClassEra(iUnitClass))
 		_bumpIndirect(_SAS_getThresholdEra(aiUnitEras, 1))
 
-	# <!-- custom: Player-level religion/corporation thresholds count distinct eligible types. City triggers instead require the total count in one city and, when a list is present, any one listed type; combine those two gates rather than treating every listed type as mandatory. See KI#225. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: Player-level religion/corporation thresholds count distinct eligible types.
+	# City triggers instead require the total count in one city and, when a list is present, any one listed type; combine those two gates rather than treating every listed type as mandatory. See KI#225. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if info.getNumReligions() > 0:
 		aiReligionEras = []
 		for i in range(info.getNumReligionsRequired()):
@@ -1596,8 +1596,7 @@ def _SAS_getEventTriggerEarliestEraAndSource(iTrigger, seenTriggers=None):
 		elif len(aiCorporationEras) > 0:
 			_bumpIndirect(_SAS_getThresholdEra(aiCorporationEras, info.getNumCorporations()))
 	# <!-- custom: prerequisite event chains inherit the prerequisite trigger's inferred era.
-	# This stays indirect because the current trigger does not declare the tech itself; it
-	# depends on a prior event outcome that may have its own tech or chain gate. (GPT-5.5) -->
+	# This stays indirect because the current trigger does not declare the tech itself; it depends on a prior event outcome that may have its own tech or chain gate. (GPT-5.5) -->
 	for i in range(info.getNumPrereqEvents()):
 		iPrereqEvent = info.getPrereqEvent(i)
 		iPrereqTrigger = _SAS_getEventTriggerForEvent(iPrereqEvent)
@@ -1823,8 +1822,7 @@ def SAS_getMoviesListGroupedByType(bSortLists, packMovieKey, unpackMovieKey, iTy
 		elif iType == iTypeCorporation:
 			corporationItems.append((szName, iPacked))
 
-	# <!-- custom: Sort eraItems by era index (chronological order) regardless of bSortLists
-	# (Era order should always be Ancient -> Classical -> Medieval -> etc.) (Claude code Sonnet 4.5) -->
+	# <!-- custom: Sort eraItems by era index (chronological order) regardless of bSortLists (Era order should always be Ancient -> Classical -> Medieval -> etc.) (Claude code Sonnet 4.5) -->
 	if eraItems:
 		eraItems.sort(key=lambda x: unpackMovieKey(x[1])[1])
 

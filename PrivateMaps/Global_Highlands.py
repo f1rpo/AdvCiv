@@ -143,7 +143,8 @@ def addBonusType(argsList):
 
 def getGridSize(argsList):
 	"Enlarge the grids! Need extra land to cover that 'wasted' by all the peaks!"
-	# <!-- custom: Even after using XML-aligned WorldSizeTypes, this peak-heavy script is empirically still too large, so use one smaller base world-size grid (e.g. Huge uses the old Large grid). Same issue in Base AdvCiv empirically. See KI#138. (ChatGPT-5.5) -->
+	# <!-- custom: Even after using XML-aligned WorldSizeTypes, this peak-heavy script is empirically still too large, so use one smaller base world-size grid (e.g. Huge uses the old Large grid).
+	# Same issue in Base AdvCiv empirically. See KI#138. (ChatGPT-5.5) -->
 	grid_sizes = {
 		WorldSizeTypes.WORLDSIZE_ARENA: (8,5),
 		WorldSizeTypes.WORLDSIZE_DUEL: (10,6),
@@ -232,7 +233,8 @@ def generatePlotTypes():
 
 	# Varying grains for hills/peaks per map size and Mountain Ranges setting.
 	# [clustered_grain, ridgelines_grain, scattered_grain]
-	# <!-- custom: Global Highlands retained the legacy six-tier table, making Arena fall upward to Huge grain and leaving SAS24-48 one grain coarser than the established Highlands extension. Keep both sibling scripts aligned. See KI#279. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: Global Highlands retained the legacy six-tier table, making Arena fall upward to Huge grain and leaving SAS24-48 one grain coarser than the established Highlands extension.
+	# Keep both sibling scripts aligned. See KI#279. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	worldsizes = {
 		WorldSizeTypes.WORLDSIZE_ARENA:     [3,4,5],
 		WorldSizeTypes.WORLDSIZE_DUEL:      [3,4,5],

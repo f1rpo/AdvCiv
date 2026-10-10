@@ -286,10 +286,9 @@ class SevoPediaUnit:
 			screen.appendListBoxStringNoUpdate(panelName, SASTextScale.titleText(szStrengthText), WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
 
 		eDomain = gc.getUnitInfo(self.iUnit).getDomainType()
-		# <!-- custom: don't show movement for domain immobile units (missiles and such for example, not air fighters and such) --> 
+		# <!-- custom: don't show movement for domain immobile units (missiles and such for example, not air fighters and such) -->
 		if eDomain != DomainTypes.DOMAIN_IMMOBILE:
-			# <!-- custom: show all stats that we want/have as they are, including 1 move air or
-			# 4 move helicopter -->
+			# <!-- custom: show all stats that we want/have as they are, including 1 move air or 4 move helicopter -->
 			## Don't show 1 move for air units
 			#elif eDomain != DomainTypes.DOMAIN_AIR: # </advc.004y>
 			szMovement = localText.getText("TXT_KEY_PEDIA_MOVEMENT_CUSTOM", (gc.getUnitInfo(self.iUnit).getMoves(),))
@@ -775,7 +774,8 @@ class SevoPediaUnit:
 				captureText = localText.getText("TXT_KEY_UNIT_MAY_GRANT_UNITS_ON_CAPTURE", ())
 				szSpecialText += u"\n%s%s: %s" % (bullet, captureText, unitCaptureClassTypeInfo.getType())
 
-		# <!-- custom: add ai info for players and me too hehe: should be valuable for info or balancing, added with the help of claude ai and my prompts and adjustments and inspect or and such... if players want to see it xd, as for me yes i want! -->
+		# <!-- custom: add ai info for players and me too hehe: should be valuable for info or balancing, added with the help of claude ai and my prompts and adjustments and inspect or and such...
+		# if players want to see it xd, as for me yes i want! -->
 		if IS_SHOW_AI_INFO:
 			# Add Default UnitAI
 			defaultUnitAI = unitInfo.getDefaultUnitAIType()
@@ -893,7 +893,8 @@ class SevoPediaUnit:
 				iCivUnit = gc.getCivilizationInfo(iCiv).getCivilizationUnits(iUnitClass)
 				if iCivUnit == self.iUnit:
 					screen.attachImageButton(panelName, "", gc.getCivilizationInfo(iCiv).getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_CIV, iCiv, -1, False)
-		# <!-- custom: A class-default unit is not available to civilizations that map its class to a replacement or NONE. Keep the one-token panel as `AllR`, with its exact All Remaining Civilizations scope explained in the Sevopedia Legend, instead of redundantly listing every ordinary civilization. See KI#321. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: A class-default unit is not available to civilizations that map its class to a replacement or NONE.
+		# Keep the one-token panel as `AllR`, with its exact All Remaining Civilizations scope explained in the Sevopedia Legend, instead of redundantly listing every ordinary civilization. See KI#321. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		else:
 			# <!-- custom: prettier display -->
 			textName = self.top.getNextWidgetName()

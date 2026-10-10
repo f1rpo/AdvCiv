@@ -364,7 +364,8 @@ public:
 	void changeObsoleteBuildingCount(BuildingTypes eIndex, int iChange);
 
 	int getResearchProgress(TechTypes eIndex) const;																						// Exposed to Python
-	// <!-- custom: Added eCause to setResearchProgress, changeResearchProgress and changeResearchProgressPercent. Carry the final source through research-progress completion so GameRecord does not mislabel Great-Person, event, Barbarian, or scripted progress as ordinary research; defaults preserve existing Python/script calls as UNKNOWN. (GPT-5.6-Sol + GPT-5.6 Thinking) -->
+	// <!-- custom: Added eCause to setResearchProgress, changeResearchProgress and changeResearchProgressPercent.
+	// Carry the final source through research-progress completion so GameRecord does not mislabel Great-Person, event, Barbarian, or scripted progress as ordinary research; defaults preserve existing Python/script calls as UNKNOWN. (GPT-5.6-Sol + GPT-5.6 Thinking) -->
 	void setResearchProgress(TechTypes eIndex, int iNewValue, PlayerTypes ePlayer, TechAcquisitionCause eCause = TECH_ACQUISITION_UNKNOWN); // Exposed to Python
 	void changeResearchProgress(TechTypes eIndex, int iChange, PlayerTypes ePlayer, TechAcquisitionCause eCause = TECH_ACQUISITION_UNKNOWN); // Exposed to Python
 	int changeResearchProgressPercent(TechTypes eIndex, int iPercent, PlayerTypes ePlayer, TechAcquisitionCause eCause = TECH_ACQUISITION_UNKNOWN);

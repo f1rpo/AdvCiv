@@ -796,7 +796,8 @@ bool CvDLLButtonPopup::launchButtonPopup(CvPopup* pPopup, CvPopupInfo &info)
 	ButtonPopupTypes const eType = info.getButtonPopupType();
 	// <advc.706>
 	CvGame& kGame = GC.getGame();
-	// <!-- custom: BUTTONPOPUP_TEXT has only an informational body and its OK handler performs no action. While AI Auto Play is active, optionally omit only this safe type so unattended runs continue; never auto-accept any popup that represents a gameplay or session decision. See KI#203. (GPT-5.6-Sol) -->
+	// <!-- custom: BUTTONPOPUP_TEXT has only an informational body and its OK handler performs no action.
+	// While AI Auto Play is active, optionally omit only this safe type so unattended runs continue; never auto-accept any popup that represents a gameplay or session decision. See KI#203. (GPT-5.6-Sol) -->
 	static const bool bSASAutoDismissAutoPlayInformationalPopups = (GC.getDefineINT("SAS_AIAUTOPLAY_AUTO_DISMISS_INFORMATIONAL_POPUPS_ENABLE") > 0);
 	if (bSASAutoDismissAutoPlayInformationalPopups && kGame.getAIAutoPlay() > 0 && eType == BUTTONPOPUP_TEXT)
 	{

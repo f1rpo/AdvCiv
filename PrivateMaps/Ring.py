@@ -949,7 +949,8 @@ class RingFeatureGenerator(CvMapGeneratorUtil.FeatureGenerator):
 
 		self.iGridW = self.map.getGridWidth()
 		self.iGridH = self.map.getGridHeight()
-		# <!-- custom: Inherited east/north formulas mixed the center coordinate with the full far-edge coordinate, placing those transition boundaries inside the Snowy center and eliminating the Evergreen bands. Mirror the west/south 70% distance calculation from the far edges. See KI#287. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: Inherited east/north formulas mixed the center coordinate with the full far-edge coordinate, placing those transition boundaries inside the Snowy center and eliminating the Evergreen bands.
+		# Mirror the west/south 70% distance calculation from the far edges. See KI#287. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		iMaxX = self.iGridW - 1
 		iMaxY = self.iGridH - 1
 		self.pineWestX = int(self.cenWestX * 0.7)
@@ -1100,7 +1101,8 @@ def assignStartingPlots():
 		iStartY = regSouthY + int(regHeight / 2)
 		start_plots.append([iStartX, iStartY])
 
-	# <!-- custom: Ring used compact list positions as real PlayerTypes, so sparse/high-ID players lost their handcrafted regions. Assign shuffled template IDs directly to the actual ever-alive player IDs. See KI#267. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: Ring used compact list positions as real PlayerTypes, so sparse/high-ID players lost their handcrafted regions.
+	# Assign shuffled template IDs directly to the actual ever-alive player IDs. See KI#267. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	player_list = range(iPlayers)
 	shuffledPlayers = {}
 	for playerLoop in range(gc.getMAX_CIV_PLAYERS()):

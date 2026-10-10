@@ -1141,7 +1141,8 @@ protected:
 	bool m_bInvestigate; // advc.103: Refers to the active team
 	bool m_bMostRecentUnit; // advc.004x
 	bool m_bChooseProductionDirty; // advc.003u: Moved from CvCityAI
-	// <!-- custom: Track whether the human BFC convenience code owns its forced Artist, or whether the human has taken control. Persist this in current saves so cleanup never guesses from the total forced count after reloading. See KI#313. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Track whether the human BFC convenience code owns its forced Artist, or whether the human has taken control.
+	// Persist this in current saves so cleanup never guesses from the total forced count after reloading. See KI#313. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	enum SASAutoBFCHumanArtistState
 	{
 		SAS_AUTO_BFC_HUMAN_ARTIST_AVAILABLE,

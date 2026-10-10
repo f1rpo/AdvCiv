@@ -87,7 +87,8 @@ c_favWeight = 0       # Default: 0; Value not used. Change Weight Directly
 # c_spacePerCiv for some dicisions regarding start plot placement.
 # NOTE: Dont Choose both numbers too big - the conditions will be ignored, if
 # there is not enought space.
-# <!-- custom: RandomScriptMap still has legacy 0..5 Duel..Huge tuning arrays below; convert XML-aligned WorldSizeTypes to those legacy bucket indexes before indexing them. Arena reuses Duel tuning and SAS sizes reuse Huge tuning. (GPT-5.5? + ChatGPT-5.5) -->
+# <!-- custom: RandomScriptMap still has legacy 0..5 Duel..Huge tuning arrays below; convert XML-aligned WorldSizeTypes to those legacy bucket indexes before indexing them.
+# Arena reuses Duel tuning and SAS sizes reuse Huge tuning. (GPT-5.5? + ChatGPT-5.5) -->
 c_minStartAreaSize = [6, 6, 8, 8, 10, 10]   # Default [6, 6, 8, 8, 10, 10]
 c_spacePerCiv = [40, 50, 50, 75, 75, 90]    # Default [40,50,50,75,75,90]
 #
@@ -116,7 +117,8 @@ STA_OLDWORLD = 2
 STA_OLDCOAST = 3
 
 def _sas_world_size_base_index(eWorldSize):
-	# <!-- custom: Convert XML-aligned WorldSizeTypes to RandomScriptMap's legacy 0..5 Duel..Huge tuning buckets. Arena reuses Duel tuning and SAS sizes reuse Huge tuning. (GPT-5.5? + ChatGPT-5.5) -->
+	# <!-- custom: Convert XML-aligned WorldSizeTypes to RandomScriptMap's legacy 0..5 Duel..Huge tuning buckets.
+	# Arena reuses Duel tuning and SAS sizes reuse Huge tuning. (GPT-5.5? + ChatGPT-5.5) -->
 	size_index_values = {
 		WorldSizeTypes.WORLDSIZE_ARENA: 0,
 		WorldSizeTypes.WORLDSIZE_DUEL: 0,
@@ -509,7 +511,8 @@ def isValidCoast(playerID, x, y):
 # not sure if it will cause problems or overcrowding the coastal lines.
 #
 def isValidBoth(playerID, x, y):
-	# <!-- custom: Coastal on Biggest Land raised UnboundLocalError before testing any plot because this function incremented an uninitialized, otherwise-unused local counter. Removing that obsolete increment restores the requested coastal/Old-World validator. See KI#275. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: Coastal on Biggest Land raised UnboundLocalError before testing any plot because this function incremented an uninitialized, otherwise-unused local counter.
+	# Removing that obsolete increment restores the requested coastal/Old-World validator. See KI#275. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	map = CyMap()
 	pPlot = map.plot(x, y)
 	# Don't Start in Polar Regions.
@@ -1042,7 +1045,8 @@ class R_TerraMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 
         # The following regions are specific to Terra.py
         newworldWestLon = 0.02 + 0.01 * self.dice.get(6, "Rnd,Terra,Python")
-        # <!-- custom: Refar's later quadrant shifts could move randomized regions outside the compositor: New World east reached 1.02 and Eurasia south reached -0.02. Keep the randomized margins but constrain their bases to 0.36-0.39 and 0.40-0.46, so +0.60 remains below 1 and -0.40 remains at or above 0. See KI#277. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+        # <!-- custom: Refar's later quadrant shifts could move randomized regions outside the compositor: New World east reached 1.02 and Eurasia south reached -0.02.
+        # Keep the randomized margins but constrain their bases to 0.36-0.39 and 0.40-0.46, so +0.60 remains below 1 and -0.40 remains at or above 0. See KI#277. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
         newworldEastLon = 0.36 + 0.01 * self.dice.get(4, "Rnd,Terra,Python")
         eurasiaWestLon = 0.40 + 0.01 * self.dice.get(7, "Rnd,Terra,Python")  
         eurasiaEastLon = 0.93 + 0.01 * self.dice.get(6, "Rnd,Terra,Python")
@@ -1410,7 +1414,8 @@ class R_MnSMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
         global yShiftRoll2
         yShiftRoll1 = self.dice.get(2, "Python, RndMapUtil, Mns")
         yShiftRoll2 = self.dice.get(4, "Python, RndMapUtil, Mns")
-        # <!-- custom: Refar used comparison expressions where it meant to coerce rolls 2/3 to the opposite binary orientation. Assigning the intended value fixes the 25% case where both map halves shifted the same way. See KI#276. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+        # <!-- custom: Refar used comparison expressions where it meant to coerce rolls 2/3 to the opposite binary orientation.
+        # Assigning the intended value fixes the 25% case where both map halves shifted the same way. See KI#276. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
         if ( yShiftRoll2 > 1 ) :
             if ( yShiftRoll1 == 0 ) :
                 yShiftRoll2 = 1

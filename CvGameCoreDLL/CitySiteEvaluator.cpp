@@ -34,7 +34,8 @@ static int getSASEvaluateYieldValuePercent(YieldTypes eYield)
 	}
 }
 
-// <!-- custom: Found diagnostics observe the evaluations already performed by gameplay. Logging must not enable a replay, change planned-site rules or bypass evaluator caches. See KI#505.2. (GPT-6.1-Sol) -->
+// <!-- custom: Found diagnostics observe the evaluations already performed by gameplay.
+// Logging must not enable a replay, change planned-site rules or bypass evaluator caches. See KI#505.2. (GPT-6.1-Sol) -->
 
 CitySiteEvaluator::PlotPotentialYield::PlotPotentialYield()
 :	iValue(0), eImprovement(NO_IMPROVEMENT), iTimingPercent(0)
@@ -238,7 +239,8 @@ int CitySiteEvaluator::evaluate(int iX, int iY) const
 }
 
 
-// <!-- custom: Build a compact exact-stage breakdown only for guarded first-city diagnostics. Normal evaluation passes no output string and does no formatting. (GPT-5.5) -->
+// <!-- custom: Build a compact exact-stage breakdown only for guarded first-city diagnostics.
+// Normal evaluation passes no output string and does no formatting. (GPT-5.5) -->
 int CitySiteEvaluator::evaluateWithBreakdown(CvPlot const& kPlot, CvString& szBreakdown) const
 {
 	AIFoundValue foundVal(kPlot, *this, &szBreakdown);
@@ -373,7 +375,8 @@ AIFoundValue::AIFoundValue(CvPlot const& kPlot, CitySiteEvaluator const& kSettin
 	eTeam(kPlayer.getTeam()), kTeam(GET_TEAM(eTeam)), kGame(GC.getGame()), iX(kPlot.getX()), iY(kPlot.getY())
 {
 	PROFILE_FUNC();
-	// <!-- custom: Record the evaluation's invariant information/settings flags in BEGIN instead of repeating them on every component row. Emit them before canFound so early rejection retains the same diagnostic context. See KI#505.2. (GPT-6.1-Sol) -->
+	// <!-- custom: Record the evaluation's invariant information/settings flags in BEGIN instead of repeating them on every component row.
+	// Emit them before canFound so early rejection retains the same diagnostic context. See KI#505.2. (GPT-6.1-Sol) -->
 	if (gFoundLogLevel >= 2 && bEvaluateSite) logBBAIFoundDetail("BEGIN", "stage=CAN_FOUND ignorePlannedSites=%d allSeeing=%d trueMap=%d starting=%d normalizing=%d",
 		kSet.isDebug(), kSet.isAllSeeing(), kSet.isDiagnosticOmniscience(), kSet.isStartingLoc(), kSet.isNormalizing());
 	if (!kPlayer.canFound(kPlot, false,
@@ -422,7 +425,8 @@ AIFoundValue::AIFoundValue(CvPlot const& kPlot, CitySiteEvaluator const& kSettin
 	at the start of every turn. try to not make it too slow! */
 int AIFoundValue::evaluate()
 {
-	// <!-- custom: Check the logging gate first. A caller-owned breakdown output is an independent request, e.g. a Settler true-map comparison enabled by its own logging category; it needs accounting even with Found logging disabled, but does not emit Found rows. See KI#505.2. (GPT-6.1-Sol) -->
+	// <!-- custom: Check the logging gate first.
+	// A caller-owned breakdown output is an independent request, e.g. a Settler true-map comparison enabled by its own logging category; it needs accounting even with Found logging disabled, but does not emit Found rows. See KI#505.2. (GPT-6.1-Sol) -->
 	const bool bNeedBreakdown = (gFoundLogLevel >= 2 || m_pszBreakdown != NULL);
 	if (m_pszBreakdown != NULL)
 		m_pszBreakdown->clear();
@@ -441,10 +445,12 @@ int AIFoundValue::evaluate()
 
 	// <!-- custom: add support for counting water tiles in starting locations -->
 	// int const iElapsedTurns = GC.getGame().getElapsedGameTurns();
-	// <!-- custom: AIFoundValue normalizes Barbarian city count so their first settlement is not treated like a capital. Reuse that established state for SAS first-city gates instead of raw player city count. See KI#489. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: AIFoundValue normalizes Barbarian city count so their first settlement is not treated like a capital.
+	// Reuse that established state for SAS first-city gates instead of raw player city count. See KI#489. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	bool const bStartPhase = (iCities == 0);
 
-	// <!-- custom: Count first-city BFC slots by XML-aware usability rather than the old no-peak-land + water-bonus approximation. "Good enough" is intentionally weaker than truly good: it means a slot is usable enough for the first-city minimum-tile sanity check. (ChatGPT-5.5) -->
+	// <!-- custom: Count first-city BFC slots by XML-aware usability rather than the old no-peak-land + water-bonus approximation.
+	// "Good enough" is intentionally weaker than truly good: it means a slot is usable enough for the first-city minimum-tile sanity check. (ChatGPT-5.5) -->
 	int iGoodEnoughFirstCityBFCTiles = 0;
 	int iVeryBadBFCTiles = 0;
 
@@ -526,7 +532,8 @@ int AIFoundValue::evaluate()
 	int iStealPercent = 0;
 	int iRiverTiles = 0;
 	int iGreenTiles = 0;
-	// <!-- custom: enhance and add logging for first-city found logic: add scouting, moving away from high bad plot count starts, and running again an evaluate city site scoring when a site is no longer bad instead of settling right away; also add logging. See KI#144. Additionally, add a stronger food and river/fresh water valuation for first city because it is more critical for it. -->
+	// <!-- custom: enhance and add logging for first-city found logic: add scouting, moving away from high bad plot count starts, and running again an evaluate city site scoring when a site is no longer bad instead of settling right away; also add logging. See KI#144.
+	// Additionally, add a stronger food and river/fresh water valuation for first city because it is more critical for it. -->
 	int iStartingRiverTiles = 0;
 	int iTotalFeatureProduction = 0; // </advc.031>
 	int iHealth = 0;
@@ -534,7 +541,9 @@ int AIFoundValue::evaluate()
 	// K-Mod. (used to devalue cities which are unable to get any production.)
 	scaled rBaseProduction; // (advc.031: scaled)
 
-	// <!-- custom: Sum each usable non-home BFC plot's shared potential-food score instead of naming terrain types here. Food from bonus-specific improvements offsets food-poor plots; an ocean-coastal candidate assumes its configured, civilization-specific Harbor-class water-food yield because that cheap city-wide improvement is the practical long-term water baseline. Very-bad plots are excluded because they are already handled as economically dead BFC capacity and will not normally consume a citizen. (GPT-5.5) -->
+	// <!-- custom: Sum each usable non-home BFC plot's shared potential-food score instead of naming terrain types here.
+	// Food from bonus-specific improvements offsets food-poor plots; an ocean-coastal candidate assumes its configured, civilization-specific Harbor-class water-food yield because that cheap city-wide improvement is the practical long-term water baseline.
+	// Very-bad plots are excluded because they are already handled as economically dead BFC capacity and will not normally consume a citizen. (GPT-5.5) -->
 	int iLowFoodLocationScore = 0;
 	bool const bOceanCoastal = kPlot.isCoastalLand(GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN));
 	int const iAssumedSeaPlotFoodChange = (bOceanCoastal ? CvPlot::SAS_getWaterFoodBuildingSeaPlotFoodChange(ePlayer) : 0);
@@ -754,7 +763,8 @@ int AIFoundValue::evaluate()
 		ImprovementTypes eBestPotentialImprovement = NO_IMPROVEMENT;
 		int aiBestPotentialYield[NUM_YIELD_TYPES] = {0, 0, 0};
 		int iPotentialTimingPercent = 0;
-		// <!-- custom: Carry the actual cache-hit result into the consolidated plot row. The former separate potential/cache rows now share the later yield/culture/feature row to reduce repeated context and log writes; this output never controls scoring or cache reuse. See KI#505.2. (GPT-6.1-Sol) -->
+		// <!-- custom: Carry the actual cache-hit result into the consolidated plot row.
+		// The former separate potential/cache rows now share the later yield/culture/feature row to reduce repeated context and log writes; this output never controls scoring or cache reuse. See KI#505.2. (GPT-6.1-Sol) -->
 		bool bPotentialCacheHit = false;
 		// <!-- custom: Ordinary water has no Build/Improvement outcome to enumerate, and its value depends on whether this candidate city is coastal.
 		// Retain the already computed contextual nature value instead of scanning XML or placing a candidate-specific water value in the plot-intrinsic land cache. (GPT-5.6-Sol) -->
@@ -824,7 +834,8 @@ int AIFoundValue::evaluate()
 					if (fImp >= iMinOnBonusFoodImproveWorth)
 					{
 						// <!-- custom: it seems we sometimes still found on deer tundra in autoplay, try to increase the penalty further, while trying not to increase it too much in case it is locally best to found as such, 400 may seem high but even 300 was not enough although it fluctuated a bit before (all this is with the old formula, not this new one below as untested with old file to know) staying there, i could try 350 maybe but since 400 does fine keep as is for possible edge cases, hopefully this doesn't prevent locally good spots where settling on food is ideal, but even if then, statistically should be better for ai to avoid settling on food bonuses.
-						// update: the other new issue i had of ai settling on camel desert is now averted to much later with our new change to improved yield rather than nature ones, but although ai doesn't settle at turn 50, it considers it at turn 100 when other sites are taken, nearby home plots should be much more attractive, so i guess we are not valuing it enough or something, testing and see hopefully not causing ai to chosoe worse sites just to avoid settling on bonus too much but even if it were to happen that may still be better in most cases although not ideal than settling on food bonuses, ideally i would dig why this happens or such and fix this more cleanly, but hopefully this helps (since issue only happens on desert camel, maybe base desert food yield being so low interferes or some other logics conflicts somewhere else? These are just guesses, could be mistaken or not, check if accurate) -->
+						// update: the other new issue i had of ai settling on camel desert is now averted to much later with our new change to improved yield rather than nature ones, but although ai doesn't settle at turn 50, it considers it at turn 100 when other sites are taken, nearby home plots should be much more attractive, so i guess we are not valuing it enough or something, testing and see hopefully not causing ai to chosoe worse sites just to avoid settling on bonus too much but even if it were to happen that may still be better in most cases although not ideal than settling on food bonuses, ideally i would dig why this happens or such and fix this more cleanly, but hopefully this helps (since issue only happens on desert camel, maybe base desert food yield being so low interferes or some other logics conflicts somewhere else?
+						// These are just guesses, could be mistaken or not, check if accurate) -->
 						int const iOnBonusFoodPenalty = iBaseValueOnBonusFood * fImp;
 						// <!-- custom: be careful to not mix up as noted by chatgpt 5, we add the cumulative penalty here (a positive number if we penalize, a negative number if we for some reason don't penalize but valorize weirdly instead), then later at the end we subract to iValue this positive penalty number so add penalty to r, do not substract -->
 						r += iOnBonusFoodPenalty;
@@ -969,11 +980,15 @@ int AIFoundValue::evaluate()
 		bool const bLogBonusScore = (gFoundLogLevel >= 3 && eBonus != NO_BONUS);
 		if (eBonus != NO_BONUS) // advc.040: Same-area checks moved into nonYieldBonusValue
 		{
-			// <!-- custom: For the first city, food bonuses and rivers snowball earlier than non-food bonuses because growth unlocks more tiles, whipping/specialists, and faster worker/settler development. Apply capital-only bonus value percents and concrete river/fresh-water boosts so Karakorum/Beijing-like starts prefer nearby corn/fresh-water positions over slower commerce/hammer-bonus positions. (GPT-5.5) -->
-			// <!-- custom: Raw XML food is not enough to classify a starting bonus as food: AdvCiv-SAS Elephants have XML food but Camp adds no food, and seafood inside an inland BFC is not usable like coastal seafood. For capital-only food-bonus scaling, use normal improved food on land and XML food only for water bonuses when the candidate city is coastal. This keeps AI_foundValue from treating inland fish or low-food bonuses like Pig + Corn. (GPT-5.5) -->
+			// <!-- custom: For the first city, food bonuses and rivers snowball earlier than non-food bonuses because growth unlocks more tiles, whipping/specialists, and faster worker/settler development.
+			// Apply capital-only bonus value percents and concrete river/fresh-water boosts so Karakorum/Beijing-like starts prefer nearby corn/fresh-water positions over slower commerce/hammer-bonus positions. (GPT-5.5) -->
+			// <!-- custom: Raw XML food is not enough to classify a starting bonus as food: AdvCiv-SAS Elephants have XML food but Camp adds no food, and seafood inside an inland BFC is not usable like coastal seafood.
+			// For capital-only food-bonus scaling, use normal improved food on land and XML food only for water bonuses when the candidate city is coastal.
+			// This keeps AI_foundValue from treating inland fish or low-food bonuses like Pig + Corn. (GPT-5.5) -->
 			const bool bStartingFoodBonus = (kSet.isStartingLoc() && (p.isWater() ? bCoastal && GC.getInfo(eBonus).getYieldChange(YIELD_FOOD) > 0 : aiBonusImprovementYield[YIELD_FOOD] > 0));
 
-			// <!-- custom: Base AdvCiv skipped barbarian non-yield bonus value because barbarians do not care about ordinary bonus trade. AdvCiv-SAS still wants barbarian-founded cities to be good long-term sites, both for barbarian strength and because they are often captured by normal players, so value health/happiness/building effects while ignoring barbarian trade-timing limits. See KI#178. (GPT-5.5) -->
+			// <!-- custom: Base AdvCiv skipped barbarian non-yield bonus value because barbarians do not care about ordinary bonus trade.
+			// AdvCiv-SAS still wants barbarian-founded cities to be good long-term sites, both for barbarian strength and because they are often captured by normal players, so value health/happiness/building effects while ignoring barbarian trade-timing limits. See KI#178. (GPT-5.5) -->
 			// if (!bBarbarian && // advc.303: Barbarians don't care about bonus trade
 			// 	// advc.031: Otherwise we can already trade the bonus
 			if (getRevealedOwner(p) != ePlayer)
@@ -998,9 +1013,11 @@ int AIFoundValue::evaluate()
 				iBonusScoreNonYield = iBonusValue;
 			}
 
-			// <!-- custom: Add a small flat city-site value for each distinct bonus in this BFC that the AI does not already own or plausibly cover through an existing city's future BFC. Local bonus tile yields are already valued normally.
+			// <!-- custom: Add a small flat city-site value for each distinct bonus in this BFC that the AI does not already own or plausibly cover through an existing city's future BFC.
+			// Local bonus tile yields are already valued normally.
 			// This only nudges empire resource diversity, e.g. prefer new Maize over extra Wheat, or Whales over another Crab (e.g., allows to gain +1 health +1 with Granary again with a new Maize rather than no effect even with 2 new Wheat we already own, so a new Maize is more valuable).
-			// Trade imports do not count as owned here because they are not permanent. Apply it once per bonus type and only after the first city, so it does not disturb starting-location food/river/coast tuning. See KI#147. (ChatGPT-5.5) -->
+			// Trade imports do not count as owned here because they are not permanent.
+			// Apply it once per bonus type and only after the first city, so it does not disturb starting-location food/river/coast tuning. See KI#147. (ChatGPT-5.5) -->
 			if (iUnownedBonusExtraValue != 0 && !kSet.isStartingLoc() && !kSet.isNormalizing() &&
 					!abSASUnownedBonusExtraApplied[eBonus])
 			{
@@ -1051,7 +1068,8 @@ int AIFoundValue::evaluate()
 				iBonusScoreDynamicValue = iExtraValueNotHomeDynamicBonusValueMultiplier * iDynamicBonusValue;
 				iValue += iBonusScoreDynamicValue;
 
-				// <!-- custom: AdvCiv's aggregated special-yield formula applied hardcoded weights, nonlinear power, and a second food modifier after older SAS logic had already weighted Food x3 and Production x2. This made six resources contribute 5015 points to Karakorum's low-food (49,43) candidate and overwhelm the stronger Pig + Maize river-grass site at (52,40) (save file 360).
+				// <!-- custom: AdvCiv's aggregated special-yield formula applied hardcoded weights, nonlinear power, and a second food modifier after older SAS logic had already weighted Food x3 and Production x2.
+				// This made six resources contribute 5015 points to Karakorum's low-food (49,43) candidate and overwhelm the stronger Pig + Maize river-grass site at (52,40) (save file 360).
 				// Value only the actual improvement yield changes once through simple XML-tunable Food/Production/Commerce values; non-yield health, happiness, strategic, duplicate, and trade value remains separate. (GPT-5.5) -->
 				const int iBonusImprovementYieldValue = (aiBonusImprovementYield[YIELD_FOOD] * iBFCBonusImprovementFoodValue * getSASEvaluateYieldValuePercent(YIELD_FOOD)) / 100 + (aiBonusImprovementYield[YIELD_PRODUCTION] * iBFCBonusImprovementProductionValue * getSASEvaluateYieldValuePercent(YIELD_PRODUCTION)) / 100 + (aiBonusImprovementYield[YIELD_COMMERCE] * iBFCBonusImprovementCommerceValue * getSASEvaluateYieldValuePercent(YIELD_COMMERCE)) / 100;
 				iResourceValue += iBonusImprovementYieldValue;
@@ -1102,7 +1120,8 @@ int AIFoundValue::evaluate()
 	// <!-- custom: disabled as part of the change there as well where this variable is used -->
 	// advc.031: Preserve this for later
 	// int iNonYieldResourceVal = std::max(0, iResourceValue);
-	// <!-- custom: Replaced AdvCiv's opaque aggregated special-yield score with the linear XML-tunable per-bonus calculation above. Keep the old call commented for a visible reference while calculateSpecialYields still supplies food/production context used by other established logic below. (GPT-5.5) -->
+	// <!-- custom: Replaced AdvCiv's opaque aggregated special-yield score with the linear XML-tunable per-bonus calculation above.
+	// Keep the old call commented for a visible reference while calculateSpecialYields still supplies food/production context used by other established logic below. (GPT-5.5) -->
 	// if (bNeedBreakdown)
 	// 	iBreakdownNonYieldResources = iResourceValue;
 	// if (iSpecialYieldTiles > 0) // advc.031
@@ -1151,14 +1170,17 @@ int AIFoundValue::evaluate()
 
 		if (iLowFoodLocationScore > iMaxToleratedNotCoastalLowFoodScore)
 		{
-			// <!-- custom: old value was sometimes still insufficient even though it helped in some cities; increase low food location penalty more, which successfully solved the issue on testing. See known issue for details. (Claude code Sonnet 4.5 (summarized)) -->
+			// <!-- custom: old value was sometimes still insufficient even though it helped in some cities; increase low food location penalty more, which successfully solved the issue on testing.
+			// See known issue for details. (Claude code Sonnet 4.5 (summarized)) -->
 			// iValue += (-50) * iLowFoodLocationScore;
 			iBreakdownLowFood = iBaseValueNotCoastalLowFood * iLowFoodLocationScore;
 			iValue += iBreakdownLowFood;
 		}
 	}
 
-	// <!-- custom: Penalize impassable or persistently low-yield BFC slots after a small allowance. Dynamic XML-property/yield scoring replaces the old Peak/Ice/flat Desert/flat Snow name list, so terrain and improvement changes automatically affect this classification. Visible bonuses on usable plots stay exempt because their specialized value is evaluated separately. See KI#26.2. (GPT-5.5) -->
+	// <!-- custom: Penalize impassable or persistently low-yield BFC slots after a small allowance.
+	// Dynamic XML-property/yield scoring replaces the old Peak/Ice/flat Desert/flat Snow name list, so terrain and improvement changes automatically affect this classification.
+	// Visible bonuses on usable plots stay exempt because their specialized value is evaluated separately. See KI#26.2. (GPT-5.5) -->
 	if (bStartPhase)
 	{
 		// <!-- custom: regardless of coastal status, tolerate some low number of non land non bonus tiles, but past a certain threshold, strongly penalize it so AIs wouldn't take this city site unless nothing at all is better; also for our first city we don't want to be too close to the coast anyway and more like closer to the center for more radial expansion or possibilities, lower distance-to-capital maintenance cost, stronger early position for later expansions, etc if any other advantages, and if the spot is good, keep it for city 2 not for starting one where we really want nice yields on land and a closer to center position for later expansion; as for value we have 20 bfc tiles (minus home plot) if i'm not mistaken, so if it has more than 8 water tiles no bonus, or equivalent, so fewer than the required good-enough first-city BFC tiles changes/rejects the site (ChatGPT-5.5) -->
@@ -1176,7 +1198,9 @@ int AIFoundValue::evaluate()
 		const int iExcessVeryBadTiles = std::max(0, iVeryBadBFCTiles - iMaxToleratedVeryBadTilesStart);
 		if (iExcessVeryBadTiles > 0)
 		{
-			// <!-- custom: The allowance is free rather than a cliff that retroactively penalizes every bad slot. In the Berlin test (save file 442), alternative (33,13) had Rice, Cattle, Silver, four grass hills, and four peaks; charging all four peaks favored fresh-water (36,9) despite ten tundra tiles. Penalize only the excess. (GPT-5.5) -->
+			// <!-- custom: The allowance is free rather than a cliff that retroactively penalizes every bad slot.
+			// In the Berlin test (save file 442), alternative (33,13) had Rice, Cattle, Silver, four grass hills, and four peaks; charging all four peaks favored fresh-water (36,9) despite ten tundra tiles.
+			// Penalize only the excess. (GPT-5.5) -->
 			const int iTotalValueVeryBadTiles = iBaseValueVeryBadTileStart * iExcessVeryBadTiles;
 			iValue += iTotalValueVeryBadTiles;
 			iBreakdownVeryBad = iTotalValueVeryBadTiles;
@@ -1271,7 +1295,8 @@ int AIFoundValue::evaluate()
 	const int iBeforeStartingSurroundings = iValue;
 	static const bool bRuntimeStartingSurroundings = GC.getDefineBOOL("SAS_AI_FOUND_FIRST_CITY_RUNTIME_STARTING_SURROUNDINGS_ADJUSTMENT_ENABLE");
 	// <!-- custom: adjustToStartingSurroundings uses range-6 terrain and every assigned starting plot to spread civilizations during all-seeing map generation/normalization, so isAllSeeing keeps that use enabled.
-	// Once play begins, the live first settler should choose its best revealed site even if that moves nearer to or farther from a neighbor; only the opt-in SAS define restores this modifier at runtime. In the Berlin test (save file 442), (33,13) led (35,11) by 4569 to 3934 beforehand, but its -1482 adjustment reversed the choice. See KI#173. (GPT-5.5) -->
+	// Once play begins, the live first settler should choose its best revealed site even if that moves nearer to or farther from a neighbor; only the opt-in SAS define restores this modifier at runtime.
+	// In the Berlin test (save file 442), (33,13) led (35,11) by 4569 to 3934 beforehand, but its -1482 adjustment reversed the choice. See KI#173. (GPT-5.5) -->
 	if ((kSet.isStartingLoc() || /* advc.031e: */ kSet.isNormalizing()) && ((kSet.isAllSeeing() && !kSet.isDiagnosticOmniscience()) || bRuntimeStartingSurroundings))
 	{	// <advc.027
 		if (kSet.isIgnoreStartingSurroundings())
@@ -1285,7 +1310,8 @@ int AIFoundValue::evaluate()
 	// 	iValue = adjustToBarbarianSurroundings(iValue);
 	// else if (!kSet.isStartingLoc() /* advc.031e: */ && !kSet.isNormalizing())
 
-	// <!-- custom: through trial and error, while trying to find why we settle on camel desert in middle game (turns 50+, while having saner choices earlier in map view ingame (circled tiles), i have found that commenting the block below causes the issue to be solved, AI has sane sites as always and now settles around or near this but no AI player considers settling on camel desert or near it anymore, so i assume something is majorly faulty in it or didn't accommodate/account for food desert bonuses or such. Since i don't like interferences, commented out since i have found it to be reproducible that uncommenting it triggers again the error, replaced with a very simplified version of the logic we want, inline in this function that is its only caller, with the help of chatgpt 5, check if accurate, see known issue as of now 54 for details -->
+	// <!-- custom: through trial and error, while trying to find why we settle on camel desert in middle game (turns 50+, while having saner choices earlier in map view ingame (circled tiles), i have found that commenting the block below causes the issue to be solved, AI has sane sites as always and now settles around or near this but no AI player considers settling on camel desert or near it anymore, so i assume something is majorly faulty in it or didn't accommodate/account for food desert bonuses or such.
+	// Since i don't like interferences, commented out since i have found it to be reproducible that uncommenting it triggers again the error, replaced with a very simplified version of the logic we want, inline in this function that is its only caller, with the help of chatgpt 5, check if accurate, see known issue as of now 54 for details -->
 	// if (!kSet.isStartingLoc() /* advc.031e: */ && !kSet.isNormalizing())
 	// 	iValue = adjustToCivSurroundings(iValue, iStealPercent);
 	const int iBeforeDistance = iValue;
@@ -1294,7 +1320,8 @@ int AIFoundValue::evaluate()
 	{
 		if (!bBarbarian)
 		{
-			// <!-- custom: This is normal-civ empire distance shaping. Do not apply it to Barbarian city creation: Barbarians are spawned by a global map scan, and using distance from existing Barbarian cities hard-rejected better one-tile shifts such as 70,37 near Zapotec despite good local city value. (GPT-5.5) -->
+			// <!-- custom: This is normal-civ empire distance shaping.
+			// Do not apply it to Barbarian city creation: Barbarians are spawned by a global map scan, and using distance from existing Barbarian cities hard-rejected better one-tile shifts such as 70,37 near Zapotec despite good local city value. (GPT-5.5) -->
 			// <!-- custom: 1) distance to nearest city penalties (as per our previous refactor/change but enhanced/simplified thanks to chatgpt 5 too) -->
 			// --- SAS inline distance shaping (simple & bounded) ---
 			// C++03-safe, integer math only, overflow-safe via percent scaling.
@@ -1388,7 +1415,8 @@ int AIFoundValue::evaluate()
 				if (!kSet.isAllSeeing() && !kTeam.AI_deduceCitySite(*pCity))
 					continue;
 
-				// <!-- custom: Culture can cross area boundaries through the narrower culture-level + 1 range. Use that real engine range for another-island cities instead of discarding their pressure, while retaining the inherited +3 same-area scale. See KI#487. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				// <!-- custom: Culture can cross area boundaries through the narrower culture-level + 1 range.
+				// Use that real engine range for another-island cities instead of discarding their pressure, while retaining the inherited +3 same-area scale. See KI#487. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 				const int d = plotDistance(iX, iY, pCity->getX(), pCity->getY());
 				bool const bSameArea = pCity->isArea(kArea);
 				const int r = pCity->getCultureLevel() + (bSameArea ? CvCity::plotCultureExtraRange() : 1);
@@ -1451,7 +1479,7 @@ int AIFoundValue::evaluate()
 	// <!-- custom: this only matters for our first city that we want to grow fast, but when we have a lot of workers, not a big problem, especially if site is overall better long term potential, do not discard it then and bet on long term value rather and; logic is that as long we don't reach threshold all is as good as no health, but as soon as we reach it, all unhealthiness is bad and more the more unhealthy we are as explained to clarify to chapt 5; also be more lenient for later cities, we'd have workers by then to handle chopping or such, and capital would have grown fine -->
 	// iValue = adjustToBadHealth(iValue, iHealth);
 	// // <advc.031>
-	// <!-- custom: our code instead-->
+	// <!-- custom: our code instead -->
 	// Bad-health dampener (pure integer math; no floats)
 	if (bStartPhase)
 	{
@@ -1756,7 +1784,8 @@ int AIFoundValue::countBadTiles(/* advc.031: */ int& iInnerRadius, int& iUnrevea
 		if (bBarbarian && !bSAS_EVALUATE_BARBARIAN_FULL_BFC_ENABLE && !adjacentOrSame(*p, kPlot))
 		{
 			// Rational Barbarians wouldn't mind settling one off the coast, but human players do mind, and some really hate this. Therefore, count the outer ring coast as bad if !bCoastal.
-			// <!-- custom: This is separate from the Barbarian coastal value bonus: it keeps the inherited adjacent/inner-focused Barbarian scoring, which can ignore outer-BFC seafood or other long-term captured-city value. AdvCiv-SAS makes this toggleable because Barbarian cities should also be useful city sites for themselves and later conquerors; set SAS_EVALUATE_BARBARIAN_FULL_BFC_ENABLE to use normal full-BFC scoring. (GPT-5.5) -->
+			// <!-- custom: This is separate from the Barbarian coastal value bonus: it keeps the inherited adjacent/inner-focused Barbarian scoring, which can ignore outer-BFC seafood or other long-term captured-city value.
+			// AdvCiv-SAS makes this toggleable because Barbarian cities should also be useful city sites for themselves and later conquerors; set SAS_EVALUATE_BARBARIAN_FULL_BFC_ENABLE to use normal full-BFC scoring. (GPT-5.5) -->
 			if(p != NULL && p->isWater() && !bCoastal && p->calculateBestNatureYield(YIELD_FOOD, eTeam) <= 1)
 			{
 				iBadTiles++;
@@ -1821,8 +1850,10 @@ int AIFoundValue::countBadTiles(/* advc.031: */ int& iInnerRadius, int& iUnrevea
 	}
 	iInnerRadius /= 2; // </advc.031>
 	iBadTiles /= 2;
-	// <!-- custom: countBadTiles has already computed the fresh reference value, while member iUnrevealedTiles is assigned only after this function returns. Log the local result instead of always reporting the constructor-initialized zero. See KI#505. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-	// <!-- custom: Inherited logging omitted the unrevealed count when zero. Always emit both named fields in one BAD_TILES row so readers and parsers see the same fields, including an explicit zero. See KI#505.2. (GPT-6.1-Sol) -->
+	// <!-- custom: countBadTiles has already computed the fresh reference value, while member iUnrevealedTiles is assigned only after this function returns.
+	// Log the local result instead of always reporting the constructor-initialized zero. See KI#505. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Inherited logging omitted the unrevealed count when zero.
+	// Always emit both named fields in one BAD_TILES row so readers and parsers see the same fields, including an explicit zero. See KI#505.2. (GPT-6.1-Sol) -->
 	if (gFoundLogLevel >= 3) logBBAIFoundDetail("BAD_TILES", "knownBad=%d unrevealed=%d", iBadTiles, iUnrevealed);
 	return iBadTiles;
 }
@@ -1924,7 +1955,8 @@ bool AIFoundValue::isUsablePlot(CityPlotTypes ePlot, int& iTakenTiles, bool& bCi
 	}
 	bool const bInnerRing = adjacentOrSame(*p, kPlot);
 	// <advc.303>
-	// <!-- custom: This was the remaining inherited inner-ring-only Barbarian city-site shortcut. Gate it with SAS_EVALUATE_BARBARIAN_FULL_BFC_ENABLE too, otherwise outer-BFC seafood still gets ignored even when bad-tile checks use full BFC scoring. (GPT-5.5) -->
+	// <!-- custom: This was the remaining inherited inner-ring-only Barbarian city-site shortcut.
+	// Gate it with SAS_EVALUATE_BARBARIAN_FULL_BFC_ENABLE too, otherwise outer-BFC seafood still gets ignored even when bad-tile checks use full BFC scoring. (GPT-5.5) -->
 	static const bool bSAS_EVALUATE_BARBARIAN_FULL_BFC_ENABLE = GC.getDefineBOOL("SAS_EVALUATE_BARBARIAN_FULL_BFC_ENABLE");
 	if (bBarbarian && !bSAS_EVALUATE_BARBARIAN_FULL_BFC_ENABLE && !bInnerRing)
 		return false; // </advc.303>
@@ -2128,7 +2160,8 @@ TeamTypes AIFoundValue::getRevealedTeam(CvPlot const& p) const
 	return TEAMID(ePlayer);
 }
 
-// <!-- custom: Raw CvArea totals reveal cities beyond the evaluating team's knowledge. Count own/team cities and foreign cities whose sites are deducible, optionally for one revealed owner.
+// <!-- custom: Raw CvArea totals reveal cities beyond the evaluating team's knowledge.
+// Count own/team cities and foreign cities whose sites are deducible, optionally for one revealed owner.
 // Without an owner filter, exclude Barbarian cities like AdvCiv's getNumCivCities test; with one, preserve the culture modifier's ability to count cities belonging to a revealed Barbarian owner. See KI#493 and KI#495. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 int AIFoundValue::countKnownCities(CvArea const& kLoopArea, PlayerTypes eOwner) const
 {
@@ -2196,10 +2229,12 @@ ImprovementTypes AIFoundValue::getBonusImprovement(BonusTypes eBonus, CvPlot con
 		if (eImprovement == NO_IMPROVEMENT)
 			continue;
 		CvImprovementInfo const& kImprovement = GC.getInfo(eImprovement);
-		// <!-- custom: The inherited scan could select a land Well for water Oil before the legal Offshore Platform technology. Reject improvements whose domain differs from the actual bonus plot while retaining intentional near-future technology evaluation. See KI#483. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: The inherited scan could select a land Well for water Oil before the legal Offshore Platform technology.
+		// Reject improvements whose domain differs from the actual bonus plot while retaining intentional near-future technology evaluation. See KI#483. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if (kImprovement.isWater() != p.isWater())
 			continue;
-		// <!-- custom: trying to make extra extra sure we don't build forts as they are very inefficient (long time to build, yield less than improvements, and unlikely a human or other player would ideally attack units garrisoned there), they could have some uses (maybe prebuilding connection, allowing naval units to pass/cross land), but more often than not they should not benefit the AI, and currently the AI often spends a lot of time undoing existing improvements in base advciv as i have noticed many times. I don't know too much how to fix this, but with chatgpt's help i am adding a few bits of code that try to prevent that, here is one of them, see the Main Changes Guide or some similar or related or other docs in our mod for update status rather than here. -->
+		// <!-- custom: trying to make extra extra sure we don't build forts as they are very inefficient (long time to build, yield less than improvements, and unlikely a human or other player would ideally attack units garrisoned there), they could have some uses (maybe prebuilding connection, allowing naval units to pass/cross land), but more often than not they should not benefit the AI, and currently the AI often spends a lot of time undoing existing improvements in base advciv as i have noticed many times.
+		// I don't know too much how to fix this, but with chatgpt's help i am adding a few bits of code that try to prevent that, here is one of them, see the Main Changes Guide or some similar or related or other docs in our mod for update status rather than here. -->
 		if (kImprovement.isActsAsCity()) // Usually means Fort
 		{
 			continue;
@@ -2222,7 +2257,11 @@ ImprovementTypes AIFoundValue::getBonusImprovement(BonusTypes eBonus, CvPlot con
 			bCanTrade = true;
 			bCanImprove = true;
 		}
-		// <!-- custom: based on my understanding of this code thanks to gemini ai's help as well, that is quite different from what gemini ai seems to say about it that it is related to workers or such if i understood it correctly, which i also asked as this code seemed weird so i asked it about it, this may explain why we are happy to count an improvement as good enough, say a farm, even if a plantation is better in terms of yield, so don't bother calculating the rest. I assume this is done for computational effiency, but may lead to other problems down the line. I'd rather prefer it be accurate and see what happens and if for example AI settles better or worse on tiles. I also want to see if this somehow affects AI building farms on grapes plains instead of waiting for plantations, so commenting it out. And i want to see if it's really much faster with it, although we should not have too much settlers or bonuses, except at turn 1, and even then it doesn't seem like it would cost a lot of extra computation to run this, so if it can help in other ways, try to do the full calculation/bonus yield evaluation rather and not just of first eligible found build -->
+		// <!-- custom: based on my understanding of this code thanks to gemini ai's help as well, that is quite different from what gemini ai seems to say about it that it is related to workers or such if i understood it correctly, which i also asked as this code seemed weird so i asked it about it, this may explain why we are happy to count an improvement as good enough, say a farm, even if a plantation is better in terms of yield, so don't bother calculating the rest.
+		// I assume this is done for computational effiency, but may lead to other problems down the line.
+		// I'd rather prefer it be accurate and see what happens and if for example AI settles better or worse on tiles.
+		// I also want to see if this somehow affects AI building farms on grapes plains instead of waiting for plantations, so commenting it out.
+		// And i want to see if it's really much faster with it, although we should not have too much settlers or bonuses, except at turn 1, and even then it doesn't seem like it would cost a lot of extra computation to run this, so if it can help in other ways, try to do the full calculation/bonus yield evaluation rather and not just of first eligible found build -->
 		// else if (bCanTrade) // Prefer currently available build - regardless of yield
 		// 	continue;
 		int iYieldValue = 0;
@@ -2262,9 +2301,13 @@ ImprovementTypes AIFoundValue::getBonusImprovement(BonusTypes eBonus, CvPlot con
 	} // </advc.108>
 	if (eBestImprovement == NO_IMPROVEMENT)
 		return NO_IMPROVEMENT;
-	// <!-- custom: attempted improvement with chatgpt's help, as an extension of base advciv's commit https://github.com/f1rpo/AdvCiv/commit/1a372d417a6001e2afe2b40e69824b45fa375907 and approach i (actually yes was me... Hello youtube xd or whoever but not xd) asked f1rpo who kindly gave this partial fix, now trying to improve it, in particular with(/in?) regards to food yields being underestimated, but also the AI still planting (cities) on metals and often on food as wellso trying to fix or improve that at least. Again i don't know too much about these but this is a tentative approach with chatgpt's help and quite cautiously, hopefully safe perhaps even ideally and as intended in this case etcwould fix/improve the yield issue -->
+	// <!-- custom: attempted improvement with chatgpt's help, as an extension of base advciv's commit https://github.com/f1rpo/AdvCiv/commit/1a372d417a6001e2afe2b40e69824b45fa375907 and approach i (actually yes was me...
+	// Hello youtube xd or whoever but not xd) asked f1rpo who kindly gave this partial fix, now trying to improve it, in particular with(/in?)
+	// regards to food yields being underestimated, but also the AI still planting (cities) on metals and often on food as wellso trying to fix or improve that at least.
+	// Again i don't know too much about these but this is a tentative approach with chatgpt's help and quite cautiously, hopefully safe perhaps even ideally and as intended in this case etcwould fix/improve the yield issue -->
 
-	// <!-- custom: Keep this array as actual improvement yield changes. The caller now applies simple XML-tunable Food/Production/Commerce values once; the older SAS Food x3 and Production x2 preprocessing here was then weighted again by AdvCiv's evaluateSpecialYields and produced extreme resource scores. (GPT-5.5) -->
+	// <!-- custom: Keep this array as actual improvement yield changes.
+	// The caller now applies simple XML-tunable Food/Production/Commerce values once; the older SAS Food x3 and Production x2 preprocessing here was then weighted again by AdvCiv's evaluateSpecialYields and produced extreme resource scores. (GPT-5.5) -->
 	FOR_EACH_ENUM(Yield)
 	{
 		aiYield[eLoopYield] = p.calculatePotentialImprovementYieldChange(eBestImprovement, eLoopYield, ePlayer, eBonus);
@@ -2516,7 +2559,8 @@ scaled AIFoundValue::estimateImprovementProduction(CvPlot const& p) const
 // <!-- custom: Score the strongest plausible worked-tile outcome by enumerating Build/Improvement XML instead of naming Farm, Mine, Cottage, terrain or features.
 // The XML defaults give immediate improvement yields two-thirds weight and the final upgrade one-third, so growth chains matter without treating a new first-stage improvement as fully mature.
 // Builds available now retain full value; the XML defaults retain 75% for near-researchable Builds and 50% for later Builds; this lets sites retain tunable long-term potential without allowing late infrastructure to erase early terrain differences. (GPT-5.6-Sol) -->
-// <!-- custom: Add bCacheHit to report the existing lookup outcome to the caller instead of emitting a separate cache-hit row here. The caller combines it with the already-computed potential/yield details; Build enumeration, returned scores and cache reads/writes are unchanged. See KI#505.2. (GPT-6.1-Sol) -->
+// <!-- custom: Add bCacheHit to report the existing lookup outcome to the caller instead of emitting a separate cache-hit row here.
+// The caller combines it with the already-computed potential/yield details; Build enumeration, returned scores and cache reads/writes are unchanged. See KI#505.2. (GPT-6.1-Sol) -->
 int AIFoundValue::evaluateBestPotentialPlotYield(CvPlot const& p, bool bCanNeverImprove, ImprovementTypes& eBestImprovement, int* aiBestYield, int& iTimingPercent, bool& bCacheHit) const
 {
 	bool const bLogCandidates = (gFoundLogLevel >= 3);
@@ -2528,7 +2572,8 @@ int AIFoundValue::evaluateBestPotentialPlotYield(CvPlot const& p, bool bCanNever
 	static const int iLaterTechValuePercent = std::max(0, std::min(100, GC.getDefineINT("SAS_EVALUATE_PLOT_POTENTIAL_LATER_TECH_VALUE_PERCENT")));
 	int iCachedValue = 0;
 	bCacheHit = false;
-	// <!-- custom: Logging previously bypassed this cache to repeat candidate scans. Retain the gameplay cache policy and report reuse in the consolidated plot row; candidate details describe only scans that actually ran. See KI#505.2. (GPT-6.1-Sol) -->
+	// <!-- custom: Logging previously bypassed this cache to repeat candidate scans.
+	// Retain the gameplay cache policy and report reuse in the consolidated plot row; candidate details describe only scans that actually ran. See KI#505.2. (GPT-6.1-Sol) -->
 	if (kSet.getCachedPlotPotentialYield(p, iCachedValue, eBestImprovement, aiBestYield, iTimingPercent))
 	{
 		bCacheHit = true;
@@ -2725,12 +2770,15 @@ int AIFoundValue::evaluateYield(int const* aiYield, CvPlot const* p, bool bCanNe
 		aiWeight[YIELD_PRODUCTION] = iOneFoodShortProductionValue;
 		aiWeight[YIELD_COMMERCE] = iOneFoodShortCommerceValue;
 	}
-	// <!-- custom: Disabled the first-two-cities Commerce bonus. Commerce is already valued by every set above and is not uniquely important, while early Food and Production drive growth, workers, settlers, defense, and military. City sites persist into later eras, so changing their Commerce valuation only during the first era is not a coherent long-term settlement criterion; use one consistent value instead of this extra complexity. (GPT-5.5) -->
+	// <!-- custom: Disabled the first-two-cities Commerce bonus.
+	// Commerce is already valued by every set above and is not uniquely important, while early Food and Production drive growth, workers, settlers, defense, and military.
+	// City sites persist into later eras, so changing their Commerce valuation only during the first era is not a coherent long-term settlement criterion; use one consistent value instead of this extra complexity. (GPT-5.5) -->
 	// /*  <advc.108> For moving the starting Settler and for more
 	// 	early-game commerce in general */
 	// if(iCities <= 1 && eEra <= 0)
 	// 	aiWeight[YIELD_COMMERCE] += 5; // </advc.108>
-	// <!-- custom: Disabled the small Barbarian-specific production bias. Barbarian cities still need Food for growth and Commerce for research/economy, while their military priorities are handled elsewhere; these minor value changes did not justify the extra complexity of a separate tile-yield valuation layer. (GPT-5.5) -->
+	// <!-- custom: Disabled the small Barbarian-specific production bias.
+	// Barbarian cities still need Food for growth and Commerce for research/economy, while their military priorities are handled elsewhere; these minor value changes did not justify the extra complexity of a separate tile-yield valuation layer. (GPT-5.5) -->
 	// <advc.303>
 	// if (bBarbarian)
 	// {
@@ -2876,13 +2924,15 @@ bool AIFoundValue::isPlotInKnownRivalFutureBFC(CvPlot const& p) const
 
 bool AIFoundValue::isBonusOwnedOrClaimedByFutureBFC(BonusTypes eBonus) const
 {
-	// <!-- custom: Available bonuses are net of exports and include temporary imports. Reconstruct connected permanent supply so an import cannot erase the settlement value of acquiring the first owned copy, while an exported owned copy still counts. See KI#486. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Available bonuses are net of exports and include temporary imports.
+	// Reconstruct connected permanent supply so an import cannot erase the settlement value of acquiring the first owned copy, while an exported owned copy still counts. See KI#486. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	int const iPermanentConnectedBonuses = kPlayer.getNumAvailableBonuses(eBonus) + kPlayer.getBonusExport(eBonus) - kPlayer.getBonusImport(eBonus);
 	if (iPermanentConnectedBonuses > 0)
 		return true;
 
 	// <!-- custom: For empire-wide bonus effects, treat a bonus type as already covered when an existing city can plausibly claim it in its full BFC, even before border expansion or connection.
-	// In save file 450, after uMgungundlovu correctly moved to (17,40), Zulu city 3 still settled far south for Crab + Camel; uMgungundlovu will safely claim Crab, so chasing another Crab should not beat the closer western Maize site near the capital. Camel is contested by Arabia, and only one side will get it, so keep its duplicate value when a known rival future BFC also threatens the plot.
+	// In save file 450, after uMgungundlovu correctly moved to (17,40), Zulu city 3 still settled far south for Crab + Camel; uMgungundlovu will safely claim Crab, so chasing another Crab should not beat the closer western Maize site near the capital.
+	// Camel is contested by Arabia, and only one side will get it, so keep its duplicate value when a known rival future BFC also threatens the plot.
 	// Local tile/improvement yield remains separate: settling near a contested bonus can still be worthwhile because we may win or steal the tile, but empire-wide duplicate value should only be suppressed when ownership is reliable. See KI#178. (GPT-5.5) -->
 	FOR_EACH_CITYAI(pCity, kPlayer)
 	{
@@ -2896,7 +2946,8 @@ bool AIFoundValue::isBonusOwnedOrClaimedByFutureBFC(BonusTypes eBonus) const
 			PlayerTypes const ePlotOwner = getRevealedOwner(*pLoopPlot);
 			if (ePlotOwner == NO_PLAYER || ePlotOwner == ePlayer)
 			{
-				// <!-- custom: A contested occurrence establishes nothing about other copies. Keep searching until any matching future-BFC bonus is safely claimable, making this empire-wide result independent of city/plot iteration order. See KI#485. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				// <!-- custom: A contested occurrence establishes nothing about other copies.
+				// Keep searching until any matching future-BFC bonus is safely claimable, making this empire-wide result independent of city/plot iteration order. See KI#485. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 				if (!isPlotInKnownRivalFutureBFC(*pLoopPlot))
 					return true;
 				continue;
@@ -2913,7 +2964,9 @@ bool AIFoundValue::isBonusOwnedOrClaimedByFutureBFC(BonusTypes eBonus) const
 bool AIFoundValue::isBonusBuildingEffectValued(BuildingTypes eBuilding, int iMaxPrereqEra, bool bCoastal) const
 {
 	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
-	// <!-- custom: Settlement scoring should anticipate ordinary Granary/Harbor-style and conservatively estimated special-building bonus health/happiness without importing full AI_bonusVal trade logic. Keep obsolete buildings, non-coastal water buildings, and prerequisites beyond the configured era out of this narrow long-term city-site value. Limited buildings are rejected by the caller. See KI#178. (GPT-5.5 + GPT-5.6-Sol) -->
+	// <!-- custom: Settlement scoring should anticipate ordinary Granary/Harbor-style and conservatively estimated special-building bonus health/happiness without importing full AI_bonusVal trade logic.
+	// Keep obsolete buildings, non-coastal water buildings, and prerequisites beyond the configured era out of this narrow long-term city-site value.
+	// Limited buildings are rejected by the caller. See KI#178. (GPT-5.5 + GPT-5.6-Sol) -->
 	if (kBuilding.isWater() && !bCoastal)
 		return false;
 	TechTypes const eObsoleteTech = kBuilding.getObsoleteTech();
@@ -3038,7 +3091,8 @@ int AIFoundValue::nonYieldBonusValue(CvPlot const& p, BonusTypes eBonus, bool bC
 {
 	// <!-- custom: In save file 450, the old broad AI_bonusVal path made Elephants at (20,41) greatly outscore nearby Crab, pushing Shaka's uMgungundlovu toward the weaker (18,40) site over the Crab and greener (17,40) alternative; this is wrong because Crab is locally a valuable high food source, and its empire health gain remains useful especially later, while Elephants are mostly classical-era pressure with some happiness.
 	// Settlement scoring cares less about immediate current-era trade value than about long-term health and happiness city-site value, which can be very different.
-	// Score explicit new health/happiness, ordinary building effects, and conservatively estimated special-building effects here. The old first-growth/luxury extra is removed because explicit health/happiness already represents that empire-wide effect.
+	// Score explicit new health/happiness, ordinary building effects, and conservatively estimated special-building effects here.
+	// The old first-growth/luxury extra is removed because explicit health/happiness already represents that empire-wide effect.
 	// Diversity, dynamic bonus importance, and improvement yields are handled separately by the caller. See KI#178. (GPT-5.5 + GPT-5.6-Sol) -->
 	// int r = kPlayer.AI_bonusVal(eBonus, 1, true) * (!kSet.isStartingLoc() && kPlayer.getNumTradeableBonuses(eBonus) == 0 && aiBonusCount[eBonus] == 1 ? 80 : 20); // BtS
 	// int iCount = kPlayer.getNumTradeableBonuses(eBonus) == 0 + aiBonusCount[eBonus];
@@ -3156,8 +3210,10 @@ int AIFoundValue::nonYieldBonusValue(CvPlot const& p, BonusTypes eBonus, bool bC
 		*piBuildingHappyHealthValue = (bSurplus ? 0 : iBuildingHappyHealthValue);
 	scaled r = iEffectiveHappyHealthValue;
 	scaled rAdjustment = (r == 0 ? 0 : 1);
-	// <!-- custom: Base AdvCiv gave only 70% value when a bonus was connectable through a currently researchable technology and about one third otherwise. That immediate-availability split was too harsh and arbitrary for long-term settlement value: save file 453 gave Incense only 70% immediately before Spain completed same-era Calendar on the founding turn.
-	// Keep full value when the earliest valid connection is in the current/earlier era, and lose an XML-tunable percent only per later era. Surplus duplicates remain zero because local improvement yields and diversity are scored separately. See KI#187. (GPT-5.6-Sol) -->
+	// <!-- custom: Base AdvCiv gave only 70% value when a bonus was connectable through a currently researchable technology and about one third otherwise.
+	// That immediate-availability split was too harsh and arbitrary for long-term settlement value: save file 453 gave Incense only 70% immediately before Spain completed same-era Calendar on the founding turn.
+	// Keep full value when the earliest valid connection is in the current/earlier era, and lose an XML-tunable percent only per later era.
+	// Surplus duplicates remain zero because local improvement yields and diversity are scored separately. See KI#187. (GPT-5.6-Sol) -->
 	if (!bCanTrade)
 	{
 		if (gFoundLogLevel >= 3 && bSurplus) logBBAIFoundDetail("SURPLUS_BONUS", "plot=%d,%d bonus=%s", p.getX(), p.getY(), GC.getInfo(eBonus).getType());
@@ -3382,7 +3438,9 @@ int AIFoundValue::sumUpPlotValues(std::vector<int>& aiPlotValues, int* aiCoreSum
 	return iR;
 }
 
-// <!-- custom: Disabled after our simple XML-tunable SAS bonus-improvement yield valuation made this path redundant. Keeping both paths overscored bonus-heavy sites during follow-up testing around KI#173, letting resource quantity overwhelm food and terrain quality. This nonlinear formula is also obscure, convoluted, and hardcoded, making it poor for tuning and clarity; keep it commented for reference. (GPT-5.5) -->
+// <!-- custom: Disabled after our simple XML-tunable SAS bonus-improvement yield valuation made this path redundant.
+// Keeping both paths overscored bonus-heavy sites during follow-up testing around KI#173, letting resource quantity overwhelm food and terrain quality.
+// This nonlinear formula is also obscure, convoluted, and hardcoded, making it poor for tuning and clarity; keep it commented for reference. (GPT-5.5) -->
 // /*	Note: aiSpecialYield includes aiNatureYield. Thus, nature yield is counted twice:
 // 	once in evaluateYield, a second time in evaluateSpecialYield. This was already
 // 	the case in BtS and it might work out more or less correctly on the bottom line,
@@ -3535,7 +3593,8 @@ int AIFoundValue::evaluateSeaAccess(bool bGoodFirstColony, scaled rProductionMod
 	// <advc.303>
 	if (bBarbarian)
 	{
-		// <!-- custom: Keep the inherited Barbarian coastal push XML-tunable. Coastal Barbarian cities can maintain Galley/naval pressure from lone islands, but too much coastal bias can outweigh stronger long-term city sites that Barbarians or later conquerors would use better; adjust SAS_EVALUATE_BARBARIAN_COASTAL_EXTRA_VALUE in XML. (GPT-5.5) -->
+		// <!-- custom: Keep the inherited Barbarian coastal push XML-tunable.
+		// Coastal Barbarian cities can maintain Galley/naval pressure from lone islands, but too much coastal bias can outweigh stronger long-term city sites that Barbarians or later conquerors would use better; adjust SAS_EVALUATE_BARBARIAN_COASTAL_EXTRA_VALUE in XML. (GPT-5.5) -->
 		static const int iSAS_EVALUATE_BARBARIAN_COASTAL_EXTRA_VALUE = GC.getDefineINT("SAS_EVALUATE_BARBARIAN_COASTAL_EXTRA_VALUE");
 		iR += iSAS_EVALUATE_BARBARIAN_COASTAL_EXTRA_VALUE;
 		if (gFoundLogLevel >= 3) logBBAIFoundDetail("COASTAL_BARBARIAN_VALUE", "+%d for coastal (Barbarian)", iR);
@@ -3709,7 +3768,8 @@ int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 	for (SquareIter it(kPlot, iRange); it.hasNext(); ++it)
 	{
 		CvPlot const& p = *it;
-		// <!-- custom: AdvCiv restored an outer same-area gate that made K-Mod's retained other-island badness branch unreachable. Let every distance-qualified plot reach the branch; only water and same-area land contribute usable yields below. See KI#482. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: AdvCiv restored an outer same-area gate that made K-Mod's retained other-island badness branch unreachable.
+		// Let every distance-qualified plot reach the branch; only water and same-area land contribute usable yields below. See KI#482. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if (it.currPlotDist() <= iRange)
 		{
 			/*int iTempValue = (p->getYield(YIELD_FOOD) * 15);
@@ -3889,7 +3949,10 @@ int AIFoundValue::adjustToStartingChoices(int iValue) const
 // }
 
 
-// <!-- custom: CvGame::createBarbarianCity already allows a new Barbarian city only on land not currently visible to any civilization team, subject to normal founding/spacing rules. Base AdvCiv additionally used this function to lower the score of otherwise eligible fogged tiles close to any existing city, using a randomized distance range to spread Barbarian cities out and discourage touching borders. It did not make normal civilization Settlers avoid Barbarian cities. Disable only this extra penalty: a stronger nearby fogged site can now beat a weaker farther one, leaving a better city for both the Barbarians and whoever later captures it. (GPT-5.6-Sol) -->
+// <!-- custom: CvGame::createBarbarianCity already allows a new Barbarian city only on land not currently visible to any civilization team, subject to normal founding/spacing rules.
+// Base AdvCiv additionally used this function to lower the score of otherwise eligible fogged tiles close to any existing city, using a randomized distance range to spread Barbarian cities out and discourage touching borders.
+// It did not make normal civilization Settlers avoid Barbarian cities.
+// Disable only this extra penalty: a stronger nearby fogged site can now beat a weaker farther one, leaving a better city for both the Barbarians and whoever later captures it. (GPT-5.6-Sol) -->
 // int AIFoundValue::adjustToBarbarianSurroundings(int iValue) const
 // {
 // 	int r = iValue;
@@ -3926,7 +3989,8 @@ int AIFoundValue::adjustToStartingChoices(int iValue) const
 // }
 
 
-// <!-- custom: this adjustToCivSurroundings caused a bug of AI settler settling on bonus camel desert which is very bad in a desert surroudning even worse, it is seemingly called only once in AIFoundValue::evaluate, may as well disable it (including our changes in it) since it is so complicated and who knows where the bugs is(/are?) and instead migrate only a very simplified version of the logic we want directly inline in its only caller so in AIFoundValue::evaluate, done so with the help of chatgpt 5, check if accurate -->
+// <!-- custom: this adjustToCivSurroundings caused a bug of AI settler settling on bonus camel desert which is very bad in a desert surroudning even worse, it is seemingly called only once in AIFoundValue::evaluate, may as well disable it (including our changes in it) since it is so complicated and who knows where the bugs is(/are?)
+// and instead migrate only a very simplified version of the logic we want directly inline in its only caller so in AIFoundValue::evaluate, done so with the help of chatgpt 5, check if accurate -->
 // int AIFoundValue::adjustToCivSurroundings(int iValue, int iStealPercent) const
 // {
 // 	// K-Mod. Adjust based on proximity to other players, and the shape of our empire.
@@ -4440,7 +4504,9 @@ bool AIFoundValue::isDeadlockedBonus(CvPlot const& kBonusPlot, int iMinRange) co
 	return (!bNeverFound && !bCanFound);
 }
 
-// <!-- custom: Callers gate argument preparation; this helper only formats the requested diagnostic row. Greppable event names and turn/player/site/context fields make actual evaluation traces easy to correlate, while the explicit context distinguishes UI and hypothetical comparisons. Never use logging state to alter scoring. See KI#505.2. (GPT-6.1-Sol) -->
+// <!-- custom: Callers gate argument preparation; this helper only formats the requested diagnostic row.
+// Greppable event names and turn/player/site/context fields make actual evaluation traces easy to correlate, while the explicit context distinguishes UI and hypothetical comparisons.
+// Never use logging state to alter scoring. See KI#505.2. (GPT-6.1-Sol) -->
 void AIFoundValue::logBBAIFoundDetail(char const* szEvent, char const* szFormat, ...) const
 {
 	FAssert(gFoundLogLevel > 0);
@@ -4450,8 +4516,13 @@ void AIFoundValue::logBBAIFoundDetail(char const* szEvent, char const* szFormat,
 	bool const bFormatted = CvString::formatv(szDetail, szFormat, args);
 	va_end(args);
 	FAssert(bFormatted);
-	// <!-- custom: Producers emit single-line payloads; the inherited weighted-plot-sum message was simplified at its source rather than scanning every formatted row to replace newlines. Pass the payload as data through the existing literal-safe BBAI sink. See KI#505.2. (GPT-6.1-Sol) -->
-	// <!-- custom: The first level-3 sample exceeded 1 GB by turn 50. Repeating invariant flags on every component row added substantial text; full site evaluations now carry them in BEGIN, while standalone SPI rows keep them because they have no BEGIN. Keep the identifying fields on every row. m_bSiteEvaluation selects the row layout only; logging is already gated before entering this helper, either directly or through the level-3 site/plot helpers. FAssert verifies that contract in debug builds; it is not the logging gate. See KI#505.2. (GPT-6.1-Sol) -->
+	// <!-- custom: Producers emit single-line payloads; the inherited weighted-plot-sum message was simplified at its source rather than scanning every formatted row to replace newlines.
+	// Pass the payload as data through the existing literal-safe BBAI sink. See KI#505.2. (GPT-6.1-Sol) -->
+	// <!-- custom: The first level-3 sample exceeded 1 GB by turn 50.
+	// Repeating invariant flags on every component row added substantial text; full site evaluations now carry them in BEGIN, while standalone SPI rows keep them because they have no BEGIN.
+	// Keep the identifying fields on every row.
+	// m_bSiteEvaluation selects the row layout only; logging is already gated before entering this helper, either directly or through the level-3 site/plot helpers.
+	// FAssert verifies that contract in debug builds; it is not the logging gate. See KI#505.2. (GPT-6.1-Sol) -->
 	if (m_bSiteEvaluation)
 		logBBAI("FOUND_SITE_%s turn=%d player=%d site=%d,%d context=%s scope=SITE formatError=%d %s",
 			szEvent, kGame.getGameTurn(), ePlayer, iX, iY,
@@ -4463,14 +4534,17 @@ void AIFoundValue::logBBAIFoundDetail(char const* szEvent, char const* szFormat,
 		kSet.isStartingLoc(), kSet.isNormalizing(), !bFormatted, szDetail.c_str());
 }
 
-// <!-- custom: Renamed inherited AIFoundValue::logSite() to identify both the BBAI sink and the full-site settings role, distinct from component/plot detail. This helper also incorporates the former CitySiteEvaluator::logSettings() output; its caller gates the entire helper at Found level 3 before preparing diagnostic arguments. See KI#505.2. (GPT-6.1-Sol) -->
+// <!-- custom: Renamed inherited AIFoundValue::logSite() to identify both the BBAI sink and the full-site settings role, distinct from component/plot detail.
+// This helper also incorporates the former CitySiteEvaluator::logSettings() output; its caller gates the entire helper at Found level 3 before preparing diagnostic arguments. See KI#505.2. (GPT-6.1-Sol) -->
 void AIFoundValue::logBBAIFoundSiteSettings() const
 {
 	// <!-- custom: Caller-side FOUND pre-gating is required; keep only a debug invariant here. (ChatGPT-5.6-Sol) -->
 	FAssert(gFoundLogLevel >= 3);
 
 	// <!-- custom: Replaces logSettings()'s individual tagged output blocks with named fields: advc.300 -> barbarianDiscouragedRange; advc.027 -> ignoreStartingSurroundings; advc.908a -> extraYieldNaturalThreshold (AdvCiv Financial effect).
-	// The former advc.031e normalizing and advc.007 ignorePlannedSites flags are in BEGIN. The separate COMPUTING_FOUND_VALUE_FOR, SITE_IS_COASTAL and OTHER_CITIES_IN_THE_AREA_IN_TOTAL rows are now fields of SETTINGS, retaining site identity/coastal status/city counts with fewer rows and repeated prefixes. Evaluation rules are unchanged. See KI#505.2. (GPT-6.1-Sol) -->
+	// The former advc.031e normalizing and advc.007 ignorePlannedSites flags are in BEGIN.
+	// The separate COMPUTING_FOUND_VALUE_FOR, SITE_IS_COASTAL and OTHER_CITIES_IN_THE_AREA_IN_TOTAL rows are now fields of SETTINGS, retaining site identity/coastal status/city counts with fewer rows and repeated prefixes.
+	// Evaluation rules are unchanged. See KI#505.2. (GPT-6.1-Sol) -->
 	logBBAIFoundDetail("SETTINGS", "claimThreshold=%d minRivalRange=%d barbarianDiscouragedRange=%d ignoreStartingSurroundings=%d scenario=%d advancedStart=%d easyCulture=%d ambitious=%d extraYieldNaturalThreshold=%d extraYieldThreshold=%d defensive=%d seafaring=%d expansive=%d plannedSites=%d coastal=%d areaCities=%d totalCities=%d civilization=%S",
 		kSet.getClaimThreshold(), kSet.getMinRivalRange(), kSet.getBarbarianDiscouragedRange(), kSet.isIgnoreStartingSurroundings(),
 		kSet.isScenario(), kSet.isAdvancedStart(), kSet.isEasyCulture(), kSet.isAmbitious(),
@@ -4479,8 +4553,14 @@ void AIFoundValue::logBBAIFoundSiteSettings() const
 
 }
 
-// <!-- custom: Renamed inherited AIFoundValue::logPlot() to logBBAIFoundPlotDetails so the name identifies the BBAI sink and plot-detail role, distinct from full-site settings. Its caller gates the whole helper at Found level 3. The former helper emitted several separate plot-status rows. Consolidate the former HOME_PLOT/PLOT_IN_RADIUS, PLOT_POTENTIAL, cache-hit, culture, hidden-bonus and feature rows. Retain their values and cache provenance with fewer log writes and without repeating the context for each field; resource identity is emitted only when known.
-// Removed and retired the inherited AdvCiv CvPlot::debugStr() helper after replacing its Found-log calls: its descriptions printed actual bonus/owner identities during player-known evaluation. For new Found rows, use plot coordinates and evaluator-scoped fields; do not reintroduce generic true-map descriptions into player-known traces. hiddenBonus deliberately indicates hidden-resource presence; trueMap describes the evaluator mode, not spoiler-free output. See KI#349. See KI#505.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol + GPT-6.1-Sol) -->
+// <!-- custom: Renamed inherited AIFoundValue::logPlot() to logBBAIFoundPlotDetails so the name identifies the BBAI sink and plot-detail role, distinct from full-site settings.
+// Its caller gates the whole helper at Found level 3.
+// The former helper emitted several separate plot-status rows.
+// Consolidate the former HOME_PLOT/PLOT_IN_RADIUS, PLOT_POTENTIAL, cache-hit, culture, hidden-bonus and feature rows.
+// Retain their values and cache provenance with fewer log writes and without repeating the context for each field; resource identity is emitted only when known.
+// Removed and retired the inherited AdvCiv CvPlot::debugStr() helper after replacing its Found-log calls: its descriptions printed actual bonus/owner identities during player-known evaluation.
+// For new Found rows, use plot coordinates and evaluator-scoped fields; do not reintroduce generic true-map descriptions into player-known traces.
+// hiddenBonus deliberately indicates hidden-resource presence; trueMap describes the evaluator mode, not spoiler-free output. See KI#349. See KI#505.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol + GPT-6.1-Sol) -->
 void AIFoundValue::logBBAIFoundPlotDetails(CvPlot const& p, int iPlotValue, int const* aiYield, int iCultureModifier, BonusTypes eBonus, ImprovementTypes eBonusImprovement, bool bCanTradeBonus, bool bCanSoonTradeBonus, bool bCanImproveBonus, bool bCanSoonImproveBonus, bool bEasyAccess, int iFeatureProduction, bool bPersistentFeature, bool bRemovableFeature, int iNatureYieldValue, int iPotentialValue, ImprovementTypes ePotentialImprovement, int const* aiPotentialYield, int iPotentialTimingPercent, bool bPotentialCacheHit) const
 {
 	// <!-- custom: Caller-side FOUND pre-gating is required; keep only a debug invariant here. (ChatGPT-5.6-Sol) -->
@@ -4499,7 +4579,8 @@ void AIFoundValue::logBBAIFoundPlotDetails(CvPlot const& p, int iPlotValue, int 
 		aiPotentialYield[F], aiPotentialYield[P], aiPotentialYield[C], iPotentialTimingPercent);
 	if (eBonus != NO_BONUS)
 	{
-		// <!-- custom: Replace the separate availability/access status sentences with their actual booleans, including already-available resources. Keep the inherited consistency assertions. See KI#505.2. (GPT-6.1-Sol) -->
+		// <!-- custom: Replace the separate availability/access status sentences with their actual booleans, including already-available resources.
+		// Keep the inherited consistency assertions. See KI#505.2. (GPT-6.1-Sol) -->
 		// <!-- custom: FAssert expands to a block in Debug-opt; brace both if/else arms so the call's trailing semicolon cannot detach else. See KI#505.2. (GPT-6.1-Sol) -->
 		if (eBonusImprovement == NO_IMPROVEMENT)
 		{

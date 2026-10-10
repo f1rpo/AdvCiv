@@ -511,7 +511,7 @@
 			<Civilopedia>TXT_KEY_CIVIC_VASSALAGE_PEDIA</Civilopedia>
 			<Strategy>TXT_KEY_DUMMY_EMPTY_CUSTOM_TXTKEY_STRATEGY</Strategy>
 			<Button>,Art/Interface/Buttons/Civics/Vassalage.dds,Art/Interface/Buttons/Civics_Civilizations_Religions_Atlas.dds,1,4</Button>
-			<!-- custom: see rationale at top of doc to not clutter here or slow if it slows perf at all-->
+			<!-- custom: see rationale at top of doc to not clutter here or slow if it slows perf at all -->
 			<TechPrereq>TECH_PHILOSOPHY</TechPrereq>
 			<iAnarchyLength>1</iAnarchyLength>
 			<!-- custom: was UPKEEP_HIGH -->
@@ -719,7 +719,8 @@
 			<Hurrys/>
 			<SpecialBuildingNotRequireds/>
 			<SpecialistValids/>
-			<!-- custom: more iconic, possibly more balanced, less generic, and in some cases stronger, as chatgpt 5.1 confirms; Long_Comments_XML.txt #119. Was BUILDINGCLASS_BARRACKS 2 -->
+			<!-- custom: more iconic, possibly more balanced, less generic, and in some cases stronger, as chatgpt 5.1 confirms; Long_Comments_XML.txt #119.
+			Was BUILDINGCLASS_BARRACKS 2 -->
 			<BuildingHappinessChanges>
 				<BuildingHappinessChange>
 					<BuildingType>BUILDINGCLASS_COLOSSEUM</BuildingType>
@@ -810,7 +811,8 @@
 			<Civilopedia>TXT_KEY_CIVIC_SLAVERY_PEDIA</Civilopedia>
 			<Strategy>TXT_KEY_DUMMY_EMPTY_CUSTOM_TXTKEY_STRATEGY</Strategy>
 			<Button>,Art/Interface/Buttons/Civics/Slavery.dds,Art/Interface/Buttons/Civics_Civilizations_Religions_Atlas.dds,8,2</Button>
-			<!-- custom: Move Slavery from Agriculture to weaker Masonry. This keeps Agriculture focused on food improvements and makes the early branch choice more strategically meaningful. (GPT-5.6-Sol) -->
+			<!-- custom: Move Slavery from Agriculture to weaker Masonry.
+			This keeps Agriculture focused on food improvements and makes the early branch choice more strategically meaningful. (GPT-5.6-Sol) -->
 			<TechPrereq>TECH_MASONRY</TechPrereq>
 			<iAnarchyLength>1</iAnarchyLength>
 			<!-- custom: (try to make it relevant longer into the middle game without being op, also it is thematically more accurate to consider slavery cheaper to enact i mean (buffs its early game performance vs other civics as well which may help if economy is bad or such possibly maybe), was UPKEEP_MEDIUM -->
@@ -1614,7 +1616,8 @@
 			<Civilopedia>TXT_KEY_CIVIC_ORGANIZED_RELIGION_PEDIA</Civilopedia>
 			<Strategy>TXT_KEY_DUMMY_EMPTY_CUSTOM_TXTKEY_STRATEGY</Strategy>
 			<Button>,Art/Interface/Buttons/Civics/Organized_Religion.dds,Art/Interface/Buttons/Civics_Civilizations_Religions_Atlas.dds,2,2</Button>
-			<!-- custom: Move Organized Religion to Polytheism so its monastery-free missionaries can shape the early religion races instead of arriving after most founding and spread. Polytheism has no other civic, fits early organized state cults, and is a more specialized commitment than Calendar's broader policy path; the civic's high upkeep further keeps this early timing a deliberate choice. (GPT-5.6-Sol) -->
+			<!-- custom: Move Organized Religion to Polytheism so its monastery-free missionaries can shape the early religion races instead of arriving after most founding and spread.
+			Polytheism has no other civic, fits early organized state cults, and is a more specialized commitment than Calendar's broader policy path; the civic's high upkeep further keeps this early timing a deliberate choice. (GPT-5.6-Sol) -->
 			<TechPrereq>TECH_POLYTHEISM</TechPrereq>
 			<iAnarchyLength>1</iAnarchyLength>
 			<Upkeep>UPKEEP_HIGH</Upkeep>
@@ -1660,7 +1663,8 @@
 			<iStateReligionHappiness>0</iStateReligionHappiness>
 			<iNonStateReligionHappiness>0</iNonStateReligionHappiness>
 			<iStateReligionUnitProductionModifier>0</iStateReligionUnitProductionModifier>
-			<!-- custom: breaks balance and not necessarily relevant to build any building faster just because we have a religion. Was 25 -->
+			<!-- custom: breaks balance and not necessarily relevant to build any building faster just because we have a religion.
+			Was 25 -->
 			<iStateReligionBuildingProductionModifier>0</iStateReligionBuildingProductionModifier>
 			<iStateReligionFreeExperience>0</iStateReligionFreeExperience>
 			<YieldModifiers/>
@@ -1696,7 +1700,8 @@
 			<Civilopedia>TXT_KEY_CIVIC_PACIFISM_PEDIA</Civilopedia>
 			<Strategy>TXT_KEY_DUMMY_EMPTY_CUSTOM_TXTKEY_STRATEGY</Strategy>
 			<Button>,Art/Interface/Buttons/Civics/Pacifism.dds,Art/Interface/Buttons/Civics_Civilizations_Religions_Atlas.dds,3,2</Button>
-			<!-- custom: Move Pacifism from Meditation to Medicine. This strengthens Medicine and keeps the early religious branch from also determining a powerful Great Person policy, making research-path choices more distinct. (GPT-5.6-Sol) -->
+			<!-- custom: Move Pacifism from Meditation to Medicine.
+			This strengthens Medicine and keeps the early religious branch from also determining a powerful Great Person policy, making research-path choices more distinct. (GPT-5.6-Sol) -->
 			<TechPrereq>TECH_MEDICINE</TechPrereq>
 			<iAnarchyLength>1</iAnarchyLength>
 			<Upkeep>NONE</Upkeep>

@@ -96,7 +96,8 @@ def get_leader_cache_predumped_or_compute(compute_func, excluded_leader_types, i
 # <!-- custom: note: collapse this below function with the VS Code UI option or similar to see the line after function definition directly (i.e. as of now around line 1530, right after function definition line e.g. around line 100) for easier reading if desired. -->
 # <!-- custom: read at end of this function at the return's code comment of when and why we call the sevopedia cache precomputing as a function from sevopedia main -->
 def _compute_leader_cache_internal():
-	# <!-- custom: runtime provider for the shared pure AIP cache builder. This keeps Civ4-only gc/DLL access here, while tuple creation, labels, normalization, scale strings, and displayed aggregate selection live in ai_utils_shared_with_civ4.py for reuse by the workflow predump checker. (ChatGPT-5.5) -->
+	# <!-- custom: runtime provider for the shared pure AIP cache builder.
+	# This keeps Civ4-only gc/DLL access here, while tuple creation, labels, normalization, scale strings, and displayed aggregate selection live in ai_utils_shared_with_civ4.py for reuse by the workflow predump checker. (ChatGPT-5.5) -->
 	NUM_LEADERS = gc.getNumLeaderHeadInfos()
 	NON_EXCLUDED_LEADERS = tuple(i for i in xrange(NUM_LEADERS) if i not in EXCLUDED_LEADER_INDEXES_FROM_CALCULATIONS)
 
@@ -175,7 +176,8 @@ def _compute_leader_cache_internal():
 	check_leaders_dict_only_has_leader_index_keys(LEADERS_INFO_CACHED, "LEADERS_INFO_CACHED")
 
 	# <!-- custom: category definitions are now owned by SevoPediaLeader.py (UI layer); this cache module remains data-only for predump/runtime cache values. (GPT-5.3-Codex) -->
-	# <!-- custom: final return. Note that this caching, even though it is done in sevopedia leader, is triggered from sevopedia main's placeLeaders, after module load, so that we cache (or load the precomputed cache) only once just at the right time when it is computationally the cheapest for players. -->
+	# <!-- custom: final return.
+	# Note that this caching, even though it is done in sevopedia leader, is triggered from sevopedia main's placeLeaders, after module load, so that we cache (or load the precomputed cache) only once just at the right time when it is computationally the cheapest for players. -->
 	# <!-- custom: also print the debug line below regardless of debug flag status, we really want to know this info and it is short -->
 	print("Sevopedia Leader cache prebuilt cache prebuilt. This should appear only once per gaming session.")
 

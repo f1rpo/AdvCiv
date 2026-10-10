@@ -225,7 +225,8 @@ class PangaeaMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 		#
 		# The following grain matrix is specific to Pangaea.py
 		sizekey = self.map.getWorldSize()
-		# <!-- custom: Pangaea's regional shoreline branches retained a direct legacy table with no Arena key, so randomly selecting one of those branches raised KeyError while other branches generated normally. Arena uses the established Duel/Tiny grain. See KI#282.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: Pangaea's regional shoreline branches retained a direct legacy table with no Arena key, so randomly selecting one of those branches raised KeyError while other branches generated normally.
+		# Arena uses the established Duel/Tiny grain. See KI#282.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		sizevalues = {
 			WorldSizeTypes.WORLDSIZE_ARENA:     3,
 			WorldSizeTypes.WORLDSIZE_DUEL:      3,

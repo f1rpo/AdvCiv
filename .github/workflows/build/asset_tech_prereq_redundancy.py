@@ -2,7 +2,8 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
-# <!-- custom: Flag stale additional unit/building tech requirements when the primary tech already guarantees them through the tech graph. Limit the rule to prerequisites from an earlier era that remain attached at least two columns into the primary tech's era, so close foundational requirements can remain explicit without preserving very old no-effect requirements after tech-tree moves. (GPT-5.6-Sol) -->
+# <!-- custom: Flag stale additional unit/building tech requirements when the primary tech already guarantees them through the tech graph.
+# Limit the rule to prerequisites from an earlier era that remain attached at least two columns into the primary tech's era, so close foundational requirements can remain explicit without preserving very old no-effect requirements after tech-tree moves. (GPT-5.6-Sol) -->
 
 from pathlib import Path
 import argparse

@@ -526,7 +526,8 @@
 			<SpecialistYieldChanges/>
 			<BonusYieldModifiers/>
 			<ImprovementFreeSpecialists/>
-			<!-- custom: great spy great person is low enough it can be ignored and probably better to ignore it in this case at least, as for flavors in base advciv, were/was flavor military 5??? Fixed to growth gold based formula as seems much more accurate (didn't read the adv manual id though in case it has info but this still seems much more accurate like this with these udpated flavors i/we i.e. i now added in advciv-sas -->
+			<!-- custom: great spy great person is low enough it can be ignored and probably better to ignore it in this case at least, as for flavors in base advciv, were/was flavor military 5???
+			Fixed to growth gold based formula as seems much more accurate (didn't read the adv manual id though in case it has info but this still seems much more accurate like this with these udpated flavors i/we i.e. i now added in advciv-sas -->
 			<Flavors>
 				<!-- advc.020: Was 10 Gold, 2 Espionage -->
 				<Flavor>
@@ -1382,7 +1383,8 @@
 			<bNukeImmune>0</bNukeImmune>
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
-			<!-- custom: September 2026 audit: restore Barracks to iAIWeight 0. K-Mod already values applicable XP contextually; the old +70 whole-building bonus could dominate that context and amplify unrelated unique-building effects. See KI#48.5. Was 70. (ChatGPT-5.6-Sol) -->
+			<!-- custom: September 2026 audit: restore Barracks to iAIWeight 0.
+			K-Mod already values applicable XP contextually; the old +70 whole-building bonus could dominate that context and amplify unrelated unique-building effects. See KI#48.5; was 70. (ChatGPT-5.6-Sol) -->
 			<iAIWeight>0</iAIWeight>
 			<iCost>50</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
@@ -1558,7 +1560,7 @@
 			<bNukeImmune>0</bNukeImmune>
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
-			<!-- custom: Follow the September 2026 Barracks-class iAIWeight rollback: value actual XP/other effects plus flavour instead of an unconditional whole-building bonus. See KI#48.5. Was 75. (ChatGPT-5.6-Sol) -->
+			<!-- custom: Follow the September 2026 Barracks-class iAIWeight rollback: value actual XP/other effects plus flavour instead of an unconditional whole-building bonus. See KI#48.5; was 75. (ChatGPT-5.6-Sol) -->
 			<iAIWeight>0</iAIWeight>
 			<!-- custom: The city maintenance effect is not that strong early, and the military effect not so strong, but increasing cost makes Shaka significantly less competitive militarily, especially early, so do not increase cost. -->
 			<iCost>50</iCost>
@@ -1739,7 +1741,7 @@
 			<bNukeImmune>0</bNukeImmune>
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
-			<!-- custom: Follow the September 2026 Barracks-class iAIWeight rollback: value actual XP/other effects plus flavour instead of an unconditional whole-building bonus. See KI#48.5. Was 70. (ChatGPT-5.6-Sol) -->
+			<!-- custom: Follow the September 2026 Barracks-class iAIWeight rollback: value actual XP/other effects plus flavour instead of an unconditional whole-building bonus. See KI#48.5; was 70. (ChatGPT-5.6-Sol) -->
 			<iAIWeight>0</iAIWeight>
 			<iCost>50</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
@@ -1753,7 +1755,8 @@
 			<iMinLatitude>0</iMinLatitude>
 			<iMaxLatitude>90</iMaxLatitude>
 			<iGreatPeopleRateModifier>0</iGreatPeopleRateModifier>
-			<!-- custom: Support Japan's military/martial-arts identity. Keep this at 15 because every early Doujou adds cumulatively to the empire-wide modifier, preserving a strong Japanese identity without making the cumulative bonus too high. Long_Comments_XML.txt #12. (GPT-5.6-Sol) -->
+			<!-- custom: Support Japan's military/martial-arts identity.
+			Keep this at 15 because every early Doujou adds cumulatively to the empire-wide modifier, preserving a strong Japanese identity without making the cumulative bonus too high. Long_Comments_XML.txt #12. (GPT-5.6-Sol) -->
 			<iGreatGeneralRateModifier>15</iGreatGeneralRateModifier>
 			<iDomesticGreatGeneralRateModifier>0</iDomesticGreatGeneralRateModifier>
 			<iGlobalGreatPeopleRateModifier>0</iGlobalGreatPeopleRateModifier>
@@ -1814,7 +1817,8 @@
 			<StateReligionCommerces/>
 			<CommerceHappinesses/>
 			<ReligionChanges/>
-			<!-- custom: Early Spy-specialist sources are scarce, so the Doujou can give Japan a significant early espionage/isolationist lead when committing a citizen. Flat espionage or percentage modifiers would make that advantage automatic, add little strategic choice and could be overpowered on a mostly ubiquitous Barracks replacement. (GPT-5.6-Sol) -->
+			<!-- custom: Early Spy-specialist sources are scarce, so the Doujou can give Japan a significant early espionage/isolationist lead when committing a citizen.
+			Flat espionage or percentage modifiers would make that advantage automatic, add little strategic choice and could be overpowered on a mostly ubiquitous Barracks replacement. (GPT-5.6-Sol) -->
 			<SpecialistCounts>
 				<SpecialistCount>
 					<SpecialistType>SPECIALIST_SPY</SpecialistType>
@@ -1842,7 +1846,8 @@
 			<SpecialistYieldChanges/>
 			<BonusYieldModifiers/>
 			<ImprovementFreeSpecialists/>
-			<!-- custom: Keep the generic Barracks' Military 6 as the primary flavor. Espionage 4 reflects the optional Spy slot without overemphasizing it because using the slot requires assigning a population member. (GPT-5.6-Sol) -->
+			<!-- custom: Keep the generic Barracks' Military 6 as the primary flavor.
+			Espionage 4 reflects the optional Spy slot without overemphasizing it because using the slot requires assigning a population member. (GPT-5.6-Sol) -->
 			<Flavors>
 				<Flavor>
 					<FlavorType>FLAVOR_ESPIONAGE</FlavorType>
@@ -2073,7 +2078,8 @@
 			<FreeBonus>NONE</FreeBonus>
 			<iNumFreeBonuses>0</iNumFreeBonuses>
 			<FreeBuilding>NONE</FreeBuilding>
-			<!-- custom: PROMOTION_CITY_RAIDER1 gives newly trained eligible units a distinct offensive retinue identity and saves their first promotion while normal Barracks experience remains flexible. As a first-tier promotion on trained units, it does not skip a promotion prerequisite or create the upgrade-planning problem of a civ-specific unit receiving a promotion it may already have. (GPT-5.6-Sol) -->
+			<!-- custom: PROMOTION_CITY_RAIDER1 gives newly trained eligible units a distinct offensive retinue identity and saves their first promotion while normal Barracks experience remains flexible.
+			As a first-tier promotion on trained units, it does not skip a promotion prerequisite or create the upgrade-planning problem of a civ-specific unit receiving a promotion it may already have. (GPT-5.6-Sol) -->
 			<FreePromotion>PROMOTION_CITY_RAIDER1</FreePromotion>
 			<CivicOption>NONE</CivicOption>
 			<GreatPeopleUnitClass>NONE</GreatPeopleUnitClass>
@@ -2100,7 +2106,7 @@
 			<bNukeImmune>0</bNukeImmune>
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
-			<!-- custom: Follow the September 2026 Barracks-class iAIWeight rollback: value actual XP/other effects plus flavour instead of an unconditional whole-building bonus. See KI#48.5. Was 70. (ChatGPT-5.6-Sol) -->
+			<!-- custom: Follow the September 2026 Barracks-class iAIWeight rollback: value actual XP/other effects plus flavour instead of an unconditional whole-building bonus. See KI#48.5; was 70. (ChatGPT-5.6-Sol) -->
 			<iAIWeight>0</iAIWeight>
 			<iCost>50</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
@@ -2272,7 +2278,8 @@
 			<bNukeImmune>0</bNukeImmune>
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
-			<!-- custom: September 2026 audit: restore Stable to iAIWeight 0. The old +75 was coupled to the former hard Stable gate; without it, the unconditional bonus could inflate unrelated effects even when no trainable unit benefited from the XP. See KI#48.5. Was 75. (ChatGPT-5.6-Sol) -->
+			<!-- custom: September 2026 audit: restore Stable to iAIWeight 0.
+			The old +75 was coupled to the former hard Stable gate; without it, the unconditional bonus could inflate unrelated effects even when no trainable unit benefited from the XP. See KI#48.5; was 75. (ChatGPT-5.6-Sol) -->
 			<iAIWeight>0</iAIWeight>
 			<iCost>60</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
@@ -2447,7 +2454,7 @@
 			<bNukeImmune>0</bNukeImmune>
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
-			<!-- custom: Follow the September 2026 Stable-class iAIWeight rollback: value units that can actually use its XP and its other real effects instead of an unconditional whole-building bonus. See KI#48.5. Was 80. (ChatGPT-5.6-Sol) -->
+			<!-- custom: Follow the September 2026 Stable-class iAIWeight rollback: value units that can actually use its XP and its other real effects instead of an unconditional whole-building bonus. See KI#48.5; was 80. (ChatGPT-5.6-Sol) -->
 			<iAIWeight>0</iAIWeight>
 			<!-- custom: was 70; return to the generic Stable cost while shifting some of the Ger's raw XP advantage into a pastoral Cattle benefit. (ChatGPT-5.6-Sol) -->
 			<iCost>60</iCost>
@@ -2636,7 +2643,7 @@
 			<bNukeImmune>0</bNukeImmune>
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
-			<!-- custom: Follow the September 2026 Stable-class iAIWeight rollback: value units that can actually use its XP and its other real effects instead of an unconditional whole-building bonus. See KI#48.5. Was 75. (ChatGPT-5.6-Sol) -->
+			<!-- custom: Follow the September 2026 Stable-class iAIWeight rollback: value units that can actually use its XP and its other real effects instead of an unconditional whole-building bonus. See KI#48.5; was 75. (ChatGPT-5.6-Sol) -->
 			<iAIWeight>0</iAIWeight>
 			<iCost>60</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
@@ -2749,7 +2756,8 @@
 			<SpecialistYieldChanges/>
 			<BonusYieldModifiers/>
 			<ImprovementFreeSpecialists/>
-			<!-- custom: Raise Military from 6 to 8 because war-weariness reduction and early Cataphract preparation strengthen the military Stable role. Keep Growth and Culture at 6 for wartime morale, Horse happiness and the retained culture. (GPT-5.6-Sol) -->
+			<!-- custom: Raise Military from 6 to 8 because war-weariness reduction and early Cataphract preparation strengthen the military Stable role.
+			Keep Growth and Culture at 6 for wartime morale, Horse happiness and the retained culture. (GPT-5.6-Sol) -->
 			<Flavors>
 				<Flavor>
 					<FlavorType>FLAVOR_MILITARY</FlavorType>
@@ -2831,7 +2839,7 @@
 			<bNukeImmune>0</bNukeImmune>
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
-			<!-- custom: Follow the September 2026 Stable-class iAIWeight rollback: value units that can actually use its XP and its other real effects instead of an unconditional whole-building bonus. See KI#48.5. Was 75. (ChatGPT-5.6-Sol) -->
+			<!-- custom: Follow the September 2026 Stable-class iAIWeight rollback: value units that can actually use its XP and its other real effects instead of an unconditional whole-building bonus. See KI#48.5; was 75. (ChatGPT-5.6-Sol) -->
 			<iAIWeight>0</iAIWeight>
 			<iCost>60</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
@@ -5419,7 +5427,7 @@
 			<bNukeImmune>0</bNukeImmune>
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
-			<!-- custom: (trying to) make sure they (barbarians) build it fast (enough) so reducing cost and increase iAIWeight as much as possible or that i think is necessary at least or and ideal-->
+			<!-- custom: (trying to) make sure they (barbarians) build it fast (enough) so reducing cost and increase iAIWeight as much as possible or that i think is necessary at least or and ideal -->
 			<iAIWeight>100</iAIWeight>
 			<iCost>5</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
@@ -8695,7 +8703,9 @@
 			<CommerceChangeOriginalOwners/>
 			<ConstructSound>AS2D_BUILD_MONUMENT</ConstructSound>
 			<BonusHealthChanges/>
-			<!-- custom: new effect with the help of ChatGPT-5.5 thanks. Fits thematic builder profile and helps having varied civ-specific monument buildings, that here preserves some early happiness without making it too OP. Nice thematic fit i think too but anyway. -->
+			<!-- custom: new effect with the help of ChatGPT-5.5 thanks.
+			Fits thematic builder profile and helps having varied civ-specific monument buildings, that here preserves some early happiness without making it too OP.
+			Nice thematic fit i think too but anyway. -->
 			<BonusHappinessChanges>
 				<BonusHappinessChange>
 					<BonusType>BONUS_STONE</BonusType>
@@ -8887,7 +8897,8 @@
 			<CommerceChangeOriginalOwners/>
 			<ConstructSound>AS2D_BUILD_MONUMENT</ConstructSound>
 			<BonusHealthChanges/>
-			<!-- custom: Move Maize Happiness from the Maya Ball Court to the Sacrificial Altar. The Granary already grants Health with Maize, while its retained Food accelerates population regrowth after whipping; this makes Maize especially coherent with the Aztec Slavery economy, while remaining conditional rather than restoring flat Happiness. (GPT-5.6-Sol) -->
+			<!-- custom: Move Maize Happiness from the Maya Ball Court to the Sacrificial Altar.
+			The Granary already grants Health with Maize, while its retained Food accelerates population regrowth after whipping; this makes Maize especially coherent with the Aztec Slavery economy, while remaining conditional rather than restoring flat Happiness. (GPT-5.6-Sol) -->
 			<BonusHappinessChanges>
 				<BonusHappinessChange>
 					<BonusType>BONUS_MAIZE</BonusType>
@@ -8905,7 +8916,8 @@
 			<BonusYieldModifiers/>
 			<ImprovementFreeSpecialists/>
 			<!-- advc.020: Was 10 Gold, 3 Espionage. Whipping also has Production flavor. -->
-			<!-- custom: Remove Growth 2 with the unconditional happiness, raise Culture from 3 to 6 for the Artist slot and raise Production from 5 to 6 for the still-strong early whipping bonus. Keep Military 6 for its unit-rush potential. (GPT-5.6-Sol) -->
+			<!-- custom: Remove Growth 2 with the unconditional happiness, raise Culture from 3 to 6 for the Artist slot and raise Production from 5 to 6 for the still-strong early whipping bonus.
+			Keep Military 6 for its unit-rush potential. (GPT-5.6-Sol) -->
 			<Flavors>
 				<Flavor>
 					<FlavorType>FLAVOR_MILITARY</FlavorType>
@@ -9081,7 +9093,9 @@
 			<CommerceFlexibles/>
 			<CommerceChangeOriginalOwners/>
 			<ConstructSound>AS2D_BUILD_MONUMENT</ConstructSound>
-			<!-- custom: new effect for variety and balance; ChatGPT-5.5 also says this about it thanks: "Yes, Sheep is probably the most relevant Civ4 bonus for a Ziggurat-style Mesopotamian temple economy, mostly because Civ4 has no Goat. The historical hook is not “ziggurats magically make sheep healthy,” but temple livestock administration, offerings, and redistribution. A University of Chicago dissertation on the Eanna temple at Uruk notes that the temple controlled herds of tens of thousands of sheep and goats in the 7th-6th centuries BCE" -->
+			<!-- custom: new effect for variety and balance; ChatGPT-5.5 also says this about it thanks: "Yes, Sheep is probably the most relevant Civ4 bonus for a Ziggurat-style Mesopotamian temple economy, mostly because Civ4 has no Goat.
+			The historical hook is not “ziggurats magically make sheep healthy,” but temple livestock administration, offerings, and redistribution.
+			A University of Chicago dissertation on the Eanna temple at Uruk notes that the temple controlled herds of tens of thousands of sheep and goats in the 7th-6th centuries BCE" -->
 			<BonusHealthChanges>
 				<BonusHealthChange>
 					<BonusType>BONUS_SHEEP</BonusType>
@@ -9314,7 +9328,8 @@
 			<FreeStartEra>NONE</FreeStartEra>
 			<MaxStartEra>NONE</MaxStartEra>
 			<ObsoleteTech>NONE</ObsoleteTech>
-			<!-- custom: change tech prereq so this building appears in the Technology Advisor and is not listed in sevopedia buildings in the "No Tech Prerequisite" group. For balance and strategy, also helps reward the science path more than give a generic free academy path for warmogners or anyone;, was NONE. -->
+			<!-- custom: change tech prereq so this building appears in the Technology Advisor and is not listed in sevopedia buildings in the "No Tech Prerequisite" group.
+			For balance and strategy, also helps reward the science path more than give a generic free academy path for warmogners or anyone;, was NONE. -->
 			<PrereqTech>TECH_LITERATURE</PrereqTech>
 			<TechTypes/>
 			<Bonus>NONE</Bonus>
@@ -9601,7 +9616,8 @@
 			<GlobalSeaPlotYieldChanges/>
 			<YieldChanges/>
 			<CommerceChanges/>
-			<!-- custom: science is op enough already and the modifiers are good for that, no need to give too much culture on top of it so reduce it, was 0 / 0 / 2. Indirectly also makes culture buildings more valuable; also, since everyone builds libraries and such not much point gaining free culture for all players this way. -->
+			<!-- custom: science is op enough already and the modifiers are good for that, no need to give too much culture on top of it so reduce it, was 0 / 0 / 2.
+			Indirectly also makes culture buildings more valuable; also, since everyone builds libraries and such not much point gaining free culture for all players this way. -->
 			<ObsoleteSafeCommerceChanges>
 				<iCommerce>0</iCommerce>
 				<iCommerce>0</iCommerce>
@@ -9707,7 +9723,8 @@
 			<FreeBonus>NONE</FreeBonus>
 			<iNumFreeBonuses>0</iNumFreeBonuses>
 			<FreeBuilding>NONE</FreeBuilding>
-			<!-- custom: PROMOTION_COMBAT1 expresses the Gyeongdang's combined civil and martial education without forcing one unit role. As a first-tier promotion from an early, widely built Library, it saves experience without bypassing Combat I to unlock Combat III and several advanced branches immediately. (GPT-5.6-Sol) -->
+			<!-- custom: PROMOTION_COMBAT1 expresses the Gyeongdang's combined civil and martial education without forcing one unit role.
+			As a first-tier promotion from an early, widely built Library, it saves experience without bypassing Combat I to unlock Combat III and several advanced branches immediately. (GPT-5.6-Sol) -->
 			<FreePromotion>PROMOTION_COMBAT1</FreePromotion>
 			<CivicOption>NONE</CivicOption>
 			<GreatPeopleUnitClass>NONE</GreatPeopleUnitClass>
@@ -11640,7 +11657,8 @@
 			<iHotKeyPriority>0</iHotKeyPriority>
 		</BuildingInfo>
 		<BuildingInfo> <!-- custom: class: BUILDINGCLASS_COLOSSEUM, type: BUILDING_INDIAN_MAUSOLEUM -->
-			<!-- custom: Move the Mausoleum from the late Espionage/security-focused Jail, which poorly fits both a monumental Mausoleum and India's kit. The earlier Colosseum's Construction path supports infrastructure alongside siege/castle preparation when needed, while its Culture and Happiness let Spiritual Gandhi and Asoka develop religion/culture into peaceful city growth. (GPT-5.6-Sol) -->
+			<!-- custom: Move the Mausoleum from the late Espionage/security-focused Jail, which poorly fits both a monumental Mausoleum and India's kit.
+			The earlier Colosseum's Construction path supports infrastructure alongside siege/castle preparation when needed, while its Culture and Happiness let Spiritual Gandhi and Asoka develop religion/culture into peaceful city growth. (GPT-5.6-Sol) -->
 			<BuildingClass>BUILDINGCLASS_COLOSSEUM</BuildingClass>
 			<Type>BUILDING_INDIAN_MAUSOLEUM</Type>
 			<SpecialBuildingType>NONE</SpecialBuildingType>
@@ -12260,7 +12278,8 @@
 			<FreeBuilding>NONE</FreeBuilding>
 			<FreePromotion>NONE</FreePromotion>
 			<CivicOption>NONE</CivicOption>
-			<!-- custom: The Forum as a place of ideas, public debate, and law fits one Great Scientist point. This gives gradual progress even before assigning specialists, while the reduced local Great Person modifier still rewards committing a city without restoring the former large multiplier. (GPT-5.6-Sol) -->
+			<!-- custom: The Forum as a place of ideas, public debate, and law fits one Great Scientist point.
+			This gives gradual progress even before assigning specialists, while the reduced local Great Person modifier still rewards committing a city without restoring the former large multiplier. (GPT-5.6-Sol) -->
 			<GreatPeopleUnitClass>UNITCLASS_GREAT_SCIENTIST</GreatPeopleUnitClass>
 			<iGreatPeopleRateChange>1</iGreatPeopleRateChange>
 			<iHurryAngerModifier>0</iHurryAngerModifier>
@@ -12619,7 +12638,8 @@
 			<iHotKeyPriority>0</iHotKeyPriority>
 		</BuildingInfo>
 		<BuildingInfo> <!-- custom: class: BUILDINGCLASS_MARKET, type: BUILDING_SPANISH_LONJA -->
-			<!-- custom: Replace the Citadel's awkward Siege experience on a defensive Castle that attackers may skip. The Market class gives Spain a broadly useful imperial-trade building instead. (GPT-5.6-Sol) -->
+			<!-- custom: Replace the Citadel's awkward Siege experience on a defensive Castle that attackers may skip.
+			The Market class gives Spain a broadly useful imperial-trade building instead. (GPT-5.6-Sol) -->
 			<BuildingClass>BUILDINGCLASS_MARKET</BuildingClass>
 			<Type>BUILDING_SPANISH_LONJA</Type>
 			<SpecialBuildingType>NONE</SpecialBuildingType>
@@ -14085,7 +14105,8 @@
 			<iTradeRoutes>0</iTradeRoutes>
 			<iCoastalTradeRoutes>0</iCoastalTradeRoutes>
 			<iAreaTradeRoutes>0</iAreaTradeRoutes>
-			<!-- custom: The later Beurs rewards mature trade while requiring a substantial Bank investment. A moderate general modifier keeps domestic trade useful during war or isolation, while the larger foreign modifier creates a stronger but diplomacy-dependent Dutch exchange advantage. (GPT-5.6-Sol) -->
+			<!-- custom: The later Beurs rewards mature trade while requiring a substantial Bank investment.
+			A moderate general modifier keeps domestic trade useful during war or isolation, while the larger foreign modifier creates a stronger but diplomacy-dependent Dutch exchange advantage. (GPT-5.6-Sol) -->
 			<iTradeRouteModifier>50</iTradeRouteModifier>
 			<iForeignTradeRouteModifier>100</iForeignTradeRouteModifier>
 			<iGlobalPopulationChange>0</iGlobalPopulationChange>
@@ -14505,7 +14526,7 @@
 			<SpecialistYieldChanges/>
 			<BonusYieldModifiers/>
 			<ImprovementFreeSpecialists/>
-			<!-- custom: remove flavor military as this does not seem related to war and increase gold and espionage flavors-->
+			<!-- custom: remove flavor military as this does not seem related to war and increase gold and espionage flavors -->
 			<!-- advc.020: was 10 Gold, 3 Espionage -->
 			<Flavors>
 				<Flavor>
@@ -14589,7 +14610,8 @@
 			<bPrereqReligion>0</bPrereqReligion>
 			<bCenterInCity>0</bCenterInCity>
 			<iAIWeight>0</iAIWeight>
-			<!-- custom: American federal courts share a national institutional framework across states, so administrative standards and infrastructure need not be established independently in every city. The lower cost represents this overlap and helps commonly large American empires integrate new or conquered cities sooner, but is not reduced close to half price because that would make the building nearly automatic instead of preserving a production and integration tradeoff. (GPT-5.6-Sol) -->
+			<!-- custom: American federal courts share a national institutional framework across states, so administrative standards and infrastructure need not be established independently in every city.
+			The lower cost represents this overlap and helps commonly large American empires integrate new or conquered cities sooner, but is not reduced close to half price because that would make the building nearly automatic instead of preserving a production and integration tradeoff. (GPT-5.6-Sol) -->
 			<iCost>80</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
@@ -14619,7 +14641,8 @@
 			<iFreeSpecialist>0</iFreeSpecialist>
 			<iAreaFreeSpecialist>0</iAreaFreeSpecialist>
 			<iGlobalFreeSpecialist>0</iGlobalFreeSpecialist>
-			<!-- custom: Deploying the same standardized administration across a large empire creates greater economies of scale, represented by a moderate additional maintenance reduction. The federal court system gives this effect a strong American thematic fit; keep it below the Rathaus so the Holy Roman building retains the stronger permanent maintenance advantage. (GPT-5.6-Sol) -->
+			<!-- custom: Deploying the same standardized administration across a large empire creates greater economies of scale, represented by a moderate additional maintenance reduction.
+			The federal court system gives this effect a strong American thematic fit; keep it below the Rathaus so the Holy Roman building retains the stronger permanent maintenance advantage. (GPT-5.6-Sol) -->
 			<iMaintenanceModifier>-60</iMaintenanceModifier>
 			<iWarWearinessModifier>0</iWarWearinessModifier>
 			<iGlobalWarWearinessModifier>0</iGlobalWarWearinessModifier>
@@ -14646,7 +14669,8 @@
 			<iDefense>0</iDefense>
 			<iBombardDefense>0</iBombardDefense>
 			<iAllCityDefense>0</iAllCityDefense>
-			<!-- custom: Federal institutions provide nationwide legal oversight and coordination; abstractly extend the Courthouse's law-enforcement role to national security and resistance against foreign infiltration or sabotage. This supports defensive strategies without further accelerating America's economy. (GPT-5.6-Sol) -->
+			<!-- custom: Federal institutions provide nationwide legal oversight and coordination; abstractly extend the Courthouse's law-enforcement role to national security and resistance against foreign infiltration or sabotage.
+			This supports defensive strategies without further accelerating America's economy. (GPT-5.6-Sol) -->
 			<iEspionageDefense>25</iEspionageDefense>
 			<iAsset>4</iAsset>
 			<iPower>0</iPower>
@@ -15414,7 +15438,8 @@
 			<iDefense>0</iDefense>
 			<iBombardDefense>0</iBombardDefense>
 			<iAllCityDefense>0</iAllCityDefense>
-			<!-- custom: Akicita societies combined policing, judicial, and community-order roles. Strong Espionage Defense expresses Sitting Bull's Protective and cautious identity through counter-intelligence rather than additional military bonuses. (GPT-5.6-Sol) -->
+			<!-- custom: Akicita societies combined policing, judicial, and community-order roles.
+			Strong Espionage Defense expresses Sitting Bull's Protective and cautious identity through counter-intelligence rather than additional military bonuses. (GPT-5.6-Sol) -->
 			<iEspionageDefense>50</iEspionageDefense>
 			<iAsset>1</iAsset>
 			<iPower>0</iPower>
@@ -15438,7 +15463,8 @@
 				<iCommerce>0</iCommerce>
 				<iCommerce>0</iCommerce>
 				<iCommerce>0</iCommerce>
-				<!-- custom: was 25. Sitting Bull's high espionage preference gains a strong specialized route comparable to other civ-specific commerce modifiers, but it still requires allocating commerce to Espionage. (GPT-5.6-Sol) -->
+				<!-- custom: was 25.
+				Sitting Bull's high espionage preference gains a strong specialized route comparable to other civ-specific commerce modifiers, but it still requires allocating commerce to Espionage. (GPT-5.6-Sol) -->
 				<iCommerce>50</iCommerce>
 			</CommerceModifiers>
 			<GlobalCommerceModifiers/>
@@ -15446,7 +15472,8 @@
 			<StateReligionCommerces/>
 			<CommerceHappinesses/>
 			<ReligionChanges/>
-			<!-- custom: was 1. A second assignable Spy makes the espionage advantage require citizen commitment and gives Philosophical Sitting Bull a deliberate Great Spy route instead of an automatic flat benefit. (GPT-5.6-Sol) -->
+			<!-- custom: was 1.
+			A second assignable Spy makes the espionage advantage require citizen commitment and gives Philosophical Sitting Bull a deliberate Great Spy route instead of an automatic flat benefit. (GPT-5.6-Sol) -->
 			<SpecialistCounts>
 				<SpecialistCount>
 					<SpecialistType>SPECIALIST_SPY</SpecialistType>
@@ -23034,7 +23061,8 @@
 			<FreeStartEra>NONE</FreeStartEra>
 			<MaxStartEra>NONE</MaxStartEra>
 			<ObsoleteTech>NONE</ObsoleteTech>
-			<!-- custom: Place Scotland Yard with Spies at Monarchy. It still requires a Great Spy, so this early availability rewards committing to scarce early Spy sources rather than granting a flat espionage bonus. (GPT-5.6-Sol) -->
+			<!-- custom: Place Scotland Yard with Spies at Monarchy.
+			It still requires a Great Spy, so this early availability rewards committing to scarce early Spy sources rather than granting a flat espionage bonus. (GPT-5.6-Sol) -->
 			<PrereqTech>TECH_MONARCHY</PrereqTech>
 			<TechTypes/>
 			<Bonus>NONE</Bonus>
@@ -23204,7 +23232,8 @@
 			<FreeStartEra>NONE</FreeStartEra>
 			<MaxStartEra>ERA_CLASSICAL</MaxStartEra>
 			<ObsoleteTech>NONE</ObsoleteTech>
-			<!-- custom: Move the Pyramids to Mining so this early wonder becomes available soon enough to shape ancient development. Its production cost still constrains immediate construction. (GPT-5.6-Sol) -->
+			<!-- custom: Move the Pyramids to Mining so this early wonder becomes available soon enough to shape ancient development.
+			Its production cost still constrains immediate construction. (GPT-5.6-Sol) -->
 			<PrereqTech>TECH_MINING</PrereqTech>
 			<TechTypes/>
 			<Bonus>NONE</Bonus>
@@ -26596,7 +26625,8 @@
 			<PowerBonus>NONE</PowerBonus>
 			<FreeBonus>NONE</FreeBonus>
 			<iNumFreeBonuses>0</iNumFreeBonuses>
-			<!-- custom: remove free broadcast towers based on this: https://forums.civfanatics.com/threads/the-eiffel-tower-and-broadcast-towers.224537/, i don't know a lot about this and didn't know at all hehe if i may say anyways, but it does seem weird to have free broadcast towers in all cities just because one eiffel tower is built. The building itself (probably) needs to be reworked or removed, for now changing its effects a bit or more than bit -->
+			<!-- custom: remove free broadcast towers based on this: https://forums.civfanatics.com/threads/the-eiffel-tower-and-broadcast-towers.224537/, i don't know a lot about this and didn't know at all hehe if i may say anyways, but it does seem weird to have free broadcast towers in all cities just because one eiffel tower is built.
+			The building itself (probably) needs to be reworked or removed, for now changing its effects a bit or more than bit -->
 			<FreeBuilding>NONE</FreeBuilding>
 			<FreePromotion>NONE</FreePromotion>
 			<CivicOption>NONE</CivicOption>
@@ -27826,7 +27856,8 @@
 			<iAllCityDefense>0</iAllCityDefense>
 			<iEspionageDefense>0</iEspionageDefense>
 			<iAsset>20</iAsset>
-			<!-- custom: was 30??? this is not a strong building at all militarily, at least building it does not immediately and drastically tip the scale of power -->
+			<!-- custom: was 30???
+			this is not a strong building at all militarily, at least building it does not immediately and drastically tip the scale of power -->
 			<!-- advc.131c: was 0 -->
 			<iPower>5</iPower>
 			<fVisibilityPriority>1.0</fVisibilityPriority>
@@ -28348,7 +28379,7 @@
 			<GlobalSeaPlotYieldChanges/>
 			<YieldChanges/>
 			<CommerceChanges/>
-			<!-- custom:, was 0 / 0 / 7 -->
+			<!-- custom: , was 0 / 0 / 7 -->
 			<ObsoleteSafeCommerceChanges>
 				<iCommerce>0</iCommerce>
 				<iCommerce>0</iCommerce>
@@ -28378,7 +28409,8 @@
 			</CommerceChangeOriginalOwners>
 			<ConstructSound/>
 			<BonusHealthChanges/>
-			<!-- custom: Replace its overlapping global health with happiness from connected Cattle, Sheep, and Pigs. These normally health-only livestock bonuses gain more strategic value (because otherwise Animal Livestock Bonuses like Cattle, Sheep, and Pig, are very weak for example as compared to food stapple bonuses like Maize Rice or Wheat that scale with ubiquitous Granaries, or Mount Animal Bonuses that have a strong military purpose) while keeping the Hanging Gardens' growth identity distinct. (GPT-5.6-Sol) -->
+			<!-- custom: Replace its overlapping global health with happiness from connected Cattle, Sheep, and Pigs.
+			These normally health-only livestock bonuses gain more strategic value (because otherwise Animal Livestock Bonuses like Cattle, Sheep, and Pig, are very weak for example as compared to food stapple bonuses like Maize Rice or Wheat that scale with ubiquitous Granaries, or Mount Animal Bonuses that have a strong military purpose) while keeping the Hanging Gardens' growth identity distinct. (GPT-5.6-Sol) -->
 			<BonusHappinessChanges>
 				<BonusHappinessChange>
 					<BonusType>BONUS_CATTLE</BonusType>
@@ -28408,7 +28440,8 @@
 			<SpecialistYieldChanges/>
 			<BonusYieldModifiers/>
 			<ImprovementFreeSpecialists/>
-			<!-- custom: Remove Military 5 with the military-production modifier; the Medic promotion alone should not make military leaders prioritize this wonder over units. Earlier flavors before the wider rework were Gold 8 / Religion 5. (GPT-5.6-Sol) -->
+			<!-- custom: Remove Military 5 with the military-production modifier; the Medic promotion alone should not make military leaders prioritize this wonder over units.
+			Earlier flavors before the wider rework were Gold 8 / Religion 5. (GPT-5.6-Sol) -->
 			<Flavors>
 				<Flavor>
 					<FlavorType>FLAVOR_GOLD</FlavorType>
@@ -29636,7 +29669,7 @@
 			<bCtrlDown>0</bCtrlDown>
 			<iHotKeyPriority>0</iHotKeyPriority>
 		</BuildingInfo>
-		<!-- custom: now reworked moai_statues, is a world wonder available much later with a stronger effect global to all cities, hopefully historically accurate as they were built much later  anyways and after checking more seems really an accurate time around pre-(age of)exploration astronomy etc in https://en.wikipedia.org/wiki/Moai#History -->
+		<!-- custom: now reworked moai_statues, is a world wonder available much later with a stronger effect global to all cities, hopefully historically accurate as they were built much later anyways and after checking more seems really an accurate time around pre-(age of)exploration astronomy etc in https://en.wikipedia.org/wiki/Moai#History -->
 		<BuildingInfo> <!-- custom: class: BUILDINGCLASS_MOAI_STATUES, type: BUILDING_MOAI_STATUES -->
 			<BuildingClass>BUILDINGCLASS_MOAI_STATUES</BuildingClass>
 			<Type>BUILDING_MOAI_STATUES</Type>
@@ -30064,7 +30097,8 @@
 			<ObsoleteTech>NONE</ObsoleteTech>
 			<!-- custom: note: Executives now require tech(s) to be built (see there for details) If you change a corporation builing's required tech(s), make sure you also apply this change in the executive's unit info's required tech(s) as well or adjust as you see fit, was NONE. -->
 			<!-- custom: was TECH_MEDICINE -->
-			<!-- custom: Move Cereal Mills from removed Ecology's late replacement to TECH_THEORY_OF_EVOLUTION. Its Biology path fits the food corporation and gives the scientific branch an economic payoff without crowding TECH_ENVIRONMENTALISM; TECH_CORPORATION remains additionally required. (GPT-5.6-Sol) -->
+			<!-- custom: Move Cereal Mills from removed Ecology's late replacement to TECH_THEORY_OF_EVOLUTION.
+			Its Biology path fits the food corporation and gives the scientific branch an economic payoff without crowding TECH_ENVIRONMENTALISM; TECH_CORPORATION remains additionally required. (GPT-5.6-Sol) -->
 			<PrereqTech>TECH_THEORY_OF_EVOLUTION</PrereqTech>
 			<TechTypes>
 				<PrereqTech>TECH_CORPORATION</PrereqTech>
@@ -30241,7 +30275,8 @@
 			<FreeStartEra>NONE</FreeStartEra>
 			<MaxStartEra>NONE</MaxStartEra>
 			<ObsoleteTech>NONE</ObsoleteTech>
-			<!-- custom: note: Executives now require tech(s) to be built. See code comment at BUILDINGCLASS_CORPORATION_1 -->
+			<!-- custom: note: Executives now require tech(s) to be built.
+			See code comment at BUILDINGCLASS_CORPORATION_1 -->
 			<!-- K-Mod: was MEDICINE -->
 			<PrereqTech>TECH_MARINE_TECHNOLOGY</PrereqTech>
 			<TechTypes>
@@ -30420,7 +30455,8 @@
 			<FreeStartEra>NONE</FreeStartEra>
 			<MaxStartEra>NONE</MaxStartEra>
 			<ObsoleteTech>NONE</ObsoleteTech>
-			<!-- custom: note: Executives now require tech(s) to be built. See code comment at BUILDINGCLASS_CORPORATION_1 -->
+			<!-- custom: note: Executives now require tech(s) to be built.
+			See code comment at BUILDINGCLASS_CORPORATION_1 -->
 			<!-- K-Mod: was PLASTICS -->
 			<PrereqTech>TECH_COMBUSTION</PrereqTech>
 			<TechTypes>
@@ -30598,7 +30634,8 @@
 			<FreeStartEra>NONE</FreeStartEra>
 			<MaxStartEra>NONE</MaxStartEra>
 			<ObsoleteTech>NONE</ObsoleteTech>
-			<!-- custom: note: Executives now require tech(s) to be built. See code comment at BUILDINGCLASS_CORPORATION_1 -->
+			<!-- custom: note: Executives now require tech(s) to be built.
+			See code comment at BUILDINGCLASS_CORPORATION_1 -->
 			<!-- custom: was TECH_MARINE_TECHNOLOGY -->
 			<!-- K-Mod: was COMBUSTION -->
 			<PrereqTech>TECH_RADIO</PrereqTech>
@@ -30778,7 +30815,8 @@
 			<FreeStartEra>NONE</FreeStartEra>
 			<MaxStartEra>NONE</MaxStartEra>
 			<ObsoleteTech>NONE</ObsoleteTech>
-			<!-- custom: note: Executives now require tech(s) to be built. See code comment at BUILDINGCLASS_CORPORATION_1 -->
+			<!-- custom: note: Executives now require tech(s) to be built.
+			See code comment at BUILDINGCLASS_CORPORATION_1 -->
 			<!-- custom: changed to another tech to accommodate reworked tech tree changes, was the now removed TECH_RAILROAD -->
 			<PrereqTech>TECH_ELECTRICITY</PrereqTech>
 			<TechTypes>
@@ -30956,7 +30994,8 @@
 			<FreeStartEra>NONE</FreeStartEra>
 			<MaxStartEra>NONE</MaxStartEra>
 			<ObsoleteTech>NONE</ObsoleteTech>
-			<!-- custom: note: Executives now require tech(s) to be built. See code comment at BUILDINGCLASS_CORPORATION_1 -->
+			<!-- custom: note: Executives now require tech(s) to be built.
+			See code comment at BUILDINGCLASS_CORPORATION_1 -->
 			<!-- custom: was TECH_ROCKETRY and techtypes TECH_CORPORATION -->
 			<PrereqTech>TECH_ASSEMBLY_LINE</PrereqTech>
 			<TechTypes>
@@ -31135,7 +31174,8 @@
 			<FreeStartEra>NONE</FreeStartEra>
 			<MaxStartEra>NONE</MaxStartEra>
 			<ObsoleteTech>NONE</ObsoleteTech>
-			<!-- custom: note: Executives now require tech(s) to be built. See code comment at BUILDINGCLASS_CORPORATION_1 -->
+			<!-- custom: note: Executives now require tech(s) to be built.
+			See code comment at BUILDINGCLASS_CORPORATION_1 -->
 			<!-- K-Mod: was MASS_MEDIA and CORPORATION -->
 			<PrereqTech>TECH_CORPORATION</PrereqTech>
 			<TechTypes/>
@@ -31439,7 +31479,8 @@
 					<iSpecialistCount>2</iSpecialistCount>
 				</SpecialistCount>
 			</SpecialistCounts>
-			<!-- custom: The Apostolic Palace's religious voting and production benefits are shared, so give its builder an immediate city reward. A free Priest is useful at once and adds Great Prophet progress without granting a Great Person outright. (GPT-5.6-Sol) -->
+			<!-- custom: The Apostolic Palace's religious voting and production benefits are shared, so give its builder an immediate city reward.
+			A free Priest is useful at once and adds Great Prophet progress without granting a Great Person outright. (GPT-5.6-Sol) -->
 			<FreeSpecialistCounts>
 				<FreeSpecialistCount>
 					<SpecialistType>SPECIALIST_PRIEST</SpecialistType>

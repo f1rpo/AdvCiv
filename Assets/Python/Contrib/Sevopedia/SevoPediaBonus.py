@@ -139,7 +139,8 @@ class SevoPediaBonus:
 			return
 
 		# <!-- custom: Move the panel position, so that it starts from a lower point in the screen.
-		# We will use this newly freed place to put the larger Buildings, while we create a RevealedBy panel instead where the Buildings panel was. Hopefully much clearer and more room to fit many buildings this way now, and to separate tech revealed by and tech tradeable since, both currently in the "Requires" panel which is very weird i think, now renamed to "RevealedBy" and "TradeableSince") -->
+		# We will use this newly freed place to put the larger Buildings, while we create a RevealedBy panel instead where the Buildings panel was.
+		# Hopefully much clearer and more room to fit many buildings this way now, and to separate tech revealed by and tech tradeable since, both currently in the "Requires" panel which is very weird i think, now renamed to "RevealedBy" and "TradeableSince") -->
 		self.placeBonusPane()
 		self.placeStats()
 		if not self.bHistoryExpanded:
@@ -170,7 +171,7 @@ class SevoPediaBonus:
 		screen.addListBoxGFC(panelName, "", self.X_STATS_PANE, self.Y_STATS_PANE, self.W_STATS_PANE, self.H_STATS_PANE, TableStyles.TABLE_STYLE_EMPTY)
 		screen.enableSelect(panelName, False)
 
-		# <!-- custom: handle multiple potential yield changes by separating the header from yield stats display --> 
+		# <!-- custom: handle multiple potential yield changes by separating the header from yield stats display -->
 		szTextHeader = SASTextScale.titleText(localText.getText("TXT_KEY_PEDIA_SEVOPEDIA_BONUS_NATURAL_TILE_YIELD_CHANGES", ()) + u"\n")
 		screen.appendListBoxString(panelName, szTextHeader, WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
 
@@ -339,7 +340,8 @@ class SevoPediaBonus:
 				bAnyDisplayed = True
 				screen.attachImageButton( panelName, "", info.getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BUILDING, iBuilding, 1, False )
 
-		# <!-- custom: in the aluminium bonus, all projects show the apostolic palace in the tooltip, and redirect to the apostolic palace instead of the correct project. Fixed with the help of chatgpt 5.2 thanks -->
+		# <!-- custom: in the aluminium bonus, all projects show the apostolic palace in the tooltip, and redirect to the apostolic palace instead of the correct project.
+		# Fixed with the help of chatgpt 5.2 thanks -->
 		# <advc.004y>
 		for iProject in range(gc.getNumProjectInfos()):
 			info = gc.getProjectInfo(iProject)
@@ -432,7 +434,7 @@ class SevoPediaBonus:
 		if not isButtonFound:
 			draw_none_text(screen, self.top, xPanel, yPanel, wPanel, hPanel)
 
-	# <!-- custom: also show Bonuses available through FeatureTerrainBooleans, such as as of now bonus_gemstones being available in grassland forest, but not in TerrainBooleans (no grassland entry there), so show this info here as well; code provided with the help of chatgpt thanks and such etc-->
+	# <!-- custom: also show Bonuses available through FeatureTerrainBooleans, such as as of now bonus_gemstones being available in grassland forest, but not in TerrainBooleans (no grassland entry there), so show this info here as well; code provided with the help of chatgpt thanks and such etc -->
 	def placeFeatureTerrainBooleans(self):
 		xPanel = self.X_FEATURE_TERRAIN_BOOLEANS
 		yPanel = self.Y_FEATURE_TERRAIN_BOOLEANS
@@ -510,16 +512,15 @@ class SevoPediaBonus:
 	def placeRevealedBy(self):
 		screen = self.top.getScreen()
 		panelName = self.top.getNextWidgetName()
-		# <!-- custom: note that TXT_KEY_PEDIA_BONUS_APPEARANCE is "Reveals", using a custom TXT KEY "Revealed By" TXT_KEY_PEDIA_BONUS_APPEARANCE_REVEALED_BY_CUSTOM specifically for the Sevopedia, because now that we formatted it like that, "Revealed By" would fit better than "Reveals". Stil keeping the old entry intact for the Civilopedia
-		# note: "Appearance"/"Reveals" is the logic it seems of an appearance but i still find it very confusing, why not use the same name, but as long as it works is maybe fine -->
+		# <!-- custom: note that TXT_KEY_PEDIA_BONUS_APPEARANCE is "Reveals", using a custom TXT KEY "Revealed By" TXT_KEY_PEDIA_BONUS_APPEARANCE_REVEALED_BY_CUSTOM specifically for the Sevopedia, because now that we formatted it like that, "Revealed By" would fit better than "Reveals".
+		# Stil keeping the old entry intact for the Civilopedia note: "Appearance"/"Reveals" is the logic it seems of an appearance but i still find it very confusing, why not use the same name, but as long as it works is maybe fine -->
 		screen.addPanel( panelName, localText.getText("TXT_KEY_PEDIA_BONUS_APPEARANCE_REVEALED_BY_CUSTOM", ()), "", False, True, self.X_REVEALED_BY, self.Y_REVEALED_BY, self.W_REVEALED_BY, self.H_REVEALED_BY, PanelStyles.PANEL_STYLE_BLUE50 )
 		screen.attachLabel(panelName, "", "  ")
 
 		iTech = gc.getBonusInfo(self.iBonus).getTechReveal()
 		if iTech > -1:
 			screen.attachImageButton( panelName, "", gc.getTechInfo(iTech).getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iTech, 1, False )
-			# <!-- custom: we don't need the extra "(Reveals)" or "(Enables)" texts now that they are both not a "requires" anymore (which i
-			# think was very inaccurate, now fixed -->
+			# <!-- custom: we don't need the extra "(Reveals)" or "(Enables)" texts now that they are both not a "requires" anymore (which i think was very inaccurate, now fixed -->
 			#screen.attachLabel(panelName, "", u"(" + localText.getText("TXT_KEY_PEDIA_BONUS_APPEARANCE", ()) + u")")
 		else:
 			draw_none_text(screen, self.top, self.X_REVEALED_BY, self.Y_REVEALED_BY, self.W_REVEALED_BY, self.H_REVEALED_BY, "TXT_KEY_PEDIA_SAS_NO_BUTTON_FOUND_ALWAYS")

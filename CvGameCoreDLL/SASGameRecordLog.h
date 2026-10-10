@@ -12,7 +12,8 @@
 
 // <!-- custom: Structured game-record rows for autoplay comparison, game analysis, user-assistance summaries, and external LLM review.
 // This is not a classic BBAI diagnostic category: it has its own XML defines, its own SASGameRecord_*.log files, and its own lightweight public header.
-// Call sites should still gate before invoking helpers so disabled logging does not compute logging-only arguments. Pointer-only hooks use forward declarations here to avoid pulling city/unit headers into ordinary game files. (ChatGPT-5.5 + GPT-5.5) -->
+// Call sites should still gate before invoking helpers so disabled logging does not compute logging-only arguments.
+// Pointer-only hooks use forward declarations here to avoid pulling city/unit headers into ordinary game files. (ChatGPT-5.5 + GPT-5.5) -->
 // <!-- custom: SAS_GAME_RECORD_LOG_LEVEL is copied once after all GlobalDefines/module overrides finish loading.
 // Keep the steady-state hot gate as a direct integer read: SASGameRecord hooks are intentionally widespread, and an out-of-line getter would impose a cross-translation-unit function call even at level 0 in ordinary non-LTCG Release builds.
 // Before XML setup completes the zero-initialized cache safely means disabled.
@@ -24,9 +25,10 @@ __forceinline int getSASGameRecordLogLevel() { return g_iSASGameRecordLogLevel; 
 int getSASGameRecordTurnInterval();
 // <!-- custom: Monotonic official SASGameRecord downstream-update revision.
 // This is deliberately not a compatibility/schema promise: increment it for every intentional change to SASGameRecord implementation code, relevant bridges/call sites/configuration/checkers, or their code comments, even when emitted semantics are unchanged.
-// Standalone docs/example-log/package refreshes do not require a bump. Keep the matching revision-history entry in the same commit.
+// Standalone docs/example-log/package refreshes do not require a bump.
+// Keep the matching revision-history entry in the same commit.
 // An anonymous enum keeps this a C++03 compile-time integer without a separate storage/linkage definition. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-enum { SAS_GAME_RECORD_REVISION = 137 };
+enum { SAS_GAME_RECORD_REVISION = 138 };
 // <!-- custom: Finalize buffered observations in the old game state before a new game or loaded save resets/replaces it. See KI#382. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 void finalizeSASGameRecordLogSession();
 void startSASGameRecordLogForNewGame();
@@ -59,7 +61,8 @@ void noteSASGameRecordExternalRandomCall(CvRandom const* pRandom);
 void noteSASGameRecordRandomSeedSet(CvRandom const* pRandom, unsigned int uiOldState, unsigned int uiNewState, bool bReseed);
 void logSASGameRecordRngCheckpoint(int iGameTurn, SASGameRecordRngCheckpointReason eReason);
 // <!-- custom: Emit one tiny authoritative completion marker after all current-turn gameplay/autoplay/sync cleanup and before the game clock advances.
-// This remains available at levels 1/2 where the level-3 END_GAME_TURN RNG/state checkpoint is absent. Caller pre-gates at level 1+. (ChatGPT-5.6-Sol) -->
+// This remains available at levels 1/2 where the level-3 END_GAME_TURN RNG/state checkpoint is absent.
+// Caller pre-gates at level 1+. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordTurnCompleted(int iGameTurn);
 
 class CvCity;
@@ -75,7 +78,8 @@ void logSASGameRecordAIStrategyChanges(CvPlayerAI const& kPlayer, AIStrategy eOl
 void logSASGameRecordAIVictoryStageChanges(CvPlayerAI const& kPlayer, AIVictoryStage eOldStages, AIVictoryStage eNewStages);
 // <!-- custom: Record only the final committed team worst-enemy replacement; caller passes the real selection pass's already-computed old/new enmity values, whether it is AdvCiv's recursive corrective pass, and pre-gates at GameRecord level 2+. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordWorstEnemyChanged(CvTeamAI const& kTeam, TeamTypes eOldEnemy, TeamTypes eNewEnemy, int iOldEnmity, int iNewEnmity, bool bRecursiveRecheck);
-// <!-- custom: Record AreaAI changes at the two authoritative writers only: ordinary team calculation and UWAI's later alignment override. Callers pre-gate at GameRecord level 2+. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Record AreaAI changes at the two authoritative writers only: ordinary team calculation and UWAI's later alignment override.
+// Callers pre-gate at GameRecord level 2+. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordAreaAIChanged(CvTeamAI const& kTeam, CvArea const& kArea, AreaAITypes eOldType, AreaAITypes eNewType, char const* szSource);
 // <!-- custom: AI target-city state is player+area scoped and has several authoritative/effective change paths.
 // Keep the closed recorder-only source vocabulary typed so distant callers cannot silently drift in spelling; callers pre-gate at GameRecord level 2+. (ChatGPT-5.6-Sol) -->
@@ -88,7 +92,8 @@ enum SASGameRecordAITargetCityChangeSource
 	SAS_AI_TARGET_CITY_CITY_REMOVED
 };
 void logSASGameRecordAITargetCityChanged(CvPlayerAI const& kPlayer, CvArea const& kArea, CvCity const* pOldCity, CvCity const* pNewCity, SASGameRecordAITargetCityChangeSource eSource, int iSelectionValue = -1);
-// <!-- custom: Closed recorder-only outcomes/reasons for AI captured-city disposition. These describe realized KEEP/RAZE/LIBERATE decisions rather than gameplay-wide enums, so they remain with SASGameRecord. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Closed recorder-only outcomes/reasons for AI captured-city disposition.
+// These describe realized KEEP/RAZE/LIBERATE decisions rather than gameplay-wide enums, so they remain with SASGameRecord. (ChatGPT-5.6-Sol) -->
 enum SASGameRecordAIConquerCityOutcome
 {
 	SAS_AI_CONQUER_CITY_KEEP,
@@ -108,7 +113,8 @@ enum SASGameRecordAIConquerCityReason
 	SAS_AI_CONQUER_CITY_LIBERATION,
 	SAS_AI_CONQUER_CITY_LIBERATION_WITHHELD_HOSTAGE
 };
-// <!-- custom: Record one realized AI disposition for every AI_conquerCity path. Value/component fields are valid only when gameplay reached the corresponding raze valuation; callers pass already-computed values and pre-gate at GameRecord level 2+. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Record one realized AI disposition for every AI_conquerCity path.
+// Value/component fields are valid only when gameplay reached the corresponding raze valuation; callers pass already-computed values and pre-gate at GameRecord level 2+. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordAIConquerCityDecision(CvPlayerAI const& kPlayer, CvCity const& kCity, SASGameRecordAIConquerCityOutcome eOutcome, SASGameRecordAIConquerCityReason eReason, bool bEverOwned, int iCloseness = -1, bool bValueValid = false, int iRazeValueBeforeRandom = 0, int iRazeRandom = -1, int iRazeValue = 0, bool bComponentsValid = false, int iDistanceAndLocalPower = 0, int iMaintenanceDelta = 0, int iPopulationDelta = 0, int iPersonalityDominationDelta = 0, int iOtherDelta = 0, int iFinancialTrouble = -1, int iBarbarianRollPassed = -1, PlayerTypes eLiberationPlayer = NO_PLAYER);
 // <!-- custom: Closed recorder-only reasons for foreground-UWAI war-plan lifecycle mutations.
 // These describe why a real plan changed; they are not gameplay enums and therefore remain with SASGameRecord rather than CvGameCoreUtils. (ChatGPT-5.6-Sol) -->
@@ -189,7 +195,8 @@ struct SASGreatMerchantTradeChoiceContext
 // Great-Merchant fields preserve the winning raw city/path result behind the already-recorded transformed Trade score. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordAIGreatPersonDecision(CvUnitAI const& kUnit, CvPlot const* pDecisionPlot, SASGameRecordAIGreatPersonAction eAction, int iChoiceRank, int iSelectedValue, int iScoreThreshold, int iSlowValue, int iSlowBaseValue, int iSlowPathTurns, MissionAITypes eSlowMissionAI, CvCity const* pSlowCity, SpecialistTypes eSpecialist, BuildingTypes eBuilding, int iDiscoverValue, TechTypes eDiscoverTech, int iGoldenAgeValue, int iTradeValue, int iCultureValue, SASGreatMerchantTradeChoiceContext const* pTradeChoice, CvPlot const* pTargetPlot, MissionAITypes ePreviousMissionAI, CvPlot const* pPreviousMissionPlot);
 
-// <!-- custom: Closed recorder-only policy stages for AI_generalMove. The stage names preserve the actual ordered fallback chain rather than inventing a cross-action score that Great-General AI does not compute. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Closed recorder-only policy stages for AI_generalMove.
+// The stage names preserve the actual ordered fallback chain rather than inventing a cross-action score that Great-General AI does not compute. (ChatGPT-5.6-Sol) -->
 enum SASGameRecordAIGreatGeneralStage
 {
 	SAS_AI_GREAT_GENERAL_PREFERRED_INSTRUCTOR,
@@ -219,7 +226,8 @@ enum SASGameRecordAIGreatGeneralAction
 	SAS_AI_GREAT_GENERAL_ACTION_SKIP
 };
 // <!-- custom: Recorder-owned optional output context for AI_generalMove's existing Great-General helper passes.
-// The object is initialized/prepared only at SASGameRecord level 2+; helpers fill only the candidate/value/path they already selected. Keeping the definition here rather than CvUnitAI.h makes ownership explicit while CvUnitAI exposes only an opaque optional pointer. (ChatGPT-5.6-Sol) -->
+// The object is initialized/prepared only at SASGameRecord level 2+; helpers fill only the candidate/value/path they already selected.
+// Keeping the definition here rather than CvUnitAI.h makes ownership explicit while CvUnitAI exposes only an opaque optional pointer. (ChatGPT-5.6-Sol) -->
 struct SASGreatGeneralChoiceContext
 {
 	void resetChoice()
@@ -326,7 +334,8 @@ struct VoteSelectionData;
 struct VoteTriggeredData;
 // <!-- custom: Random-event lifecycle diagnostics pass the existing player-local trigger payload by const pointer/reference without exposing its save-layout definition through this lightweight recorder header. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 struct EventTriggeredData;
-// <!-- custom: Random-event city-result logging snapshots only realized city state that can otherwise disappear between periodic rows. The caller captures before/after only at level 2+.
+// <!-- custom: Random-event city-result logging snapshots only realized city state that can otherwise disappear between periodic rows.
+// The caller captures before/after only at level 2+.
 // The default object is only a caller-gated placeholder that is assigned a real captured state before any read, so intentionally leave it uninitialized rather than writing every field while logging is disabled. (ChatGPT-5.6-Sol) -->
 struct SASGameRecordRandomEventCityState
 {
@@ -395,7 +404,8 @@ struct SASGameRecordRandomEventPlayerState
 };
 // <!-- custom: Session-local transaction IDs tie together structured rows emitted synchronously by one consequential gameplay operation after filtering/chunking has separated them from raw file order.
 // A nested recorder scope deliberately joins the already-active outer transaction instead of creating parent/child IDs; this keeps one causal chain for operations such as city acquisition -> immediate AI/auto raze.
-// The recorder owns ID allocation and row decoration. Callers only bracket the existing operation, pre-gated at the detail level that already records its consequences. (ChatGPT-5.6-Sol) -->
+// The recorder owns ID allocation and row decoration.
+// Callers only bracket the existing operation, pre-gated at the detail level that already records its consequences. (ChatGPT-5.6-Sol) -->
 class SASGameRecordTransactionScope
 {
 public:
@@ -415,7 +425,8 @@ private:
 
 // <!-- custom: Observe one AI_chooseProduction call as a scope so every early return is handled without teaching the AI decision tree about recorder schema.
 // When level 2+ is pre-enabled by the caller, the destructor compares the final head order with the entry state and records only meaningful switches, clears, or resumptions of stored production.
-// Earlier versions put the whole constructor/destructor in SASGameRecordLog.cpp. In ordinary Release builds that hides the disabled fast path across the translation-unit boundary.
+// Earlier versions put the whole constructor/destructor in SASGameRecordLog.cpp.
+// In ordinary Release builds that hides the disabled fast path across the translation-unit boundary.
 // Final_Release /GL + /LTCG may recover such inlining, but keeping these tiny wrappers here makes the cheap path visible in every build while begin/end remain cold level-2+ work. (ChatGPT-5.6-Sol) -->
 class SASGameRecordAIProductionChoiceScope
 {
@@ -442,7 +453,8 @@ private:
 	int m_iOldAccumulatedInactiveTurns;
 };
 // <!-- custom: Goody huts are rare but can have compound randomized effects (gold, map reveal, partial/full tech, free/promoted units, hostile units and AdvCiv follow-up outcomes).
-// Collect only realized effects at the authoritative gameplay boundary, then let SASGameRecord own the stable row formatting. Callers must gate level 2+ before doing logging-only measurements.
+// Collect only realized effects at the authoritative gameplay boundary, then let SASGameRecord own the stable row formatting.
+// Callers must gate level 2+ before doing logging-only measurements.
 // The result object itself is intentionally cheap to default-construct (scalar sentinels plus empty vectors); avoid pointer/optional lifetime machinery merely to skip this tiny setup when recording is disabled. (ChatGPT-5.6-Sol) -->
 struct SASGameRecordGoodyResult
 {
@@ -492,7 +504,8 @@ void flushSASGameRecordTurnChanges(int iGameTurn);
 void recordSASGameRecordPlotChange(CvPlot const& kPlot, SASGameRecordPlotState const& kOldState, char const* szCategory, char const* szCause, bool bDetailed);
 // <!-- custom: Aggregate completed Worker Builds by player/turn so broad records preserve improvement churn and irrigation outcomes without copying per-candidate BBAI scoring or emitting one verbose row per Build; caller must pre-gate at GameRecord level 2+. (GPT-5.6-Sol) -->
 void recordSASGameRecordWorkerBuild(CvPlot const& kPlot, SASGameRecordPlotState const& kOldState, PlayerTypes ePlayer, BuildTypes eBuild);
-// <!-- custom: Directional river edits are rare and independent from ordinary plot-state actions, so record them separately instead of adding unused river fields to every detailed plot-change row. Callers gate this helper before computing logging-only arguments. (GPT-5.6-Sol) -->
+// <!-- custom: Directional river edits are rare and independent from ordinary plot-state actions, so record them separately instead of adding unused river fields to every detailed plot-change row.
+// Callers gate this helper before computing logging-only arguments. (GPT-5.6-Sol) -->
 void logSASGameRecordRiverEdgeChanged(CvPlot const& kPlot, bool bOldSouthBoundary, bool bOldEastBoundary);
 void recordSASGameRecordPlotRevealed(CvPlot const& kPlot, TeamTypes eTeam);
 // <!-- custom: Map-visible technologies reveal every plot through thousands of ordinary setRevealed calls.
@@ -515,7 +528,8 @@ void logSASGameRecordBarbarianCitySiteChoice(bool bSkipCivAreas, int iProbModifi
 void logSASGameRecordGoodyReceived(PlayerTypes ePlayer, CvPlot const* pPlot, CvUnit const* pTriggerUnit, GoodyTypes eGoody, SASGameRecordGoodyResult const& kResult);
 void logSASGameRecordGoodyNoOutcome(PlayerTypes ePlayer, CvPlot const* pPlot, CvUnit const* pTriggerUnit, GoodyTypes eTaboo, int iAttempts);
 // <!-- custom: Random-event delivery paths, apply dispositions, expiry reasons, affected scopes, and occurrence-clear scopes are separate small diagnostic vocabularies, each currently produced by one tightly coupled gameplay path and consumed only by SASGameRecord.
-// Keep their fixed string literals instead of conflating them in one permissive catch-all enum or adding several one-consumer enums and conversion switches. Promote an individual vocabulary to a typed enum if another independent producer or subsystem begins reusing it. (GPT-5.6-Sol) -->
+// Keep their fixed string literals instead of conflating them in one permissive catch-all enum or adding several one-consumer enums and conversion switches.
+// Promote an individual vocabulary to a typed enum if another independent producer or subsystem begins reusing it. (GPT-5.6-Sol) -->
 // <!-- custom: Civ4 EventInfo/random-event history is deliberately separate from generic GAME_RECORD_ACTION rows.
 // Calls are level-2 pre-gated at authoritative gameplay boundaries so disabled/level-1 runs do not collect target validity or construct diagnostic strings. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 void logSASGameRecordRandomEventTriggered(CvPlayer const& kPlayer, EventTriggeredData const& kTriggeredData, char const* szDeliveryPath);
@@ -524,7 +538,8 @@ void logSASGameRecordRandomEventApply(CvPlayer const& kPlayer, EventTypes eEvent
 void logSASGameRecordRandomEventGoldResult(CvPlayer const& kPlayer, EventTypes eEvent, int iTriggeredId, int iRangeLow, int iRangeHigh, int iPlayerGoldDelta, PlayerTypes eOtherPlayer, bool bGoldToPlayer);
 void logSASGameRecordRandomEventTechResult(CvPlayer const& kPlayer, EventTypes eEvent, int iTriggeredId, TechTypes eTech, int iTechPercent, int iResearchBefore, int iBeakersApplied, int iResearchAfter, int iTechCost, int iCompleted);
 // <!-- custom: Preserve realized deterministic city consequences separately from EventInfo selection.
-// This complements canonical war/plot/tech rows without dumping static XML magnitudes into RANDOM_EVENT_APPLY. Call only at level 2+ with caller-captured before/after state. (ChatGPT-5.6-Sol) -->
+// This complements canonical war/plot/tech rows without dumping static XML magnitudes into RANDOM_EVENT_APPLY.
+// Call only at level 2+ with caller-captured before/after state. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordRandomEventCityResult(PlayerTypes ePlayer, PlayerTypes eAffectedPlayer, int iTriggeredId, EventTypes eEvent, char const* szScope, CvCity const& kCity, SASGameRecordRandomEventCityState const& kBefore, SASGameRecordRandomEventCityState const& kAfter);
 // <!-- custom: Building modifier EventInfos can create durable latent state even when current yields do not change (e.g. before the affected building exists).
 // Record realized modifier operations separately rather than bloating every city-result row; call only at level 2+. (ChatGPT-5.6-Sol) -->
@@ -563,7 +578,8 @@ void logSASGameRecordAISettlerSiteDecision(CvUnitAI const& kSettler, CvPlot cons
 // Level 2 deliberately rescans only that rare chosen BFC from player-known and diagnostic-omniscient perspectives; rejected-candidate reasons remain BBAI territory and periodic snapshots do no settlement rescoring. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordCityFoundingSite(CvPlayer const& kPlayer, CvPlot const& kPlot);
 void logSASGameRecordCityBuilt(CvCity const* pCity);
-// <!-- custom: City razing is rare but strategically consequential. Capture level-2 context immediately before destruction, then finalize after disband so exact land/population/victory deltas reflect what the raze actually changed.
+// <!-- custom: City razing is rare but strategically consequential.
+// Capture level-2 context immediately before destruction, then finalize after disband so exact land/population/victory deltas reflect what the raze actually changed.
 // The recorder owns the context stack and formatting; callers only pre-gate and bracket the existing raze. (ChatGPT-5.6-Sol) -->
 void beginSASGameRecordCityRaze(CvCity const* pCity, PlayerTypes ePlayer);
 void endSASGameRecordCityRaze(PlayerTypes ePlayer);
@@ -571,7 +587,8 @@ void logSASGameRecordCityAcquired(PlayerTypes eOldOwner, PlayerTypes eNewOwner, 
 void logSASGameRecordWarStarted(TeamTypes eDeclarer, TeamTypes eTarget, WarPlanTypes eWarPlan, bool bPrimaryDoW, bool bNewDiplo, PlayerTypes eSponsor, bool bRandomEvent, WarDeclarationCause eCause);
 // <!-- custom: Added the pre-reset war-success and peace-context parameters so synthetic war summaries retain the final result before Base AdvCiv's AI_postMakePeace clears it. (GPT-5.6-Sol) -->
 void logSASGameRecordWarEnded(TeamTypes eTeam, TeamTypes eOtherTeam, int iTeamAWarSuccess, int iTeamBWarSuccess, bool bCapitulate, TeamTypes eBroker, bool bRandomEvent, bool bReparations);
-// <!-- custom: Record the exact team-membership boundary before CvTeam::addTeam reassigns the absorbed players and erases their old membership. Call only at level 2+. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Record the exact team-membership boundary before CvTeam::addTeam reassigns the absorbed players and erases their old membership.
+// Call only at level 2+. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordTeamMerged(TeamTypes eSurvivingTeam, TeamTypes eAbsorbedTeam);
 void logSASGameRecordTeamMet(TeamTypes eTeam, TeamTypes eOtherTeam, bool bNewDiplo, int iX1, int iY1, int iX2, int iY2, CvPlot const* pTeamContactPlot, CvPlot const* pOtherContactPlot);
 void logSASGameRecordPlayerGoldTrade(PlayerTypes eFromPlayer, PlayerTypes eToPlayer, int iAmount);
@@ -650,7 +667,8 @@ enum SASGameRecordAITechTradeOrigin
 };
 void logSASGameRecordAITechTradeDecision(CvPlayerAI const& kPlayer, PlayerTypes eTarget, SASGameRecordAITechTradeOrigin eOrigin, int iContactProbMultX1000, int iBestKnownTechScorePercent, TechTypes eRandomReceiveTech, int iRandomReceiveScore, bool bRandomReceiveLocusSuppressed, TechTypes eProgressTech, int iProgressResearchPoints, bool bProgressLocusSuppressed, TechTypes eGiveTech, int iOurReceiveTechValue, int iTargetReceiveTechValue, int iGiveMatchDeltaValue, int iProgressReceiveTechValue, int iProgressMaxGold);
 // <!-- custom: DIPLO_DEAL_ENDED preserves the final deal payload but not why AI_doDeals chose to end it; AI_checkCancel also discards its denial/resource trigger after returning.
-// Keep only realized cancellation causes and already-live trigger/overdraft context. Callers gate each row after the existing decision succeeds, so no offer valuation, denial query or synchronized RNG is repeated solely for recording. (ChatGPT-5.6-Sol) -->
+// Keep only realized cancellation causes and already-live trigger/overdraft context.
+// Callers gate each row after the existing decision succeeds, so no offer valuation, denial query or synchronized RNG is repeated solely for recording. (ChatGPT-5.6-Sol) -->
 enum SASGameRecordAIDealCancellationReason
 {
 	SAS_AI_DEAL_CANCEL_OFFER_REJECTED_RENEGOTIATE,
@@ -706,7 +724,8 @@ enum SASGameRecordAIVassalageOrigin
 };
 void logSASGameRecordAIVassalageDecision(CvPlayerAI const& kPlayer, PlayerTypes eTarget, SASGameRecordAIVassalageOrigin eOrigin, TeamTypes eEnemyTeam, int iContactProbMultX1000, int iTargetRank, int iAliveCivs, int iCounterProposal, CLinkList<TradeData> const& kAIGives, CLinkList<TradeData> const& kAIReceives);
 // <!-- custom: AI_doSplit commits one high-level colony decision whose pre-transfer aggregate area value is lost once splitEmpire moves the cities.
-// Ordinary splitting requires positive value; the only live forced caller is UWAI's last pre-capitulation colony-liberation attempt. Keep deeper AI_splitEmpireValue scoring out of SASGameRecord. (ChatGPT-5.6-Sol) -->
+// Ordinary splitting requires positive value; the only live forced caller is UWAI's last pre-capitulation colony-liberation attempt.
+// Keep deeper AI_splitEmpireValue scoring out of SASGameRecord. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordAIColonySplitDecision(CvPlayerAI const& kPlayer, CvArea const& kArea, int iAreaValue, bool bForce);
 // <!-- custom: AI_launch commits a rare high-level spaceship timing choice after its native rival-countdown scan.
 // Preserve the realized full-success vs urgent-rival reason and nearest rival deadline before launch mutates team victory state; callers pre-gate at GameRecord level 2 and do not repeat the rival scan. (ChatGPT-5.6-Sol) -->
@@ -726,7 +745,8 @@ enum SASGameRecordAIWarTradePaymentPath
 };
 void logSASGameRecordAIWarTradeIntent(CvPlayerAI const& kPlayer, PlayerTypes eHireling, SASGameRecordAIWarTradePaymentPath ePaymentPath, bool bUWAI, int iMinAtWarCounter, int iOfferDenominator, TeamTypes eTargetTeam, int iUWAITargetValue, int iLegacyTargetScore, int iHirePrice, TechTypes eCandidateTech1, TechTypes eCandidateTech2, int iWarSuccessRating, int iCityId, int iCityFitness, int iFinalWarSideValue, int iFinalPaymentSideValue);
 // <!-- custom: AI_proposeCityTrade does not map honestly onto ContactTypes: one realized proposal may be a free liberation, strategic gift, city swap or negotiated city-centered package.
-// Keep that compact formation vocabulary recorder-local and log only after the live candidate/counterproposal path has actually formed a contact/deal. `initialValueGap` is our city's already-computed cede value minus theirs; callers pre-gate at level 2+. (ChatGPT-5.6-Sol) -->
+// Keep that compact formation vocabulary recorder-local and log only after the live candidate/counterproposal path has actually formed a contact/deal.
+// `initialValueGap` is our city's already-computed cede value minus theirs; callers pre-gate at level 2+. (ChatGPT-5.6-Sol) -->
 enum SASGameRecordAICityTradeFormation
 {
 	SAS_AI_CITY_TRADE_FREE_LIBERATION,
@@ -741,7 +761,8 @@ void logSASGameRecordAIPeaceDecision(PlayerTypes ePlayer, PlayerTypes eOther, in
 // <!-- custom: Preserve the real research/free-tech source and, for AI_bestTech, the already-computed selected/runner-up path values and optional level-3 candidate paths; caller and chooser gates ensure no technology valuation or chooser RNG is repeated for SASGameRecord. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordAIResearchDecision(CvPlayerAI const& kPlayer, char const* szKind, char const* szSource, TechTypes eRequestedTech, int iResearchDepth, PlayerTypes eCoordinatingPlayer, SASTechChoiceContext const* pChoice);
 // <!-- custom: Civic provenance mirrors the live AI_doCivics hysteresis/revolution path rather than rerunning AI_bestCivic or AI_civicValue.
-// Accepted candidates are level 2; rejected/wanted candidates are level 3. Final outcomes preserve the pending/final bundle and real wait/gold/revolution gate. (ChatGPT-5.6-Sol) -->
+// Accepted candidates are level 2; rejected/wanted candidates are level 3.
+// Final outcomes preserve the pending/final bundle and real wait/gold/revolution gate. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordAICivicCandidate(PlayerTypes ePlayer, char const* szStatus, CivicOptionTypes eCivicOption, CivicTypes eOldCivic, CivicTypes eNewCivic, int iCurrentValue, int iBestValue, int iTestAnarchy, int iCurrentBundleAnarchy, int iThreshold, int iSlack, bool bPassPercent, bool bPassSlack, bool bFirstPass);
 void logSASGameRecordAICivicOutcome(PlayerTypes ePlayer, char const* szOutcome, std::vector<std::pair<CivicTypes, CivicTypes> > const& aeChanges, int iAnarchyLength, int iCivicTimerAfter, TechTypes eResearch, int iResearchTurns, CivicTypes eWaitCivic, int iWaitValue, int iWaitCurrentValue, int iGoldNeeded, int iCanRevolution);
 // <!-- custom: Proactive resource-trade provenance keeps only values and random draws already produced by AI_proposeResourceTrade; winner context is gathered later by the recorder only for an actual resolved proposal.
@@ -791,11 +812,13 @@ void logSASGameRecordAIExecutiveProduction(CvCity const* pCity, UnitTypes eUnit,
 void logSASGameRecordAICorporationTarget(CvUnit const* pUnit, CorporationTypes eCorporation, PlayerTypes ePreferredPlayer, int iExecutiveSpreadValue, CvCity const* pTargetCity, int iHqBaseValue, int iLocalCorporationValue, int iCompetingCorporationAdjustment, int iPopulationBonus, int iPreferredPlayerMultiplier, int iPathTurns, int iTargetScore, char const* szAction);
 void logSASGameRecordAICorporationTransit(CvUnit const* pExecutive, CvUnit const* pTransport, CorporationTypes eCorporation, int iEligibleCorporations, CvCity const* pTargetCity, CvPlot const* pMovePlot, int iPathTurns, int iTargetScore, char const* szRoute);
 // <!-- custom: Preserve only a realized/new Missionary religion-spread destination or airlift reroute.
-// The live chooser supplies its already-selected religion/city/path/score; deeper player/city multiplier composition remains UnitAI/BBAI territory. Callers pre-gate at GameRecord level 2. (ChatGPT-5.6-Sol) -->
+// The live chooser supplies its already-selected religion/city/path/score; deeper player/city multiplier composition remains UnitAI/BBAI territory.
+// Callers pre-gate at GameRecord level 2. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordAIReligionSpreadTarget(CvUnit const* pUnit, ReligionTypes eReligion, CvCity const* pTargetCity, int iPlayerMultiplierPercent, int iPathTurns, int iTargetScore, char const* szAction);
 // <!-- custom: Preserve one meaningful AI religion-switch decision from the live chooser/roll without reevaluating religion values; level-3 callers may additionally pass the candidate scores already computed by AI_bestReligion. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordAIReligionDecision(PlayerTypes ePlayer, ReligionTypes eCurrentReligion, ReligionTypes eEvaluatedBest, ReligionTypes eSelectedReligion, ReligionTypes eRunnerUp, int iBestValue, int iRunnerUpValue, int iCurrentScore, int iCurrentRawValue, int iSelectedRawValue, int iConvertProbabilityPercent, int iRollSuccess, char const* szOutcome, std::vector<std::pair<ReligionTypes, int> > const* paCandidateValues);
-// <!-- custom: Closed recorder-only causes for actual AI AP/UN ballots. They classify the live AI_diploVote decision path rather than gameplay-wide vote enums, so keep them local to SASGameRecord. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Closed recorder-only causes for actual AI AP/UN ballots.
+// They classify the live AI_diploVote decision path rather than gameplay-wide vote enums, so keep them local to SASGameRecord. (ChatGPT-5.6-Sol) -->
 enum SASGameRecordAIDiploVoteReason
 {
 	SAS_AI_DIPLO_VOTE_TEAM_SELF_ELIGIBLE,
@@ -828,7 +851,8 @@ void logSASGameRecordVoteTriggered(VoteTriggeredData const* pVoteTriggered);
 void logSASGameRecordVoteResult(VoteTriggeredData const* pVoteTriggered, bool bThresholdPassed, bool bPassed, bool bCancelled, qword uiDefaultedAbstain, qword uiDefiers, qword uiEndorsers);
 void logSASGameRecordReligionFounded(ReligionTypes eReligion, PlayerTypes ePlayer);
 void logSASGameRecordCorporationFounded(CorporationTypes eCorporation, PlayerTypes ePlayer);
-// <!-- custom: Closed recorder-only triggers for a realized AI city draft. NONE is an internal assignment sentinel; current ordinary AI_doDraft can realize TURTLE_STRATEGY, LOCAL_DANGER or NONCRITICAL_RANDOM_VALUE, while FORCED_CALLER preserves the existing bForce API exit without running the ordinary chooser. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Closed recorder-only triggers for a realized AI city draft.
+// NONE is an internal assignment sentinel; current ordinary AI_doDraft can realize TURTLE_STRATEGY, LOCAL_DANGER or NONCRITICAL_RANDOM_VALUE, while FORCED_CALLER preserves the existing bForce API exit without running the ordinary chooser. (ChatGPT-5.6-Sol) -->
 enum SASGameRecordAIDraftReason
 {
 	SAS_AI_DRAFT_NONE,
@@ -839,7 +863,8 @@ enum SASGameRecordAIDraftReason
 };
 // <!-- custom: Preserve only the realized AI_doDraft trigger and already-computed enabling context that the following conscription mutation cannot reconstruct; callers pre-gate at level 2 immediately before conscript(), so rejected/no-draft city turns add no recorder-only scans, valuations or RNG. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordAIDraftDecision(CvCity const& kCity, SASGameRecordAIDraftReason eReason, UnitTypes eConscriptUnit, int iConscriptPopulation, int iDanger, int iLandWar, int iGoodValue, int iTooMuchPop, int iPoorPlots, int iHappyDiff, int iUnitCostPerMil, int iLocalDefense, int iLocalEnemyOffense, int iBuildUnitProb);
-// <!-- custom: Closed recorder-only reasons for a realized AI/automated-governor city hurry. Keep the choice vocabulary beside its serializer rather than exposing diagnostic-only causes through gameplay enums. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Closed recorder-only reasons for a realized AI/automated-governor city hurry.
+// Keep the choice vocabulary beside its serializer rather than exposing diagnostic-only causes through gameplay enums. (ChatGPT-5.6-Sol) -->
 enum SASGameRecordAIHurryReason
 {
 	SAS_AI_HURRY_FORCED_PANIC,
@@ -896,12 +921,14 @@ void logSASGameRecordBlockadeChanged(CvUnit const* pUnit, bool bStarting);
 void logSASGameRecordBlockadePlunder(CvUnit const* pUnit, CvCity const* pCity, int iGold, int iTradeRoutes, int iProfitPerRoute);
 void logSASGameRecordUnitGifted(CvUnit const* pUnit, PlayerTypes eGiftingPlayer, CvPlot const* pPlotLocation);
 void logSASGameRecordReligionChanged(ReligionTypes eReligion, PlayerTypes ePlayer, CvCity const* pCity, bool bAdded);
-// <!-- custom: Membership-change rows say what ultimately changed; these compact attempt rows preserve the consumed Missionary/Executive, exact chance and failed/displacing outcomes that otherwise vanish. Callers pre-gate level 2+. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Membership-change rows say what ultimately changed; these compact attempt rows preserve the consumed Missionary/Executive, exact chance and failed/displacing outcomes that otherwise vanish.
+// Callers pre-gate level 2+. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordReligionSpreadAttempt(CvUnit const* pUnit, ReligionTypes eReligion, CvCity const* pCity, int iDirectSpreadChance, bool bSuccess, ReligionTypes eDisplacedReligion);
 void logSASGameRecordCorporationChanged(CorporationTypes eCorporation, PlayerTypes ePlayer, CvCity const* pCity, bool bAdded);
 void logSASGameRecordCorporationSpreadAttempt(CvUnit const* pUnit, CorporationTypes eCorporation, CvCity const* pCity, int iSpreadChance, int iGoldCost, int iGoldBefore, bool bSuccess);
 void logSASGameRecordCircumnavigated(TeamTypes eTeam, int iFreeSeaMoves, bool bBonusApplied, int iSeaExtraMovesBefore, int iSeaExtraMovesAfter);
-// <!-- custom: Financial strike is a rare player-wide economic crisis; periodic player rows preserve current/cumulative state while this level-2 action records each realized strike turn and any resulting forced unit loss. Callers pre-gate before collecting logging-only unit counts. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Financial strike is a rare player-wide economic crisis; periodic player rows preserve current/cumulative state while this level-2 action records each realized strike turn and any resulting forced unit loss.
+// Callers pre-gate before collecting logging-only unit counts. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordFinancialStrikeTurn(PlayerTypes ePlayer, int iGoldBefore, int iCalculatedGoldRate, int iGoldAfterClamp, int iCumulativeStrikeTurns, int iUnitsBeforeDisband, int iUnitsAfterDisband);
 void logSASGameRecordGoldenAge(PlayerTypes ePlayer, bool bStart);
 void logSASGameRecordGoldenAgeTurnsChanged(PlayerTypes ePlayer, int iChange, int iOldGoldenAgeTurns, int iNewGoldenAgeTurns);
@@ -916,7 +943,8 @@ void logSASGameRecordProjectBuilt(CvCity const* pCity, ProjectTypes eProject, in
 void logSASGameRecordProductionOverflow(CvCity const* pCity, int iRawModifiedOverflow, int iUnmodifiedOverflow, int iKeptOverflow, int iLostProduction, int iUnusedCapacity, int iGold);
 void logSASGameRecordProductionFailed(CvCity const* pCity, int iOrderData, bool bProject, int iInvestedProduction, int iGold);
 // <!-- custom: Production lifecycle diagnostics distinguish strategic target switching from actual mechanical loss.
-// Decay is a real loss path; obsolete-unit production transfer preserves stored production under a new unit type. Call only at level 2+. (ChatGPT-5.6-Sol) -->
+// Decay is a real loss path; obsolete-unit production transfer preserves stored production under a new unit type.
+// Call only at level 2+. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordProductionDecay(CvCity const* pCity, OrderTypes eOrder, int iData1, int iBefore, int iAfter, int iInactiveTurns);
 void logSASGameRecordProductionInvalidated(CvCity const* pCity, OrderTypes eOrder, int iData1, int iStoredLost, bool bActiveTarget, bool bQueued);
 void logSASGameRecordProductionUpgraded(CvCity const* pCity, UnitTypes eOldUnit, UnitTypes eNewUnit, int iProductionTransferred, int iDestinationProductionBefore);

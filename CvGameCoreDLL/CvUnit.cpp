@@ -457,7 +457,8 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 	{
 		CvEventReporter::getInstance().unitKilled(this, ePlayer);
 		// <!-- custom: SASGameRecord's combatResult hook records normal Great-Person combat deaths, but a defenseless Great Person overrun/destroyed directly by another player can reach kill(ePlayer) without that hook.
-		// Record this separate player-kill path here; the helper ignores ordinary units and !isFighting() avoids duplicating ordinary combat rows. This is a SAS logging gap uncovered while investigating KI#204, not the cause of the AI loss itself. (ChatGPT-5.6-Sol) -->
+		// Record this separate player-kill path here; the helper ignores ordinary units and !isFighting() avoids duplicating ordinary combat rows.
+		// This is a SAS logging gap uncovered while investigating KI#204, not the cause of the AI loss itself. (ChatGPT-5.6-Sol) -->
 		if (gGameRecordLogLevel >= 2 && !isFighting()) logSASGameRecordGreatPersonDied(this, ePlayer, "NONCOMBAT_PLAYER_KILL");
 		bool const bSASGreatGeneralUnit = (m_pUnitInfo->getDefaultUnitAIType() == UNITAI_GREAT_GENERAL);
 		bool const bSASGreatGeneralAttached = (getLeaderUnitType() != NO_UNIT);
@@ -500,7 +501,8 @@ void CvUnit::kill(bool bDelay, PlayerTypes ePlayer)
 					eColor = eColorGreen;
 					szSound = GC.getInfo(kObs.getCurrentEra()).getAudioUnitVictoryScript();
 				}
-				// <!-- custom: Base AdvCiv's public Great-General message names both civilizations but checked only whether the observer had met the victim. Require knowledge of both participants for the exact message.
+				// <!-- custom: Base AdvCiv's public Great-General message names both civilizations but checked only whether the observer had met the victim.
+				// Require knowledge of both participants for the exact message.
 				// An observer who knows only the victim receives sanitized public text, while the victim, killer and spectators retain dedicated/unrestricted messages. See KI#334. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 				else if(GET_TEAM(kOwner.getTeam()).isHasMet(kObs.getTeam()) || // advc.004u
 					kObs.isSpectator()) // advc.127
@@ -690,8 +692,8 @@ void CvUnit::doTurn()
 		else
 		{
 			setBlockading(false);
-			// <!-- custom: Blockade legality is unit-local. Keep the PLUNDER group active while another member is still legally blockading; waking it would clear every member's blockade through CvSelectionGroup::setActivityType.
-			// See KI#467. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			// <!-- custom: Blockade legality is unit-local.
+			// Keep the PLUNDER group active while another member is still legally blockading; waking it would clear every member's blockade through CvSelectionGroup::setActivityType. See KI#467. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			bool bValidBlockaderRemaining = false;
 			FOR_EACH_UNIT_IN(pLoopUnit, *getGroup())
 			{
@@ -708,8 +710,8 @@ void CvUnit::doTurn()
 	// <advc.004k>
 	if (isSeaPatrolling() && !canSeaPatrol())
 	{
-		// <!-- custom: Sea Patrol admission permits mixed sea groups. An ineligible member no longer wakes a qualifying patrol member; wake only when the group has no remaining unit able to patrol.
-		// See KI#466. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: Sea Patrol admission permits mixed sea groups.
+		// An ineligible member no longer wakes a qualifying patrol member; wake only when the group has no remaining unit able to patrol. See KI#466. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		bool bValidPatrollerRemaining = false;
 		FOR_EACH_UNIT_IN(pLoopUnit, *getGroup())
 		{
@@ -1150,7 +1152,8 @@ void CvUnit::updateAirCombat(bool bQuick)
 void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 {
 	// <!-- custom: SASGameRecord level 2+ captures pre-combat attacker identity and exact odds only at real combat resolution, never in AI candidate-odds loops.
-	// This is pre-gated because calculateCombatOdds is diagnostic work. Cache the immutable gate because nonlethal combat reuses it after resolution. (ChatGPT-5.6-Sol) -->
+	// This is pre-gated because calculateCombatOdds is diagnostic work.
+	// Cache the immutable gate because nonlethal combat reuses it after resolution. (ChatGPT-5.6-Sol) -->
 	bool const bLogCombat = (gGameRecordLogLevel >= 2);
 	if (bLogCombat) noteSASGameRecordCombatStarted(this, pDefender, pPlot);
 	// <advc.048c> Preserve info for interface message (based on K-Mod code)
@@ -1198,7 +1201,8 @@ void CvUnit::resolveCombat(CvUnit* pDefender, CvPlot* pPlot, bool bVisible)
 	getDefenderCombatValues(*pDefender, pPlot, iAttackerStrength, iAttackerFirepower,
 			iDefenderOdds, iDefenderStrength, iAttackerDamage, iDefenderDamage,
 			&cdDefenderDetails);
-	// <!-- custom: record attacker/defender combat details for every battle so the Military Advisor Battles tab has full strength/role data when selecting vassals or debug players. Keep this separate from combatLogCalc, which is player-facing and still only fires for active-player combat. (GPT-5.5) -->
+	// <!-- custom: record attacker/defender combat details for every battle so the Military Advisor Battles tab has full strength/role data when selecting vassals or debug players.
+	// Keep this separate from combatLogCalc, which is player-facing and still only fires for active-player combat. (GPT-5.5) -->
 	{
 		CyArgsList pyArgsSASBattleDetails;
 		pyArgsSASBattleDetails.add(gDLL->getPythonIFace()->makePythonObject(&cdAttackerDetails));
@@ -3151,7 +3155,8 @@ void CvUnit::move(CvPlot& kPlot, bool bShow, /* advc.163: */ bool bJump, bool bG
 			}
 		}
 	} // </advc.162>
-	// <!-- custom: Clear recon only at the successful unit-local air-base move boundary. The former group preflight could clear later aircraft that failed after earlier members consumed shared destination capacity. See KI#471 and KI#1049. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Clear recon only at the successful unit-local air-base move boundary.
+	// The former group preflight could clear later aircraft that failed after earlier members consumed shared destination capacity. See KI#471 and KI#1049. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (getDomainType() == DOMAIN_AIR && GET_TEAM(getTeam()).isRevealedAirBase(kPlot))
 		setReconPlot(NULL);
 	setXY(kPlot.getX(), kPlot.getY(), /* advc.163 (was 'true'): */ bGroup,
@@ -3351,10 +3356,15 @@ void CvUnit::automate(AutomateTypes eAutomate)
 }
 
 
-// <!-- custom: we scrap way too many military units in particular, as i have noticed it in the early game (+/- turn 40-50, could and most likely happens in other circumstances but didn't check check to be sure and if i'm not mistaken), so after we produce a unit we end up with 1 less, so this would mean we scrapped 2. Especially crippling early when barbarians are stronger, our military weak, and rivals dangerous as well potentially. Try to reduce scrapping with this tentative code change, while also not overdoing it in case it collapses our economy, here or in other places, see known issue as of now 52 for details; also code provided with the help of chatgpt 5 thanks -->
+// <!-- custom: we scrap way too many military units in particular, as i have noticed it in the early game (+/- turn 40-50, could and most likely happens in other circumstances but didn't check check to be sure and if i'm not mistaken), so after we produce a unit we end up with 1 less, so this would mean we scrapped 2.
+// Especially crippling early when barbarians are stronger, our military weak, and rivals dangerous as well potentially.
+// Try to reduce scrapping with this tentative code change, while also not overdoing it in case it collapses our economy, here or in other places, see known issue as of now 52 for details; also code provided with the help of chatgpt 5 thanks -->
 // <!-- custom: the changes in CvPlayerAI::AI_doMilitary did not change the seemingly cyclical scrapping behaviour of new ancient macemen many turns on a row, so as advised by chatgpt 5 (genius idea it got, it may not seem too clean but great way to solve it xd thanks!), implementing our logic here as well, check if accurate -->
-// <!-- custom: update!!! Tremendously fixed!!! No more scrapping and painful losing of these ancient macemen, will reduce handicap now to accommodate these and make sure we don't run bankrupt at leats early, else i don't care too much or as much, and give AI best chances, see known issue as of now 52 for details; in short we only aded some more prechecks here as we usually do, in an attempt to help improve AI efficiency or correct or help improve significant AI flaws, so hopefully AI is now stronger as such and we have to adjust some things to match these, see known issue mentioned here in these code comments for details, and we otherwise kept function the same -->
-// <!-- custom: Routine scrap() must pass canScrap(), preventing the observed repeated culling of protected land combat units. Explicit scrapForced() callers instead establish narrow mandatory-cleanup conditions; see KI#331. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+// <!-- custom: update!!!
+// Tremendously fixed!!!
+// No more scrapping and painful losing of these ancient macemen, will reduce handicap now to accommodate these and make sure we don't run bankrupt at leats early, else i don't care too much or as much, and give AI best chances, see known issue as of now 52 for details; in short we only aded some more prechecks here as we usually do, in an attempt to help improve AI efficiency or correct or help improve significant AI flaws, so hopefully AI is now stronger as such and we have to adjust some things to match these, see known issue mentioned here in these code comments for details, and we otherwise kept function the same -->
+// <!-- custom: Routine scrap() must pass canScrap(), preventing the observed repeated culling of protected land combat units.
+// Explicit scrapForced() callers instead establish narrow mandatory-cleanup conditions; see KI#331. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 bool CvUnit::canScrap() const
 {
 	// <!-- custom: old function was a 3 liner -->
@@ -3363,7 +3373,9 @@ bool CvUnit::canScrap() const
 	// return true;
 
 	static const bool bSAS_CAN_SCRAP_AI_ABSOLUTELY_DISABLE = GC.getDefineBOOL("SAS_CAN_SCRAP_AI_ABSOLUTELY_DISABLE");
-	// <!-- custom: Absolute AI scrap kill switch for experiments and player preference. Scrapping is hammer-inefficient when a produced unit could instead defend, pressure rivals, or be spent in war; war also removes excess units naturally while potentially gaining cities, unit support, economy, and long-term growth. Keep this separate from SAS_CAN_SCRAP_OPTIMIZE so disabling optimization never re-enables broad scrapping. (GPT-5.5 + ChatGPT-5.5) -->
+	// <!-- custom: Absolute AI scrap kill switch for experiments and player preference.
+	// Scrapping is hammer-inefficient when a produced unit could instead defend, pressure rivals, or be spent in war; war also removes excess units naturally while potentially gaining cities, unit support, economy, and long-term growth.
+	// Keep this separate from SAS_CAN_SCRAP_OPTIMIZE so disabling optimization never re-enables broad scrapping. (GPT-5.5 + ChatGPT-5.5) -->
 	if (bSAS_CAN_SCRAP_AI_ABSOLUTELY_DISABLE && !isHuman())
 	{
 		return false;
@@ -3381,7 +3393,10 @@ bool CvUnit::canScrap() const
 		static const bool bSAS_CAN_SCRAP_AI_ONLY_OBSOLETE_ENABLE = GC.getDefineBOOL("SAS_CAN_SCRAP_AI_ONLY_OBSOLETE_ENABLE");
 		if (bSAS_CAN_SCRAP_AI_ONLY_OBSOLETE_ENABLE)
 		{
-			// <!-- custom: Softer near-absolute AI scrap mode: keep normal units and allow only units with ObsoleteTech that are old enough by obsolete-era delay. Cargo-capable units are kept because an obsolete transport can still be our only practical way to move units. Do not protect units by XP here: a high-XP obsolete unit can still be weaker and less useful than a low-XP current-era replacement, and upgrade preservation belongs to upgrade logic. In one autoplay test, obsolete-only scrapping produced 3324 SCRAP_DECISION lines but only 94 SCRAP_EVENT lines, mostly old units with cargo 0/0, very few veteran scraps (only 1 with XP >= 7), and no obvious weaker-AI result at a glance. (GPT-5.5 + ChatGPT-5.5) -->
+			// <!-- custom: Softer near-absolute AI scrap mode: keep normal units and allow only units with ObsoleteTech that are old enough by obsolete-era delay.
+			// Cargo-capable units are kept because an obsolete transport can still be our only practical way to move units.
+			// Do not protect units by XP here: a high-XP obsolete unit can still be weaker and less useful than a low-XP current-era replacement, and upgrade preservation belongs to upgrade logic.
+			// In one autoplay test, obsolete-only scrapping produced 3324 SCRAP_DECISION lines but only 94 SCRAP_EVENT lines, mostly old units with cargo 0/0, very few veteran scraps (only 1 with XP >= 7), and no obvious weaker-AI result at a glance. (GPT-5.5 + ChatGPT-5.5) -->
 			if (getCargo() > 0 || cargoSpace() > 0)
 			{
 				return false;
@@ -3403,7 +3418,9 @@ bool CvUnit::canScrap() const
 		}
 		if (bSAS_CAN_SCRAP_OBSOLETE_TECH && eObsoleteTech != NO_TECH && GET_TEAM(getTeam()).isHasTech(eObsoleteTech))
 		{
-			// <!-- custom: Legacy fallback for experiments with SAS_CAN_SCRAP_AI_ONLY_OBSOLETE_ENABLE disabled. Keep cargo-capable obsolete units, but otherwise allow obsolete-unit cleanup directly. Normal recommended play keeps SAS_CAN_SCRAP_AI_ONLY_OBSOLETE_ENABLE enabled above. (ChatGPT-5.5) -->
+			// <!-- custom: Legacy fallback for experiments with SAS_CAN_SCRAP_AI_ONLY_OBSOLETE_ENABLE disabled.
+			// Keep cargo-capable obsolete units, but otherwise allow obsolete-unit cleanup directly.
+			// Normal recommended play keeps SAS_CAN_SCRAP_AI_ONLY_OBSOLETE_ENABLE enabled above. (ChatGPT-5.5) -->
 			if (getCargo() > 0 || cargoSpace() > 0)
 			{
 				return false;
@@ -3437,7 +3454,13 @@ bool CvUnit::canScrap() const
 			return false;
 		}
 
-		// <!-- custom: as for naval units, do not scrap them at all, we had the workboat infinite loop issue in known issue as of now 23 that we fixed, but then in known issue as of now 53 i noticed a privateer loop and AI dying because of it. Since we now handle properly max naval units among other units being produced, we don't fear overproducing them too much, at least not too hard, but we i.e. i xdfear invisible scrapping. There should almost never be good cases where scrapping is worth, and these should be handled as exceptions rather than the main rule. Just in known issue as of now 52, removing scrapping greatly improves AI military efficiency and performance, and it didn't go bankrupt at all (they can't produce that much units anyway, allowing to reduce handicap so they produce less units so they are less likely to be bankrupt and so they also nicely have a bit of buff and buffer (no pun xd). Really, i feel or it seems to me like scrapping should be handled as an exception not as a "i don't know what to do with this weird unit let's just scrap it xd". "No! Don't scrap it xd, figure out what to do with it, most often the risk of loop or such far outweigh having 1 or 2 extra units anyway i think), if fearing financial trouble or such, please implement it in your code, as for me as of now i consider/assume assume AIs develop well and build these formulas based on iNumCities or such for scaling, the benefits seem to far outweigh the risks/costs, and please read known isue as of now 53 for details; also, since we are only adding pre checks and not changing the logic otherwise, should be fine-->
+		// <!-- custom: as for naval units, do not scrap them at all, we had the workboat infinite loop issue in known issue as of now 23 that we fixed, but then in known issue as of now 53 i noticed a privateer loop and AI dying because of it.
+		// Since we now handle properly max naval units among other units being produced, we don't fear overproducing them too much, at least not too hard, but we i.e. i xdfear invisible scrapping.
+		// There should almost never be good cases where scrapping is worth, and these should be handled as exceptions rather than the main rule.
+		// Just in known issue as of now 52, removing scrapping greatly improves AI military efficiency and performance, and it didn't go bankrupt at all (they can't produce that much units anyway, allowing to reduce handicap so they produce less units so they are less likely to be bankrupt and so they also nicely have a bit of buff and buffer (no pun xd).
+		// Really, i feel or it seems to me like scrapping should be handled as an exception not as a "i don't know what to do with this weird unit let's just scrap it xd".
+		// "No!
+		// Don't scrap it xd, figure out what to do with it, most often the risk of loop or such far outweigh having 1 or 2 extra units anyway i think), if fearing financial trouble or such, please implement it in your code, as for me as of now i consider/assume assume AIs develop well and build these formulas based on iNumCities or such for scaling, the benefits seem to far outweigh the risks/costs, and please read known isue as of now 53 for details; also, since we are only adding pre checks and not changing the logic otherwise, should be fine -->
 		// <!-- custom: not sure if we should exclude barbarian (e.g. if we someday add land units rules here (e.g. more defenders if in dangers based on total unitais, on top of what is done in bestunitai (so maybe redundant but to be safe about short circuits or such as well))) but just in case -->
 		CvPlayerAI const& kPlayer = GET_PLAYER(getOwner());
 		const bool bBarbarian = kPlayer.isBarbarian();
@@ -3497,14 +3520,19 @@ bool CvUnit::canScrap() const
 				bNavalMissionarySeaUnitAIs ||
 				bNavalSpySeaUnitAIs
 			);
-			// <!-- custom: since we now already handle in CvCityAI::AI_chooseUnit when to produce them and how much, no need to worry too much about scrapping enough units. However, as shown in known issue as of now 53, it seems scrapping still happens for privateers or such, although i am not sure and AI may have just been overproducing and i didn't check too much, still generally scrapping benefits should now far outweigh costs/risks, which include infinite loop of missing a unit we just created or such, and as happened in known issue as of now 23 as well with workboats in the past. It seems much simpler to disable scrapping altogether for most if not all, and see what happens and if we go bankrupt or not. By meeting our quotas sooner, we can then move on to other units or buildings or anything much more efficiently/effectively than scrap reproduce again, and 1-2 lone units are not a big problem vs the global risk of scrapping messing up, so disabling it at least for these units; chatgpt 5 also likes this change if i may say at least it said so so the change seems fine to it at least if not more-->
+			// <!-- custom: since we now already handle in CvCityAI::AI_chooseUnit when to produce them and how much, no need to worry too much about scrapping enough units.
+			// However, as shown in known issue as of now 53, it seems scrapping still happens for privateers or such, although i am not sure and AI may have just been overproducing and i didn't check too much, still generally scrapping benefits should now far outweigh costs/risks, which include infinite loop of missing a unit we just created or such, and as happened in known issue as of now 23 as well with workboats in the past.
+			// It seems much simpler to disable scrapping altogether for most if not all, and see what happens and if we go bankrupt or not.
+			// By meeting our quotas sooner, we can then move on to other units or buildings or anything much more efficiently/effectively than scrap reproduce again, and 1-2 lone units are not a big problem vs the global risk of scrapping messing up, so disabling it at least for these units; chatgpt 5 also likes this change if i may say at least it said so so the change seems fine to it at least if not more -->
 			// asymmetric: don’t scrap existing boats
 			if (bAllHandledNavalUnitAIs)
 			{
 				return false;
 			}
 
-			// <!-- custom: as for settlers, see what happens but don't risk a loop of produce destroy again and again, very costly on city growth. Some code comment mentioned settlers confuse AIs; possibly, but we'd need to test to be sure, there is a risk AI overproduces them in the middle game then scrap and repeat. I didn't see it so far although i didn't see too much, but better not risk, disable scrapping and keep 1 lone extra settler and be done, and see what happens ingame if needs adjustment or not (not sure i'd always be here ot make them hehe but i hope the comment helps raise awareness/info about this idea/concern i has) -->
+			// <!-- custom: as for settlers, see what happens but don't risk a loop of produce destroy again and again, very costly on city growth.
+			// Some code comment mentioned settlers confuse AIs; possibly, but we'd need to test to be sure, there is a risk AI overproduces them in the middle game then scrap and repeat.
+			// I didn't see it so far although i didn't see too much, but better not risk, disable scrapping and keep 1 lone extra settler and be done, and see what happens ingame if needs adjustment or not (not sure i'd always be here ot make them hehe but i hope the comment helps raise awareness/info about this idea/concern i has) -->
 
 			const bool bLandExploreUnitAIs = (
 				(eUnitAI == UNITAI_EXPLORE)
@@ -3546,7 +3574,7 @@ bool CvUnit::canScrap() const
 				// <!-- custom: have a good amount early, gradually fade past a certain point/era (as of now before renaissance) -->
 				// base: 2.5 workers per city
 				int iMaxUnits = (2 * iNumCities) + ((iNumCities * 5) / 10);
-				// <!-- custom: be careful to not overproduce them, workers are expensive and block growth, could be 1.5 swordsman instead for example plus the food growth used as slaving if stored in that time, but some amount is needed to grow especially early-->
+				// <!-- custom: be careful to not overproduce them, workers are expensive and block growth, could be 1.5 swordsman instead for example plus the food growth used as slaving if stored in that time, but some amount is needed to grow especially early -->
 
 				const EraTypes eCurrentEra = kPlayer.getCurrentEra();
 				// <!-- custom: as of now eras are (see xml for details or updated version -->
@@ -3580,18 +3608,19 @@ bool CvUnit::canScrap() const
 				}
 				else
 				{
-					// <!-- custom: +1 since we start eras at 0 so renaissance is first era where our decay starts to apply-->
+					// <!-- custom: +1 since we start eras at 0 so renaissance is first era where our decay starts to apply -->
 					// clamp to avoid negative
 					const int iErasSinceRenaissance = std::max(0, (iCurrentEra - iERA_RENAISSANCE) + 1);
 
 					// <!-- custom: as for decay use a very simple and effecive formula: -10% per era -->
 					const int pct = std::max(60, (100 - (10 * iErasSinceRenaissance))); // never below <!-- custom: 40% reduction/decay, so never below 60% of the max value-->
 					const int iMaxWorkersDecayed = (iMaxUnits * pct) / 100;
-					// <!-- custom: keep minimal force of 3+ workers around in case but no need to pay maintenance (if it costs? I don't know but i guess so) for all -->
+					// <!-- custom: keep minimal force of 3+ workers around in case but no need to pay maintenance (if it costs?
+					// I don't know but i guess so) for all -->
 					const int iMinWorkersInCase = 3 + ((iNumCities * 3) / 10);
 					iMaxUnits = std::max(iMinWorkersInCase, iMaxWorkersDecayed);
 
-					// <!-- custom: don't scrap existing unit just because we won't produce them (e.g. at war with some other conditions as of now), however track our max in all circumstances and scrap excess as game goes on-->
+					// <!-- custom: don't scrap existing unit just because we won't produce them (e.g. at war with some other conditions as of now), however track our max in all circumstances and scrap excess as game goes on -->
 					int iTotalUnitAIs = 0;
 					iTotalUnitAIs += kPlayer.AI_totalUnitAIs(UNITAI_WORKER);
 
@@ -3634,7 +3663,7 @@ bool CvUnit::canScrap() const
 			}
 		}
 
-		// <!-- custom: these below should happen less often, for computation saving put them at the end-->
+		// <!-- custom: these below should happen less often, for computation saving put them at the end -->
 
 		// <!-- custom: do not scrap anything carrying units, nice idea by chatgpt 5 -->
 		// Never scrap anything carrying cargo
@@ -3706,7 +3735,8 @@ void CvUnit::scrapInternal()
 		CvPlayerAI const& kOwner = GET_PLAYER(getOwner());
 		CvWString szAITypeString;
 		getUnitAIString(szAITypeString, AI_getUnitAIType());
-		// <!-- custom: Central actual-scrap event log. Caller logs are decision/context lines and can repeat; this fires once per successful routine or forced scrap before kill(), with stable unit id and turn fields so long logs can be deduplicated reliably. (ChatGPT-5.5 + GPT-5.5 + GPT-5.6-Sol) -->
+		// <!-- custom: Central actual-scrap event log.
+		// Caller logs are decision/context lines and can repeat; this fires once per successful routine or forced scrap before kill(), with stable unit id and turn fields so long logs can be deduplicated reliably. (ChatGPT-5.5 + GPT-5.5 + GPT-5.6-Sol) -->
 		logBBAI("    SCRAP_EVENT turn=%d player=%d (%S) unitId=%d unitType=%d unitAI='%S' name=%S at=(%d,%d) area=%d age=%d exp=%d cargo=%d/%d totalUnitsBefore=%d unitCostPerMil=%d goldRate=%d gold=%d",
 			GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getID(), getUnitType(), szAITypeString.GetCString(), getName(0).GetCString(),
 			getX(), getY(), (area() == NULL ? -1 : area()->getID()), GC.getGame().getGameTurn() - getGameTurnCreated(), getExperience(), getCargo(), cargoSpace(),
@@ -4498,7 +4528,8 @@ bool CvUnit::nuke(int iX, int iY)
 	static const ColorTypes eColorRed = (ColorTypes)GC.getColorType("RED");
 
 	bool const bIntercepted = SyncRandSuccess100(iBestInterception);
-	// <!-- custom: The interception roll is the authoritative launch boundary. Reuse CvUnit::nuke's already-computed affected-team flags instead of rescanning nuke victims.
+	// <!-- custom: The interception roll is the authoritative launch boundary.
+	// Reuse CvUnit::nuke's already-computed affected-team flags instead of rescanning nuke victims.
 	// Record before interception can kill the unit or a successful suicide launch can defer its explosion through delayed death. (ChatGPT-5.6-Sol) -->
 	if (gGameRecordLogLevel >= 2)
 	{
@@ -5015,7 +5046,8 @@ bool CvUnit::airBomb(CvPlot& kTarget, /* advc.004c: */ bool* pbIntercepted, bool
 	CvCity* pCity = kTarget.getPlotCity();
 	if (pCity != NULL)
 	{
-		// <!-- custom: GameRecord level 3 records actual air city bombardment with before/after defense state; consecutive equivalent actions are synthesized by SASGameRecordLog. Keep the before-state work gated so disabled/lower-level logging has no extra city-defense computation. (GPT-5.6 Thinking) -->
+		// <!-- custom: GameRecord level 3 records actual air city bombardment with before/after defense state; consecutive equivalent actions are synthesized by SASGameRecordLog.
+		// Keep the before-state work gated so disabled/lower-level logging has no extra city-defense computation. (GPT-5.6 Thinking) -->
 		int iGameRecordDefenseModifierBefore = -1;
 		int iGameRecordDefenseDamageBefore = -1;
 		if (bLogAirBombDetails)
@@ -6874,7 +6906,8 @@ bool CvUnit::espionage(EspionageMissionTypes eMission, int iData)
 	return false;
 }
 
-// <!-- custom: eMission/iData and captured target types are optional SASGameRecord provenance only; interception chance, RNG, messages, diplomatic memory and kill behavior below remain unchanged. Header defaults keep ordinary TRAVEL callers unchanged. (ChatGPT-5.6-Sol) -->
+// <!-- custom: eMission/iData and captured target types are optional SASGameRecord provenance only; interception chance, RNG, messages, diplomatic memory and kill behavior below remain unchanged.
+// Header defaults keep ordinary TRAVEL callers unchanged. (ChatGPT-5.6-Sol) -->
 bool CvUnit::testSpyIntercepted(PlayerTypes eTargetPlayer, bool bMission, int iModifier, char const* szSummaryPhase, EspionageMissionTypes eMission, int iData, ImprovementTypes eTargetImprovement, RouteTypes eTargetRoute, UnitTypes eTargetUnit)
 {
 	CvPlayer& kTargetPlayer = GET_PLAYER(eTargetPlayer);
@@ -7342,7 +7375,8 @@ bool CvUnit::giveExperience()
 		if (pUnit != this && pUnit->getOwner() == getOwner() &&
 			pUnit->canAcquirePromotionAny())
 		{
-			// <!-- custom: Only eligible recipients belong to the division population. BtS advanced this index for the Great General and other ineligible plot units, allowing them to consume remainder XP without receiving it. See KI#399. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			// <!-- custom: Only eligible recipients belong to the division population.
+			// BtS advanced this index for the Great General and other ineligible plot units, allowing them to consume remainder XP without receiving it. See KI#399. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			pUnit->changeExperience(i < iRemainder ?
 					iMinExperiencePerUnit + 1 : iMinExperiencePerUnit);
 			pUnit->testPromotionReady();
@@ -7389,7 +7423,9 @@ int CvUnit::upgradePrice(UnitTypes eUnit) const
 		iPrice /= 100;*/
 	}
 
-	// <!-- custom: tune unit upgrade costs, as i have found them to be too expensive. This applies to both human and AI players. Note: as of now in advciv-sas iAIUnitUpgradePercent has been increased from 50 to 100 (so AIs and humans have the same upgrade cost, no longer half cheaper to AIs). -->
+	// <!-- custom: tune unit upgrade costs, as i have found them to be too expensive.
+	// This applies to both human and AI players.
+	// Note: as of now in advciv-sas iAIUnitUpgradePercent has been increased from 50 to 100 (so AIs and humans have the same upgrade cost, no longer half cheaper to AIs). -->
 	static const int iSAS_UPGRADE_PRICE_UNIT_UPGRADE_COST_PERCENT = std::max(0, GC.getDefineINT("SAS_UPGRADE_PRICE_UNIT_UPGRADE_COST_PERCENT"));
 	iPrice = (iPrice * iSAS_UPGRADE_PRICE_UNIT_UPGRADE_COST_PERCENT) / 100;
 
@@ -7468,9 +7504,8 @@ bool CvUnit::canUpgrade(UnitTypes eUnit, bool bTestVisible, bool bUpgradeCityKno
 				int iEffectivePrice = iPrice;
 				int iDomainPricePercent = 100;
 				// <!-- custom: The real upgrade price stays unchanged; this only makes off-domain upgrades pass the AI ROI gates less often.
-				// On land-heavy maps, limited AI upgrade gold is usually better spent on land units than ships; on naval-heavy maps, ships are usually
-				// higher leverage than land upgrades. Keep this as an effective-price multiplier instead of a hard domain ban so experienced or
-				// high-impact off-domain upgrades can still pass when they are worth enough. (ChatGPT-5.2 + GPT-5.5) -->
+				// On land-heavy maps, limited AI upgrade gold is usually better spent on land units than ships; on naval-heavy maps, ships are usually higher leverage than land upgrades.
+				// Keep this as an effective-price multiplier instead of a hard domain ban so experienced or high-impact off-domain upgrades can still pass when they are worth enough. (ChatGPT-5.2 + GPT-5.5) -->
 				{
 					CvGame const& kGame = GC.getGame();
 					if (kGame.isLandHeavyMapnameCached() && getDomainType() == DOMAIN_SEA)
@@ -7573,7 +7608,8 @@ bool CvUnit::isReadyForUpgrade() const
 }
 
 /*	finds the 'best' city which has a valid upgrade for the unit, it specifically does not check whether the unit can move, or if the player has enough gold to upgrade those are checked in canUpgrade() if bSearch is true, it will check every city, if not, it will only check the closest valid city NULL result means the upgrade is not possible */
-// <!-- custom: Return the selected upgrade type when requested so AI_travelToUpgradeCity can apply the real eligibility checks without repeating this search. This prevents units from travelling to or waiting in an upgrade city for unaffordable or economically rejected upgrades. See KI#188.3.3. (GPT-5.6-Sol) -->
+// <!-- custom: Return the selected upgrade type when requested so AI_travelToUpgradeCity can apply the real eligibility checks without repeating this search.
+// This prevents units from travelling to or waiting in an upgrade city for unaffordable or economically rejected upgrades. See KI#188.3.3. (GPT-5.6-Sol) -->
 CvCity* CvUnit::getUpgradeCity(bool bSearch, UnitTypes* peUpgradeUnit) const
 {
 	if (peUpgradeUnit != NULL) *peUpgradeUnit = NO_UNIT;

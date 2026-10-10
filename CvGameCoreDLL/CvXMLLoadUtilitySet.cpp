@@ -842,10 +842,7 @@ bool CvXMLLoadUtility::LoadPostMenuGlobals()
 	LoadGlobalClassInfo(GC.m_paCommandInfo, "CIV4CommandInfos", "Units", "Civ4CommandInfos/CommandInfos/CommandInfo", false);
 	LoadGlobalClassInfo(GC.m_paAutomateInfo, "CIV4AutomateInfos", "Units", "Civ4AutomateInfos/AutomateInfos/AutomateInfo", false);
 
-	// <!-- custom: CIV4VoteInfo load moved to LoadPreMenuGlobals (placed right
-	// after CIV4CivicInfos since <ForceCivics> references civic types) so the Sevopedia
-	// Votes category populates from the main menu too. See the matching comment there for
-	// the full rationale. (Claude code Opus 4.7) -->
+	// <!-- custom: CIV4VoteInfo load moved to LoadPreMenuGlobals (placed right after CIV4CivicInfos since <ForceCivics> references civic types) so the Sevopedia Votes category populates from the main menu too; see the matching comment there for the full rationale. (Claude code Opus 4.7) -->
 	//UpdateProgressCB("Global Vote");
 	//LoadGlobalClassInfo(GC.m_paVoteInfo, "CIV4VoteInfo", "GameInfo", "Civ4VoteInfo/VoteInfos/VoteInfo", false);
 
@@ -891,10 +888,8 @@ bool CvXMLLoadUtility::LoadPostMenuGlobals()
 bool CvXMLLoadUtility::LoadOptionalGlobals()
 {
 	bool bFXmlCreated = false; // Perhaps better not to do this twice
-	// <!-- custom: CIV4EventInfos + CIV4EventTriggerInfos load moved to
-	// LoadPreMenuGlobals (right after CIV4VoteInfo) so the Sevopedia Event Triggers
-	// category populates from the main menu too. See the matching comment at the new
-	// load site for the full rationale. (Claude code Opus 4.7) -->
+	// <!-- custom: CIV4EventInfos + CIV4EventTriggerInfos load moved to LoadPreMenuGlobals (right after CIV4VoteInfo) so the Sevopedia Event Triggers category populates from the main menu too.
+	// See the matching comment at the new load site for the full rationale. (Claude code Opus 4.7) -->
 	//if (!m->bEventsLoaded &&
 	//	(!GC.getGame().isOption(GAMEOPTION_NO_EVENTS) ||
 	//	/*	Don't risk sync issue that might arise from one player having

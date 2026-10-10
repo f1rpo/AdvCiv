@@ -63,7 +63,8 @@ static int getSASBBAILogCategoryCount()
 	return (int)(sizeof(aSASBBAILogCategories) / sizeof(aSASBBAILogCategories[0]));
 }
 
-// <!-- custom: Zero initialization keeps BBAI disabled during DLL/XML startup. CvXMLLoadUtility::SetGlobalDefines fills this once after every base/SAS/modular override has loaded, so the hundreds of category gates in ordinary gameplay are direct field reads rather than out-of-line cached-getter calls.
+// <!-- custom: Zero initialization keeps BBAI disabled during DLL/XML startup.
+// CvXMLLoadUtility::SetGlobalDefines fills this once after every base/SAS/modular override has loaded, so the hundreds of category gates in ordinary gameplay are direct field reads rather than out-of-line cached-getter calls.
 // Runtime Define mutation was already unsupported because the old getters cached their first resolved values. (ChatGPT-5.6-Sol) -->
 SASBBAILogSettings gSASBBAILogSettings;
 
@@ -237,7 +238,8 @@ static void logSASBBAIInitialState()
 		iTeamStateRows, iTechRows, getSASInitialDealSummaryFields(bDealDetailEnabled, iLoggedDealRows).GetCString());
 }
 
-// <!-- custom: The three startup entry points below are caller-pre-gated: CvGame checks isSASBBAILogEnabled() before new-game/load initialization, and CvEventReporter checks it before the finalized new-game report. This protects every nested logging call and its argument/setup work, including settings-string construction; individual calls do not need duplicate master-enable checks. (GPT-6.1-Sol) -->
+// <!-- custom: The three startup entry points below are caller-pre-gated: CvGame checks isSASBBAILogEnabled() before new-game/load initialization, and CvEventReporter checks it before the finalized new-game report.
+// This protects every nested logging call and its argument/setup work, including settings-string construction; individual calls do not need duplicate master-enable checks. (GPT-6.1-Sol) -->
 // <!-- custom: Roll over before new-game initialization can emit map-generation or starting-position diagnostics.
 // The complete metadata is logged later from CvEventReporter::gameStart, once the generated game state exists. (GPT-5.5) -->
 void startSASBBAILogForNewGame()
@@ -257,7 +259,8 @@ void logSASBBAINewGameStarted()
 }
 
 // <!-- custom: Civ4 does not expose the source save filename to the DLL or Python OnLoad event.
-// Start a distinct BBAI file after all save data is read and identify the loaded state through UTC, turn/year, map/game settings, player counts, and read-only RNG states instead. This removes the need to restart Civ4 between repeated save-file tests. (GPT-5.5) -->
+// Start a distinct BBAI file after all save data is read and identify the loaded state through UTC, turn/year, map/game settings, player counts, and read-only RNG states instead.
+// This removes the need to restart Civ4 between repeated save-file tests. (GPT-5.5) -->
 void startSASBBAILogForLoadedSave()
 {
 	rollSASBBAILog("load");

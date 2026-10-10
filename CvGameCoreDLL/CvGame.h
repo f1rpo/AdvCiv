@@ -175,7 +175,8 @@ public:
 	int getImprovementUpgradeTime(ImprovementTypes eImprovement) const;									// Exposed to Python
 	int getSpeedPercent() const; // advc.252
 
-	// <!-- custom: compute mapname once per map load (new game, load save file) so we don't have to do it everytime (e.g. for each unit order and at each turn). I don't know too much about these although it was my idea to do so, code provided with the help of chatgpt 5 thanks. -->
+	// <!-- custom: compute mapname once per map load (new game, load save file) so we don't have to do it everytime (e.g. for each unit order and at each turn).
+	// I don't know too much about these although it was my idea to do so, code provided with the help of chatgpt 5 thanks. -->
 	// Fast, cached answers computed once per map/load
 	bool isLandHeavyMapnameCached() const { return m_bLandHeavyMapname; }
 	bool isNavalHeavyMapnameCached() const { return m_bNavalHeavyMapname; }
@@ -701,7 +702,8 @@ public:
 	bool isScenario() const { return m_bScenario; }			// (exposed to Python)
 	void setScenario(bool b);
 
-	// <!-- custom: compute mapname once per map load (new game, load save file) so we don't have to do it everytime (e.g. for each unit order and at each turn). I don't know too much about these although it was my idea to do so, code provided with the help of chatgpt 5 thanks. -->
+	// <!-- custom: compute mapname once per map load (new game, load save file) so we don't have to do it everytime (e.g. for each unit order and at each turn).
+	// I don't know too much about these although it was my idea to do so, code provided with the help of chatgpt 5 thanks. -->
 	// Add these two bools in the protected data block, next to the other booleans (a natural spot is right after m_bScenario / m_bAllGameDataRead group):
 	bool m_bLandHeavyMapname;   // computed once after map gen / on load
 	bool m_bNavalHeavyMapname;  // same
@@ -907,7 +909,8 @@ protected:
 	void appendCurrentSASVersionHistoryIfChanged();
 	void initScenario(); // advc.051
 
-	// <!-- custom: compute mapname once per map load (new game, load save file) so we don't have to do it everytime (e.g. for each unit order and at each turn). I don't know too much about these although it was my idea to do so, code provided with the help of chatgpt 5 thanks. -->
+	// <!-- custom: compute mapname once per map load (new game, load save file) so we don't have to do it everytime (e.g. for each unit order and at each turn).
+	// I don't know too much about these although it was my idea to do so, code provided with the help of chatgpt 5 thanks. -->
 	void recomputeMapnameHeaviness();
 
 	void setPlayerColors(); // advc.002i

@@ -246,7 +246,8 @@ void CvGame::updateColoredPlots()
 	if (!GET_PLAYER(getActivePlayer()).isOption(PLAYEROPTION_NO_UNIT_RECOMMENDATIONS) ||
 		!GET_PLAYER(getActivePlayer()).isHuman()) // advc.127
 	{
-		// <!-- custom: also disable worker plot to improve recommendations, we save computation this way, reduce the interference of old very inefficient and perhaps needlessly computationally expensive, on top of tiles shown not necessarily being the best as well. We only want to see city sites and such and not have too many needless circles that are confusing as well on top of using needless computing power; located code spot to remove thanks to claude ai after i found first one above in this function -->
+		// <!-- custom: also disable worker plot to improve recommendations, we save computation this way, reduce the interference of old very inefficient and perhaps needlessly computationally expensive, on top of tiles shown not necessarily being the best as well.
+		// We only want to see city sites and such and not have too many needless circles that are confusing as well on top of using needless computing power; located code spot to remove thanks to claude ai after i found first one above in this function -->
 		// CvUnitAI const& kRecommendUnit = pHeadSelectedUnit->AI(); // advc.003u
 		// if (kRecommendUnit.AI_getUnitAIType() == UNITAI_WORKER ||
 		// 	kRecommendUnit.AI_getUnitAIType() == UNITAI_WORKER_SEA)
@@ -395,8 +396,7 @@ void CvGame::updateBlockadedPlots()
 
 void CvGame::updateSelectionList()
 {
-	// <!-- custom: guard against being called after returning to main menu from a loaded game, when game state
-	// is already torn down; GET_PLAYER(getActivePlayer()) would access freed objects and crash. (Claude code Opus 4.6) -->
+	// <!-- custom: guard against being called after returning to main menu from a loaded game, when game state is already torn down; GET_PLAYER(getActivePlayer()) would access freed objects and crash. (Claude code Opus 4.6) -->
 	if (!isFinalInitialized())
 		return;
 	// <!-- custom: End - guard against being called after returning to main menu from a loaded game, when game state
@@ -435,8 +435,7 @@ void CvGame::updateSelectionList()
 
 void CvGame::updateTestEndTurn()
 {
-	// <!-- custom: guard against being called after returning to main menu from a loaded game, when game state
-	// is already torn down; GET_PLAYER(getActivePlayer()) would access freed objects and crash. (Claude code Opus 4.6) -->
+	// <!-- custom: guard against being called after returning to main menu from a loaded game, when game state is already torn down; GET_PLAYER(getActivePlayer()) would access freed objects and crash. (Claude code Opus 4.6) -->
 	if (!isFinalInitialized())
 		return;
 	// <!-- custom: End - guard against being called after returning to main menu from a loaded game, when game state
@@ -1080,8 +1079,7 @@ void CvGame::selectedCitiesGameNetMessage(int eMessage, int iData2, int iData3, 
 bool CvGame::canHandleAction(int iAction, CvPlot* pPlot, bool bTestVisible, bool bUseCache) const
 {
 	PROFILE_FUNC();
-	// <!-- custom: guard against being called after returning to main menu from a loaded game, when game state
-	// is already torn down; GET_PLAYER(getActivePlayer()) would access freed objects and crash. (Claude code Opus 4.6) -->
+	// <!-- custom: guard against being called after returning to main menu from a loaded game, when game state is already torn down; GET_PLAYER(getActivePlayer()) would access freed objects and crash. (Claude code Opus 4.6) -->
 	if (!isFinalInitialized())
 		return false;
 	// <!-- custom: End - guard against being called after returning to main menu from a loaded game, when game state
@@ -1166,8 +1164,7 @@ void CvGame::setupActionCache() const
 
 void CvGame::handleAction(int iAction)
 {
-	// <!-- custom: guard against being called after returning to main menu from a loaded game, when game state
-	// is already torn down; GET_PLAYER(getActivePlayer()) would access freed objects and crash. (Claude code Opus 4.6) -->
+	// <!-- custom: guard against being called after returning to main menu from a loaded game, when game state is already torn down; GET_PLAYER(getActivePlayer()) would access freed objects and crash. (Claude code Opus 4.6) -->
 	if (!isFinalInitialized())
 		return;
 	// <!-- custom: End - guard against being called after returning to main menu from a loaded game, when game state

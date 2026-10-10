@@ -1263,7 +1263,9 @@
 			<bShiftDown>0</bShiftDown>
 			<bCtrlDown>0</bCtrlDown>
 			<iHotKeyPriority>0</iHotKeyPriority>
-			<!-- custom: imported / manually extracted from com mod's atlas, that was in an fpk.. with Paint.NET. Not easy or intuitive to find but i have it now thankfully in this case -->
+			<!-- custom: imported / manually extracted from com mod's atlas, that was in an fpk..
+			with Paint.NET.
+			Not easy or intuitive to find but i have it now thankfully in this case -->
 			<Button>Art/AdvCiv_SAS/Unit_Combat_Types/Armored_Units/armored_units.dds</Button>
 		</PromotionInfo>
 		<PromotionInfo> <!-- custom: PROMOTION_AMPHIBIOUS -->
@@ -2897,8 +2899,7 @@
 			<iAdjacentTileHealChange>0</iAdjacentTileHealChange>
 			<iCombatPercent>0</iCombatPercent>
 			<iCityAttack>0</iCityAttack>
-			<!-- custom: make this promotion gradual in line with the other city garrison
-			ones, was 30 -->
+			<!-- custom: make this promotion gradual in line with the other city garrison ones, was 30 -->
 			<iCityDefense>25</iCityDefense>
 			<iHillsAttack>0</iHillsAttack>
 			<iHillsDefense>0</iHillsDefense>
@@ -2912,9 +2913,7 @@
 			<TerrainDefenses/>
 			<FeatureAttacks/>
 			<FeatureDefenses/>
-			<!-- custom: since more units have access to this promotion now, make it a bit weaker,
-			not only for balance, also because defenders can be good against all invaders, not only
-			a specific type, i think it's more realistic this way, was UNITCOMBAT_MELEE_POLEARM 10 and UNITCOMBAT_MELEE_SHOCK 10 -->
+			<!-- custom: since more units have access to this promotion now, make it a bit weaker, not only for balance, also because defenders can be good against all invaders, not only a specific type, i think it's more realistic this way, was UNITCOMBAT_MELEE_POLEARM 10 and UNITCOMBAT_MELEE_SHOCK 10 -->
 			<UnitCombatMods/>
 			<DomainMods/>
 			<TerrainDoubleMoves/>
@@ -3024,7 +3023,8 @@
 					<UnitCombatType>UNITCOMBAT_GUN</UnitCombatType>
 					<bUnitCombat>1</bUnitCombat>
 				</UnitCombat>
-				<!-- custom: not exactly collateral but close enough maybe? same for sword light, imagine they can throw shurikens or knifes or something from a distance (then maybe run away), i also like that it is consistent with the other light units having collateral damage -->
+				<!-- custom: not exactly collateral but close enough maybe?
+				same for sword light, imagine they can throw shurikens or knifes or something from a distance (then maybe run away), i also like that it is consistent with the other light units having collateral damage -->
 				<UnitCombat>
 					<UnitCombatType>UNITCOMBAT_MELEE_POLEARM</UnitCombatType>
 					<bUnitCombat>1</bUnitCombat>
@@ -3143,7 +3143,8 @@
 					<UnitCombatType>UNITCOMBAT_GUN</UnitCombatType>
 					<bUnitCombat>1</bUnitCombat>
 				</UnitCombat>
-				<!-- custom: not exactly collateral but close enough maybe? same for sword light, imagine they can throw shurikens or knifes or something from a distance (then maybe run away), i also like that it is consistent with the other light units having collateral damage -->
+				<!-- custom: not exactly collateral but close enough maybe?
+				same for sword light, imagine they can throw shurikens or knifes or something from a distance (then maybe run away), i also like that it is consistent with the other light units having collateral damage -->
 				<UnitCombat>
 					<UnitCombatType>UNITCOMBAT_MELEE_POLEARM</UnitCombatType>
 					<bUnitCombat>1</bUnitCombat>
@@ -4251,7 +4252,9 @@
 			<bShiftDown>0</bShiftDown>
 			<bCtrlDown>0</bCtrlDown>
 			<iHotKeyPriority>0</iHotKeyPriority>
-			<!-- custom: imported / manually extracted from com mod's atlas, that was in an fpk.. with Paint.NET. Not easy or intuitive to find but i have it now thankfully in this case -->
+			<!-- custom: imported / manually extracted from com mod's atlas, that was in an fpk..
+			with Paint.NET.
+			Not easy or intuitive to find but i have it now thankfully in this case -->
 			<Button>Art/AdvCiv_SAS/Promotions/Navigator/navigator.dds</Button>
 		</PromotionInfo>
 		<PromotionInfo> <!-- custom: PROMOTION_LEADER -->
@@ -4468,7 +4471,7 @@
 			<Sound>AS2D_IF_LEVELUP</Sound>
 			<LayerAnimationPath>NONE</LayerAnimationPath>
 			<PromotionPrereq>NONE</PromotionPrereq>
-			<!-- custom: reduce prerequirement, was PROMOTION_COMBAT4-->
+			<!-- custom: reduce prerequirement, was PROMOTION_COMBAT4 -->
 			<PromotionPrereqOr1>PROMOTION_COMBAT1</PromotionPrereqOr1>
 			<!-- advc.200: was PROMOTION_FIRST_STRIKE4 in K-Mod; reverted -->
 			<!-- custom: extend eligible prerequired promotions, was NONE -->
@@ -4553,7 +4556,9 @@
 			<iHotKeyPriority>0</iHotKeyPriority>
 			<Button>,Art/Interface/Buttons/Promotions/Commando.dds,Art/Interface/Buttons/Promotions_Atlas.dds,1,3</Button>
 		</PromotionInfo>
-		<!-- custom: Note: iMoveDiscountChange reduces raw terrain/feature movement cost before CvPlot::movementCost caps cost to the unit's baseMoves. This is mostly useful for 2+ move units; on 1-move units it usually does not increase practical movement range, and can even interfere with double-move terrain checks because bHasTerrainCost is computed after the discount. Do not treat this as true +move mobility for 1-move units. (ChatGPT-5.5) -->
+		<!-- custom: Note: iMoveDiscountChange reduces raw terrain/feature movement cost before CvPlot::movementCost caps cost to the unit's baseMoves.
+		This is mostly useful for 2+ move units; on 1-move units it usually does not increase practical movement range, and can even interfere with double-move terrain checks because bHasTerrainCost is computed after the discount.
+		Do not treat this as true +move mobility for 1-move units. (ChatGPT-5.5) -->
 		<PromotionInfo> <!-- custom: PROMOTION_MOBILITY_COST -->
 			<Type>PROMOTION_MOBILITY_COST</Type>
 			<Description>TXT_KEY_PROMOTION_MOBILITY_COST</Description>
@@ -4629,7 +4634,8 @@
 			<iHotKeyPriority>0</iHotKeyPriority>
 			<Button>,Art/Interface/Buttons/Promotions/Mobility1.dds,Art/Interface/Buttons/Promotions_Atlas.dds,5,4</Button>
 		</PromotionInfo>
-		<!-- custom: true +1 movement promotion. Unlike Mobility (Cost), this helps 1-move units directly, but it is much stronger and should not be used as a simple replacement for Mobility (Cost), especially on early peak-walking or enemy-route units. (ChatGPT-5.5) -->
+		<!-- custom: true +1 movement promotion.
+		Unlike Mobility (Cost), this helps 1-move units directly, but it is much stronger and should not be used as a simple replacement for Mobility (Cost), especially on early peak-walking or enemy-route units. (ChatGPT-5.5) -->
 		<PromotionInfo> <!-- custom: PROMOTION_MOBILITY_RANGE -->
 			<Type>PROMOTION_MOBILITY_RANGE</Type>
 			<Description>TXT_KEY_PROMOTION_MOBILITY_RANGE</Description>

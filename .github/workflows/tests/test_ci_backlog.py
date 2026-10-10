@@ -161,7 +161,8 @@ class XmlFixture(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
         self.repo = Path(self.temporary.name)
-        # <!-- custom: Use invented resources/technologies with controlled graph relationships. Real resource renames and balance changes must not invalidate these checker regressions. (GPT-6.1-Sol) -->
+        # <!-- custom: Use invented resources/technologies with controlled graph relationships.
+        # Real resource renames and balance changes must not invalidate these checker regressions. (GPT-6.1-Sol) -->
         fixtures = {
             'Technologies/CIV4TechInfos.xml': '<Civ4TechInfos><TechInfos><TechInfo><Type>TECH_CI_PRIMARY</Type><Era>ERA_CI</Era><iGridX>1</iGridX><AndPreReqs/><OrPreReqs/></TechInfo><TechInfo><Type>TECH_CI_PARALLEL</Type><Era>ERA_CI</Era><iGridX>1</iGridX><AndPreReqs/><OrPreReqs/></TechInfo><TechInfo><Type>TECH_CI_LATER</Type><Era>ERA_CI</Era><iGridX>4</iGridX><AndPreReqs><PrereqTech>TECH_CI_PRIMARY</PrereqTech></AndPreReqs><OrPreReqs/></TechInfo></TechInfos></Civ4TechInfos>',
             'GameInfo/CIV4EraInfos.xml': '<Civ4EraInfos><EraInfos><EraInfo><Type>ERA_CI</Type></EraInfo></EraInfos></Civ4EraInfos>',

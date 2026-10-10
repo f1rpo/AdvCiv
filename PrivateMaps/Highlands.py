@@ -182,7 +182,8 @@ def getGridSize(argsList):
 
 	[eWorldSize] = argsList
 	# <!-- custom: Runtime testing also showed the shared compact profile made Duel only 12x8 plots, far below inherited Highlands' 32x20 Duel geometry.
-	# Restore the inherited base profile, add Arena below Duel and calibrate SAS tiers from Huge by expected player count. This also replaces the proven 8x8 Arena capacity failure. See KI#298 and KI#298.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# Restore the inherited base profile, add Arena below Duel and calibrate SAS tiers from Huge by expected player count.
+	# This also replaces the proven 8x8 Arena capacity failure. See KI#298 and KI#298.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	grid_sizes = {
 		WorldSizeTypes.WORLDSIZE_ARENA: (6, 4),
 		WorldSizeTypes.WORLDSIZE_DUEL: (8, 5),

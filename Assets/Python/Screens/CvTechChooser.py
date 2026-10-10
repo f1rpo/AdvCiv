@@ -152,7 +152,8 @@ class CvTechChooser:
 		self.BOX_INCREMENT_X_SPACING = 9 #Should be a multiple of 3...
 
 		# <!-- custom: parametrize properly the X starting position of the first column; value was hardcoded repeatedly. Credit: Gemini 3 Pro. (GPT-5.2-Codex (summarized)) -->
-		# <!-- custom: at 1080p, the old first tech-grid column padding 30 partially clipped the last Ancient-era column to the right on the default opening view; 0 keeps all current rows fully and symmetrically visible without having to tediously nudge the horizontal scrollbar at game start, so prefer it. Also replace the old manual 30 / 24 pair with one start value and a derived start - 6 OR-prereq value so they cannot drift. (GPT-5.5) -->
+		# <!-- custom: at 1080p, the old first tech-grid column padding 30 partially clipped the last Ancient-era column to the right on the default opening view; 0 keeps all current rows fully and symmetrically visible without having to tediously nudge the horizontal scrollbar at game start, so prefer it.
+		# Also replace the old manual 30 / 24 pair with one start value and a derived start - 6 OR-prereq value so they cannot drift. (GPT-5.5) -->
 		self.iSAS_TECH_GRID_LEFT_START = 0
 		self.iX_LEFT_START = self.iSAS_TECH_GRID_LEFT_START
 		self.iX_LEFT_START_OR_PREREQS = self.iX_LEFT_START - 6
@@ -443,7 +444,10 @@ class CvTechChooser:
 		self.drawArrows(screen, sPanel, bANDPreReq, bORPreReq)
 
 		# advc.004a: Adding this guard b/c the new code somehow can't handle calls via preGameStart (CvAppInterface) if the map is very large. Still seems to get updated properly if the player opens the Tech Advisor on turn 0.
-		# <!-- custom: tried removing the turn > 0 guard to show indicators at turn 0, but it does error. The base AdvCiv comment seems slightly mistaken: I reproduced the issue on a new game (Noble, Pangaea, Normal, Standard). Gemini 3 Pro confirmed the cause, so we keep base AdvCiv behavior. I wanted the BUG bulbing indicators noted for players; see known issue 85. (GPT-5.2-Codex (summarized)) -->
+		# <!-- custom: tried removing the turn > 0 guard to show indicators at turn 0, but it does error.
+		# The base AdvCiv comment seems slightly mistaken: I reproduced the issue on a new game (Noble, Pangaea, Normal, Standard).
+		# Gemini 3 Pro confirmed the cause, so we keep base AdvCiv behavior.
+		# I wanted the BUG bulbing indicators noted for players; see known issue 85. (GPT-5.2-Codex (summarized)) -->
 		# <!-- custom: keeping this feature disabled is safer; turn 0 bulbing indicators are not critical, so revert to base AdvCiv behavior. (GPT-5.2-Codex (summarized)) -->
 		if CyGame().getElapsedGameTurns() > 0:
 			self.updateTechPrefs()
@@ -896,10 +900,8 @@ class CvTechChooser:
 			if (bTechFound == 1):
 				szImprovementButton = self.getNextWidgetName("Improvement")
 				iImprovement = gc.getBuildInfo(j).getImprovement()
-				# <!-- custom: use base AdvCiv behavior here (improvement icon + WIDGET_HELP_IMPROVEMENT),
-				# and only fallback to the Builds pedia redirect for builds without an improvement (routes/feature removal).
-				# This split is intentionally more useful for players: improvement-style behavior where expected, and direct
-				# Builds-page routing when the build itself is the key info. See KI#113. (GPT-5.3-Codex) -->
+				# <!-- custom: use base AdvCiv behavior here (improvement icon + WIDGET_HELP_IMPROVEMENT), and only fallback to the Builds pedia redirect for builds without an improvement (routes/feature removal).
+				# This split is intentionally more useful for players: improvement-style behavior where expected, and direct Builds-page routing when the build itself is the key info. See KI#113. (GPT-5.3-Codex) -->
 				if (iImprovement != -1):
 					screen.addDDSGFCAt( szImprovementButton, szTechRecord, gc.getImprovementInfo(iImprovement).getButton(), iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_IMPROVEMENT, i, j, False )
 				else:
@@ -1433,10 +1435,7 @@ class CvTechChooser:
 					import CvScreensInterface
 					CvScreensInterface.pediaJumpToBuild((inputClass.getData2(),))
 					return 1
-			# <!-- custom: reason for this hybrid path: in this Tech Advisor context, WIDGET_PYTHON gives our
-			# custom redirect to Sevopedia Builds but does not provide the base build hover/help text; by using
-			# WIDGET_HELP_IMPROVEMENT we restore "can build ..." hover text, then reroute clicks for non-improvement
-			# builds (routes/feature removal) to the Builds page here. (GPT-5.3-Codex) -->
+			# <!-- custom: reason for this hybrid path: in this Tech Advisor context, WIDGET_PYTHON gives our custom redirect to Sevopedia Builds but does not provide the base build hover/help text; by using WIDGET_HELP_IMPROVEMENT we restore "can build ..." hover text, then reroute clicks for non-improvement builds (routes/feature removal) to the Builds page here. (GPT-5.3-Codex) -->
 			elif inputClass.getButtonType() == WidgetTypes.WIDGET_HELP_IMPROVEMENT:
 				iBuild = inputClass.getData2()
 				if iBuild >= 0 and iBuild < gc.getNumBuildInfos():

@@ -71,7 +71,9 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<UnitCombatInfo>
 			<Type>UNITCOMBAT_ARMOR</Type>
 			<Description>TXT_KEY_UNITCOMBAT_ARMOR</Description>
-			<!-- custom: imported / manually extracted from com mod's atlas, that was in an fpk.. with Paint.NET. Not easy or intuitive to find but i have it now thankfully in this case -->
+			<!-- custom: imported / manually extracted from com mod's atlas, that was in an fpk..
+			with Paint.NET.
+			Not easy or intuitive to find but i have it now thankfully in this case -->
 			<Button>Art/AdvCiv_SAS/Unit_Combat_Types/Armored_Units/armored_units.dds</Button>
 		</UnitCombatInfo>
 		<UnitCombatInfo>

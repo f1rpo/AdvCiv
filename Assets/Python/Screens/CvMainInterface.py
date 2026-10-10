@@ -3,7 +3,8 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
-# <!-- custom: note: for comparison with Base AdvCiv purposes, if needed, as of now we also store a single-line version of Base AdvCiv's CvMainInterface.py. See: /LLM_Helpers/examples/CvMainInterface_1_12_singleline.py and [the corresponding readme section](/LLM_Helpers/README.md#comparison-with-base-advciv-112s-main-interface-processed-similarly) -->
+# <!-- custom: note: for comparison with Base AdvCiv purposes, if needed, as of now we also store a single-line version of Base AdvCiv's CvMainInterface.py.
+# See: /LLM_Helpers/examples/CvMainInterface_1_12_singleline.py and [the corresponding readme section] (/LLM_Helpers/README.md#comparison-with-base-advciv-112s-main-interface-processed-similarly) -->
 from CvPythonExtensions import *
 # <advc.092>
 from RectLayout import *
@@ -154,7 +155,8 @@ class CvMainInterface:
 			self.iSAS_SCOREBOARD_SCROLL_INCREMENT_FAST = gc.getDefineINT("SAS_SCOREBOARD_SCROLL_INCREMENT_FAST")
 		return self.iSAS_SCOREBOARD_SCROLL_INCREMENT_FAST
 
-	# <!-- custom: shared scoreboard traversal for normal drawing, scroll slicing, and active-player scroll centering. Passing scores also preserves the old BUG aligned-scoreboard side effects by filling teams/players and calling playerScoreString; the isShowTeamScore/isShowPlayerScore checks are the advc.085 static helpers that used to be called inline in updateScoreStrings. (ChatGPT-5.5 + GPT-5.5) -->
+	# <!-- custom: shared scoreboard traversal for normal drawing, scroll slicing, and active-player scroll centering.
+	# Passing scores also preserves the old BUG aligned-scoreboard side effects by filling teams/players and calling playerScoreString; the isShowTeamScore/isShowPlayerScore checks are the advc.085 static helpers that used to be called inline in updateScoreStrings. (ChatGPT-5.5 + GPT-5.5) -->
 	def _scoreboardVisiblePlayers(self, scores=None):
 		aeVisiblePlayers = []
 		bAlignIcons = (scores is not None)
@@ -435,7 +437,10 @@ class CvMainInterface:
 			eWidgetType = WidgetTypes.WIDGET_GENERAL
 		lPoint = gPoint(szName)
 		self.screen.setText(szName, szAttachTo, szText, uiFlags, lPoint.x(), lPoint.y(), fZ, eFont, eWidgetType, iData1, iData2)
-	# <!-- custom: create a one-line, horizontally centered icon+text row; place the icon first and the text immediately to its right, with optional vertical offsets to auto lift/shift the icon without changing the text baseline. Uses setImageButton for atlas/tech buttons (fixes purple missing icons from <img>), and falls back to <img> text when given an inline tag. Note: image buttons are absolute-positioned and won’t auto-scroll with table rows, so use <img> for scrollable lists. Keeps centering stable as text length changes. (GPT-5.2-Codex (summarized)) -->
+	# <!-- custom: create a one-line, horizontally centered icon+text row; place the icon first and the text immediately to its right, with optional vertical offsets to auto lift/shift the icon without changing the text baseline.
+	# Uses setImageButton for atlas/tech buttons (fixes purple missing icons from <img>), and falls back to <img> text when given an inline tag.
+	# Note: image buttons are absolute-positioned and won’t auto-scroll with table rows, so use <img> for scrollable lists.
+	# Keeps centering stable as text length changes. (GPT-5.2-Codex (summarized)) -->
 	def setSASCenteredImageButtonAtLeftOfTextRow(self, szTextName, szIconName, szAttachTo, szText, szIcon, iIconSize, iX, iY, iMargin = None, szRectName = None, iTextYOffset = 0, iIconYOffset = 0, eFont = None, fZ = 0, eWidgetType = None, iData1 = -1, iData2 = -1):
 		if eWidgetType is None:
 			eWidgetType = WidgetTypes.WIDGET_GENERAL
@@ -595,13 +600,16 @@ class CvMainInterface:
 # BUG - field of view slider - end
 
 		# <!-- custom: use more side space for side panels rather than city plots we do not need to show beyond BFC. Credit: Gemini 3 Pro. (GPT-5.2-Codex (summarized)) -->
-		# <!-- custom: extend past the current inner edge of the bottom panels so the bonus panels fit; even columns were overlapping text. Ideally also widen that panel, but start here. (GPT-5.2-Codex (summarized)); was 297 -->
+		# <!-- custom: extend past the current inner edge of the bottom panels so the bonus panels fit; even columns were overlapping text.
+		# Ideally also widen that panel, but start here. (GPT-5.2-Codex (summarized)); was 297 -->
 		self.SIDE_PANELS_WIDTH = 341
-		# <!-- custom: extra width added rightward to the city-screen trade-route and building-list tables so their right-justified yield columns reach toward the commerce value column. The tables intentionally overflow CityLeftPanelContents (fine: unused room before the map, and text overflows when upscaled anyway). (Claude code Opus 4.7); was 0 -->
+		# <!-- custom: extra width added rightward to the city-screen trade-route and building-list tables so their right-justified yield columns reach toward the commerce value column.
+		# The tables intentionally overflow CityLeftPanelContents (fine: unused room before the map, and text overflows when upscaled anyway). (Claude code Opus 4.7); was 0 -->
 		self.iCityScreenYieldTableRightExtra = 10
 
 		# <!-- custom: initialize cheaply once. -->
-		# <!-- custom: unlike in other files, setting this as a global and reading from gc in global scope doesn't work; regardless of the SAS define value, extra rows for the city screen production chooser stay disabled in-game. So set it here. (GPT-5.2-Codex (summarized)) -->
+		# <!-- custom: unlike in other files, setting this as a global and reading from gc in global scope doesn't work; regardless of the SAS define value, extra rows for the city screen production chooser stay disabled in-game.
+		# So set it here. (GPT-5.2-Codex (summarized)) -->
 		self.iBarExtraRows = None
 		self.iBarExtraRowsExtraManualAdjust = None
 		self.iBarExtraHeightExtraManualAdjust = None
@@ -653,15 +661,22 @@ class CvMainInterface:
 		self.iMAX_TRADE_ROUTES = None
 		self.IS_USE_KMOD_TRADE_CULTURE = None
 		self.bSASLastCommerceRectsCityScreen = None
-		# <!-- custom: scoreboard scroll offset; 0 = show bottom of list (highest-ranked), increases to show lower-ranked players. Reset when the scoreboard is rebuilt. (Claude code Sonnet 4.6) -->
+		# <!-- custom: scoreboard scroll offset; 0 = show bottom of list (highest-ranked), increases to show lower-ranked players.
+		# Reset when the scoreboard is rebuilt. (Claude code Sonnet 4.6) -->
 		self.iScoreScrollOffset = 0
 		self.iSAS_SCOREBOARD_LOCK_HOVER_DEFAULT_ENABLED = None
-		# <!-- custom: always-expand scoreboard toggle; when True, expanded columns shown without hovering. Initial state is seeded once, and the in-game lock button still toggles it normally. (Claude code Sonnet 4.6 + ChatGPT-5.5) -->
+		# <!-- custom: always-expand scoreboard toggle; when True, expanded columns shown without hovering.
+		# Initial state is seeded once, and the in-game lock button still toggles it normally. (Claude code Sonnet 4.6 + ChatGPT-5.5) -->
 		self.bScoreAlwaysExpand = None
 		self.iSAS_SCOREBOARD_SCROLL_AUTOCENTER_ACTIVE_PLAYER_DEFAULT_ENABLED = None
-		# <!-- custom: scoreboard scroll autocenter toggle; when True, redraws keep the scroll slice centered on the active player. Manual scroll buttons turn it off so deliberate strongest/weakest watching is preserved. (ChatGPT-5.5) -->
+		# <!-- custom: scoreboard scroll autocenter toggle; when True, redraws keep the scroll slice centered on the active player.
+		# Manual scroll buttons turn it off so deliberate strongest/weakest watching is preserved. (ChatGPT-5.5) -->
 		self.bScoreScrollAutocenterActivePlayer = None
-		# <!-- custom: scoreboard background style cycle (not just opacity: PanelStyles also include plain/colored panels e.g. blue/tan, not only opaque/translucent). Discrete PanelStyle levels in cycle order. 0 HUD_HELP is vanilla look. If you add or reorder styles here, update the matching SAS_SCOREBOARD_BG_DEFAULT_STYLE legend comment in GlobalDefines_advciv_sas.xml to keep them in sync. Starting level comes from the SAS_SCOREBOARD_BG_DEFAULT_STYLE define. (Claude code Opus 4.7) -->
+		# <!-- custom: scoreboard background style cycle (not just opacity: PanelStyles also include plain/colored panels e.g. blue/tan, not only opaque/translucent).
+		# Discrete PanelStyle levels in cycle order.
+		# 0 HUD_HELP is vanilla look.
+		# If you add or reorder styles here, update the matching SAS_SCOREBOARD_BG_DEFAULT_STYLE legend comment in GlobalDefines_advciv_sas.xml to keep them in sync.
+		# Starting level comes from the SAS_SCOREBOARD_BG_DEFAULT_STYLE define. (Claude code Opus 4.7) -->
 		self.iScoreBgStyleLevel = None
 		self.iSAS_SCOREBOARD_BG_DEFAULT_STYLE = None
 		self.aScoreBgStyleLevels = [PanelStyles.PANEL_STYLE_HUD_HELP, PanelStyles.PANEL_STYLE_SOLID, PanelStyles.PANEL_STYLE_MAIN, PanelStyles.PANEL_STYLE_MAIN_BLACK50, PanelStyles.PANEL_STYLE_MAIN_BLACK25, PanelStyles.PANEL_STYLE_EMPTY]
@@ -710,7 +725,8 @@ class CvMainInterface:
 		self.xResolution = screen.getXResolution()
 		self.yResolution = screen.getYResolution()
 
-		# <!-- custom: cache for perf opt with the help of ChatGPT-5.2 Thinking thanks. Note: putting them in init function causes python errors, putting them here in initState seemingly solves them. -->
+		# <!-- custom: cache for perf opt with the help of ChatGPT-5.2 Thinking thanks.
+		# Note: putting them in init function causes python errors, putting them here in initState seemingly solves them. -->
 		self.colorResearchStored = getInfoTypeOrFail("COLOR_RESEARCH_STORED")
 		self.colorResearchRate = getInfoTypeOrFail("COLOR_RESEARCH_RATE")
 		self.colorEmpty = getInfoTypeOrFail("COLOR_EMPTY")
@@ -824,7 +840,9 @@ class CvMainInterface:
 		gSetSquare("GlobeToggle", "Top", 0, 0, BTNSZ(36))
 		self.setMiniMapRects()
 
-		# <!-- custom: enlarge the bottom panels now that we increased self.SIDE_PANELS_WIDTH to fit more info, so that the bottom panel is aligned with the enlarged side panels (that have bonuses, etc.), as chatgpt 5.2 confirmed thanks a lot. Note: somehow width is slightly too low and not enough with just self.SIDE_PANELS_WIDTH, so adding some extra manual adjustment. Doing it this way i could confirm chatgpt 5.2's explanation seems correct (check if accurate) -->
+		# <!-- custom: enlarge the bottom panels now that we increased self.SIDE_PANELS_WIDTH to fit more info, so that the bottom panel is aligned with the enlarged side panels (that have bonuses, etc.), as chatgpt 5.2 confirmed thanks a lot.
+		# Note: somehow width is slightly too low and not enough with just self.SIDE_PANELS_WIDTH, so adding some extra manual adjustment.
+		# Doing it this way i could confirm chatgpt 5.2's explanation seems correct (check if accurate) -->
 		# also ensure CenterBottomPanel starts to the right of CityLeftPanel (needs +8 because LowerLeftCorner trims -8).
 		iEstimatedBottomPanelsExtraWidth = 8
 		iEstimatedBottomPanelsWidth = self.SIDE_PANELS_WIDTH + iEstimatedBottomPanelsExtraWidth
@@ -844,7 +862,8 @@ class CvMainInterface:
 		# Sans the decoration on top
 		gSetRect("CenterBottom", "CenterBottomPanel", 0, 17, RectLayout.MAX, RectLayout.MAX)
 
-		# <!-- custom: use more space on the sides for the side panels rather than city plots that we don't need to show really beyond BFC. Done with the help of gemini 3 pro thanks -->
+		# <!-- custom: use more space on the sides for the side panels rather than city plots that we don't need to show really beyond BFC.
+		# Done with the help of gemini 3 pro thanks -->
 		# HLEN(258), -gRect("LowerLeftCorner").height())
 		gSetRect("CityLeftPanel", "Top", 0, 0, HLEN(self.SIDE_PANELS_WIDTH), -gRect("LowerLeftCorner").height())
 		gSetRect("CityRightPanel", "Top", RectLayout.RIGHT, 0, gRect("CityLeftPanel").width(), -gRect("LowerRightCorner").height())
@@ -1063,7 +1082,8 @@ class CvMainInterface:
 		self.setBuildingListRects()
 
 		iPlotListUnitBtnSz = self.plotListUnitButtonSize()
-		# <!-- custom: lazy-cache HARD-px unit-bar width adjustment; no resolution scaling because scoreboard width is font-driven, not resolution-scaled. Negative shrinks row (fewer buttons per row), helping avoid scoreboard / off-screen overflow on multi-row stacks. See KI#124. (Claude code Opus 4.7) -->
+		# <!-- custom: lazy-cache HARD-px unit-bar width adjustment; no resolution scaling because scoreboard width is font-driven, not resolution-scaled.
+		# Negative shrinks row (fewer buttons per row), helping avoid scoreboard / off-screen overflow on multi-row stacks. See KI#124. (Claude code Opus 4.7) -->
 		if self.iSAS_CV_MAIN_INTERFACE_PLOTLISTPANEL_WIDTH_PIXEL_ADJUSTMENT is None:
 			self.iSAS_CV_MAIN_INTERFACE_PLOTLISTPANEL_WIDTH_PIXEL_ADJUSTMENT = gc.getDefineINT("SAS_CV_MAIN_INTERFACE_PLOTLISTPANEL_WIDTH_PIXEL_ADJUSTMENT")
 		self.m_iNumPlotListButtonsPerRow = ((gRect("BottomButtonMaxSpace").width() + self.iSAS_CV_MAIN_INTERFACE_PLOTLISTPANEL_WIDTH_PIXEL_ADJUSTMENT - 2 * iPlotListUnitBtnSz) / iPlotListUnitBtnSz)
@@ -1127,7 +1147,8 @@ class CvMainInterface:
 		# Precomputed constants
 		self.iMoveDenominator = gc.getMOVE_DENOMINATOR()
 		# <!-- custom: K-Mod/Base AdvCiv already key Info and Foreign Advisor text caches by language, and SAS correctly retained/extended that pattern in other advisor initText paths.
-		# These Main Interface translations were instead cached only when initState ran, so changing language during a game left them in the previous language. Retain the cache but key it by current language and refresh it from updateScreen. See KI#307. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# These Main Interface translations were instead cached only when initState ran, so changing language during a game left them in the previous language.
+		# Retain the cache but key it by current language and refresh it from updateScreen. See KI#307. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		self.iLanguageLoaded = -1
 		self.updateCachedLocalizedText()
 
@@ -1292,7 +1313,8 @@ class CvMainInterface:
 		else:
 			iPercentTextBaseX = gRect("InterfaceTopLeft").x()
 		iPercentTextX = iPercentTextBaseX + HSPACE(iRightCommerceBlockXOffset)
-		# <!-- custom: Do not reserve two full button columns by shifting the map-view commerce sliders left: with expanded advisors, that hid useful +/- buttons under the advisor even when upscaled and with Min/Max buttons enabled. Move the green commerce-rate values to a compact row below instead, so the slider block can shift right enough for the percent text and Min/Max controls to stay visible inside Tech Chooser and in normal map view. (GPT-5.5) -->
+		# <!-- custom: Do not reserve two full button columns by shifting the map-view commerce sliders left: with expanded advisors, that hid useful +/- buttons under the advisor even when upscaled and with Min/Max buttons enabled.
+		# Move the green commerce-rate values to a compact row below instead, so the slider block can shift right enough for the percent text and Min/Max controls to stay visible inside Tech Chooser and in normal map view. (GPT-5.5) -->
 		iCommerceRowsTopOffset = VSPACE(iRightCommerceBlockYOffset)
 		for i in range(iMaxRows):
 			gSetPoint("PercentText" + str(i), PointLayout(iPercentTextX, gRect("InterfaceTopLeft").yBottom() + VSPACE(-8) + i * iRowH + iCommerceRowsTopOffset))
@@ -1312,7 +1334,12 @@ class CvMainInterface:
 			# for BUG - Min/Max Sliders
 			gSetPoint(szPrefix + "BUG", PointLayout(gRect("CommerceSliderBtns3").xRight() + HSPACE(3), iY))
 
-			# <!-- custom: after we have changed our width (as of now dynamically adjusted and wider, in self.SIDE_PANELS_WIDTH), we need to anchor the commerce values to the right like the yields in trade routes and buildings nicely already were, but not the commerce values in the commerce panel. Done with the help of chatgpt 5.1 (or was it 5.2? Not sure as version changed just at end of prompt in chatgpt website ui. thanks) thanks and also my own ideas as AIs had quite the trouble to find this but chatgpt 5.1 (or was it 5.2?) pointed this point thanks which i then found more precisely how it could fix. Make it so it is dynamic even if we change side width later and account for margins empirically -->
+			# <!-- custom: after we have changed our width (as of now dynamically adjusted and wider, in self.SIDE_PANELS_WIDTH), we need to anchor the commerce values to the right like the yields in trade routes and buildings nicely already were, but not the commerce values in the commerce panel.
+			# Done with the help of chatgpt 5.1 (or was it 5.2?
+			# Not sure as version changed just at end of prompt in chatgpt website ui.
+			# thanks) thanks and also my own ideas as AIs had quite the trouble to find this but chatgpt 5.1 (or was it 5.2?)
+			# pointed this point thanks which i then found more precisely how it could fix.
+			# Make it so it is dynamic even if we change side width later and account for margins empirically -->
 			iEstimatedCommerceRightMargin = 28
 			iEstimatedLeftSideSize = 152
 			# <!-- custom: was 70 -->
@@ -1343,7 +1370,8 @@ class CvMainInterface:
 		iRowH = 24
 		iHeightForRows = VLEN(4 * iRowH, 2)
 
-		# <!-- custom: remove the 3 gray bars ("Trade Routes", "Buildings", "Specialists") as they take a lot of room and are unneeded, and we don't have a "Bonuses" bar for example so no reason to have these as well either. Change with the help of gemini 3 pro thanks -->
+		# <!-- custom: remove the 3 gray bars ("Trade Routes", "Buildings", "Specialists") as they take a lot of room and are unneeded, and we don't have a "Bonuses" bar for example so no reason to have these as well either.
+		# Change with the help of gemini 3 pro thanks -->
 		# Step 2: Move the Tables Up (Reclaim Space)
 		# 1. Trade Routes List Search for def setTradeRouteRects. Find the line defining TradeRouteTable. We will change .yBottom() to .y() so it starts at the top of the (now hidden) header space.
 		# 1 + gRect("TradeRouteListBackground").yBottom() - gRect("CityLeftPanelContents").y(),
@@ -1389,7 +1417,8 @@ class CvMainInterface:
 
 	def setCityTabRects(self):
 		iButtons = 3
-		# <!-- custom: These row-jump buttons were 24x24 in base AdvCiv when stacked vertically. Now that we restored them beside the city task/building-filter row, use the same 32x28 medium city-button size as that row. (GPT-5.5) -->
+		# <!-- custom: These row-jump buttons were 24x24 in base AdvCiv when stacked vertically.
+		# Now that we restored them beside the city task/building-filter row, use the same 32x28 medium city-button size as that row. (GPT-5.5) -->
 		iMediumBtnW = 32
 		iMediumBtnH = 28
 		iCityTabSpacing = HSPACE(2)
@@ -1583,7 +1612,11 @@ class CvMainInterface:
 		iMaxRMargin = gRect("Top").xRight() - gRect("CityRightPanelContents").x()
 		iBonusBackrOverhang = min(VSPACE(16), gRect("SpecialistLabelBackground").height())
 
-		# <!-- custom: make it even between the 3 bonus columns, since we have more room and cleaner as such and in case the strategy bonuses use some effects or such, they'd need some room to show them. Done with the help of gemini 3 pro, check if accurate. Also use a variable so it dynamically adjusts to total side width in case we want to change it later. Also account for the margins, the total width seems to be effectively quite a bit less than max, empirically reduce it a bit to adjust for that. Note: i tried 15 instead of 2 * 8 but it seems to give same result than 2 * 7 (i.e. 14 and 15 are not different somehow if i'm not mistaken, only 14 or 16 show a difference visually ingame) so went with 2 * 8 rather than 2 * 7 as it seems prettier to me as such even though a bit too wide but the other is too tight -->
+		# <!-- custom: make it even between the 3 bonus columns, since we have more room and cleaner as such and in case the strategy bonuses use some effects or such, they'd need some room to show them.
+		# Done with the help of gemini 3 pro, check if accurate.
+		# Also use a variable so it dynamically adjusts to total side width in case we want to change it later.
+		# Also account for the margins, the total width seems to be effectively quite a bit less than max, empirically reduce it a bit to adjust for that.
+		# Note: i tried 15 instead of 2 * 8 but it seems to give same result than 2 * 7 (i.e. 14 and 15 are not different somehow if i'm not mistaken, only 14 or 16 show a difference visually ingame) so went with 2 * 8 rather than 2 * 7 as it seems prettier to me as such even though a bit too wide but the other is too tight -->
 		iBonusTableTableWidth = self.SIDE_PANELS_WIDTH - (2 * 8)
 		iBonusTableColumnWidth = iBonusTableTableWidth / 3
 		# advc.004: Was 57; don't need quite this much space.
@@ -1604,7 +1637,8 @@ class CvMainInterface:
 		gSetRect("BonusBack2", "CityRightPanelContents", gRect("BonusPane2").x() - gRect("CityRightPanelContents").x(), 0, iMaxRMargin, gRect("BonusBack0").height())
 
 		self.bCityBonusButtons = True
-		# <!-- custom: City-screen bonus columns now usually have ample vertical room and side-panel geometry is controlled elsewhere, so prefer a fixed size over the old resolution-ratio formula. Old formula: iround(32 * (0.8 + gRect("Top").height() / float(gRect("Top").width())) / 1.43). (GPT-5.5) -->
+		# <!-- custom: City-screen bonus columns now usually have ample vertical room and side-panel geometry is controlled elsewhere, so prefer a fixed size over the old resolution-ratio formula.
+		# Old formula: iround(32 * (0.8 + gRect("Top").height() / float(gRect("Top").width())) / 1.43). (GPT-5.5) -->
 		self.useCityBonusButtonSize(self.iCityBonusMinBtnSize)
 
 	def cityBonusRowsPerColumn(self, iBtnSize):
@@ -1644,7 +1678,8 @@ class CvMainInterface:
 		xResolution = self.xResolution
 		yResolution = self.yResolution
 
-		# <!-- custom: compute cheaply once so it is cheaper. Note: done here rather than in init since it somehow doesn't work unlike in some other files -->
+		# <!-- custom: compute cheaply once so it is cheaper.
+		# Note: done here rather than in init since it somehow doesn't work unlike in some other files -->
 		if self.iBarExtraRows is None:
 			self.iBarExtraRows = gc.getDefineINT("SAS_CV_MAIN_INTERFACE_CITY_SCREEN_BAR_IEXTRAROWS")
 			self.iBarExtraRowsExtraManualAdjust = gc.getDefineINT("SAS_CV_MAIN_INTERFACE_CITY_SCREEN_BAR_IEXTRAROWS_EXTRA_MANUAL_ADJUST")
@@ -1761,7 +1796,8 @@ class CvMainInterface:
 		# <!-- custom: use the corporation-advisor icon for foreign diplomacy after moving the diplomatic-advisor icon to the turn log; thematically close enough for relationship/network management. (GPT-5.5) -->
 		self.setStyledButton("ForeignDiplomacyAdvisorButton", "Button_HUDAdvisorCorporation_Style", WidgetTypes.WIDGET_ACTION, gc.getControlInfo(ControlTypes.CONTROL_FOREIGN_DIPLOMACY_SCREEN).getActionInfoIndex())
 		screen.hide("ForeignDiplomacyAdvisorButton")
-		# <!-- custom: F4 (Foreign Trade slot) uses the HUD Globe Trade style: more directly evocative of "foreign trade" than the generic Finance icon. The Finance icon would otherwise read as plain treasury rather than international trade. (Claude code Opus 4.7) -->
+		# <!-- custom: F4 (Foreign Trade slot) uses the HUD Globe Trade style: more directly evocative of "foreign trade" than the generic Finance icon.
+		# The Finance icon would otherwise read as plain treasury rather than international trade. (Claude code Opus 4.7) -->
 		self.setStyledButton("ForeignAdvisorButton", "Button_HUDGlobeTrade_Style", WidgetTypes.WIDGET_ACTION, gc.getControlInfo(ControlTypes.CONTROL_FOREIGN_SCREEN).getActionInfoIndex())
 		screen.hide("ForeignAdvisorButton")
 		self.setStyledButton("MilitaryAdvisorButton", "Button_HUDAdvisorMilitary_Style", WidgetTypes.WIDGET_ACTION, gc.getControlInfo(ControlTypes.CONTROL_MILITARY_SCREEN).getActionInfoIndex())
@@ -2154,7 +2190,8 @@ class CvMainInterface:
 		iMaxHeight = gRect("CenterBottom").height() - 2 * VSPACE(1)
 		# A little extra to avoid a vertical slider
 		iHeight = max(iButtonSize, iMaxHeight - (iMaxHeight % iButtonSize) + 4)
-		# <!-- custom: optional city-screen build-bar height tweak; raw pixel add so the last row can fit (e.g. 3.9 -> 4.0 rows) without growing the decorative ribbon. Safe because CenterBottom (and thus iMaxHeight) no longer varies with the ribbon-extra-lift knob. (GPT-5.3-Codex + Claude code Opus 4.7) -->
+		# <!-- custom: optional city-screen build-bar height tweak; raw pixel add so the last row can fit (e.g. 3.9 -> 4.0 rows) without growing the decorative ribbon.
+		# Safe because CenterBottom (and thus iMaxHeight) no longer varies with the ribbon-extra-lift knob. (GPT-5.3-Codex + Claude code Opus 4.7) -->
 		if CyInterface().isCityScreenUp() and self.iBarExtraHeightExtraManualAdjust != 0:
 			iHeight += self.iBarExtraHeightExtraManualAdjust
 		iVMargin = iMaxHeight - iHeight + 2 * VSPACE(1)
@@ -2166,7 +2203,9 @@ class CvMainInterface:
 		iTMargin = min(VSPACE(iTMarginThresh), iVMargin / 2)
 		iBMargin = iVMargin - iTMargin
 
-		# <!-- custom: optionally set how many extra rows of things to build (units, buildings, processes (research, wealth, culture)) you want to show in the city screen's production chooser bar. 0 disables this feature entirely. 1 Adds an extra row, 2 adds 2 extra rows, etc. Code added with the help of chatgpt 5.2 thanks -->
+		# <!-- custom: optionally set how many extra rows of things to build (units, buildings, processes (research, wealth, culture)) you want to show in the city screen's production chooser bar.
+		# 0 disables this feature entirely.
+		# 1 Adds an extra row, 2 adds 2 extra rows, etc. Code added with the help of chatgpt 5.2 thanks -->
 		# City screen: show more build rows in production chooser
 		if self.iBarExtraRows > 0:
 			if CyInterface().isCityScreenUp():
@@ -2210,7 +2249,8 @@ class CvMainInterface:
 				self.iSAS_CV_MAIN_INTERFACE_PLOTLISTPANEL_Y_OFFSET = 0
 		for j in range(iRows):
 			szPanelName = "PlotListPanel" + str(j)
-			# <!-- custom: move unit bar ("PlotListPanel") more to the left so it is as of now aligned with where production chooser buttons start. Done with the help of GPT-5.2-Codex thanks a lot, was 6 -->
+			# <!-- custom: move unit bar ("PlotListPanel") more to the left so it is as of now aligned with where production chooser buttons start.
+			# Done with the help of GPT-5.2-Codex thanks a lot, was 6 -->
 			plotListPanelWGap = 0
 			# (Don't want these margins to scale fully)
 			gSetRect(szPanelName, "Top", gRect("LowerLeftCornerPanel").xRight() + HSPACE(2) + plotListPanelWGap + self.iSAS_CV_MAIN_INTERFACE_PLOTLISTPANEL_X_OFFSET, gRect("CenterBottomPanel").y() - VSPACE(2) - 4 + (j - iRows) * iBtnSize + self.iSAS_CV_MAIN_INTERFACE_PLOTLISTPANEL_Y_OFFSET, iCols * iBtnSize + HSPACE(3), iBtnSize + VSPACE(1))
@@ -2491,7 +2531,8 @@ class CvMainInterface:
 				else:
 					self.updateCitizenButtons(pHeadSelectedCity)
 				# <advc.004> Show the SpecialistLabel regardless of BUG options
-				# <!-- custom: remove the 3 gray bars ("Trade Routes", "Buildings", "Specialists") as they take a lot of room and are unneeded, and we don't have a "Bonuses" bar for example so no reason to have these as well either. Change with the help of gemini 3 pro thanks -->
+				# <!-- custom: remove the 3 gray bars ("Trade Routes", "Buildings", "Specialists") as they take a lot of room and are unneeded, and we don't have a "Bonuses" bar for example so no reason to have these as well either.
+				# Change with the help of gemini 3 pro thanks -->
 				# Step 1: Hide the Header Widgets (Gray Bars)
 				# if self.isShowSpecialistLabel():
 				# 	# Cut from updateCitizenButtons_Stacker ...
@@ -2541,7 +2582,8 @@ class CvMainInterface:
 			# </advc.004z>
 		return 0
 
-	# <!-- custom: remove the 3 gray bars ("Trade Routes", "Buildings", "Specialists") as they take a lot of room and are unneeded, and we don't have a "Bonuses" bar for example so no reason to have these as well either. Change with the help of gemini 3 pro thanks -->
+	# <!-- custom: remove the 3 gray bars ("Trade Routes", "Buildings", "Specialists") as they take a lot of room and are unneeded, and we don't have a "Bonuses" bar for example so no reason to have these as well either.
+	# Change with the help of gemini 3 pro thanks -->
 	# # advc.004:
 	# def isShowSpecialistLabel(self):
 	# 	# Not quite enough space on low res. (Fixme: The Stacker layout does leave
@@ -2598,7 +2640,8 @@ class CvMainInterface:
 # BUG - Min/Max Sliders - start
 			bEnable = gc.getActivePlayer().isCommerceFlexible(eCommerce)
 			iCol = 0 # advc.092
-			# <!-- custom: Added Min/Max +/- pair on the city screen (because map-view commerce sliders are hidden there). Not added to the Finance/Espionage advisor tabs: those are windowed so the right-side map-view sliders stay reachable. (Claude code Opus 4.7) -->
+			# <!-- custom: Added Min/Max +/- pair on the city screen (because map-view commerce sliders are hidden there).
+			# Not added to the Finance/Espionage advisor tabs: those are windowed so the right-side map-view sliders stay reachable. (Claude code Opus 4.7) -->
 			if MainOpt.isShowMinMaxCommerceButtons():
 				szString = "MaxPercent" + str(eCommerce)
 				gSetRectangle(szString, gRect("CommerceSliderBtns0").next())
@@ -2691,7 +2734,9 @@ class CvMainInterface:
 # BUG - Great Person Bar - end
 		#CyInterface().shouldDisplayFlag() and
 		# <advc.004y> Don't check shouldDisplayFlag for the Civilopedia button, but do check if the city screen is up.
-		# <!-- custom: we also show the flag in city screen, unlike base AdvCiv. Because this mod moves it to a small top-left slot, it no longer interferes with city-action buttons; therefore keeping it visible in city screen is useful (traits hover + capital jump) rather than intrusive. This remains an optional behavior. (GPT-5.3-Codex) -->
+		# <!-- custom: we also show the flag in city screen, unlike base AdvCiv.
+		# Because this mod moves it to a small top-left slot, it no longer interferes with city-action buttons; therefore keeping it visible in city screen is useful (traits hover + capital jump) rather than intrusive.
+		# This remains an optional behavior. (GPT-5.3-Codex) -->
 		if (eUIVis == InterfaceVisibility.INTERFACE_SHOW):
 			if self.IS_SAS_CV_MAIN_INTERFACE_TOP_LEFT_FLAG_AND_LEFT_SIDE_TEXT_SHIFT:
 				self.updateFlag()
@@ -3404,7 +3449,8 @@ class CvMainInterface:
 					for i in range (g_NumEmphasizeInfos):
 						screen.hide("Emphasize" + str(i))
 
-				# <!-- custom: Restore production chooser row-jump buttons next to the building-list filters; they select/jump to Units, Buildings, or Wonders rows, unlike the separate building-list filter buttons. Our enlarged production chooser has room again, and the buttons make jumping between rows less tedious. (GPT-5.5) -->
+				# <!-- custom: Restore production chooser row-jump buttons next to the building-list filters; they select/jump to Units, Buildings, or Wonders rows, unlike the separate building-list filter buttons.
+				# Our enlarged production chooser has room again, and the buttons make jumping between rows less tedious. (GPT-5.5) -->
 				if CyInterface().isCityScreenUp():
 					for i in range(g_NumCityTabTypes):
 						screen.show("CityTab" + str(i))
@@ -3562,9 +3608,11 @@ class CvMainInterface:
 						iCount += 1
 						bFound = True
 
-				# <!-- custom: fix production chooser bar auto-scrolling when we click on one of the lower rows (distracting and annoying and not necessary; the player can scroll if they want rather). Fix with the help of chatgpt 5.2 thanks -->
+				# <!-- custom: fix production chooser bar auto-scrolling when we click on one of the lower rows (distracting and annoying and not necessary; the player can scroll if they want rather).
+				# Fix with the help of chatgpt 5.2 thanks -->
 				# 3) Replace the selectMultiList(...getCityTabSelectionRow()) in the city-screen block
-				# <!-- custom: note: after applying all the 3 steps of this fix, when clicking on lower rows while we are in the top rows sections, we successfully prevent auto-scrolling down as we want, however it seems that when we click on the upper rows while we are in the bottom rows sections, then we auto-scroll back to top. It may not be ideal; or, maybe this is a nice side effect we can keep, as bottom rows mostly only have wonders and processes, and we don't want to build too many of them anyway, so kept as such -->
+				# <!-- custom: note: after applying all the 3 steps of this fix, when clicking on lower rows while we are in the top rows sections, we successfully prevent auto-scrolling down as we want, however it seems that when we click on the upper rows while we are in the bottom rows sections, then we auto-scroll back to top.
+				# It may not be ideal; or, maybe this is a nice side effect we can keep, as bottom rows mostly only have wonders and processes, and we don't want to build too many of them anyway, so kept as such -->
 				# screen.selectMultiList("BottomButtonList", CyInterface().getCityTabSelectionRow())
 				if self.iBarExtraRows > 0:
 					if self.iCityBuildBarPinnedRow is None:
@@ -4128,7 +4176,9 @@ class CvMainInterface:
 				if (not bCityScreen and (eCommerce != CommerceTypes.COMMERCE_CULTURE or MainOpt.isShowTotalCultureRate())):
 					szOutText = sasFontTagLabel + localText.getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", (pPlayer.getCommerceRate(CommerceTypes(eCommerce)),))
 					szOutText += SAS_FONT_TAG_CLOSE
-					# <!-- custom: BUG Min/Max buttons add two extra commerce button columns in map view, so the green commerce-rate values (e.g. +297/Turn) overflow off the right edge or under expanded advisors. Keep the useful percent text and +/- controls visible; collapse the rate values into one compact row below the sliders. The compact row omits ": " so all visible commerce rates are more likely to fit on one line, especially in late-game 4-5 digit cases; city screen keeps the regular per-row rate labels. (GPT-5.5) -->
+					# <!-- custom: BUG Min/Max buttons add two extra commerce button columns in map view, so the green commerce-rate values (e.g. +297/Turn) overflow off the right edge or under expanded advisors.
+					# Keep the useful percent text and +/- controls visible; collapse the rate values into one compact row below the sliders.
+					# The compact row omits ": " so all visible commerce rates are more likely to fit on one line, especially in late-game 4-5 digit cases; city screen keeps the regular per-row rate labels. (GPT-5.5) -->
 					if bUseCompactCommerceRates:
 						aCommerceRateSummary.append(u"%c%d" %(gc.getCommerceInfo(eCommerce).getChar(), pPlayer.getCommerceRate(CommerceTypes(eCommerce))))
 						iCount += 1
@@ -4251,7 +4301,8 @@ class CvMainInterface:
 		if szText:
 			szText = sasFontTagLabel + szText + SAS_FONT_TAG_CLOSE
 			if (self.IS_SAS_CV_MAIN_INTERFACE_PRODUCTION_QUEUE_BUTTONS and not bAnarchy and iTech != -1 and szTechBtn):
-				# <!-- custom: setImageButton pins its top-left to the given Y, unlike <img> tags which the engine centers automatically. Offset so the icon's center matches the bar's center rather than sitting pinned near the bar's top edge. (Claude code Sonnet 4.6) -->
+				# <!-- custom: setImageButton pins its top-left to the given Y, unlike <img> tags which the engine centers automatically.
+				# Offset so the icon's center matches the bar's center rather than sitting pinned near the bar's top edge. (Claude code Sonnet 4.6) -->
 				iResearchIconYDownlift = VSPACE(1)
 				iResearchIconYOffset = (gRect(szResearchBar).height() - iImgSize) / 2 - iResearchTextOffset + iResearchIconYDownlift
 				self.setSASCenteredImageButtonAtLeftOfTextRow("ResearchText", "ResearchIconText", "Background", szText, szTechBtn, iImgSize, None, gPoint("ResearchText").y(), HSPACE(2), szResearchBar, 0, iResearchIconYOffset, FontTypes.GAME_FONT, -0.4, WidgetTypes.WIDGET_RESEARCH, iTech)
@@ -5004,7 +5055,8 @@ class CvMainInterface:
 		screen.setTableColumnHeader("BuildingListTable", 2, u"", (iColW2 * iAvailW) / 236)
 		screen.setTableColumnRightJustify("BuildingListTable", 1)
 
-		# <!-- custom: remove the 3 gray bars ("Trade Routes", "Buildings", "Specialists") as they take a lot of room and are unneeded, and we don't have a "Bonuses" bar for example so no reason to have these as well either. Change with the help of gemini 3 pro thanks -->
+		# <!-- custom: remove the 3 gray bars ("Trade Routes", "Buildings", "Specialists") as they take a lot of room and are unneeded, and we don't have a "Bonuses" bar for example so no reason to have these as well either.
+		# Change with the help of gemini 3 pro thanks -->
 		# Step 1: Hide the Header Widgets (Gray Bars)
 		# screen.show("BuildingListBackground")
 		# screen.show("TradeRouteListBackground")
@@ -5027,7 +5079,8 @@ class CvMainInterface:
 			screen.show("RawYieldsCityTiles5")
 			screen.setState("RawYieldsOwnedTiles6", g_iYieldTiles == RawYields.OWNED_TILES)
 			screen.show("RawYieldsOwnedTiles6")
-		# <!-- custom: remove the 3 gray bars ("Trade Routes", "Buildings", "Specialists") as they take a lot of room and are unneeded, and we don't have a "Bonuses" bar for example so no reason to have these as well either. Change with the help of gemini 3 pro thanks -->
+		# <!-- custom: remove the 3 gray bars ("Trade Routes", "Buildings", "Specialists") as they take a lot of room and are unneeded, and we don't have a "Bonuses" bar for example so no reason to have these as well either.
+		# Change with the help of gemini 3 pro thanks -->
 		# Step 1: Hide the Header Widgets (Gray Bars)
 		# else:
 		# 	screen.show("TradeRouteListLabel")
@@ -5133,7 +5186,8 @@ class CvMainInterface:
 				else:
 					szLeftBuffer = u"<color=%d,%d,%d,%d>%s</color>" %(160, 160, 160, 255, szLeftBuffer)
 				# </advc.097>
-				# <!-- custom: add the +1 great person icon in buildings list as it is handy to have and tedious to check every time, with the help of gemini 3 pro thanks. Update: also show GPP from buildings even if obsolete (e.g., Oracle) to fix this information being missing, since it is accounted by total it seems. See KI#101. (GPT-5.2-Codex) -->
+				# <!-- custom: add the +1 great person icon in buildings list as it is handy to have and tedious to check every time, with the help of gemini 3 pro thanks.
+				# Update: also show GPP from buildings even if obsolete (e.g., Oracle) to fix this information being missing, since it is accounted by total it seems. See KI#101. (GPT-5.2-Codex) -->
 				iGPRate = gc.getBuildingInfo(iBuilding).getGreatPeopleRateChange()
 				if iGPRate > 0:
 					if not bFirst:
@@ -5348,7 +5402,8 @@ class CvMainInterface:
 			iReligionCorpsMargin = 0
 		# </advc.092>
 # BUG - Limit/Extra Religions - start
-		# <!-- custom: religion art is clipped at top and bottom edges for some reason, but reducing icon size does not improve it; corporation icons seem unaffected because they are square. Keep the larger icon size for readability even though it makes religion clipping more visible. (GPT-5.5) -->
+		# <!-- custom: religion art is clipped at top and bottom edges for some reason, but reducing icon size does not improve it; corporation icons seem unaffected because they are square.
+		# Keep the larger icon size for readability even though it makes religion clipping more visible. (GPT-5.5) -->
 		iOrgIconSize = BTNSZ(25)
 		iOrgSpacing = HSPACE(2)
 		iOrgMargin = HSPACE(6)
@@ -5604,7 +5659,8 @@ class CvMainInterface:
 			iRate = pHeadSelectedCity.getGreatPeopleRate()
 			if CityScreenOpt.isShowCityGreatPersonInfo():
 				iGPTurns = GPUtil.getCityTurns(pHeadSelectedCity)
-				# <!-- custom: Base AdvCiv's scalable HUD made the city GP bar runtime-sized but retained K-Mod/BUG's fixed 230px text budget, prematurely hiding a fitting GP type at wider resolutions. Pass the actual bar width like the map GP bar. See KI#237.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				# <!-- custom: Base AdvCiv's scalable HUD made the city GP bar runtime-sized but retained K-Mod/BUG's fixed 230px text budget, prematurely hiding a fitting GP type at wider resolutions.
+				# Pass the actual bar width like the map GP bar. See KI#237.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 				szBuffer = GPUtil.getGreatPeopleText(pHeadSelectedCity, iGPTurns, gRect("GreatPeopleBar").width(), MainOpt.isGPBarTypesNone(), MainOpt.isGPBarTypesOne(), False)
 			else:
 				szBuffer = localText.getText("INTERFACE_CITY_GREATPEOPLE_RATE", (self.iGreatPeopleIcon, pHeadSelectedCity.getGreatPeopleRate()))
@@ -5635,7 +5691,9 @@ class CvMainInterface:
 		screen.setBarPercentage("CultureBar", InfoBarTypes.INFOBAR_RATE, fProgress)
 		screen.show("CultureBar")
 
-		# <!-- custom: add a new specialist breakdown. We have removed a few elements and moved up the specialists panel, so now we can use this space for that. Code added with the help of gemini 3 pro thanks -->
+		# <!-- custom: add a new specialist breakdown.
+		# We have removed a few elements and moved up the specialists panel, so now we can use this space for that.
+		# Code added with the help of gemini 3 pro thanks -->
 		# To add the Specialist Breakdown in the empty space you created on the bottom right (below the specialists), we will add a block of code to updateCityScreen.
 		# This code will:
 		# 	- Calculate the GP points coming from Buildings vs Specialists.
@@ -5663,7 +5721,8 @@ class CvMainInterface:
 			# 2. Get Totals & Progress
 			iTotalRate = pHeadSelectedCity.getGreatPeopleRate()
 
-			# <!-- custom: Before KI#308, this breakdown reverse-engineered its modifier from the already integer-truncated final GPP rate. It displayed +33% for 3 raw GPP at +50%, and omitted +25% when 3 raw GPP still rounded to 3.
+			# <!-- custom: Before KI#308, this breakdown reverse-engineered its modifier from the already integer-truncated final GPP rate.
+			# It displayed +33% for 3 raw GPP at +50%, and omitted +25% when 3 raw GPP still rounded to 3.
 			# CyCity exposes the exact total modifier, including Traits and Golden Ages; using it directly fixed both cases. See KI#308. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			iModPercent = pHeadSelectedCity.getTotalGreatPeopleRateModifier() - 100
 
@@ -5686,7 +5745,8 @@ class CvMainInterface:
 
 			# 4. Construct ROW 2 (Bottom Line): "10 [GP]: 109/249 (14)"
 			szRow2 = sasFontTagLabel + u"%d%s: %d/%d %s" % (iTotalRate, self.szGreatPeopleIcon, iProgress, iThreshold, szTurns) + SAS_FONT_TAG_CLOSE
-			# <!-- custom: The compact glyph-only breakdown is hard to interpret without already knowing its legend. Give both rendered rows the same live hover with matching glyphs, named sources, colored key results, modifier, rate, progress and turn estimate. (GPT-5.6-Sol) -->
+			# <!-- custom: The compact glyph-only breakdown is hard to interpret without already knowing its legend.
+			# Give both rendered rows the same live hover with matching glyphs, named sources, colored key results, modifier, rate, progress and turn estimate. (GPT-5.6-Sol) -->
 			szSpecHoverTitle = localText.changeTextColor(u"Great Person Points breakdown", self.colorYellow)
 			szSpecHoverModifier = localText.changeTextColor(u"%+d%%" % iModPercent, self.colorGreen)
 			szSpecHoverRate = localText.changeTextColor(u"%d%s" % (iTotalRate, self.szGreatPeopleIcon), self.colorGreen)
@@ -5813,7 +5873,9 @@ class CvMainInterface:
 		szIndex = str(iColumn) + "_" + str(iRow)
 		szButtonName = "CityBonusBtn" + szIndex
 		# <!-- custom: Keep both large button renderers: mode 2 addDDS removes distracting button-frame edges, while mode 1 restores base AdvCiv-style framed image buttons. Mode 0 uses old AdvCiv-SAS text glyphs, and text glyphs remain the overflow fallback when selected-city bonus rows do not fit. Mode 0 did not redirect to Sevopedia in testing, including after trying WIDGET_PEDIA_JUMP_TO_BONUS_TRADE with data2=-1. Use the trade widget with data2=-1 only for plain bonus hover in button modes, then route button-mode clicks in Python like religion/corporation city icons because direct bonus-widget clicks were not reliable in testing. Empirically, mode 1 supports left/right click, while mode 2 supports right-click but not left-click in our Python-only attempts so far. (Claude code Opus 4.7; GPT-5.5) -->
-		# <!-- custom: Use plain bonus widget data here, not obsolete-bonus widget data. We considered obsolete bonuses because of the previous Tech Chooser obsolete-widget issue, but testing Germany with Environmentalism and an obsolete Elephant resource in Munich showed Elephants do not appear in this panel. The code path matches that result because the city list is filtered by pHeadSelectedCity.hasBonus, and connected map bonuses are added through CvPlot::updatePlotGroupBonus using getNonObsoleteBonusType; therefore this row does not need obsolete-bonus support. (GPT-5.5) -->
+		# <!-- custom: Use plain bonus widget data here, not obsolete-bonus widget data.
+		# We considered obsolete bonuses because of the previous Tech Chooser obsolete-widget issue, but testing Germany with Environmentalism and an obsolete Elephant resource in Munich showed Elephants do not appear in this panel.
+		# The code path matches that result because the city list is filtered by pHeadSelectedCity.hasBonus, and connected map bonuses are added through CvPlot::updatePlotGroupBonus using getNonObsoleteBonusType; therefore this row does not need obsolete-bonus support. (GPT-5.5) -->
 		if self.SAS_CV_MAIN_INTERFACE_CITY_BONUS_ICON_MODE == 2:
 			self.addDDS(szButtonName, gc.getBonusInfo(iBonus), WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS_TRADE, iBonus, -1)
 		else:
@@ -6173,7 +6235,9 @@ class CvMainInterface:
 			for i in range(Scoreboard.NUM_PARTS):
 				screen.hide("ScoreText%d-%d" %(iPlayer, i))
 # BUG - Align Icons - end
-	# <!-- custom: recreate ScoreBackground with the selected PanelStyle; only on change to avoid per-refresh churn. No runtime setPanelStyle in Civ4, hence delete+addPanel (same pattern as _rebuildCityScreenBottomBars). PANEL_STYLE_EMPTY level reads as no background. (Claude code Opus 4.7) -->
+	# <!-- custom: recreate ScoreBackground with the selected PanelStyle; only on change to avoid per-refresh churn.
+	# No runtime setPanelStyle in Civ4, hence delete+addPanel (same pattern as _rebuildCityScreenBottomBars).
+	# PANEL_STYLE_EMPTY level reads as no background. (Claude code Opus 4.7) -->
 	def _applyScoreBackgroundStyle(self):
 		if self.iScoreBgStyleLevel is None:
 			if self.iSAS_SCOREBOARD_BG_DEFAULT_STYLE is None:
@@ -6238,8 +6302,10 @@ class CvMainInterface:
 		# </advc.092>
 		gSetPoint("ScoreTextLowerRight", PointLayout(gRect("MiniMap").xRight(), iScoreBottom))
 		iMaxRows = self._scoreboardMaxRows()
-		# <!-- custom: position scroll buttons at runtime below the panel. GlobeToggle.y() is 0 at init so buttons must be placed here instead. (Claude code Sonnet 4.6) -->
-		# <!-- custom: row layout right->left is [BgStyle][Lock][AutoCenter] | gap | [-fast][-][Center][+][+fast]. Normal scroll moves one row; fast scroll uses SAS_SCOREBOARD_SCROLL_INCREMENT_FAST; manual scroll disables autocenter so deliberate strongest/weakest watching is preserved. (Claude code Opus 4.7 + ChatGPT-5.5 + GPT-5.5) -->
+		# <!-- custom: position scroll buttons at runtime below the panel.
+		# GlobeToggle.y() is 0 at init so buttons must be placed here instead. (Claude code Sonnet 4.6) -->
+		# <!-- custom: row layout right->left is [BgStyle][Lock][AutoCenter] | gap | [-fast][-][Center][+][+fast].
+		# Normal scroll moves one row; fast scroll uses SAS_SCOREBOARD_SCROLL_INCREMENT_FAST; manual scroll disables autocenter so deliberate strongest/weakest watching is preserved. (Claude code Opus 4.7 + ChatGPT-5.5 + GPT-5.5) -->
 		iSRight = gPoint("ScoreTextLowerRight").x()
 		iSGap = HSPACE(6)  # gap separating the fixed buttons from the scroll/center cluster
 		screen.moveItem("ScoreBgStyle", iSRight - 1 * iSScrollBtnSz, iSScrollY, -0.3)
@@ -6262,7 +6328,8 @@ class CvMainInterface:
 		else:
 			screen.changeImageButton("ScoreExpandToggle", self.szScoreExpandToggleOffPath)
 		screen.show("ScoreExpandToggle")
-		# <!-- custom: seed the scoreboard scroll autocenter default once. The in-game toggle controls runtime behavior afterward; manual scroll buttons turn it off. (ChatGPT-5.5) -->
+		# <!-- custom: seed the scoreboard scroll autocenter default once.
+		# The in-game toggle controls runtime behavior afterward; manual scroll buttons turn it off. (ChatGPT-5.5) -->
 		if self.bScoreScrollAutocenterActivePlayer is None:
 			if self.iSAS_SCOREBOARD_SCROLL_AUTOCENTER_ACTIVE_PLAYER_DEFAULT_ENABLED is None:
 				self.iSAS_SCOREBOARD_SCROLL_AUTOCENTER_ACTIVE_PLAYER_DEFAULT_ENABLED = gc.getDefineINT("SAS_SCOREBOARD_SCROLL_AUTOCENTER_ACTIVE_PLAYER_DEFAULT_ENABLED")
@@ -6287,7 +6354,8 @@ class CvMainInterface:
 		# (BUG - Power Rating)  advc: Moved into the loop
 		# <!-- custom: use one ranked visible-player traversal for scroll slicing, aligned BUG drawing, and active-player centering so those behaviors cannot drift apart. (GPT-5.3-Codex + ChatGPT-5.5) -->
 		aeVisiblePlayers = self._scoreboardVisiblePlayers(scores)
-		# <!-- custom: The aligned BUG scoreboard may sort vassals and apply its positive Max Players cap. Use that exact effective population for scrolling and centering; using the uncapped traversal made the buttons change while the same capped rows remained visible. See KI#228. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: The aligned BUG scoreboard may sort vassals and apply its positive Max Players cap.
+		# Use that exact effective population for scrolling and centering; using the uncapped traversal made the buttons change while the same capped rows remained visible. See KI#228. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if bAlignIcons:
 			aeVisiblePlayers = scores.prepare()
 		iTotalCount = len(aeVisiblePlayers)
@@ -6864,7 +6932,10 @@ class CvMainInterface:
 		gSetSquare("GlobeToggle", "Top", iGlobeX, iGlobeY, gRect("GlobeToggle").size())
 		screen.moveItem("GlobeToggle", iGlobeX, iGlobeY, 0.0)
 
-		# <!-- custom: adding the map-annotation button made the strip one wider, so its last button collided with the Globe toggle. There was a lot of unused dead space between buttons, so step by less than the full cell to tighten the strip enough to fit the extra button without colliding. (Claude code Opus 4.7); was HSPACE(0). Note: -HSPACE(5) is enough for pangea, but for some squarish maps like as of now BTG_Cross, minimap is horizontally shorter and toggle scoreboard button still collides with globe view button. However this is rare, and increasing the button horizontal inter-spacing reduction would make toggle scoreboard and globe view buttons too spaced in Pangea, plus they don't fully prevent colliding in BTG_Cross, even in BTG_Cross, globe view remains fairly accessible, so not increased further. -->
+		# <!-- custom: adding the map-annotation button made the strip one wider, so its last button collided with the Globe toggle.
+		# There was a lot of unused dead space between buttons, so step by less than the full cell to tighten the strip enough to fit the extra button without colliding. (Claude code Opus 4.7); was HSPACE(0).
+		# Note: -HSPACE(5) is enough for pangea, but for some squarish maps like as of now BTG_Cross, minimap is horizontally shorter and toggle scoreboard button still collides with globe view button.
+		# However this is rare, and increasing the button horizontal inter-spacing reduction would make toggle scoreboard and globe view buttons too spaced in Pangea, plus they don't fully prevent colliding in BTG_Cross, even in BTG_Cross, globe view remains fairly accessible, so not increased further. -->
 		iStripButtonOverlapX = -HSPACE(5)
 		iStep = gRect("MiniMapButton").size() + iStripButtonOverlapX
 		#iBtnX = iGlobeX - len(aShow) * iStep - HSPACE(10)
@@ -6990,7 +7061,8 @@ class CvMainInterface:
 		self.hideMapAnnotationSigns()
 		try:
 			import CvStrategyOverlay
-			# <!-- custom: reuse DotMap because we both call its normal hide() and then force-clear its visual layers. In-game testing showed drawings can be visible while DotMap.visible is already false; without clearCityLayers(), the first toggle hides signs but leaves Alt+X BFC drawings until toggled again. (GPT-5.5) -->
+			# <!-- custom: reuse DotMap because we both call its normal hide() and then force-clear its visual layers.
+			# In-game testing showed drawings can be visible while DotMap.visible is already false; without clearCityLayers(), the first toggle hides signs but leaves Alt+X BFC drawings until toggled again. (GPT-5.5) -->
 			kDotMap = CvStrategyOverlay.getDotMap()
 			kDotMap.hide()
 			kDotMap.clearCityLayers()
@@ -7007,7 +7079,9 @@ class CvMainInterface:
 		except:
 			BugUtil.warn("CvMainInterface.showMapAnnotations failed to show dotmap overlay")
 
-	# <!-- custom: save/load support for hidden annotations. Empirically, the previous save hook re-added hidden captions during save, so captions appeared immediately while BFC drawings stayed hidden; reloading that save then showed only BFC annotations and lost the caption annotations. Persisting this cache keeps the hidden state stable and lets the toggle restore captions later. (GPT-5.5) -->
+	# <!-- custom: save/load support for hidden annotations.
+	# Empirically, the previous save hook re-added hidden captions during save, so captions appeared immediately while BFC drawings stayed hidden; reloading that save then showed only BFC annotations and lost the caption annotations.
+	# Persisting this cache keeps the hidden state stable and lets the toggle restore captions later. (GPT-5.5) -->
 	def isMapAnnotationsHiddenForSave(self):
 		return not self.bAnnotationsVisible
 
@@ -7086,7 +7160,8 @@ class CvMainInterface:
 				return self.MainInterfaceInputMap.get(inputClass.getFunctionName() + "1")(inputClass)
 # BUG - PLE - end
 
-			# <!-- custom: fix production chooser bar auto-scrolling when we click on one of the lower rows (distracting and annoying and not necessary; the player can scroll if they want rather). Fix with the help of chatgpt 5.2 thanks -->
+			# <!-- custom: fix production chooser bar auto-scrolling when we click on one of the lower rows (distracting and annoying and not necessary; the player can scroll if they want rather).
+			# Fix with the help of chatgpt 5.2 thanks -->
 			# 2) Update that pin only when the user clicks the city tab / scroll arrows
 			# Prevent BottomButtonList from auto-jumping when showing multiple build rows
 			if inputClass.getNotifyCode() == NotifyCode.NOTIFY_CLICKED:
@@ -7104,7 +7179,8 @@ class CvMainInterface:
 						self.iCityBuildBarPinnedRow = CyInterface().getCityTabSelectionRow()
 					self.iCityBuildBarPinnedRow += 1
 					return 0
-				# <!-- custom: score scroll buttons; + scrolls down to more lower-ranked players, - scrolls back up toward rank 1. updateScoreStrings clamps the offset to [0, total - rows]. (Claude code Sonnet 4.6 + ChatGPT-5.5 + GPT-5.5) -->
+				# <!-- custom: score scroll buttons; + scrolls down to more lower-ranked players, - scrolls back up toward rank 1.
+				# updateScoreStrings clamps the offset to [0, total - rows]. (Claude code Sonnet 4.6 + ChatGPT-5.5 + GPT-5.5) -->
 				elif fn == "ScoreScrollUp":
 					self.bScoreScrollAutocenterActivePlayer = False
 					self.iScoreScrollOffset += 1
@@ -7115,7 +7191,8 @@ class CvMainInterface:
 					self.iScoreScrollOffset = max(0, self.iScoreScrollOffset - 1)
 					self.updateScoreStrings()
 					return 1
-				# <!-- custom: fast scoreboard scroll keeps the useful medium jump but drops the too-niche fastest tier. Manual scroll disables autocenter before redraw; updateScoreStrings clamps overshoot to [0, total - rows]. (Claude code Opus 4.7 + ChatGPT-5.5 + GPT-5.5) -->
+				# <!-- custom: fast scoreboard scroll keeps the useful medium jump but drops the too-niche fastest tier.
+				# Manual scroll disables autocenter before redraw; updateScoreStrings clamps overshoot to [0, total - rows]. (Claude code Opus 4.7 + ChatGPT-5.5 + GPT-5.5) -->
 				elif fn == "ScoreScrollUpFast":
 					self.bScoreScrollAutocenterActivePlayer = False
 					self.iScoreScrollOffset += self._scoreboardFastScrollStep()
@@ -7131,7 +7208,8 @@ class CvMainInterface:
 					self._centerScoreboardScrollOnActivePlayer()
 					self.updateScoreStrings()
 					return 1
-				# <!-- custom: persistent scoreboard scroll autocenter toggle. When turned on, center immediately and keep centering on later score redraws until a manual scroll button turns it off. (ChatGPT-5.5) -->
+				# <!-- custom: persistent scoreboard scroll autocenter toggle.
+				# When turned on, center immediately and keep centering on later score redraws until a manual scroll button turns it off. (ChatGPT-5.5) -->
 				elif fn == "ScoreScrollAutocenterActivePlayerToggle":
 					self.bScoreScrollAutocenterActivePlayer = not self.bScoreScrollAutocenterActivePlayer
 					if self.bScoreScrollAutocenterActivePlayer:
@@ -7160,7 +7238,9 @@ class CvMainInterface:
 				elif fn.startswith("ReligionDDS") or fn.startswith("ReligionHolyCityDDS"):
 					iReligion = inputClass.getData1()
 					if iReligion >= 0:
-						# <!-- custom: keep WIDGET_HELP_RELIGION_CITY for city-specific hover, then route clicks to Sevopedia in Python. Catch the holy-city overlay too because it sits over the base icon and otherwise only hover works. Import CvScreensInterface locally because it imports CvMainInterface during startup; top-level import here would be a needless circular-load risk. (Claude code Opus 4.7; GPT-5.5) -->
+						# <!-- custom: keep WIDGET_HELP_RELIGION_CITY for city-specific hover, then route clicks to Sevopedia in Python.
+						# Catch the holy-city overlay too because it sits over the base icon and otherwise only hover works.
+						# Import CvScreensInterface locally because it imports CvMainInterface during startup; top-level import here would be a needless circular-load risk. (Claude code Opus 4.7; GPT-5.5) -->
 						import CvScreensInterface
 						CvScreensInterface.pediaJumpToReligion([iReligion])
 					return 1

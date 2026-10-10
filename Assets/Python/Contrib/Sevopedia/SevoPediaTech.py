@@ -38,7 +38,8 @@ TECH_STATS_RIGHT_SCROLLBAR_TAIL_W = 18
 TECH_STATS_MOVE_LEFT_TO_RIGHT_W = 60
 TECH_STATS_MOVE_TOPLEFT_TO_BOTTOMLEFT_H = 2
 
-# <!-- custom: Module-level cache for tech statistics. Computed once on first Techs category click.
+# <!-- custom: Module-level cache for tech statistics.
+# Computed once on first Techs category click.
 # Similar pattern to SevoPediaTrait's TRAIT_STATISTICS_CACHE. (Claude Opus 4.5) -->
 # startingTechData: list of (techId, civCount, [civIds]) - all starting techs sorted by civ count
 # startingTechCombos: list of (tech1, tech2, count, [civIds]) - all starting tech combinations globally
@@ -251,7 +252,8 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 		self.H_ENABLES = self.H_ROW
 
 		# Row 4: Starting tech statistics tables (2 left stacked, 1 right)
-		# <!-- custom: Statistics panel - blue panels without headers, tables inside. Left side wider (~200px more than right). (Claude Opus 4.5) -->
+		# <!-- custom: Statistics panel - blue panels without headers, tables inside.
+		# Left side wider (~200px more than right). (Claude Opus 4.5) -->
 		self.X_STATS = self.X_TECH_PANE
 		self.Y_STATS = self.Y_ENABLES + self.H_ENABLES + SMALL_MARGIN
 		self.W_STATS = self.top.R_PEDIA_PAGE - self.X_STATS
@@ -427,7 +429,8 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 			# No first-to-discover effects - display "None" text
 			draw_none_text(screen, self.top, self.X_FIRST_TO_DISCOVER, self.Y_FIRST_TO_DISCOVER, self.W_FIRST_TO_DISCOVER, self.H_FIRST_TO_DISCOVER)
 
-	# <!-- custom: Tradeable panel showing if this tech can be traded. Shows "Yes" if tradeable, or No Entry emoji icon if not tradeable. (Claude Opus 4.5) -->
+	# <!-- custom: Tradeable panel showing if this tech can be traded.
+	# Shows "Yes" if tradeable, or No Entry emoji icon if not tradeable. (Claude Opus 4.5) -->
 	def placeTradeable(self):
 		screen = self.top.getScreen()
 		techInfo = gc.getTechInfo(self.iTech)
@@ -993,8 +996,7 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 			eraInfo = gc.getEraInfo(iEra)
 
 			# Era name column with DDS icon
-			# <!-- custom: NOTE: Cannot make this clickable/redirect to Era Chart because setTableText
-			# does not support navigation widgets (WIDGET_PEDIA_MAIN, WIDGET_PYTHON, etc.).
+			# <!-- custom: NOTE: Cannot make this clickable/redirect to Era Chart because setTableText does not support navigation widgets (WIDGET_PEDIA_MAIN, WIDGET_PYTHON, etc.).
 			# Navigation widgets only work with setImageButtonAt, not table cells.
 			# To make this clickable, would need to restructure from table to individual buttons. (Claude code Sonnet 4.5) -->
 			eraButtonPath = eraInfo.getButton()

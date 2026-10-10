@@ -5,11 +5,9 @@
 # Build check: civilization-specific unit and building replacements should not
 # be weaker than the generic asset they replace.
 #
-# <!-- custom: This is intentionally strict for AdvCiv-SAS. Unique units and
-# buildings may add flavor, timing, cost, or special rules, but they should not
-# quietly lose the core player-facing strength/power baseline of the generic
-# slot. Units are checked for both iCombat and iPower; buildings have no combat
-# strength, so iPower is the closest comparable XML baseline. (ChatGPT-5.5) -->
+# <!-- custom: This is intentionally strict for AdvCiv-SAS.
+# Unique units and buildings may add flavor, timing, cost, or special rules, but they should not quietly lose the core player-facing strength/power baseline of the generic slot.
+# Units are checked for both iCombat and iPower; buildings have no combat strength, so iPower is the closest comparable XML baseline. (ChatGPT-5.5) -->
 
 from pathlib import Path
 import argparse

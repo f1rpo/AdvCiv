@@ -52,7 +52,11 @@
 			<iImprovementPercent>100</iImprovementPercent>
 			<iGreatPeoplePercent>100</iGreatPeoplePercent>
 			<iCulturePercent>100</iCulturePercent>
-			<!-- custom: effectively this seems to mean anarchy lasts 2 turns. I don't care about realism of late vs early era anarchy duration, i only want the game to be fair and challenging. I think having a bit longer but not tedious or annoying anarchy adds weight to when to change regime or such and make it a more strategic decisions. Indirectly buffs as of now trait_spiritual or such other traits providing no anarchy, and in a general way, we shouldn't change that often civics or such, but if we were to, then we'd value some traits or such more. In short adds bit strategy without too much tediousness hopefully/ideally, was 50 -->
+			<!-- custom: effectively this seems to mean anarchy lasts 2 turns.
+			I don't care about realism of late vs early era anarchy duration, i only want the game to be fair and challenging.
+			I think having a bit longer but not tedious or annoying anarchy adds weight to when to change regime or such and make it a more strategic decisions.
+			Indirectly buffs as of now trait_spiritual or such other traits providing no anarchy, and in a general way, we shouldn't change that often civics or such, but if we were to, then we'd value some traits or such more.
+			In short adds bit strategy without too much tediousness hopefully/ideally, was 50 -->
 			<iAnarchyPercent>100</iAnarchyPercent>
 			<iEventChancePerTurn>1</iEventChancePerTurn>
 			<iSoundtrackSpace>0</iSoundtrackSpace>
@@ -269,7 +273,9 @@
 			<iFreePopulation>1</iFreePopulation>
 			<!-- advc.126: was 37 -->
 			<iStartPercent>36</iStartPercent>
-			<!-- custom: set iGrowthPercent, iTrainPercent, iConstructPercent, and iCreatePercent to 100 at all eras, i don't care about realism here as well as explained in as of now below code comment(s). May explain why AIs and possibly the human player too in autoplay or real game would produce so much units later in the game, as well as gameplay getting seemingly out of hand in middle and late game. I want gameplay to be gradual not exponential, and i'd rather adjust settings such as iCost for each unit myself reliably if need be, i don't need this shit of weird realism or accomodation or whatever it is, was 90-->
+			<!-- custom: set iGrowthPercent, iTrainPercent, iConstructPercent, and iCreatePercent to 100 at all eras, i don't care about realism here as well as explained in as of now below code comment(s).
+			May explain why AIs and possibly the human player too in autoplay or real game would produce so much units later in the game, as well as gameplay getting seemingly out of hand in middle and late game.
+			I want gameplay to be gradual not exponential, and i'd rather adjust settings such as iCost for each unit myself reliably if need be, i don't need this shit of weird realism or accomodation or whatever it is, was 90 -->
 			<iGrowthPercent>100</iGrowthPercent>
 			<iTrainPercent>100</iTrainPercent>
 			<iConstructPercent>100</iConstructPercent>
@@ -356,7 +362,7 @@
 			<iStartingGold>100</iStartingGold>
 			<iFreePopulation>2</iFreePopulation>
 			<iStartPercent>50</iStartPercent>
-			<!-- custom: see code comment at same field previously; was 80-->
+			<!-- custom: see code comment at same field previously; was 80 -->
 			<iGrowthPercent>100</iGrowthPercent>
 			<iTrainPercent>100</iTrainPercent>
 			<iConstructPercent>100</iConstructPercent>
@@ -444,7 +450,7 @@
 			<iStartingGold>200</iStartingGold>
 			<iFreePopulation>3</iFreePopulation>
 			<iStartPercent>65</iStartPercent>
-			<!-- custom: see code comment at same field previously; was 70-->
+			<!-- custom: see code comment at same field previously; was 70 -->
 			<iGrowthPercent>100</iGrowthPercent>
 			<iTrainPercent>100</iTrainPercent>
 			<iConstructPercent>100</iConstructPercent>
@@ -527,7 +533,7 @@
 			<iStartingGold>400</iStartingGold>
 			<iFreePopulation>4</iFreePopulation>
 			<iStartPercent>80</iStartPercent>
-			<!-- custom: see code comment at same field previously; was 60-->
+			<!-- custom: see code comment at same field previously; was 60 -->
 			<iGrowthPercent>100</iGrowthPercent>
 			<iTrainPercent>100</iTrainPercent>
 			<iConstructPercent>100</iConstructPercent>

@@ -98,7 +98,8 @@ def getWrapY():
 	map = CyMap()
 	return (map.getCustomMapOption(0) == 2)
 
-# <!-- custom: These balanced-resource callbacks were shadowed by later Oasis callbacks with the same names, so they never ran. Comment them out instead of merging behavior, fixing Ruff F811 while preserving current Oasis behavior exactly; see KI#164. (GPT-5.5) -->
+# <!-- custom: These balanced-resource callbacks were shadowed by later Oasis callbacks with the same names, so they never ran.
+# Comment them out instead of merging behavior, fixing Ruff F811 while preserving current Oasis behavior exactly; see KI#164. (GPT-5.5) -->
 # def normalizeAddExtras():
 # 	if (CyMap().getCustomMapOption(1) == 1):
 # 		balancer.normalizeAddExtras()

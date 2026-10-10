@@ -583,10 +583,9 @@ class CvDiplomacy:
 		elif (self.isComment(eComment, "USER_DIPLOCOMMENT_DEMAND")):
 			# <!-- custom: Begin - keep diplomacy memory consistent for the pure vassal/surrender special case.
 			# The C++ fix allows Tribute/Demand to directly accept a one-item Vassal/Surrender offer with no extras.
-			# Without this Python guard, that same accepted deal still fires DIPLOEVENT_MADE_DEMAND here, which is
-			# the generic "you demanded tribute" event and can apply regular demand-memory side effects.
-			# That creates a mismatch: agreement type is effectively a clean vassal acceptance, but memory handling
-			# treats it like normal tribute pressure. For this narrow accepted case only, skip MADE_DEMAND.
+			# Without this Python guard, that same accepted deal still fires DIPLOEVENT_MADE_DEMAND here, which is the generic "you demanded tribute" event and can apply regular demand-memory side effects.
+			# That creates a mismatch: agreement type is effectively a clean vassal acceptance, but memory handling treats it like normal tribute pressure.
+			# For this narrow accepted case only, skip MADE_DEMAND.
 			# All other demand flows keep existing behavior and events unchanged. See KI#108. (GPT-5.3-Codex) -->
 			bSimpleVassalSelfOffer = self.isSimpleVassalSelfOffer()
 			bAccept = diploScreen.offerDeal() # advc.144: Put acceptance flag in iData1
@@ -685,7 +684,8 @@ class CvDiplomacy:
 
 		# If we refuse to join their war
 		elif (self.isComment(eComment, "USER_DIPLOCOMMENT_NO_JOIN_WAR")):
-			# <!-- custom: Preserve the refused war target in the DLL diplomacy event so SASGameRecord can describe the resolved request without guessing from earlier UI state. Gameplay handling still ignores the data for the refusal. (ChatGPT-5.6-Sol) -->
+			# <!-- custom: Preserve the refused war target in the DLL diplomacy event so SASGameRecord can describe the resolved request without guessing from earlier UI state.
+			# Gameplay handling still ignores the data for the refusal. (ChatGPT-5.6-Sol) -->
 			diploScreen.diploEvent(DiploEventTypes.DIPLOEVENT_NO_JOIN_WAR, diploScreen.getData(), -1)
 			self.setAIComment(self.getCommentID("AI_DIPLOCOMMENT_JOIN_DENIED"))
 

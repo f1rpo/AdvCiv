@@ -4322,7 +4322,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 					<AttitudeType>ATTITUDE_PLEASED</AttitudeType>
 					<iNoWarProb>110</iNoWarProb>
 				</NoWarAttitudeProb>
-				<!-- custom: fix AdvCiv Duplicate PLEASED, should be friendly unless i'm mistaken, was ATTITUDE_PLEASED 115-->
+				<!-- custom: fix AdvCiv Duplicate PLEASED, should be friendly unless i'm mistaken, was ATTITUDE_PLEASED 115 -->
 				<NoWarAttitudeProb>
 					<AttitudeType>ATTITUDE_FRIENDLY</AttitudeType>
 					<iNoWarProb>115</iNoWarProb>

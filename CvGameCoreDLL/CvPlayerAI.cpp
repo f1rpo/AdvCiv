@@ -33,7 +33,9 @@ static std::map<int,int> g_sasWorkerSeaFirstSeenBuildableTurn;
 static std::map<int,int> g_sasWorkerSeaFirstSeenReachableTurn;
 static int g_iSASWorkerSeaAuditLastTurn = -1;
 
-// <!-- custom: Return the actual culture of a player's Nth-best city for early cultural-race qualification/ranking. Unlike late projected countdowns, this remains meaningful before cities reach the culture level immediately below Legendary. Reserve the known city count because culture-stage ranking calls this repeatedly across rivals. (GPT-5.5) -->
+// <!-- custom: Return the actual culture of a player's Nth-best city for early cultural-race qualification/ranking.
+// Unlike late projected countdowns, this remains meaningful before cities reach the culture level immediately below Legendary.
+// Reserve the known city count because culture-stage ranking calls this repeatedly across rivals. (GPT-5.5) -->
 static int getSASCultureVictoryNthCityCulture(CvPlayerAI const& kPlayer, int iCityRank)
 {
 	if (iCityRank <= 0 || kPlayer.getNumCities() < iCityRank)
@@ -466,7 +468,9 @@ void CvPlayerAI::AI_doTurnPost()
 
 	if (isBarbarian())
 	{
-		// <!-- custom: Save-file 450 repeatedly showed Barbarian seafood remaining unimproved. Include Barbarians in the existing level-3 Work Boat audit before their shortened post-turn path returns, so production shortages can be distinguished from buildability, reachability, danger and mission-assignment failures. Diagnostic only. (GPT-5.6-Sol) -->
+		// <!-- custom: Save-file 450 repeatedly showed Barbarian seafood remaining unimproved.
+		// Include Barbarians in the existing level-3 Work Boat audit before their shortened post-turn path returns, so production shortages can be distinguished from buildability, reachability, danger and mission-assignment failures.
+		// Diagnostic only. (GPT-5.6-Sol) -->
 		if (gWorkerSeaLogLevel >= 3) AI_logWorkerSeaAudit();
 		AI_foldDeals(); // advc.036
 		return;
@@ -582,14 +586,16 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 	iUpgradeBudget = std::max(iUpgradeBudget, 1);
 	// BETTER_BTS_AI_MOD: END
 
-	// <!-- custom: Upgrade spending logs showed overspending and peacetime upgrades leaving 1-10 gold, but the old aggregate line did not identify which upgrade pass or unit caused it. Add diagnostics for budget context, per-pass spending, and per-upgrade spend details; follow-up logs showed the normal-upgrade pass was the main culprit, so cap non-emergency upgrade prices against the remaining budget below. See KI#160. (GPT-5.5 + ChatGPT-5.5) -->
+	// <!-- custom: Upgrade spending logs showed overspending and peacetime upgrades leaving 1-10 gold, but the old aggregate line did not identify which upgrade pass or unit caused it.
+	// Add diagnostics for budget context, per-pass spending, and per-upgrade spend details; follow-up logs showed the normal-upgrade pass was the main culprit, so cap non-emergency upgrade prices against the remaining budget below. See KI#160. (GPT-5.5 + ChatGPT-5.5) -->
 	bool const bUpgradeFinancialTroubleStart = AI_isFinancialTrouble();
 	bool const bLogUpgradeDiagnostics = (gPlayerLogLevel > 2);
 	int iUpgradeLogWars = 0;
 	bool bUpgradeLogAnyWarPlan = false;
 	if (bLogUpgradeDiagnostics)
 	{
-		// <!-- custom: Compile-fix notes for these diagnostics: this DLL has no public CvTeamAI::getAtWarCount/getAnyWarPlanCount, and CvTeam::countWarEnemies is protected, so count public isAtWar teams under the log gate and cache AI_isAnyWarPlan instead. CvUnit::getArea returns a CvArea, so log getArea().getID() rather than assigning getArea() to an int. (GPT-5.5) -->
+		// <!-- custom: Compile-fix notes for these diagnostics: this DLL has no public CvTeamAI::getAtWarCount/getAnyWarPlanCount, and CvTeam::countWarEnemies is protected, so count public isAtWar teams under the log gate and cache AI_isAnyWarPlan instead.
+		// CvUnit::getArea returns a CvArea, so log getArea().getID() rather than assigning getArea() to an int. (GPT-5.5) -->
 		CvTeamAI const& kUpgradeLogTeam = GET_TEAM(getTeam());
 		for (TeamIter<CIV_ALIVE,NOT_SAME_TEAM_AS> it(getTeam()); it.hasNext(); ++it)
 		{
@@ -608,7 +614,8 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 	std::vector<CvUnitAI*> apUnitsByExp;
 	FOR_EACH_UNITAI_VAR(pLoopUnit, *this)
 	{
-		// <!-- custom: A failed inherited Partisans initUnit(NO_UNIT) call left a reset/unplaced object in the owner container. AdvCiv's cached upgrade list retained it until the impassable pass called AI_unitImpassables(NO_UNIT) and crashed.
+		// <!-- custom: A failed inherited Partisans initUnit(NO_UNIT) call left a reset/unplaced object in the owner container.
+		// AdvCiv's cached upgrade list retained it until the impassable pass called AI_unitImpassables(NO_UNIT) and crashed.
 		// Exclude it before sorting because every legitimate upgrade candidate must be placed. See KI#524.4 and KI#524.6. (GPT-5.6-Sol) -->
 		if (pLoopUnit->plot() == NULL)
 			continue;
@@ -617,7 +624,8 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 	std::sort(apUnitsByExp.begin(), apUnitsByExp.end(), DescByExperience());
 	for (int iPass = 0; iPass < 5; iPass++) // Case inserted for upgrade discounts
 	{
-		// <!-- custom: Pass names exist only in level-3 upgrade diagnostics. Keep their switch off the ordinary AI-upgrade path; the tiny per-pass integer counters below remain unconditional to avoid adding a diagnostic branch to every unit candidate. (ChatGPT-5.6-Sol) -->
+		// <!-- custom: Pass names exist only in level-3 upgrade diagnostics.
+		// Keep their switch off the ordinary AI-upgrade path; the tiny per-pass integer counters below remain unconditional to avoid adding a diagnostic branch to every unit candidate. (ChatGPT-5.6-Sol) -->
 		char const* szPassName = NULL;
 		if (bLogUpgradeDiagnostics)
 		{
@@ -704,7 +712,8 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 				break;
 			case 4:
 				//bValid = true; // BtS
-				// <!-- custom: Diagnostics showed normal upgrades caused most budget overspending and low-gold peacetime upgrades, while defender/danger upgrades were mostly not the culprit. In financial trouble outside focus-war, skip normal upgrades and keep gold for economy/emergencies. See KI#160. (GPT-5.5 + ChatGPT-5.5) -->
+				// <!-- custom: Diagnostics showed normal upgrades caused most budget overspending and low-gold peacetime upgrades, while defender/danger upgrades were mostly not the culprit.
+				// In financial trouble outside focus-war, skip normal upgrades and keep gold for economy/emergencies. See KI#160. (GPT-5.5 + ChatGPT-5.5) -->
 				bValid = (!bUpgradeFinancialTroubleStart || bUpgradeFocusWar) && iStartingGold - getGold() < iUpgradeBudget;
 				bSkippedBudget = !bValid;
 				break;
@@ -793,7 +802,8 @@ void CvPlayerAI::AI_doTurnUnitsPost()
 			}
 			if (!bKilled)
 			{
-				// <!-- custom: The old non-emergency passes were budget-gated only by "spent so far < budget", so one expensive upgrade could overshoot the remaining budget and leave the AI almost broke. Keep emergency pass 0/1 upgrades uncapped, but make discounted, transport/escort and normal upgrades fit within the remaining budget. See KI#160. (GPT-5.5 + ChatGPT-5.5) -->
+				// <!-- custom: The old non-emergency passes were budget-gated only by "spent so far < budget", so one expensive upgrade could overshoot the remaining budget and leave the AI almost broke.
+				// Keep emergency pass 0/1 upgrades uncapped, but make discounted, transport/escort and normal upgrades fit within the remaining budget. See KI#160. (GPT-5.5 + ChatGPT-5.5) -->
 				int const iMaxUpgradePrice = (iPass >= 2 ? std::max(0, iUpgradeBudget - (iStartingGold - getGold())) : MAX_INT);
 				if (bLogUpgradeDiagnostics)
 				{
@@ -940,14 +950,17 @@ bool CvPlayerAI::AI_negotiatePeace(PlayerTypes eOther, int iTheirBenefit, int iO
 {
 	FAssert(!isHuman());
 	CvPlayerAI& kOther = GET_PLAYER(eOther);
-	// <!-- custom: This shared routine is reached only after the active peace system has decided to negotiate. Preserve the real value/reparations outcome at GameRecord level 2 without rerunning UWAI or trade valuation solely for logging.
+	// <!-- custom: This shared routine is reached only after the active peace system has decided to negotiate.
+	// Preserve the real value/reparations outcome at GameRecord level 2 without rerunning UWAI or trade valuation solely for logging.
 	// getUWAI().isEnabled cleanly identifies the active caller family because UWAI bypasses legacy AI_doPeace. (ChatGPT-5.6-Sol) -->
 	bool const bLogSASPeaceDecision = (gGameRecordLogLevel >= 2);
 	int const iSASInitialTheirBenefit = iTheirBenefit;
 	int const iSASInitialOurBenefit = iOurBenefit;
 	int const iSASAtWarTurns = (bLogSASPeaceDecision ? GET_TEAM(getTeam()).AI_getAtWarCounter(kOther.getTeam()) : -1);
 	bool const bSASUWAI = (bLogSASPeaceDecision && getUWAI().isEnabled());
-	// <!-- custom: UWAI now avoids ordinary peace with configured victory threats, but retain this shared pre-check for other AI peace callers. CvDeal still has the final safety guard for human and unusual trade paths. This fixed negotiations returning success for treaties that the final guard rejected. (GPT-5.6-Sol) -->
+	// <!-- custom: UWAI now avoids ordinary peace with configured victory threats, but retain this shared pre-check for other AI peace callers.
+	// CvDeal still has the final safety guard for human and unusual trade paths.
+	// This fixed negotiations returning success for treaties that the final guard rejected. (GPT-5.6-Sol) -->
 	if (isSASUWAIVictoryDenialPeaceThreat(getTeam()) || isSASUWAIVictoryDenialPeaceThreat(kOther.getTeam()))
 	{
 		if (bLogSASPeaceDecision) logSASGameRecordAIPeaceDecision(getID(), eOther, iSASAtWarTurns, bSASUWAI, iSASInitialOurBenefit, iSASInitialTheirBenefit, iOurBenefit, iTheirBenefit, 0, 0, NO_TECH, NO_TECH, -1, -1, false, "BLOCKED_VICTORY_DENIAL", NULL, NULL);
@@ -1254,7 +1267,8 @@ void CvPlayerAI::AI_updateFoundValues(bool bStarting)  // advc: refactored
 		return;
 	}
 	CitySiteEvaluator citySiteEval(*this);
-	// <!-- custom: Replaces inherited advc.031c CvPlayerAI::logFoundValue()'s later reconstruction with traces at the real evaluation/storage points. This context identifies the initial site refresh without changing its calculations. See KI#505.2. (GPT-6.1-Sol) -->
+	// <!-- custom: Replaces inherited advc.031c CvPlayerAI::logFoundValue()'s later reconstruction with traces at the real evaluation/storage points.
+	// This context identifies the initial site refresh without changing its calculations. See KI#505.2. (GPT-6.1-Sol) -->
 	citySiteEval.setLogContext(SAS_FOUND_LOG_AI_SITE_REFRESH);
 	AI_invalidateCitySites(/*AI_getMinFoundValue()*/-1); // K-Mod
 	// <advc.108>
@@ -1987,7 +2001,8 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity, bool bEverOwned) // advc.ctr: W
 	}  // <advc.ctr>
 	// <!-- custom: store it once to avoid reuse -->
 	const bool bBarbarian = isBarbarian();
-	// <!-- custom: Hoist Base AdvCiv's explicit Domination3+ primary-area no-raze reason before SAS force-raze safeguards, which could otherwise pre-empt it. Preserve AdvCiv's !bCultureVictory exception. See KI#186.3. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Hoist Base AdvCiv's explicit Domination3+ primary-area no-raze reason before SAS force-raze safeguards, which could otherwise pre-empt it.
+	// Preserve AdvCiv's !bCultureVictory exception. See KI#186.3. (ChatGPT-5.6-Sol) -->
 	bool const bKeepForDomination = (!bCultureVictoryEmergency && AI_atVictoryStage(AI_VICTORY_DOMINATION3) && GET_TEAM(getTeam()).AI_isPrimaryArea(kCity.getArea()));
 	if (!bRaze && bKeepForDomination)
 	{
@@ -1999,8 +2014,11 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity, bool bEverOwned) // advc.ctr: W
 		return;
 	}
 	//else // </advc>
-	// <!-- custom: Base AdvCiv's AI_isAwfulSite conquest override duplicated Settler-site evaluation with a cruder absolute veto. Replace it with the positive SAS long-term-benefit evaluation: force-raze cities unlikely to benefit us, while the broader normal raze valuation below still decides among the remaining cities.
-	// Base AdvCiv's active-World-Wonder exemption protected the city from this force-raze gate. Keep that intrinsic-site protection, but let the default-enabled XML option make excessive same-area distance override it. England otherwise kept remote Elephantine for its Eiffel Tower, committed 15 defenders, lost at least 7 there, and lost the city after 6 turns. See KI#186.2. (GPT-5.6-Sol) -->
+	// <!-- custom: Base AdvCiv's AI_isAwfulSite conquest override duplicated Settler-site evaluation with a cruder absolute veto.
+	// Replace it with the positive SAS long-term-benefit evaluation: force-raze cities unlikely to benefit us, while the broader normal raze valuation below still decides among the remaining cities.
+	// Base AdvCiv's active-World-Wonder exemption protected the city from this force-raze gate.
+	// Keep that intrinsic-site protection, but let the default-enabled XML option make excessive same-area distance override it.
+	// England otherwise kept remote Elephantine for its Eiffel Tower, committed 15 defenders, lost at least 7 there, and lost the city after 6 turns. See KI#186.2. (GPT-5.6-Sol) -->
 	static bool const bDistanceOverrideActiveWorldWonder = GC.getDefineBOOL("SAS_AI_CITY_LONG_TERM_DISTANCE_OVERRIDE_ACTIVE_WORLD_WONDER_ENABLE");
 	bool const bActiveWorldWonder = kCity.hasActiveWorldWonder();
 	if (!bBarbarian && !kCity.isHolyCity() && !bEverOwned && (!bActiveWorldWonder || bDistanceOverrideActiveWorldWonder))
@@ -2053,7 +2071,9 @@ void CvPlayerAI::AI_conquerCity(CvCityAI& kCity, bool bEverOwned) // advc.ctr: W
 
 	if (!bRaze)
 	{
-		// <!-- custom: Base AdvCiv's old !bCultureVictory branch kept every conquest here. SAS removed that blanket return so normal raze valuation can assess awkward cities; its explicit Domination3+ primary-area no-raze reason is now hoisted above the SAS force-raze safeguards with the same culture-victory exception. The old few-city blanket keep remains intentionally commented-out for reference. See KI#186.3. (ChatGPT-5.6-Sol) -->
+		// <!-- custom: Base AdvCiv's old !bCultureVictory branch kept every conquest here.
+		// SAS removed that blanket return so normal raze valuation can assess awkward cities; its explicit Domination3+ primary-area no-raze reason is now hoisted above the SAS force-raze safeguards with the same culture-victory exception.
+		// The old few-city blanket keep remains intentionally commented-out for reference. See KI#186.3. (ChatGPT-5.6-Sol) -->
 		// Reasons to not raze
 		// <!-- custom: note: actually even if we have too few cities, it's not a reason to make a bad deal (i.e. capturing and not razing a too far away city); our weak economy would make it even worse due to city distance in fact, so this looks like a bad reason not to raze, so removed -->
 		//
@@ -2818,7 +2838,8 @@ void CvPlayerAI::AI_updateCommerceWeights()
 	int const iVictoryCities = kGame.culturalVictoryNumCultureCities();
 
 	// Use culture slider to decide whether a human player is going for cultural victory
-	// <!-- custom: AIs can run 40% culture for happiness or border pressure without pursuing a cultural victory. Treating that as Culture 2 created a feedback loop that raised city culture weights and encouraged Culture process/specialists; slider inference remains useful only for human automation. (GPT-5.5) -->
+	// <!-- custom: AIs can run 40% culture for happiness or border pressure without pursuing a cultural victory.
+	// Treating that as Culture 2 created a feedback loop that raised city culture weights and encouraged Culture process/specialists; slider inference remains useful only for human automation. (GPT-5.5) -->
 	bool const bAICultureVictory = (!isHuman() && AI_atVictoryStage(AI_VICTORY_CULTURE2) && kGame.culturalVictoryValid());
 	bool const bUseCultureRank = ((AI_atVictoryStage(AI_VICTORY_CULTURE2) || (isHuman() && getCommercePercent(COMMERCE_CULTURE) >= 40)) && kGame.culturalVictoryValid()); // advc.001
 	bool const bC3 = ((AI_atVictoryStage(AI_VICTORY_CULTURE3) || (isHuman() && getCommercePercent(COMMERCE_CULTURE) >= 70)) && bUseCultureRank); // advc.001
@@ -2861,7 +2882,8 @@ void CvPlayerAI::AI_updateCommerceWeights()
 		Perhaps no real problem, but causes an assertion to fail. */
 	int const iGameTurn = std::min(iEndTurn, kGame.getGameTurn());
 	FAssert(city_countdown_list.size() == getNumCities());
-	// <!-- custom: Log current-rate and maximum-affordable-slider culture viability alongside competing victory progress before changing behavior. This distinguishes a credible culture hedge from late investment that diverts research or production from a stronger space/military route; current production context at level 2 shows whether culture candidates and high-production cities are specializing efficiently. (ChatGPT-5.5 + GPT-5.5) -->
+	// <!-- custom: Log current-rate and maximum-affordable-slider culture viability alongside competing victory progress before changing behavior.
+	// This distinguishes a credible culture hedge from late investment that diverts research or production from a stronger space/military route; current production context at level 2 shows whether culture candidates and high-production cities are specializing efficiently. (ChatGPT-5.5 + GPT-5.5) -->
 	if (iCultureLogLevel >= 1)
 	{
 		int iCurrentBestCountdown = -1;
@@ -2967,7 +2989,8 @@ void CvPlayerAI::AI_updateCommerceWeights()
 
 		if (iCityCulture >= iLegendaryCulture)
 		{
-			// <!-- custom: Once an AI city is Legendary, additional victory culture cannot advance the win. Keep only independently calculated local pressure below; human automation retains K-Mod's small residual weight. (GPT-5.5) -->
+			// <!-- custom: Once an AI city is Legendary, additional victory culture cannot advance the win.
+			// Keep only independently calculated local pressure below; human automation retains K-Mod's small residual weight. (GPT-5.5) -->
 			if (bAICultureVictory)
 			{
 				iWeight = 0;
@@ -2996,7 +3019,8 @@ void CvPlayerAI::AI_updateCommerceWeights()
 					a mod with a different number of culture cities. */
 				iWeight *= 3;
 				iWeight /= iVictoryCities;
-				// <!-- custom: K-Mod already favored the slower required culture cities by rank, but not by the size of the gap: in one run Istanbul still converted 228 production while projected 16 turns from Legendary and the third city needed 115. Scale only the victory bonus by countdown progress toward the slowest required candidate, preserving ordinary culture value and local pressure. (GPT-5.5) -->
+				// <!-- custom: K-Mod already favored the slower required culture cities by rank, but not by the size of the gap: in one run Istanbul still converted 228 production while projected 16 turns from Legendary and the third city needed 115.
+				// Scale only the victory bonus by countdown progress toward the slowest required candidate, preserving ordinary culture value and local pressure. (GPT-5.5) -->
 				if (bAICultureVictory && iCultureVictoryBottleneckCountdown > 0 && iCultureVictoryBottleneckCountdown < MAX_INT && city_countdown_list[i].first < MAX_INT)
 				{
 					iCultureVictoryCountdownPercent = range(scaled(std::max(0, city_countdown_list[i].first), iCultureVictoryBottleneckCountdown).getPercent(), 0, 100);
@@ -3015,7 +3039,8 @@ void CvPlayerAI::AI_updateCommerceWeights()
 			else if (!bAICultureVictory)
 				iWeight *= 2;
 		}
-		// <!-- custom: Culture 1 is preparation, not a commitment to turn production and specialists toward culture in every city during the decisive early game. Retain the old slider-based inference only for human automation. (GPT-5.5) -->
+		// <!-- custom: Culture 1 is preparation, not a commitment to turn production and specialists toward culture in every city during the decisive early game.
+		// Retain the old slider-based inference only for human automation. (GPT-5.5) -->
 		else if (isHuman() && (AI_atVictoryStage(AI_VICTORY_CULTURE1) || getCommercePercent(COMMERCE_CULTURE) >= 30))
 		{
 			iWeight *= 2;
@@ -3104,7 +3129,8 @@ void CvPlayerAI::AI_updateCommerceWeights()
 						kProductionBuilding.getObsoleteSafeCommerceChange(COMMERCE_CULTURE) > 0 ||
 						kProductionBuilding.getCommerceModifier(COMMERCE_CULTURE) > 0);
 			}
-			// <!-- custom: Separate production conversion and assigned-specialist culture from fixed city culture. Free specialists remain excluded because the AI cannot reassign them; match CvCity's disorder, modifier, rounding, and No Espionage handling so these are exact times-100 contributions. (GPT-5.5) -->
+			// <!-- custom: Separate production conversion and assigned-specialist culture from fixed city culture.
+			// Free specialists remain excluded because the AI cannot reassign them; match CvCity's disorder, modifier, rounding, and No Espionage handling so these are exact times-100 contributions. (GPT-5.5) -->
 			int iProcessCultureTimes100 = 0;
 			int const iAssignedSpecialistCount = pCity->getSpecialistPopulation();
 			int iForcedSpecialistCount = 0;
@@ -3568,7 +3594,9 @@ int CvPlayerAI::AI_targetCityValue(CvCity const& kCity, bool bRandomize, bool bI
 			} // </advc.104d>
 			if (kOwner.AI_atVictoryStage(AI_VICTORY_SPACE4))
 			{
-				// <!-- custom: Base AdvCiv reduced this pre-launch capital priority from 20 to 10. Make the current value tunable before testing whether anti-spaceship armies should focus more strongly on the capital, whose loss resets spaceship progress. Default 10 preserves Base AdvCiv behavior. (GPT-5.6-Sol) -->
+				// <!-- custom: Base AdvCiv reduced this pre-launch capital priority from 20 to 10.
+				// Make the current value tunable before testing whether anti-spaceship armies should focus more strongly on the capital, whose loss resets spaceship progress.
+				// Default 10 preserves Base AdvCiv behavior. (GPT-5.6-Sol) -->
 				static int const iSpace4CapitalTargetValueBonus = GC.getDefineINT("SAS_AI_SPACE4_CAPITAL_TARGET_VALUE_BONUS");
 				iValue += iSpace4CapitalTargetValueBonus;
 				if (GET_TEAM(kCity.getTeam()).
@@ -5160,7 +5188,8 @@ TechTypes CvPlayerAI::AI_bestTech(int iMaxPathLength, bool bFreeTech, bool bAsyn
 	}
 	if (gPlayerLogLevel >= 1)
 	{
-		// <!-- custom: Use the path AdvCiv actually selected after its scenario fallback rather than always describing tech_paths[0]. This changes diagnostics only. (ChatGPT-5.6-Sol) -->
+		// <!-- custom: Use the path AdvCiv actually selected after its scenario fallback rather than always describing tech_paths[0].
+		// This changes diagnostics only. (ChatGPT-5.6-Sol) -->
 		logBBAI("  Player %d (%S) selects tech %S with path value %d, immediate value %d. (Aiming for %S)",
 				getID(), getCivilizationDescription(0), GC.getInfo(eBestTech).getDescription(), tech_paths[iBestPath].first,
 				techs[tech_paths[iBestPath].second.back()].first, GC.getInfo(techs[getSASTechPathAimIndex(tech_paths[iBestPath].second, techs_to_depth)].second).getDescription());
@@ -6062,7 +6091,8 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech, b
 
 			// <!-- custom: Boost own-research value for XML-defined productive feature-removal techs when one city is clearly feature-heavy and each chop still represents substantial native production time.
 			// Use CvPlot::getFeatureProduction for the representative removal Build instead of raw XML production: AdvCiv applies city-population, game-speed, player-modifier and distance scaling there, so this values the hammers the city would actually receive if the tech were unlocked now.
-			// Count only owned non-bonus plots currently assigned to the city, require tunable density/leverage, and optionally emphasize the capital. No feature or tech name is hardcoded. See KI#33.3. (ChatGPT-5.6-Sol) -->
+			// Count only owned non-bonus plots currently assigned to the city, require tunable density/leverage, and optionally emphasize the capital.
+			// No feature or tech name is hardcoded. See KI#33.3. (ChatGPT-5.6-Sol) -->
 			if (bSASEvaluateProductiveFeatureRemove && eSASFeatureRemoveBuild != NO_BUILD)
 			{
 				FOR_EACH_CITYAI(pSASCity, *this)
@@ -6545,7 +6575,7 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech, b
 			{
 				// K-Mod
 				int iRoll = 2 * (100 + AI_getGreatPersonWeight((UnitClassTypes)
-						//<!-- custom: seems like this is safe to rename as the existing kTech -->
+						// <!-- custom: seems like this is safe to rename as the existing kTech -->
 						// GC.getInfo(eTech).getFirstFreeUnitClass()));
 						kTech.getFirstFreeUnitClass()));
 				/*	I've diluted the weight because free great people doesn't have
@@ -6789,7 +6819,10 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech, b
 	//iValue = range(iValue, 0, MAX_INT);
 	// K-Mod end
 
-	// <!-- custom: we have an issue of AI quite often researching techs its vassal already owns, which is very inefficient. Ideally they'd research different techs, as well as even more ideally trade techs each other don't own preferentially to each other. Also extend this logic so that the vassal as well doesn't research or research as much techs its master already owns. Code added with the help of chatgpt 5.1 to patch both of these issues and increase AI efficiency i mean, check if accurate; see also known issue as of now 77 for details -->
+	// <!-- custom: we have an issue of AI quite often researching techs its vassal already owns, which is very inefficient.
+	// Ideally they'd research different techs, as well as even more ideally trade techs each other don't own preferentially to each other.
+	// Also extend this logic so that the vassal as well doesn't research or research as much techs its master already owns.
+	// Code added with the help of chatgpt 5.1 to patch both of these issues and increase AI efficiency i mean, check if accurate; see also known issue as of now 77 for details -->
 	// SAS vassalMasterTechResearch
 	// With:
 	// 	- Master-from-vassal penalty,
@@ -6803,7 +6836,8 @@ int CvPlayerAI::AI_techValue(TechTypes eTech, int iPathLength, bool bFreeTech, b
 	static const bool bSAS_AI_TECH_VALUE_MASTER_FROM_TO_VASSAL_RESEARCH_PERCENT_OPTIMIZE = GC.getDefineBOOL("SAS_AI_TECH_VALUE_MASTER_FROM_TO_VASSAL_RESEARCH_PERCENT_OPTIMIZE");
 	int iSASPercentModifier = 100;
 
-	// <!-- custom: Across the master, vassal and sibling-vassal branches, discount self-research only for knowledge that an internal team can legally transfer. Present AI reluctance may change later, so this path tests legality without denial. See KI#312. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Across the master, vassal and sibling-vassal branches, discount self-research only for knowledge that an internal team can legally transfer.
+	// Present AI reluctance may change later, so this path tests legality without denial. See KI#312. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (bSAS_AI_TECH_VALUE_MASTER_FROM_TO_VASSAL_RESEARCH_PERCENT_OPTIMIZE && iValue > 0 && eFromPlayer == NO_PLAYER)
 	{
 		// (1) Master: devalue techs that our vassals already know
@@ -8281,7 +8315,8 @@ void CvPlayerAI::AI_chooseResearch()
 
 DiploCommentTypes CvPlayerAI::AI_getGreeting(PlayerTypes ePlayer) const
 {
-	// <!-- custom: Clear any unconsumed old handoff before selecting this greeting. If UNIT_BRAG is chosen below, retain the exact randomized unit for its [OUR_BEST_UNIT] replacement. See KI#692. (GPT-5.6-Sol) -->
+	// <!-- custom: Clear any unconsumed old handoff before selecting this greeting.
+	// If UNIT_BRAG is chosen below, retain the exact randomized unit for its [OUR_BEST_UNIT] replacement. See KI#692. (GPT-5.6-Sol) -->
 	m_eGreetingBragUnit = NO_UNIT;
 	DiploCommentTypes eDefaultGreeting = GC.getAIDiploCommentType("GREETINGS");
 	if (TEAMID(ePlayer) == getTeam())
@@ -10558,7 +10593,9 @@ int CvPlayerAI::AI_dealVal(PlayerTypes eFromPlayer, CLinkList<TradeData> const& 
 		}
 		switch(eItemType) // </advc.130p>
 		{
-			// <!-- custom: AI is not good at cheap trading techs when it is beneficial: if more than 1 player has a tech, any other player that has the tech could sell it anytime for super cheap like 40 gold at mid-late classical era, which is still a much better deal than gaining 0 gold if another rival beats us to it. Something like 1 gold would be too low and like purposely sabotaging the other players, so some minimal theshold is needed, but beyond that AI needs to be opportunistic to maximize its gains as a human player would. Code implemented with the help of gemini 3 pro, check if accurate -->
+			// <!-- custom: AI is not good at cheap trading techs when it is beneficial: if more than 1 player has a tech, any other player that has the tech could sell it anytime for super cheap like 40 gold at mid-late classical era, which is still a much better deal than gaining 0 gold if another rival beats us to it.
+			// Something like 1 gold would be too low and like purposely sabotaging the other players, so some minimal theshold is needed, but beyond that AI needs to be opportunistic to maximize its gains as a human player would.
+			// Code implemented with the help of gemini 3 pro, check if accurate -->
 			// Explanation of the Logic
 			// 	- kGame.countKnownTechNumTeams(eTech) > 2: This checks if the tech is known by the owner plus at least two other teams. This satisfies your condition "as long as more than one rival has it". If you strictly meant "at least one rival" (so 2 teams total including us), change > 2 to > 1 (or >= 2).
 			// 	- iTechVal * 25 / 100: This acts as the "aggressive" modifier, reducing the tech's perceived value by 75%, making the AI willing to trade it for much less gold.
@@ -12662,7 +12699,8 @@ static bool shouldLogSASBonusValueChange(CvString const& szKey, CvString const& 
 int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) const
 {
 	// <!-- custom: Cache dynamic bonus values per player and current game state, not as timeless per-era tables.
-	// Technology progress, owned alternative resources, available replacement units, constructed buildings, corporations and city health/happiness needs can change the correct value within one era. AI_doTurnPre clears all entries each turn.
+	// Technology progress, owned alternative resources, available replacement units, constructed buildings, corporations and city health/happiness needs can change the correct value within one era.
+	// AI_doTurnPre clears all entries each turn.
 	// Explicit full refreshes invalidate them immediately, while domestic capital-network changes temporarily bypass the whole cache because one resource can change another resource's value. See KI#820. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	//recalculate if not defined
 	if (!m_bBonusValueCacheDirty && !bTrade && // advc.036
@@ -13370,7 +13408,11 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes eFromPlayer, int
 			rOurVal /= fixp(0.75);
 	}
 
-	// <!-- custom: a long standing issue in base advciv that still happens as of now is AI valuing for example pig the same as wheat, even though pig +1 health but wheat gives +2 health (+1 health and also +1 health with a granary which is almost always built), leading to the human player massively exploiting it or being able to and coasting through the early game as a result. Tone this down so AIs have a better understanding of the value of bonuses, by considering the building that increases effects (e.g. +1 health with granary) is always built as soon as we unlock the tech for it (in our mod for example tech_agriculture for building granary), also making sure our building is not obsolete though. Tone this toning down for bonuses that have increased effects with coastal buildings, as in many cases most cities won't be coastal, so use 1.5 times value to represent that in a simplified manner. Code provided by chatgpt 5, check if accurate. Also see known issue as of now 66 for details -->
+	// <!-- custom: a long standing issue in base advciv that still happens as of now is AI valuing for example pig the same as wheat, even though pig +1 health but wheat gives +2 health (+1 health and also +1 health with a granary which is almost always built), leading to the human player massively exploiting it or being able to and coasting through the early game as a result.
+	// Tone this down so AIs have a better understanding of the value of bonuses, by considering the building that increases effects (e.g. +1 health with granary) is always built as soon as we unlock the tech for it (in our mod for example tech_agriculture for building granary), also making sure our building is not obsolete though.
+	// Tone this toning down for bonuses that have increased effects with coastal buildings, as in many cases most cities won't be coastal, so use 1.5 times value to represent that in a simplified manner.
+	// Code provided by chatgpt 5, check if accurate.
+	// Also see known issue as of now 66 for details -->
 	// <!-- custom: note: since it seems bonuses losing value (like copper over time is already handled during the game, and according to chatgpt 5 elsewhere, simplifying our code and not wasting needless computation just for our pre-checks here by not checking it; check (no pun) if accurate). -->
 	// Notes & answers
 	// - Fairness (no bullying): The multiplier applies only to the buyer’s evaluation (this function belongs to the buyer), and only when the buyer’s team has the enabling tech. So if we don’t have Agriculture yet, Maize stays valued like +1 health.
@@ -13397,7 +13439,8 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes eFromPlayer, int
 	{
 		scaled rBoost = 1; // multiply our per-city value by this at the end
 
-		// <!-- custom: among special buildings, as for temples and monasteries, they can be built in many cities, fairly cheaply, and of many religions, however it would be computationally heavy and tedious to check all and every time just for bonus price. Use an approximation of which should most often be reliable enough; if some xml changes were to make these have a lot of bonus-related effects then we'd value these bonuses in trade more as we want -->
+		// <!-- custom: among special buildings, as for temples and monasteries, they can be built in many cities, fairly cheaply, and of many religions, however it would be computationally heavy and tedious to check all and every time just for bonus price.
+		// Use an approximation of which should most often be reliable enough; if some xml changes were to make these have a lot of bonus-related effects then we'd value these bonuses in trade more as we want -->
 		// yep — easiest way: give two tiny budgets and spend them when we see religion-gated buildings.
 		// Temples: total coverage capped at 0.5 (≈ one dominant religion’s temples).
 		// Monasteries: total coverage capped at 0.5.
@@ -13416,13 +13459,17 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes eFromPlayer, int
 		{
 			const CvBuildingClassInfo& kCls = GC.getInfo(eLoopBuildingClass);
 
-			// <!-- custom: to not cause overvaluing, exclude building classes that are rare (not built in many cities) such as world wonders, national wonders, and cathedrals (handled below since they are not limited but just rarely built due to their cost and restrictions (in XML iMaxGlobalInstances and such are -1 so not limited so need to handle it in another way if i'm not mistaken)) as of now which are the only ones i can think of. This is because our nice change caused incense to be a bit overpriced due to effect with buddhist stupa and pagan cathedral which are buildings we rarely build, so no need to value bonuses too much more just because of these. So to simplify, just ignore these cases; we also save some computation nicely too if i may say by early exiting -->
+			// <!-- custom: to not cause overvaluing, exclude building classes that are rare (not built in many cities) such as world wonders, national wonders, and cathedrals (handled below since they are not limited but just rarely built due to their cost and restrictions (in XML iMaxGlobalInstances and such are -1 so not limited so need to handle it in another way if i'm not mistaken)) as of now which are the only ones i can think of.
+			// This is because our nice change caused incense to be a bit overpriced due to effect with buddhist stupa and pagan cathedral which are buildings we rarely build, so no need to value bonuses too much more just because of these.
+			// So to simplify, just ignore these cases; we also save some computation nicely too if i may say by early exiting -->
 			// Skip world wonders, national wonders (player-limited)
 			// Skip world wonders, team wonders, national wonders
 			if (kCls.isLimited())
 				continue;
 
-			// <!-- custom: e.g. if justinian player gains happiness from horse bonus if he builds his civ-specific stable as of now for example, then we have more leverage vs him and he badly needs our bonus more.. Is sad but is business i mean and maybe just how it is; so on our end make sure we maximize and squeeze the best from him so he can get this bonus. Ugly and terrible but is business i mean and hopefully AI playing smarter -->
+			// <!-- custom: e.g. if justinian player gains happiness from horse bonus if he builds his civ-specific stable as of now for example, then we have more leverage vs him and he badly needs our bonus more..
+			// Is sad but is business i mean and maybe just how it is; so on our end make sure we maximize and squeeze the best from him so he can get this bonus.
+			// Ugly and terrible but is business i mean and hopefully AI playing smarter -->
 			// Use the building the BUYER can actually build for this class
 			BuildingTypes eB = (BuildingTypes)GC.getInfo(getCivilizationType()).getCivilizationBuildings(eLoopBuildingClass);
 			if (eB == NO_BUILDING)
@@ -13498,7 +13545,8 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes eFromPlayer, int
 		}
 
 		rOurVal *= rBoost;
-		// <!-- custom: finally, redivide everything by 2, so that now our bonuses have a hierarchy reflecting effective value/price instead of pig and maize at same price, but divide by 2 else maize becomes way too valuable (10+ gold at turn 100 in some cases). Thus, maize keeps about same price as before, but the pig that the human could sell too expensively is now cheaper so the human player can't abuse it anymore, nor can AI vs AI trades be unfavourable to clueless AIs (trading maize vs pig or equivalent kind of trade of trading away their maize for very low gpt or buying pig for very high gpt which would be bad for them) -->
+		// <!-- custom: finally, redivide everything by 2, so that now our bonuses have a hierarchy reflecting effective value/price instead of pig and maize at same price, but divide by 2 else maize becomes way too valuable (10+ gold at turn 100 in some cases).
+		// Thus, maize keeps about same price as before, but the pig that the human could sell too expensively is now cheaper so the human player can't abuse it anymore, nor can AI vs AI trades be unfavourable to clueless AIs (trading maize vs pig or equivalent kind of trade of trading away their maize for very low gpt or buying pig for very high gpt which would be bad for them) -->
 		// final damping: halve across the board
 		// (keeps boosted foods like Maize roughly where they were,
 		// but pushes low-impact stuff like Pig down)
@@ -13595,7 +13643,7 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes eFromPlayer, int
 		r.decreaseTo(rOurVal);
 	scaled const rBlendedValue = r;
 	r *= per100(std::max(0, GC.getInfo(eBonus).getAITradeModifier() + 100));
-	// <!-- custom: Passing eFromPlayer directly here and in the commented gold-trading check below is intentional because the AI GET_TEAM overload resolves PlayerTypes through TEAMID;  See KI#311. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Passing eFromPlayer directly here and in the commented gold-trading check below is intentional because the AI GET_TEAM overload resolves PlayerTypes through TEAMID; See KI#311. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if(GET_TEAM(eFromPlayer).isVassal(eOurTeam) &&
 		!GET_TEAM(eFromPlayer).isCapitulated())
 	{
@@ -14276,7 +14324,8 @@ DenialTypes CvPlayerAI::AI_cityTrade(CvCityAI const& kCity, PlayerTypes eToPlaye
 	if (!bLib && !kToPlayer.isHuman() && kToPlayer.getTeam() != getTeam() &&
 		!kCity.isEverOwned(eToPlayer))
 	{
-		// <!-- custom: Replace Base AdvCiv's crude terrain-only AI_isAwfulSite veto with the SAS long-term evaluation, which considers intrinsic BFC quality and sustainable distance for the recipient. AI_cityTradeVal then evaluates the developed city's broader acquisition value. See KI#186. (GPT-5.6-Sol) -->
+		// <!-- custom: Replace Base AdvCiv's crude terrain-only AI_isAwfulSite veto with the SAS long-term evaluation, which considers intrinsic BFC quality and sustainable distance for the recipient.
+		// AI_cityTradeVal then evaluates the developed city's broader acquisition value. See KI#186. (GPT-5.6-Sol) -->
 		// bool const bBadCityToAcquireLongTermForRecipient = GET_PLAYER(eToPlayer).AI_isAwfulSite(kCity);
 		bool const bBadCityToAcquireLongTermForRecipient = !GET_PLAYER(eToPlayer).AI_isSASCityLikelyToBenefitUsLongTerm(kCity);
 		if (bBadCityToAcquireLongTermForRecipient)
@@ -14684,8 +14733,7 @@ DenialTypes CvPlayerAI::AI_stopTradingTrade(TeamTypes eTradeTeam, PlayerTypes eP
 	{
 		FOR_EACH_DEAL(d)
 		{
-			// <!-- custom: One player's embargo cannot cancel a teammate's reparations deal, so that teammate deal must not block the enacting player's promise.
-			// See KI#617. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			// <!-- custom: One player's embargo cannot cancel a teammate's reparations deal, so that teammate deal must not block the enacting player's promise. See KI#617. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			if(!d->isBetween(getID(), eTradeTeam))
 				continue;
 			// <!-- custom: AdvCiv's list refactor made the reparations safeguard require the peace marker and payment on the AI's same gives-list.
@@ -14864,7 +14912,7 @@ uint CvPlayerAI::AI_unitImpassables(UnitTypes eUnit) const
 	uint uiCount = 0;
 	// <advc.057>
 	uint const uiCountBits = 3;
-	// <!-- custom: note: as part of cleaning up the old uiFlag code, not deleting these uiFlagBits code "bits" xd (no pun) though as recommended by claude ai and chatgpt 5 as according to chatgpt 5 for example this isn't using the savegame uiFlag so kept as such --> 
+	// <!-- custom: note: as part of cleaning up the old uiFlag code, not deleting these uiFlagBits code "bits" xd (no pun) though as recommended by claude ai and chatgpt 5 as according to chatgpt 5 for example this isn't using the savegame uiFlag so kept as such -->
 	uint const uiFlagBits = std::numeric_limits<uint>::digits - uiCountBits;
 	uint const uiTerrains = (uint)GC.getNumTerrainInfos();
 	FAssert(uiTerrains + ((uint)GC.getNumFeatureInfos()) <= uiFlagBits);
@@ -15907,7 +15955,7 @@ int CvPlayerAI::AI_countUnitsByCombat(UnitCombatTypes eCombat) const
 	int iTotal = 0;
 	FOR_EACH_ENUM(UnitClass)
 	{
-		// <!-- custom: performance optimization by chatgpt 5 thanks a lotwhich i slightly tweaked (added const) or not or yes or etc-->
+		// <!-- custom: performance optimization by chatgpt 5 thanks a lotwhich i slightly tweaked (added const) or not or yes or etc -->
 		// Tiny (optional) micro-perf tweak you can apply to all three: skip classification work when you own zero of that class. It avoids a few GC.getInfo(...) calls
 		const int iHave = getUnitClassCount(eLoopUnitClass);
 		if (iHave == 0)
@@ -16258,7 +16306,9 @@ int CvPlayerAI::AI_countUnimprovedBonuses(CvArea const& kArea, CvPlot const* pFr
 
 void CvPlayerAI::AI_logWorkerSeaAudit() const
 {
-	// <!-- custom: Late-game advisor/log review still showed owned seafood staying unimproved after the old Work Boat produce/scrap and overqueue fixes. Once per AI player turn, log a compact audit of owned water bonuses so we can distinguish missing production, missing mission assignment, danger, buildability/reachability, and repeated sea-improvement loss without dumping every plot every city production check. Diagnostic only. (GPT-5.5 + ChatGPT-5.5) -->
+	// <!-- custom: Late-game advisor/log review still showed owned seafood staying unimproved after the old Work Boat produce/scrap and overqueue fixes.
+	// Once per AI player turn, log a compact audit of owned water bonuses so we can distinguish missing production, missing mission assignment, danger, buildability/reachability, and repeated sea-improvement loss without dumping every plot every city production check.
+	// Diagnostic only. (GPT-5.5 + ChatGPT-5.5) -->
 	if (isHuman())
 		return;
 
@@ -16574,8 +16624,10 @@ int CvPlayerAI::AI_countCityFeatures(FeatureTypes eFeature) const
 }
 
 
-// <!-- custom: Raw area Worker floor shared by AI_neededWorkers and the production/scrap synchronization helper. Secondary areas retain the old city-local baseline and can still reach zero after demand clamping.
-// The primary area uses an XML-tunable workers-per-city floor plus separate signed reserves at one, two and three-or-more cities. This preserves the one-Worker floor during the initial expansion phase, then adds capacity as multiple cities compete for improvements while leaving every stage independently tunable. See KI#198. (GPT-5.6 Thinking + GPT-5.6-Sol) -->
+// <!-- custom: Raw area Worker floor shared by AI_neededWorkers and the production/scrap synchronization helper.
+// Secondary areas retain the old city-local baseline and can still reach zero after demand clamping.
+// The primary area uses an XML-tunable workers-per-city floor plus separate signed reserves at one, two and three-or-more cities.
+// This preserves the one-Worker floor during the initial expansion phase, then adds capacity as multiple cities compete for improvements while leaving every stage independently tunable. See KI#198. (GPT-5.6 Thinking + GPT-5.6-Sol) -->
 static int SAS_minimumAreaWorkerFloor(CvPlayerAI const& kPlayer, CvArea const& kArea)
 {
 	int const iCities = kArea.getCitiesPerPlayer(kPlayer.getID());
@@ -16644,8 +16696,10 @@ int CvPlayerAI::AI_neededWorkers(CvArea const& kArea) const
 		population growth and new techs, and try to err on the side of too
 		many Workers (b/c the AI is pretty bad at sharing them between cities). */
 	// <!-- custom: A Worker that had legitimately developed a secondary landmass remained there forever after completing every useful task because Base AdvCiv forced every revealed area above 3 tiles to retain one Worker.
-	// Preserve that reserve in the primary area. Also preserve it for Barbarians, whose separate islands do not use a civilization's transport and reassignment system; otherwise their island cities remained unimproved after this change.
-	// A civilization's secondary area can still reach zero demand when its cities, bonuses, routes, and prospective city sites provide no work. Production and transport demand rise again if new work appears. See KI#192. (GPT-5.6-Sol) -->
+	// Preserve that reserve in the primary area.
+	// Also preserve it for Barbarians, whose separate islands do not use a civilization's transport and reassignment system; otherwise their island cities remained unimproved after this change.
+	// A civilization's secondary area can still reach zero demand when its cities, bonuses, routes, and prospective city sites provide no work.
+	// Production and transport demand rise again if new work appears. See KI#192. (GPT-5.6-Sol) -->
 	bool const bKeepAreaWorkerReserve = (isBarbarian() || AI_isPrimaryArea(kArea) || iCount > 0);
 	iCount = (iCount * (100 + GC.getDefineINT(CvGlobals::WORKER_RESERVE_PERCENT))) / 100;
 	iCount += 1;
@@ -16657,10 +16711,12 @@ int CvPlayerAI::AI_neededWorkers(CvArea const& kArea) const
 			(fixp(2.15) * iCities).round());
 	// Lower bound was 1 flat. Allow small islands to require 0 workers.
 	int iNeededWorkers = std::max(kArea.getNumRevealedTiles(getTeam()) > 3 && bKeepAreaWorkerReserve ? 1 : 0, iCount);
-	// <!-- custom: The ordinary task calculation can fluctuate below a useful standing workforce even on a large developed core. Enforce the shared SAS minimum here for the primary area so every production/usefulness gate sees the same stronger answer; secondary areas remain demand-driven and may still reach zero. See KI#198. (GPT-5.6 Thinking) -->
+	// <!-- custom: The ordinary task calculation can fluctuate below a useful standing workforce even on a large developed core.
+	// Enforce the shared SAS minimum here for the primary area so every production/usefulness gate sees the same stronger answer; secondary areas remain demand-driven and may still reach zero. See KI#198. (GPT-5.6 Thinking) -->
 	if (AI_isPrimaryArea(kArea))
 		iNeededWorkers = std::max(iNeededWorkers, SAS_minimumAreaWorkerFloor(*this, kArea));
-	// <!-- custom: Several independent production paths deferred to AI_neededWorkers but could still choose a second Worker while the one-city capital was population 1, halting growth. Keep this as the shared source of truth: until the capital has ever reached the tunable population, the empire needs at most 1 land Worker; normal demand resumes afterward, and losing that Worker still creates a deficit. (GPT-5.5) -->
+	// <!-- custom: Several independent production paths deferred to AI_neededWorkers but could still choose a second Worker while the one-city capital was population 1, halting growth.
+	// Keep this as the shared source of truth: until the capital has ever reached the tunable population, the empire needs at most 1 land Worker; normal demand resumes afterward, and losing that Worker still creates a deficit. (GPT-5.5) -->
 	static const int iAdditionalWorkerMinHighestPopulation = std::max(0, GC.getDefineINT("SAS_AI_WORKER_FIRST_CITY_ADDITIONAL_MIN_HIGHEST_POPULATION"));
 	CvCity const* pCapital = getCapital();
 	if (getNumCities() == 1 && pCapital != NULL && pCapital->isArea(kArea) && pCapital->getHighestPopulation() < iAdditionalWorkerMinHighestPopulation)
@@ -16672,7 +16728,8 @@ int CvPlayerAI::AI_neededWorkers(CvArea const& kArea) const
 
 int CvPlayerAI::AI_getSASMinimumAreaWorkers(CvArea const& kArea) const
 {
-	// <!-- custom: Shared AdvCiv-SAS Worker floor used by production and scrap guards so cities do not rebuild fewer Workers than unit logic may retain. The primary area uses the stronger XML-tunable floor enforced by AI_neededWorkers; secondary areas remain bounded by actual demand so completed islands can still reach zero. See KI#198. (GPT-5.5 + GPT-5.6 Thinking) -->
+	// <!-- custom: Shared AdvCiv-SAS Worker floor used by production and scrap guards so cities do not rebuild fewer Workers than unit logic may retain.
+	// The primary area uses the stronger XML-tunable floor enforced by AI_neededWorkers; secondary areas remain bounded by actual demand so completed islands can still reach zero. See KI#198. (GPT-5.5 + GPT-5.6 Thinking) -->
 	return std::min(SAS_minimumAreaWorkerFloor(*this, kArea), AI_neededWorkers(kArea));
 }
 
@@ -18280,7 +18337,8 @@ int CvPlayerAI::AI_estimateBarbarianGarrisonSize() const
 // 0 means nothing worth attacking, 1 definitely something, can also go > 1.
 scaled CvPlayerAI::AI_barbarianTargetCityScore(CvArea const& kArea) const
 {
-	// <!-- custom: Diagnostic for late-game weak barbarian cities surviving near strong AI players. This production-side score only creates appetite for more city attackers; it does not by itself order existing stacks to clean up nearby barbarian cities, so log candidate distance/value gates before changing behavior. (GPT-5.5 + ChatGPT-5.5) -->
+	// <!-- custom: Diagnostic for late-game weak barbarian cities surviving near strong AI players.
+	// This production-side score only creates appetite for more city attackers; it does not by itself order existing stacks to clean up nearby barbarian cities, so log candidate distance/value gates before changing behavior. (GPT-5.5 + ChatGPT-5.5) -->
 	bool const bLogBarbTargets = (gPlayerLogLevel >= 2 && GET_PLAYER(BARBARIAN_PLAYER).getNumCities() > 0);
 	scaled rTotal;
 	FOR_EACH_CITY(pBarbarianCity, GET_PLAYER(BARBARIAN_PLAYER))
@@ -18487,7 +18545,8 @@ int CvPlayerAI::AI_enemyTargetMissions(TeamTypes eTargetTeam, CvSelectionGroup* 
 	int iCount = 0;
 	FOR_EACH_GROUPAI(pLoopSelectionGroup, *this)
 	{
-		// <!-- custom: Group separation can leave an empty group registered until doDelayedDeath. Its retained MissionAI plot cannot represent any units or cargo, and consulting AI_isDeclareWar on it fired the inherited null-head assertion during pre-war plan maintenance; exclude it from this unit census. See KI#534. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: Group separation can leave an empty group registered until doDelayedDeath.
+		// Its retained MissionAI plot cannot represent any units or cargo, and consulting AI_isDeclareWar on it fired the inherited null-head assertion during pre-war plan maintenance; exclude it from this unit census. See KI#534. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if (pLoopSelectionGroup == pSkipSelectionGroup ||
 			pLoopSelectionGroup->getNumUnits() <= 0)
 			continue;
@@ -19381,7 +19440,8 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	// K-Mod end
 
 
-	// <!-- custom: the former civic_emancipation was overvalued when it was really not a so great civic especially vs civic_caste_system and civic_serfdom, so reduce the overvaluation potential causes. Use another formula counting unhappiness in cities rather, with the help of chatgpt 5, check if accurate -->
+	// <!-- custom: the former civic_emancipation was overvalued when it was really not a so great civic especially vs civic_caste_system and civic_serfdom, so reduce the overvaluation potential causes.
+	// Use another formula counting unhappiness in cities rather, with the help of chatgpt 5, check if accurate -->
 	// Short answer: the AI is over-valuing Emancipation because of the two civic-percent-anger terms in AI_civicValue. With your current XML (iCivicPercentAnger = 400 and low upkeep), those lines alone can outweigh Emancipation’s weak direct effects, so AIs “auto-snap" to it.
 	// if (kCivic.getCivicPercentAnger() != 0)
 	// {
@@ -19728,7 +19788,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	}
 	// K-Mod end
 
-	// <!-- custom: compute these once as computationally more efficient-->
+	// <!-- custom: compute these once as computationally more efficient -->
 	int iNeedy = 0;
 	bool const bAIEasyCulture = AI_isEasyCulture();
 	bool bAnyCityNeedsBFC = false;
@@ -19748,7 +19808,9 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		}
 	}
 
-	// <!-- custom: following our rework to give commerce yields to specialists as of now in civic_representation (beakers, gold, culture), the civic is still very underpicked, almost never, even though it should be quite attractive. Commerce value may be underestimated by AI. Adding this with the help of chatgpt 5 thanks i mean to see if it helps, check if accurate -->
+	// <!-- custom: following our rework to give commerce yields to specialists as of now in civic_representation (beakers, gold, culture), the civic is still very underpicked, almost never, even though it should be quite attractive.
+	// Commerce value may be underestimated by AI.
+	// Adding this with the help of chatgpt 5 thanks i mean to see if it helps, check if accurate -->
 	static const int iSASCommerceToningDownPercent = GC.getDefineINT("SAS_AI_CIVIC_VALUE_SPEC_COMMERCE_WEIGHT_TO_MULT_TONING_DOWN_PERCENT");
 	FOR_EACH_ENUM2(Commerce, eCommerce)
 	{
@@ -19775,7 +19837,9 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		if (bSpecialistCommerce)
 		{
 			const int iSASCommerceWeight = SAS_SpecCommerceBaseWeight(*this, eCommerce, /*bAnyCityNeedsBFC=*/false);
-			// <!-- custom: use a toned down version for the multiplier, as advised and explained to em thanks by chatgpt 5. In autoplay, the above as of now iSASCommerceWeight fixes to overpick of civic_heridetary_rule in favour of civic_representation, but representation is now overpicked. So toning down the weight with a percentage of this value customizable in defines as well -->
+			// <!-- custom: use a toned down version for the multiplier, as advised and explained to em thanks by chatgpt 5.
+			// In autoplay, the above as of now iSASCommerceWeight fixes to overpick of civic_heridetary_rule in favour of civic_representation, but representation is now overpicked.
+			// So toning down the weight with a percentage of this value customizable in defines as well -->
 			const int iSASCommerceTonedDownMult = (iSASCommerceWeight * iSASCommerceToningDownPercent) / 100;
 			int iSpecialistValue = iSASCommerceTonedDownMult *
 					(kCivic.getSpecialistExtraCommerce(eCommerce) *
@@ -19885,7 +19949,10 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	} */ /*	Disabled by K-Mod. This evaluation isn't accurate enough to be useful -
 			but it does sometimes cause civs to switch
 			to organized religion when they don't have a religion... */
-	// <!-- custom: this code looks very bad as per k-mod's admission but also as it seems to only value culture specialists (i don't know too much but check to be sure), and as chatgpt 5 confirms as well (check to be sure as well). We want to value engineer specialists for example for our as of now civic_wage_labor rework that gives unlimited engineers and that is never picked by ais, even though engineer are quite strong. So trying to value each specialist based on their strengths and time when they are relevant or such. Code provided by chatgpt 5 which i adjusted or such, check if accurate i mean -->
+	// <!-- custom: this code looks very bad as per k-mod's admission but also as it seems to only value culture specialists (i don't know too much but check to be sure), and as chatgpt 5 confirms as well (check to be sure as well).
+	// We want to value engineer specialists for example for our as of now civic_wage_labor rework that gives unlimited engineers and that is never picked by ais, even though engineer are quite strong.
+	// So trying to value each specialist based on their strengths and time when they are relevant or such.
+	// Code provided by chatgpt 5 which i adjusted or such, check if accurate i mean -->
 	// {
 	// 	int iTempValue = 0; // advc: Moved up to reduce rounding error
 	// 	int iMaxCultureChange = 0;
@@ -19924,7 +19991,7 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 	// --- Unlimited specialists: value the actual types we unlock ---
 	int iTotal = 0;
 
-	// <!-- custom: compute these once as computationally more efficient-->
+	// <!-- custom: compute these once as computationally more efficient -->
 	// <!-- custom: Situation read (ChatGPT-5) --> (player scope; cheap and robust)
 	const int iEnemyPowerPercent = GET_TEAM(getTeam()).AI_getEnemyPowerPercent(true);
 	const bool bEnemyStrong = SASWarPowerContext::isEnemyStrong(iEnemyPowerPercent);
@@ -19998,7 +20065,8 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		const int iGPP = kSpec.getGreatPeopleRateChange();
 		if (iGPP > 0)
 		{
-			// <!-- custom: The normal 100% Great Person multiplier is the baseline value of specialist GPP, not a bonus to subtract. Using only the amount above 100 made ordinary GPP worth zero. See KI#316. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			// <!-- custom: The normal 100% Great Person multiplier is the baseline value of specialist GPP, not a bonus to subtract.
+			// Using only the amount above 100 made ordinary GPP worth zero. See KI#316. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			iPer += iGPP * std::max(0, iAverageGreatPeopleMultiplier) / 25;
 		}
 
@@ -20006,7 +20074,8 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		iTotal += iPotential * iPer / 100;
 	}
 
-	// <!-- custom: new logic is great at switching more evenly between civics at different stages of the game, but we do it a bit too often. Add an anarchy weight to make it less attractive to switch too often if we'd have anarchy -->
+	// <!-- custom: new logic is great at switching more evenly between civics at different stages of the game, but we do it a bit too often.
+	// Add an anarchy weight to make it less attractive to switch too often if we'd have anarchy -->
 	// Devalue this component if adopting the civic would cost anarchy turns.
 	// We can’t compute the full-set anarchy here, so use a cheap, correct-enough proxy:
 	//   - if player has zero max anarchy (Spiritual, Cristo, GA rules handled elsewhere), no penalty
@@ -20033,7 +20102,8 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 		}
 	}
 
-	// <!-- custom: AI_civicValue compares absolute civic scores. Multiplying this intrinsic positive benefit by iS made an active unlimited-specialist civic subtract its own value and encouraged pick-then-drop behavior; state-dependent switching costs remain handled separately. See KI#315. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: AI_civicValue compares absolute civic scores.
+	// Multiplying this intrinsic positive benefit by iS made an active unlimited-specialist civic subtract its own value and encouraged pick-then-drop behavior; state-dependent switching costs remain handled separately. See KI#315. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	iValue += iTotal;
 	// --- end - Unlimited specialists: value the actual types we unlock ---
 
@@ -22182,7 +22252,8 @@ void CvPlayerAI::AI_doCommerce()
 				// advc.120: Capitulated vassals should wait for gifts from the master
 				(!kOurTeam.isCapitulated() || getMasterTeam() != kRival.getMasterTeam()))
 			{
-				// <!-- custom: `canStealTech` is team-based. Count two distinct technologies once for this rival team instead of breaking after one and leaking the prior rival's accumulator into the validity test and cost estimate. See KI#672. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				// <!-- custom: `canStealTech` is team-based.
+				// Count two distinct technologies once for this rival team instead of breaking after one and leaking the prior rival's accumulator into the validity test and cost estimate. See KI#672. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 				int iStealableTechCount = 0;
 				int iRivalApproxTechCost = 0;
 				FOR_EACH_ENUM(Tech)
@@ -22447,7 +22518,8 @@ void CvPlayerAI::AI_doCommerce()
 	/*	this is called on doTurn, so make sure our gold is high enough
 		to keep us above zero gold. */
 	verifyGoldCommercePercent();
-	// <!-- custom: The culture-weight summary is written before this commerce update and therefore shows the prior allocation. Log the actual slider decision and its happiness, pressure, and Culture-2/3 components so late culture spending can be separated from local needs and compared with stronger victory routes. (GPT-5.5) -->
+	// <!-- custom: The culture-weight summary is written before this commerce update and therefore shows the prior allocation.
+	// Log the actual slider decision and its happiness, pressure, and Culture-2/3 components so late culture spending can be separated from local needs and compared with stronger victory routes. (GPT-5.5) -->
 	if (bLogCultureCommerce) logBBAI("CULTURE_SLIDER_DECISION turn=%d player=%d %S flexible=%d firstTech=%d culture2=%d culture3=%d culture4=%d happinessIdeal=%d stageBonus=%d averagePressure=%d avoidScience=%d cap=%d initialTarget=%d finalCulture=%d finalResearch=%d finalGold=%d finalEspionage=%d",
 		GC.getGame().getGameTurn(), getID(), getCivilizationShortDescription(), isCommerceFlexible(COMMERCE_CULTURE), bFirstTech,
 		AI_atVictoryStage(AI_VICTORY_CULTURE2), AI_atVictoryStage(AI_VICTORY_CULTURE3), AI_atVictoryStage(AI_VICTORY_CULTURE4),
@@ -22502,13 +22574,16 @@ void CvPlayerAI::AI_doCivics()
 		aiCurrentValue.set(eLoopCivicOption,
 				AI_civicValue(aeBestCivic.get(eLoopCivicOption)));
 	}
-	// <!-- custom: Civic churn is costly with 2-turn anarchy, and earlier logs only showed repeated switch lines without enough context to tell whether the AI was reversing the same option, paying anarchy for tiny gains, switching during war/financial trouble, or bundling good changes. Add structured diagnostics before changing behavior further. Accepted switches and final revolution bundles log at player log level 2+; rejected candidates log at 3+ to keep normal logs smaller. (ChatGPT-5.5 + GPT-5.5) -->
+	// <!-- custom: Civic churn is costly with 2-turn anarchy, and earlier logs only showed repeated switch lines without enough context to tell whether the AI was reversing the same option, paying anarchy for tiny gains, switching during war/financial trouble, or bundling good changes.
+	// Add structured diagnostics before changing behavior further.
+	// Accepted switches and final revolution bundles log at player log level 2+; rejected candidates log at 3+ to keep normal logs smaller. (ChatGPT-5.5 + GPT-5.5) -->
 	bool const bLogBBAICivicDecision = (gPlayerLogLevel >= 2);
 	bool const bLogBBAICivicCandidate = (gPlayerLogLevel >= 3);
 	int const iSASGameRecordLogLevel = getSASGameRecordLogLevel();
 	bool const bLogSASCivicDecision = (iSASGameRecordLogLevel >= 2);
 	bool const bLogSASCivicCandidate = (iSASGameRecordLogLevel >= 3);
-	// <!-- custom: These strategic-state lookups are diagnostic-only. Earlier civic diagnostics evaluated them even with BBAI logging disabled; gate them so normal gameplay pays none of that work. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: These strategic-state lookups are diagnostic-only.
+	// Earlier civic diagnostics evaluated them even with BBAI logging disabled; gate them so normal gameplay pays none of that work. (ChatGPT-5.6-Sol) -->
 	bool bFinancialTrouble = false;
 	bool bAnyWarPlan = false;
 	int iNumWars = 0;
@@ -22563,7 +22638,9 @@ void CvPlayerAI::AI_doCivics()
 				// </advc.132b>
 			}
 
-			// <!-- custom: we seem to have excessive civic oscillation, especially after our changes to civic valuation that stopped the civic_caste_system autopick and which may have revealed an issue that was masked before (as this oscillation happened to a lesser extent before our changes based on quick autoplay testing). Trying to reduce oscillation so we change civics only when it benefits us and not too often which may be inefficient if we don't have a no anarchy effect. Code provided by chatgpt 5, check if accurate -->
+			// <!-- custom: we seem to have excessive civic oscillation, especially after our changes to civic valuation that stopped the civic_caste_system autopick and which may have revealed an issue that was masked before (as this oscillation happened to a lesser extent before our changes based on quick autoplay testing).
+			// Trying to reduce oscillation so we change civics only when it benefits us and not too often which may be inefficient if we don't have a no anarchy effect.
+			// Code provided by chatgpt 5, check if accurate -->
 			// This keeps your existing percent threshold logic (which already scales with anarchy) and demands a tiny absolute lead (e.g., max(5, 5% of current)). That’s usually enough to stop OR↔Paganism bounce from rounding/upkeep noise while still allowing real upgrades.
 			// if (100*iBestValue > (100 + /* advc.131: */ (iBestValue >= 0 ? 1 : -1) *
 			// 	iThreshold) * aiCurrentValue.get(eLoopCivicOption))
@@ -22595,7 +22672,8 @@ void CvPlayerAI::AI_doCivics()
 			int const iAnarchyDelta = std::max(0, iTestAnarchy - iAnarchyLength);
 			if (iAnarchyDelta > 0)
 			{
-				// <!-- custom: BBAI diagnostics showed paid-anarchy civic switches for tiny value gains. Free/no-extra-anarchy bundle changes can stay responsive, but a candidate that adds anarchy must clear a larger absolute gain before freezing the empire. See KI#159. (GPT-5.5 + ChatGPT-5.5) -->
+				// <!-- custom: BBAI diagnostics showed paid-anarchy civic switches for tiny value gains.
+				// Free/no-extra-anarchy bundle changes can stay responsive, but a candidate that adds anarchy must clear a larger absolute gain before freezing the empire. See KI#159. (GPT-5.5 + ChatGPT-5.5) -->
 				iAbsSlack = std::max(iAbsSlack, iPaidAnarchySlackMin + iAnarchyDelta * iPaidAnarchySlackPerTurn);
 			}
 			bool const bPassPercent = (iLHS > iRHS);
@@ -22747,7 +22825,8 @@ void CvPlayerAI::AI_doCivics()
 			logSASGameRecordAICivicOutcome(getID(), "REVOLUTION", aeSASChanges, iFinalAnarchyLength, iFinalCivicTimer, getCurrentResearch(), -1, NO_CIVIC, -1, -1, -1, 1);
 		}
 		revolution(aeBestCivic);
-		// <!-- custom: Paid-anarchy civic reversals often happened right when the old civic timer expired. Keep no-anarchy switches responsive, but after paid anarchy wait longer before reevaluating civics so a temporary value swing is less likely to immediately undo the revolution. See KI#159. (GPT-5.5 + ChatGPT-5.5) -->
+		// <!-- custom: Paid-anarchy civic reversals often happened right when the old civic timer expired.
+		// Keep no-anarchy switches responsive, but after paid anarchy wait longer before reevaluating civics so a temporary value swing is less likely to immediately undo the revolution. See KI#159. (GPT-5.5 + ChatGPT-5.5) -->
 		AI_setCivicTimer(iFinalCivicTimer);
 	}
 	else if (bLogSASCivicDecision)
@@ -23858,15 +23937,18 @@ void CvPlayerAI::AI_doDiplo()
 						rContactProbMult.mulDiv(4, 3);
 					}
 
-					// <!-- custom: we have an issue of AI quite often researching techs its vassal already owns, which is very inefficient. Ideally they'd research different techs, as well as even more ideally trade techs each other don't own preferentially to each other, and vice versa for its vassal. -->
-					// <!-- custom: After we have implemented a tentative fix to this, now also encourage vassal(s)<->master to trade more/preferentially (and not only for techs each other don't own, so this is an extra team play enhancement for any tech), which synergises with this previous tentative fix. Code added with the help of chatgpt 5.1 to patch both of these issues and increase AI efficiency i mean, check if accurate; see also known issues as of now 77 and 78 for details -->
+					// <!-- custom: we have an issue of AI quite often researching techs its vassal already owns, which is very inefficient.
+					// Ideally they'd research different techs, as well as even more ideally trade techs each other don't own preferentially to each other, and vice versa for its vassal. -->
+					// <!-- custom: After we have implemented a tentative fix to this, now also encourage vassal(s)<->master to trade more/preferentially (and not only for techs each other don't own, so this is an extra team play enhancement for any tech), which synergises with this previous tentative fix.
+					// Code added with the help of chatgpt 5.1 to patch both of these issues and increase AI efficiency i mean, check if accurate; see also known issues as of now 77 and 78 for details -->
 					// SAS vassalMasterMoreTechTrade
 					static const bool bSAS_AI_DO_DIPLO_TECH_TRADE_MASTER_FROM_TO_VASSAL_CONTACT_PERCENT_OPTIMIZE = GC.getDefineBOOL("SAS_AI_DO_DIPLO_TECH_TRADE_MASTER_FROM_TO_VASSAL_CONTACT_PERCENT_OPTIMIZE");
 					const TeamTypes eOurTeam = getTeam();
 					const TeamTypes eTheirTeam = kPlayer.getTeam();
 					const TeamTypes eMasterTeam = kOurTeam.getMasterTeam();
 					CvTeamAI const& kTheirTeam = GET_TEAM(eTheirTeam);
-					// <!-- custom: The separately configurable power-based tech-contact bias promises not to affect master/vassal-locus partners, so compute that relationship independently of the preferential-contact toggle. Defaults enabled both toggles and masked the coupling. See KI#330. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+					// <!-- custom: The separately configurable power-based tech-contact bias promises not to affect master/vassal-locus partners, so compute that relationship independently of the preferential-contact toggle.
+					// Defaults enabled both toggles and masked the coupling. See KI#330. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 					const bool bVassalsOrMaster = (kTheirTeam.isVassal(eOurTeam) || kOurTeam.isVassal(eTheirTeam) || (kOurTeam.isAVassal() && eMasterTeam != NO_TEAM && kTheirTeam.isVassal(eMasterTeam) && eTheirTeam != eOurTeam));
 
 					if (bSAS_AI_DO_DIPLO_TECH_TRADE_MASTER_FROM_TO_VASSAL_CONTACT_PERCENT_OPTIMIZE)
@@ -26335,7 +26417,8 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent, EventTriggeredData const& kTrig
 
 				iBuildingValue *= GC.getInfo(kGame.getGameSpeedType()).
 						getConstructPercent();
-				// <!-- custom: Fix inherited K-Mod/Base AdvCiv bug: ConstructPercent is a percentage, so normalize after applying it. Without /100, building-change event value is 100x too large. See KI#206. (ChatGPT-5.6-Sol) -->
+				// <!-- custom: Fix inherited K-Mod/Base AdvCiv bug: ConstructPercent is a percentage, so normalize after applying it.
+				// Without /100, building-change event value is 100x too large. See KI#206. (ChatGPT-5.6-Sol) -->
 				iBuildingValue /= 100;
 				iValue += kEvent.getBuildingChange() * iBuildingValue;
 			}
@@ -26629,7 +26712,8 @@ int CvPlayerAI::AI_eventValue(EventTypes eEvent, EventTriggeredData const& kTrig
 				iPromotionValue += iNumCities * 50;
 			}
 		}
-		// <!-- custom: BtS applied UnitClassPromotions to matching existing units and future units but omitted their entire value here. Mirror the UnitCombat estimate, excluding the same promotion when the event already grants it through the unit's combat class so one runtime reward is not counted twice. See KI#682. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: BtS applied UnitClassPromotions to matching existing units and future units but omitted their entire value here.
+		// Mirror the UnitCombat estimate, excluding the same promotion when the event already grants it through the unit's combat class so one runtime reward is not counted twice. See KI#682. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		FOR_EACH_ENUM(UnitClass)
 		{
 			PromotionTypes const eEventPromotion = (PromotionTypes)
@@ -27148,7 +27232,8 @@ void CvPlayerAI::AI_roundTradeValBounds(int& iTradeVal, bool bPreferRoundingUp, 
 int CvPlayerAI::AI_calculateCultureVictoryStage(int iCountdownThresh) const // advc.115
 {
 	PROFILE_FUNC();
-	// <!-- custom: The normal victory-strategy update uses -1; Rise/Fall and war-utility probes use alternate thresholds and can call this repeatedly. Keep levels 1-2 focused on the normal strategic result, while level 3 deliberately includes all caller contexts for deep diagnosis. (GPT-5.5 review) -->
+	// <!-- custom: The normal victory-strategy update uses -1; Rise/Fall and war-utility probes use alternate thresholds and can call this repeatedly.
+	// Keep levels 1-2 focused on the normal strategic result, while level 3 deliberately includes all caller contexts for deep diagnosis. (GPT-5.5 review) -->
 	int const iCultureLogLevel = gCultureLogLevel;
 	bool const bLogCultureStage = (iCultureLogLevel >= 1 && (iCountdownThresh == -1 || iCultureLogLevel >= 3));
 
@@ -27358,7 +27443,8 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(int iCountdownThresh) const // a
 
 		if (iValue < 100)
 		{
-			// <!-- custom: The later culture-stage probes cannot observe candidates rejected by this personality/random strategy score. At culture log level 2+, record natural foundation and projected-finish evidence before returning so repeated random maps can reveal whether promising cultural positions are being rejected too often without changing strategy. (GPT-5.5) -->
+			// <!-- custom: The later culture-stage probes cannot observe candidates rejected by this personality/random strategy score.
+			// At culture log level 2+, record natural foundation and projected-finish evidence before returning so repeated random maps can reveal whether promising cultural positions are being rejected too often without changing strategy. (GPT-5.5) -->
 			if (iCultureLogLevel >= 2 && iCountdownThresh == -1)
 			{
 				int const iProbeFoundationCities = std::max(1, iVictoryCities - 1);
@@ -27398,7 +27484,8 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(int iCountdownThresh) const // a
 	int const iCultureFoundationCities = std::max(1, iVictoryCities - 1);
 	static int const iMinCultureFoundationProgressPercent = std::max(0, GC.getDefineINT("SAS_AI_CULTURE_VICTORY_STAGE2_MIN_FOUNDATION_CITY_PROGRESS_PERCENT"));
 	static int const iMaxCultureRaceRank = GC.getDefineINT("SAS_AI_CULTURE_VICTORY_MAX_RACE_RANK");
-	// <!-- custom: Foundation culture affects behavior only while either foundation gate is enabled; weakest-candidate culture is diagnostic only. Keep both available to logs without sorting the weakest city on non-logging paths, or the foundation city when both gates are disabled. (ChatGPT-5.5 + GPT-5.5 review) -->
+	// <!-- custom: Foundation culture affects behavior only while either foundation gate is enabled; weakest-candidate culture is diagnostic only.
+	// Keep both available to logs without sorting the weakest city on non-logging paths, or the foundation city when both gates are disabled. (ChatGPT-5.5 + GPT-5.5 review) -->
 	int iCultureFoundationCulture = -1;
 	int iCultureFoundationProgressPercent = -1;
 	if (iMinCultureFoundationProgressPercent > 0 || iMaxCultureRaceRank > 0 || bLogCultureStage)
@@ -27415,7 +27502,8 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(int iCountdownThresh) const // a
 	}
 	int iCultureFoundationRaceRank = -1;
 	int iCultureFoundationRacePlayers = -1;
-	// <!-- custom: Before late projected countdowns become available, rank contenders by actual culture in their N-1th-best foundation city. Culture 2 can therefore shape the final required candidate, but cannot create an entire cultural lead from an early personality/random roll. (GPT-5.5 + ChatGPT-5.5 review) -->
+	// <!-- custom: Before late projected countdowns become available, rank contenders by actual culture in their N-1th-best foundation city.
+	// Culture 2 can therefore shape the final required candidate, but cannot create an entire cultural lead from an early personality/random roll. (GPT-5.5 + ChatGPT-5.5 review) -->
 	bool const bLogCultureFoundationRace = (iCultureLogLevel >= 3 && iCountdownThresh == -1);
 	if (bLogCultureFoundationRace || (!isHuman() && iMaxCultureRaceRank > 0 && iCultureFoundationProgressPercent >= iMinCultureFoundationProgressPercent))
 	{
@@ -27464,7 +27552,8 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(int iCountdownThresh) const // a
 			iLegendaryCount, iVictoryCities);
 		return 1;
 	}
-	// <!-- custom: Map 437 showed Rome entering Culture 2 for 45 normal-strategy turns despite reaching Domination 3 and later Space 3 while only one of three required culture cities had a high-culture countdown and the projected cultural finish remained too late. Once another victory route is this advanced, return to Culture 1 preparation instead of diverting production, specialists, and commerce into an unready cultural pursuit; preserve Culture 3/4 evaluation when all required cities are already credible candidates so a close cultural win can still take priority. (GPT-5.5) -->
+	// <!-- custom: Map 437 showed Rome entering Culture 2 for 45 normal-strategy turns despite reaching Domination 3 and later Space 3 while only one of three required culture cities had a high-culture countdown and the projected cultural finish remained too late.
+	// Once another victory route is this advanced, return to Culture 1 preparation instead of diverting production, specialists, and commerce into an unready cultural pursuit; preserve Culture 3/4 evaluation when all required cities are already credible candidates so a close cultural win can still take priority. (GPT-5.5) -->
 	static int const iMinCompetingVictoryStage = range(GC.getDefineINT("SAS_AI_CULTURE_VICTORY_COMPETING_VICTORY_MIN_STAGE"), 0, 4);
 	if (!isHuman() && iMinCompetingVictoryStage > 0 && iHighCultureCount < iVictoryCities)
 	{
@@ -27484,7 +27573,8 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(int iCountdownThresh) const // a
 			return 1;
 		}
 	}
-	// <!-- custom: Reuse the player-wide SAS situation read here; city danger is intentionally absent because one threatened city should not veto an empire-wide victory strategy. Culture 2 diverts buildings, specialists, commerce, and production while the AI still needs to establish a plausible cultural win.
+	// <!-- custom: Reuse the player-wide SAS situation read here; city danger is intentionally absent because one threatened city should not veto an empire-wide victory strategy.
+	// Culture 2 diverts buildings, specialists, commerce, and production while the AI still needs to establish a plausible cultural win.
 	// Postpone that investment when current or chosen war enemies exceed our shared strong-enemy power threshold; retain Culture 1/local border culture, and preserve Culture 3/4 when all required cities already have credible high-culture countdowns so a close late win is not abandoned. (GPT-5.5) -->
 	CvTeamAI const& kTeam = GET_TEAM(getTeam());
 	int const iEnemyPowerPercent = kTeam.AI_getEnemyPowerPercent(true);
@@ -27505,7 +27595,9 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(int iCountdownThresh) const // a
 	int iEligibleCultureRaceRank = -1;
 	int iEligibleCultureRacePlayers = -1;
 	bool const bLateCultureRace = (getCurrentEra() * 100 >= GC.getNumEraInfos() * iEraThresholdPercent);
-	// <!-- custom: Rank each major civ by its Nth-best projected Legendary countdown once this can affect late strategy, or at log level 3 for diagnosis. Relative rank alone is insufficient (the logged Ottomans ranked 1/4 while still missing the game deadline), so behavior below also requires absolute feasibility. Players without enough qualifying cities remain visibly unranked. (ChatGPT-5.5 + GPT-5.5 review) -->
+	// <!-- custom: Rank each major civ by its Nth-best projected Legendary countdown once this can affect late strategy, or at log level 3 for diagnosis.
+	// Relative rank alone is insufficient (the logged Ottomans ranked 1/4 while still missing the game deadline), so behavior below also requires absolute feasibility.
+	// Players without enough qualifying cities remain visibly unranked. (ChatGPT-5.5 + GPT-5.5 review) -->
 	if ((iCultureLogLevel >= 3 || (!isHuman() && iMaxCultureRaceRank > 0 && bLateCultureRace && iWinningCountdown < MAX_INT)) && kGame.culturalVictoryValid() && iVictoryCities > 0)
 	{
 		iEligibleCultureRacePlayers = 0;
@@ -27556,7 +27648,10 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(int iCountdownThresh) const // a
 			iWeakestCandidateProgressPercent, iEligibleCultureRaceRank, iEligibleCultureRacePlayers,
 			getCurrentEra(), iEraThresholdPercent, getCommercePercent(COMMERCE_CULTURE), getNumCities());
 	}
-	// <!-- custom: Culture 2/3 caused production, specialists, and commerce to chase implausible wins. Once all required cities have reached the level below Legendary, their complete max-affordable-slider projection is meaningful enough to reject a deadline miss immediately; map 437 showed Rome continuing Culture 2 with a 347-409-turn projection and only 193-207 estimated turns remaining. Before a complete projection exists, retain Culture 2 setup until the late-race phase; only then reject a missing projection too. Relative-race ranking also remains late-only, and local border culture remains valued independently. (GPT-5.5) -->
+	// <!-- custom: Culture 2/3 caused production, specialists, and commerce to chase implausible wins.
+	// Once all required cities have reached the level below Legendary, their complete max-affordable-slider projection is meaningful enough to reject a deadline miss immediately; map 437 showed Rome continuing Culture 2 with a 347-409-turn projection and only 193-207 estimated turns remaining.
+	// Before a complete projection exists, retain Culture 2 setup until the late-race phase; only then reject a missing projection too.
+	// Relative-race ranking also remains late-only, and local border culture remains valued independently. (GPT-5.5) -->
 	if (!isHuman() && kGame.culturalVictoryValid() && (bLateCultureRace || iWinningCountdown < MAX_INT))
 	{
 		static int const iMaxCultureDeadlinePercent = GC.getDefineINT("SAS_AI_CULTURE_VICTORY_MAX_DEADLINE_PERCENT");
@@ -27571,7 +27666,8 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(int iCountdownThresh) const // a
 				iCloseToLegendaryCount, iLegendaryCount, iVictoryCities);
 			return 1;
 		}
-		// <!-- custom: Level-3 diagnostics can compute a positive race rank even when a nonpositive XML limit disables this behavior gate. Check the enable value explicitly so turning on logging cannot change AI strategy. (ChatGPT-5.5 review + GPT-5.5) -->
+		// <!-- custom: Level-3 diagnostics can compute a positive race rank even when a nonpositive XML limit disables this behavior gate.
+		// Check the enable value explicitly so turning on logging cannot change AI strategy. (ChatGPT-5.5 review + GPT-5.5) -->
 		if (bLateCultureRace && iMaxCultureRaceRank > 0 && iEligibleCultureRaceRank > iMaxCultureRaceRank)
 		{
 			if (bLogCultureStage) logBBAI("CULTURE_STAGE_RESULT turn=%d player=%d %S countdownThresh=%d stage=1 reason=lateCultureRaceBehind winningCountdown=%d turnsRemaining=%d eligibleRaceRank=%d/%d maxRaceRank=%d high=%d close=%d legendary=%d needed=%d",
@@ -27581,7 +27677,9 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(int iCountdownThresh) const // a
 			return 1;
 		}
 	}
-	// <!-- custom: Map 428 showed Mali enter Culture 3 and set 100% culture with a projected 106-turn cultural bottleneck while its already-launched Space victory had only 4 turns remaining. An active victory countdown is more concrete than a projected cultural finish; when it is shorter, retain Culture 1/local culture but do not divert empire-wide production, specialists, or commerce into Culture 2/3/4. Use the team's lowest countdown so the same protection applies to any victory type with a real countdown. (GPT-5.5) -->
+	// <!-- custom: Map 428 showed Mali enter Culture 3 and set 100% culture with a projected 106-turn cultural bottleneck while its already-launched Space victory had only 4 turns remaining.
+	// An active victory countdown is more concrete than a projected cultural finish; when it is shorter, retain Culture 1/local culture but do not divert empire-wide production, specialists, or commerce into Culture 2/3/4.
+	// Use the team's lowest countdown so the same protection applies to any victory type with a real countdown. (GPT-5.5) -->
 	int const iOwnVictoryCountdown = kTeam.AI_getLowestVictoryCountdown();
 	if (!isHuman() && iOwnVictoryCountdown >= 0 && iOwnVictoryCountdown < iWinningCountdown)
 	{
@@ -27653,7 +27751,8 @@ int CvPlayerAI::AI_calculateCultureVictoryStage(int iCountdownThresh) const // a
 						getCultureVictoryWeight();
 				iCountdownTarget *= kGame.AI_getMaxCultureLevelPercent();
 				iCountdownTarget /= std::max(1, iDemoninator);
-				// <!-- custom: Diagnose candidate Culture 4 sprint windows without changing strategy. Use the actual best projected Legendary candidates for local-danger checks rather than every high-culture city, and log raw deadline, war, technology, and competing-victory context so later tuning can distinguish a safe cultural finish from a volatile or strategically inferior all-in attempt. (ChatGPT-5.5 + GPT-5.5 review) -->
+				// <!-- custom: Diagnose candidate Culture 4 sprint windows without changing strategy.
+				// Use the actual best projected Legendary candidates for local-danger checks rather than every high-culture city, and log raw deadline, war, technology, and competing-victory context so later tuning can distinguish a safe cultural finish from a volatile or strategically inferior all-in attempt. (ChatGPT-5.5 + GPT-5.5 review) -->
 				if (iCultureLogLevel >= 2 && iCountdownThresh == -1)
 				{
 					int const iTurnsRemaining = std::max(0, kGame.getEstimateEndTurn() - kGame.getGameTurn());
@@ -31786,8 +31885,10 @@ bool CvPlayerAI::AI_isAdjacentCitySite(CvPlot const& p, bool bCheckCenter) const
 	return false;
 }
 
-// <!-- custom: Base AdvCiv AI_isAwfulSite disabled and retained for reference. Its cruder absolute terrain veto was removed from active conquest and city-trade logic as part of replacing it with AI_isSASCityLikelyToBenefitUsLongTerm.
-// It said whether kCity was in a spot where probably no city belonged; this player was the AI civ considering obtaining the city. It overlapped with AI_foundValue because that function is difficult to use on a plot with an existing city, and included a TODO to replace this with AI_cityTradeVal. See KI#186. (GPT-5.6-Sol) -->
+// <!-- custom: Base AdvCiv AI_isAwfulSite disabled and retained for reference.
+// Its cruder absolute terrain veto was removed from active conquest and city-trade logic as part of replacing it with AI_isSASCityLikelyToBenefitUsLongTerm.
+// It said whether kCity was in a spot where probably no city belonged; this player was the AI civ considering obtaining the city.
+// It overlapped with AI_foundValue because that function is difficult to use on a plot with an existing city, and included a TODO to replace this with AI_cityTradeVal. See KI#186. (GPT-5.6-Sol) -->
 // advc.ctr: Says whether kCity is in a spot where probably no city belongs. This player is the AI civ considering to obtain the city.
 // Some overlap with CvPlayerAI::AI_foundValue, but it's difficult to make that function work for plots with an actual city.
 // Tbd.: See if this can be replaced with a comparison betweenAI_cityTradeVal and a threshold.

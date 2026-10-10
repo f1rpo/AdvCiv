@@ -2,7 +2,8 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
-# <!-- custom: Removed or renamed technologies, assets, and UI features can leave apparently valid TXT_KEY entries behind, while renamed SAS assets can reference pedia keys that were never defined. Audit every SAS-owned GameText file and SAS-owned asset description while explicitly accounting for inherited/EXE references and BUG's dynamically constructed key families; inherited AdvCiv/BUG/BULL files have too much unused-key static-analysis noise for a reliable blocking test and remain covered by the broader manual audit. (GPT-5.6-Sol) -->
+# <!-- custom: Removed or renamed technologies, assets, and UI features can leave apparently valid TXT_KEY entries behind, while renamed SAS assets can reference pedia keys that were never defined.
+# Audit every SAS-owned GameText file and SAS-owned asset description while explicitly accounting for inherited/EXE references and BUG's dynamically constructed key families; inherited AdvCiv/BUG/BULL files have too much unused-key static-analysis noise for a reliable blocking test and remain covered by the broader manual audit. (GPT-5.6-Sol) -->
 
 from pathlib import Path
 import argparse
@@ -43,7 +44,8 @@ EXE_RUNTIME_REFERENCE_KEYS = {
 	"TXT_KEY_SEALEVEL_LOW_RECOMMEND",
 }
 INHERITED_PEDIA_REFERENCE_KEYS = {
-	# <!-- custom: These descriptions are overridden by SAS, but their Civilopedia text remains inherited from the base game or expansion. The GitHub checkout contains the mod only, so keep the confirmed inherited references explicit. (GPT-5.6-Sol) -->
+	# <!-- custom: These descriptions are overridden by SAS, but their Civilopedia text remains inherited from the base game or expansion.
+	# The GitHub checkout contains the mod only, so keep the confirmed inherited references explicit. (GPT-5.6-Sol) -->
 	"TXT_KEY_BUILDING_EGYPTIAN_OBELISK_PEDIA",
 	"TXT_KEY_CIV_AMERICA_PEDIA",
 	"TXT_KEY_LEADER_ALEXANDER_PEDIA",

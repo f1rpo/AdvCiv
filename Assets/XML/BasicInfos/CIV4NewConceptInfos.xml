@@ -152,8 +152,8 @@
 			<Description>TXT_KEY_SHORTCUTS_UNITS</Description>
 			<Civilopedia>TXT_KEY_SHORTCUTS_UNITS_PEDIA</Civilopedia>
 		</NewConceptInfo>
-		<!-- custom: Removed all CONCEPT_TRAIT_* entries. Sevopedia Traits category now uses WIDGET_PYTHON 6799
-			 approach (like Builds) which reads trait data directly from CIV4TraitInfos.xml via gc.getTraitInfo().
-			 The old concept-based workaround is no longer needed. (Claude Opus 4.5) -->
+		<!-- custom: Removed all CONCEPT_TRAIT_* entries.
+		Sevopedia Traits category now uses WIDGET_PYTHON 6799 approach (like Builds) which reads trait data directly from CIV4TraitInfos.xml via gc.getTraitInfo().
+		The old concept-based workaround is no longer needed. (Claude Opus 4.5) -->
 	</NewConceptInfos>
 </Civ4NewConceptInfos>

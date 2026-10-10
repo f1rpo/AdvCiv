@@ -2292,7 +2292,8 @@ CvWString CvPlayer::getNewCityName() const
 			continue;
 		}
 
-		// <!-- custom: Validate the stored city-name key, not its current translation. The validity helper also compares current display text, preserving manual duplicate-name checks while making past-name identity language-independent. See KI#325. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: Validate the stored city-name key, not its current translation.
+		// The validity helper also compares current display text, preserving manual duplicate-name checks while making past-name identity language-independent. See KI#325. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if (isCityNameValid(pNode->m_data, true))
 			szName = pNode->m_data;
 	}
@@ -2363,7 +2364,8 @@ void CvPlayer::getCivilizationCityName(CvWString& szBuffer, CivilizationTypes eC
 			continue;
 		}
 
-		// <!-- custom: Keep the canonical XML text key as the generated-name identity. Translating before validation made the past/former-city registry language-dependent. See KI#325. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: Keep the canonical XML text key as the generated-name identity.
+		// Translating before validation made the past/former-city registry language-dependent. See KI#325. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		CvWString const szNameKey(szCityNameKey);
 		if (isCityNameValid(szNameKey, true))
 		{
@@ -2376,7 +2378,8 @@ void CvPlayer::getCivilizationCityName(CvWString& szBuffer, CivilizationTypes eC
 
 bool CvPlayer::isCityNameValid(CvWString const& szName, bool bTestPast) const
 {
-	// <!-- custom: Compare both stable stored identity and current rendered text. Canonical keys remain reserved across language changes, while literal/manual names still cannot duplicate what the player currently sees. See KI#325. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Compare both stable stored identity and current rendered text.
+	// Canonical keys remain reserved across language changes, while literal/manual names still cannot duplicate what the player currently sees. See KI#325. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	CvWString const szDisplayName = gDLL->getObjectText(szName, 0, true);
 	if (bTestPast) // (advc.005c: renamed from "bTestDestroyed")
 	{
@@ -2407,7 +2410,8 @@ CvUnit* CvPlayer::initUnit(UnitTypes eUnit, int iX, int iY, UnitAITypes eUnitAI,
 {
 	//PROFILE_FUNC(); // advc.003o
 
-	// <!-- custom: The inherited Partisans event passed NO_UNIT when the player's capital had no valid conscript. Reject invalid creation before allocating a unit-container entry; allocation first left a reset unit behind after the Python-visible C++ exception and caused multiple later crashes. See KI#524.6. (GPT-5.6-Sol) -->
+	// <!-- custom: The inherited Partisans event passed NO_UNIT when the player's capital had no valid conscript.
+	// Reject invalid creation before allocating a unit-container entry; allocation first left a reset unit behind after the Python-visible C++ exception and caused multiple later crashes. See KI#524.6. (GPT-5.6-Sol) -->
 	FAssert(eUnit != NO_UNIT);
 	if (eUnit == NO_UNIT)
 		return NULL;
@@ -3113,7 +3117,8 @@ void CvPlayer::doTurn()
 	doEspionagePoints();
 
 	// <!-- custom: Research valuation can populate neutral construction values before AI_doCommerce/AI_doCivics/AI_doReligion change their inputs, and doResearch above can complete the newly valued technology.
-	// Establish a fresh cache boundary immediately before city turns so production cannot consume those earlier values. This intentionally supplements rather than replaces K-Mod's pre-research clear. See KI#821. (ChatGPT-5.6-Sol) -->
+	// Establish a fresh cache boundary immediately before city turns so production cannot consume those earlier values.
+	// This intentionally supplements rather than replaces K-Mod's pre-research clear. See KI#821. (ChatGPT-5.6-Sol) -->
 	AI().AI_ClearConstructionValueCache();
 
 	// <!-- custom: Manual human cities are sampled before end-turn production processing, after the player had the opportunity to choose; sampling afterward would misclassify a normal item completed during doProduction while its new popup awaits input.
@@ -5500,7 +5505,9 @@ void CvPlayer::found(int iX, int iY)
 		}
 	}
 
-	// <!-- custom: Log the cached site value before founding mutates the map. Real evaluation traces are emitted where the AI computes them; founding no longer replays scoring with different planned-site context. A cached value is not a freshly recomputed first-city score. See KI#505.2. (GPT-6.1-Sol) -->
+	// <!-- custom: Log the cached site value before founding mutates the map.
+	// Real evaluation traces are emitted where the AI computes them; founding no longer replays scoring with different planned-site context.
+	// A cached value is not a freshly recomputed first-city score. See KI#505.2. (GPT-6.1-Sol) -->
 	if (gFoundLogLevel > 0) logBBAI("FOUND_SITE_FOUNDED turn=%d year=%d player=%d site=%d,%d cachedValue=%d minFoundValue=%d firstCity=%d human=%d",
 		kGame.getGameTurn(), kGame.getGameTurnYear(), getID(), iX, iY,
 		GC.getMap().getPlot(iX, iY).getFoundValue(getID()), AI().AI_getMinFoundValue(), getNumCities() <= 0, isHuman());
@@ -5991,7 +5998,10 @@ int CvPlayer::getProductionNeeded(UnitTypes eUnit, int iExtraInstances) const //
 		in AI_getTotalFloatingDefendersNeeded. */
 	iProductionNeeded = (iProductionNeeded *
 			trainingModifierFromHandicap(GC.getInfo(eUnitClass).isWorldUnit())).
-			// <!-- custom: very annoying, do not round to multiples of 5 please... Ancient macemen 18 hammers cost 20, and swordsman 42 costs 40 while swordsman 43 costs 45, it is a mess and hard to balance. Meanwhile, AIs have per 1 costs like 22, 17, 38, and it seems this is where we need to change it as chatgpt 5 explained to me, check if accurate, see known issue as of now 67 for details; Also what's even more annoying is that the price change only applies to the human player, so AIs effectively have a different price than the human player, very very annoying and no setting to manage this outside of DLL. Since i find it nonsensical and don't care about pretty numbers in this case at least, disabled it entirely -->
+			// <!-- custom: very annoying, do not round to multiples of 5 please...
+			// Ancient macemen 18 hammers cost 20, and swordsman 42 costs 40 while swordsman 43 costs 45, it is a mess and hard to balance.
+			// Meanwhile, AIs have per 1 costs like 22, 17, 38, and it seems this is where we need to change it as chatgpt 5 explained to me, check if accurate, see known issue as of now 67 for details; Also what's even more annoying is that the price change only applies to the human player, so AIs effectively have a different price than the human player, very very annoying and no setting to manage this outside of DLL.
+			// Since i find it nonsensical and don't care about pretty numbers in this case at least, disabled it entirely -->
 			// Short answer: for your use-case, they’re the same. Use .round() for clarity.
 			// Semantics: roundToMultiple(1) means “round to the nearest multiple of 1," i.e. the nearest integer. That’s exactly what .round() does. For positive values (your costs are positive), they’ll return the same integer.
 			// roundToMultiple(/* advc.251: */ isHuman() ? 5 : 1);
@@ -8211,7 +8221,8 @@ void CvPlayer::changeAnarchyModifier(int iChange)
 	/*setRevolutionTimer(std::max(0, ((100 + iChange) * getRevolutionTimer()) / 100));
 	setConversionTimer(std::max(0, ((100 + iChange) * getConversionTimer()) / 100));*/ // BtS
 	// <!-- custom: K-Mod's proportional correction is valid only while the old scale is positive; substituting 1 at -100% turns SAS's ordinary one-turn minimum into -99 or 101 when its two -100% wonders are gained or lost.
-	// Preserve the proportional result above -100%, including a zero-clamped crossing, but treat an already singular timer as the clamped minimum under the new modifier. Normal active anarchy is zero there and needs no invented rescaling. See KI#790. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// Preserve the proportional result above -100%, including a zero-clamped crossing, but treat an already singular timer as the clamped minimum under the new modifier.
+	// Normal active anarchy is zero there and needs no invented rescaling. See KI#790. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	int const iOldScale = 100 + getAnarchyModifier();
 	int const iNewScale = std::max(0, iOldScale + iChange);
 	if (iOldScale > 0)
@@ -9210,7 +9221,10 @@ void CvPlayer::setCombatExperience(int iExperience)
 				break;
 			}
 		}
-		// <!-- custom: Base AdvCiv's automatic Great-General birth-city selection ignored city safety, so a newly earned defenseless General could spawn directly into a besieged city even when safe cities existed. Prefer the normal rank/random scoring among safe cities whenever possible; if every city is unsafe, retain the original fallback and still create the General. Keep the original SyncRandNum call for every city before filtering so this safety correction does not change RNG consumption. This directly matches 6 of 7 reviewed KI#204 losses. (ChatGPT-5.6-Sol) -->
+		// <!-- custom: Base AdvCiv's automatic Great-General birth-city selection ignored city safety, so a newly earned defenseless General could spawn directly into a besieged city even when safe cities existed.
+		// Prefer the normal rank/random scoring among safe cities whenever possible; if every city is unsafe, retain the original fallback and still create the General.
+		// Keep the original SyncRandNum call for every city before filtering so this safety correction does not change RNG consumption.
+		// This directly matches 6 of 7 reviewed KI#204 losses. (ChatGPT-5.6-Sol) -->
 		FOR_EACH_CITY(pLoopCity, *this)
 		{
 			int iValue = 4 * SyncRandNum(getNumCities());
@@ -9331,7 +9345,8 @@ void CvPlayer::setAlive(bool bNewValue)
 		// <advc.104r> (UWAI data gets deleted upon death)
 		if (getUWAI().isEnabled())
 		{
-			// <!-- custom: Dead-at-load players have no deserialized UWAI owner/cache. Initializing the revived player before updating that cache fixed the reproducible crash when exiting WorldBuilder after giving that player a unit. See KI#475.3. (GPT-5.6-Sol) -->
+			// <!-- custom: Dead-at-load players have no deserialized UWAI owner/cache.
+			// Initializing the revived player before updating that cache fixed the reproducible crash when exiting WorldBuilder after giving that player a unit. See KI#475.3. (GPT-5.6-Sol) -->
 			getUWAI().initRevivedPlayerInGame(getID());
 			getUWAI().processNewPlayerInGame(getID()); // </advc.104r>
 		}
@@ -9383,7 +9398,8 @@ void CvPlayer::setAlive(bool bNewValue)
 		//killUnits(); // advc.003m: Moved up
 		killCities();
 		killAllDeals();
-		// <!-- custom: SASGameRecord logs explicit player lifecycle rows because elimination was otherwise only inferable from city captures and missing later snapshots, which made autoplay/LLM review needlessly brittle. Log after cleanup so remaining city/unit counts are final. (GPT-5.5) -->
+		// <!-- custom: SASGameRecord logs explicit player lifecycle rows because elimination was otherwise only inferable from city captures and missing later snapshots, which made autoplay/LLM review needlessly brittle.
+		// Log after cleanup so remaining city/unit counts are final. (GPT-5.5) -->
 		if (gGameRecordLogLevel >= 2 && bEverAlive && !isBarbarian()) logSASGameRecordPlayerEliminated(getID());
 
 		setTurnActive(false);
@@ -9705,7 +9721,8 @@ void CvPlayer::setTurnActive(bool bNewValue, bool bDoTurn)
 	(Based on BETTER_BTS_AI_MOD, 10/26/09, jdog5000 - AI logging.) */
 void CvPlayer::onTurnLogging() const
 {
-	// <!-- custom: Caller pre-gates PLAYER logging. During new-game construction, the first active-player callback can precede starting technologies/cities and therefore describes a half-built state.
+	// <!-- custom: Caller pre-gates PLAYER logging.
+	// During new-game construction, the first active-player callback can precede starting technologies/cities and therefore describes a half-built state.
 	// Finalized INITIAL_* rows cover setup provenance; keep inherited turn logging for actual gameplay and loaded saves. (ChatGPT-5.6-Sol) -->
 	CvGame const& kGame = GC.getGame();
 	if (!kGame.isFinalInitialized())
@@ -11211,7 +11228,8 @@ void CvPlayer::setCivics(CivicOptionTypes eCivicOption, CivicTypes eNewValue)
 
 	if(!bPostInitMajorCiv) // advc.003n
 		return;
-	// <!-- custom: Periodic policy snapshots can hide short-lived or between-interval civic switches. Record every post-initialization old/new transition, including effective state-religion changes caused by civics that allow or prohibit one, together with current anarchy turns. (GPT-5.6-Sol + GPT-5.6 Thinking) -->
+	// <!-- custom: Periodic policy snapshots can hide short-lived or between-interval civic switches.
+	// Record every post-initialization old/new transition, including effective state-religion changes caused by civics that allow or prohibit one, together with current anarchy turns. (GPT-5.6-Sol + GPT-5.6 Thinking) -->
 	if (bLogCivicChange) logSASGameRecordCivicChanged(getID(), eCivicOption, eOldCivic, eNewValue, eOldEffectiveStateReligion, getStateReligion());
 
 	if (getCivics(eCivicOption) != NO_CIVIC &&
@@ -12414,7 +12432,8 @@ void CvPlayer::doResearch()
 			int const iOverflowResearch = (iIncomingOverflowUnmodified * iResearchModifier) / 100;
 			// K-Mod (replacing the minimum which used to be in calculateResearchRate)
 			int const iResearchRate = std::max(1, calculateResearchRate());
-			// <!-- custom: These values are already required by gameplay. Preserve their exact split only at SASGameRecord level 2+, before stored overflow is consumed, so a completion row can distinguish fresh research from carried overflow without a per-turn log row. (ChatGPT-5.6-Sol) -->
+			// <!-- custom: These values are already required by gameplay.
+			// Preserve their exact split only at SASGameRecord level 2+, before stored overflow is consumed, so a completion row can distinguish fresh research from carried overflow without a per-turn log row. (ChatGPT-5.6-Sol) -->
 			if (gGameRecordLogLevel >= 2) noteSASGameRecordResearchApplication(getID(), eCurrentTech, iResearchRate, iIncomingOverflowUnmodified, iOverflowResearch);
 			setOverflowResearch(0);
 			GET_TEAM(getTeam()).changeResearchProgress(eCurrentTech, iResearchRate + iOverflowResearch, getID(), TECH_ACQUISITION_RESEARCH);
@@ -14079,7 +14098,7 @@ int CvPlayer::getAdvancedStartCityCost(bool bAdd, CvPlot const* pPlot) const
 		}
 
 		// <!-- custom: make these static const for performance optimization as advised by chatgpt 5 too. -->
-		// <!-- custom: moved above as it was weirdly reused before if i may say as well-->
+		// <!-- custom: moved above as it was weirdly reused before if i may say as well -->
 		static const int iADVANCED_START_CITY_PLACEMENT_MAX_RANGE = GC.getDefineINT("ADVANCED_START_CITY_PLACEMENT_MAX_RANGE"); // advc.opt
 		// Is there a distance limit on how far a city can be placed from a player's start/another city?
 		if (iADVANCED_START_CITY_PLACEMENT_MAX_RANGE > 0)
@@ -18541,7 +18560,8 @@ void CvPlayer::launch(VictoryTypes eVictory)
 
 	kTeam.finalizeProjectArtTypes();
 	kTeam.setVictoryCountdown(eVictory, kTeam.getVictoryDelay(eVictory));
-	// <!-- custom: Project completion alone did not reveal when a spaceship actually launched or when it would arrive. Record the explicit launch after its countdown is set so SASGameRecord can preserve the exact travel time, arrival turn, success chance, and component state. (GPT-5.6-Sol) -->
+	// <!-- custom: Project completion alone did not reveal when a spaceship actually launched or when it would arrive.
+	// Record the explicit launch after its countdown is set so SASGameRecord can preserve the exact travel time, arrival turn, success chance, and component state. (GPT-5.6-Sol) -->
 	if (gGameRecordLogLevel >= 2) logSASGameRecordVictoryLaunched(getID(), eVictory);
 
 	//gDLL->getEngineIFace()->AddLaunch(getID());

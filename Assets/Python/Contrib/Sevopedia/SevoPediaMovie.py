@@ -152,10 +152,9 @@ class SevoPediaMovie:
 		else:
 			screen.playMovie(szMovieFile, -1, -1, -1, -1, 0)
 
-		# <!-- custom: Play audio using Play2DSound/Destroy2DSound approach. This works fine for both
-		# starting audio on open and stopping it on exit. An alternative cleaner approach exists in
-		# CvEraMovieScreen.py using screen.setSound() before showScreen(), but we couldn't make it work
-		# in our context, so we stick with this approach. Credit: GPT-5.2-Codex, Claude Opus 4.5. -->
+		# <!-- custom: Play audio using Play2DSound/Destroy2DSound approach.
+		# This works fine for both starting audio on open and stopping it on exit.
+		# An alternative cleaner approach exists in CvEraMovieScreen.py using screen.setSound() before showScreen(), but we couldn't make it work in our context, so we stick with this approach. Credit: GPT-5.2-Codex, Claude Opus 4.5. -->
 		if szSoundScript:
 			self.mediaPlayer.playSound(szSoundScript, -1, False)
 
@@ -195,7 +194,8 @@ class SevoPediaMovie:
 
 		self.top.pediaJump(SevoScreenEnums.PEDIA_MOVIES, self.iMovie, False, False)
 
-	# <!-- custom: Movie playback temporarily disables the user's No Movies option. Ordinary close restored it, but Movie-to-Music bypassed that path and leaked the changed preference for the rest of the session; centralizing restoration fixes every transition that actually leaves Movie mode. See KI#299. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: Movie playback temporarily disables the user's No Movies option.
+	# Ordinary close restored it, but Movie-to-Music bypassed that path and leaked the changed preference for the rest of the session; centralizing restoration fixes every transition that actually leaves Movie mode. See KI#299. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	def restoreNoMoviesOption(self):
 		if self.SAS_savedNoMovies is not None:
 			CyUserProfile().setGraphicOption(GraphicOptionTypes.GRAPHICOPTION_NO_MOVIES, self.SAS_savedNoMovies)
@@ -491,7 +491,8 @@ class SevoPediaMovie:
 			return (WidgetTypes.WIDGET_PEDIA_JUMP_TO_PROJECT, iMovieId, 1)
 		if iMovieType == SAS_MAGIC_PEDIA_MOVIE_TYPE_RELIGION:
 			return (WidgetTypes.WIDGET_PEDIA_JUMP_TO_RELIGION, iMovieId, 1)
-		# <!-- custom: this successfully works: redirects to Sevopedia Eras Chart category, that has no item and only a chart (like Promotions Tree for example). Done with the very nice help of Claude code Sonnet 4.5 thanks a lot! -->
+		# <!-- custom: this successfully works: redirects to Sevopedia Eras Chart category, that has no item and only a chart (like Promotions Tree for example).
+		# Done with the very nice help of Claude code Sonnet 4.5 thanks a lot! -->
 		if iMovieType == SAS_MAGIC_PEDIA_MOVIE_TYPE_ERA:
 			return (WidgetTypes.WIDGET_PEDIA_MAIN, SevoScreenEnums.PEDIA_ERA_CHART, -1)
 		if iMovieType == SAS_MAGIC_PEDIA_MOVIE_TYPE_CORPORATION:

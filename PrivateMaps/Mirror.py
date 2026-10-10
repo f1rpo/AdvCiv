@@ -722,7 +722,8 @@ def assignStartingPlots():
 		else:
 			mirror_x = iX + (iW / 2)
 			mirror_y = iH - iY - 1
-		# <!-- custom: Validate the computed counterpart before assignment. If it is outside the map, clear every provisional pair and delegate the complete assignment instead of returning Python success with invalid starts. See KI#294.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: Validate the computed counterpart before assignment.
+		# If it is outside the map, clear every provisional pair and delegate the complete assignment instead of returning Python success with invalid starts. See KI#294.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if not map.isPlot(mirror_x, mirror_y):
 			nullPlot = map.plotByIndex(-1)
 			for assignedPlayerID in assignedPlayerIDs:

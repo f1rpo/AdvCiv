@@ -58,7 +58,8 @@ def getGridSize(argsList):
     if (argsList[0] == -1): # (-1,) is passed to function on loads
         return []
     [eWorldSize] = argsList
-    # <!-- custom: Use DLL WorldSizeTypes values aligned with CIV4WorldInfo.xml order. Earth2's staged start distribution was designed to keep Huge and SAS24-48 at the same already-large grid, so use ordinary lookup and its intentional last-tier cap. See KI#281. (Claude code Opus 4.7; GPT-5.5; ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+    # <!-- custom: Use DLL WorldSizeTypes values aligned with CIV4WorldInfo.xml order.
+    # Earth2's staged start distribution was designed to keep Huge and SAS24-48 at the same already-large grid, so use ordinary lookup and its intentional last-tier cap. See KI#281. (Claude code Opus 4.7; GPT-5.5; ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
     grid_sizes = {
         WorldSizeTypes.WORLDSIZE_ARENA: (7,4),
         WorldSizeTypes.WORLDSIZE_DUEL: (10,6),
@@ -76,7 +77,9 @@ def minStartingDistanceModifier():
 def findStartingPlot(argsList):
 	[playerID] = argsList
 
-	# <!-- custom: Earth2 is already large enough; for high player counts, better distribution works better than forcing larger grids. Staged starts are define-driven so tuning does not require Python edits: keep classic largest-landmass starts at low counts, then unlock Africa, then unlock full-world starts. This staging uses player count only; world size affects grid dimensions separately in getGridSize. (GPT-5.3-Codex) -->
+	# <!-- custom: Earth2 is already large enough; for high player counts, better distribution works better than forcing larger grids.
+	# Staged starts are define-driven so tuning does not require Python edits: keep classic largest-landmass starts at low counts, then unlock Africa, then unlock full-world starts.
+	# This staging uses player count only; world size affects grid dimensions separately in getGridSize. (GPT-5.3-Codex) -->
 	map = CyMap()
 	gcLocal = CyGlobalContext()
 	iNumPlayers = gcLocal.getGame().countCivPlayersEverAlive()
@@ -97,7 +100,8 @@ def findStartingPlot(argsList):
 			return (pPlot.getArea() == iBiggestAreaID)
 
 		bInAfrica = (x >= iAfricaWestX and x <= iAfricaEastX and y >= iAfricaSouthY and y <= iAfricaNorthY)
-		# <!-- custom: The 16-31-player stage was intended to add Africa to the classic biggest landmass, but its Africa condition was unreachable and the remaining exclusions admitted every other Old-World island. Apply the stated union directly; 32+ retains unrestricted full-world starts. See KI#280. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: The 16-31-player stage was intended to add Africa to the classic biggest landmass, but its Africa condition was unreachable and the remaining exclusions admitted every other Old-World island.
+		# Apply the stated union directly; 32+ retains unrestricted full-world starts. See KI#280. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if iNumPlayers < iFullWorldMinPlayers:
 			return (pPlot.getArea() == iBiggestAreaID) or bInAfrica
 
@@ -113,7 +117,8 @@ class EarthMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
         #
         # The following grain matrix is specific to Earth2.py
         sizekey = self.map.getWorldSize()
-        # <!-- custom: Earth2's legacy grain table omitted Arena, so the smallest tier fell upward to Huge grain. Give Arena the intended Duel/Tiny tuple; SAS24-48 intentionally retain Huge grain alongside Earth2's fixed-Huge grid policy. See KI#282. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+        # <!-- custom: Earth2's legacy grain table omitted Arena, so the smallest tier fell upward to Huge grain.
+        # Give Arena the intended Duel/Tiny tuple; SAS24-48 intentionally retain Huge grain alongside Earth2's fixed-Huge grid policy. See KI#282. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
         sizevalues = {
             WorldSizeTypes.WORLDSIZE_ARENA:     (3,2,1),
             WorldSizeTypes.WORLDSIZE_DUEL:      (3,2,1),

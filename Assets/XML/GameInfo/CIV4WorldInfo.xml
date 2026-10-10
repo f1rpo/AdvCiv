@@ -200,7 +200,8 @@
 			<iGridHeight>34</iGridHeight>
 			<iTerrainGrainChange>1</iTerrainGrainChange>
 			<iFeatureGrainChange>1</iFeatureGrainChange>
-			<!-- custom: reduced as ingame AIs are falling behind in the early game at large maps, they don't have more early cities just because there is more land. Also use "standard" as the research rate, was 137 -->
+			<!-- custom: reduced as ingame AIs are falling behind in the early game at large maps, they don't have more early cities just because there is more land.
+			Also use "standard" as the research rate, was 137 -->
 			<!-- advc.910: was 140 -->
 			<iResearchPercent>105</iResearchPercent>
 			<iTradeProfitPercent>40</iTradeProfitPercent>

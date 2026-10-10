@@ -26,7 +26,8 @@ class CvDawnOfMan:
 		self.W_TECH = 425
 		self.H_TECH = 80
 
-		# <!-- custom: widen Dawn of Man panel to reduce wrapping for longer civ unit/building lines at upscaled fonts, then rebalance top vs bottom panel heights so the leader/info section has enough room without overgrowing the lower blue panel. Text blocks use SAS label/title scaling helpers for readability consistency. (GPT-5.3-Codex) -->
+		# <!-- custom: widen Dawn of Man panel to reduce wrapping for longer civ unit/building lines at upscaled fonts, then rebalance top vs bottom panel heights so the leader/info section has enough room without overgrowing the lower blue panel.
+		# Text blocks use SAS label/title scaling helpers for readability consistency. (GPT-5.3-Codex) -->
 		self.W_MAIN_PANEL = 800 # Was 550
 
 		self.H_MAIN_PANEL = 590
@@ -129,7 +130,8 @@ class CvDawnOfMan:
 
 		szNameText = "<color=255,255,0,255>" + sasFontTagTitle.bold + gc.getLeaderHeadInfo(self.player.getLeaderType()).getDescription().upper() + SAS_FONT_TAG_CLOSE
 		szNameText += u"\n" + sasFontTagLabel + u"- " + self.player.getCivilizationDescription(0) + u" -" + SAS_FONT_TAG_CLOSE + u"\n"
-		# <!-- custom: prepend each trait name with its TraitUtil font-symbol icon (e.g. happy char for Charismatic, defense char for Protective) so the Dawn of Man header uses the same compact trait display as Victory Screen Settings, and reads without requiring pedia-jump wiring. Mirrors SevoPediaLeader trait-icon injection. (Claude code Sonnet 4.6 + GPT-5.5) -->
+		# <!-- custom: prepend each trait name with its TraitUtil font-symbol icon (e.g. happy char for Charismatic, defense char for Protective) so the Dawn of Man header uses the same compact trait display as Victory Screen Settings, and reads without requiring pedia-jump wiring.
+		# Mirrors SevoPediaLeader trait-icon injection. (Claude code Sonnet 4.6 + GPT-5.5) -->
 		szNameText += sasFontTagLabel + TraitUtil.getLeaderTraitsWithIcons(self.player.getLeaderType(), self.player.getCivilizationType()) + SAS_FONT_TAG_CLOSE
 		screen.addMultilineText( "NameText", szNameText, self.X_LEADER_TITLE_TEXT, self.Y_LEADER_TITLE_TEXT, self.W_LEADER_TITLE_TEXT, self.H_LEADER_TITLE_TEXT, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 

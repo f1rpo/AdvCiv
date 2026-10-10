@@ -87,7 +87,7 @@
 		<Italian>Quando è selezionato, viene visualizzato un avviso quando una Civiltà è disponibile a diventare Vassallo del giocatore.</Italian>
 		<Spanish>Muestra un aviso cuando una civilización está dispuesta a convertirse en tu vasallo.</Spanish>
 	</TEXT>
-	<!-- custom: Long_Comments_XML.txt #248 -->	
+	<!-- custom: Long_Comments_XML.txt #248 -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MORECIV4LERTS__SURRENDERTRADE_TEXT</Tag>
 		<English>Capitulation</English>

@@ -288,7 +288,7 @@ class SevoPediaBuilding:
 				self.fillStatsCell(screen, szText2, x, y)
 				x, y, rowItemId = self.getStatsNextItemCoordinates(x, y, rowItemId, columnWidth)
 
-			# <!-- custom: also process the modifiers associated to the raw commerce changes just after the raw value (for example culture +1 then the next line is immediately culture +50% and only then/after gold + 1 for example (and now not culture + 1 then gold + 1 and only then culture + 50%), this is how it would work this code) --> 
+			# <!-- custom: also process the modifiers associated to the raw commerce changes just after the raw value (for example culture +1 then the next line is immediately culture +50% and only then/after gold + 1 for example (and now not culture + 1 then gold + 1 and only then culture + 50%), this is how it would work this code) -->
 			iCommerceModifier = buildingInfo.getCommerceModifier(k)
 			iCommerceDoubleTime = buildingInfo.getCommerceChangeDoubleTime(k)
 			iGlobalCommerceModifier = buildingInfo.getGlobalCommerceModifier(k)
@@ -432,7 +432,13 @@ class SevoPediaBuilding:
 					buttonY = (self.Y_FLAT_GREAT_PERSON + buttonYOffset) - self.Y_STATS_PANE
 					screen.setImageButtonAt(buttonWidget, panelName, greatPersonButton, buttonX, buttonY, buttonW, buttonH, WidgetTypes.WIDGET_PEDIA_JUMP_TO_UNIT, iGreatPersonUnit, 1)
 
-	# <!-- custom: additional info by chatgpt thanks: "The self.iBuilding is a unique ID already. But the prerequisites (like isBuildingClassNeededInCity) refer to a class, not a specific building. That's where the helper comes in." + also "The helper get_iDefaultBuilding_current_civ(iBuildingClass) is not for the current building (self.iBuilding). It's used to resolve prerequisite buildings by class — and each building class can have different versions (UUs) for each civ." i don't know if accurate but maybe is, so adding this info here as part of refactoring and wondering if we should use it in required for to which chatgpt also replied thanks but or not but or yes but"In placeRequiredFor: You’re checking: for each building: if building X requires our current building's class: show building X" and "You already have the concrete building (X). No need to resolve anything — you are showing the building that depends on yours, not the class." -->
+	# <!-- custom: additional info by chatgpt thanks: "The self.iBuilding is a unique ID already.
+	# But the prerequisites (like isBuildingClassNeededInCity) refer to a class, not a specific building.
+	# That's where the helper comes in."
+	# + also "The helper get_iDefaultBuilding_current_civ(iBuildingClass) is not for the current building (self.iBuilding).
+	# It's used to resolve prerequisite buildings by class — and each building class can have different versions (UUs) for each civ."
+	# i don't know if accurate but maybe is, so adding this info here as part of refactoring and wondering if we should use it in required for to which chatgpt also replied thanks but or not but or yes but"In placeRequiredFor: You’re checking: for each building: if building X requires our current building's class: show building X" and "You already have the concrete building (X).
+	# No need to resolve anything — you are showing the building that depends on yours, not the class." -->
 	def get_iDefaultBuilding_current_civ(self, i):
 		# Get the default building of this class for the current civilization
 		if self.top.iActivePlayer != -1:
@@ -610,7 +616,7 @@ class SevoPediaBuilding:
 		else:
 			draw_none_text(screen, self.top, self.X_MOVIE, self.Y_MOVIE, self.W_MOVIE, self.H_MOVIE)
 
-	# <!-- custom: code with the help of gemini ai. -->  
+	# <!-- custom: code with the help of gemini ai. -->
 	def is_building_prereq_overridden_by_civic(self, iBuildingId):
 		# Checks if the prerequisite for the given building ID can be overridden by any civic.
 		# Returns True if an override exists, False otherwise.
@@ -1025,7 +1031,8 @@ class SevoPediaBuilding:
 				iCivBuilding = gc.getCivilizationInfo(iCiv).getCivilizationBuildings(iBuildingClass)
 				if iCivBuilding == self.iBuilding:
 					screen.attachImageButton(panelName, "", gc.getCivilizationInfo(iCiv).getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_CIV, iCiv, -1, False)
-		# <!-- custom: A class-default building is not available to civilizations that map its class to a replacement or NONE. Keep the one-token panel as `AllR`, with its exact All Remaining Civilizations scope explained in the Sevopedia Legend, instead of redundantly listing every ordinary civilization. See KI#321. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: A class-default building is not available to civilizations that map its class to a replacement or NONE.
+		# Keep the one-token panel as `AllR`, with its exact All Remaining Civilizations scope explained in the Sevopedia Legend, instead of redundantly listing every ordinary civilization. See KI#321. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		else:
 			# <!-- custom: prettier display -->
 			#screen.attachLabel(panelName, "", localText.getText("TXT_KEY_PEDIA_AVAILABLE_ALL_CIVS", ()))

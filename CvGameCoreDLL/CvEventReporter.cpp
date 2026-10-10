@@ -178,7 +178,8 @@ void CvEventReporter::gameStart()
 {
 	// <!-- custom: Capture source provenance only once final new-game/scenario initialization has established the real starting turn, before diagnostic/UI consumers read the persistent history. (ChatGPT-5.6-Sol) -->
 	GC.getGame().initializeSASVersionHistoryForNewGame();
-	// <!-- custom: Complete the new-game BBAI identity header after map generation and player initialization. Caller-gated to avoid entering logging helpers when BBAI is disabled. (GPT-5.5) -->
+	// <!-- custom: Complete the new-game BBAI identity header after map generation and player initialization.
+	// Caller-gated to avoid entering logging helpers when BBAI is disabled. (GPT-5.5) -->
 	if (isSASBBAILogEnabled()) logSASBBAINewGameStarted();
 	if (isSASGameRecordLogEnabled()) logSASGameRecordNewGameStarted();
 	m_kPythonEventMgr.reportGameStart();
@@ -202,7 +203,8 @@ void CvEventReporter::endGameTurn(int iGameTurn)
 	// <!-- custom: Intentional raw-level cache exception: this boundary genuinely needs two different thresholds (level 2+ turn-change flushing and level 1+ periodic snapshots).
 	// One integer read is cheaper/cleaner here than rereading the global merely to manufacture two booleans. (ChatGPT-5.6-Sol) -->
 	int const iGameRecordLogLevel = gGameRecordLogLevel;
-	// <!-- custom: Plot changes and permanent map revelation are collected during the turn so SASGameRecord writes compact coordinate lists instead of one row per plot. Flush after the Python turn event so its changes are included too. (GPT-5.6-Sol) -->
+	// <!-- custom: Plot changes and permanent map revelation are collected during the turn so SASGameRecord writes compact coordinate lists instead of one row per plot.
+	// Flush after the Python turn event so its changes are included too. (GPT-5.6-Sol) -->
 	if (iGameRecordLogLevel >= 2) flushSASGameRecordTurnChanges(iGameTurn);
 	// <!-- custom: Periodic game-record snapshots are separate from normal BBAI diagnostics and mainly serve autoplay comparison / external review. (ChatGPT-5.5) -->
 	if (iGameRecordLogLevel > 0 && iGameTurn > 0 && (iGameTurn % gGameRecordTurnInterval) == 0) logSASGameRecordTurn(iGameTurn);

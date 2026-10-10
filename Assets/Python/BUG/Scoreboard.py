@@ -13,7 +13,8 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
-# <!-- custom: AdvCiv-SAS does not actively maintain this third-party BUG library file. Edits here are limited to repo-wide consistency passes (e.g. getInfoTypeOrFail for fail-loud XML lookups). (Claude code Opus 4.7) -->
+# <!-- custom: AdvCiv-SAS does not actively maintain this third-party BUG library file.
+# Edits here are limited to repo-wide consistency passes (e.g. getInfoTypeOrFail for fail-loud XML lookups). (Claude code Opus 4.7) -->
 
 from CvPythonExtensions import *
 import BugCore
@@ -358,7 +359,8 @@ class Scoreboard:
 			self._playerScores = self._playerScores[len(self._playerScores) - maxPlayers:]
 
 	def prepare(self):
-		# <!-- custom: Expose the exact sorted and BUG Max Players-capped population before scroll controls calculate their range. This keeps active-player centering, button state and drawing on the same effective aligned-scoreboard order. See KI#228. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: Expose the exact sorted and BUG Max Players-capped population before scroll controls calculate their range.
+		# This keeps active-player centering, button state and drawing on the same effective aligned-scoreboard order. See KI#228. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		self.assignRanks()
 		self.gatherVassals()
 		self.sort()

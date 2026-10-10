@@ -396,7 +396,8 @@ def known_issues_menu_errors() -> tuple[list[str], int]:
 
     integer_ids = {int(identifier) for identifier in issue_set if "." not in identifier}
     album_text = CPP_AUDIT_ALBUM_PATH.read_text(encoding="utf-8")
-    # <!-- custom: Audit checkpoints reserve the next F/KI pair while marking it UNUSED. Only a promoted provisional finding extends the KI ledger; otherwise every open cursor would require a fictitious issue entry. (GPT-5.6-Sol) -->
+    # <!-- custom: Audit checkpoints reserve the next F/KI pair while marking it UNUSED.
+    # Only a promoted provisional finding extends the KI ledger; otherwise every open cursor would require a fictitious issue entry. (GPT-5.6-Sol) -->
     album_ids = {int(number) for number in re.findall(r"^F\d+\s+/\s+(?:PROVISIONAL|provisional)\s+KI#(\d+)\b(?![^\r\n]*\bUNUSED\b)", album_text, re.MULTILINE)}
     highest = max(integer_ids | album_ids)
     for number in sorted(set(range(1, highest + 1)) - integer_ids):

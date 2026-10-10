@@ -52,9 +52,11 @@ def check_revision(repo_root: Path) -> list[str]:
 	revision = int(revision_matches[0])
 
 	history_text = (repo_root / REVISION_HISTORY).read_text(encoding="utf-8", errors="replace")
-	# <!-- custom: Check every revision heading, not only well-formed ones; the earlier regex silently skipped malformed additional entries. Require the latest entry's date, commit field and change description as well as matching revision numbers, so an empty entry cannot satisfy documentation maintenance. (GPT-6.1-Sol) -->
+	# <!-- custom: Check every revision heading, not only well-formed ones; the earlier regex silently skipped malformed additional entries.
+	# Require the latest entry's date, commit field and change description as well as matching revision numbers, so an empty entry cannot satisfy documentation maintenance. (GPT-6.1-Sol) -->
 	history_revisions = []
-	# <!-- custom: The fenced Revision N entry template was incorrectly rejected as a malformed historical entry in the first regression run. Scan headings and metadata outside fenced examples; inspect the emitted revision example separately in the original text. (GPT-6.1-Sol) -->
+	# <!-- custom: The fenced Revision N entry template was incorrectly rejected as a malformed historical entry in the first regression run.
+	# Scan headings and metadata outside fenced examples; inspect the emitted revision example separately in the original text. (GPT-6.1-Sol) -->
 	history_scan = without_fenced_code(history_text)
 	heading_matches = list(re.finditer(r"^### Revision\b[^\r\n]*", history_scan, flags=re.MULTILINE))
 	for heading in heading_matches:

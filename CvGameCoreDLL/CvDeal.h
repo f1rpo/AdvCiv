@@ -30,8 +30,7 @@ public:
 	void doTurn();
 	void verify();
 
-	// <!-- custom: Query both saved trade lists so callers do not repeat the AdvCiv list-refactor assumption that a logical deal marker must belong to the first player.
-	// See KI#604. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Query both saved trade lists so callers do not repeat the AdvCiv list-refactor assumption that a logical deal marker must belong to the first player. See KI#604. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	bool hasTradeItem(TradeableItems eItem) const;
 	// <!-- custom: Expose the same exact-item query for proposed lists so backend and negotiation bundle validation share one traversal. See KI#611 and KI#621. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	static bool hasTradeItem(CLinkList<TradeData> const& kList, TradeableItems eItem);

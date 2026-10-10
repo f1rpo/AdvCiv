@@ -86,7 +86,8 @@ class CvDanQuayle:
 		self.X_EXIT = self.W_SCREEN - 30
 		self.Y_EXIT = self.H_SCREEN - 42
 
-		# <!-- custom: Your Place in History layout pass: use fullscreen bounds, keep right score/ranking column anchored, maximize left leaderhead vertically, and place the "during this game ..." panel in the center gap. This avoids ranking-list scroll while giving the NIF more lateral room and keeps text upscaling support from SAS font tags/helpers. (GPT-5.3-Codex) -->
+		# <!-- custom: Your Place in History layout pass: use fullscreen bounds, keep right score/ranking column anchored, maximize left leaderhead vertically, and place the "during this game ..." panel in the center gap.
+		# This avoids ranking-list scroll while giving the NIF more lateral room and keeps text upscaling support from SAS font tags/helpers. (GPT-5.3-Codex) -->
 		iLeftMargin = 45
 		iRightMargin = 45
 		iColumnGap = 25

@@ -26,7 +26,8 @@ _PLOT_CONTEXT_CITY_CAPTURED = 2
 _TERRAIN_PEAK = None
 _TERRAIN_HILL = None
 
-# <!-- custom: BugData persists this table in the save without DLL or save-format changes; old saves simply start with no rows and record battles from the first combat after loading. Store rows per player because advisor perspective can change. (GPT-5.5) -->
+# <!-- custom: BugData persists this table in the save without DLL or save-format changes; old saves simply start with no rows and record battles from the first combat after loading.
+# Store rows per player because advisor perspective can change. (GPT-5.5) -->
 
 def _getMaxEntries():
 	global _MAX_ENTRIES
@@ -153,7 +154,8 @@ def _getUnitEndCombatStr(pUnit, iMaxCombatStr):
 def _matchesCapturedBattle(entry, iCapturingPlayer, iOldOwner, iX, iY):
 	if len(entry) < 7:
 		return False
-	# <!-- custom: Capturable civilian units do not fight, so their old unit type cannot equal the defeated escort type in the preceding combat row. Defended combat records the loser's plot; match the captured unit's plot plus player direction, and reject retreat rows so another same-turn battle cannot receive the capture. See KI#222. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: Capturable civilian units do not fight, so their old unit type cannot equal the defeated escort type in the preceding combat row.
+	# Defended combat records the loser's plot; match the captured unit's plot plus player direction, and reject retreat rows so another same-turn battle cannot receive the capture. See KI#222. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	return (entry[0] == CyGame().getGameTurn() and entry[1] == iCapturingPlayer and entry[2] == iOldOwner and entry[5] == iX and entry[6] == iY and not isRetreatEntry(entry))
 
 def _patchCapturedEntry(entries, iCapturingPlayer, iOldOwner, iX, iY, iCapturedUnitType):
@@ -168,7 +170,8 @@ def _patchCapturedEntry(entries, iCapturingPlayer, iOldOwner, iX, iY, iCapturedU
 def _matchesCityCapturedBattle(entry, iPreviousOwner, iNewOwner, iX, iY):
 	if len(entry) < 7:
 		return False
-	# <!-- custom: An undefended conquest fires cityAcquired without combat. Require a lethal battle at this city plot so an unrelated same-turn battle between the same players is not relabeled as the city capture. See KI#221. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: An undefended conquest fires cityAcquired without combat.
+	# Require a lethal battle at this city plot so an unrelated same-turn battle between the same players is not relabeled as the city capture. See KI#221. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	return (entry[0] == CyGame().getGameTurn() and entry[1] == iNewOwner and entry[2] == iPreviousOwner and entry[5] == iX and entry[6] == iY and not isRetreatEntry(entry))
 
 def _patchCityCapturedEntry(entries, iPreviousOwner, iNewOwner, iX, iY):
@@ -251,7 +254,8 @@ def recordCombatRetreat(iAttacker, iDefender, iAttackerUnit, iDefenderUnit, iX, 
 	while len(entry) < _END_STRENGTH_DATA_START:
 		entry += (0,)
 	entry += (int(iAttackerEndStr), int(iDefenderEndStr))
-	# <!-- custom: retreat rows have no winner/loser, but older rows use entry[1]/entry[2] as winner/loser. Store attacker/defender there for role/unit perspective, and add the outcome flag after capture/end-strength fields so old saved rows keep their offsets. (GPT-5.5) -->
+	# <!-- custom: retreat rows have no winner/loser, but older rows use entry[1]/entry[2] as winner/loser.
+	# Store attacker/defender there for role/unit perspective, and add the outcome flag after capture/end-strength fields so old saved rows keep their offsets. (GPT-5.5) -->
 	while len(entry) < _OUTCOME_DATA_START:
 		entry += (0,)
 	entry += (_OUTCOME_RETREAT,)
@@ -266,7 +270,8 @@ def recordCombatRetreat(iAttacker, iDefender, iAttackerUnit, iDefenderUnit, iX, 
 	_saveEntriesByPlayer(entriesByPlayer)
 
 def recordUnitCaptured(iOldOwner, iOldUnitType, pNewUnit):
-	# <!-- custom: cast the old-owner event arg to plain int; PlayerTypes arrives as an enum/SWIG wrapper from CyArgsList, which makes str(iOldOwner) miss the "3"-style per-player key and entry[2] == iOldOwner fail on int-vs-enum comparison, leaving Cap# / Cap blank. Same pattern as noteCombatActors. (Claude code Opus 4.7) -->
+	# <!-- custom: cast the old-owner event arg to plain int; PlayerTypes arrives as an enum/SWIG wrapper from CyArgsList, which makes str(iOldOwner) miss the "3"-style per-player key and entry[2] == iOldOwner fail on int-vs-enum comparison, leaving Cap# / Cap blank.
+	# Same pattern as noteCombatActors. (Claude code Opus 4.7) -->
 	iOldOwner = int(iOldOwner)
 	iCapturingPlayer = int(pNewUnit.getOwner())
 	iCapturedUnitType = int(pNewUnit.getUnitType())

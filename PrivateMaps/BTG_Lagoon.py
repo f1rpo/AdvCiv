@@ -265,7 +265,8 @@ class DonutFractalWorld(CvMapGeneratorUtil.FractalWorld):
 
 		iRadius = int(self.map.getGridHeight() / 4)
 		iHoleRadius = int(self.map.getGridHeight() / 4)
-		# <!-- custom: The BTG formula used raw pre-Arena world-size indices, making every Tiny-Huge land band one tier too wide and drifting farther on SAS sizes. Preserve the original BTS widths through an explicit aligned Arena-SAS48 table. See KI#269. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: The BTG formula used raw pre-Arena world-size indices, making every Tiny-Huge land band one tier too wide and drifting farther on SAS sizes.
+		# Preserve the original BTS widths through an explicit aligned Arena-SAS48 table. See KI#269. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		worldSizeWidths = {
 			WorldSizeTypes.WORLDSIZE_ARENA: (4, 3),
 			WorldSizeTypes.WORLDSIZE_DUEL: (4, 3),
@@ -357,7 +358,8 @@ class DonutFractalWorld(CvMapGeneratorUtil.FractalWorld):
 							if (iProba < 95):
 								self.plotTypes[i] = PlotTypes.PLOT_HILLS					
 
-		# <!-- custom: BTG shifted the handcrafted Lagoon plot array on wrapped maps but kept starting regions, center terrain/rivers and resources at unshifted coordinates. Keeping the designed array fixed makes every downstream coordinate refer to the same geography. See KI#270. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: BTG shifted the handcrafted Lagoon plot array on wrapped maps but kept starting regions, center terrain/rivers and resources at unshifted coordinates.
+		# Keeping the designed array fixed makes every downstream coordinate refer to the same geography. See KI#270. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 
 		return self.plotTypes
 
@@ -620,7 +622,8 @@ def beforeGeneration():
 	# End of Templates data.
 
 	# Shuffle start points so that players are assigned templateIDs at random.
-	# <!-- custom: BTG indexed a compact assignment list with real player IDs, so sparse alive slots lost Lagoon's custom starting region. Map every actual ever-alive civilization player ID directly to one shuffled template ID. See KI#267. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: BTG indexed a compact assignment list with real player IDs, so sparse alive slots lost Lagoon's custom starting region.
+	# Map every actual ever-alive civilization player ID directly to one shuffled template ID. See KI#267. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	playerIDs = []
 	for playerID in range(gc.getMAX_CIV_PLAYERS()):
 		if gc.getPlayer(playerID).isEverAlive():
@@ -758,7 +761,8 @@ def BTPTopBottomTwoTeams(isBTG):
 				if (gc.getPlayer(iI).isAlive()):		
 					listPlayer.append(gc.getPlayer(iI).getID())				
 
-		# <!-- custom: BTG retried random candidates without a bound, hanging when unequal teams made full Top-v-Bottom separation impossible. Require equal teams and pair the finite misplaced-player lists; if the current starts cannot be paired completely, leave normalization unchanged. See KI#268. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: BTG retried random candidates without a bound, hanging when unequal teams made full Top-v-Bottom separation impossible.
+		# Require equal teams and pair the finite misplaced-player lists; if the current starts cannot be paired completely, leave normalization unchanged. See KI#268. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		teamOnePlayers = []
 		teamTwoPlayers = []
 		for playerID in listPlayer:

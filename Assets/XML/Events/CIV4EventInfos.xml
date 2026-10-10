@@ -3074,7 +3074,8 @@
 			<PythonCallback/>
 			<PythonExpireCheck/>
 			<PythonCanDo/>
-			<!-- custom: This inherited getHelpFarmBandit2 active help name has no Python implementation, while the choice's effects already use ordinary XML help. Remove the dangling dispatch instead of weakening missing-help diagnostics globally. See KI#602. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			<!-- custom: This inherited getHelpFarmBandit2 active help name has no Python implementation, while the choice's effects already use ordinary XML help.
+			Remove the dangling dispatch instead of weakening missing-help diagnostics globally. See KI#602. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			<PythonHelp/>
 			<Button>,Art/Interface/Buttons/Process/Blank.dds,Art/Interface/Buttons/Beyond_the_Sword_Atlas.dds,8,5</Button>
 			<iAIValue>1000</iAIValue>

@@ -9,7 +9,10 @@
 
 # This file has been edited for K-Mod in various places. Some changes marked, others not.
 
-# <!-- custom: canonical Foreign Trade advisor implementation (Treaties/Bonuses/Techs/Cities). Diplomacy/Intel tabs are split to CvForeignDiplomacyAdvisor shell. This file replaces the old interdependent two-file setup ("CvForeignAdvisor.py" + "CvExoticForeignAdvisor.py"), which was inconsistent with other screen structure. For contrast, true alternatives are independent variants (e.g. "CvBUGMilitaryAdvisor.py" / "CvMilitaryAdvisor.py"), while major screens like "CvMainInterface.py" and "CvInfoScreen.py" are lengthy but unified files. (GPT-5.3-Codex) -->
+# <!-- custom: canonical Foreign Trade advisor implementation (Treaties/Bonuses/Techs/Cities).
+# Diplomacy/Intel tabs are split to CvForeignDiplomacyAdvisor shell.
+# This file replaces the old interdependent two-file setup ("CvForeignAdvisor.py" + "CvExoticForeignAdvisor.py"), which was inconsistent with other screen structure.
+# For contrast, true alternatives are independent variants (e.g. "CvBUGMilitaryAdvisor.py" / "CvMilitaryAdvisor.py"), while major screens like "CvMainInterface.py" and "CvInfoScreen.py" are lengthy but unified files. (GPT-5.3-Codex) -->
 
 from CvPythonExtensions import *
 import CvUtil
@@ -79,7 +82,8 @@ class CvForeignAdvisor:
 		self.EXIT_ID = "ForeignAdvisorExitWidget"
 		self.BACKGROUND_ID = "ForeignAdvisorBackground"
 
-		# <!-- custom: these are screen-independent edge constants (safe in __init__); runtime geometry that depends on actual resolution is computed in interfaceScreen. Constants are shared through SASUtils so advisor screens use one source of truth. (GPT-5.3-Codex) -->
+		# <!-- custom: these are screen-independent edge constants (safe in __init__); runtime geometry that depends on actual resolution is computed in interfaceScreen.
+		# Constants are shared through SASUtils so advisor screens use one source of truth. (GPT-5.3-Codex) -->
 		self.W_LEFT_SPACE_FOR_COMMERCE_SLIDERS = SAS_ADVISOR_LEFT_SPACE_FOR_COMMERCE_SLIDERS
 		self.W_RIGHT_SPACE_FOR_SCOREBOARD = SAS_ADVISOR_RIGHT_SPACE_FOR_SCOREBOARD
 		self.H_TOP_SPACE_FOR_TECH_BAR = SAS_ADVISOR_TOP_SPACE_FOR_TECH_BAR
@@ -336,7 +340,10 @@ class CvForeignAdvisor:
 		self.ESP_ROW_Y_LEADER_ICON = 0
 		self.ESP_ROW_X_BUTTON_PLUS = 58
 		self.ESP_ROW_X_BUTTON_MINUS = 76
-		# <!-- custom: With many met players, the old two-line Espionage target rows made +/- buttons, weight, EPs, and +per-turn text hard to see/click. Use compact single-line rows instead of pagination so all targets remain in one scroll list. Both layouts omit the repeated espionage commerce glyph; standard rows use that space for a larger leader portrait and move +/- beside it, while compact rows enlarge the portrait within the existing row. Compact rows also omit the per-row "Weight:" and cost labels because their meaning is clear from context; the wider column anchors keep weight, EPs, and per-turn text separated. (GPT-5.5-Thinking + GPT-5.5? + GPT-5.5) -->
+		# <!-- custom: With many met players, the old two-line Espionage target rows made +/- buttons, weight, EPs, and +per-turn text hard to see/click.
+		# Use compact single-line rows instead of pagination so all targets remain in one scroll list.
+		# Both layouts omit the repeated espionage commerce glyph; standard rows use that space for a larger leader portrait and move +/- beside it, while compact rows enlarge the portrait within the existing row.
+		# Compact rows also omit the per-row "Weight:" and cost labels because their meaning is clear from context; the wider column anchors keep weight, EPs, and per-turn text separated. (GPT-5.5-Thinking + GPT-5.5? + GPT-5.5) -->
 		self.SAS_CV_FOREIGN_ADVISOR_ESPIONAGE_COMPACT_ROWS_THRESHOLD = None
 		self.ESP_COMPACT_LEADER_ICON_SIZE = 28
 		self.ESP_COMPACT_BUTTON_SIZE = 20
@@ -569,7 +576,8 @@ class CvForeignAdvisor:
 
 		self.WAR_ICON = smallSymbol(FontSymbols.WAR_CHAR)
 		self.PEACE_ICON = smallSymbol(FontSymbols.PEACE_CHAR)
-		# <!-- custom: add "Willing to become a vassal" type of button as it is useful for the human player to see it in UI in the glances tab. Added with the help of claude sonnet 4.5 and gemini 3 pro thanks; check if accurate -->
+		# <!-- custom: add "Willing to become a vassal" type of button as it is useful for the human player to see it in UI in the glances tab.
+		# Added with the help of claude sonnet 4.5 and gemini 3 pro thanks; check if accurate -->
 		self.WILLING_VASSAL_ICON = smallSymbol(FontSymbols.SILVER_STAR_CHAR) # using a crown/strength symbol for vassalization
 		self.VASSAL_ICON = smallSymbol(FontSymbols.STRENGTH_CHAR)  # or use a different symbol
 
@@ -633,7 +641,9 @@ class CvForeignAdvisor:
 		##########################################
 
 		# Set the background and exit button, and show the screen
-		# <!-- custom: in the foreign advisor and similar screens, we can't see all info in one screen when there are too many players, yet the window does not use all the game window space. Make it larger, similarly to what we did for sevopedia, so that we don't have to scroll or less so. Code added with the help of gemini 3 pro and then fixed with claude sonnet 4.5's review thanks ;check if accurate -->
+		# <!-- custom: in the foreign advisor and similar screens, we can't see all info in one screen when there are too many players, yet the window does not use all the game window space.
+		# Make it larger, similarly to what we did for sevopedia, so that we don't have to scroll or less so.
+		# Code added with the help of gemini 3 pro and then fixed with claude sonnet 4.5's review thanks ;check if accurate -->
 		# # RJG Start - following line added as per RJG (http://forums.civfanatics.com/showpost.php?p=6996936&postcount=15)
 		# # K-Mod, undone
 		# screen.setDimensions(screen.centerX(0), screen.centerY(0), self.W_SCREEN, self.H_SCREEN)
@@ -690,7 +700,9 @@ class CvForeignAdvisor:
 			aszTabWidgetIDs.append(self.getNextWidgetName())
 			aszTabLabels.append(localText.getText(self.TXT_KEY_DICT[szScreen], ()).upper())
 			aiTabScreenIDs.append(self.SCREEN_DICT[szScreen])
-		# <!-- custom: When removing the old interdependent Foreign/Exotic Foreign setup, our first unified Foreign + Diplomacy-shell code had repeated clicks on the 2nd tab of Foreign Diplomacy Advisor (Glance) jump to the 2nd tab of Foreign Trade Advisor (Bonuses). That is not consistent with how other links behave and is unnecessary for players. Passing self.iScreen as the active page id keeps the selected label inert while inactive tabs still route through their SCREEN_DICT ids. (GPT-5.3-Codex + GPT-5.5) -->
+		# <!-- custom: When removing the old interdependent Foreign/Exotic Foreign setup, our first unified Foreign + Diplomacy-shell code had repeated clicks on the 2nd tab of Foreign Diplomacy Advisor (Glance) jump to the 2nd tab of Foreign Trade Advisor (Bonuses).
+		# That is not consistent with how other links behave and is unnecessary for players.
+		# Passing self.iScreen as the active page id keeps the selected label inert while inactive tabs still route through their SCREEN_DICT ids. (GPT-5.3-Codex + GPT-5.5) -->
 		drawAdvisorFooterTabs(screen, aszTabWidgetIDs, aszTabLabels, self.LABEL_WIDTH_LIST, self.iScreen, self.Y_LINK, 0, self.COLOR_YELLOW, WidgetTypes.WIDGET_FOREIGN_ADVISOR, aiInactiveData1=aiTabScreenIDs)
 
 	def drawActive (self, bInitial):
@@ -732,7 +744,8 @@ class CvForeignAdvisor:
 
 		#screen.addPanel(mainPanelName, "", "", True, True, 50, 100, self.W_SCREEN - 100, self.H_SCREEN - 200, PanelStyles.PANEL_STYLE_EMPTY)
 		# <advc.066> Replacing the above (same as in drawInfoOriginal)
-		# <!-- custom: remove the margins same as in the other foreign advisor tabs after our changes, similarly to what gemini 3 pro advised in its solution thanks. Note: a negative leftRightMargin value such as -3 allows to remove the last yellow edges that remain at 0 it seems, not applied here for beautification -->
+		# <!-- custom: remove the margins same as in the other foreign advisor tabs after our changes, similarly to what gemini 3 pro advised in its solution thanks.
+		# Note: a negative leftRightMargin value such as -3 allows to remove the last yellow edges that remain at 0 it seems, not applied here for beautification -->
 		# leftRightMargin = 25
 		# topBottomMargin = 50
 		leftRightMargin = 0
@@ -884,7 +897,9 @@ class CvForeignAdvisor:
 		#self.W_SCREEN = screen.getXResolution() - 40
 		#self.X_SCREEN = (screen.getXResolution() - 24) / 2
 
-		# <!-- custom: in the foreign advisor and similar screens, we can't see all info in one screen when there are too many players, yet the window does not use all the game window space. Make it larger, similarly to what we did for sevopedia, so that we don't have to scroll or less so. Code added with the help of gemini 3 pro and then fixed with claude sonnet 4.5's review thanks ;check if accurate -->
+		# <!-- custom: in the foreign advisor and similar screens, we can't see all info in one screen when there are too many players, yet the window does not use all the game window space.
+		# Make it larger, similarly to what we did for sevopedia, so that we don't have to scroll or less so.
+		# Code added with the help of gemini 3 pro and then fixed with claude sonnet 4.5's review thanks ;check if accurate -->
 		# self.X_LEADER_CIRCLE_TOP = self.X_SCREEN
 		# --- FIX: Center the web in the middle of the screen ---
 		# We take the full screen width and divide by 2 to find the center pixel
@@ -934,7 +949,9 @@ class CvForeignAdvisor:
 				iCount = iCount + 1
 		fLeaderTop = self.Y_LEADER_CIRCLE_TOP
 
-		# <!-- custom: make radius wider so we use more of our expanded screen now to draw the leader relation's web. Now nicely also dynamically adjusts to screen resolution. Added with the help of gemini 3 pro, check if accurate -->
+		# <!-- custom: make radius wider so we use more of our expanded screen now to draw the leader relation's web.
+		# Now nicely also dynamically adjusts to screen resolution.
+		# Added with the help of gemini 3 pro, check if accurate -->
 		# fRadius = self.RADIUS_LEADER_ARC - self.H_LEADER
 		# Dynamic Resolution Scaling
 		# Define Dynamic Radius
@@ -1213,7 +1230,8 @@ class CvForeignAdvisor:
 
 		#screen.addPanel(mainPanelName, "", "", True, True, 50, 100, self.W_SCREEN - 100, self.H_SCREEN - 200, PanelStyles.PANEL_STYLE_EMPTY)
 		# <advc.066> Replacing the above (same as in drawActive)
-		# <!-- custom: remove the margins same as in the other foreign advisor tabs after our changes, similarly to what gemini 3 pro advised in its solution thanks. Note: a negative leftRightMargin value such as -3 allows to remove the last yellow edges that remain at 0 it seems, not applied here for beautification -->
+		# <!-- custom: remove the margins same as in the other foreign advisor tabs after our changes, similarly to what gemini 3 pro advised in its solution thanks.
+		# Note: a negative leftRightMargin value such as -3 allows to remove the last yellow edges that remain at 0 it seems, not applied here for beautification -->
 		# leftRightMargin = 25
 		# topBottomMargin = 50
 		leftRightMargin = 0
@@ -1290,7 +1308,8 @@ class CvForeignAdvisor:
 					nCivic = objLoopPlayer.getCivics (nCivicOption)
 					screen.attachImageButton (infoPanelName, "", gc.getCivicInfo (nCivic).getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_CIVIC, nCivic, 1, False)
 
-				# <!-- custom: also show favorite religions in the foreign advisor's info tab. Code added with the help of gemini 3 pro thanks, also refactor this part of the code as well for clarity -->
+				# <!-- custom: also show favorite religions in the foreign advisor's info tab.
+				# Code added with the help of gemini 3 pro thanks, also refactor this part of the code as well for clarity -->
 				nFavoriteCivic = objLeaderHead.getFavoriteCivic()
 				hasFavoriteCivic = (objLoopPlayer.isFavoriteCivicKnown() and nFavoriteCivic != -1) # advc.130n
 
@@ -1703,7 +1722,8 @@ class CvForeignAdvisor:
 
 						# <!-- custom: This is extra info by gemini 3 pro; check if accurate -->
 						# 1. Base Attitude Text (Smilies/Numbers)
-						# <!-- custom: leave diagonal Glance cells empty: a player-vs-itself cell is not a real attitude modifier against another player. Rendering the matrix default as +0 was misleading, and in Both mode it was inconsistent with real +0 relation cells that also show an attitude icon. See KI#140. (GPT-5.5) -->
+						# <!-- custom: leave diagonal Glance cells empty: a player-vs-itself cell is not a real attitude modifier against another player.
+						# Rendering the matrix default as +0 was misleading, and in Both mode it was inconsistent with real +0 relation cells that also show an attitude icon. See KI#140. (GPT-5.5) -->
 						bSelfRelationCell = (j == iLoopPlayer)
 						if bSelfRelationCell:
 							szText = ""
@@ -1712,7 +1732,11 @@ class CvForeignAdvisor:
 						else:
 							szText = ""
 
-						# <!-- custom: add "Willing to become a vassal" type of button as it is useful for the human player to see it in UI in the glances tab. Also for information or exhaustiveness the human player occupies the first row and has no column in the glances tab it seems if i'm not mistaken. Added with the combined help of claude sonnet 4.5 and gemini pro 3, since neither could get it right on their own or fast enough; claude helped most but gemini too and me too i mean thanks to me too. I fed claude the C++ code of int CvTeamAI::AI_vassalTradeVal, DenialTypes CvTeamAI::AI_vassalTrade, int CvTeamAI::AI_surrenderTradeVal, and DenialTypes CvTeamAI::AI_surrenderTrade, since its previous python implementation didn't work. Check if accurate -->
+						# <!-- custom: add "Willing to become a vassal" type of button as it is useful for the human player to see it in UI in the glances tab.
+						# Also for information or exhaustiveness the human player occupies the first row and has no column in the glances tab it seems if i'm not mistaken.
+						# Added with the combined help of claude sonnet 4.5 and gemini pro 3, since neither could get it right on their own or fast enough; claude helped most but gemini too and me too i mean thanks to me too.
+						# I fed claude the C++ code of int CvTeamAI::AI_vassalTradeVal, DenialTypes CvTeamAI::AI_vassalTrade, int CvTeamAI::AI_surrenderTradeVal, and DenialTypes CvTeamAI::AI_surrenderTrade, since its previous python implementation didn't work.
+						# Check if accurate -->
 						# Goal: If this is MY Row (iLoopPlayer is me), check if the RIVAL (j) wants to be my vassal.
 						# Vassal Check (Human Row Edition)
 						if iLoopPlayer == self.iActiveLeader:
@@ -1812,7 +1836,8 @@ class CvForeignAdvisor:
 		topSpace = self.MIN_TOP_BOTTOM_SPACE
 
 		gridX = leftSpace
-		# <!-- custom: not sure how this all works, some changes don't seem effective at all, manually adjusting as such empirically. and randomly as such somehow seemed to land it right -->
+		# <!-- custom: not sure how this all works, some changes don't seem effective at all, manually adjusting as such empirically.
+		# and randomly as such somehow seemed to land it right -->
 		# gridY = topSpace + self.RES_SURPLUS_HEIGHT + self.RES_PANEL_SPACE + self.TITLE_HEIGHT
 		gridY = topSpace + self.RES_SURPLUS_HEIGHT + self.RES_PANEL_SPACE + self.TITLE_HEIGHT - 60
 		gridWidth = self.W_SCREEN - gridX - leftSpace
@@ -1885,7 +1910,8 @@ class CvForeignAdvisor:
 				# advc.073: Replacing the above
 				self.resIconGrid.createColumnGroup(" ", 3)
 
-		# <!-- custom: keep the bonus tab aligned to runtime advisor bounds (not centered on preferred grid size) so high resolutions don't create narrow/offset panels. Use slightly tighter inner padding/margins so more width/height is used. (GPT-5.3-Codex) -->
+		# <!-- custom: keep the bonus tab aligned to runtime advisor bounds (not centered on preferred grid size) so high resolutions don't create narrow/offset panels.
+		# Use slightly tighter inner padding/margins so more width/height is used. (GPT-5.3-Codex) -->
 		# <!-- custom: let the bonus-tab blue panels extend a few pixels further to remove leftover side gutters at higher resolutions. (GPT-5.3-Codex) -->
 		self.RES_LEFT_RIGHT_SPACE = self.MIN_LEFT_RIGHT_SPACE - 5
 		self.RES_TOP_BOTTOM_SPACE = max(22, self.MIN_TOP_BOTTOM_SPACE - 18)
@@ -2024,7 +2050,8 @@ class CvForeignAdvisor:
 			if ( currentPlayer.isAlive() and not currentPlayer.isBarbarian() and not currentPlayer.isMinorCiv() and gc.getTeam(currentPlayer.getTeam()).isHasMet(activePlayer.getTeam()) and iLoopPlayer != self.iActiveLeader ):
 				message = ""
 				if ( not activePlayer.canTradeNetworkWith(iLoopPlayer) ):
-					# <!-- custom: unlike base AdvCiv, keep showing GPT here even when not connected to trade network (still gated on isGoldTrading / Currency tech), to avoid opening Diplomacy each turn just to see it. Side effect: the pre-existing "Not Connected" overlay then collides with the GPT number, so prepend tabs to push it past the GPT column. See KI#132. (claude code opus 4.7) -->
+					# <!-- custom: unlike base AdvCiv, keep showing GPT here even when not connected to trade network (still gated on isGoldTrading / Currency tech), to avoid opening Diplomacy each turn just to see it.
+					# Side effect: the pre-existing "Not Connected" overlay then collides with the GPT number, so prepend tabs to push it past the GPT column. See KI#132. (claude code opus 4.7) -->
 					message = "\t\t" + self.TEXT_NOT_CONNECTED
 
 				self.resIconGrid.appendRow(labelText(currentPlayer.getName()), labelText(message))
@@ -2292,7 +2319,8 @@ class CvForeignAdvisor:
 		self.techIconGrid.setHeader( iTechColWont, labelText(self.TEXT_NOT_FOR_TRADE) )
 		self.techIconGrid.setHeader( iTechColCantThem, labelText(self.TEXT_CANT_TRADE) )
 
-		# <!-- custom: fit more information in each row so we don't have to scroll to see extra techs. Change with the help of gemini 3 pro -->
+		# <!-- custom: fit more information in each row so we don't have to scroll to see extra techs.
+		# Change with the help of gemini 3 pro -->
 		# Based on your screenshots (specifically Civ4ScreenShot0084.jpg) and the code provided, the issue is not the column width variables (TECH_STATUS_COL_WIDTH).
 		# The problem is at the very end of the initTechTable function. The code calculates the "Preferred Width" (the minimum width required to hold the icons) and then shrinks the table to fit that minimum size, centering it in your large window. This ignores the full screen width you successfully set up earlier.
 		# You need to replace the end of that function to stop it from shrinking and to manually force the columns to share the available space.
@@ -2353,7 +2381,11 @@ class CvForeignAdvisor:
 		# iExtraX = 0
 		# iExtraWidth = 0
 		iExtraX = 24
-		# <!-- custom: note: empirically, it seems that reducing width to have symmetrical margins than on the left side causes buttons (or is it icons?) like the war declare or peace one to be too close to the leader's button. On the other hand, the right space is useless in itself, and we have no other column on the right, so it's fine if it overfills beyond the screen on the right side, as long as it helps have enough space from the leader button. Could maybe ideally fix this more properly but may be possibly very tedious and is fine enough as such i mean if i may say so left as such as long as it displays nicely on the left side. (comparing it to the foreign advisor's tech tab and trying to have a more or less identical left side display seems more important). -->
+		# <!-- custom: note: empirically, it seems that reducing width to have symmetrical margins than on the left side causes buttons (or is it icons?)
+		# like the war declare or peace one to be too close to the leader's button.
+		# On the other hand, the right space is useless in itself, and we have no other column on the right, so it's fine if it overfills beyond the screen on the right side, as long as it helps have enough space from the leader button.
+		# Could maybe ideally fix this more properly but may be possibly very tedious and is fine enough as such i mean if i may say so left as such as long as it displays nicely on the left side.
+		# (comparing it to the foreign advisor's tech tab and trying to have a more or less identical left side display seems more important). -->
 		iExtraWidth = 10
 
 		iconGrid.setPosition(LEFT_RIGHT_SPACE + 10 + iExtraX, TOP_BOTTOM_SPACE + 10)
@@ -2557,7 +2589,8 @@ class CvForeignAdvisor:
 		# </advc.ctr>
 		return 0
 
-	# <!-- custom: Espionage tab logic integrated directly into CvForeignAdvisor (no helper class/wrapper object). Kept existing Espionage comments unless obsolete. (GPT-5.3-Codex) -->
+	# <!-- custom: Espionage tab logic integrated directly into CvForeignAdvisor (no helper class/wrapper object).
+	# Kept existing Espionage comments unless obsolete. (GPT-5.3-Codex) -->
 
 	def drawEspionageContents(self):
 
@@ -2803,7 +2836,8 @@ class CvForeignAdvisor:
 			pActivePlayer = gc.getPlayer(self.ESP_iActivePlayer)
 			pActiveTeam = gc.getTeam(pActivePlayer.getTeam())
 
-			# <!-- custom: disabled the Espionage slider draw here: global commerce sliders already exist on the right, so this duplicate control is redundant/noisy in the integrated Foreign tab. Keep drawEspionageSlider() code for possible future reuse. (GPT-5.3-Codex) -->
+			# <!-- custom: disabled the Espionage slider draw here: global commerce sliders already exist on the right, so this duplicate control is redundant/noisy in the integrated Foreign tab.
+			# Keep drawEspionageSlider() code for possible future reuse. (GPT-5.3-Codex) -->
 			# self.drawEspionageSlider() # advc.120c
 
 			bCompactLeaderRows = self.useCompactEspionageRows()

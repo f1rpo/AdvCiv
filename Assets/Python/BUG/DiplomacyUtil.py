@@ -24,7 +24,8 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
-# <!-- custom: AdvCiv-SAS does not actively maintain this third-party BUG library file. Edits here are limited to repo-wide consistency passes (e.g. getInfoTypeOrFail for fail-loud XML lookups). (Claude code Opus 4.7) -->
+# <!-- custom: AdvCiv-SAS does not actively maintain this third-party BUG library file.
+# Edits here are limited to repo-wide consistency passes (e.g. getInfoTypeOrFail for fail-loud XML lookups). (Claude code Opus 4.7) -->
 
 from CvPythonExtensions import *
 from SASUtils import getInfoTypeOrFail
@@ -282,7 +283,8 @@ def onDealRejected(argsList):
 	#BugUtil.debug("DiplomacyUtil::onDealRejected %s" %(str(argsList)))
 	eTargetPlayer, eOfferPlayer, pTrade = argsList
 	BugUtil.debug("DiplomacyUtil - %s rejects trade offered by %s: %r", PlayerUtil.getPlayer(eTargetPlayer).getName(), PlayerUtil.getPlayer(eOfferPlayer).getName(), pTrade)
-	# <!-- custom: This resolved BUG event is the clean source for an AI->human rejected ordinary offer. Check the lazy-cached recorder level first so level 0/1 users short-circuit before trade iteration/list construction or the Python->C++ call.
+	# <!-- custom: This resolved BUG event is the clean source for an AI->human rejected ordinary offer.
+	# Check the lazy-cached recorder level first so level 0/1 users short-circuit before trade iteration/list construction or the Python->C++ call.
 	# Caller owns this performance gate; the C++ bridge intentionally validates payload only and does not duplicate the recorder-level check after these lists already exist. (ChatGPT-5.6-Sol) -->
 	if _getSASGameRecordLogLevel() >= 2 and eTargetPlayer != -1 and eOfferPlayer != -1 and pTrade is not None:
 		CyGame().logSASGameRecordRejectedAIOffer(eOfferPlayer, eTargetPlayer, _getSASGameRecordRawTradeItems(pTrade.otherTrades()), _getSASGameRecordRawTradeItems(pTrade.trades()))

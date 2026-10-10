@@ -23,7 +23,8 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
-# <!-- custom: AdvCiv-SAS does not actively maintain this BUG screen; the custom Military Advisor lives in CvMilitaryAdvisor.py. Minor edits here are limited to repo-wide consistency passes (e.g. getInfoTypeOrFail for fail-loud XML lookups). (Claude code Opus 4.7) -->
+# <!-- custom: AdvCiv-SAS does not actively maintain this BUG screen; the custom Military Advisor lives in CvMilitaryAdvisor.py.
+# Minor edits here are limited to repo-wide consistency passes (e.g. getInfoTypeOrFail for fail-loud XML lookups). (Claude code Opus 4.7) -->
 
 from CvPythonExtensions import *
 from SASUtils import getInfoTypeOrFail

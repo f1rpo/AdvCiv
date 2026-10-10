@@ -1,7 +1,10 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
-# <!-- custom: Shared ARENA/SAS world-size helpers for map scripts. This used to live in the playable PrivateMaps/SAS_WorldSizes.py helper map; importing it with import-star leaked that map's compact getGridSize callback into scripts that did not define their own. RandomScriptMap Huge was empirically far too small (60 x 44) and became 120 x 84 after moving the helpers out of PrivateMaps, visually matching base AdvCiv Huge at a glance; the same leak likely affected other scripts such as Archipelago. Keep this utility outside PrivateMaps and do not add Civ4 map-script callback names here. (GPT-5.5?) -->
+# <!-- custom: Shared ARENA/SAS world-size helpers for map scripts.
+# This used to live in the playable PrivateMaps/SAS_WorldSizes.py helper map; importing it with import-star leaked that map's compact getGridSize callback into scripts that did not define their own.
+# RandomScriptMap Huge was empirically far too small (60 x 44) and became 120 x 84 after moving the helpers out of PrivateMaps, visually matching base AdvCiv Huge at a glance; the same leak likely affected other scripts such as Archipelago.
+# Keep this utility outside PrivateMaps and do not add Civ4 map-script callback names here. (GPT-5.5?) -->
 
 import math
 from CvPythonExtensions import CyGlobalContext, WorldSizeTypes
@@ -23,7 +26,9 @@ def sas_default_sizevalues():
 		WorldSizeTypes.WORLDSIZE_SAS48: 7,
 	}
 
-# <!-- custom: Shared compact profile for almost-all-land maps. Base tiers are fixed; SAS24/32/40/48 are calibrated from the Huge XML default-player anchor so tiles-per-player stay closer to Huge while reducing spacing for underpopulated starts further. See also SAS_MAP_SCRIPT_NAMES_ALMOST_ALL_LAND (GPT-5.3-Codex + GPT-5.5) -->
+# <!-- custom: Shared compact profile for almost-all-land maps.
+# Base tiers are fixed; SAS24/32/40/48 are calibrated from the Huge XML default-player anchor so tiles-per-player stay closer to Huge while reducing spacing for underpopulated starts further.
+# See also SAS_MAP_SCRIPT_NAMES_ALMOST_ALL_LAND (GPT-5.3-Codex + GPT-5.5) -->
 def sas_compact_almost_all_land_grid_sizes():
 	return {
 		WorldSizeTypes.WORLDSIZE_ARENA:  (2, 2),
@@ -79,7 +84,8 @@ def sas_warn_simple_game_stale_option_once(iOption, iRealCount):
 	SAS_SIMPLE_GAME_STALE_OPTION_WARNED = True
 	raise KeyError("Notice: if you started this map from Simple Game, you'll likely encounter a stale custom option index KeyError on next Simple Game launch. Workaround: press Esc key many times (or faster keep it pressed several seconds), or play Custom Game to avoid this issue entirely. See KI#106. (requested option %d, real options %d)" % (iOption, iRealCount))
 
-# <!-- custom: Helper for map-size tuning: keep anchor ratio and tiles-per-player roughly stable when extrapolating to larger player caps. Intended for script calibration by maintainers. (GPT-5.3-Codex) -->
+# <!-- custom: Helper for map-size tuning: keep anchor ratio and tiles-per-player roughly stable when extrapolating to larger player caps.
+# Intended for script calibration by maintainers. (GPT-5.3-Codex) -->
 def sas_calibrate_grid_from_anchor(iAnchorWidth, iAnchorHeight, iAnchorMaxPlayers, iTargetMaxPlayers):
 	fRatio = sas_grid_ratio(iAnchorWidth, iAnchorHeight)
 	fTilesPerPlayer = sas_tiles_per_player(iAnchorWidth, iAnchorHeight, iAnchorMaxPlayers)
@@ -88,7 +94,8 @@ def sas_calibrate_grid_from_anchor(iAnchorWidth, iAnchorHeight, iAnchorMaxPlayer
 	iTargetWidth = max(1, int((float(iTargetHeight) * fRatio) + 0.5))
 	return (iTargetWidth, iTargetHeight)
 
-# <!-- custom: For map-size calibration workflows, compute only the requested world size: base tiers return directly; SAS24/32/40/48 are calibrated on demand from the last base tier (usually Huge) and XML default-player counts. Fail loudly if a referenced world size is missing instead of using stale fallback player counts. (GPT-5.3-Codex + GPT-5.5) -->
+# <!-- custom: For map-size calibration workflows, compute only the requested world size: base tiers return directly; SAS24/32/40/48 are calibrated on demand from the last base tier (usually Huge) and XML default-player counts.
+# Fail loudly if a referenced world size is missing instead of using stale fallback player counts. (GPT-5.3-Codex + GPT-5.5) -->
 def sas_lookup_world_size_with_calibrated_sas(eWorldSize, base_grid_sizes):
 	iWorldSize = int(eWorldSize)
 	key = sas_find_world_size_key(eWorldSize, base_grid_sizes)

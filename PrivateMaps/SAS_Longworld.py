@@ -166,7 +166,8 @@ def getStripBounds(iH):
 		iTopRow = max(1, iBottomRow - iBandHeight + 1)
 	return (iTopRow, iBottomRow)
 
-# <!-- custom: Longworld's fallback may move a player onto another player's nominal strip tile. Reset the assignment cache and used-plot set for each generation. See KI#246. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+# <!-- custom: Longworld's fallback may move a player onto another player's nominal strip tile.
+# Reset the assignment cache and used-plot set for each generation. See KI#246. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 def beforeGeneration():
 	global longworldStartByPlayer
 	global longworldUsedStarts
@@ -174,7 +175,8 @@ def beforeGeneration():
 	longworldUsedStarts = {}
 
 def findStartingPlot(argsList):
-	# <!-- custom: Force starts onto the long central strip with even horizontal spacing. Preserve assignments across repeated callbacks and skip already-used fallback plots so trimmed strip edges cannot give two players the same start. See KI#246. (GPT-5.3-Codex; ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: Force starts onto the long central strip with even horizontal spacing.
+	# Preserve assignments across repeated callbacks and skip already-used fallback plots so trimmed strip edges cannot give two players the same start. See KI#246. (GPT-5.3-Codex; ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	[playerID] = argsList
 	global longworldStartByPlayer
 	global longworldUsedStarts

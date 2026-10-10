@@ -26,7 +26,8 @@ def main() -> int:
 	args = parser.parse_args()
 
 	defines = read_global_define_ints(args.repo_root)
-	# <!-- custom: The old manual list missed Citizen and Culture logging. Require every integer SAS_BBAI_* define to be 0 automatically, with explicit exceptions only for settings that configure enabled logging without enabling it. (GPT-5.5 + GPT-5.5) -->
+	# <!-- custom: The old manual list missed Citizen and Culture logging.
+	# Require every integer SAS_BBAI_* define to be 0 automatically, with explicit exceptions only for settings that configure enabled logging without enabling it. (GPT-5.5 + GPT-5.5) -->
 	expected = {name: 0 for name in defines if name.startswith("SAS_BBAI_")}
 	expected.update(EXPECTED_NONZERO_LOGGING_DEFAULTS)
 	expected["SAS_BBAI_LOG_ENABLE"] = 0

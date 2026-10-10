@@ -266,11 +266,9 @@ class CvHallOfFameScreen:
 		return ((self.iLeaderFilter == -1 or self.iLeaderFilter == replayInfo.getLeader(replayInfo.getActivePlayer())) and (self.iHandicapFilter == -1 or self.iHandicapFilter == replayInfo.getDifficulty()) and (self.iWorldFilter == -1 or self.iWorldFilter == replayInfo.getWorldSize()) and (self.iClimateFilter == -1 or self.iClimateFilter == replayInfo.getClimate()) and (self.iSeaLevelFilter == -1 or self.iSeaLevelFilter == replayInfo.getSeaLevel()) and (self.iEraFilter == -1 or self.iEraFilter == replayInfo.getEra()) and (self.iSpeedFilter == -1 or self.iSpeedFilter == replayInfo.getGameSpeed()) and (self.iVictoryFilter == -1 or self.iVictoryFilter == replayInfo.getVictoryType()) and ((self.iMultiplayerFilter == 1) == replayInfo.isMultiplayer()))
 
 	def getReplayCivType(self, replayInfo):
-		# <!-- custom: Hall of Fame identity columns mirror the Info Screen Score Tab:
-		# leader icon, civ icon, player color marker, leader/civ name, then trait icons.
-		# CyReplayInfo stores leader id and player color directly, so those survive custom
-		# leader names. It does not store civilization id, only civ name strings; match them
-		# back to XML for the civ icon, and let custom civ names return -1 for no unreliable icon. (GPT-5.5) -->
+		# <!-- custom: Hall of Fame identity columns mirror the Info Screen Score Tab: leader icon, civ icon, player color marker, leader/civ name, then trait icons.
+		# CyReplayInfo stores leader id and player color directly, so those survive custom leader names.
+		# It does not store civilization id, only civ name strings; match them back to XML for the civ icon, and let custom civ names return -1 for no unreliable icon. (GPT-5.5) -->
 		szShort = replayInfo.getShortCivDescription()
 		szFull = replayInfo.getCivDescription()
 		szAdjective = replayInfo.getCivAdjective()

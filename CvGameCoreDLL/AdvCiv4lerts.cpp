@@ -63,7 +63,8 @@ void AdvCiv4lert::check(bool bSilent)
 // <advc.210a>
 void WarTradeAlert::check()
 {
-	// <!-- custom: make these static const for performance optimization. as advised by chatgpt 5 too. -->
+	// <!-- custom: make these static const for performance optimization.
+	// as advised by chatgpt 5 too. -->
 	// <!-- custom: code/performance optimization: hoist -->
 	static const bool bAlertOnNoLongerWarTrade = GC.getDefineBOOL("ALERT_ON_NO_LONGER_WAR_TRADE");
 

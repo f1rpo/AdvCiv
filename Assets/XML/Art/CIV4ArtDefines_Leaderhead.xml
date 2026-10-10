@@ -445,7 +445,8 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 			<NoShaderNIF>Art/AdvCiv_SAS/LeaderHeads/Ewuare/nif/shaka.nif</NoShaderNIF>
 			<BackgroundKFM>Art/AdvCiv_SAS/LeaderHeads/Ewuare/nif/Shaka_BG.kfm</BackgroundKFM>
 		</LeaderheadArtInfo>
-		<!-- custom: (GPT-5.3-Codex). Leadrhead from [LH] Grace O'Malley on CFC uploaded by SaibotLieh thanks -->
+		<!-- custom: (GPT-5.3-Codex).
+		Leadrhead from [LH] Grace O'Malley on CFC uploaded by SaibotLieh thanks -->
 		<LeaderheadArtInfo>
 			<Type>ART_DEF_LEADER_GRACE_OMALLEY</Type>
 			<Button>Art/AdvCiv_SAS/LeaderHeads/Grace_O_Malley/Grace_OMalley.dds</Button>
@@ -454,7 +455,8 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 			<NoShaderNIF>Art/AdvCiv_SAS/LeaderHeads/Grace_O_Malley/nif/John_II_NONSHADER.nif</NoShaderNIF>
 			<BackgroundKFM>Art/AdvCiv_SAS/LeaderHeads/Grace_O_Malley/nif/mansa_musa_bg.kfm</BackgroundKFM>
 		</LeaderheadArtInfo>
-		<!-- custom: (GPT-5.3-Codex). leadrhead from Michael John Collins on CFC uploaded by C.Roland thanks -->
+		<!-- custom: (GPT-5.3-Codex).
+		leadrhead from Michael John Collins on CFC uploaded by C.Roland thanks -->
 		<LeaderheadArtInfo>
 			<Type>ART_DEF_LEADER_MICHAEL_COLLINS</Type>
 			<Button>Art/AdvCiv_SAS/LeaderHeads/Michael_Collins/collinsbutton.dds</Button>

@@ -84,7 +84,9 @@ class CvPolicyAdvisorScreen:
 		self.m_paeDisplayPolicies = []
 		self.m_paeOriginalPolicies = []
 
-		# <!-- custom: Religion advisor tab integration state/constants kept in Policy advisor init so no standalone Religion screen state is required anymore. Removed unused legacy Religion-screen members during migration to keep this tab-host class clean. Legacy credit preserved from CvReligionScreen: scrolling aspect by johny smith (CFC thread 260697), inspiration from zappara for extended religion handling, then BUG/K-Mod/advc integration layers. (GPT-5.3-Codex) -->
+		# <!-- custom: Religion advisor tab integration state/constants kept in Policy advisor init so no standalone Religion screen state is required anymore.
+		# Removed unused legacy Religion-screen members during migration to keep this tab-host class clean.
+		# Legacy credit preserved from CvReligionScreen: scrolling aspect by johny smith (CFC thread 260697), inspiration from zappara for extended religion handling, then BUG/K-Mod/advc integration layers. (GPT-5.3-Codex) -->
 		self.RELIGION_NAME = "ReligionText"
 		self.RELIGION_BUTTON_NAME = "ReligionScreenButton"
 		self.RELIGION_TABLE_ID = "ReligionTableWidget"
@@ -190,7 +192,8 @@ class CvPolicyAdvisorScreen:
 		self.iCorporationSelected = -1
 
 	def initText(self):
-		# <!-- custom: cache Policy Advisor static UI text once per language to reduce repeated translator work and keep future multi-tab expansion centralized. Dynamic gameplay-state text remains computed at draw/update time. (GPT-5.3-Codex) -->
+		# <!-- custom: cache Policy Advisor static UI text once per language to reduce repeated translator work and keep future multi-tab expansion centralized.
+		# Dynamic gameplay-state text remains computed at draw/update time. (GPT-5.3-Codex) -->
 		if self.iLanguageLoaded == CyGame().getCurrentLanguage() or not CyGame().isFinalInitialized():
 			return
 		self.iLanguageLoaded = CyGame().getCurrentLanguage()
@@ -335,7 +338,8 @@ class CvPolicyAdvisorScreen:
 		screen.setRenderInterfaceOnly(True)
 		screen.showScreen( PopupStates.POPUPSTATE_IMMEDIATE, False)
 
-		# <!-- custom: remove dependency on EndTurnButton geometry (old gRect-based margin). We now use shared advisor runtime bounds/anchors so policy layout follows the same resolution logic as other advisors and avoids coupling to HUD widget positions. (GPT-5.3-Codex) -->
+		# <!-- custom: remove dependency on EndTurnButton geometry (old gRect-based margin).
+		# We now use shared advisor runtime bounds/anchors so policy layout follows the same resolution logic as other advisors and avoids coupling to HUD widget positions. (GPT-5.3-Codex) -->
 		self.updateRuntimeLayout(screen)
 
 		# Set the background and exit button, and show the screen
@@ -1208,14 +1212,16 @@ class CvPolicyAdvisorScreen:
 		return szText
 
 	def getScaledCorporationGeneratedValue(self, iStoredValue, iWorldPercent):
-		# <!-- custom: Corporation XML yield/commerce values are stored in hundredths. Match native CvGameTextMgr truncation after world-size scaling, including C++ truncation toward zero for negative values. See KI#231. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: Corporation XML yield/commerce values are stored in hundredths.
+		# Match native CvGameTextMgr truncation after world-size scaling, including C++ truncation toward zero for negative values. See KI#231. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		iScaledValueX100 = iStoredValue * iWorldPercent
 		if iScaledValueX100 >= 0:
 			return iScaledValueX100 / 100
 		return -((-iScaledValueX100) / 100)
 
 	def getCorporationGeneratedValueText(self, iValueX100):
-		# <!-- custom: Display scaled corporation rates as exact signed units (+1, +0.50, +1.50) instead of exposing the raw hundredths (100, 50, 150). Use integer text assembly to avoid floating-point approximation. See KI#231. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: Display scaled corporation rates as exact signed units (+1, +0.50, +1.50) instead of exposing the raw hundredths (100, 50, 150).
+		# Use integer text assembly to avoid floating-point approximation. See KI#231. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		iAbsoluteValue = abs(iValueX100)
 		szSign = u"+"
 		if iValueX100 < 0:
@@ -1230,7 +1236,8 @@ class CvPolicyAdvisorScreen:
 		return szText
 
 	def getMapObserverTeam(self):
-		# <!-- custom: A selected vassal remains the Policy Advisor's subject, but outside debug its Holy City and Corporation Headquarters rows must use the real active player's map knowledge so the perspective selector cannot reveal hidden locations. Debug mode deliberately retains the selected player's map knowledge. See KI#232. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: A selected vassal remains the Policy Advisor's subject, but outside debug its Holy City and Corporation Headquarters rows must use the real active player's map knowledge so the perspective selector cannot reveal hidden locations.
+		# Debug mode deliberately retains the selected player's map knowledge. See KI#232. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if CyGame().isDebugMode():
 			return gc.getPlayer(self.iActivePlayer).getTeam()
 		return gc.getPlayer(CyGame().getActivePlayer()).getTeam()

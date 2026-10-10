@@ -54,8 +54,8 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
-# <!-- custom: AdvCiv-SAS does not actively maintain this BUG screen. Edits here are limited to repo-wide
-# consistency passes (e.g. getInfoTypeOrFail for fail-loud XML lookups) and small hoists/caches. (Claude code Opus 4.7) -->
+# <!-- custom: AdvCiv-SAS does not actively maintain this BUG screen.
+# Edits here are limited to repo-wide consistency passes (e.g. getInfoTypeOrFail for fail-loud XML lookups) and small hoists/caches. (Claude code Opus 4.7) -->
 
 from CvPythonExtensions import *
 from SASUtils import getInfoTypeOrFail
@@ -2271,8 +2271,7 @@ class CvCustomizableDomesticAdvisor:
 			fHScaleFactor = min(2, max((self.nTableWidth - 50.0) / iTotalColW,
 					# I don't think we should shrink columns when player configures too many
 					1))
-			# <!-- custom: minimally upscale main customizable-domestic table text (rows + non-building headers):
-			# keep base AdvCiv width logic and just bump the two legacy font steps by +1 for readability. (GPT-5.3-Codex) -->
+			# <!-- custom: minimally upscale main customizable-domestic table text (rows + non-building headers): keep base AdvCiv width logic and just bump the two legacy font steps by +1 for readability. (GPT-5.3-Codex) -->
 			if fHScaleFactor > 1.36:
 				iCellFontSize = 4
 			else:

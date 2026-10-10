@@ -3901,7 +3901,8 @@ class PangaeaBreaker:
 			em.data[i] *= min(0.88, 0.37 + math.sqrt((x - centerX) * (x - centerX) + (y - centerY) * (y - centerY)) / 7.0)
 
 	def getCirclePoints(self, xCenter, yCenter, radius):
-		# <!-- custom: castMeteorUponTheEarth consumes same-y boundary points as insertion-ordered left/right pairs. CirclePoint has identity equality, so the set neither removed coordinate duplicates nor preserved those pairs; restore the ordered list to keep crater rows complete. See KI#218. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: castMeteorUponTheEarth consumes same-y boundary points as insertion-ordered left/right pairs.
+		# CirclePoint has identity equality, so the set neither removed coordinate duplicates nor preserved those pairs; restore the ordered list to keep crater rows complete. See KI#218. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		circlePoints = []
 		x = 0
 		y = radius
@@ -6373,12 +6374,16 @@ def getBottomLatitude():
 # 		WorldSizeTypes.WORLDSIZE_LARGE:					(30, 20),
 # 		WorldSizeTypes.WORLDSIZE_HUGE:					(36, 24)
 # 	}
-# <!-- custom: Define getGridSize like the other SAS maps (base grid-unit profile -> calibrated helper). The engine multiplies these grid units ~x4 to plots, so LARGE (20,14) -> ~80x56 effective (bumped up a bit since PerfectMongoose is water-heavy and needs more land; cf. Pangaea ~74x52); returning the full WorldInfo grid (47,34) blew up to 188x136. SAS24-48 calibrate from the Huge anchor. Verify/tune base values via the Victory Screen size readout. (Claude code Opus 4.7) -->
+# <!-- custom: Define getGridSize like the other SAS maps (base grid-unit profile -> calibrated helper).
+# The engine multiplies these grid units ~x4 to plots, so LARGE (20,14) -> ~80x56 effective (bumped up a bit since PerfectMongoose is water-heavy and needs more land; cf. Pangaea ~74x52); returning the full WorldInfo grid (47,34) blew up to 188x136.
+# SAS24-48 calibrate from the Huge anchor.
+# Verify/tune base values via the Victory Screen size readout. (Claude code Opus 4.7) -->
 def getGridSize(argsList):
 	if (argsList[0] == -1): # (-1,) is passed to function on loads
 		return []
 	[eWorldSize] = argsList
-	# <!-- custom: WorldSizeTypes keys now match the runtime XML world-size order, including ARENA before Duel and SAS sizes after Huge. This preserves the earlier Large/Huge map-size fix without custom magic indices. (Claude code Opus 4.7; GPT-5.5; ChatGPT-5.5) -->
+	# <!-- custom: WorldSizeTypes keys now match the runtime XML world-size order, including ARENA before Duel and SAS sizes after Huge.
+	# This preserves the earlier Large/Huge map-size fix without custom magic indices. (Claude code Opus 4.7; GPT-5.5; ChatGPT-5.5) -->
 	grid_sizes = {
 		WorldSizeTypes.WORLDSIZE_ARENA: (6, 4),
 		WorldSizeTypes.WORLDSIZE_DUEL: (8, 6),

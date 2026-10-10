@@ -63,7 +63,8 @@ void CvGame::init(HandicapTypes eHandicap)
 	CvInitCore& ic = GC.getInitCore();
 
 	reset(eHandicap); // Reset serialized data
-	// <!-- custom: Start distinct diagnostic/report files before map generation so a new game begun after save-file tests does not continue writing to the last loaded-save logs. Caller-gated to avoid entering disabled logging helpers. (GPT-5.5) -->
+	// <!-- custom: Start distinct diagnostic/report files before map generation so a new game begun after save-file tests does not continue writing to the last loaded-save logs.
+	// Caller-gated to avoid entering disabled logging helpers. (GPT-5.5) -->
 	if (isSASBBAILogEnabled()) startSASBBAILogForNewGame();
 	if (isSASGameRecordLogEnabled()) startSASGameRecordLogForNewGame();
 
@@ -688,7 +689,8 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	m_eNormalizationLevel = NORMALIZE_DEFAULT; // advc.108
 	m_szScriptData = "";
 
-	// <!-- custom: compute mapname once per map load (new game, load save file) so we don't have to do it everytime (e.g. for each unit order and at each turn). I don't know too much about these although it was my idea to do so, code provided with the help of chatgpt 5 thanks. -->
+	// <!-- custom: compute mapname once per map load (new game, load save file) so we don't have to do it everytime (e.g. for each unit order and at each turn).
+	// I don't know too much about these although it was my idea to do so, code provided with the help of chatgpt 5 thanks. -->
 	// In your CvGame::reset body where all the other members get defaults, set:
 	m_bLandHeavyMapname  = false;
 	m_bNavalHeavyMapname = false;
@@ -1124,7 +1126,8 @@ void CvGame::initFreeUnits()
 		if (itPlayer->getNumUnits() == 0 && itPlayer->getNumCities() == 0)
 			itPlayer->initFreeUnits();
 	}
-	// <!-- custom: The earlier initDiplomacy/regenerateMap pass runs before normal starting plots exist, making dynamic map-heaviness classification neutral for intentionally unspecified scripts. This shared post-start point covers ordinary games, regenerated maps and the EXE's separate scenario path after all normal/True Starts/SPaH reassignment, and fixes the cached classification before gameplay. See KI#336. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: The earlier initDiplomacy/regenerateMap pass runs before normal starting plots exist, making dynamic map-heaviness classification neutral for intentionally unspecified scripts.
+	// This shared post-start point covers ordinary games, regenerated maps and the EXE's separate scenario path after all normal/True Starts/SPaH reassignment, and fixes the cached classification before gameplay. See KI#336. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	recomputeMapnameHeaviness();
 	if (!bScenario)
 		return;
@@ -1503,7 +1506,8 @@ void CvGame::applyStartingLocHandicaps(NormalizationTarget const* pStartValues) 
 			PlayerTypes const ePlayer = aePlayersByHandicap[i];
 			if (ePlayer == NO_PLAYER || !GET_PLAYER(ePlayer).isHuman())
 				continue;
-			// <!-- custom: AdvCiv's sorted-site refactor accidentally checked the human's old plot here. Evaluate the sorted site assigned to this handicap slot so the volatility safeguard swaps only the site the human is about to receive. See KI#338. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			// <!-- custom: AdvCiv's sorted-site refactor accidentally checked the human's old plot here.
+			// Evaluate the sorted site assigned to this handicap slot so the volatility safeguard swaps only the site the human is about to receive. See KI#338. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			CvPlot const* pStart = apStartingSitesByValue[i];
 			if (pStart == NULL)
 				continue;
@@ -4737,7 +4741,8 @@ void CvGame::setAIAutoPlay(int iNewValue, /* <advc.127> */ bool bChangePlayerSta
 	int const iOldAIAutoPlay = std::max(0, m_iAIAutoPlay);
 	m_iAIAutoPlay = std::max(0, iNewValue);
 	// <!-- custom: SASGameRecord logs autoplay start/end/user-status changes so benchmark/autoplay logs show the tested window directly, similar in spirit to replay markers but parse-friendly.
-	// Explicit completion causes distinguish scheduled completion from interruption, victory, player defeat, desync, assertions, and other resets. Skip ordinary countdown ticks because they call setAIAutoPlay every turn and would spam AUTOPLAY_CHANGED rows. See KI#203. (GPT-5.5 + GPT-5.6-Sol) -->
+	// Explicit completion causes distinguish scheduled completion from interruption, victory, player defeat, desync, assertions, and other resets.
+	// Skip ordinary countdown ticks because they call setAIAutoPlay every turn and would spam AUTOPLAY_CHANGED rows. See KI#203. (GPT-5.5 + GPT-5.6-Sol) -->
 	if (gGameRecordLogLevel >= 2 && (bChangePlayerStatus || iOldAIAutoPlay == 0 || m_iAIAutoPlay == 0)) logSASGameRecordAutoPlayChanged(iOldAIAutoPlay, m_iAIAutoPlay, bChangePlayerStatus, eEndCause);
 	if (!bChangePlayerStatus)
 		return; // </advc.127>
@@ -5465,14 +5470,17 @@ void CvGame::setActivePlayer(PlayerTypes eNewValue, bool bForceHotSeat)
 	int const iActiveNetId = (eOldActivePlayer != NO_PLAYER ?
 			GET_PLAYER(eOldActivePlayer).getNetID() : -1);
 	GC.getInitCore().setActivePlayer(eNewValue);
-	// <!-- custom: Active-player transfers during AI Auto Play can explain why automation ended or whose civilization resumed human control. Keep per-request and per-log-session counts in SASGameRecord rather than requiring reviewers to scan every setup/status row. Cache the gate because the handoff path can also record an auto-dismissal. See KI#203. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
+	// <!-- custom: Active-player transfers during AI Auto Play can explain why automation ended or whose civilization resumed human control.
+	// Keep per-request and per-log-session counts in SASGameRecord rather than requiring reviewers to scan every setup/status row.
+	// Cache the gate because the handoff path can also record an auto-dismissal. See KI#203. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
 	bool const bLogActivePlayerChange = (gGameRecordLogLevel >= 2);
 	if (bLogActivePlayerChange) logSASGameRecordActivePlayerChanged(eOldActivePlayer, eNewValue);
 	if (eNewValue != NO_PLAYER && // K-Mod
 		GET_PLAYER(eNewValue).isHuman() &&
 		(isHotSeat() || isPbem() || bForceHotSeat))
 	{
-		// <!-- custom: Active-player defeat can transfer human control while AI Auto Play still has hundreds of turns remaining. The EXE's handoff/password call then displays an OK-only "it's your turn" prompt and pauses the run; skip only that no-decision prompt during automation. See KI#203. (GPT-5.6-Sol) -->
+		// <!-- custom: Active-player defeat can transfer human control while AI Auto Play still has hundreds of turns remaining.
+		// The EXE's handoff/password call then displays an OK-only "it's your turn" prompt and pauses the run; skip only that no-decision prompt during automation. See KI#203. (GPT-5.6-Sol) -->
 		static const bool bSASAutoDismissAutoPlayInformationalPopups = (GC.getDefineINT("SAS_AIAUTOPLAY_AUTO_DISMISS_INFORMATIONAL_POPUPS_ENABLE") > 0);
 		if (!bSASAutoDismissAutoPlayInformationalPopups || getAIAutoPlay() <= 0)
 			gDLL->getPassword(eNewValue);
@@ -5621,7 +5629,8 @@ void CvGame::setWinner(TeamTypes eNewWinner, VictoryTypes eNewVictory)
 	{	// AI_AUTO_PLAY_MOD, 07/09/08, jdog5000:
 		CvEventReporter::getInstance().victory(eNewWinner, eNewVictory);
 	}
-	// <!-- custom: Rise & Fall suppresses the normal victory event above. Create its optional victory Fast Save here after winner/victory assignment and before the later end-game transition; other game modes use the BUG victory-event handler. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Rise & Fall suppresses the normal victory event above.
+	// Create its optional victory Fast Save here after winner/victory assignment and before the later end-game transition; other game modes use the BUG victory-event handler. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	else
 	{
 		static const bool bSASFastSaveGameEnd = GC.getDefineBOOL("SAS_FAST_SAVE_GAME_END_ENABLE");
@@ -5670,7 +5679,8 @@ void CvGame::setGameState(GameStateTypes eNewValue)
 		if (BUGOption::isEnabled("AutoSave__CreateEndSave", false))
 			GC.getPythonCaller()->call("gameEndSave", PYCivModule);
 		// BULL - AutoSave - end
-		// <!-- custom: Victory Fast Saves use the earlier BUG victory event after winner/victory assignment and before the OVER/EXTENDED transition. Keep this direct call only for GAMESTATE_OVER without a winner/victory, preserving genuine non-victory END saves without duplicating victories. (ChatGPT-5.6-Sol) -->
+		// <!-- custom: Victory Fast Saves use the earlier BUG victory event after winner/victory assignment and before the OVER/EXTENDED transition.
+		// Keep this direct call only for GAMESTATE_OVER without a winner/victory, preserving genuine non-victory END saves without duplicating victories. (ChatGPT-5.6-Sol) -->
 		if (getWinner() == NO_TEAM || getVictory() == NO_VICTORY)
 		{
 			static const bool bSASFastSaveGameEnd = GC.getDefineBOOL("SAS_FAST_SAVE_GAME_END_ENABLE");
@@ -6275,7 +6285,8 @@ void CvGame::setName(TCHAR const* szName)
 
 
 // <!-- custom: Accept the name by const reference because lookup does not modify it and generated-name callers now pass raw canonical keys.
-// Past cities store raw canonical keys or literal names. Match exact identity first and current rendered text second, preserving both cross-language canonical reservation and visible duplicate prevention. See KI#325. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+// Past cities store raw canonical keys or literal names.
+// Match exact identity first and current rendered text second, preserving both cross-language canonical reservation and visible duplicate prevention. See KI#325. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 bool CvGame::isPastCityName(CvWString const& szName) const
 {
 	CvWString const szDisplayName = gDLL->getObjectText(szName, 0, true);
@@ -6361,7 +6372,8 @@ void CvGame::doTurn()
 		if (getAIAutoPlay() == 0)
 			reviveActivePlayer();
 	}
-	// <!-- custom: CvEventReporter::endGameTurn fires before autoplay/sync cleanup. Close the old RNG interval here: all work above still belongs to the current turn, while the counter advances below begin new-turn initialization.
+	// <!-- custom: CvEventReporter::endGameTurn fires before autoplay/sync cleanup.
+	// Close the old RNG interval here: all work above still belongs to the current turn, while the counter advances below begin new-turn initialization.
 	// This avoids attributing new-turn deal expiry, Rise & Fall setup, votes, player activation, or victory checks to the turn that just ended. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (g_bSASGameRecordRngTrackingActive) logSASGameRecordRngCheckpoint(getGameTurn(), SAS_RNG_CHECKPOINT_END_GAME_TURN);
 	// <!-- custom: Lower recorder levels do not emit the RNG checkpoint above.
@@ -6530,7 +6542,8 @@ void CvGame::doGlobalWarming()
 	bool const bLogMapHistory = (gGameRecordLogLevel >= 2);
 	int iGlobalWarmingIndexBefore = -1;
 	if (bLogMapHistory) iGlobalWarmingIndexBefore = getGlobalWarmingIndex();
-	// <!-- custom: The inherited logic already calculated pollution, the natural sustainability threshold and feature defense here. Keep the two defense components in separate locals for the environmental row, then add them exactly as before; this adds no calculation when logging is disabled. (GPT-5.6-Sol) -->
+	// <!-- custom: The inherited logic already calculated pollution, the natural sustainability threshold and feature defense here.
+	// Keep the two defense components in separate locals for the environmental row, then add them exactly as before; this adds no calculation when logging is disabled. (GPT-5.6-Sol) -->
 	int const iGlobalWarmingValue = calculateGlobalPollution();
 	int const iSustainabilityThreshold = calculateGwSustainabilityThreshold();
 	int const iLandDefense = calculateGwLandDefence();
@@ -6594,7 +6607,8 @@ void CvGame::doGlobalWarming()
 	// advc.055:
 	std::vector<PreGWPlot> aChangedPlots;
 	bool bSoundPlayed = false; // advc.002l
-	// <!-- custom: AdvCiv areas can let impassable Ice divide water topology, while trade networks and cached step distances also consume passability. Defer their whole-map refresh until all warming rolls finish instead of rebuilding them for every melted plot. See KI#346. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: AdvCiv areas can let impassable Ice divide water topology, while trade networks and cached step distances also consume passability.
+	// Defer their whole-map refresh until all warming rolls finish instead of rebuilding them for every melted plot. See KI#346. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	bool bPassabilityChanged = false;
 
 	// <!-- custom: make these static const for performance optimization as advised by chatgpt 5 too. -->
@@ -6725,7 +6739,8 @@ void CvGame::doGlobalWarming()
 			}
 			aChangedPlots.push_back(preGWPlot);
 			if (bLogMapHistory) recordSASGameRecordPlotChange(*pPlot, kOldPlotState, "globalWarming", "GLOBAL_WARMING", true);
-			// <!-- custom: setFeatureType updates direct passability but not the area, path-distance or plot-group state that depends on it. Remember only effective changes for the deferred refresh. See KI#346. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			// <!-- custom: setFeatureType updates direct passability but not the area, path-distance or plot-group state that depends on it.
+			// Remember only effective changes for the deferred refresh. See KI#346. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			if (bWasImpassable != pPlot->isImpassable())
 				bPassabilityChanged = true;
 			// Do the announcements in a separate loop
@@ -6733,7 +6748,8 @@ void CvGame::doGlobalWarming()
 			changeGwEventTally(1);
 		}
 	}
-	// <!-- custom: Melting one or more Ice plots made traversal immediately possible, but inherited AdvCiv retained the pre-melt area and trade-network divisions. Rebuild once after the mutation batch; isthmus geometry did not change. See KI#346. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Melting one or more Ice plots made traversal immediately possible, but inherited AdvCiv retained the pre-melt area and trade-network divisions.
+	// Rebuild once after the mutation batch; isthmus geometry did not change. See KI#346. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (bPassabilityChanged)
 	{
 		GC.getMap().resetPathDistance();
@@ -6752,7 +6768,8 @@ void CvGame::doGlobalWarming()
 		changeGlobalWarmingIndex(-getGlobalWarmingIndex() *
 				iGlobalWarmingRestorationRate/100);
 	}
-	// <!-- custom: doGlobalWarming already computes these values every turn. Reuse them for a single low-cost environmental-status row instead of rescanning the map between periodic snapshots. (GPT-5.6-Sol) -->
+	// <!-- custom: doGlobalWarming already computes these values every turn.
+	// Reuse them for a single low-cost environmental-status row instead of rescanning the map between periodic snapshots. (GPT-5.6-Sol) -->
 	if (bLogMapHistory) logSASGameRecordEnvironmentTurn(iGlobalWarmingValue, iSustainabilityThreshold, iLandDefense, iGlobalWarmingIndexBefore, iGlobalWarmingIndexBeforeRestoration, getGlobalWarmingIndex(), iGlobalWarmingRolls, getGwEventTally());
 	// <advc.055>
 	/*	advc.706 (note): These will be shortlived INFO-type messages,
@@ -7388,7 +7405,8 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 			// K-Mod
 			int iValue = citySiteEval.evaluate(kPlot);
 			const int iRawValue = iValue;
-			// <!-- custom: Do not let Barbarian area-priority adjustment resurrect rejected city sites. In the Mauryan test, raw 0 at 30,23 became areaAdjusted 1 in bSkipCivAreas and was founded despite the detailed evaluator hard-rejecting it. (GPT-5.5) -->
+			// <!-- custom: Do not let Barbarian area-priority adjustment resurrect rejected city sites.
+			// In the Mauryan test, raw 0 at 30,23 became areaAdjusted 1 in bSkipCivAreas and was founded despite the detailed evaluator hard-rejecting it. (GPT-5.5) -->
 			if (iRawValue <= 0)
 				continue;
 			if (iTargetCitiesMultiplier > 100)
@@ -7409,7 +7427,8 @@ void CvGame::createBarbarianCity(bool bSkipCivAreas, int iProbModifierPercent)
 			const int iAreaValue = iValue;
 			//iValue += (100 + SyncRandNum(50));
 			// advc.300, advc.001: Looks like another bug; probably times 1 to 1.5 was intended. (Dividing by 100 doesn't affect pBestPlot, but let's keep iBestValue is on the scale of a regular found value - although it isn't used for anything.) NB: This kind of randomization works mostly locally b/c nearby tiles tend to have similar found values.
-			// <!-- custom: Keep the inherited Barbarian city-site random multiplier tunable. The old 0..49 percent swing adds variety, but it can override clearly better nearby city sites. (GPT-5.5) -->
+			// <!-- custom: Keep the inherited Barbarian city-site random multiplier tunable.
+			// The old 0..49 percent swing adds variety, but it can override clearly better nearby city sites. (GPT-5.5) -->
 			static const int iSAS_EVALUATE_BARBARIAN_CITY_SITE_RANDOM_PERCENT = std::max(0, GC.getDefineINT("SAS_EVALUATE_BARBARIAN_CITY_SITE_RANDOM_PERCENT"));
 			const int iRandomPercent = (iSAS_EVALUATE_BARBARIAN_CITY_SITE_RANDOM_PERCENT <= 0 ? 0 : SyncRandNum(iSAS_EVALUATE_BARBARIAN_CITY_SITE_RANDOM_PERCENT));
 			if (iRandomPercent != 0)
@@ -7978,7 +7997,8 @@ int CvGame::createBarbarianUnits(int iUnitsToCreate, int iUnitsPresent, CvArea& 
 		UnitTypes eUnitType = randomBarbarianUnit(eUnitAI, *pPlot);
 		if (eUnitType == NO_UNIT)
 			return iCreated;
-		// <!-- custom: Base AdvCiv commented out this local when it had no caller. Preserve the created unit so level-3 game records can identify the exact fog spawn. (GPT-5.6-Sol) -->
+		// <!-- custom: Base AdvCiv commented out this local when it had no caller.
+		// Preserve the created unit so level-3 game records can identify the exact fog spawn. (GPT-5.6-Sol) -->
 		CvUnit* pNewUnit = GET_PLAYER(BARBARIAN_PLAYER).initUnit(eUnitType, pPlot->getX(), pPlot->getY(), eUnitAI);
 		if (gGameRecordLogLevel >= 3) logSASGameRecordBarbarianSpawn(pNewUnit, pShelf == NULL ? "LAND_FOG" : "SEA_FOG");
 		if (!pPlot->isWater())
@@ -8959,8 +8979,10 @@ int CvGame::calculateSyncChecksum()
 				// <advc.003n>
 				if (iI == BARBARIAN_PLAYER)
 					break; // </advc.003n>
-				// <!-- custom: K-Mod encoded rival slots by shifting signed attitude values by the player ID. SAS supports 48 civilization slots, so IDs 32-47 exceeded the 32-bit shift width.
-				// Position-sensitive unsigned mixing lets every rival slot contribute safely to this diagnostic OOS checksum. This strengthens diagnostic uniqueness only and does not change game state. See KI#326. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				// <!-- custom: K-Mod encoded rival slots by shifting signed attitude values by the player ID.
+				// SAS supports 48 civilization slots, so IDs 32-47 exceeded the 32-bit shift width.
+				// Position-sensitive unsigned mixing lets every rival slot contribute safely to this diagnostic OOS checksum.
+				// This strengthens diagnostic uniqueness only and does not change game state. See KI#326. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 				uint uiAttitudeHash = 0;
 				for (iJ = 0; iJ < MAX_CIV_PLAYERS; iJ++)
 				{
@@ -9523,7 +9545,8 @@ void CvGame::read(FDataStreamBase* pStream)
 	applyOptionEffects(); // advc.310
 	m_bFPTestDone = !isNetworkMultiPlayer(); // advc.003g
 
-	// <!-- custom: compute mapname once per map load (new game, load save file) so we don't have to do it everytime (e.g. for each unit order and at each turn). Added with the help of chatgpt 5 thanks -->
+	// <!-- custom: compute mapname once per map load (new game, load save file) so we don't have to do it everytime (e.g. for each unit order and at each turn).
+	// Added with the help of chatgpt 5 thanks -->
 	// 5) Call sites (in CvGame.cpp) — recap
 	// After loading a save: end of CvGame::read(FDataStreamBase*)
 	// Update: Now loaded from save (no recompute here). (GPT-5.2-Codex)
@@ -9682,7 +9705,8 @@ void CvGame::write(FDataStreamBase* pStream)
 	pStream->Write(m_iNumCultureVictoryCities);
 	pStream->Write(m_eCultureVictoryCultureLevel);
 	pStream->Write(m_bScenario); // advc.052
-	// <!-- custom: Save compact game-source history after the existing CvGame payload. Full dirty file lists stay runtime/log-only; the save keeps only coarse dirty state beside turn/version/SHA. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Save compact game-source history after the existing CvGame payload.
+	// Full dirty file lists stay runtime/log-only; the save keeps only coarse dirty state beside turn/version/SHA. (ChatGPT-5.6-Sol) -->
 	unsigned int const uiHistorySize = (unsigned int)m_aSASVersionHistory.size();
 	pStream->Write(uiHistorySize);
 	for (unsigned int i = 0; i < uiHistorySize; i++)
@@ -9726,7 +9750,8 @@ int CvGame::getSASVersionHistoryDirtyState(int iIndex) const
 }
 
 // <!-- custom: New games record their first entry as creation provenance; later loads append only when practical version or canonical SHA changes.
-// Unknown resolver fields remain honestly empty/-1. Dirty state is stored as context, not as a revision key. (ChatGPT-5.6-Sol) -->
+// Unknown resolver fields remain honestly empty/-1.
+// Dirty state is stored as context, not as a revision key. (ChatGPT-5.6-Sol) -->
 void CvGame::initializeSASVersionHistoryForNewGame()
 {
 	m_aSASVersionHistory.clear();
@@ -9785,7 +9810,8 @@ void CvGame::onAllGameDataRead()
 	// <!-- custom: Reconcile persisted game-source history with the currently running source before any loaded-save log header reads it.
 	// Older saves deliberately enter as creation-untracked and begin history at this load. (ChatGPT-5.6-Sol) -->
 	updateSASVersionHistoryAfterLoad();
-	// <!-- custom: Start distinct timestamped diagnostic/report logs now that the complete loaded game state is available, before load-finalization code can emit AI diagnostics or summary rows. Caller-gated to avoid entering disabled logging helpers. (GPT-5.5) -->
+	// <!-- custom: Start distinct timestamped diagnostic/report logs now that the complete loaded game state is available, before load-finalization code can emit AI diagnostics or summary rows.
+	// Caller-gated to avoid entering disabled logging helpers. (GPT-5.5) -->
 	if (isSASBBAILogEnabled()) startSASBBAILogForLoadedSave();
 	if (isSASGameRecordLogEnabled()) startSASGameRecordLogForLoadedSave();
 	// <advc.opt> Savegame compatibility (uiFlag<4)
@@ -10498,7 +10524,8 @@ void CvGame::doVoteResults()
 		else
 		{
 			bool bAllVoted = true;
-			// <!-- custom: The inherited loop stopped after the first missing voter, so additional simultaneous players received successively later one-turn grace periods. Mark every currently missing eligible voter before postponing the result. See KI#343. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			// <!-- custom: The inherited loop stopped after the first missing voter, so additional simultaneous players received successively later one-turn grace periods.
+			// Mark every currently missing eligible voter before postponing the result. See KI#343. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			for (PlayerIter<MAJOR_CIV> itPlayer; itPlayer.hasNext(); ++itPlayer)
 			{
 				if (!itPlayer->isVotingMember(eVoteSource))
@@ -10513,7 +10540,8 @@ void CvGame::doVoteResults()
 
 			if (!bAllVoted)
 				continue;
-			// <!-- custom: Once a vote actually resolves, its ballot/defiance loops can query the recorder repeatedly. Cache the immutable level-2 result gate here, after pending votes have already short-circuited. (ChatGPT-5.6-Sol) -->
+			// <!-- custom: Once a vote actually resolves, its ballot/defiance loops can query the recorder repeatedly.
+			// Cache the immutable level-2 result gate here, after pending votes have already short-circuited. (ChatGPT-5.6-Sol) -->
 			bool const bLogVoteResult = (gGameRecordLogLevel >= 2);
 			// <!-- custom: Only after a complete grace turn has elapsed do all still-missing checked votes default together. See KI#343. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			for (PlayerIter<MAJOR_CIV> itPlayer; itPlayer.hasNext(); ++itPlayer)
@@ -10746,7 +10774,8 @@ void CvGame::doVoteResults()
 						//getVoteRequired(eVote, eVoteSource),
 						countPossibleVote(eVote, eVoteSource),
 						szResolution.GetCString());
-				// <!-- custom: The live detailed result is limited to voting members and spectators. Preserve that exact historical audience so AdvCiv-SAS Timeline does not expose it to nonmembers later. See KI#337. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				// <!-- custom: The live detailed result is limited to voting members and spectators.
+				// Preserve that exact historical audience so AdvCiv-SAS Timeline does not expose it to nonmembers later. See KI#337. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 				qword uiReplayVisibility = 0;
 				for (PlayerIter<MAJOR_CIV> itObs; itObs.hasNext(); ++itObs)
 				{
@@ -10839,7 +10868,8 @@ void CvGame::doVoteSelection()
 				continue;
 			for (TeamIter<MAJOR_CIV> itTeam2; itTeam2.hasNext(); ++itTeam2)
 			{
-				// <!-- custom: Fix inherited Base AdvCiv practical-2502 bug: its iterator refactor lost the old self-exclusion. A voting team could therefore meet itself. See KI#210. (ChatGPT-5.6-Sol) -->
+				// <!-- custom: Fix inherited Base AdvCiv practical-2502 bug: its iterator refactor lost the old self-exclusion.
+				// A voting team could therefore meet itself. See KI#210. (ChatGPT-5.6-Sol) -->
 				if (itTeam2->getID() == itTeam1->getID() || !itTeam2->isVotingMember(eVS))
 					continue;
 				//itTeam1->meet(itTeam2->getID(), true);

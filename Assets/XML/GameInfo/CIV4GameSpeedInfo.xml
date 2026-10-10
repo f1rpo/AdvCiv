@@ -6,7 +6,8 @@
 <!-- Game Speed -->
 <!-- NOTE: If you remove any of these you need to update GameInfo/CultureLevelInfos.xml. Also you will need to update the GlobalDefines.xml if you remove GAMESPEED_STANDARD -->
 <!-- custom: Long_Comments_XML.txt #138, #358 -->
-<!-- custom: note to agents: if you want to modify this file, read the Long Comments referenced above first; they contain key design rationale used by the timelines below. Removed here for concision. -->
+<!-- custom: note to agents: if you want to modify this file, read the Long Comments referenced above first; they contain key design rationale used by the timelines below.
+Removed here for concision. -->
 <Civ4GameSpeedInfo xmlns="x-schema:CIV4GameInfoSchema.xml">
 	<GameSpeedInfos>
 		<!-- custom: new game speed with the help of chatgpt 5.2 thanks. -->
@@ -52,7 +53,11 @@
 			<iReligionSpreadDivPercent>33</iReligionSpreadDivPercent>
 			<iEventRollSidesPercent>60</iEventRollSidesPercent>
 			<iVoteIntervalPercent>33</iVoteIntervalPercent>
-			<!-- custom: NITRO (165 turns). Exact 2:1 compression of QUICK: pair each 2 consecutive Quick turns into 1 Nitro turn (sum of increments), RLE-compressed. All increments div by 12. Tracks Quick at all 5% checkpoints to within ±45y (idx 3-20), ±750y prehistoric. End year 2105. (Claude Opus 4.6) -->
+			<!-- custom: NITRO (165 turns).
+			Exact 2:1 compression of QUICK: pair each 2 consecutive Quick turns into 1 Nitro turn (sum of increments), RLE-compressed.
+			All increments div by 12.
+			Tracks Quick at all 5% checkpoints to within ±45y (idx 3-20), ±750y prehistoric.
+			End year 2105. (Claude Opus 4.6) -->
 			<GameTurnInfos>
 				<!-- -50,000 to -7,250: prehistoric (9 turns) -->
 				<GameTurnInfo><iMonthIncrement>108000</iMonthIncrement><iTurnsPerIncrement>3</iTurnsPerIncrement></GameTurnInfo>
@@ -132,7 +137,11 @@
 			<iReligionSpreadDivPercent>50</iReligionSpreadDivPercent>
 			<iEventRollSidesPercent>70</iEventRollSidesPercent>
 			<iVoteIntervalPercent>50</iVoteIntervalPercent>
-			<!-- custom: TURBO (250 turns). Exact 2:1 compression of NORMAL: pair each 2 consecutive Normal turns into 1 Turbo turn (sum of increments), RLE-compressed. All increments div by 12. Tracks Normal at all 5% checkpoints. End year 2105. (Claude Opus 4.6) -->
+			<!-- custom: TURBO (250 turns).
+			Exact 2:1 compression of NORMAL: pair each 2 consecutive Normal turns into 1 Turbo turn (sum of increments), RLE-compressed.
+			All increments div by 12.
+			Tracks Normal at all 5% checkpoints.
+			End year 2105. (Claude Opus 4.6) -->
 			<GameTurnInfos>
 				<!-- -50,000 to -7,500: prehistoric (13 turns) -->
 				<GameTurnInfo><iMonthIncrement>120000</iMonthIncrement><iTurnsPerIncrement>2</iTurnsPerIncrement></GameTurnInfo>
@@ -212,7 +221,8 @@
 			<iVoteIntervalPercent>67</iVoteIntervalPercent>
 			<!-- advc.252: end -->
 			<!-- custom: Long_Comments_XML.txt #319 -->
-			<!-- custom: QUICK (330 turns). Keep cleaner Normal-like bands and avoid early sub-year tails by using whole-year-friendly 360/240 instead of 320 in the mid band; compensate late with a tiny 48->12 shift to keep endpoint pacing stable. (GPT-5.3-Codex) -->
+			<!-- custom: QUICK (330 turns).
+			Keep cleaner Normal-like bands and avoid early sub-year tails by using whole-year-friendly 360/240 instead of 320 in the mid band; compensate late with a tiny 48->12 shift to keep endpoint pacing stable. (GPT-5.3-Codex) -->
 			<GameTurnInfos>
 				<GameTurnInfo><iMonthIncrement>54000</iMonthIncrement><iTurnsPerIncrement>6</iTurnsPerIncrement></GameTurnInfo>
 				<GameTurnInfo><iMonthIncrement>30000</iMonthIncrement><iTurnsPerIncrement>2</iTurnsPerIncrement></GameTurnInfo>
@@ -378,7 +388,11 @@
 			<iEventRollSidesPercent>125</iEventRollSidesPercent>
 			<iVoteIntervalPercent>150</iVoteIntervalPercent>
 			<!-- custom: timeline rebalanced by Claude Opus 4.6; Long_Comments_XML.txt #320 -->
-			<!-- custom: EPIC (750 turns). Finer early increments than Normal to track Normal's % milestones. All >=1y steps are whole years (div 12). Non-increasing. End year 2105. (Claude Opus 4.6 v4) -->
+			<!-- custom: EPIC (750 turns).
+			Finer early increments than Normal to track Normal's % milestones.
+			All >=1y steps are whole years (div 12).
+			Non-increasing.
+			End year 2105. (Claude Opus 4.6 v4) -->
 			<GameTurnInfos>
 				<!-- -50,000 to -8,500: prehistoric (37 turns, finer ladder than Normal) -->
 				<GameTurnInfo><iMonthIncrement>36000</iMonthIncrement><iTurnsPerIncrement>6</iTurnsPerIncrement></GameTurnInfo>
@@ -463,7 +477,8 @@
 			<!-- custom: not sure if we should change it too much but reduce it a bit to match close to gamespeed_epic progression just in case, was -225 -->
 			<!-- was -270 -->
 			<iInflationOffset>-180</iInflationOffset>
-			<!-- custom: not sure if we should change it but aim for exact double just in case. See also known issue as of now 92 for related info; was 85 -->
+			<!-- custom: not sure if we should change it but aim for exact double just in case.
+			See also known issue as of now 92 for related info; was 85 -->
 			<!-- Reduce unit expenses ... -->
 			<iUnitCostPercent>90</iUnitCostPercent>
 			<iExtraFreeOutsideUnits>1</iExtraFreeOutsideUnits>
@@ -575,7 +590,7 @@
 				<GameTurnInfo><iMonthIncrement>15000</iMonthIncrement><iTurnsPerIncrement>16</iTurnsPerIncrement></GameTurnInfo>
 				<GameTurnInfo><iMonthIncrement>7500</iMonthIncrement><iTurnsPerIncrement>16</iTurnsPerIncrement></GameTurnInfo>
 				<!-- custom: smooth the early-mid curve with intermediate bands to avoid a hard cliff, while keeping total turns stable (Normal remains the checkpoint reference).
-				     Prefer round, human-readable year bands where possible (e.g. 250/200/150/75/40/30/15 years) and use finer odd bands only when strictly needed. (GPT-5.3-Codex) -->
+				Prefer round, human-readable year bands where possible (e.g. 250/200/150/75/40/30/15 years) and use finer odd bands only when strictly needed. (GPT-5.3-Codex) -->
 				<GameTurnInfo><iMonthIncrement>3600</iMonthIncrement><iTurnsPerIncrement>20</iTurnsPerIncrement></GameTurnInfo>
 				<GameTurnInfo><iMonthIncrement>3600</iMonthIncrement><iTurnsPerIncrement>12</iTurnsPerIncrement></GameTurnInfo>
 				<GameTurnInfo><iMonthIncrement>3000</iMonthIncrement><iTurnsPerIncrement>6</iTurnsPerIncrement></GameTurnInfo>
@@ -662,7 +677,7 @@
 				<GameTurnInfo><iMonthIncrement>3000</iMonthIncrement><iTurnsPerIncrement>20</iTurnsPerIncrement></GameTurnInfo>
 				<GameTurnInfo><iMonthIncrement>1800</iMonthIncrement><iTurnsPerIncrement>20</iTurnsPerIncrement></GameTurnInfo>
 				<!-- custom: same smoothing philosophy as Marathon/Slow: prefer round-ish bands and gradual transitions before fine month-phase tuning.
-				     For slower speeds we allow more intermediate bands than Normal, but still keep them monotonic and readable for players. (GPT-5.3-Codex) -->
+				For slower speeds we allow more intermediate bands than Normal, but still keep them monotonic and readable for players. (GPT-5.3-Codex) -->
 				<GameTurnInfo><iMonthIncrement>900</iMonthIncrement><iTurnsPerIncrement>20</iTurnsPerIncrement></GameTurnInfo>
 				<GameTurnInfo><iMonthIncrement>900</iMonthIncrement><iTurnsPerIncrement>16</iTurnsPerIncrement></GameTurnInfo>
 				<GameTurnInfo><iMonthIncrement>720</iMonthIncrement><iTurnsPerIncrement>22</iTurnsPerIncrement></GameTurnInfo>

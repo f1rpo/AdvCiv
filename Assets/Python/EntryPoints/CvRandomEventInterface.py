@@ -2883,7 +2883,8 @@ def canApplyPartisans1(argsList):
 	player = gc.getPlayer(kTriggeredData.ePlayer)
 	plot = gc.getMap().plot(kTriggeredData.iPlotX, kTriggeredData.iPlotY)
 
-	# <!-- custom: A newly reassigned capital can have no valid conscript unit. The inherited event nevertheless offered Partisans and later called initUnit(-1), producing a Python-visible C++ exception and leaving an invalid unit-container entry; reject both Partisans choices in that state. See KI#524.6. (GPT-5.6-Sol) -->
+	# <!-- custom: A newly reassigned capital can have no valid conscript unit.
+	# The inherited event nevertheless offered Partisans and later called initUnit(-1), producing a Python-visible C++ exception and leaving an invalid unit-container entry; reject both Partisans choices in that state. See KI#524.6. (GPT-5.6-Sol) -->
 	capital = player.getCapitalCity()
 	if capital is None or capital.isNone() or capital.getConscriptUnit() == -1:
 		return false

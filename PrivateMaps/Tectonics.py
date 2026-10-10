@@ -87,7 +87,8 @@ def getNumPlotsPercent(argsList):
 		return 100
 	sizeModifiers = {
 		# NB: The smallest two sizes have highly unpredictable land-sea ratios
-		# <!-- custom: Arena was absent from this direct dictionary, causing KeyError; the shifted length guard also bypassed the stored Huge value. Use the established Duel percentage for Arena. See KI#282.3. (GPT-5.6-Sol) -->
+		# <!-- custom: Arena was absent from this direct dictionary, causing KeyError; the shifted length guard also bypassed the stored Huge value.
+		# Use the established Duel percentage for Arena. See KI#282.3. (GPT-5.6-Sol) -->
 		WorldSizeTypes.WORLDSIZE_ARENA:		89,
 		WorldSizeTypes.WORLDSIZE_DUEL:		89,
 		WorldSizeTypes.WORLDSIZE_TINY:		87,
@@ -1775,7 +1776,8 @@ def findStartingPlot(argsList):
 
 	# Shuffle players so the same player doesn't always get the first pick.
 	player_list = []
-	# <!-- custom: The inherited script checked only player IDs 0..17. SAS permits sparse/high IDs while this custom-start path still supports <=18 actual players, so scan the DLL's full civilization-player range. See KI#265. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: The inherited script checked only player IDs 0..17.
+	# SAS permits sparse/high IDs while this custom-start path still supports <=18 actual players, so scan the DLL's full civilization-player range. See KI#265. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	for plrCheckLoop in range(gc.getMAX_CIV_PLAYERS()):
 		if gc.getPlayer(plrCheckLoop).isEverAlive():
 			player_list.append(plrCheckLoop)

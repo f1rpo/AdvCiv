@@ -653,7 +653,8 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender, scaled rA
 		computing the army portions. */
 	/*	Adjust the portion of the army that is assumed to be absent,
 		i.e. 1 minus portion */
-	// <!-- custom: AdvCiv practical 2923 accidentally changed these assignments to multiplication, squaring every partial portion at neutral ally confidence. Restore the original absent-portion adjustment. See KI#579. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: AdvCiv practical 2923 accidentally changed these assignments to multiplication, squaring every partial portion at neutral ally confidence.
+	// Restore the original absent-portion adjustment. See KI#579. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	rArmyPortionDefender = scaled::max(0, 1 - (1 - rArmyPortionDefender) *
 			rConfAlliesAtt);
 	rArmyPortionAttacker = scaled::max(0, 1 - (1 - rArmyPortionAttacker) *
@@ -851,7 +852,8 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender, scaled rA
 				(kDefender.m_military[FLEET]->power() - kDefender.m_arLostPower[FLEET]) *
 				rConfDef * rArmyPortionDefender;
 		rDefFleetPow.increaseTo(0);
-		// <!-- custom: The coastal defender brings combat-capable transports into this Fleet battle. Preserve their overlapping cargo-capacity loss for later naval invasions instead of making destroyed transports available again.
+		// <!-- custom: The coastal defender brings combat-capable transports into this Fleet battle.
+		// Preserve their overlapping cargo-capacity loss for later naval invasions instead of making destroyed transports available again.
 		// This retains UWAI's existing cargo/Fleet dimensional approximation. See KI#587. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		scaled rDefLogisticsPortion = 0;
 		if (rDefFleetPow > 1)
@@ -1049,10 +1051,12 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender, scaled rA
 			track power and cargo separately for the Logistics branch to fix this. */
 		if (rFleetPow > 1)
 		{
-			// <!-- custom: Fleet battle losses are confidence-scaled, but Logistics records physical cargo capacity. Match the defender conversion by cancelling attacker confidence in this ratio. See KI#584. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			// <!-- custom: Fleet battle losses are confidence-scaled, but Logistics records physical cargo capacity.
+			// Match the defender conversion by cancelling attacker confidence in this ratio. See KI#584. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			rLogisticsPortion = rCargoCap * rConfAtt / rFleetPow;
 		}
-		// <!-- custom: Repeat trips happen after the naval battle, so only surviving transports can make them. Retain the factor until Logistics losses have been removed. See KI#585. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: Repeat trips happen after the naval battle, so only surviving transports can make them.
+		// Retain the factor until Logistics losses have been removed. See KI#585. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		scaled const rRepeatTripFactor = 1 + 1 / scaled::max(2, rReinforcementDist);
 		scaled rLogisticsPortionDef;
 		if (rDefFleetPow > 1)
@@ -1169,7 +1173,8 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender, scaled rA
 	scaled rDefDeploymentMod = scaled::max(
 			100 - 2 * rDeploymentDistDefender, 50) / 100;
 	rDefArmyPow *= rDefDeploymentMod;
-	// <!-- custom: Cavalry is an overlapping Army subset. Apply the attacker's deployment-availability factor to both branches so distance cannot leave more available Cavalry than total Army. See KI#588. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Cavalry is an overlapping Army subset.
+	// Apply the attacker's deployment-availability factor to both branches so distance cannot leave more available Cavalry than total Army. See KI#588. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	scaled const rAttDeploymentMod = scaled::max(100 - fixp(1.55) * rDeploymentDistAttacker.pow(fixp(1.15)), 50) / 100;
 	rArmyPow *= rAttDeploymentMod;
 	rCavPow *= rAttDeploymentMod;
@@ -1240,7 +1245,9 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender, scaled rA
 			{
 				if (bLogInvasionDetail) logBBAI("UWAI_INVASION_GRAPH_AREA_WEIGHT_ATTACKER turn=%d agentPlayer=%d attacker=%d defender=%d percent=%d",
 						GC.getGame().getGameTurn(), m_eAgent, m_ePlayer, kDefender.m_ePlayer, rAreaWeightAtt.getPercent());
-				// <!-- custom: Cavalry is an overlapping Army sub-branch. AdvCiv weighted only the attacker's Army by battle area, breaking Cavalry <= Army even though its defender-side sibling was fixed. Scale both together. See KI#583. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				// <!-- custom: Cavalry is an overlapping Army sub-branch.
+				// AdvCiv weighted only the attacker's Army by battle area, breaking Cavalry <= Army even though its defender-side sibling was fixed.
+				// Scale both together. See KI#583. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 				rArmyPow *= rAreaWeightAtt;
 				rCavPow *= rAreaWeightAtt;
 			}
@@ -1323,7 +1330,8 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender, scaled rA
 				rArmyPowModified, rDefArmyPowModified);
 		if (bAttWin)
 		{
-			// <!-- custom: Clash results are measured from confidence- and combat-modified power. Convert all persistent and temporary casualties back to physical branch power before applying them. See KI#580. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			// <!-- custom: Clash results are measured from confidence- and combat-modified power.
+			// Convert all persistent and temporary casualties back to physical branch power before applying them. See KI#580. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			rLossesWinner /= rArmyModAttCorr * rConfAtt;
 			rLossesLoser /= rArmyModDefCorr * rConfDef;
 			rTempLosses /= rArmyModAttCorr * rConfAtt;
@@ -1463,7 +1471,8 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender, scaled rA
 	FAssert(!bNoGuardUnit || iDefCities <= 0);
 	// For all garrisons
 	scaled rCityDefenderMod = (bNoGuardUnit ? 0 : per100(GC.getInfo(kDefHomeGuard.getTypicalUnit()).getCityDefenseModifier()));
-	// <!-- custom: Every graph node shares m_eAgent, so the inherited check gave all city defenders the evaluating player's trait. Query the actual defender owner. See KI#581. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Every graph node shares m_eAgent, so the inherited check gave all city defenders the evaluating player's trait.
+	// Query the actual defender owner. See KI#581. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (GET_PLAYER(kDefender.m_ePlayer).uwai().getCache().hasDefensiveTrait())
 		rCityDefenderMod += fixp(0.3);
 	bool const bIgnoreCityDef = (m_military[ARMY]->getTypicalUnit() != NO_UNIT &&
@@ -1705,7 +1714,8 @@ CvArea const* InvasionGraph::Node::clashArea(PlayerTypes eEnemy) const
 	return pClashArea;
 }
 
-// <!-- custom: City combat includes simulated emergency defenders beyond the original Home Guard branch. Apply their casualties to availability without misreporting them as losses of the original military. See KI#589. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+// <!-- custom: City combat includes simulated emergency defenders beyond the original Home Guard branch.
+// Apply their casualties to availability without misreporting them as losses of the original military. See KI#589. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 void InvasionGraph::Node::applyPowerLoss(MilitaryBranchTypes eBranch, scaled rLostPower)
 {
 	if (eBranch != HOME_GUARD)
@@ -1724,7 +1734,8 @@ void InvasionGraph::Node::applyPowerLoss(MilitaryBranchTypes eBranch, scaled rLo
 }
 
 
-// <!-- custom: Removed the inherited local stage-1-first helpers: victory-stage bits are cumulative, so every active higher stage returned 1. The capitulation gate below now uses the shared highest-stage helpers. See KI#573. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+// <!-- custom: Removed the inherited local stage-1-first helpers: victory-stage bits are cumulative, so every active higher stage returned 1.
+// The capitulation gate below now uses the shared highest-stage helpers. See KI#573. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 void InvasionGraph::Node::applyStep(SimulationStep const& kStep)
 {
 	Node& kAttacker = *m_kOuter.m_nodeMap[kStep.getAttacker()];
@@ -1899,7 +1910,8 @@ void InvasionGraph::Node::applyStep(SimulationStep const& kStep)
 		very minor; could overstate the distractive effect of some small war party. */
 }
 
-// <!-- custom: City elimination or capitulation previously left this node in its target's reverse-adjacency set, allowing the defeated player to attack later in the same recursive simulation phase. Enforce the terminal-node edge invariant at the state transition. See KI#574. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+// <!-- custom: City elimination or capitulation previously left this node in its target's reverse-adjacency set, allowing the defeated player to attack later in the same recursive simulation phase.
+// Enforce the terminal-node edge invariant at the state transition. See KI#574. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 void InvasionGraph::Node::setEliminated(bool b)
 {
 	m_bEliminated = b;

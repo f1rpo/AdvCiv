@@ -441,7 +441,8 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 
 
 
-	<!-- custom: A replay record has only one visibility player and cannot require that a Timeline observer know both the victim and killer. Keep the public historical event without naming the potentially unknown killer; exact transient messages remain available to eligible observers. See KI#334. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	<!-- custom: A replay record has only one visibility player and cannot require that a Timeline observer know both the victim and killer.
+	Keep the public historical event without naming the potentially unknown killer; exact transient messages remain available to eligible observers. See KI#334. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_GENERAL_KILLED_PUBLIC</Tag>
 		<English>%s1_warlord (%s2_Civ) has died in combat!</English>
@@ -484,7 +485,8 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 
 
 
-	<!-- custom: remove folder name in case it changes as it did since we transitionned from AdvCiv to AdvCiv-SAS folder name if i'm not mistaken. Clearer to remove it entirely rather i'd say i mean i think -->
+	<!-- custom: remove folder name in case it changes as it did since we transitionned from AdvCiv to AdvCiv-SAS folder name if i'm not mistaken.
+	Clearer to remove it entirely rather i'd say i mean i think -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__MODNAMEINREPLAYS_HOVER</Tag>
 		<English>When checked, the name of the mod's folder is written into your replay files, which excludes them from the Hall of Fame screen when BtS is run without mods. (As for showing replays created by BtS or other mods on the AdvCiv Hall of Fame screen, see the [COLOR_BUILDING_TEXT]HOF_...[COLOR_REVERT] variables in [COLOR_BUILDING_TEXT]GlobalDefines_advc.xml[COLOR_REVERT].)</English>
@@ -654,7 +656,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_PEDIA_TERRAIN_BONUSES_FEATURE_TERRAIN_BOOLEANS</Tag>
 		<English>Bonuses in this terrain only if the bonus's features are compatible with "terrains only if with this feature" (see sevopedia bonus)</English>
 	</TEXT>
-	<!-- custom: add new entry: replace "Ressources" description with "Bonuses" to be consistent with our renaming in advciv-sas and such or not and such-->
+	<!-- custom: add new entry: replace "Ressources" description with "Bonuses" to be consistent with our renaming in advciv-sas and such or not and such -->
 	<TEXT>
 		<Tag>TXT_KEY_PEDIA_FEATURE_BONUSES_FEATURE_BOOLEANS</Tag>
 		<English>Bonuses On Any Terrain (see also sevopedia bonus)</English>
@@ -882,7 +884,8 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_CONCEPT_CORPORATIONS</Tag>
 		<English>Corporat.</English>
 	</TEXT>
-	<!-- custom: Sevopedia Votes category label and grouping section headers. Grouped by vote source (UN / Apostolic Palace); current XML has all votes single-sourced. (Claude code Opus 4.7) -->
+	<!-- custom: Sevopedia Votes category label and grouping section headers.
+	Grouped by vote source (UN / Apostolic Palace); current XML has all votes single-sourced. (Claude code Opus 4.7) -->
 	<TEXT>
 		<Tag>TXT_KEY_PEDIA_CATEGORY_VOTE</Tag>
 		<English>Votes</English>
@@ -1694,7 +1697,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 
 
 
-	<!-- custom: all below in this group modified to remove the	extra redundant/uneeded for example "STRENGTH: " in "STRENGTH: 5" now displaying (only) as "5" much clearer and cleaner i think this way, making a separate tag in case the original one is relevant somewhere else -->
+	<!-- custom: all below in this group modified to remove the extra redundant/uneeded for example "STRENGTH: " in "STRENGTH: 5" now displaying (only) as "5" much clearer and cleaner i think this way, making a separate tag in case the original one is relevant somewhere else -->
 	<TEXT>
 		<Tag>TXT_KEY_PEDIA_COST_CUSTOM</Tag>
 		<English>%d1_Num</English>
@@ -1817,7 +1820,8 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 
 
 
-	<!-- custom: this only lists units without a unit combat, not military ones like swordsmen or such. Rename "All Units" to a clearer or more accurate name. -->
+	<!-- custom: this only lists units without a unit combat, not military ones like swordsmen or such.
+	Rename "All Units" to a clearer or more accurate name. -->
 	<TEXT>
 		<Tag>TXT_KEY_PEDIA_ALL_UNITS</Tag>
 		<English>No UnitCombat</English>
@@ -1917,7 +1921,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_PEDIA_SEVOPEDIA_BONUS_TOTAL_BASE_AND_EXTRA_IMPROVEMENTS_YIELD_CHANGES</Tag>
 		<English>Total (Base + extra) Improvement(s) Yield Change(s)</English>
 	</TEXT>
-	<!-- custom: create a new entry "Revealed By" specifically for the sevopedia, the civilopedia still uses reveals due to how	the text "reveals" is displayed in the civilopedia rather -->
+	<!-- custom: create a new entry "Revealed By" specifically for the sevopedia, the civilopedia still uses reveals due to how the text "reveals" is displayed in the civilopedia rather -->
 	<TEXT>
 		<Tag>TXT_KEY_PEDIA_BONUS_APPEARANCE_REVEALED_BY_CUSTOM</Tag>
 		<English>Revealed By</English>
@@ -2154,7 +2158,8 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_MAP_SCRIPT_SAS_SIMPLE_FLAT_GRASS_DESCR</Tag>
 		<English>A minimal SAS simple flat-grass sandbox map (almost all land).</English>
 	</TEXT>
-	<!-- custom: Random Script Map's combined validator requires both conditions, but the inherited BTS label said "Coastal or Largest Continent". Name the actual behavior. See KI#275.2. (GPT-5.6-Sol) -->
+	<!-- custom: Random Script Map's combined validator requires both conditions, but the inherited BTS label said "Coastal or Largest Continent".
+	Name the actual behavior. See KI#275.2. (GPT-5.6-Sol) -->
 	<TEXT>
 		<Tag>TXT_KEY_MAP_SCRIPT_SAS_COASTAL_LARGEST_CONTINENT</Tag>
 		<English>Coastal on Largest Continent</English>
@@ -2697,7 +2702,10 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_UNIT_ENGLISH_YEOMAN_ARCHER</Tag>
 		<English>Yeoman Archer</English>
 	</TEXT>
-	<!-- custom: rename "UNIT_KNIGHT" to "UNIT_HORSE_KNIGHT" so it is distinct from camel knights and from the generic/general(?) concept of a knight that could be a land foot or anything maybe too (magician? Xd..) unit ... -->
+	<!-- custom: rename "UNIT_KNIGHT" to "UNIT_HORSE_KNIGHT" so it is distinct from camel knights and from the generic/general(?)
+	concept of a knight that could be a land foot or anything maybe too (magician?
+	Xd..)
+	unit ... -->
 	<TEXT>
 		<Tag>TXT_KEY_UNIT_HORSE_KNIGHT</Tag>
 		<English>Horse Knight</English>
@@ -2899,8 +2907,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_PROMOTION_AIR_INTERCEPTION4</Tag>
 		<English>Air Interception 4</English>
 	</TEXT>
-	<!-- custom: "Range" may apply to ground units too hopefully clearer now,
-	Also switch to arabic numerals, clearer too, i think, and also prefer, anyways. -->
+	<!-- custom: "Range" may apply to ground units too hopefully clearer now, Also switch to arabic numerals, clearer too, i think, and also prefer, anyways. -->
 	<TEXT>
 		<Tag>TXT_KEY_PROMOTION_AIR_RANGE1</Tag>
 		<English>Air Range 1</English>
@@ -3532,8 +3539,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 
 
 	<!-- advc.005: was Pacal II -->
-	<!-- custom: i want the full leader name, plus i'm thinking of
-	adding Basil II	for the byzantine empire -->
+	<!-- custom: i want the full leader name, plus i'm thinking of adding Basil II for the byzantine empire -->
 	<TEXT>
 		<Tag>TXT_KEY_LEADER_PACAL</Tag>
 		<English>Pacal II</English>
@@ -3561,7 +3567,8 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	<Tag>TXT_KEY_LEADER_WILLEM_VAN_ORANJE</Tag>
 		<English>Willem</English>
 	</TEXT>
-	<!-- custom: was Suryavarman. (in BtS Civ4GameTextObjects XML) -->
+	<!-- custom: was Suryavarman.
+	(in BtS Civ4GameTextObjects XML) -->
 	<TEXT>
 		<Tag>TXT_KEY_LEADER_SURYAVARMAN</Tag>
 		<English>Suryavarman II</English>
@@ -3628,8 +3635,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_BUILDING_KINGDOM_OF_BENIN_IMPLUVIUM</Tag>
 		<English>Impluvium</English>
 	</TEXT>
-	<!-- custom: very disciplined nation, and using crossbowmen, see:
-	https://en.wikipedia.org/wiki/Kingdom_of_Benin#Military -->
+	<!-- custom: very disciplined nation, and using crossbowmen, see: https://en.wikipedia.org/wiki/Kingdom_of_Benin#Military -->
 	<TEXT>
 		<Tag>TXT_KEY_UNIT_KINGDOM_OF_BENIN_DISCIPLINED_CROSSBOWMAN</Tag>
 		<English>Disciplined Crossbowman</English>
@@ -3698,7 +3704,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 
 
 
-	<!-- custom: now renamed "montezuma" to "moctezuma (2/II)"-->
+	<!-- custom: now renamed "montezuma" to "moctezuma (2/II)" -->
 	<TEXT>
 		<Tag>TXT_KEY_CITY_NAME_MOCTEZUMA_CASTLE</Tag>
 		<English>Moctezuma Castle</English>
@@ -4036,7 +4042,9 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Spanish>Decidnos, [CT_NAME], &#191;qu&#233; ha hecho [CT_CIV_SHORT] para enojar a los dioses y que os convirtieran en su l&#237;der?</Spanish>
 	</TEXT>
 	<!-- advc.005f: This key was named "AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_MONTEZUMA_1_CORRECTED" in Warlords. I don't see how that will "correct" anything. Give it the same name as the Vanilla key instead (which says "think well or we'll re-evaluate our friendship"). There was also "AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_MONTEZUMA_1" later in this file; I've renamed that one to ..._2. -->
-	<!-- custom: Removed duplicate AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_MOCTEZUMA_1 block. CIV4DiplomacyInfos references AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_MOCTEZUMA_1_CORRECTED, so reverted the advc.005f change of removing the "_CORRECTED suffix", now present again. This allows to fix the _1 duplicate-tag workflow fail and remove this seemingly unused duplicate. See KI#149. (GPT-5.5) -->
+	<!-- custom: Removed duplicate AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_MOCTEZUMA_1 block.
+	CIV4DiplomacyInfos references AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_MOCTEZUMA_1_CORRECTED, so reverted the advc.005f change of removing the "_CORRECTED suffix", now present again.
+	This allows to fix the _1 duplicate-tag workflow fail and remove this seemingly unused duplicate. See KI#149. (GPT-5.5) -->
 	<TEXT>
 		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_MOCTEZUMA_1_CORRECTED</Tag>
 		<English>Your weakness is contemptible, [CT_NAME]! Give us what we want or perish!</English>
@@ -4046,7 +4054,9 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Spanish>&#161;Vuestra debilidad es despreciable, [CT_NAME]! &#161;Dadnos lo que queremos o pereced!</Spanish>
 	</TEXT>
 	<!-- advc.005f: Make this #2, i.e. preserve "admire my heroic profile". -->
-	<!-- custom: Moved these modified de Gaulle friendly greeting overrides from ActualQuotesText_BtS.xml. Base BtS had two AI_DIPLO_GREETINGS_ATT_FR_LEADER_DE_GAULLE_2 blocks; AdvCiv-SAS keeps the cheese-profile greeting as _2 and retags the "Greatness..." greeting as _1 that was previously unassigned, and to match CIV4DiplomacyInfos and fix the duplicate-tag workflow failure. Keep only English in AdvCiv-SAS text XML and minor fix "Entré" to "Enter". (GPT-5.5) -->
+	<!-- custom: Moved these modified de Gaulle friendly greeting overrides from ActualQuotesText_BtS.xml.
+	Base BtS had two AI_DIPLO_GREETINGS_ATT_FR_LEADER_DE_GAULLE_2 blocks; AdvCiv-SAS keeps the cheese-profile greeting as _2 and retags the "Greatness..." greeting as _1 that was previously unassigned, and to match CIV4DiplomacyInfos and fix the duplicate-tag workflow failure.
+	Keep only English in AdvCiv-SAS text XML and minor fix "Entré" to "Enter". (GPT-5.5) -->
 	<TEXT>
 		<Tag>AI_DIPLO_GREETINGS_ATT_FR_LEADER_DE_GAULLE_2</Tag>
 		<English>Enter, [CT_NAME]. Please sit. I wonder sometimes ... How can anyone govern a nation that has two hundred and forty-six different kinds of cheese? But enough about my problems. What can I do for you?</English>
@@ -4830,7 +4840,8 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_PEDIA_SAS_CLEAR</Tag>
 		<English>Clear</English>
 	</TEXT>
-	<!-- custom: BtS Earth Day became mechanically tied to Trade Bloc without changing its environmental presentation. Override the player-facing English text as the World Trade Forum; established internal keys remain because renaming them adds no gameplay value. See KI#314. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	<!-- custom: BtS Earth Day became mechanically tied to Trade Bloc without changing its environmental presentation.
+	Override the player-facing English text as the World Trade Forum; established internal keys remain because renaming them adds no gameplay value. See KI#314. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	<TEXT>
 		<Tag>TXT_KEY_EVENTTRIGGER_EARTHDAY</Tag>
 		<English>The %s1_civ_adjective Empire has announced the first annual World Trade Forum, promoting international commerce and economic integration.</English>

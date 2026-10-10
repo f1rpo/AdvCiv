@@ -1137,7 +1137,8 @@ void CvMap::recalculateAreas(/* advc.opt: */bool bUpdateIsthmuses)
 }
 
 
-// <!-- custom: Wholesale recalculateAreas is unsafe for a live Ice melt because it recreates unrelated land areas and can process a coastal city before its new water area exists. Rebuild water only, then restore coastal-city counts after every water plot has its new area. See KI#346. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+// <!-- custom: Wholesale recalculateAreas is unsafe for a live Ice melt because it recreates unrelated land areas and can process a coastal city before its new water area exists.
+// Rebuild water only, then restore coastal-city counts after every water plot has its new area. See KI#346. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 void CvMap::recalculateWaterAreas()
 {
 	PROFILE_FUNC();
@@ -1310,7 +1311,8 @@ void CvMap::invalidateBorderDangerCache(TeamTypes eTeam)
 // read object from a stream. used during load
 void CvMap::read(FDataStreamBase* pStream)
 {
-	// <!-- custom: A quickload can replace the map while its GameRecord still has buffered observations. Finalize them against the old map before this read resets it, even if CvGame has already read the loaded game state. See KI#382. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: A quickload can replace the map while its GameRecord still has buffered observations.
+	// Finalize them against the old map before this read resets it, even if CvGame has already read the loaded game state. See KI#382. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (isSASGameRecordLogEnabled()) finalizeSASGameRecordLogSession();
 	// <!-- custom: removed old uiflag code (e.g. `if(uiFlag < 12)`), and now running any modern compliant uiflag such as of now according to chatgpt 5 anyways where uiflag == xx latest for example == 17 is true such as uiflag >= 6, uiflag >= 15 or such, see code comment around as of now the top of CvCity::read. -->
 	uint uiFlag=0;

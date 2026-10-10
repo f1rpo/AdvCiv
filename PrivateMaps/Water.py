@@ -116,7 +116,8 @@ class WaterFractalWorld(CvMapGeneratorUtil.FractalWorld):
 
 	def isSurroundedByLand(self, x, y):
 		for (dx, dy) in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-			# <!-- custom: Water wraps east/west but not north/south. The original modulo-Y lookup invented adjacency between opposite Y edges and could misclassify real one-tile edge lakes. See KI#244. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			# <!-- custom: Water wraps east/west but not north/south.
+			# The original modulo-Y lookup invented adjacency between opposite Y edges and could misclassify real one-tile edge lakes. See KI#244. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			neighbor_y = y + dy
 			if neighbor_y < 0 or neighbor_y >= self.iNumPlotsY:
 				continue

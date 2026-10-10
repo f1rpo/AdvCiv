@@ -28,7 +28,8 @@ public:
 	char const* getPathInRoot() const { return m_sPathInRoot.c_str(); }
 	// <!-- custom: Keep getName() as the actual loaded mod-folder name detected by AdvCiv/BtS; it may differ from the branded display name after a user renames the installed folder. (ChatGPT-5.6-Sol) -->
 	char const* getName() const { return m_sName.c_str(); }
-	// <!-- custom: Return the branded/project name configured by SAS_MOD_DISPLAY_NAME, falling back to the detected folder name. Call only after GlobalDefines have been loaded. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Return the branded/project name configured by SAS_MOD_DISPLAY_NAME, falling back to the detected folder name.
+	// Call only after GlobalDefines have been loaded. (ChatGPT-5.6-Sol) -->
 	char const* getDisplayName() const;
 
 	// <!-- custom: Resolve source/version metadata lazily from either an exported archive marker or the exact Git checkout rooted at this loaded mod folder.
@@ -55,7 +56,8 @@ private:
 	CvString m_sFullPath;
 	CvString m_sPathInRoot;
 	CvString m_sName;
-	// <!-- custom: Cache only authoritative source/version facts. Derived presentation values such as a short SHA are intentionally computed by callers from these primary fields.
+	// <!-- custom: Cache only authoritative source/version facts.
+	// Derived presentation values such as a short SHA are intentionally computed by callers from these primary fields.
 	// mutable allows const UI/log getters to populate the cache once without making source resolution part of ModName's logical identity mutation. (ChatGPT-5.6-Sol) -->
 	mutable bool m_bSourceDetailsResolved;
 	mutable int m_iSourceDirtyState;

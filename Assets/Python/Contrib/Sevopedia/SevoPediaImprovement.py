@@ -173,8 +173,7 @@ class SevoPediaImprovement:
 		self.SCALE_ANIMATION = 0.7
 
 		# <!-- custom: Leader icon sizes now use centralized INCHART_* constants from _sevopedia_helpers.
-		# IMPROVEMENT_LEADER_ICON_SIZE, IMPROVEMENT_LEADER_BUTTON_SPACING, IMPROVEMENT_LEADER_ROW_H replaced by
-		# INCHART_ICON_SIZE, INCHART_ICON_SPACING, INCHART_ROW_HEIGHT -->
+		# IMPROVEMENT_LEADER_ICON_SIZE, IMPROVEMENT_LEADER_BUTTON_SPACING, IMPROVEMENT_LEADER_ROW_H replaced by INCHART_ICON_SIZE, INCHART_ICON_SPACING, INCHART_ROW_HEIGHT -->
 
 	def interfaceScreen(self, iImprovement):
 		if self.iImprovement != iImprovement:
@@ -396,8 +395,8 @@ class SevoPediaImprovement:
 				if iYieldChange != 0:
 					sText += u"%+d%c" % (iYieldChange, gc.getYieldInfo(k).getChar())
 			if len(sText):
-				# <!-- custom: link route yield changes to the real Build entries (road/railroad) now that Builds are a category. This removes
-				# the old concept route hack and keeps behavior consistent with other Build links. Credit: Claude Opus 4.5 + GPT-5.2-Codex. (GPT-5.2-Codex (summarized)) -->
+				# <!-- custom: link route yield changes to the real Build entries (road/railroad) now that Builds are a category.
+				# This removes the old concept route hack and keeps behavior consistent with other Build links. Credit: Claude Opus 4.5 + GPT-5.2-Codex. (GPT-5.2-Codex (summarized)) -->
 				routeInfo = gc.getRouteInfo(item)
 				iBuild = -1
 				if routeInfo.getType() == "ROUTE_ROAD":

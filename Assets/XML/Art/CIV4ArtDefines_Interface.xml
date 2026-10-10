@@ -1912,7 +1912,10 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 			<Type>SAS_EMOJI_LEFT_ARROW_2</Type>
 			<Path>Art/AdvCiv_SAS/Emojis/Left_Arrow/2b05_2_64px.dds</Path>
 		</InterfaceArtInfo>
-		<!-- custom: extracted from GameFont.tga with the very nice help of Game Font Editor (V0.6) for Civ 4 by Asaf. We found the higher quality icons (21x20) in ri mod, and used them instead because base civ4 only had GameFont_75.tga (16x16) icons (see also KI#117). We added them as dds here because we couldn't insert them in sevopedia leader attitude buttons easily. Also reduced to 20x20 else the dds does not display ingame. -->
+		<!-- custom: extracted from GameFont.tga with the very nice help of Game Font Editor (V0.6) for Civ 4 by Asaf.
+		We found the higher quality icons (21x20) in ri mod, and used them instead because base civ4 only had GameFont_75.tga (16x16) icons (see also KI#117).
+		We added them as dds here because we couldn't insert them in sevopedia leader attitude buttons easily.
+		Also reduced to 20x20 else the dds does not display ingame. -->
 		<InterfaceArtInfo>
 			<Type>SAS_EMOJI_ATTITUDE_FURIOUS</Type>
 			<Path>Art/AdvCiv_SAS/Emojis/_Civ4_Attitudes/furious_20x20.dds</Path>

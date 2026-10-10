@@ -198,7 +198,9 @@ class SevoPediaMusic:
 					szText = szTitleText + u"\n" + szSoundId + u"\n" + szScript
 			else:
 				szText = szTitleText + u"\n" + szScript
-			# <!-- custom: Some 3D script previews are EXE/audio-asset flaky even when Sevopedia passes the correct AS3D_ script. Improvement animal scripts such as elephant empirically sometimes played no sound or another animal; ambience 3D scripts can have delayed starts, e.g. dog ambience began around 6 seconds. Add focused notes only for those 3D script groups. See KI#141. (GPT-5.5) -->
+			# <!-- custom: Some 3D script previews are EXE/audio-asset flaky even when Sevopedia passes the correct AS3D_ script.
+			# Improvement animal scripts such as elephant empirically sometimes played no sound or another animal; ambience 3D scripts can have delayed starts, e.g. dog ambience began around 6 seconds.
+			# Add focused notes only for those 3D script groups. See KI#141. (GPT-5.5) -->
 			if szScript.startswith("AS3D_IMPROV"):
 				szText = szText + u"\n\n" + localText.getText("TXT_KEY_PEDIA_SAS_MUSIC_3D_IMPROVEMENT_NOTE", ())
 			elif szScript.startswith("AS3D_SS_"):

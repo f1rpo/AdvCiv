@@ -4959,7 +4959,8 @@ void CvGameTextMgr::setPlotHelpDebug_AltOnly(CvWStringBuffer& szString, CvPlot c
 			// <advc.007>
 			CitySiteEvaluator citySiteEval(kLoopPlayer);
 			citySiteEval.setDebug(true);
-			// <!-- custom: This score serves the UI preview, not an AI selection. Label any enabled Found trace accordingly without changing the preview's existing evaluator settings. See KI#505.2. (GPT-6.1-Sol) -->
+			// <!-- custom: This score serves the UI preview, not an AI selection.
+			// Label any enabled Found trace accordingly without changing the preview's existing evaluator settings. See KI#505.2. (GPT-6.1-Sol) -->
 			citySiteEval.setLogContext(SAS_FOUND_LOG_UI_PREVIEW);
 			int iCalcFoundValue = citySiteEval.evaluate(x, y);
 			int const iStartingFoundValue = 0;
@@ -6016,9 +6017,8 @@ void CvGameTextMgr::parseTraits(CvWStringBuffer &szHelpString, TraitTypes eTrait
 		else
 		{
 			// <!-- custom: Wrap trait name in <link=literal> so clicking it opens Sevopedia Traits page.
-			// The link() method in SevoPediaMain.py searches SAS_linkMatchDefs (which includes getTraitInfo)
-			// to find a matching trait and jump to PEDIA_TRAITS. This enables clickable trait names in
-			// Sevopedia Leader and anywhere else parseTraits is used. (Claude Opus 4.5) -->
+			// The link() method in SevoPediaMain.py searches SAS_linkMatchDefs (which includes getTraitInfo) to find a matching trait and jump to PEDIA_TRAITS.
+			// This enables clickable trait names in Sevopedia Leader and anywhere else parseTraits is used. (Claude Opus 4.5) -->
 			szTempBuffer.Format(NEWLINE SETCOLR L"<link=literal>%s</link>" ENDCOLR,
 					TEXT_COLOR("COLOR_ALT_HIGHLIGHT_TEXT"), szText.GetCString());
 		}
@@ -9901,7 +9901,8 @@ void CvGameTextMgr::setUnitHelp(CvWStringBuffer &szBuffer, UnitTypes eUnit, bool
 							GC.getInfo(eLoopCivilization).getTextKeyWide()));
 				}
 			}
-			// <!-- custom: in sevopedia, we now have a placeReplace panel, so we don't need this extra replaces line. (see sevopedia unit for details) -->
+			// <!-- custom: in sevopedia, we now have a placeReplace panel, so we don't need this extra replaces line.
+			// (see sevopedia unit for details) -->
 			szBuffer.append(NEWLINE);
 			szBuffer.append(gDLL->getText("TXT_KEY_REPLACES_UNIT",
 					GC.getInfo(eDefaultUnit).getTextKeyWide()));
@@ -10975,7 +10976,8 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 		szBuffer.append(gDLL->getText("TXT_KEY_BUILDING_PROVIDES_POWER"));
 		// <!-- custom: also add the K-Mod code block nice info for area clean power to not misleadingly assume that areacleanpower power has no unhealthy effect.
 		// But since power is always clean due to the all cities effect, display only the clean power unhealthiness value/number (not the dirty pwoer value one) and part of this K-Mod code.
-		// But since i am not sure that dirty power is cancelled in this city if both areacleanpower and dirtypower are specified, added a "(?)" as well. -->
+		// But since i am not sure that dirty power is cancelled in this city if both areacleanpower and dirtypower are specified, added a "(?)"
+		// as well. -->
 		// <!-- custom: split the message info between/to cover clean and dirty cases. -->
 		// K-Mod. Also include base health change from power.
 		// <!-- custom: display instead "-0" as it is useful info to know that power has unhealhiness of +0 rather than +2 for example if it were the case. -->
@@ -12128,7 +12130,8 @@ void CvGameTextMgr::setBuildingHelpActual(CvWStringBuffer &szBuffer, BuildingTyp
 		}
 	}
 
-	// <!-- custom: in sevopedia, we now have a placeReplace method/function in sevopedia unit, so we don't need this extra replaced by line. (see sevopediaunit.py for details) -->
+	// <!-- custom: in sevopedia, we now have a placeReplace method/function in sevopedia unit, so we don't need this extra replaced by line.
+	// (see sevopediaunit.py for details) -->
 	// if (bCivilopediaText && eDefaultBuilding == eBuilding)
 	// {
 	// 	FOR_EACH_ENUM(Building)
@@ -13340,7 +13343,8 @@ void CvGameTextMgr::setFoundCostHelp(CvWStringBuffer& szBuffer, CvPlot const& kC
 	// Civic upkeep
 	iProjPreInfl += kPlayer.getCivicUpkeep(NULL, true, 1);
 	// Unit cost (new city increases free units, Settler unit goes away)
-	// <!-- custom: A founded Settler removes one total unit but no military-support unit. AdvCiv's shared delta falsely projected lower Pacifism upkeep. See KI#769. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: A founded Settler removes one total unit but no military-support unit.
+	// AdvCiv's shared delta falsely projected lower Pacifism upkeep. See KI#769. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	iProjPreInfl += kPlayer.calculateUnitCost(CvCity::initialPopulation(), -1, 0);
 	// Unit supply (Settler unit goes away)
 	if (kPlayer.calculateUnitSupply(kCityPlot.getOwner() != kPlayer.getID()))
@@ -21429,7 +21433,8 @@ void CvGameTextMgr::getParadropPlotHelp(CvPlot const& kPlot, CvUnit& kHeadSelect
 	if (pSelectionList == NULL)
 		return;
 	// <!-- custom: end guard for selection list null in paradrop help. Credit: Claude code Opus 4.5. (GPT-5.2-Codex) -->
-	// <!-- custom: Ask the mission executor for its first target-eligible Paratrooper. Ranking all selected units by evasion first could retain a moved/ineligible unit and suppress valid interception help. See KI#393. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Ask the mission executor for its first target-eligible Paratrooper.
+	// Ranking all selected units by evasion first could retain a moved/ineligible unit and suppress valid interception help. See KI#393. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	CvUnit const* pBestSelectedUnit = pSelectionList->AI().AI_bestUnitForMission(MISSION_PARADROP, &kPlot);
 	if (pBestSelectedUnit != NULL)
 		setInterceptPlotHelp(kPlot, *pBestSelectedUnit, szHelp);

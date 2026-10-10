@@ -27,7 +27,8 @@ public: // All the const functions returning primitive types are exposed to Pyth
 	bool isGoldenAge() const;
 	bool isDeclareWar() const;
 	bool isDisbandUnit() const;
-	// <!-- custom: One gameplay-owned semantic for EventInfos that consume the stored concrete unit through CvUnit::applyEvent. Keep this list synchronized with that gameplay function so diagnostics and future validation do not invent different meanings of a required unit. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: One gameplay-owned semantic for EventInfos that consume the stored concrete unit through CvUnit::applyEvent.
+	// Keep this list synchronized with that gameplay function so diagnostics and future validation do not invent different meanings of a required unit. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	bool hasUnitLocalEffect() const;
 
 	int getGold() const;

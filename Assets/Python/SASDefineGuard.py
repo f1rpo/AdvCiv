@@ -1,11 +1,9 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md).
 #
-# <!-- custom: Purpose:
-# Python reads defines through CyGlobalContext (DLL runtime define table), not by parsing XML directly.
+# <!-- custom: Purpose: Python reads defines through CyGlobalContext (DLL runtime define table), not by parsing XML directly.
 # Our DLL loads xml\GlobalDefines_advciv_sas.xml in CvXMLLoadUtility::SetGlobalDefines.
-# If that file is not loaded (wrong mod/DLL/load path), these keys resolve to defaults/missing values
-# instead of our sentinels, so this guard fails fast and surfaces the launch/config issue. (GPT-5.3-Codex) -->
+# If that file is not loaded (wrong mod/DLL/load path), these keys resolve to defaults/missing values instead of our sentinels, so this guard fails fast and surfaces the launch/config issue. (GPT-5.3-Codex) -->
 
 from CvPythonExtensions import CyGlobalContext
 

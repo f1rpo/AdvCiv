@@ -7,7 +7,8 @@
 
 namespace
 {
-	// <!-- custom: Private source/version helpers stay local to ModName. Dirty-file display limits protect log readability/buffers only; the uncapped total dirty-file count is still recorded, so these are implementation safety limits rather than player-tunable settings. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Private source/version helpers stay local to ModName.
+	// Dirty-file display limits protect log readability/buffers only; the uncapped total dirty-file count is still recorded, so these are implementation safety limits rather than player-tunable settings. (ChatGPT-5.6-Sol) -->
 	char const* const SAS_VERSION_METADATA_RELATIVE_PATH = "Assets\\SASModVersion.txt";
 	int const SAS_VERSION_DIRTY_FILE_DISPLAY_LIMIT = 32; // maximum changed paths written into dirtyFiles
 	int const SAS_VERSION_DIRTY_FILES_DISPLAY_CHAR_LIMIT = 1200; // maximum aggregate dirtyFiles text; bounds diagnostic-row size/readability
@@ -240,7 +241,8 @@ namespace
 		return true;
 	}
 
-	// <!-- custom: Hash the tracked gameplay code/rules/script diff relative to HEAD. This intentionally scopes out docs/LLM helpers and the compiled DLL (fingerprinted separately), while covering CvGameCoreDLL sources plus Config/Python/XML/PrivateMaps inputs. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Hash the tracked gameplay code/rules/script diff relative to HEAD.
+	// This intentionally scopes out docs/LLM helpers and the compiled DLL (fingerprinted separately), while covering CvGameCoreDLL sources plus Config/Python/XML/PrivateMaps inputs. (ChatGPT-5.6-Sol) -->
 	CvString fingerprintTrackedCodeRulesDiff(CvString const& diff)
 	{
 		unsigned __int64 uiHash = ((unsigned __int64)0xCBF29CE4 << 32) | 0x84222325;
@@ -301,7 +303,8 @@ ModName::ModName()
 	resetSourceDetails();
 }
 
-// <!-- custom: Invalidate every cached source field together. update() calls this when BtS refreshes the loaded mod path, so no provenance from a previous path can survive. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Invalidate every cached source field together.
+// update() calls this when BtS refreshes the loaded mod path, so no provenance from a previous path can survive. (ChatGPT-5.6-Sol) -->
 void ModName::resetSourceDetails()
 {
 	m_bSourceDetailsResolved = false;
@@ -333,7 +336,8 @@ void ModName::update(char const* szFullPath, char const* szPathInRoot)
 	resetSourceDetails();
 }
 
-// <!-- custom: Central branded/project identity. The actual folder/path remains the EXE-derived data cached by update(). (ChatGPT-5.6-Sol) -->
+// <!-- custom: Central branded/project identity.
+// The actual folder/path remains the EXE-derived data cached by update(). (ChatGPT-5.6-Sol) -->
 char const* ModName::getDisplayName() const
 {
 	char const* szDisplayName = GC.getDefineSTRING("SAS_MOD_DISPLAY_NAME");
@@ -389,7 +393,8 @@ void ModName::resolveSourceDetails() const
 		return;
 
 	// <!-- custom: GitHub/git-archive downloads can reconstruct the exact practical version from one immutable SAS_VERSION_ANCHOR_<exact-count> tag plus Git describe distance, while export-subst supplies exact commit/date.
-	// No per-commit VERSION update is needed. Archives still cannot inspect post-extraction local edits, so dirty remains -1. (ChatGPT-5.6-Sol) -->
+	// No per-commit VERSION update is needed.
+	// Archives still cannot inspect post-extraction local edits, so dirty remains -1. (ChatGPT-5.6-Sol) -->
 	if (readExportedSourceMetadata(modPath, m_sVersion, m_sCommitHash, m_sCommitDate))
 	{
 		m_sSourceMetadataType = (m_sVersion.empty() ? "gitArchive" : "gitArchiveVersioned");

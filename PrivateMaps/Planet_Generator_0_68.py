@@ -420,7 +420,8 @@ def getGridSize(argsList):
 			fnW = (((continentSeparation * 2) + 1) * continentCount / minWidthDivision + continentCount) / 4
 			fH = int(fH * fnW / float(fW) * 4) / 4
 			fW = fnW
-	# <!-- custom: Planet's center-spacing expansion can produce a float width, but Civ4 requests an integer vector and its SDK conversion asserts that every item is a Python int. Return the same truncation explicitly without relying on release-only bridge coercion. See KI#328. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: Planet's center-spacing expansion can produce a float width, but Civ4 requests an integer vector and its SDK conversion asserts that every item is a Python int.
+	# Return the same truncation explicitly without relying on release-only bridge coercion. See KI#328. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	return (int(fW), int(fH))
 	# return (10, 6) # tiny
 	#return (32, 20) # huge
@@ -1279,7 +1280,8 @@ class TileBuilder:
 			if c == 0:
 				rem_ind.append(i)
 			i += 1
-		# <!-- custom: Planet recorded exhausted builders' real positions but popped 0..count-1 instead, removing productive frontiers and retaining exhausted ones. Remove recorded positions from highest to lowest and keep creation-order bookkeeping synchronized. See KI#261. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: Planet recorded exhausted builders' real positions but popped 0..count-1 instead, removing productive frontiers and retaining exhausted ones.
+		# Remove recorded positions from highest to lowest and keep creation-order bookkeeping synchronized. See KI#261. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		while len(rem_ind) > 0:
 			removedBuilder = self.builders.pop(rem_ind.pop())
 			if removedBuilder[0] in self.builderList:
@@ -2334,7 +2336,8 @@ def getContinentDistribution():
 	else:
 		worldInfo = worldTypes[chosenWorldType]
 
-	# <!-- custom: Smart Selection buckets below are plot-space areas. Classify the SAS-scaled terrain-cell grid and restore Planet's 4x4-cell area conversion; SAS previously compared unscaled cell counts directly and selected much smaller buckets. See KI#258. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: Smart Selection buckets below are plot-space areas.
+	# Classify the SAS-scaled terrain-cell grid and restore Planet's 4x4-cell area conversion; SAS previously compared unscaled cell counts directly and selected much smaller buckets. See KI#258. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	(iScaledWidth, iScaledHeight) = getPlanetScaledGridSize(worldInfo.getGridWidth(), worldInfo.getGridHeight())
 	mapArea = iScaledWidth * iScaledHeight * 16
 
@@ -2539,7 +2542,8 @@ def addLakes():
 
 #Step 4: add features to your terrain
 #this is responsible for things like oasis, ice floes on the ocean, floodplains
-# <!-- custom: Feature spreading retains its source plot while inspecting neighbors. CyMap.sPlot() reuses one process-static CyPlot wrapper, so keep that source in an independent managed plot() wrapper; transient neighbor/standalone lookups can retain the cheaper static wrapper. See KI#257. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+# <!-- custom: Feature spreading retains its source plot while inspecting neighbors.
+# CyMap.sPlot() reuses one process-static CyPlot wrapper, so keep that source in an independent managed plot() wrapper; transient neighbor/standalone lookups can retain the cheaper static wrapper. See KI#257. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 def addFeatures():
 	collectGarbage()
 
@@ -3018,7 +3022,8 @@ def isRiverCrossing(plot1,plot2):
 
 	dx = x2 - x1
 	dy = y2 - y1
-	# <!-- custom: Planet wraps X, so seam-adjacent plots at 0/W-1 need the shortest wrapped delta before selecting E/W river direction. Apply the same rule generically if Y wrapping is ever enabled. See KI#257. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: Planet wraps X, so seam-adjacent plots at 0/W-1 need the shortest wrapped delta before selecting E/W river direction.
+	# Apply the same rule generically if Y wrapping is ever enabled. See KI#257. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if map.isWrapX():
 		if dx > iW / 2:
 			dx -= iW
@@ -3581,7 +3586,8 @@ def isAdvancedMap():
 	Advanced maps only show	up in the map script pulldown on the advanced menu.
 	Return 0 if	you	want your map to show up in	the	simple singleplayer	menu
 	"""
-	# <!-- custom: keep Planet Generator visible in Simple Game/world picker like standard scripts (e.g. Fractal). This explicit 0 keeps that behavior stable; we also add a WorldPicker XML entry so later option screens keep the globe preview (instead of falling back to a plain black preview). (GPT-5.3-Codex) -->
+	# <!-- custom: keep Planet Generator visible in Simple Game/world picker like standard scripts (e.g. Fractal).
+	# This explicit 0 keeps that behavior stable; we also add a WorldPicker XML entry so later option screens keep the globe preview (instead of falling back to a plain black preview). (GPT-5.3-Codex) -->
 	return 0
 def getModPath():
 	"""
@@ -3688,7 +3694,8 @@ def getWrapY():
 	"Can be	overridden to change whether the map wraps around in the Y direction. Default is false"
 	return False
 
-# <!-- custom: Several Planet climate combinations inverted the signed latitude callbacks. Return one clamped absolute extent for both callbacks so top is always >= bottom while preserving the intended symmetric climate band and AdvCiv True Starts latitude support. See KI#259. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+# <!-- custom: Several Planet climate combinations inverted the signed latitude callbacks.
+# Return one clamped absolute extent for both callbacks so top is always >= bottom while preserving the intended symmetric climate band and AdvCiv True Starts latitude support. See KI#259. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 def getPlanetLatitudeExtent():
 	initClimateSettings()
 	cgc = CyGlobalContext()

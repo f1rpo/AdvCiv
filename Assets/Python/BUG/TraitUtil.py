@@ -12,7 +12,8 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
-# <!-- custom: AdvCiv-SAS does not actively maintain this third-party BUG library file. Edits here are limited to repo-wide consistency passes (e.g. getInfoTypeOrFail for fail-loud XML lookups). (Claude code Opus 4.7) -->
+# <!-- custom: AdvCiv-SAS does not actively maintain this third-party BUG library file.
+# Edits here are limited to repo-wide consistency passes (e.g. getInfoTypeOrFail for fail-loud XML lookups). (Claude code Opus 4.7) -->
 
 from CvPythonExtensions import *
 from SASUtils import getInfoTypeOrFail
@@ -60,7 +61,8 @@ def getIcon(eTrait):
 	else:
 		return GENERIC_ICON
 
-# <!-- custom: Format CyGameTextMgr leader-trait text with each trait name preceded by its TraitUtil icon. Dawn of Man and Victory Screen both use this compact "icon Trait" display, while CyGameTextMgr keeps the normal trait wording/order. (GPT-5.5) -->
+# <!-- custom: Format CyGameTextMgr leader-trait text with each trait name preceded by its TraitUtil icon.
+# Dawn of Man and Victory Screen both use this compact "icon Trait" display, while CyGameTextMgr keeps the normal trait wording/order. (GPT-5.5) -->
 def getLeaderTraitsWithIcons(eLeader, eCiv):
 	szTraits = CyGameTextMgr().parseLeaderTraits(eLeader, eCiv, True, False)
 	leaderInfo = gc.getLeaderHeadInfo(eLeader)

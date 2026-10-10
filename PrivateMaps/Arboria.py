@@ -9,7 +9,8 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
-# <!-- custom: KI#105 context: this script had first-launch bonus spawning instability (e.g. Deer missing). Keep generator state minimal and favor function-local handles where possible; only keep persistent class state required by CvMapGeneratorUtil base flow (map/grid/mapRand/fractals). See KI#105. (GPT-5.3-Codex) -->
+# <!-- custom: KI#105 context: this script had first-launch bonus spawning instability (e.g. Deer missing).
+# Keep generator state minimal and favor function-local handles where possible; only keep persistent class state required by CvMapGeneratorUtil base flow (map/grid/mapRand/fractals). See KI#105. (GPT-5.3-Codex) -->
 #
 
 from CvPythonExtensions import *

@@ -1,12 +1,9 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md).
 #
-# <!-- custom: Purpose:
-# Scales CITYBILLBOARD_SCALE values in CIV4DetailManager.xml based on the
-# active SAS_UI_FONT_BODY level. The multiplier percent for each font level
-# (1..4) is read from SAS_BILLBOARD_SCALE_PERCENT_FONT_<N> defines. The XML
-# file is rewritten on game load so the engine picks up the new values on the
-# fly (the engine re-reads DetailManager without restart). (Claude code Opus 4.6) -->
+# <!-- custom: Purpose: Scales CITYBILLBOARD_SCALE values in CIV4DetailManager.xml based on the active SAS_UI_FONT_BODY level.
+# The multiplier percent for each font level (1..4) is read from SAS_BILLBOARD_SCALE_PERCENT_FONT_<N> defines.
+# The XML file is rewritten on game load so the engine picks up the new values on the fly (the engine re-reads DetailManager without restart). (Claude code Opus 4.6) -->
 
 import os
 import re
@@ -55,7 +52,8 @@ def _rewriteDetailManagerXML(szPath, scaledKeyLines):
 		BugUtil.error("SASBillboardScale: cannot read %s", szPath)
 		return False
 
-	# <!-- custom: Restoring archived comments beside active XML values put comments between this Name and its Keys; the old immediate-Key match failed and disabled runtime billboard scaling. Match and preserve intervening XML comments. (GPT-5.6-Sol) -->
+	# <!-- custom: Restoring archived comments beside active XML values put comments between this Name and its Keys; the old immediate-Key match failed and disabled runtime billboard scaling.
+	# Match and preserve intervening XML comments. (GPT-5.6-Sol) -->
 	pattern = r"(<Name>CITYBILLBOARD_SCALE</Name>\s*\n(?:\s*<!--[\s\S]*?-->\s*\n)*)((?:\s*<Key>[^<]*</Key>\s*\n)+)"
 	replacement = r"\1" + "\n".join(scaledKeyLines) + "\n"
 

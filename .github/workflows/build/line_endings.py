@@ -3,8 +3,10 @@
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
 # Build check: active text files should not have mixed CRLF/LF line endings and should end with a newline.
-# <!-- custom: Before the first cleanup, this checker found 79 local worktree issues, while GitHub Actions reported only 19. Comparing local bytes with `git show :path` showed that some local mixed-EOL files were clean LF-only in Git's indexed blob (e.g., BugInit.py) while true CI failures stayed mixed in both (e.g., Pangaea.py).
-# Fixing all local findings updated 78 worktree files, but staging kept only the 19 stored-content changes that Git/CI saw. This makes local output useful cleanup guidance, while staged/GitHub output is the authoritative committed-content failure set. (GPT-5.5) -->
+# <!-- custom: Before the first cleanup, this checker found 79 local worktree issues, while GitHub Actions reported only 19.
+# Comparing local bytes with `git show :path` showed that some local mixed-EOL files were clean LF-only in Git's indexed blob (e.g., BugInit.py) while true CI failures stayed mixed in both (e.g., Pangaea.py).
+# Fixing all local findings updated 78 worktree files, but staging kept only the 19 stored-content changes that Git/CI saw.
+# This makes local output useful cleanup guidance, while staged/GitHub output is the authoritative committed-content failure set. (GPT-5.5) -->
 
 from pathlib import Path
 import argparse

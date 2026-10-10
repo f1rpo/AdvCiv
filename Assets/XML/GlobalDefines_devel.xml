@@ -3,7 +3,8 @@
 
 <Civ4Defines xmlns="x-schema:CIV4GlobalDefinesSchema.xml">
 
-	<!-- custom: The [advc.104] REPORT_INTERVAL, UWAI_REPORT_THRESH and UWAI_REPORT_THRESH_HUMAN defines that occupied this section in base AdvCiv are removed in AdvCiv-SAS. UWAI diagnostics now use the cached SAS_BBAI_UWAI_* log levels in GlobalDefines_advciv_sas.xml, caller-side pre-gating and the normal timestamped BBAI log. See KI#505.3. (ChatGPT-5.6-Sol) -->
+	<!-- custom: The [advc.104] REPORT_INTERVAL, UWAI_REPORT_THRESH and UWAI_REPORT_THRESH_HUMAN defines that occupied this section in base AdvCiv are removed in AdvCiv-SAS.
+	UWAI diagnostics now use the cached SAS_BBAI_UWAI_* log levels in GlobalDefines_advciv_sas.xml, caller-side pre-gating and the normal timestamped BBAI log. See KI#505.3. (ChatGPT-5.6-Sol) -->
 
 	<!-- [advc.104v]
 		 If this is set to 1 and the Debug mode has been enabled (Ctrl+Z), then
@@ -26,7 +27,8 @@
 		<DefineName>UWAI_IN_BACKGROUND</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
-	<!-- custom: The inherited comment above describes base AdvCiv. In AdvCiv-SAS, UWAI_IN_BACKGROUND still controls AI behavior, but diagnostic output is controlled separately by SAS_BBAI_UWAI_* levels and goes to the BBAI log. (ChatGPT-5.6-Sol) -->
+	<!-- custom: The inherited comment above describes base AdvCiv.
+	In AdvCiv-SAS, UWAI_IN_BACKGROUND still controls AI behavior, but diagnostic output is controlled separately by SAS_BBAI_UWAI_* levels and goes to the BBAI log. (ChatGPT-5.6-Sol) -->
 
 	<!-- [advc.104] Fully disables UWAI if set to 1 or greater (unlike
 		 UWAI_IN_BACKGROUND which still lets it run in the background).

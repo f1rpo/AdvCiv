@@ -35,7 +35,8 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		 Mod-mods should use a different SAVE_VERSION, ideally a completely
 		 different one, though this currently only matters for the
 		 HOF_DISPLAY_OTHER_MOD_REPLAYS option (see below). -->
-	<!-- custom: todo? leaving as is for now -->
+	<!-- custom: todo?
+	leaving as is for now -->
 	<Define> <!-- redefine -->
 		<DefineName>SAVE_VERSION</DefineName>
 		<iDefineIntVal>14223</iDefineIntVal>
@@ -142,9 +143,8 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		 power ratio is multiplied in CvTeamAI::AI_declareWarTradeVal.
 		 Recommended: 300% to make the AI more reluctant to DoW a more powerful
 		 civ; 100 for original behavior. -->
-	<!-- custom: trying to increase this, not sure if helpful or not or taken
-	into account, but tring it, we don't want to be baited into a war we can't
-	win! Was 300 -->
+	<!-- custom: trying to increase this, not sure if helpful or not or taken into account, but tring it, we don't want to be baited into a war we can't win!
+	Was 300 -->
     <Define>
         <DefineName>WAR_TRADEVAL_POWER_WEIGHT</DefineName>
         <iDefineIntVal>1000</iDefineIntVal>
@@ -159,15 +159,9 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		 values in XML. Recommended: 135, 35.
 		 Changing the factor will increase or decrease foreign culture strength
 		 over the entire game; the exponent affects especially the late game. -->
-	<!-- custom: we don't want revolt chance to be too high, especially early
-	when i think it is currently the most mismatched.
-	I find it too high to/for me, but if the reasoning is strength increasing,
-	thus making it too high early, then it's not a problem, as strength
-	values are much tighter now. Between units, except until things like tanks
-	maybe, but citizens wouldn't object to a tank, i think, so should be fine,
-	also game would most likely be decided early and before that,
-	but if not, then it would be realistic this way too i think,
-	was 135 -->
+	<!-- custom: we don't want revolt chance to be too high, especially early when i think it is currently the most mismatched.
+	I find it too high to/for me, but if the reasoning is strength increasing, thus making it too high early, then it's not a problem, as strength values are much tighter now.
+	Between units, except until things like tanks maybe, but citizens wouldn't object to a tank, i think, so should be fine, also game would most likely be decided early and before that, but if not, then it would be realistic this way too i think, was 135 -->
 	<Define>
 		<DefineName>FOREIGN_CULTURE_STRENGTH_EXPONENT</DefineName>
 		<iDefineIntVal>100</iDefineIntVal>
@@ -198,10 +192,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		 that the modifiers canceled out when both applied. Now combined
 		 additively, and I'm reducing both so that they still cancel out.
 		 Was -50, recommended: -33 -->
-	<!-- custom: i don't understand all but i think this seems like
-	or means religion should be more important if i increase the
-	absolute value, or decrease if counting in numerical (with sign)
-	numbers, was -33 -->
+	<!-- custom: i don't understand all but i think this seems like or means religion should be more important if i increase the absolute value, or decrease if counting in numerical (with sign) numbers, was -33 -->
 	<Define> <!-- redefine -->
 		<DefineName>REVOLT_DEFENSE_STATE_RELIGION_MODIFIER</DefineName>
 		<iDefineIntVal>-100</iDefineIntVal>
@@ -230,9 +221,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		 are not shown to the player, even if the "show friendly moves" option
 		 is enabled. Exception: You still see foreign Missionaries and Executives
 		 move within your borders. Recommended: 0; 1 for original behavior. -->
-	<!-- custom: trying 1 as i think religion is more important now, maybe a bit
-	excessive but players may even want to target misssionaries which i may
-	rework too maybe, was 0 -->
+	<!-- custom: trying 1 as i think religion is more important now, maybe a bit excessive but players may even want to target misssionaries which i may rework too maybe, was 0 -->
 	<Define>
 		<DefineName>SHOW_FRIENDLY_MISSIONARY_MOVES</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
@@ -293,11 +282,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		 Especially for large maps, increasing the limit substantially may
 		 increase the fairness of the starting locations - at the expense of
 		 (proportionally) longer computing times. -->
-	<!-- custom: i want to trying increasing this and see what happens,
-	first city planted is very important, may help the AI, possibly the
-	human player too, also since now (some) ressources are hidden until
-	required tech and such, it may be a pleasant find to notice at
-	ressource reveal we had spawned just at the right spot maybe, was 100 -->
+	<!-- custom: i want to trying increasing this and see what happens, first city planted is very important, may help the AI, possibly the human player too, also since now (some) ressources are hidden until required tech and such, it may be a pleasant find to notice at ressource reveal we had spawned just at the right spot maybe, was 100 -->
 	<!-- custom: i also want to try to increase this (further) more and see what happens, now that our terrain/map is more balanced as in less unfairly skewed towards starting cities or map having too many ressources in general (at least is the goal), having a nice starter should feel nicer and be more pleasant, was 250 -->
 	<Define>
         <DefineName>SPI_TIME_LIMIT_PERCENT</DefineName>
@@ -306,9 +291,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 
 	<!-- advc.137: 12 in BtS. Recommended: 10 to match the
 		 higher default player counts in AdvCiv. -->
-	<!-- custom: trying increasing this slightly to have
-	AIs less crammed at each other or walled early possibly
-	ideally, was 10 -->
+	<!-- custom: trying increasing this slightly to have AIs less crammed at each other or walled early possibly ideally, was 10 -->
 	<Define> <!-- redefine -->
 		<DefineName>STARTING_DISTANCE_PERCENT</DefineName>
 		<iDefineIntVal>13</iDefineIntVal>
@@ -320,8 +303,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		 is toned down (toned down only a little bit in multiplayer).
 		 If the "Balanced" map option is set (not all maps have one), then
 		 normalization works as in BtS and this XML value is ignored. -->
-	<!-- custom: not changing this as it can remove ice and jungle it
-	seems see next point below and its explanation -->
+	<!-- custom: not changing this as it can remove ice and jungle it seems see next point below and its explanation -->
 	<Define>
         <DefineName>NORMALIZE_STARTPLOTS_AGGRESSIVELY</DefineName>
         <iDefineIntVal>0</iDefineIntVal>
@@ -347,9 +329,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		 This parameter does not affect surrounding plots (adjacent to the
 		 city radius). These plots are cleared with 1 chance in 3 (unless
 		 NSA is set). -->
-	<!-- custom: increasing this and seeing what happens, i want terrains
-	(and features) to be more important, also jungle may not necessarily
-	be a bit terrain in AdvCiv-SAS, would need to check test more -->
+	<!-- custom: increasing this and seeing what happens, i want terrains (and features) to be more important, also jungle may not necessarily be a bit terrain in AdvCiv-SAS, would need to check test more -->
     <Define>
         <DefineName>THRESH-BAD-FEAT-PER-CITY</DefineName>
         <iDefineIntVal>12</iDefineIntVal>
@@ -363,11 +343,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
          chances, e.g. 94% when REMOVAL_CHANCE_BAD_TERRAIN is 75
 		 (recommended). Use 100 for BtS/ K-Mod behavior.
 		 No effect if NORMALIZE_STARTPLOTS_AGGRESSIVELY is set. -->
-	<!-- custom: i don't want terrain to be aggressively or even just
-	normalized like this, try to disable it and see, buff terrains
-	that are extra weak or give them some other boosts too maybe,
-	maybe this increases strategy or other related or similar
-	things, was 75-->
+	<!-- custom: i don't want terrain to be aggressively or even just normalized like this, try to disable it and see, buff terrains that are extra weak or give them some other boosts too maybe, maybe this increases strategy or other related or similar things, was 75 -->
     <Define>
         <DefineName>REMOVAL_CHANCE_BAD_TERRAIN</DefineName>
         <iDefineIntVal>0</iDefineIntVal>
@@ -376,8 +352,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	<!-- [advc.108]
 		 See REMOVAL_CHANCE_BAD_TERRAIN; same deal for Peaks.
 		 Recommended: 75; use 100 for BtS/ K-Mod behavior. -->
-	<!-- custom: same for peaks, also i want them to be useful,
-	was 75. -->
+	<!-- custom: same for peaks, also i want them to be useful, was 75. -->
     <Define>
         <DefineName>REMOVAL_CHANCE_PEAK</DefineName>
         <iDefineIntVal>0</iDefineIntVal>
@@ -391,9 +366,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		 metric see plotDistance in CvGameCoreUtils.cpp; 2 corresponds to the
 		 city cross. Set to 0 for BtS behavior - then, only the tiles
 		 visible by the initial units are revealed. -->
-	<!-- custom: give a bit more sight, as terrain is so important,
-	give a chance for all players (AI and human) to choose the one they
-	value for their strategy, was 2-->
+	<!-- custom: give a bit more sight, as terrain is so important, give a chance for all players (AI and human) to choose the one they value for their strategy, was 2 -->
 	<Define>
 		<DefineName>START_SIGHT_RANGE</DefineName>
 		<iDefineIntVal>3</iDefineIntVal>
@@ -408,15 +381,8 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		 lost once several cities are lost.
          Recommended: 65; use 0 or less for BtS behavior.
 		 -->
-	<!-- custom: a voluntary vassal, especially a weak one (which should often
-	be the case else why they would have vassalized), could be considered as
-	having been absorbed by the culture of the bigger empire and become its
-	citizens, some tribes being absorbed maybe for example in some animes or
-	in other things or maybe history too. Even if somehow they were not
-	satisfied and wanted to move away from the empire, they would be too weak
-	to do so, and at this point they may just as well die, there is no
-	alternative, meaning they would not be able to survive even if they
-	separate from the empire as sad as it is, was 65 -->
+	<!-- custom: a voluntary vassal, especially a weak one (which should often be the case else why they would have vassalized), could be considered as having been absorbed by the culture of the bigger empire and become its citizens, some tribes being absorbed maybe for example in some animes or in other things or maybe history too.
+	Even if somehow they were not satisfied and wanted to move away from the empire, they would be too weak to do so, and at this point they may just as well die, there is no alternative, meaning they would not be able to survive even if they separate from the empire as sad as it is, was 65 -->
     <Define>
         <DefineName>VASSAL_DENY_OWN_LOSSES_FACTOR</DefineName>
         <iDefineIntVal>0</iDefineIntVal>
@@ -454,8 +420,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		 on an Archipelago map.
 		 0 or less means unmodded resource placement.
 		 Recommended: 1 -->
-	<!-- custom: ressources being scarce is maybe what makes the game
-	strategic so leaving as is, i think -->
+	<!-- custom: ressources being scarce is maybe what makes the game strategic so leaving as is, i think -->
     <Define>
         <DefineName>SUBLINEAR_BONUS_QUANTITIES</DefineName>
         <iDefineIntVal>1</iDefineIntVal>
@@ -470,15 +435,8 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		 after razing.
 		 Either way, founding a city clears all terrain features in the
 		 city tile - at least temporarily. -->
-	<!-- custom: i would not want the difficulty to be in such tedious
-	things, may also be more pleasant for the human player, may indirectly
-	help the AI too, also there is no strong reason to think a land
-	developped by a civ could not be reused by other civs even if city
-	is destroyed (not atomic bomb or something though), or else then
-	all terrains should be degraded being used and destroyed then maybe.
-	I don't find such design desirable nor realistic, so i choose the
-	more pleasant and effective approach, hopefully allowing a more
-	relaxed gameplay in that regard, was 0 -->
+	<!-- custom: i would not want the difficulty to be in such tedious things, may also be more pleasant for the human player, may indirectly help the AI too, also there is no strong reason to think a land developped by a civ could not be reused by other civs even if city is destroyed (not atomic bomb or something though), or else then all terrains should be degraded being used and destroyed then maybe.
+	I don't find such design desirable nor realistic, so i choose the more pleasant and effective approach, hopefully allowing a more relaxed gameplay in that regard, was 0 -->
     <Define>
         <DefineName>FLOODPLAIN_AFTER_RAZE</DefineName>
         <iDefineIntVal>1</iDefineIntVal>
@@ -491,10 +449,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		 celebrations.
 		 Recommended: a high value in order to disable celebrations;
 		 original value from GlobalDefines.xml: 8 -->
-	<!-- custom: i think it is a cool and immersive experience for the
-	human players (at least was in civ3 for example when i played it),
-	may add a bit more strategy to the game or intensity or simply just
-	immersion and relax, so reenabling that, was 100 -->
+	<!-- custom: i think it is a cool and immersive experience for the human players (at least was in civ3 for example when i played it), may add a bit more strategy to the game or intensity or simply just immersion and relax, so reenabling that, was 100 -->
 	<Define> <!-- redefine -->
 		<DefineName>WE_LOVE_THE_KING_POPULATION_MIN_POPULATION</DefineName>
 		<iDefineIntVal>5</iDefineIntVal>
@@ -556,13 +511,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		 Otherwise, the BtS computation is used, i.e. any combat unit
 		 suffices as protection. Recommended: 0 for now as there are some
 		 open issues with this rule (see manual). -->
-	<!-- custom: i don't know if i have to adjust strength defense calculation
-	now or change this now that all units have more strength, if it's about
-	relative strength with rivals or the "average" unit a civ can build, then
-	it would not need to be changed maybe(?), but if it's about total strength
-	absolute of a unit, then all units are stronger and an ancient maceman
-	(warrior) maybe increase the sense of safeness a bit too much, leaving as
-	is,	maybe todo relook at this later -->
+	<!-- custom: i don't know if i have to adjust strength defense calculation now or change this now that all units have more strength, if it's about relative strength with rivals or the "average" unit a civ can build, then it would not need to be changed maybe(?), but if it's about total strength absolute of a unit, then all units are stronger and an ancient maceman (warrior) maybe increase the sense of safeness a bit too much, leaving as is, maybe todo relook at this later -->
 	<Define>
 		<DefineName>DEMAND_BETTER_PROTECTION</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
@@ -588,8 +537,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		 If set to 1, era transitions are recorded in replays.
 		 Set to 0 for BtS behavior (no era transitions in replays).
 		 Recommended: 0, rather use SHOW_FIRST_TO_DISCOVER_IN_REPLAY. -->
-	<!-- custom: i want era to be more important, so i would want them
-	to be shown in replay, was 0 -->
+	<!-- custom: i want era to be more important, so i would want them to be shown in replay, was 0 -->
 	<Define>
 		<DefineName>SHOW_ENTERED_ERA_IN_REPLAY</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
@@ -597,9 +545,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	<!-- [advc.106]
 		 If set to 1 (recommended), the first discovery of each tech is recorded
 		 in replays. If set to 0, only Liberalism is recorded (BtS behavior). -->
-	<!-- custom: i want replay to show more useful/valuable data so why not,
-	also is maybe a good reminder/hint to me to add more first to discover
-	effects or tweak them -->
+	<!-- custom: i want replay to show more useful/valuable data so why not, also is maybe a good reminder/hint to me to add more first to discover effects or tweak them -->
 	<Define>
 		<DefineName>SHOW_FIRST_TO_DISCOVER_IN_REPLAY</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
@@ -621,16 +567,9 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		 (unless the player owns the respective holy city). Set to -1 to
 		 disable those announcements in all eras or to 7 or greater to enable
 		 them in all eras. -->
-	<!-- custom: with the incoming changes i made on religious monastery (now
-	altars) and religious corporations (now special buildings too later in the
-	game, religion is more important, it is more important to pay attention to
-	religion. As also the reward is much stronger to stick to our religion
-	despite potential diplomacy costs).
-	May be a bit more realistic too this way, as religious conflicts do not
-	end (i think) even in modern times, hopefully more interesting and
-	enjoyable this way,
-	todo to change this if era number increases (or decreases too maybe?),
-	was 4 -->
+	<!-- custom: with the incoming changes i made on religious monastery (now altars) and religious corporations (now special buildings too later in the game, religion is more important, it is more important to pay attention to religion.
+	As also the reward is much stronger to stick to our religion despite potential diplomacy costs).
+	May be a bit more realistic too this way, as religious conflicts do not end (i think) even in modern times, hopefully more interesting and enjoyable this way, todo to change this if era number increases (or decreases too maybe?), was 4 -->
 	<Define>
 		<DefineName>STOP_RELIGION_SPREAD_ANNOUNCE_ERA</DefineName>
 		<iDefineIntVal>6</iDefineIntVal>
@@ -698,18 +637,8 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		 at war in this context. (Otherwise, there would be an
 	     awkward incentive to stop short of elimination when
 		 capitulation isn't possible.) -->
-	<!-- custom: i found war influence on happiness to be a bit
-	too high in advciv, maybe this can be reduced a bit, my other
-	idea is that citizens can maybe be more rational about war and
-	not as angry about it more realistically, viewing it as an
-	eventuality and simply trying to survive or profit from it.
-	My other idea/consideration is that maybe after some time
-	citizens can "get over it", as unkind it is to say, what i
-	mean by that is that citizens may see the war in a different
-	light, especially some long time after they are conquerred,
-	and especially if the new ruler	provides good protection,
-	and perhaps even perks, maybe the game would be more realistic
-	this way, was 50) -->
+	<!-- custom: i found war influence on happiness to be a bit too high in advciv, maybe this can be reduced a bit, my other idea is that citizens can maybe be more rational about war and not as angry about it more realistically, viewing it as an eventuality and simply trying to survive or profit from it.
+	My other idea/consideration is that maybe after some time citizens can "get over it", as unkind it is to say, what i mean by that is that citizens may see the war in a different light, especially some long time after they are conquerred, and especially if the new ruler provides good protection, and perhaps even perks, maybe the game would be more realistic this way, was 50) -->
 	<Define> <!-- redefine -->
 		<DefineName>AT_WAR_CULTURE_ANGER_MODIFIER</DefineName>
 		<iDefineIntVal>25</iDefineIntVal>
@@ -809,17 +738,10 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		 behavior, with B maximal when Barbarians first appear and then
 		 decreasing as the civs expand.
 		 Recommended: 54 -->
-	<!-- custom: i want to greatly reduce this. Players all start with a
-	few defenders now, up to them to use them well, i want barbarians to be
-	stronger and have a stronger influence early on, more realistic this
-	way too i think, and they would have more impact before they fade.
-	May even push the idea further with terrorists, or maybe pirates as
-	some players/mod(s) do.
-	Increasing it a bit too much may be tedious, but the goal is to put
-	higher emphasis on military	and realism, i may buff the other players
-	or all if they struggle	against barbarians, but i would not want to
-	nerf barbarians though,	testing this to see but may be good as is or
-	slightly tweak it later	maybe, was 54 -->
+	<!-- custom: i want to greatly reduce this.
+	Players all start with a few defenders now, up to them to use them well, i want barbarians to be stronger and have a stronger influence early on, more realistic this way too i think, and they would have more impact before they fade.
+	May even push the idea further with terrorists, or maybe pirates as some players/mod(s) do.
+	Increasing it a bit too much may be tedious, but the goal is to put higher emphasis on military and realism, i may buff the other players or all if they struggle against barbarians, but i would not want to nerf barbarians though, testing this to see but may be good as is or slightly tweak it later maybe, was 54 -->
     <Define>
         <DefineName>BARB_PEAK_PERCENT</DefineName>
         <iDefineIntVal>5</iDefineIntVal>
@@ -1080,7 +1002,7 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	<!-- [advc.025] Culture that spreads from a capitulated vassal to its
 		 master is multiplied by this percentage. 100 for BtS behavior
 		 (normal spread); recommended: 50. -->
-	<!-- custom: gain less culture from capitulation, after all it's more like the loser civ is assimilated than merging (even though some exchange may happen, mostly they'd have to give up their cultural habits in favor of the empire/winner's one  to be part of their empire), plus it would be too easy of a way to gain culture through military/conquest, but no need to make it too drastic either as some culture is most likely transfered as well, was 50 -->
+	<!-- custom: gain less culture from capitulation, after all it's more like the loser civ is assimilated than merging (even though some exchange may happen, mostly they'd have to give up their cultural habits in favor of the empire/winner's one to be part of their empire), plus it would be too easy of a way to gain culture through military/conquest, but no need to make it too drastic either as some culture is most likely transfered as well, was 50 -->
 	<Define>
 		<DefineName>CAPITULATED_TO_MASTER_CULTURE_PERCENT</DefineName>
 		<iDefineIntVal>30</iDefineIntVal>

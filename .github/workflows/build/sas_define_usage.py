@@ -23,7 +23,8 @@ SOURCE_GLOBS = ("Assets/Python/**/*.py", "PrivateMaps/**/*.py", "CvGameCoreDLL/*
 GETTER_RE = re.compile(r"getDefine(?:INT(?:External)?|BOOL|FLOAT|STRING)$")
 NAME_RE = re.compile(r"SAS_[A-Z0-9_]+$")
 CPP_LEXER = re.compile(r'//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|[A-Za-z_]\w*|\d+|[^\s]', re.S)
-# <!-- custom: This existing define is coverage metadata, deliberately consumed by mapscripts.py rather than the game. Keep its exception explicit, verify that checker still reads it, and report it separately from runtime uses. (GPT-6.1-Sol) -->
+# <!-- custom: This existing define is coverage metadata, deliberately consumed by mapscripts.py rather than the game.
+# Keep its exception explicit, verify that checker still reads it, and report it separately from runtime uses. (GPT-6.1-Sol) -->
 METADATA = {"SAS_MAP_SCRIPT_NAMES_HEAVINESS_UNSPECIFIED": ".github/workflows/build/mapscripts.py"}
 # <!-- custom: BBAI log-level Defines are consumed through an iterable C++ descriptor table instead of one literal getter call per category.
 # Recognize only that exact field-pair shape when the same source also contains a dynamic helper lookup of descriptor names; arbitrary strings still do not satisfy runtime usage. (ChatGPT-5.6-Sol) -->
@@ -71,7 +72,8 @@ def calls(tokens):
             try:
                 args, end = arguments(tokens, index + 1)
             except ValueError:
-                # <!-- custom: Inherited C++ conditional-compilation branches can split a surrounding call/body; a partial enclosing construct is not a lookup. Complete nested getter calls are still scanned independently. (GPT-6.1-Sol) -->
+                # <!-- custom: Inherited C++ conditional-compilation branches can split a surrounding call/body; a partial enclosing construct is not a lookup.
+                # Complete nested getter calls are still scanned independently. (GPT-6.1-Sol) -->
                 continue
             yield index, tokens[index][0], args, end
 
@@ -160,7 +162,8 @@ def resolve(expression, bindings, text, seen=frozenset()):
 
 
 def bbai_registry_names(tokens):
-    # <!-- custom: Searching raw source accepted a commented-out consumer as runtime usage. Match comment-free tokens with string literals masked so neither comments nor diagnostic text can activate an inert registry. (GPT-6.1-Sol) -->
+    # <!-- custom: Searching raw source accepted a commented-out consumer as runtime usage.
+    # Match comment-free tokens with string literals masked so neither comments nor diagnostic text can activate an inert registry. (GPT-6.1-Sol) -->
     code = " ".join(t[0] if not t[3] else '""' for t in tokens)
     if not BBAI_REGISTRY_CONSUMER_RE.search(code):
         return set()

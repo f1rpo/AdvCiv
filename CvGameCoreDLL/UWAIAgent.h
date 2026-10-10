@@ -101,7 +101,8 @@ private:
 	bool reviewWarPlans(std::set<TeamTypes>& aeChangedTargets);
 	/*	Review plan vs. eTarget. Returns true if plan continues unchanged,
 		false if any change (abandoned, peace made, target changed). */
-	// <!-- custom: Added bNaval so reviewing an existing preparation uses the same land/naval victory-denial direct-war gate as its initial target evaluation. Added the emergency-peace measurements, preferred target and cached reluctance so multi-war danger is computed once and first seeks feasible peace in the least valuable war instead of forcing peace against every opponent. (GPT-5.6-Sol) -->
+	// <!-- custom: Added bNaval so reviewing an existing preparation uses the same land/naval victory-denial direct-war gate as its initial target evaluation.
+	// Added the emergency-peace measurements, preferred target and cached reluctance so multi-war danger is computed once and first seeks feasible peace in the least valuable war instead of forcing peace against every opponent. (GPT-5.6-Sol) -->
 	bool reviewPlan(TeamTypes eTarget, int iU, int iPrepTurns, bool bNaval, int iMajorWars, int iEnemyPowerPercent, int iAdjustedEnemyPowerPercent, TeamTypes ePreferredEmergencyPeaceTarget, int iPreferredEmergencyPeaceReluctance);
 	// All these return true if the war plan remains unchanged, false otherwise.
 	bool considerPeace(TeamTypes eTarget, int iU, int iMajorWars, int iEnemyPowerPercent, int iAdjustedEnemyPowerPercent, TeamTypes ePreferredEmergencyPeaceTarget, int iPreferredEmergencyPeaceReluctance); // <!-- custom: See reviewPlan: only the preferred feasible current war receives the emergency override. (GPT-5.6-Sol) -->

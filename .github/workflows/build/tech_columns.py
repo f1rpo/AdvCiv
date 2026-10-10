@@ -5,11 +5,9 @@
 # Build check: techs in the same tech-tree column should use the same core
 # column values.
 #
-# <!-- custom: This checks parallel tech timing by iGridX, not iGridY. iGridY is
-# only the vertical row/layout position; iGridX is the tech-tree column/progress
-# position. Different rows in the same column should normally share values such
-# as iCost and iAsset so that parallel same-timing techs do not get inconsistent
-# research cost, asset/trade valuation, or AI valuation pressure. (ChatGPT-5.5) -->
+# <!-- custom: This checks parallel tech timing by iGridX, not iGridY.
+# iGridY is only the vertical row/layout position; iGridX is the tech-tree column/progress position.
+# Different rows in the same column should normally share values such as iCost and iAsset so that parallel same-timing techs do not get inconsistent research cost, asset/trade valuation, or AI valuation pressure. (ChatGPT-5.5) -->
 
 from pathlib import Path
 import argparse

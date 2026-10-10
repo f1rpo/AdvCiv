@@ -77,13 +77,8 @@ def populationFeat(iPlayer, eFeat, szText):
 
 def unitBuiltFeats(pCity, pUnit):
 
-	# <!-- custom: implementing our new unit combat types, for example archery units:
-	# archers bow short, archers bow long, archers crossbow
-	# i am not sure exactly what this code does except play a sound or maybe other things?
-	# Nor do i know why it does to some unit combat types and not others, but for now for
-	# simplicity and such i am just going to change the combat type here too and add the
-	# new ones i create if i feel the need or think it would be (a) good (idea) to do
-	# so. -->
+	# <!-- custom: implementing our new unit combat types, for example archery units: archers bow short, archers bow long, archers crossbow i am not sure exactly what this code does except play a sound or maybe other things?
+	# Nor do i know why it does to some unit combat types and not others, but for now for simplicity and such i am just going to change the combat type here too and add the new ones i create if i feel the need or think it would be (a) good (idea) to do so. -->
 	if (not gc.getPlayer(pCity.getOwner()).isFeatAccomplished(FeatTypes.FEAT_UNITCOMBAT_ARCHER_BOW_SHORT)):
 
 		if (pUnit.getUnitCombatType() == getInfoTypeOrFail("UNITCOMBAT_ARCHER_BOW_SHORT")):

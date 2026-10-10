@@ -62,7 +62,8 @@ def showErrorAlert(title, body):
 	popup.setBodyString(body)
 	popup.launch()
 
-# <!-- custom: on Windows, the BUG Menu's help does not open for some reason ingame whe clicking on the "Bug Mod Help" button in the Bug Menu. Fixed by adding this with the help of chatgpt 5.2 thanks.
+# <!-- custom: on Windows, the BUG Menu's help does not open for some reason ingame whe clicking on the "Bug Mod Help" button in the Bug Menu.
+# Fixed by adding this with the help of chatgpt 5.2 thanks.
 # Note: based on testing, it looks like cwd's path is: C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\, considering the error message we got with a faulty path if we don't add the rest of the path to our mod, and considering adding such a remaining path fixes the issue ingame and successfully allows to display the BUG Menu's help. -->
 def _SAS_findBugDocFile(name):
 	# Returns (fullpath_or_None, debug_string)

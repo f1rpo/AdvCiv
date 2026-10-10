@@ -20,7 +20,8 @@
 			<ProductionTraits/>
 			<Button>Art/Interface/Buttons/Buildings/BombShelters.dds</Button>
 		</SpecialBuildingInfo>
-		<!-- custom: temple prerequirement moved/changed to polytheism (requires masonry to add or not?) so they can be built earlier -->
+		<!-- custom: temple prerequirement moved/changed to polytheism (requires masonry to add or not?)
+		so they can be built earlier -->
 		<!-- custom: same as for the generic cathedral and monastery, use building atlas button instead (still same button, coordinates changed as is another .dds now) -->
 		<SpecialBuildingInfo>
 			<Type>SPECIALBUILDING_TEMPLE</Type>

@@ -11,7 +11,8 @@
 unsigned short CvRandom::getInt(unsigned short usNum, TCHAR const* szLog, int iData1, int iData2) // advc.001n
 {	// <advc.003t>
 	if (GC.getLogger().isEnabledRand() && szLog != NULL) printToLog(szLog, usNum, iData1, iData2); // </advc.003t>
-	// <!-- custom: Count/fingerprint the real RNG consumption before advancing the seed. Unlike RandLog, this deliberately includes NULL-message calls such as shuffles.
+	// <!-- custom: Count/fingerprint the real RNG consumption before advancing the seed.
+	// Unlike RandLog, this deliberately includes NULL-message calls such as shuffles.
 	// The caller-side boolean keeps levels 0-2 and pre-session/main-menu randomness at a single cheap branch; the helper itself ignores async and local CvRandom objects by identity. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (g_bSASGameRecordRngTrackingActive) noteSASGameRecordRandomCall(this, usNum, szLog, iData1, iData2);
 	m_uiRandomSeed = (RANDOM_A * m_uiRandomSeed) + RANDOM_C;
@@ -41,7 +42,8 @@ void CvRandom::init(unsigned long ulSeed)
 // Initializes data members that are serialized
 void CvRandom::reset(unsigned int uiSeed)
 {
-	// <!-- custom: Level-3 RNG reproducibility must observe explicit mid-session seed replacement too (e.g. benchmark Python calls CyRandom.init). Constructor/new-game/load resets occur while tracking is inactive or before authoritative identities are registered.
+	// <!-- custom: Level-3 RNG reproducibility must observe explicit mid-session seed replacement too (e.g. benchmark Python calls CyRandom.init).
+	// Constructor/new-game/load resets occur while tracking is inactive or before authoritative identities are registered.
 	// Assign gameplay state first, then report the already-known old/new values: diagnostics should never run while the RNG object is half-mutated, and any future logging-side RNG would then correctly occur after the SEED_SET operation. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	unsigned int const uiOldSeed = m_uiRandomSeed;
 	m_uiRandomSeed = uiSeed;
@@ -53,7 +55,8 @@ void CvRandom::reset(unsigned int uiSeed)
 unsigned short CvRandom::getExternal(unsigned short usNum, TCHAR const* szLog)
 {
 	GC.getInitCore().externalRNGCall(usNum, this);
-	// <!-- custom: Preserve how many authoritative RNG advances originated through the EXE-facing wrapper. The following get() performs/counts the actual advance; this marker only classifies that next call.
+	// <!-- custom: Preserve how many authoritative RNG advances originated through the EXE-facing wrapper.
+	// The following get() performs/counts the actual advance; this marker only classifies that next call.
 	// Range 0 is rejected by the public int wrapper without advancing the RNG, so do not leave a stale EXE-origin marker for a later real call. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (g_bSASGameRecordRngTrackingActive && usNum > 0) noteSASGameRecordExternalRandomCall(this);
 	return get(usNum, szLog);
@@ -62,7 +65,8 @@ unsigned short CvRandom::getExternal(unsigned short usNum, TCHAR const* szLog)
 
 void CvRandom::reseed(unsigned int uiNewValue)
 {
-	// <!-- custom: Keep explicit reseeds in the same level-3 authoritative stream provenance as ordinary reset/init seed assignments. Assign first for the same observer-safety/order reason as reset(). (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Keep explicit reseeds in the same level-3 authoritative stream provenance as ordinary reset/init seed assignments.
+	// Assign first for the same observer-safety/order reason as reset(). (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	unsigned int const uiOldSeed = m_uiRandomSeed;
 	m_uiRandomSeed = uiNewValue;
 	if (g_bSASGameRecordRngTrackingActive) noteSASGameRecordRandomSeedSet(this, uiOldSeed, uiNewValue, true);

@@ -4034,7 +4034,8 @@
 				<AudioRunTypeEnd/>
 			</AudioRunSounds>
 		</UnitArtInfo>
-		<!-- custom: rename ART_DEF_UNIT_ARCHER_CHINESE to ART_DEF_UNIT_LONGBOWMAN_ASIAN (because it is a longbowman visually, and since there is no asian longbowman art def it seems assigning it to it rather). See KI#19. Note: as of now still unused. See KI#19. -->
+		<!-- custom: rename ART_DEF_UNIT_ARCHER_CHINESE to ART_DEF_UNIT_LONGBOWMAN_ASIAN (because it is a longbowman visually, and since there is no asian longbowman art def it seems assigning it to it rather). See KI#19.
+		Note: as of now still unused. See KI#19. -->
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_LONGBOWMAN_ASIAN</Type>
 			<Button>,Art/Interface/Buttons/Units/Archer.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,4,1</Button>
@@ -4059,7 +4060,8 @@
 				<AudioRunTypeEnd/>
 			</AudioRunSounds>
 		</UnitArtInfo>
-		<!-- custom: visually it looks like a chinese spearman, and since there is an asian variant already, it keeps this name. See also KI#19. Note: as of now still unused. See also KI#19. -->
+		<!-- custom: visually it looks like a chinese spearman, and since there is an asian variant already, it keeps this name. See also KI#19.
+		Note: as of now still unused. See also KI#19. -->
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_SPEARMAN_CHINESE</Type>
 			<Button>,Art/Interface/Buttons/Units/Spearman.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,4,6</Button>
@@ -4208,7 +4210,9 @@
 			<SelectionSound>AS3D_UN_OCEAN_END1</SelectionSound>
 			<ActionSound>AS3D_UN_OCEAN_END1</ActionSound>
 		</UnitArtInfo>
-		<!-- custom: has the same mongolish outfit as Spearman_Eurasian/Spearman_Eurasian.nif, but visually looks more south-east asian e.g. khmer or whatnot. Since we now use a more clearly named asian variant this one as of now keeps the EURASIAN old name. Note: as of now unused. See also KI#19. -->
+		<!-- custom: has the same mongolish outfit as Spearman_Eurasian/Spearman_Eurasian.nif, but visually looks more south-east asian e.g. khmer or whatnot.
+		Since we now use a more clearly named asian variant this one as of now keeps the EURASIAN old name.
+		Note: as of now unused. See also KI#19. -->
 		<UnitArtInfo>
 			<Type>ART_DEF_UNIT_ARCHER_EURASIAN</Type>
 			<Button>,Art/Interface/Buttons/Units/Archer.dds,Art/Interface/Buttons/Unit_Resource_Atlas.dds,4,1</Button>

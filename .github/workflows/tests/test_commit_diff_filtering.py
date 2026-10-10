@@ -9,7 +9,8 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "LLM_Helpers"))
-# <!-- custom: Workflow tests must add the repo-local helper directory before importing this script and its sibling refresh helper. The late import is required, so suppress only this E402 finding. (GPT-6.1-Sol) -->
+# <!-- custom: Workflow tests must add the repo-local helper directory before importing this script and its sibling refresh helper.
+# The late import is required, so suppress only this E402 finding. (GPT-6.1-Sol) -->
 import make_light_source_zip as light  # noqa: E402
 
 

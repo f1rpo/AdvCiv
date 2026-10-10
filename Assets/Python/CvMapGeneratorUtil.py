@@ -186,7 +186,8 @@ class FractalWorld:
 
 	def findBestSplitY(self, stripRadius):
 		stripSize = 2*stripRadius
-		# <!-- custom: This Y seam kernel allocates, scores and wraps over map height, but the inherited width guard let oversized strips wrap and double-count short maps. Compare with height like the symmetric X routine compares with width. See KI#284. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: This Y seam kernel allocates, scores and wraps over map height, but the inherited width guard let oversized strips wrap and double-count short maps.
+		# Compare with height like the symmetric X routine compares with width. See KI#284. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if stripSize > self.iNumPlotsY:
 			return 0
 
@@ -1018,7 +1019,9 @@ class MultilayeredFractal:
 		#
 		# Here is an example of obtaining grain sizes to fit with map sizes.
 		sizekey = self.map.getWorldSize()
-		# <!-- custom: Use DLL WorldSizeTypes values aligned with CIV4WorldInfo.xml order. This base method is mostly a template overridden by maps, but keep it correct for copied code. Grain only, not dimensions. (Claude code Opus 4.7; GPT-5.5. ChatGPT-5.5) -->
+		# <!-- custom: Use DLL WorldSizeTypes values aligned with CIV4WorldInfo.xml order.
+		# This base method is mostly a template overridden by maps, but keep it correct for copied code.
+		# Grain only, not dimensions. (Claude code Opus 4.7; GPT-5.5. ChatGPT-5.5) -->
 		sizevalues = {
 			WorldSizeTypes.WORLDSIZE_ARENA: (3,2,1,2),
 			WorldSizeTypes.WORLDSIZE_DUEL: (3,2,1,2),
@@ -1031,7 +1034,8 @@ class MultilayeredFractal:
 		# You can add as many grain entries as you like.
 		# Seed them all from the matrix using the following type of line:
 
-		# <!-- custom: Fallback for unknown world sizes in CvMapGeneratorUtil.py to avoid KeyError: base map scripts might still need XXL-aware getGridSize handling; the fallback only helps scripts that rely on CvMapGeneratorUtil. If you want, I can bring in the XXL map scripts from the add-on folder and wire them up. (GPT-5.2-Codex). -->
+		# <!-- custom: Fallback for unknown world sizes in CvMapGeneratorUtil.py to avoid KeyError: base map scripts might still need XXL-aware getGridSize handling; the fallback only helps scripts that rely on CvMapGeneratorUtil.
+		# If you want, I can bring in the XXL map scripts from the add-on folder and wire them up. (GPT-5.2-Codex). -->
 		values = None
 		for key in sizevalues.keys():
 			if int(key) == int(sizekey):
@@ -1173,7 +1177,8 @@ class TerrainGenerator:
 			fracYExp = self.gc.getDefineINT("SAS_MAP_FRACTAL_DEFAULT_Y_EXP")
 		if grain_amount is None:
 			grain_amount = self.gc.getDefineINT("SAS_MAP_STANDARD_TERRAIN_GRAIN")
-		# <!-- custom: Preserve explicit map-script terrain percentages and latitude thresholds; use the centralized defaults only when the caller omits them. Divide integer percentages by 100.0 for Python 2.4 floating-point division. (GPT-5.6-Sol) -->
+		# <!-- custom: Preserve explicit map-script terrain percentages and latitude thresholds; use the centralized defaults only when the caller omits them.
+		# Divide integer percentages by 100.0 for Python 2.4 floating-point division. (GPT-5.6-Sol) -->
 		if iDesertPercent is None:
 			iDesertPercent = self.gc.getDefineINT("SAS_MAP_STANDARD_DESERT_PERCENT")
 		if iPlainsPercent is None:
@@ -1388,7 +1393,8 @@ class TerrainGenerator:
 	def processCustomizations(self):
 		self.bEarthlike = False
 		global bEarthlike
-		# <!-- custom: Map-script subclasses may replace __init__ without setting self.gc. Reading this once-per-generation define locally preserves that inherited compatibility contract. See KI#284.2. (GPT-5.6-Sol) -->
+		# <!-- custom: Map-script subclasses may replace __init__ without setting self.gc.
+		# Reading this once-per-generation define locally preserves that inherited compatibility contract. See KI#284.2. (GPT-5.6-Sol) -->
 		if not bEarthlike or CyGlobalContext().getDefineINT("SAS_MAP_ADVCIV_STANDARD_TERRAIN_ENABLE") <= 0:
 			return
 		self.bEarthlike = True
@@ -1465,8 +1471,10 @@ class FeatureGenerator:
 	def addFeatures(self):
 		# adds features to all plots as appropriate
 		#
-		# <!-- custom: AdvCiv randomizes standard feature traversal so bNoAdjacent features such as Oasis have no fixed scan-direction bias. Keep BTS coordinate-order traversal available independently. (GPT-5.6-Sol) -->
-		# <!-- custom: Map-script subclasses may replace __init__ without setting self.gc. Reading this once-per-generation define locally preserves that inherited compatibility contract. See KI#284.2. (GPT-5.6-Sol) -->
+		# <!-- custom: AdvCiv randomizes standard feature traversal so bNoAdjacent features such as Oasis have no fixed scan-direction bias.
+		# Keep BTS coordinate-order traversal available independently. (GPT-5.6-Sol) -->
+		# <!-- custom: Map-script subclasses may replace __init__ without setting self.gc.
+		# Reading this once-per-generation define locally preserves that inherited compatibility contract. See KI#284.2. (GPT-5.6-Sol) -->
 		if CyGlobalContext().getDefineINT("SAS_MAP_ADVCIV_FEATURE_PLACEMENT_ORDER_ENABLE") <= 0:
 			for iX in range(self.iGridW):
 				for iY in range(self.iGridH):

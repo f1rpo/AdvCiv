@@ -208,7 +208,8 @@ def beforeGeneration():
                          17: [13, 30, 50, 70],
                          18: [10, 25, 45, 65]
 		}
-		# <!-- custom: The stock weighting table ends at the original 18-civilization DLL limit, so SAS 19-48-player games raised KeyError and could fall through to an all-land map. Reuse the nearest defined profile outside 2..18, preserving the established table, RNG and six-continent limit. See KI#264. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: The stock weighting table ends at the original 18-civilization DLL limit, so SAS 19-48-player games raised KeyError and could fall through to an all-land map.
+		# Reuse the nearest defined profile outside 2..18, preserving the established table, RNG and six-continent limit. See KI#264. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		continentWeights = byPlayerIndex[max(2, min(iPlayers, 18))]
 		if numContsRoll < continentWeights[0]:
 			iNumConts = 2
@@ -786,7 +787,8 @@ def beforeGeneration():
                              [0.45, 0.55, 0.63, 0.84, 0, 0, False, False, 60, 1, 1, 5, 5, 3]],
                          4: [2,
                              [0.65, 0.98, 0.06, 0.62, -0.63, 0, False, False, 55, 23, 3, 6, 6, 5],
-                             # <!-- custom: Stock template (6,3) shifted this inner layer vertically while its outer layer and mirrored pair shift horizontally, separating the nested pair in three of four binary-shift states. Match the outer layer's horizontal -0.63 shift. See KI#266. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+                             # <!-- custom: Stock template (6,3) shifted this inner layer vertically while its outer layer and mirrored pair shift horizontally, separating the nested pair in three of four binary-shift states.
+                             # Match the outer layer's horizontal -0.63 shift. See KI#266. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
                              [0.73, 0.9, 0.2, 0.5, -0.63, 0, False, False, 60, 1, 1, 5, 5, 3]],
                          5: [2,
                              [0.65, 0.98, 0.66, 0.94, -0.63, 0, False, False, 55, 23, 3, 6, 6, 5],
@@ -854,7 +856,8 @@ class CCMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 				tinyWestLon = 0.01 * self.dice.get(85, "Tiny Longitude - Custom Continents PYTHON")
 				tinyWestX = int(self.iW * tinyWestLon)
 				tinySouthLat = 0.01 * self.dice.get(85, "Tiny Latitude - Custom Continents PYTHON")
-				# <!-- custom: The stock script rolled an independent latitude but derived Y from longitude, diagonally correlating supposedly random tiny-island patches. Use the latitude roll while preserving RNG order. See KI#262. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				# <!-- custom: The stock script rolled an independent latitude but derived Y from longitude, diagonally correlating supposedly random tiny-island patches.
+				# Use the latitude roll while preserving RNG order. See KI#262. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 				tinySouthY = int(self.iH * tinySouthLat)
 				tinyWidth = int(self.iW * 0.15)
 				tinyHeight = int(self.iH * 0.15)
@@ -1003,7 +1006,8 @@ def assignStartingPlots():
 
 	team_num = []
 	team_index = 0
-	# <!-- custom: The stock script indexed only team IDs 0..17. SAS supports civ teams through the DLL maximum, so a sparse/high team ID lost One-Per-Team starting-continent assignment even when the supported team count remained <=6. See KI#265. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: The stock script indexed only team IDs 0..17.
+	# SAS supports civ teams through the DLL maximum, so a sparse/high team ID lost One-Per-Team starting-continent assignment even when the supported team count remained <=6. See KI#265. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	for teamCheckLoop in range(gc.getMAX_CIV_TEAMS()):
 		if gc.getTeam(teamCheckLoop).isEverAlive():
 			team_num.append(team_index)

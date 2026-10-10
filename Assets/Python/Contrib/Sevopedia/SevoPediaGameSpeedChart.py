@@ -500,8 +500,7 @@ class SevoPediaGameSpeedChart:
 
 	def _format_date_label(self, iYear, iMonth):
 		# Date label: <year>[m2..m12]
-		# <!-- custom: hide m1 so January matches in-game year display, but keep m2..m12
-		# visible to diagnose calendar drift. (GPT-5.3-Codex) -->
+		# <!-- custom: hide m1 so January matches in-game year display, but keep m2..m12 visible to diagnose calendar drift. (GPT-5.3-Codex) -->
 		sz = self._format_year_label(iYear)
 		if iMonth == 1:
 			return sz
@@ -635,8 +634,7 @@ class SevoPediaGameSpeedChart:
 		return (iYear, iMonth, iCurrentMonthInc)
 
 	def _format_summary_cell(self, iTurn, iYear, iMonth, iMonthInc):
-		# <!-- custom: use signed year (+/-) plus active month increment to make checkpoint
-		# tuning easier across speeds while keeping cells compact. (GPT-5.3-Codex) -->
+		# <!-- custom: use signed year (+/-) plus active month increment to make checkpoint tuning easier across speeds while keeping cells compact. (GPT-5.3-Codex) -->
 		return "T%d=%s (%d)" % (iTurn, self._format_date_label_signed(iYear, iMonth), iMonthInc)
 
 	def _format_date_label_signed(self, iYear, iMonth):

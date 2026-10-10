@@ -886,7 +886,8 @@ protected:
 	int AI_baseBonusRouteVal(BonusTypes eBonus, RouteTypes eRoute, RouteTypes eBestRoute, TechTypes eBuildTech, bool bTrade) const;
 	// </advc>
 	void AI_setHuman(bool b); // advc.127
-	// <!-- custom: Removed inherited advc.031c logFoundValue(): its later diagnostic replay could differ from the original computation. Found traces now accompany actual evaluations, and founding logs the cached score without reconstructing it.
+	// <!-- custom: Removed inherited advc.031c logFoundValue(): its later diagnostic replay could differ from the original computation.
+	// Found traces now accompany actual evaluations, and founding logs the cached score without reconstructing it.
 	// Runtime first-city traces retain starting-capital weights and founder-known information; map-generation starting-plot traces retain their separate all-seeing view. See KI#505.2. (GPT-5.6-Sol + GPT-6.1-Sol) -->
 
 	friend class CvGameTextMgr;

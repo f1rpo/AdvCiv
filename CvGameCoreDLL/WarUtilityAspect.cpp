@@ -74,7 +74,8 @@ int WarUtilityAspect::evaluate(MilitaryAnalyst const& kMilitaryAnalyst)
 	this->m_pMilitaryAnalyst = &kMilitaryAnalyst;
 	m_pAgentPlayer = &(GET_PLAYER(kMilitaryAnalyst.getAgentPlayer()));
 	m_pAgentCache = &m_pAgentPlayer->uwai().getCache();
-	// <!-- custom: Aspect objects persist across all alive agent-team members. Preserve the prior members' weighted total so the XML weight applies once only to this member's raw delta. See KI#424. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Aspect objects persist across all alive agent-team members.
+	// Preserve the prior members' weighted total so the XML weight applies once only to this member's raw delta. See KI#424. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	int const iPriorUtility = m_iU;
 
 	int iOverallUtility = preEvaluate();
@@ -389,7 +390,8 @@ scaled WarUtilityAspect::lossesFromFlippedTiles(PlayerTypes eVictim, PlayerTypes
 		if (militAnalyst().isWar(aeTo[i], TEAMID(eVictim)))
 			iVictimLostTiles += kVictimCache.numPlotsLostAtWar(aeTo[i]);
 	}
-	// <!-- custom: Use the explicit victim's team when this helper evaluates a teammate or vassal instead of the aspect rival. The lost-tile cache is team-owned, so compare its significance with one team threshold, normalize it by team land and apportion the result across living member callbacks.
+	// <!-- custom: Use the explicit victim's team when this helper evaluates a teammate or vassal instead of the aspect rival.
+	// The lost-tile cache is team-owned, so compare its significance with one team threshold, normalize it by team land and apportion the result across living member callbacks.
 	// Player land and assigned-member count made the same physical loss depend on roster partition. See KI#432 and KI#465. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	TeamTypes const eVictimTeam = TEAMID(eVictim);
 	if (std::abs(iVictimLostTiles) <= 4)
@@ -588,7 +590,8 @@ scaled WarUtilityAspect::partnerUtilFromTrade() const
 		{
 			iResourceTrades++;
 			int const iMaxResourceTrades = 4;
-			// <!-- custom: AdvCiv documented a four-resource cap but its post-increment >= check discarded the fourth trade too. Skip only trades beyond the cap. See KI#427. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			// <!-- custom: AdvCiv documented a four-resource cap but its post-increment >= check discarded the fourth trade too.
+			// Skip only trades beyond the cap. See KI#427. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			if (iResourceTrades > iMaxResourceTrades)
 			{
 				if (bLogWarUtilityDetail) logBBAI("UWAI_WAR_UTILITY_PARTNER_TRADE_RESOURCE_CAP turn=%d agentPlayer=%d rivalPlayer=%d maxResourceTrades=%d",
@@ -1493,13 +1496,15 @@ scaled MilitaryVictory::progressRatingDomination() const
 	if (rCitiesGained == 0)
 		return 0;
 	bool const bLogWarUtilityDetail = (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted());
-	// <!-- custom: The inherited report labeled rPopGained as population-to-go. Record the actual threshold remainder and gained values explicitly in one structured row. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: The inherited report labeled rPopGained as population-to-go.
+	// Record the actual threshold remainder and gained values explicitly in one structured row. (ChatGPT-5.6-Sol) -->
 	if (bLogWarUtilityDetail) logBBAI("UWAI_WAR_UTILITY_MILITARY_VICTORY_DOMINATION_INPUTS turn=%d agentPlayer=%d rivalPlayer=%d populationToGo=%d citiesToGo=%d populationGained=%d citiesGained=%d",
 			GC.getGame().getGameTurn(), eWe, eThey, iPopToGo, rCitiesToGo.round(), rPopGained.uround(), rCitiesGained.uround());
 	FAssert(rPopGained > 0);
 	// No use in population beyond the victory threshold
 	rPopGained.decreaseTo(iPopToGo);
-	// <!-- custom: The to-go values can be non-positive. For rCitiesToGo, relatively sparse city borders make it unclear whether the land threshold is truly complete; for iPopToGo, CvGame accepts exact equality with the population threshold.
+	// <!-- custom: The to-go values can be non-positive.
+	// For rCitiesToGo, relatively sparse city borders make it unclear whether the land threshold is truly complete; for iPopToGo, CvGame accepts exact equality with the population threshold.
 	// Route equality through the completed-population branch instead of dividing by zero. See KI#428. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (iPopToGo <= 0)
 	{
@@ -1616,7 +1621,8 @@ scaled MilitaryVictory::progressRatingDiplomacy() const
 		PlayerTypes const eCityOwner = kCacheCity.city().getOwner();
 		// Weight for old owner
 		CvPlayerAI const& kCityOwner = GET_PLAYER(eCityOwner);
-		// <!-- custom: This block weights the conquered city's old owner, but AdvCiv tested the conqueror's AP membership. Use the old player's membership and attitude consistently.
+		// <!-- custom: This block weights the conquered city's old owner, but AdvCiv tested the conqueror's AP membership.
+		// Use the old player's membership and attitude consistently.
 		// GET_TEAM(eCityOwner) is intentionally valid through the PlayerTypes overload; see rejected KI#311/KI#387 and retracted provisional KI#436. See KI#434. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if (!GET_TEAM(eCityOwner).isHuman())
 		{
@@ -1954,7 +1960,8 @@ void HiredHand::evaluate()
 		return;
 	}
 	scaled rUtility;
-	// <!-- custom: Sponsorship and the scenario-long war role are stored for the target team, but this aspect runs once per rival player. Charge those shared obligations only through the target team's leader; keep the separate player-memory hireling branch below player-specific. See KI#451. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Sponsorship and the scenario-long war role are stored for the target team, but this aspect runs once per rival player.
+	// Charge those shared obligations only through the target team's leader; keep the separate player-memory hireling branch below player-specific. See KI#451. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	bool const bCanonicalTargetMember = (eThey == kTheirTeam.getLeaderID());
 	if (bCanonicalTargetMember)
 	{
@@ -2106,7 +2113,8 @@ void BorderDisputes::evaluate()
 		int const iOurPlotCulturePercent = kCity.getPlot().calculateCulturePercent(eWe);
 		scaled rNewOwnerMultiplier = 0;
 		// <!-- custom: Keep the actual conqueror outside the search loop so the consolidated city result can report who receives it. (ChatGPT-5.6-Sol) -->
-		// <!-- custom: The initial logging refactor assigned each candidate to eConquerer before checking its conquests; if no player matched, the result falsely named the last player searched as the conqueror. Assign only after a match so unmatched cities retain NO_PLAYER. (GPT-6.1-Sol) -->
+		// <!-- custom: The initial logging refactor assigned each candidate to eConquerer before checking its conquests; if no player matched, the result falsely named the last player searched as the conqueror.
+		// Assign only after a match so unmatched cities retain NO_PLAYER. (GPT-6.1-Sol) -->
 		PlayerTypes eConquerer = NO_PLAYER;
 		for (PlayerIter<MAJOR_CIV> itConqueror; itConqueror.hasNext(); ++itConqueror)
 		{
@@ -2315,7 +2323,8 @@ void PreEmptiveWar::evaluate()
 		whereas conquests by us or our vassals are assumed to be too recent to
 		contribute. However, cities of new vassals don't need time to become
 		productive. */
-	// <!-- custom: AdvCiv started from the whole team's city count but subtracted only the current member's predicted losses. Aggregate losses for every alive teammate so the predicted side matches the team-wide baseline. See KI#430. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: AdvCiv started from the whole team's city count but subtracted only the current member's predicted losses.
+	// Aggregate losses for every alive teammate so the predicted side matches the team-wide baseline. See KI#430. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	scaled rOurPredictedCities = kOurTeam.getNumCities();
 	for (PlayerIter<ALIVE,MEMBER_OF> itOurMember(eOurTeam); itOurMember.hasNext(); ++itOurMember)
 		rOurPredictedCities -= (int)militAnalyst().lostCities(itOurMember->getID()).size();
@@ -2371,7 +2380,8 @@ int KingMaking::preEvaluate()
 	PROFILE_FUNC();
 	m_winningFuture.clear();
 	m_winningPresent.clear();
-	// <!-- custom: Scoreboard ranks are unreliable off the bat, but waiting to leave the starting era never ends for a terminal-era start. Keep the era-advance shortcut and bound the grace period to 25 normalized turns, matching DramaticArc's startup clock. See KI#444. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Scoreboard ranks are unreliable off the bat, but waiting to leave the starting era never ends for a terminal-era start.
+	// Keep the era-advance shortcut and bound the grace period to 25 normalized turns, matching DramaticArc's startup clock. See KI#444. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	scaled const rStartupSpeed = 2 / per100(m_kGame.getSpeedPercent() + m_kSpeed.getTrainPercent());
 	if (m_eGameEra <= m_kGame.getStartEra() && m_kGame.getElapsedGameTurns() * rStartupSpeed < 25)
 		return 0;
@@ -2538,7 +2548,8 @@ bool KingMaking::anyVictory(PlayerTypes ePlayer, AIVictoryStage eFlags, int iSta
 		CvCity const& kCity = *kMap.getPlotByIndex(*it).getPlotCity();
 		iLostPop -= kCity.getPopulation();
 	}
-	// <!-- custom: Domination progress and its population threshold belong to the whole team. Aggregate projected losses and gains from every member instead of comparing one player's population with the team victory target. See KI#433. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Domination progress and its population threshold belong to the whole team.
+	// Aggregate projected losses and gains from every member instead of comparing one player's population with the team victory target. See KI#433. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	int iTeamLostPop = 0;
 	if (bDomValid)
 	{
@@ -2579,7 +2590,8 @@ bool KingMaking::anyVictory(PlayerTypes ePlayer, AIVictoryStage eFlags, int iSta
 }
 
 
-// <!-- custom: Build the Score/Time contender quantity from every team member's current or predicted score, preserving player-local commerce and overseas-peaceful-victory adjustments before summing. Add a predicted capitulation's team-shared score only once.
+// <!-- custom: Build the Score/Time contender quantity from every team member's current or predicted score, preserving player-local commerce and overseas-peaceful-victory adjustments before summing.
+// Add a predicted capitulation's team-shared score only once.
 // Centralizing the adjusted team calculation also keeps both Kingmaking leader passes consistent. See KI#429 and KI#433. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 scaled KingMaking::adjustedContenderScore(TeamTypes eTeam, bool bPredict) const
 {
@@ -2614,7 +2626,8 @@ scaled KingMaking::adjustedContenderScore(TeamTypes eTeam, bool bPredict) const
 }
 
 
-// <!-- custom: Rank Score/Time contenders by team score and insert each leading team once. AdvCiv ranked and stored individual members although the victory test uses CvGame::getTeamScore. See KI#433. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+// <!-- custom: Rank Score/Time contenders by team score and insert each leading team once.
+// AdvCiv ranked and stored individual members although the victory test uses CvGame::getTeamScore. See KI#433. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 void KingMaking::addLeadingTeams(TeamSet& kLeading, scaled rMargin, bool bPredict) const
 {
 	scaled rBestScore = 1;
@@ -2634,7 +2647,8 @@ void KingMaking::evaluate()
 		(usually: too early in the game) in which no utility should be counted. */
 	if (m_winningPresent.empty())
 		return;
-	// <!-- custom: The winner sets, Score/Time race, Domination forecast and coalition asset change are team-owned. Evaluate them through the rival team leader once instead of repeating the same Kingmaking state for every teammate. See KI#433. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: The winner sets, Score/Time race, Domination forecast and coalition asset change are team-owned.
+	// Evaluate them through the rival team leader once instead of repeating the same Kingmaking state for every teammate. See KI#433. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (eThey != kTheirTeam.getLeaderID())
 		return;
 	/*	If they're only in m_winningPresent, i.e. if we expect them to fall back,
@@ -2750,7 +2764,8 @@ void KingMaking::evaluate()
 	// <!-- custom: Preserve the post-clamp, pre-personality utility so the consolidated row exposes each stage of the inherited adjustment without recomputing it. (ChatGPT-5.6-Sol) -->
 	scaled const rClampedUtility = rUtility;
 	rUtility *= rAttitudeMult * rCompetitionMult;
-	// <!-- custom: The inherited < 0.5 check emitted a separate "negligibly small" explanation so earlier base-utility rows would not mislead readers. Preserve that exact test as negligible in the consolidated row alongside adjustedUtility and the applied utility; no separate prose row is needed. (GPT-6.1-Sol) -->
+	// <!-- custom: The inherited < 0.5 check emitted a separate "negligibly small" explanation so earlier base-utility rows would not mislead readers.
+	// Preserve that exact test as negligible in the consolidated row alongside adjustedUtility and the applied utility; no separate prose row is needed. (GPT-6.1-Sol) -->
 	int const iUtility = (rUtility + rCaughtUpPremium).round();
 	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_WAR_UTILITY_KINGMAKING_ASSET_SHIFT turn=%d agentPlayer=%d rivalPlayer=%d attitude=%d caughtUp=%d catchUpPremium=%d futureWinnerCount=%d winningRivals=%d theirLossPercent=%d weightPercent=%d baseUtility=%d clampedUtility=%d attitudePercent=%d competitionPercent=%d adjustedUtility=%d negligible=%d utility=%d",
 			GC.getGame().getGameTurn(), eWe, eThey, iAttitude, bCaughtUp,
@@ -2780,7 +2795,8 @@ scaled KingMaking::theirRelativeLoss() const
 		PlayerTypes const eTheirAlly = itTheirAlly->getID();
 		CvTeam const& kTheirAllyTeam = GET_TEAM(eTheirAlly);
 		bool const bNewVassal = (kCapitulationsAccepted.count(kTheirAllyTeam.getID()) > 0);
-		// <!-- custom: Measure every loop player's own assets and losses. Existing and predicted vassals both contribute at half weight; AdvCiv reused eThey and gave a future vassal full weight. See KI#432. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: Measure every loop player's own assets and losses.
+		// Existing and predicted vassals both contribute at half weight; AdvCiv reused eThey and gave a future vassal full weight. See KI#432. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		scaled const rVassalFactor = (kTheirAllyTeam.isAVassal() || bNewVassal ? fixp(0.5) : scaled(1));
 		if (kTheirAllyTeam.getMasterTeam() != eTheirTeam)
 		{
@@ -3042,7 +3058,8 @@ void Effort::evaluate() {}
 int Risk::preEvaluate()
 {
 	// <!-- custom: also handle risk of going to war too far away and leaving our cities defenseless and dying pathetically if i may say or stupidly shortly after, as is very problematic as of now in base advciv and advciv-sas as of now, see known issue as of now 61 for details, also code is provided thanks to chatgpt 5, check if accurate; result of this code change: we seem to live a bit longer but still attack the wrong target when a closer and weaker one was in reach, but since it seems harmless and we seem to live longer due to not attacking first target if not due to autoplay fluctuation, kept as such. -->
-	// <!-- custom: If a fixed, super-simple turns-to-contact cap is wanted, replace these calls with constants or XML defines. The cached city distances (`getDistanceByLand` for land and `getDistance` for mixed/cargo routes) are the team pathfinder's notion of turns and already factor roads, terrain and domain speed. See KI#591. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: If a fixed, super-simple turns-to-contact cap is wanted, replace these calls with constants or XML defines.
+	// The cached city distances (`getDistanceByLand` for land and `getDistance` for mixed/cargo routes) are the team pathfinder's notion of turns and already factor roads, terrain and domain speed. See KI#591. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	// --- SIMPLE HARD REJECT / RPE FILTER ---
 
 	// <!-- custom: we get very very good results with 2, now spain ai (our ai in autoplay) doesn't get baited by faraway ais and finishes off weak nearby one, as a result we don't get targeted by cyrus ai and keep our lead, now trying to extend the range a bit to see if still safe -->
@@ -3051,10 +3068,13 @@ int Risk::preEvaluate()
 	static int const iMaxSeaTurns = std::max(0, GC.getDefineINT("SAS_UWAI_WAR_TARGET_MAX_SEA_CONTACT_TURNS_UNSCALED_GAMESPEED"));
 	static int const iExistingPlanTolerance = std::max(0, GC.getDefineINT("SAS_UWAI_WAR_TARGET_EXISTING_PLAN_CONTACT_TOLERANCE_TURNS_UNSCALED_GAMESPEED"));
 
-	// <!-- custom: The older AdvCiv-SAS hard reject is only a pre-war target guard. Letting it fire in the recursive peace scenario made mediocre wars look artificially excellent (KI#183).
-	// Letting it fire during an ongoing war instead injected -100000 into peace reviews and forced stronger conquerors to stop after reaching a more distant remaining city. Evaluate distance and transport capacity only before war begins, which also avoids the cache scan in both excluded scenarios. (GPT-5.6-Sol) -->
+	// <!-- custom: The older AdvCiv-SAS hard reject is only a pre-war target guard.
+	// Letting it fire in the recursive peace scenario made mediocre wars look artificially excellent (KI#183).
+	// Letting it fire during an ongoing war instead injected -100000 into peace reviews and forced stronger conquerors to stop after reaching a more distant remaining city.
+	// Evaluate distance and transport capacity only before war begins, which also avoids the cache scan in both excluded scenarios. (GPT-5.6-Sol) -->
 	const TeamTypes eTarget = m_kParams.getTarget();
-	// <!-- custom: This is a team-level target-eligibility gate, not a per-member cost. Evaluate it once across every alive agent member so one remote teammate cannot veto another member's reachable front, and one collectively invalid target contributes only one hard reject. See KI#425. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: This is a team-level target-eligibility gate, not a per-member cost.
+	// Evaluate it once across every alive agent member so one remote teammate cannot veto another member's reachable front, and one collectively invalid target contributes only one hard reject. See KI#425. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (!m_bSASContactGateEvaluated)
 	{
 		m_bSASContactGateEvaluated = true;
@@ -3079,8 +3099,10 @@ int Risk::preEvaluate()
 					if (kCity.canReachByLand()) iMinLandContact = std::min(iMinLandContact, kCity.getDistanceByLand());
 				}
 			}
-			// <!-- custom: Save-file 450 logging showed the same land-reachable target passing this guard as a naval plan during selection, then receiving about -100000 utility under the land limit during its next review. Holy Rome consequently started 12 preparations and canceled 11 while up to 110 of 142 military units waited in one staging city.
-			// When any target city is reachable by land, apply the land distance consistently even if UWAI temporarily prefers a naval scenario. Use the wider sea limit and transport requirement only when reaching the target actually requires naval transport; this prevents a single transport or evaluator-mode change from repeatedly creating and destroying the same plan. (GPT-5.6-Sol) -->
+			// <!-- custom: Save-file 450 logging showed the same land-reachable target passing this guard as a naval plan during selection, then receiving about -100000 utility under the land limit during its next review.
+			// Holy Rome consequently started 12 preparations and canceled 11 while up to 110 of 142 military units waited in one staging city.
+			// When any target city is reachable by land, apply the land distance consistently even if UWAI temporarily prefers a naval scenario.
+			// Use the wider sea limit and transport requirement only when reaching the target actually requires naval transport; this prevents a single transport or evaluator-mode change from repeatedly creating and destroying the same plan. (GPT-5.6-Sol) -->
 			bool const bDistanceGateNaval = (bNaval && iMinLandContact == INT_MAX);
 			// <!-- custom: A naval qualification requires the same teammate to supply both the reachable route and cargo-building capability; unrelated members cannot combine disconnected local caches. See KI#425. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			int const iMinContact = (iMinLandContact != INT_MAX ? iMinLandContact : (bDistanceGateNaval ? iMinCargoContact : INT_MAX));
@@ -3092,7 +3114,8 @@ int Risk::preEvaluate()
 			bool const bOrdinaryHardReject = (iMinContact == INT_MAX || iMinContact > iMaxTurns || bNoLift);
 			// <!-- custom: Save-file 449 showed the ordinary 3-turn land-contact gate assigning about -100000 utility to Celts and Aztecs even though the victory-denial policy approved them as nearby, stronger emergency responders to India's launched spaceship.
 			// If the exact shared urgency, power, distance and land-access policy approves the target using this evaluator's cached path turns, bypass only the ordinary distance veto; unreachable targets and naval plans without transport remain rejected.
-			// Applying the wider distance at stage 3 caused four independent declarations at only 8/16 spaceship parts. Preserve close stage-3 direct wars, but require stage 4/countdown urgency for this new bypass unless the separate XML switch explicitly enables it. (GPT-5.6-Sol) -->
+			// Applying the wider distance at stage 3 caused four independent declarations at only 8/16 spaceship parts.
+			// Preserve close stage-3 direct wars, but require stage 4/countdown urgency for this new bypass unless the separate XML switch explicitly enables it. (GPT-5.6-Sol) -->
 			bool const bVictoryDenialContactCandidate = (bOrdinaryHardReject && iMinContact != INT_MAX && !bNoLift);
 			int const iTargetMaxVictoryStage = (bVictoryDenialContactCandidate ? getSASTeamMaxVictoryStage(eTarget) : -1);
 			int const iTargetVictoryCountdown = (bVictoryDenialContactCandidate ? GET_TEAM(eTarget).AI_getLowestVictoryCountdown() : -1);
@@ -3129,7 +3152,8 @@ int Risk::preEvaluate()
 		// OK to peek into our vassal's cache
 		UWAICache const& kVassalCache = kVassal.uwai().getCache();
 		scaled rRelativeVassalLoss = 1;
-		// <!-- custom: Moved the inherited lost-assets accumulator outside the surviving-vassal branch so the consolidated row can read it afterward. scaled defaults to zero; for eliminated vassals this sum is not calculated, while the inherited relative-loss value remains 100 percent. (GPT-6.1-Sol) -->
+		// <!-- custom: Moved the inherited lost-assets accumulator outside the surviving-vassal branch so the consolidated row can read it afterward.
+		// scaled defaults to zero; for eliminated vassals this sum is not calculated, while the inherited relative-loss value remains 100 percent. (GPT-6.1-Sol) -->
 		scaled rLostVassalAssets;
 		if (!militAnalyst().isEliminated(eVassal))
 		{
@@ -3902,7 +3926,9 @@ void Distraction::evaluate()
 	}
 	// <!-- custom: Base AdvCiv UWAI could abandon a decisively successful war because alternative-war opportunities outweighed the current war.
 	// In save file 452, Mali still had 7 cities vs Maya's 3, 891 vs 397 power and an 83-point war-success lead, while the current war remained profitable before Distraction; nevertheless, a new India preparation raised Distraction from -18 to -96 and caused immediate peace.
-	// The first prototype capped only the preparation-specific portion, reducing Distraction to -75, but Mali still accepted peace on the next turn. A 50-percent cap on the whole cost kept Mali at war long enough to capture another city, but its turn-161 review remained negative and only skipped peace by chance. When the current enemy is clearly weaker and losing, apply the stricter tunable cap relative to the cached positive value of the current war; effort, risk, war weariness and emergency multi-war peace remain unchanged. (GPT-5.6-Sol) -->
+	// The first prototype capped only the preparation-specific portion, reducing Distraction to -75, but Mali still accepted peace on the next turn.
+	// A 50-percent cap on the whole cost kept Mali at war long enough to capture another city, but its turn-161 review remained negative and only skipped peace by chance.
+	// When the current enemy is clearly weaker and losing, apply the stricter tunable cap relative to the cached positive value of the current war; effort, risk, war weariness and emergency multi-war peace remain unchanged. (GPT-5.6-Sol) -->
 	// <!-- custom: Retain the optional winning-war and almost-finished adjustments as named result components so the final row reports the exact path to the applied distraction cost. (ChatGPT-5.6-Sol) -->
 	int iTargetPowerPercent = -1;
 	scaled rWarSuccessLead;
@@ -3936,7 +3962,8 @@ void Distraction::evaluate()
 			break;
 		}
 	}
-	// <!-- custom: Moved the inherited almost-finished multiplier outside its branch for the final result row. Record the applied factor: 1 means unchanged cost, including cases where the candidate factor is >= 1 and the inherited code applies no reduction. (GPT-6.1-Sol) -->
+	// <!-- custom: Moved the inherited almost-finished multiplier outside its branch for the final result row.
+	// Record the applied factor: 1 means unchanged cost, including cases where the candidate factor is >= 1 and the inherited code applies no reduction. (GPT-6.1-Sol) -->
 	scaled rAlmostDoneMult = 1;
 	if (rDistractionCost > 0 && (bTheirTeamEliminated || militAnalyst().getCapitulationsAccepted(eOurTeam).count(eTheirTeam) > 0))
 	{
@@ -4060,7 +4087,8 @@ int Revolts::preEvaluate()
 				if (pCacheCity == NULL)
 					continue;
 				countedCities.insert(pCity->plotNum());
-				// <!-- custom: Per-city asset scores can be negative after maintenance, but possible revolt damage is a loss rather than a benefit. Use zero threatened value for such cities so they neither create positive war utility nor cancel another city's expected revolt losses. See KI#441. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				// <!-- custom: Per-city asset scores can be negative after maintenance, but possible revolt damage is a loss rather than a benefit.
+				// Use zero threatened value for such cities so they neither create positive war utility nor cancel another city's expected revolt losses. See KI#441. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 				int const iCityAssets = std::max(0, pCacheCity->getAssetScore());
 				iTotalAssets += iCityAssets;
 				scaled rRevoltProb = pCity->revoltProbability(false, false, true);
@@ -4157,7 +4185,8 @@ void UlteriorMotives::evaluate()
 		iMotivesCost /= 2;
 	if (iMotivesCost > 0)
 	{
-		// <!-- custom: Keep the refusal threshold and suspicion inputs in the same structured row as the exact motives cost they produce. AdvCiv's report omitted the refusal-threshold vararg, producing undefined output when reporting was enabled; preserve the corrected argument. See KI#431. (ChatGPT-5.6-Sol + GPT-5.6-Sol + GPT-6.1-Sol) -->
+		// <!-- custom: Keep the refusal threshold and suspicion inputs in the same structured row as the exact motives cost they produce.
+		// AdvCiv's report omitted the refusal-threshold vararg, producing undefined output when reporting was enabled; preserve the corrected argument. See KI#431. (ChatGPT-5.6-Sol + GPT-5.6-Sol + GPT-6.1-Sol) -->
 		if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_WAR_UTILITY_ULTERIOR_MOTIVES_SUSPICION turn=%d agentPlayer=%d sponsorPlayer=%d targetTeam=%d jointWar=%d hotWar=%d attitude=%d refusalThreshold=%d suspicionFactor=%d sponsorHuman=%d utility=%d",
 				GC.getGame().getGameTurn(), eWe, eThey, eTarget, bJointWar, bHot, towardThem(),
 				kOurPersonality.getDeclareWarRefuseAttitudeThreshold(), iSuspicionFactor, kThey.isHuman(), -iMotivesCost);
@@ -4194,7 +4223,8 @@ void FairPlay::evaluate()
 		itOther.hasNext(); ++itOther)
 	{
 		CvPlayerAI const& kOther = *itOther;
-		// <!-- custom: A teammate of the target is not an independent third party. Counting one inflated the potential-enemy denominator and could even classify that teammate as the target's own ally. See KI#437. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: A teammate of the target is not an independent third party.
+		// Counting one inflated the potential-enemy denominator and could even classify that teammate as the target's own ally. See KI#437. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if (kOther.getTeam() == eTheirTeam || !kTheirTeam.isHasMet(kOther.getTeam()))
 			continue;
 		iPotentialOtherEnemies++;
@@ -4237,7 +4267,8 @@ void FairPlay::evaluate()
 				iTheirWarMemoryAttitude, rEnemyWeight.getPercent(), rAllyReduction.getPercent(),
 				rPriorAttackReduction.getPercent(), rOtherEnemies.getPercent());
 	}
-	// <!-- custom: Keep the inherited dogpile cost and optional sneak-attack multiplier available after their branches for the consolidated result. The defaults mean zero computed cost, no multiplier adjustment and zero applied penalty; preserve the original > 0.1 calculation and >= 0.5 application thresholds. (GPT-6.1-Sol) -->
+	// <!-- custom: Keep the inherited dogpile cost and optional sneak-attack multiplier available after their branches for the consolidated result.
+	// The defaults mean zero computed cost, no multiplier adjustment and zero applied penalty; preserve the original > 0.1 calculation and >= 0.5 application thresholds. (GPT-6.1-Sol) -->
 	scaled rFromOtherEnemies;
 	scaled rPotentialEnemyMult = 1;
 	int iOtherEnemiesUtility = 0;
@@ -4304,7 +4335,8 @@ void FairPlay::evaluate()
 
 	scaled rFairnessCost;
 	// All bets off by turn 100, but, already by turn 50, the cost may no longer be prohibitive.
-	// <!-- custom: AdvCiv's nonzero-start fix added the full start turn even though ordinary later-era starts already subtract StartPercent below, making protection outlast the remaining game. Reconstruct that normal baseline, preserve only genuinely extra start turns and normalize them to the same training-time scale as elapsed turns. See KI#443. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: AdvCiv's nonzero-start fix added the full start turn even though ordinary later-era starts already subtract StartPercent below, making protection outlast the remaining game.
+	// Reconstruct that normal baseline, preserve only genuinely extra start turns and normalize them to the same training-time scale as elapsed turns. See KI#443. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	int iScheduledTurns = 0;
 	for (int i = 0; i < m_kSpeed.getNumTurnIncrements(); i++)
 		iScheduledTurns += m_kSpeed.getGameTurnInfo(i).iNumGameTurnsPerIncrement;
@@ -4383,7 +4415,8 @@ void FairPlay::evaluate()
 
 void Bellicosity::evaluate()
 {
-	// <!-- custom: Bellicosity compares losses for one hostile team war. Evaluate it through that team's leader once, but preserve reachability when any living member is reachable instead of depending on the representative player. See KI#446. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Bellicosity compares losses for one hostile team war.
+	// Evaluate it through that team's leader once, but preserve reachability when any living member is reachable instead of depending on the representative player. See KI#446. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (kWe.isHuman() || !militAnalyst().isWar(eOurTeam, eTheirTeam) || eThey != kTheirTeam.getLeaderID())
 		return;
 	bool bCanReach = false;
@@ -4417,7 +4450,8 @@ void Bellicosity::evaluate()
 		if (eBranch == CAVALRY || eBranch == LOGISTICS || eBranch == NUCLEAR)
 			continue;
 		scaled const rOurLostPow = militAnalyst().lostPower(eWe, eBranch);
-		// <!-- custom: The same agent loss budget was reset for every rival member. Sum the hostile team's living-member losses first, then apply the anti-third-party cap once so ownership partition cannot change the result. See KI#446. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: The same agent loss budget was reset for every rival member.
+		// Sum the hostile team's living-member losses first, then apply the anti-third-party cap once so ownership partition cannot change the result. See KI#446. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		scaled rTheirLostPow;
 		for (MemberIter itMember(eTheirTeam); itMember.hasNext(); ++itMember)
 			rTheirLostPow += militAnalyst().lostPower(itMember->getID(), eBranch);
@@ -4670,7 +4704,8 @@ void TacticalSituation::evalEngagement()
 		iUtility = rUtility.round();
 		m_iU += iUtility;
 	}
-	// <!-- custom: The inherited mission-boost sentence and engagement summary describe one tactical state. Emit one row when either the boost occurred or a utility contribution was actually applied. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: The inherited mission-boost sentence and engagement summary describe one tactical state.
+	// Emit one row when either the boost occurred or a utility contribution was actually applied. (ChatGPT-5.6-Sol) -->
 	if (gUWAIWarUtilityLogLevel >= 3 && !m_kLogMuteState.isMuted() && (bPushoverMissionBoost || iUtility != 0)) logBBAI("UWAI_WAR_UTILITY_TACTICAL_ENGAGEMENT_RESULT turn=%d agentPlayer=%d rivalPlayer=%d pushoverMissionBoost=%d theirExposed=%d ourExposed=%d entangled=%d theirEvacPopulation=%d ourEvacPopulation=%d missionScore=%d totalMilitaryUnits=%d agentPopulation=%d recentlyLostPopulation=%d recentlyLostPercent=%d initiativePercent=%d eraMultiplierPercent=%d utility=%d",
 			GC.getGame().getGameTurn(), eWe, eThey, bPushoverMissionBoost, iTheirExposed,
 			iOurExposed, iEntangled, iTheirEvac, iOurEvac, iOurMissions, iOurTotal,
@@ -4845,7 +4880,8 @@ void TacticalSituation::evalOperational()
 }
 
 
-// <!-- custom: LoveOfPeace had no inherited UWAI diagnostic prose to convert. Keep its valuation unchanged without adding diagnostic rows merely for symmetry with the other aspects. (GPT-6.1-Sol) -->
+// <!-- custom: LoveOfPeace had no inherited UWAI diagnostic prose to convert.
+// Keep its valuation unchanged without adding diagnostic rows merely for symmetry with the other aspects. (GPT-6.1-Sol) -->
 void LoveOfPeace::evaluate()
 {
 	int iLoPCost = kOurPersonality.getLoveOfPeace();
@@ -4917,7 +4953,8 @@ void ThirdPartyIntervention::evaluate()
 	scaled rOurPow = m_rDefPow;
 	scaled rOurLostPowRatio = m_rLostDefPowRatio;
 	TeamTypes const eTarget = m_kParams.getTarget();
-	// <!-- custom: The decisive-war shortcut concerns the evaluated target team. Require every living target member to be eliminated in the simulation or that exact team to capitulate.
+	// <!-- custom: The decisive-war shortcut concerns the evaluated target team.
+	// Require every living target member to be eliminated in the simulation or that exact team to capitulate.
 	// One real team leader's elimination or an unrelated capitulation did not establish this. See KI#458. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	bool bTargetDefeated = false;
 	if (m_kParams.isConsideringPeace() && eTarget != NO_TEAM)
@@ -5053,7 +5090,8 @@ void ThirdPartyIntervention::evaluate()
 	/*	(Would be nice to do this also when there has been no war, but there
 		is no counter for the number of turns that we've been considering
 		war against the target or have been afraid of an intervention.) */
-	// <!-- custom: Retain the normalized peace duration and applied decay for the combined intervention row: -1 means the prior-war-memory branch was skipped; multiplier 1 means no decay. Only the diagnostic duration is rounded; the KI#438 calculation below keeps its scaled precision. (GPT-6.1-Sol) -->
+	// <!-- custom: Retain the normalized peace duration and applied decay for the combined intervention row: -1 means the prior-war-memory branch was skipped; multiplier 1 means no decay.
+	// Only the diagnostic duration is rounded; the KI#438 calculation below keeps its scaled precision. (GPT-6.1-Sol) -->
 	int iNormalizedPeaceTurns = -1;
 	scaled rPeaceDecayMult = 1;
 	if (kWe.AI_getMemoryCount(eThey, MEMORY_DECLARED_WAR) +
@@ -5061,7 +5099,8 @@ void ThirdPartyIntervention::evaluate()
 	{	// Avoid stalemates: don't be afraid of interventions forever
 		int const iAtPeaceTurns = kOurTeam.AI_getAtPeaceCounter(eTheirTeam);
 		int const iThresh = (5 * GC.getDefineINT(CvGlobals::PEACE_TREATY_LENGTH)) / 3 - 1;
-		// <!-- custom: AdvCiv computed a game-speed-normalized peace duration but discarded it, then gated and decayed intervention fear in raw turns. Use the prepared duration consistently for both operations. See KI#438. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: AdvCiv computed a game-speed-normalized peace duration but discarded it, then gated and decayed intervention fear in raw turns.
+		// Use the prepared duration consistently for both operations. See KI#438. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		scaled const rAtPeaceTurns = fixp(1.5) * iAtPeaceTurns /
 				(per100(m_kSpeed.getGoldenAgePercent()) + fixp(0.5));
 		if (bLogWarUtilityDetail) iNormalizedPeaceTurns = rAtPeaceTurns.round();
@@ -5071,7 +5110,8 @@ void ThirdPartyIntervention::evaluate()
 			rInterventionProb *= rPeaceDecayMult;
 		}
 	}
-	// <!-- custom: Capture the personality war-randomness average before its inherited 25..200 clamp; -1 marks the skipped human/random-personalities branch. Gameplay still uses the scaled, clamped value below. (GPT-6.1-Sol) -->
+	// <!-- custom: Capture the personality war-randomness average before its inherited 25..200 clamp; -1 marks the skipped human/random-personalities branch.
+	// Gameplay still uses the scaled, clamped value below. (GPT-6.1-Sol) -->
 	int iWarRand = -1;
 	if (!kTheirTeam.isHuman() &&
 		!m_kGame.isOption(GAMEOPTION_RANDOM_PERSONALITIES))
@@ -5168,7 +5208,8 @@ void ThirdPartyIntervention::evaluate()
 			rCost *= rVeryPowerfulMult;
 		}
 	}
-	// <!-- custom: Retain the AI distrust input for the final row; -1 marks the human branch, which instead applies the inherited fixed 2/3 multiplier. Reuse the one gameplay lookup so logging does not add a second distrustRating call. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	// <!-- custom: Retain the AI distrust input for the final row; -1 marks the human branch, which instead applies the inherited fixed 2/3 multiplier.
+	// Reuse the one gameplay lookup so logging does not add a second distrustRating call. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	int iDistrustPercent = -1;
 	if (kOurTeam.isHuman())
 	{	// Humans tend to not worry much about being backstabbed
@@ -5245,7 +5286,8 @@ int DramaticArc::preEvaluate()
 			if (itFirst->getID() != eSecond)
 			{
 				int const iAtPeace = itFirst->getTurnsAtPeace(eSecond);
-				// <!-- custom: HasMet and TurnsAtPeace are exact counters. Once counted warfare resets TurnsAtPeace, HasMet stays greater; AdvCiv's eight-turn "noise" tolerance instead misclassified short recent wars as eternal peace. See KI#439. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				// <!-- custom: HasMet and TurnsAtPeace are exact counters.
+				// Once counted warfare resets TurnsAtPeace, HasMet stays greater; AdvCiv's eight-turn "noise" tolerance instead misclassified short recent wars as eternal peace. See KI#439. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 				if (itFirst->AI_getHasMetCounter(eSecond) > iAtPeace)
 					iLoopMinCounter = std::min(iLoopMinCounter, iAtPeace);
 				// <!-- custom: Otherwise no counted war has occurred since contact. See KI#439. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
@@ -5254,7 +5296,8 @@ int DramaticArc::preEvaluate()
 		aiPeaceCounters.push_back(std::min(iMaxPeaceCounter, iLoopMinCounter));
 	}
 	int const iMinPeaceCounter = stats::min(aiPeaceCounters);
-	// <!-- custom: Hoist the mean for the combined tension row without computing it in the all-at-peace branch, which uses the minimum instead. -1 marks that unused mean; ongoing-war evaluation still computes and uses the inherited mean below. (GPT-6.1-Sol) -->
+	// <!-- custom: Hoist the mean for the combined tension row without computing it in the all-at-peace branch, which uses the minimum instead.
+	// -1 marks that unused mean; ongoing-war evaluation still computes and uses the inherited mean below. (GPT-6.1-Sol) -->
 	int iMeanPeaceCounter = -1;
 	scaled rTension;
 	if (iMinPeaceCounter > 0) // No wars ongoing

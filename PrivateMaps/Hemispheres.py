@@ -22,7 +22,8 @@ def getNumPlotsPercent(argsList):
 	if iWorldSize < 0:
 		return 100
 	sizeModifiers = {
-		# <!-- custom: Arena was absent from this direct dictionary, causing KeyError; the shifted length guard also bypassed the stored Huge value. Use the established Duel percentage for Arena. See KI#282.3. (GPT-5.6-Sol) -->
+		# <!-- custom: Arena was absent from this direct dictionary, causing KeyError; the shifted length guard also bypassed the stored Huge value.
+		# Use the established Duel percentage for Arena. See KI#282.3. (GPT-5.6-Sol) -->
 		WorldSizeTypes.WORLDSIZE_ARENA:		95,
 		WorldSizeTypes.WORLDSIZE_DUEL:		95,
 		WorldSizeTypes.WORLDSIZE_TINY:		77,

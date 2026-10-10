@@ -58,8 +58,7 @@ def getNumCustomMapOptionValues(argsList):
 
 def getCustomMapOptionDescAt(argsList):
 	[iOption, iSelection] = argsList
-	# <!-- custom: Use explicit N-S / E-W labels for value text to stay self-explanatory in our UI rework context,
-	# especially when players discuss Simple Game screenshots where option headers are not always visible. (GPT-5.3-Codex) -->
+	# <!-- custom: Use explicit N-S / E-W labels for value text to stay self-explanatory in our UI rework context, especially when players discuss Simple Game screenshots where option headers are not always visible. (GPT-5.3-Codex) -->
 	selection_names = {
 		0: {
 			0: u"N-S Coast Bands",
@@ -363,8 +362,7 @@ def _apply_horizontal_coast_lanes(terrain_types):
 
 	eCoast = getInfoTypeOrFail("TERRAIN_COAST")
 
-	# <!-- custom: Build tapered coast corridors between horizontal neighbors so lane thickness feels natural:
-	# 3 near island edges, then 2, then 1 at the center, mirrored back to 2 and 3. (GPT-5.3-Codex) -->
+	# <!-- custom: Build tapered coast corridors between horizontal neighbors so lane thickness feels natural: 3 near island edges, then 2, then 1 at the center, mirrored back to 2 and 3. (GPT-5.3-Codex) -->
 	for r in range(layout["rows"]):
 		row_islands = []
 		for info in layout["islands"]:
@@ -391,8 +389,7 @@ def _apply_horizontal_coast_lanes(terrain_types):
 			iGapLen = len(gap_x)
 			if iGapLen <= 0:
 				continue
-			# <!-- custom: Use proportional taper bands so 3/2/1 widths remain visible on large gaps
-			# instead of collapsing to a near-constant 1-tile lane. (GPT-5.3-Codex) -->
+			# <!-- custom: Use proportional taper bands so 3/2/1 widths remain visible on large gaps instead of collapsing to a near-constant 1-tile lane. (GPT-5.3-Codex) -->
 			iBand3 = max(1, iGapLen / 6)
 			iBand2 = max(iBand3 + 1, iGapLen / 3)
 			for iPos in range(iGapLen):
@@ -424,8 +421,7 @@ def _apply_vertical_coast_lanes(terrain_types):
 
 	eCoast = getInfoTypeOrFail("TERRAIN_COAST")
 
-	# <!-- custom: Mirror the same tapered profile used on east-west lanes, now for north-south facing lanes:
-	# 3 near island edges, then 2, then 1 in the center, then back to 2 and 3. (GPT-5.3-Codex) -->
+	# <!-- custom: Mirror the same tapered profile used on east-west lanes, now for north-south facing lanes: 3 near island edges, then 2, then 1 in the center, then back to 2 and 3. (GPT-5.3-Codex) -->
 	for c in range(layout["cols"]):
 		col_islands = []
 		for info in layout["islands"]:

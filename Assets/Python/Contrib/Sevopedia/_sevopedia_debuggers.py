@@ -43,7 +43,8 @@ def debugPrintLeaderHeadInfoFieldsToFetch(iLeader):
 
 	print("\n\n[DEBUG] For iLeader=%d, leader head info debugged as such:" % iLeader)
 
-	# <!-- custom: more computationally efficient to store closest pointer since we have many/multiple calls to make as chatgpt had done before and i was too dumb or rather maybe uninformed to understand/know, even if difference is minimal or not, and even if we don't use this except when debugging, no reason to not implement it as well. I (had) wanted for method call for clarity, but if this is more efficient better do it as so then maybe. -->
+	# <!-- custom: more computationally efficient to store closest pointer since we have many/multiple calls to make as chatgpt had done before and i was too dumb or rather maybe uninformed to understand/know, even if difference is minimal or not, and even if we don't use this except when debugging, no reason to not implement it as well.
+	# I (had) wanted for method call for clarity, but if this is more efficient better do it as so then maybe. -->
 	info = gc.getLeaderHeadInfo(iLeader)
 
 	# <!-- custom: try to follow XML order as much as possible and to be sure we have all fields too -->
@@ -140,7 +141,8 @@ def debugPrintLeaderHeadInfoFieldsToFetch(iLeader):
 	#
 	# I have done a global search and they are the only leaders with "<MapRefuseAttitudeThreshold>ATTITUDE_FRIENDLY</MapRefuseAttitudeThreshold>", so this seems most likely intended that map trading in base advciv code at least if not other mods preceding it or and base civ4 or not handle it as such (increment one level of atittude higher than the value, to make map trading harsher, so friendly means they will always refuse map trading i assume / in my assumption, all other leaders don't trigger a key error nor in/at this field nor in any other field, so keep as is and display it accurately as DLL handles it) -->
 
-	# <!-- custom: Map debug attitude integers back to Civ4 XML constants through the shared AIP helper; includes debug-only 5: "ALWAYS??" for the AdvCiv map-trade refusal edge case explained above. (ChatGPT-5.5) -->
+	# <!-- custom: Map debug attitude integers back to Civ4 XML constants through the shared AIP helper; includes debug-only 5: "ALWAYS??"
+	# for the AdvCiv map-trade refusal edge case explained above. (ChatGPT-5.5) -->
 	DLL_ATTITUDE_MAP = get_aip_attitude_index_to_type(True)
 
 	for attr in dir(info):

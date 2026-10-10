@@ -31,14 +31,17 @@ public:
 		is preferable. */
 	int evaluate(WarPlanTypes eWarPlan = NO_WARPLAN, int iPreparationTime = -1);
 	int evaluate(WarPlanTypes eWarPlan, bool bNaval, int iPreparationTime);
-	// <!-- custom: Caller-pre-gated observer pass for the already selected UWAI scenario. Unlike the inherited gameplay overload above, it emits detail without reading/writing WarEvaluator caches and cannot return a utility to gameplay. Added after the remaining logging-only rerun in UWAIAgent was found during review. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	// <!-- custom: Caller-pre-gated observer pass for the already selected UWAI scenario.
+	// Unlike the inherited gameplay overload above, it emits detail without reading/writing WarEvaluator caches and cannot return a utility to gameplay.
+	// Added after the remaining logging-only rerun in UWAIAgent was found during review. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	void evaluateForDiagnostics(WarPlanTypes eWarPlan, bool bNaval, int iPreparationTime);
 	int defaultPreparationTime(WarPlanTypes eWarPlan = NO_WARPLAN);
 	// <!-- custom: Enable focused aspect logging only on the evaluator that supplies an actual peace review; alternative war simulations otherwise duplicate the same diagnostic many times. (GPT-5.6-Sol) -->
 	void enableSASBBAISuspiciousPeaceLog() { m_bSASLogSuspiciousPeace = true; }
 
 private:
-	// <!-- custom: Internal scenario pass shared by gameplay evaluation and the selected-scenario diagnostic rerun. Keep the diagnostic-only mode first and explicit: such passes bypass WarEvaluator cache reads/writes and focused structured WAR diagnostics, and their result must never feed gameplay. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Internal scenario pass shared by gameplay evaluation and the selected-scenario diagnostic rerun.
+	// Keep the diagnostic-only mode first and explicit: such passes bypass WarEvaluator cache reads/writes and focused structured WAR diagnostics, and their result must never feed gameplay. (ChatGPT-5.6-Sol) -->
 	int evaluateScenario(bool bDiagnosticOnly, WarPlanTypes eWarPlan, bool bNaval, int iPreparationTime);
 	void logPreamble();
 	/*	Utility from pov of an individual agent member. Will evaluate the aspects

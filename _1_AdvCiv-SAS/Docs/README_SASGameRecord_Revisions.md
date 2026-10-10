@@ -28,7 +28,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=137 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=138 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -71,10 +71,18 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
+### Revision 138 - SAS practical 6611
+
+- **Date:** 2026-10-10
+- **Git commit:** pending
+- **Change:** Reflowed AdvCiv-SAS custom prose comments in recorder implementation, declarations, call sites and checker code at logical sentence boundaries as part of the shared source-comment maintenance pass.
+
+Preserves technical wording, credits and KI references while separating substantial sentences and joining arbitrary physical wraps. Recorder fields, recording conditions and emitted rows are unchanged; this revision signals the intentional recorder-related code-comment update.
+
 ### Revision 137 - SAS practical 6601
 
 - **Date:** 2026-10-08
-- **Git commit:** pending
+- **Git commit:** `124cfe178cf1fc151e79faa0f9d62f79ea15cce0`
 - **Change:** Following the KI#505.2 Found-logging fix/refactor, review of the resulting diagnostic sample exposed a remaining SASGameRecord gap: later site values did not preserve the original decision that sent a Settler there. Added one compact founding-target decision row to bridge assignment-time values to later founding-time values.
 
 `GAME_RECORD_AI_SETTLER_SITE_DECISION` records level-2+ ordinary `AI_found` destination assignments and retargets, suppressing repeated travel toward the same active target. ChatGPT-5.6-Sol's validation-log review found changed cached values in 31 of 62 matched later foundings, ranging from -720 to +800; preserving the original decision therefore makes later founding-time values interpretable.

@@ -69,7 +69,8 @@ DO_FOR_EACH_DYN_INFO_TYPE(MAKE_INFO_ENUM)
 // advc: WorldSize and Flavor are special -- there are hardcoded values, but it's
 // still possible to add values through XML only.
 // (The hardcoded world sizes are used by map scripts and random events.)
-// <!-- custom: Keep WorldSizeTypes aligned with CIV4WorldInfo.xml so C++ and Python enum values match runtime XML indices. New Arena is inserted before Duel and new SAS24/32/40/48 extend beyond Huge, so the old BtS-only Duel..Huge enum made constants such as WORLDSIZE_HUGE point at the wrong XML row. (ChatGPT-5.5) -->
+// <!-- custom: Keep WorldSizeTypes aligned with CIV4WorldInfo.xml so C++ and Python enum values match runtime XML indices.
+// New Arena is inserted before Duel and new SAS24/32/40/48 extend beyond Huge, so the old BtS-only Duel..Huge enum made constants such as WORLDSIZE_HUGE point at the wrong XML row. (ChatGPT-5.5) -->
 enum WorldSizeTypes
 {
 	NO_WORLDSIZE = -1,
@@ -1123,7 +1124,8 @@ ENUM_START(Function, FUNC)
 	FUNC_STEPKEY,	// = NiAnimationKey::STEPKEY,
 ENUM_END(Function, FUNC)
 
-// <!-- custom: DLL-only shared metadata for the direct or cascading origin of a declaration of war. This is not an XML-indexed, Python-exposed, savegame-serialized, or gameplay-evaluated enum. (GPT-5.6-Sol) -->
+// <!-- custom: DLL-only shared metadata for the direct or cascading origin of a declaration of war.
+// This is not an XML-indexed, Python-exposed, savegame-serialized, or gameplay-evaluated enum. (GPT-5.6-Sol) -->
 enum WarDeclarationCause
 {
 	WAR_DECLARATION_DIRECT,
@@ -1137,7 +1139,8 @@ enum WarDeclarationCause
 	WAR_DECLARATION_NUCLEAR_ATTACK
 };
 
-// <!-- custom: DLL-only acquisition metadata carried to GameRecord when a technology is completed or granted. This is not XML-indexed, Python-exposed, savegame-serialized, or gameplay-evaluated; Python/script callers that cannot provide reliable context remain UNKNOWN. (GPT-5.6-Sol + GPT-5.6 Thinking) -->
+// <!-- custom: DLL-only acquisition metadata carried to GameRecord when a technology is completed or granted.
+// This is not XML-indexed, Python-exposed, savegame-serialized, or gameplay-evaluated; Python/script callers that cannot provide reliable context remain UNKNOWN. (GPT-5.6-Sol + GPT-5.6 Thinking) -->
 enum TechAcquisitionCause
 {
 	TECH_ACQUISITION_UNKNOWN,
@@ -1157,7 +1160,8 @@ enum TechAcquisitionCause
 	TECH_ACQUISITION_DEBUG
 };
 
-// <!-- custom: DLL-only shared metadata for why an already selected research target is intentionally reconsidered or replaced. This is not XML-indexed, Python-exposed, savegame-serialized, or itself an AI decision; SASGameRecord uses it now and other diagnostics can reuse the same factual cause vocabulary. (ChatGPT-5.6-Sol) -->
+// <!-- custom: DLL-only shared metadata for why an already selected research target is intentionally reconsidered or replaced.
+// This is not XML-indexed, Python-exposed, savegame-serialized, or itself an AI decision; SASGameRecord uses it now and other diagnostics can reuse the same factual cause vocabulary. (ChatGPT-5.6-Sol) -->
 enum ResearchTargetChangeCause
 {
 	RESEARCH_TARGET_CHANGE_UNKNOWN = 0,
@@ -1168,7 +1172,9 @@ enum ResearchTargetChangeCause
 	RESEARCH_TARGET_CHANGE_FREE_TECH_REEVALUATION
 };
 
-// <!-- custom: Typed Found diagnostic context; labels describe the caller only and never select scoring rules. Not exposed to Python or serialized. Convert to text only while emitting a log row. See KI#505.2. (GPT-6.1-Sol) -->
+// <!-- custom: Typed Found diagnostic context; labels describe the caller only and never select scoring rules.
+// Not exposed to Python or serialized.
+// Convert to text only while emitting a log row. See KI#505.2. (GPT-6.1-Sol) -->
 enum SASFoundLogContextTypes
 {
 	SAS_FOUND_LOG_EVALUATION,
@@ -1183,7 +1189,8 @@ enum SASFoundLogContextTypes
 	SAS_FOUND_LOG_RECORD_TRUE_MAP_COMPARISON
 };
 
-// <!-- custom: Explicit source for ending AI Auto Play, shared between the DLL, Python controller, and SASGameRecord. This is runtime control/diagnostic metadata, not XML-indexed or savegame-serialized. See KI#203. (GPT-5.6-Sol) -->
+// <!-- custom: Explicit source for ending AI Auto Play, shared between the DLL, Python controller, and SASGameRecord.
+// This is runtime control/diagnostic metadata, not XML-indexed or savegame-serialized. See KI#203. (GPT-5.6-Sol) -->
 enum SASAutoPlayEndCause
 {
 	SAS_AUTOPLAY_END_UNSPECIFIED = -1,

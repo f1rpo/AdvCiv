@@ -61,7 +61,8 @@ int CvBuildInfo::getFeatureProduction(FeatureTypes eFeature) const
 	return m_paiFeatureProduction ? m_paiFeatureProduction[eFeature] : 0; // advc.003t
 }
 
-// <!-- custom: fix the no feature assert failed in EnumTraits.h by adding a NO_FEATURE guard. It is tedious to do it in all callers, so a guard here is much easier, clean and easy, with the help of chatgpt 5 thanks, see known issue as of now 71 for details -->
+// <!-- custom: fix the no feature assert failed in EnumTraits.h by adding a NO_FEATURE guard.
+// It is tedious to do it in all callers, so a guard here is much easier, clean and easy, with the help of chatgpt 5 thanks, see known issue as of now 71 for details -->
 // <!-- custom: for reference, error was: -->
 // Assert Failed
 // File: c:\program files (x86)\steam\steamapps\common\sid meier's civilization iv beyond the sword\beyond the sword\mods\advciv-sas\cvgamecoredll\EnumTraits.h

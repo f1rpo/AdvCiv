@@ -80,7 +80,8 @@ void MilitaryBranch::updateTypicalUnit()
 {
 	PROFILE_FUNC();
 
-	// <!-- custom: Recompute from an explicit no-candidate state. Otherwise losing every currently trainable candidate left the prior unit and power cached, so UWAI forecast military production the owner could no longer build. See KI#537. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Recompute from an explicit no-candidate state.
+	// Otherwise losing every currently trainable candidate left the prior unit and power cached, so UWAI forecast military production the owner could no longer build. See KI#537. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	m_eTypicalUnit = NO_UNIT;
 	m_rTypicalPower = 0;
 	CvPlayerAI const& kOwner = GET_PLAYER(m_eOwner);

@@ -37,7 +37,8 @@ IS_SHOW_TRAIT_ICONS_IN_LEADER = (gc.getDefineINT("SAS_SEVOPEDIA_LEADER_TRAITS_SH
 IS_SAS_SEVOPEDIA_LEADER_AI_PERSONALITY_ENABLE = (gc.getDefineINT("SAS_SEVOPEDIA_LEADER_AI_PERSONALITY_ENABLE") > 0)
 IS_SAS_SEVOPEDIA_LEADER_ATTITUDE_EMOJI_ENABLE = (gc.getDefineINT("SAS_SEVOPEDIA_LEADER_ATTITUDE_EMOJI_ENABLE") > 0)
 IS_SAS_SEVOPEDIA_LEADER_AI_PERSONALITY_PANEL_SHOW_EMOJI = (gc.getDefineINT("SAS_SEVOPEDIA_LEADER_AI_PERSONALITY_PANEL_SHOW_EMOJI") > 0)
-# <!-- custom: era art feature gate — mirrors the C++ XML-load define. When False, the era art row in the Sevopedia leader attitude panel is never shown. (Claude code Sonnet 4.6) -->
+# <!-- custom: era art feature gate — mirrors the C++ XML-load define.
+# When False, the era art row in the Sevopedia leader attitude panel is never shown. (Claude code Sonnet 4.6) -->
 IS_SAS_LEADERHEAD_ERA_ART = (gc.getDefineINT("SAS_CV_LEADER_HEAD_INFO_ENABLE_XML_ERA_ART_DEFS") > 0)
 SAS_LEADER_ATTITUDE_PREVIEW_ORDER = (AttitudeTypes.ATTITUDE_FURIOUS, AttitudeTypes.ATTITUDE_ANNOYED, AttitudeTypes.ATTITUDE_CAUTIOUS, AttitudeTypes.ATTITUDE_PLEASED, AttitudeTypes.ATTITUDE_FRIENDLY)
 SAS_LEADER_ACTION_PREVIEW_ORDER = ((LeaderheadAction.NO_LEADERANIM, u"no"), (LeaderheadAction.LEADERANIM_GREETING, u"gr"), (LeaderheadAction.LEADERANIM_AGREE, u"ag"), (LeaderheadAction.LEADERANIM_DISAGREE, u"dg"))
@@ -95,7 +96,9 @@ class SevoPediaLeader:
 		for iEra in xrange(gc.getNumEraInfos()):
 			self.eraIconPathByEra[iEra] = gc.getEraInfo(iEra).getButton()
 		self.ERA_ICON_SIZE = 16
-		# <!-- custom: cache resolved AI categories once at init for this screen instance (runtime Y-resolution aware); no separate header/symbol cache is needed because this already avoids per-draw rebuild cost. Also only do this when AIP is enabled; otherwise skip needless setup. We intentionally don't re-resolve on in-session resolution changes: main interface still needs restart after such changes for correct layout, so dynamic Sevopedia-only redraw adds complexity for little practical gain. (GPT-5.3-Codex) -->
+		# <!-- custom: cache resolved AI categories once at init for this screen instance (runtime Y-resolution aware); no separate header/symbol cache is needed because this already avoids per-draw rebuild cost.
+		# Also only do this when AIP is enabled; otherwise skip needless setup.
+		# We intentionally don't re-resolve on in-session resolution changes: main interface still needs restart after such changes for correct layout, so dynamic Sevopedia-only redraw adds complexity for little practical gain. (GPT-5.3-Codex) -->
 		if IS_SAS_SEVOPEDIA_LEADER_AI_PERSONALITY_ENABLE:
 			iScreenHeight = self.top.getScreen().getYResolution()
 			self.aiRightCategories, self.aiMiddleCategories, self.aiLeftCategories = self.buildAICategoriesForCurrentResolution(iScreenHeight)
@@ -333,7 +336,8 @@ class SevoPediaLeader:
 		iSelectedEmojiSize = self.ATTITUDE_SELECTED_EMOJI_SIZE
 		iUnselectedEmojiSize = self.ATTITUDE_UNSELECTED_EMOJI_SIZE
 
-		# <!-- custom: We tested the city-screen filter-style GFC checkbox DDS route here (similar to CvMainInterface building filter buttons), but icon sizing could not be controlled independently enough in this attitude row. Keeping inline <img> gives reliable per-button size control despite the minor known vertical lift side effect. (GPT-5.3-Codex) -->
+		# <!-- custom: We tested the city-screen filter-style GFC checkbox DDS route here (similar to CvMainInterface building filter buttons), but icon sizing could not be controlled independently enough in this attitude row.
+		# Keeping inline <img> gives reliable per-button size control despite the minor known vertical lift side effect. (GPT-5.3-Codex) -->
 		for iAttitude in attitudeOrder:
 			szWidget = self.ATTITUDE_BUTTON_WIDGET_BY_ATTITUDE[iAttitude]
 			if IS_SAS_SEVOPEDIA_LEADER_ATTITUDE_EMOJI_ENABLE:
@@ -474,7 +478,8 @@ class SevoPediaLeader:
 		self.bContentExpanded = bExpanded
 
 	def _drawAttitudeRowAt(self, screen, iX, iY, iW, iH):
-		# <!-- custom: draws attitude+action (+ optional era) buttons in the expanded overlay right column. iW and iH are fixed by the helper (191x100), so no need for the dynamic fallback resizing that placeAttitudes uses for variable screen widths. (Claude code Sonnet 4.6) -->
+		# <!-- custom: draws attitude+action (+ optional era) buttons in the expanded overlay right column.
+		# iW and iH are fixed by the helper (191x100), so no need for the dynamic fallback resizing that placeAttitudes uses for variable screen widths. (Claude code Sonnet 4.6) -->
 		iSpacing = 3
 		iPadding = 6
 		leaderEraArts = []
@@ -565,7 +570,8 @@ class SevoPediaLeader:
 					else:
 						szSpecialText = szReplaced
 
-		# <!-- custom: reduce top padding now that the traits header is removed (GPT-5.2-Codex). Was headerExtraHeight 30 -->
+		# <!-- custom: reduce top padding now that the traits header is removed (GPT-5.2-Codex).
+		# Was headerExtraHeight 30 -->
 		headerExtraHeight = 10
 		screen.addMultilineText(listName, SASTextScale.normalizeLabelText(szSpecialText), self.X_TRAITS + 5, self.Y_TRAITS + headerExtraHeight, self.W_TRAITS - 10, self.H_TRAITS - headerExtraHeight - 5, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
@@ -609,7 +615,7 @@ class SevoPediaLeader:
 				self.fillAITableRow(screen, label, norm_value, scale, xLabel, xValue, xScale, y)
 				y += self.H_AI_LINE_HEIGHT
 
-			# <!-- custom: space for next ai_category if any are there (else still space but not used more efficient this way i think i mean than rechecking each time and we have some tables that overflow vertically too so maybe fine this way too if not broken in this case i mean maybe-->
+			# <!-- custom: space for next ai_category if any are there (else still space but not used more efficient this way i think i mean than rechecking each time and we have some tables that overflow vertically too so maybe fine this way too if not broken in this case i mean maybe -->
 			y += self.H_AI_CATEGORY_SPACING
 
 	# <!-- custom: build categories once at init using runtime resolution (Y), with named category variables so layout tuning stays readable. (GPT-5.3-Codex) -->

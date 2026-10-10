@@ -301,7 +301,8 @@ class Section(dict):
         return value
 
     def _interpolation_replace(self, match):
-        # <!-- custom: the evil empty "ghost" string lures its head, beware, to be safe i have safely scientifically exorcised it using the power of science and blind truth, at least according to chatgpt xd, if you are ever curious i added a few screenshots about this in the google drive mod journey of advciv-sas Not much backstory but a bit still maybe xd... The evil or not evil maybeboss of the BUG docstring dungeon has finally been defeated, not that it was ever there or threatening rather or maybe yes... -->
+        # <!-- custom: the evil empty "ghost" string lures its head, beware, to be safe i have safely scientifically exorcised it using the power of science and blind truth, at least according to chatgpt xd, if you are ever curious i added a few screenshots about this in the google drive mod journey of advciv-sas Not much backstory but a bit still maybe xd...
+        # The evil or not evil maybeboss of the BUG docstring dungeon has finally been defeated, not that it was ever there or threatening rather or maybe yes... -->
         # """ """
         #
         s = match.group(1)

@@ -255,7 +255,8 @@ class SevoPediaTerrain:
 				elif FeatureInfo.isTerrain(self.iTerrain):
 					screen.attachImageButton(panel, "", FeatureInfo.getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_FEATURE, iFeature, 1, False)
 
-	# <!-- custom: TERRAIN_HILL is a pedia stand-in for a plot shape layered over a real terrain; the DLL rules are correct, but Sevopedia had to reconstruct them for display. In-game plains hill Grapes needs a Plantation, but the Hill page did not show Plantation; see KI#153 for this and other Hill improvement edge cases. (GPT-5.5) -->
+	# <!-- custom: TERRAIN_HILL is a pedia stand-in for a plot shape layered over a real terrain; the DLL rules are correct, but Sevopedia had to reconstruct them for display.
+	# In-game plains hill Grapes needs a Plantation, but the Hill page did not show Plantation; see KI#153 for this and other Hill improvement edge cases. (GPT-5.5) -->
 	def isImprovementValidThroughHillBonus(self, iImprovement):
 		ImprovementInfo = gc.getImprovementInfo(iImprovement)
 		for iBonus in xrange(gc.getNumBonusInfos()):
@@ -352,7 +353,7 @@ class SevoPediaTerrain:
 				elif (bonusInfo.isTerrain(self.iTerrain)) or (self.iTerrain == self.I_TERRAIN_HILL and bonusInfo.isHills()):
 					screen.attachImageButton(panel, "", bonusInfo.getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, iBonus, 1, False)
 
-	# <!-- custom: code provided by chatgpt thanks to my prompts too and adjustments too-->
+	# <!-- custom: code provided by chatgpt thanks to my prompts too and adjustments too -->
 	def placeBonusesOnlyWithFeature(self):
 		xPanel = self.X_BONUSES_ONLY_WITH_FEATURE
 		yPanel = self.Y_BONUSES_ONLY_WITH_FEATURE
@@ -420,13 +421,13 @@ class SevoPediaTerrain:
 				if unitInfo.isGraphicalOnly():
 					continue
 
-				# <!-- custom: parts of the below condition(s)/code by chatgpt 5, check if accurate and check if all is accurate if want to be sure-->
+				# <!-- custom: parts of the below condition(s)/code by chatgpt 5, check if accurate and check if all is accurate if want to be sure -->
 				# inside placeRelevantUnits(), in the if self.iTerrain == iPeak: loop
 				unitInfoDomain = unitInfo.getDomainType()
 				passTech = (unitInfo.getTerrainPassableTech(iPeak) != -1)
 
 				# <!-- custom: also handle water units that can move through all terrains but only on water; also for peak logic is different than for other terrains in placeRelevantUnits, do not place only units that have modifiers for this "terrain" (as is plot type too), but place more broadly any unit, even if it doesn't have a modifier, as long as it can walk on the tile, then display the numTxt or any information optionally if the unit has it, else default to something like "_/_" (no attack or def modifier) or whatever the numTxt generating function gives us. -->
-				# <!-- custom: also show boat with legs, in case some crazy mod mod nicely impelments this xd or us but less likely or not or yes or etc-->
+				# <!-- custom: also show boat with legs, in case some crazy mod mod nicely impelments this xd or us but less likely or not or yes or etc -->
 				# Peak — Relevant Units (includes "boat with legs"; All-Terrain short-circuits)
 				can_walk_on_peak = (unitInfo.isCanMoveAllTerrain() or (unitInfoDomain == DomainTypes.DOMAIN_LAND and (unitInfo.isCanMoveImpassable() or passTech)))
 
@@ -558,12 +559,12 @@ class SevoPediaTerrain:
 				if unitInfo.isGraphicalOnly():
 					continue
 
-				# <!-- custom: parts of the below condition(s)/code by chatgpt 5, check if accurate and check if all is accurate if want to be sure-->
+				# <!-- custom: parts of the below condition(s)/code by chatgpt 5, check if accurate and check if all is accurate if want to be sure -->
 				# inside placeUnitsImpassable(), in the if self.iTerrain == iPeak: loop
 				unitInfoDomain = unitInfo.getDomainType()
 				passTech = (unitInfo.getTerrainPassableTech(iPeak) != -1)
 
-				# <!-- custom: "boat with legs" edge case handled in as of now relevant units as chatgpt 5 says as well, if no boat unit at all has legs, as is as of now in advciv-sas, then they would instead be displayed in this units impassable panel for exhaustiveness and notsimply omitted if i understood it correctly, check if accurate-->
+				# <!-- custom: "boat with legs" edge case handled in as of now relevant units as chatgpt 5 says as well, if no boat unit at all has legs, as is as of now in advciv-sas, then they would instead be displayed in this units impassable panel for exhaustiveness and notsimply omitted if i understood it correctly, check if accurate -->
 				# Peak — Units Impassable (show land w/out bypass; all sea unless All-Terrain)
 				# regular ships (DOMAIN_SEA) are blocked on peak
 				blocked = ((not unitInfo.isCanMoveAllTerrain()) and ((unitInfoDomain == DomainTypes.DOMAIN_LAND and not (unitInfo.isCanMoveImpassable() or passTech)) or (unitInfoDomain == DomainTypes.DOMAIN_SEA)))
@@ -584,7 +585,7 @@ class SevoPediaTerrain:
 						screen.appendMultiListButton(rowListName, unitInfo.getButton(), SEVOPEDIA_MULTILIST_COLUMN_INDEX_AUTO, WidgetTypes.WIDGET_PEDIA_JUMP_TO_UNIT, iUnit, 1, False)
 
 		else:
-			# <!-- custom: parts of the below condition(s)/code by chatgpt 5, check if accurate and check if all is accurate if want to be sure-->
+			# <!-- custom: parts of the below condition(s)/code by chatgpt 5, check if accurate and check if all is accurate if want to be sure -->
 			info = gc.getTerrainInfo(self.iTerrain)
 
 			for iUnit in xrange(gc.getNumUnitInfos()):

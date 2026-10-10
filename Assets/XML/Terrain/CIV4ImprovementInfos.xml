@@ -1181,7 +1181,8 @@
 					<bBonusMakesValid>1</bBonusMakesValid>
 					<bBonusTrade>1</bBonusTrade>
 					<iDiscoverRand>0</iDiscoverRand>
-					<!-- custom: Split Deer's +4 Food evenly between the resource and Camp, similar to Camel, so the resource and its improvement contribute gradually. The extra base Food also helps buff the usually food-poor plots and regions where Deer appears. (GPT-5.6-Sol) -->
+					<!-- custom: Split Deer's +4 Food evenly between the resource and Camp, similar to Camel, so the resource and its improvement contribute gradually.
+					The extra base Food also helps buff the usually food-poor plots and regions where Deer appears. (GPT-5.6-Sol) -->
 					<YieldChanges>
 						<iYieldChange>2</iYieldChange>
 						<iYieldChange>0</iYieldChange>

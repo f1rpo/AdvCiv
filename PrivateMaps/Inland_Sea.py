@@ -479,7 +479,8 @@ def beforeGeneration():
 	}
 	# End of Templates data.
 
-	# <!-- custom: Inland Sea used compact list positions as real PlayerTypes, so sparse/high-ID players lost their handcrafted regions. Assign shuffled template IDs directly to the actual ever-alive player IDs. See KI#267. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: Inland Sea used compact list positions as real PlayerTypes, so sparse/high-ID players lost their handcrafted regions.
+	# Assign shuffled template IDs directly to the actual ever-alive player IDs. See KI#267. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	player_list = range(iPlayers)
 	shuffledPlayers = {}
 	for playerLoop in range(gc.getMAX_CIV_PLAYERS()):

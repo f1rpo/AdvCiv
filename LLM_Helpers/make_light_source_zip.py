@@ -559,12 +559,14 @@ def build_git_manifest(repo_root: Path) -> str:
     ]
     return "\n".join(lines) + "\n"
 def utc_timestamp() -> str:
-    # <!-- custom: Use UTC with millisecond precision and the Z suffix for readable timing context consistent with millisecond duration units. Elapsed durations still use perf_counter so wall-clock adjustments do not affect them. (GPT-6.1-Sol) -->
+    # <!-- custom: Use UTC with millisecond precision and the Z suffix for readable timing context consistent with millisecond duration units.
+    # Elapsed durations still use perf_counter so wall-clock adjustments do not affect them. (GPT-6.1-Sol) -->
     return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
 def runtime_process_summary_lines() -> list[str]:
-    # <!-- custom: Record only relevant process names/PIDs, not window titles or unrelated processes. This point-in-time check helps explain active-game/build constraints and file locks; it cannot establish autoplay or compilation activity. (GPT-6.1-Sol) -->
+    # <!-- custom: Record only relevant process names/PIDs, not window titles or unrelated processes.
+    # This point-in-time check helps explain active-game/build constraints and file locks; it cannot establish autoplay or compilation activity. (GPT-6.1-Sol) -->
     lines = [f"Runtime process check: {utc_timestamp()}"]
     if sys.platform != "win32":
         return lines + ["Runtime processes: unavailable (Windows process check only)"]
@@ -586,7 +588,9 @@ def runtime_process_summary_lines() -> list[str]:
 
 
 def working_tree_summary_lines(repo_root: Path) -> list[str]:
-    # <!-- custom: Count staged and unstaged tracked-file changes separately; a partially staged file belongs to both lists. NUL-separated Git paths preserve spaces and rename destinations. Keep large lists in the existing full repository-state context instead of flooding the console. (GPT-6.1-Sol) -->
+    # <!-- custom: Count staged and unstaged tracked-file changes separately; a partially staged file belongs to both lists.
+    # NUL-separated Git paths preserve spaces and rename destinations.
+    # Keep large lists in the existing full repository-state context instead of flooding the console. (GPT-6.1-Sol) -->
     groups: list[tuple[str, list[str] | None, str | None]] = []
     for label, extra_args in (("Staged", ("--cached",)), ("Unstaged tracked", ())):
         raw, error = run_git(repo_root, "diff", *extra_args, "--name-only", "-z", "--no-ext-diff", "--")
@@ -610,7 +614,9 @@ def working_tree_summary_lines(repo_root: Path) -> list[str]:
 
 
 def default_branch_state_lines(repo_root: Path) -> list[str]:
-    # <!-- custom: Detect the default from locally known origin/HEAD, not a hardcoded branch name. Compare against the local default branch when present so its practical count is distinct from feature-branch history; report the remote count too because it may lag local work. No fetch is performed. (GPT-6.1-Sol) -->
+    # <!-- custom: Detect the default from locally known origin/HEAD, not a hardcoded branch name.
+    # Compare against the local default branch when present so its practical count is distinct from feature-branch history; report the remote count too because it may lag local work.
+    # No fetch is performed. (GPT-6.1-Sol) -->
     remote_raw, error = run_git(repo_root, "symbolic-ref", "--quiet", "refs/remotes/origin/HEAD")
     if not remote_raw:
         return [f"Default branch: unavailable (locally known origin/HEAD missing: {error})"]
@@ -828,7 +834,8 @@ def build_git_diff(repo_root: Path, cached: bool) -> bytes:
 
 
 def build_branch_diff(repo_root: Path, repository_state: str, *, committed_only: bool = False) -> tuple[bytes, list[str]]:
-    # <!-- custom: Compare the shared ancestor with the current tracked working tree so one patch covers committed, staged and unstaged feature work without reversing newer default-only commits. Pin both tips from snapshot metadata; unrelated histories or multiple merge bases are reported rather than selecting an arbitrary base. (GPT-6.1-Sol) -->
+    # <!-- custom: Compare the shared ancestor with the current tracked working tree so one patch covers committed, staged and unstaged feature work without reversing newer default-only commits.
+    # Pin both tips from snapshot metadata; unrelated histories or multiple merge bases are reported rather than selecting an arbitrary base. (GPT-6.1-Sol) -->
     # <!-- custom: Also export merge base -> captured HEAD separately, so reviewers can distinguish committed feature work from the combined working snapshot using identical base selection and EOL filtering. (GPT-6.1-Sol) -->
     # <!-- custom: The no_eol patches ignore CRLF/LF and trailing-whitespace differences to avoid whole-file review churn; they retain meaningful indentation and content changes and do not normalize the source files. (GPT-6.1-Sol) -->
     fields = dict(line.split(": ", 1) for line in repository_state.splitlines() if line.startswith(("HEAD: ", "Default HEAD: ", "Default comparison ref: ")))
@@ -860,7 +867,8 @@ def build_branch_diff(repo_root: Path, repository_state: str, *, committed_only:
 
 
 def build_branch_comparison_log(repo_root: Path, branch_summary: list[str]) -> tuple[bytes, list[str]]:
-    # <!-- custom: Current-HEAD history alone cannot describe default-only commits after a cherry-pick or divergence. Export both exclusive sides with full messages, parent SHAs and per-commit reachable counts; equal practical numbers do not imply equal commits, and cherry-pick origin notes remain visible in messages. (GPT-6.1-Sol) -->
+    # <!-- custom: Current-HEAD history alone cannot describe default-only commits after a cherry-pick or divergence.
+    # Export both exclusive sides with full messages, parent SHAs and per-commit reachable counts; equal practical numbers do not imply equal commits, and cherry-pick origin notes remain visible in messages. (GPT-6.1-Sol) -->
     fields = dict(line.split(": ", 1) for line in branch_summary if line.startswith(("Branch diff current HEAD: ", "Branch diff default ref: ", "Branch diff merge base: ")))
     head = fields.get("Branch diff current HEAD")
     default = fields.get("Branch diff default ref")
@@ -901,7 +909,8 @@ def build_branch_comparison_log(repo_root: Path, branch_summary: list[str]) -> t
 
 
 def build_omitted_dll_context(repo_root: Path, repository_state: str) -> tuple[dict[str, bytes], list[str]]:
-    # <!-- custom: Shipped/test DLLs are omitted from the light ZIP, so source reference copies cannot establish binary identity. Report exact sizes and SHA-256 for default/HEAD/index/working bytes without bundling DLLs; timestamps are informational, and identity/size do not establish build configuration or gameplay equivalence. (GPT-6.1-Sol) -->
+    # <!-- custom: Shipped/test DLLs are omitted from the light ZIP, so source reference copies cannot establish binary identity.
+    # Report exact sizes and SHA-256 for default/HEAD/index/working bytes without bundling DLLs; timestamps are informational, and identity/size do not establish build configuration or gameplay equivalence. (GPT-6.1-Sol) -->
     report_path = f"{GENERATED_CONTEXT_DIR}/omitted_dll_comparison.txt"
     fields = dict(line.split(": ", 1) for line in repository_state.splitlines() if line.startswith(("HEAD: ", "Default HEAD: ")))
     raw, error = run_git(repo_root, "ls-files", "--stage", "-z")
@@ -980,7 +989,8 @@ def build_omitted_dll_context(repo_root: Path, repository_state: str) -> tuple[d
 
 
 def copy_git_reference_blobs(repo_root: Path, blobs: list[tuple[str, str | None, bool]], folder: str, manifest: list[str]) -> tuple[dict[str, bytes], int]:
-    # <!-- custom: Share byte-preserving reference extraction across default-tip, HEAD and index snapshots. Read immutable Git blobs rather than working files; record every omission and preserve the existing compact-source size/binary limits. (GPT-6.1-Sol) -->
+    # <!-- custom: Share byte-preserving reference extraction across default-tip, HEAD and index snapshots.
+    # Read immutable Git blobs rather than working files; record every omission and preserve the existing compact-source size/binary limits. (GPT-6.1-Sol) -->
     context: dict[str, bytes] = {}
     total_bytes = 0
     for rel, blob, binary in blobs:
@@ -1013,7 +1023,9 @@ def copy_git_reference_blobs(repo_root: Path, blobs: list[tuple[str, str | None,
 
 
 def build_uncommitted_file_context(repo_root: Path, repository_state: str) -> tuple[dict[str, bytes], list[str]]:
-    # <!-- custom: Default-tip copies do not show the immediate pre-edit state on a feature branch. Export HEAD copies for all staged/unstaged affected paths and index copies for unstaged paths, enabling direct HEAD -> index -> working-tree review. Pin index entries to their captured blob IDs without writing trees or modifying the index. (GPT-6.1-Sol) -->
+    # <!-- custom: Default-tip copies do not show the immediate pre-edit state on a feature branch.
+    # Export HEAD copies for all staged/unstaged affected paths and index copies for unstaged paths, enabling direct HEAD -> index -> working-tree review.
+    # Pin index entries to their captured blob IDs without writing trees or modifying the index. (GPT-6.1-Sol) -->
     fields = dict(line.split(": ", 1) for line in repository_state.splitlines() if line.startswith("HEAD: "))
     head = fields.get("HEAD", "")
     paths_by_layer: list[dict[str, bool]] = []
@@ -1060,7 +1072,9 @@ def build_uncommitted_file_context(repo_root: Path, repository_state: str) -> tu
 
 
 def build_default_branch_file_context(repo_root: Path, repository_state: str, branch_summary: list[str]) -> tuple[dict[str, bytes], list[str]]:
-    # <!-- custom: Pair the cumulative review patch with exact default-tip text blobs in repository-relative folders. These are reference copies, not current source and not merge-base copies; additions without a default counterpart and omitted binaries/large files are explicit in the manifest. Disable rename detection when collecting paths so deleted/renamed originals remain available too. (GPT-6.1-Sol) -->
+    # <!-- custom: Pair the cumulative review patch with exact default-tip text blobs in repository-relative folders.
+    # These are reference copies, not current source and not merge-base copies; additions without a default counterpart and omitted binaries/large files are explicit in the manifest.
+    # Disable rename detection when collecting paths so deleted/renamed originals remain available too. (GPT-6.1-Sol) -->
     folder = f"{GENERATED_CONTEXT_DIR}/default_branch_files"
     manifest_path = f"{GENERATED_CONTEXT_DIR}/default_branch_files_manifest.txt"
     fields = dict(line.split(": ", 1) for line in [*repository_state.splitlines(), *branch_summary] if line.startswith(("Default HEAD: ", "Branch diff merge base: ")))
@@ -1888,7 +1902,8 @@ def build_commit_diff_history_context(repo_root: Path, commit_count: int, write_
 
     cache_dir, cache_error = commit_diff_cache_dir(repo_root)
     cache_writable = bool(cache_dir and write_cache)
-    # <!-- custom: History regeneration previously stayed quiet while many patches were rendered. Report the observed cache state and first miss, then periodic progress; a changed history alone does not invalidate reusable SHA entries. (GPT-6.1-Sol) -->
+    # <!-- custom: History regeneration previously stayed quiet while many patches were rendered.
+    # Report the observed cache state and first miss, then periodic progress; a changed history alone does not invalidate reusable SHA entries. (GPT-6.1-Sol) -->
     if cache_dir is None:
         print(f"History cache: unavailable ({cache_error}); missing patches will be generated in memory.", flush=True)
     elif cache_dir.is_dir():

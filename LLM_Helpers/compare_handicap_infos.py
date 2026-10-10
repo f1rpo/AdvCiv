@@ -141,7 +141,8 @@ def dict_by_type(data):
     return dict((h_type, fields) for h_type, fields in data)
 
 def infer_left_type_for_right_index(right_idx, left_data, right_data):
-    # <!-- custom: Prefer exact <Type> matches, but keep target/right XML order readable when the target adds a new lowest or highest handicap. New target-only entries are compared to the nearest shared boundary dynamically, e.g. a new Rookie before Settler compares to the base file's lowest shared Settler without hardcoding Rookie/Settler names. (ChatGPT-5.5) -->
+    # <!-- custom: Prefer exact <Type> matches, but keep target/right XML order readable when the target adds a new lowest or highest handicap.
+    # New target-only entries are compared to the nearest shared boundary dynamically, e.g. a new Rookie before Settler compares to the base file's lowest shared Settler without hardcoding Rookie/Settler names. (ChatGPT-5.5) -->
     left_by_type = dict_by_type(left_data)
     right_type = right_data[right_idx][0]
     if right_type in left_by_type:

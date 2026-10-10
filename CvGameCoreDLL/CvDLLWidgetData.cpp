@@ -686,7 +686,8 @@ void CvDLLWidgetData::parseHelp(CvWStringBuffer &szBuffer, CvWidgetDataStruct &w
 		// <!-- custom: add tooltip in Foreign Advisor glance tab. Credit: Gemini 3 Pro. (Claude code Sonnet 4.5 (summarized)) -->
 		// Vassal Check for Glance Screen
 		// eRival = m_iData1 (Column), ePlayer = m_iData2 (Row)
-		// <!-- custom: The vassal-helper refactor accidentally removed AdvCiv's independent explanation for the optional War Trades fist. Restore it before appending vassal willingness so both visible statuses remain explained. See KI#383. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: The vassal-helper refactor accidentally removed AdvCiv's independent explanation for the optional War Trades fist.
+		// Restore it before appending vassal willingness so both visible statuses remain explained. See KI#383. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		GAMETEXT.parseWarTradesHelp(szBuffer, (PlayerTypes)widgetDataStruct.m_iData1, (PlayerTypes)widgetDataStruct.m_iData2);
 		parseVassalWillingnessHelp(szBuffer, (PlayerTypes)widgetDataStruct.m_iData1, (PlayerTypes)widgetDataStruct.m_iData2);
 		// End - Vassal Check for Glance Screen
@@ -1008,7 +1009,8 @@ bool CvDLLWidgetData::executeAction(CvWidgetDataStruct &widgetDataExternal)
 	case WIDGET_PEDIA_JUMP_TO_DERIVED_TECH:
 		py.jumpToPedia(iData1, "Tech");
 		break;
-	// <!-- custom: AdvCiv's native trade-denial hover stopped using the ordinary Tech Pedia fallback and lost its click action. Restore the same target while retaining the richer hover. See KI#396. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: AdvCiv's native trade-denial hover stopped using the ordinary Tech Pedia fallback and lost its click action.
+	// Restore the same target while retaining the richer hover. See KI#396. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	case WIDGET_PEDIA_JUMP_TO_TECH_TRADE:
 		py.jumpToPedia(iData1, "Tech");
 		break;
@@ -1134,7 +1136,8 @@ bool CvDLLWidgetData::executeAction(CvWidgetDataStruct &widgetDataExternal)
 				(iData1 == 1 ? CONTROL_CYCLEWORKER : CONTROL_CYCLEUNIT_ALT));
 		break;
 	} // </advc.154>
-	// <!-- custom: The native scoreboard trade-routes hover replaced a WIDGET_CONTACT_CIV fallback and lost ordinary click-to-contact. data2 is the rival; keep the non-scoreboard widget hover-only. See KI#397. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: The native scoreboard trade-routes hover replaced a WIDGET_CONTACT_CIV fallback and lost ordinary click-to-contact.
+	// data2 is the rival; keep the non-scoreboard widget hover-only. See KI#397. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	case WIDGET_TRADE_ROUTES_SCOREBOARD:
 		widgetDataStruct.m_iData1 = widgetDataStruct.m_iData2;
 		doContactCiv(widgetDataStruct);
@@ -1172,7 +1175,8 @@ bool CvDLLWidgetData::executeAltAction(CvWidgetDataStruct &widgetDataExternal)
 	// K-Mod end
 	case WIDGET_TRAIN:
 	{
-		// <!-- custom: AdvCiv hoisted this lookup above the switch, forming an invalid reference for every opening-menu Pedia right click where no active player/civilization exists. Only class-based city-production widgets require it; fail explicitly if one somehow appears without an active civilization. See KI#384. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: AdvCiv hoisted this lookup above the switch, forming an invalid reference for every opening-menu Pedia right click where no active player/civilization exists.
+		// Only class-based city-production widgets require it; fail explicitly if one somehow appears without an active civilization. See KI#384. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		CvCivilization const* pActiveCiv = GC.getGame().getActiveCivilization();
 		FAssert(pActiveCiv != NULL);
 		if (pActiveCiv == NULL)
@@ -1231,7 +1235,8 @@ bool CvDLLWidgetData::executeAltAction(CvWidgetDataStruct &widgetDataExternal)
 	case WIDGET_HELP_YIELD_CHANGE:
 		py.jumpToPedia(widgetDataStruct.m_iData2, "Improvement");
 		break;
-	// <!-- custom: after fixing the obsolete bonus buttons in tech advisor, it seems now that non obsolete ones (e.g. cattle or camel bonuses at tech_animal_husbandry) generate same error that obsolete tech had before, trying to fix it by reenabling old code for non-obsolete bonuses only; result: fixed the issue it seems! So left as such -->
+	// <!-- custom: after fixing the obsolete bonus buttons in tech advisor, it seems now that non obsolete ones (e.g. cattle or camel bonuses at tech_animal_husbandry) generate same error that obsolete tech had before, trying to fix it by reenabling old code for non-obsolete bonuses only; result: fixed the issue it seems!
+	// So left as such -->
 	case WIDGET_HELP_BONUS_REVEAL:
 		py.jumpToPedia(widgetDataStruct.m_iData2, "Bonus");
 		break;
@@ -1250,7 +1255,8 @@ bool CvDLLWidgetData::executeAltAction(CvWidgetDataStruct &widgetDataExternal)
 	case WIDGET_HELP_CIVIC_REVEAL:
 		py.jumpToPedia(iData2, "Civic");
 		break;
-	// <!-- custom: AdvCiv's native relations hover replaced the WIDGET_LEADERHEAD fallback but omitted its right-click contact action. Restore that action through the same rival-in-data1 contract. See KI#397. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: AdvCiv's native relations hover replaced the WIDGET_LEADERHEAD fallback but omitted its right-click contact action.
+	// Restore that action through the same rival-in-data1 contract. See KI#397. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	case WIDGET_LEADERHEAD_RELATIONS:
 	case WIDGET_LH_GLANCE: // advc.152
 	case WIDGET_LEADERHEAD:
@@ -2485,7 +2491,8 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction, CvUni
 	}
 	case MISSION_PLUNDER:
 	{
-		// <!-- custom: A non-plundering selection head could report failure although another selected naval unit made Blockade executable. Test the selected mission population instead. See KI#393. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: A non-plundering selection head could report failure although another selected naval unit made Blockade executable.
+		// Test the selected mission population instead. See KI#393. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		bool bCanPlunder = false;
 		for (CLLNode<IDInfo> const* pNode = gDLL->UI().headSelectionListNode();
 			pNode != NULL; pNode = gDLL->UI().nextSelectionListNode(pNode))
@@ -2908,7 +2915,8 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction, CvUni
 			pNode != NULL; pNode = gDLL->UI().nextSelectionListNode(pNode))
 		{
 			CvUnit const& kSelectedUnit = *::getUnit(pNode->m_data);
-			// <!-- custom: BtS tested the ordinary Spy espionage mission here, excluding Great Spies even when the Infiltrate action was valid. Use the mission's own visible-test predicate before displaying its espionage-point yield. See KI#386. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			// <!-- custom: BtS tested the ordinary Spy espionage mission here, excluding Great Spies even when the Infiltrate action was valid.
+			// Use the mission's own visible-test predicate before displaying its espionage-point yield. See KI#386. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			if (!kSelectedUnit.canInfiltrate(&kMissionPlot, true))
 				continue;
 			szTempBuffer.Format(L"%s+%d%c", NEWLINE,
@@ -2937,7 +2945,8 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction, CvUni
 	}
 	case MISSION_LEAD:
 	{
-		// <!-- custom: Lead can be exposed by a selected Great General while an ordinary combat unit is the selection head. Derive all mission help from the selected unit that can actually lead. See KI#393. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: Lead can be exposed by a selected Great General while an ordinary combat unit is the selection head.
+		// Derive all mission help from the selected unit that can actually lead. See KI#393. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		CvUnit const* pLeader = NULL;
 		for (CLLNode<IDInfo> const* pNode = gDLL->UI().headSelectionListNode();
 			pNode != NULL; pNode = gDLL->UI().nextSelectionListNode(pNode))
@@ -2992,7 +3001,8 @@ void CvDLLWidgetData::parseActionHelp_Mission(CvActionInfo const& kAction, CvUni
 			pNode != NULL; pNode = gDLL->UI().nextSelectionListNode(pNode))
 		{
 			CvUnit const& kSelectedUnit = *::getUnit(pNode->m_data);
-			// <!-- custom: Preview only selected units that AdvCiv's executor can actually use now. Spent/ineligible siege formerly contributed nominal damage, and an ineligible head could suppress the preview entirely. See KI#393. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			// <!-- custom: Preview only selected units that AdvCiv's executor can actually use now.
+			// Spent/ineligible siege formerly contributed nominal damage, and an ineligible head could suppress the preview entirely. See KI#393. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			if (!kSelectedUnit.canMove() || !kSelectedUnit.canBombard(kMissionPlot))
 				continue;
 			CvCity const* const pSelectedTarget = kSelectedUnit.bombardTarget(kMissionPlot);
@@ -4731,7 +4741,8 @@ void CvDLLWidgetData::parseTradeItem(CvWidgetDataStruct &widgetDataStruct, CvWSt
 		break;
 	}
 	case TRADE_PEACE:
-		// <!-- custom: GET_TEAM accepts this PlayerTypes value through CvGamePlay::getTeam(PlayerTypes), which converts it with TEAMID; an additional explicit conversion would be redundant. This is the non-AI counterpart of the CoreAI overload reviewed in KI#311. See KI#387. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: GET_TEAM accepts this PlayerTypes value through CvGamePlay::getTeam(PlayerTypes), which converts it with TEAMID; an additional explicit conversion would be redundant.
+		// This is the non-AI counterpart of the CoreAI overload reviewed in KI#311. See KI#387. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		szBuffer.append(gDLL->getText("TXT_KEY_TRADE_MAKE_PEACE",
 				GET_TEAM(eWhoFrom).getName().GetCString(),
 				GET_TEAM((TeamTypes)widgetDataStruct.m_iData2).getName().GetCString()));

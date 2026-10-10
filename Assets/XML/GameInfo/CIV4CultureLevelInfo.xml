@@ -4,7 +4,8 @@
 <!-- Copyright Firaxis Games 2005 -->
 <!-- -->
 <!-- Culture Level Infos -->
-<!-- custom: added new game speeds with the help of chatgpt5. thanks, and the compact display is super more readable thanks a lot! -->
+<!-- custom: added new game speeds with the help of chatgpt5.
+thanks, and the compact display is super more readable thanks a lot! -->
 <Civ4CultureLevelInfo xmlns="x-schema:CIV4GameInfoSchema.xml">
 	<CultureLevelInfos>
 		<CultureLevelInfo>

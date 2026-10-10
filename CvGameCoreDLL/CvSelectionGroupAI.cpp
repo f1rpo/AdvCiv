@@ -161,7 +161,8 @@ bool CvSelectionGroupAI::AI_update()
 		const int iHeadYBefore = (pHeadBefore == NULL ? -1 : pHeadBefore->getY());
 		const int iHeadMovesBefore = (pHeadBefore == NULL ? -1 : pHeadBefore->movesLeft());
 		const int iMissionQueueLengthBefore = getLengthMissionQueue();
-		// <!-- custom: Missionless transport unloading changes group cargo, and AdvCiv can detach a non-head bombard unit while leaving every existing head snapshot unchanged. Both are real progress that must re-enter inherited group evaluation instead of receiving MISSION_SKIP. See KI#522 and KI#524. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: Missionless transport unloading changes group cargo, and AdvCiv can detach a non-head bombard unit while leaving every existing head snapshot unchanged.
+		// Both are real progress that must re-enter inherited group evaluation instead of receiving MISSION_SKIP. See KI#522 and KI#524. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		const int iNumUnitsBefore = getNumUnits();
 		const int iCargoBefore = getCargo();
 		// <!-- custom: Consuming a queued group attack and spending a non-head member's movement are also legitimate progress while every head-centric field can remain unchanged.
@@ -173,7 +174,8 @@ bool CvSelectionGroupAI::AI_update()
 	#ifdef _DEBUG
 		iMaxAttempts -= 4; // Trigger assert early
 	#endif
-		// <!-- custom: Keep the richer stuck-group diagnostic lazy, but preserve it in every assertion-enabled build rather than `_DEBUG` alone. The early trigger and restoration remain separate because only Debug lowers the attempt limit. See KI#596. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: Keep the richer stuck-group diagnostic lazy, but preserve it in every assertion-enabled build rather than `_DEBUG` alone.
+		// The early trigger and restoration remain separate because only Debug lowers the attempt limit. See KI#596. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		// FAssertMsg(iAttempts != iMaxAttempts, "Unit stuck in a loop");
 	#ifdef FASSERT_ENABLE
 		const bool bAssertCondition = (iAttempts != iMaxAttempts);
@@ -404,7 +406,8 @@ int CvSelectionGroupAI::AI_getWeightedOdds(CvPlot const* pPlot, bool bPotentialE
 		adding them back in after the adjustments are done.
 		(A more elaborate fix would avoid adding them in the first place.) */
 	int const iAttackOddsChange = GET_PLAYER(getOwner()).AI_getAttackOddsChange();
-	// <!-- custom: Subtraction remains exact away from the public clamp boundaries. At 1 or 99, recompute the selected attacker's unadjusted odds because the clamp may have discarded a true 0% or 100% endpoint.
+	// <!-- custom: Subtraction remains exact away from the public clamp boundaries.
+	// At 1 or 99, recompute the selected attacker's unadjusted odds because the clamp may have discarded a true 0% or 100% endpoint.
 	// This implements AdvCiv's suggested elaborate fix without repeating combat-odds work for ordinary values. See KI#523. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (iOdds <= 1 || iOdds >= 99)
 		iOdds = pAttacker->AI_attackOdds(pPlot, bPotentialEnemy, true);
@@ -487,10 +490,8 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot, bool 
 			continue;
 
 		// <!-- custom: For AI stack attacks, spend expendable units first to preserve elite finishers.
-		// This is economically efficient: older/weaker units cost upkeep but scale poorly, while elite units are costly to lose
-		// and can secure the fight if early attacks go badly; keeping them as finishers preserves flexibility and escape odds.
-		// Once bombard is done and we have decided to attack, siege/collateral units go first because they are less useful on defense
-		// and have already contributed their main value; this also front-loads collateral damage to soften the defenders.
+		// This is economically efficient: older/weaker units cost upkeep but scale poorly, while elite units are costly to lose and can secure the fight if early attacks go badly; keeping them as finishers preserves flexibility and escape odds.
+		// Once bombard is done and we have decided to attack, siege/collateral units go first because they are less useful on defense and have already contributed their main value; this also front-loads collateral damage to soften the defenders.
 		// Order by lowest effective power, then lowest XP; among healthy units (>= SAS_*_MIN_HEALTH_PERCENT), lower health first. (GPT-5.2-Codex) -->
 		if (bUseLowPower)
 		{
@@ -583,8 +584,10 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot, bool 
 		pInheritedBestSacrifice = pBestSacrifice;
 		if(pBestSacrifice != NULL)
 		{
-			// <!-- custom: When the inherited sacrifice choice would spend a current unit at risky odds, prefer an obsolete sacrifice that retains enough inherited tactical value. Obsolete units remain useful as deliberate expenditures: losing them reduces support/upgrade pressure while preserving current units for future wars.
-			// A current unit with very high odds is allowed to attack because it is unlikely to be lost; once the current choice is itself in sacrifice territory, the normal odds-deficit limit can be bypassed and sacrifice value/tactical role become the safeguards. Do not protect obsolete units merely for XP. See KI#200. (GPT-5.6 Thinking) -->
+			// <!-- custom: When the inherited sacrifice choice would spend a current unit at risky odds, prefer an obsolete sacrifice that retains enough inherited tactical value.
+			// Obsolete units remain useful as deliberate expenditures: losing them reduces support/upgrade pressure while preserving current units for future wars.
+			// A current unit with very high odds is allowed to attack because it is unlikely to be lost; once the current choice is itself in sacrifice territory, the normal odds-deficit limit can be bypassed and sacrifice value/tactical role become the safeguards.
+			// Do not protect obsolete units merely for XP. See KI#200. (GPT-5.6 Thinking) -->
 			static const bool bSAS_AI_GETBESTGROUPATTACKER_OBSOLETE_SACRIFICE_OPTIMIZE = GC.getDefineBOOL("SAS_AI_GETBESTGROUPATTACKER_OBSOLETE_SACRIFICE_OPTIMIZE");
 			static const int iSAS_AI_GETBESTGROUPATTACKER_OBSOLETE_SACRIFICE_CURRENT_SAFE_ODDS_PERCENT = GC.getDefineINT("SAS_AI_GETBESTGROUPATTACKER_OBSOLETE_SACRIFICE_CURRENT_SAFE_ODDS_PERCENT");
 			static const int iSAS_AI_GETBESTGROUPATTACKER_OBSOLETE_SACRIFICE_ODDS_DEFICIT_BYPASS_MAX_CURRENT_ODDS_PERCENT = GC.getDefineINT("SAS_AI_GETBESTGROUPATTACKER_OBSOLETE_SACRIFICE_ODDS_DEFICIT_BYPASS_MAX_CURRENT_ODDS_PERCENT");
@@ -609,7 +612,8 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot, bool 
 					if (eObsoleteTech == NO_TECH || !GET_TEAM(pObsoleteUnit->getTeam()).isHasTech(eObsoleteTech)) continue;
 					if (bInheritedTacticalSacrifice && pObsoleteUnit->bombardRate() <= 0 && pObsoleteUnit->collateralDamage() <= 0) continue;
 					int const iObsoleteOdds = pObsoleteUnit->AI_attackOdds(pPlot, bPotentialEnemy);
-					// <!-- custom: Once the inherited current unit is itself in sacrifice territory, do not reject obsolete candidates merely for having still lower victory odds; the sacrifice-value and tactical-role gates remain the quality safeguards. Above that risk threshold, retain the normal maximum odds-deficit limit. See KI#200. (GPT-5.6 Thinking) -->
+					// <!-- custom: Once the inherited current unit is itself in sacrifice territory, do not reject obsolete candidates merely for having still lower victory odds; the sacrifice-value and tactical-role gates remain the quality safeguards.
+					// Above that risk threshold, retain the normal maximum odds-deficit limit. See KI#200. (GPT-5.6 Thinking) -->
 					if (iInheritedBestSacrificeOdds > iSAS_AI_GETBESTGROUPATTACKER_OBSOLETE_SACRIFICE_ODDS_DEFICIT_BYPASS_MAX_CURRENT_ODDS_PERCENT && iObsoleteOdds + iSAS_AI_GETBESTGROUPATTACKER_OBSOLETE_SACRIFICE_MAX_ODDS_DEFICIT_PERCENT < iInheritedBestSacrificeOdds) continue;
 					int const iObsoleteSacrificeValue = pObsoleteUnit->AI_sacrificeValue(pPlot);
 					if (100 * iObsoleteSacrificeValue < iSAS_AI_GETBESTGROUPATTACKER_OBSOLETE_SACRIFICE_MIN_VALUE_PERCENT_OF_CURRENT * iInheritedSacrificeValue) continue;
@@ -643,7 +647,8 @@ CvUnitAI* CvSelectionGroupAI::AI_getBestGroupAttacker(const CvPlot* pPlot, bool 
 	}
 	// <!-- custom: Diagnostic only: verify whether the low-power stack ordering spends old/obsolete units, whether the inherited sacrifice fallback replaces that choice, and when the SAS obsolete-expenditure refinement changes the inherited sacrifice.
 	// Compare the exact best obsolete/non-obsolete sacrifice-value and attack-odds alternatives so tuning can remain evidence-based.
-	// Age is intentionally logged rather than used for selection; the low-power stage still ranks bombard/collateral first, then low effective power, XP and health. Gate all extra diagnostic candidate scans behind WAR level 3. (GPT-5.6 Thinking) -->
+	// Age is intentionally logged rather than used for selection; the low-power stage still ranks bombard/collateral first, then low effective power, XP and health.
+	// Gate all extra diagnostic candidate scans behind WAR level 3. (GPT-5.6 Thinking) -->
 	if (gWarLogLevel >= 3 && bUseLowPower && pLowPowerSelected != NULL && pBestUnit != NULL)
 	{
 		int iEligibleAttackers = 0;
@@ -989,7 +994,8 @@ CvUnit* CvSelectionGroupAI::AI_bestUnitForMission(MissionTypes eMission, CvPlot 
 		if (pTargetCity != NULL)
 		{
 			pMissionPlot = pTargetCity->plot();
-			// <!-- custom: Count units that can actually defend the city. The inherited raw predicate also counted loaded combat cargo, although primary-defender selection excludes cargo. See KI#531. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			// <!-- custom: Count units that can actually defend the city.
+			// The inherited raw predicate also counted loaded combat cargo, although primary-defender selection excludes cargo. See KI#531. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			iDefenders = 0;
 			FOR_EACH_UNIT_IN(pLoopUnit, *pMissionPlot)
 			{
@@ -1005,11 +1011,13 @@ CvUnit* CvSelectionGroupAI::AI_bestUnitForMission(MissionTypes eMission, CvPlot 
 			}
 			else
 			{
-				// <!-- custom: Human Bombard is legal against an undefended city; canBombard and isBombardable deliberately impose no defender requirement, and the later ratio already guards zero through std::max. Remove the stale human-path assertion rather than restricting valid gameplay. See KI#521. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				// <!-- custom: Human Bombard is legal against an undefended city; canBombard and isBombardable deliberately impose no defender requirement, and the later ratio already guards zero through std::max.
+				// Remove the stale human-path assertion rather than restricting valid gameplay. See KI#521. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 				int iAttackers = 0;
 				FOR_EACH_UNIT_IN(pUnit, kAt)
 				{
-					// <!-- custom: Count only the human owner's units that can participate in the immediate city take. The inherited entry test admitted peaceful foreign units and noncombat units such as Spies, distorting the smart-Bombard decision.
+					// <!-- custom: Count only the human owner's units that can participate in the immediate city take.
+					// The inherited entry test admitted peaceful foreign units and noncombat units such as Spies, distorting the smart-Bombard decision.
 					// KI#530 consequently required attack entry, but that excludes every legal capturer when the city has no defender; use capture entry in that state, which still rejects no-capture units. See KI#530 and KI#1040. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 					if (pUnit->getOwner() == getOwner() && pUnit->canMove() && pUnit->canAttack() &&
 						!pUnit->canBombard(kAt) && pUnit->canMoveInto(*pMissionPlot, iDefenders > 0))
@@ -1105,7 +1113,8 @@ CvUnit* CvSelectionGroupAI::AI_bestUnitForMission(MissionTypes eMission, CvPlot 
 		}
 		case MISSION_AIRBOMB:
 		{
-			// <!-- custom: Rank only aircraft that can execute Air Bomb at this target. AdvCiv used generic ability for cities and no target test for improvements, so an invalid first choice could abort a valid group order. See KI#394. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			// <!-- custom: Rank only aircraft that can execute Air Bomb at this target.
+			// AdvCiv used generic ability for cities and no target test for improvements, so an invalid first choice could abort a valid group order. See KI#394. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			if (pMissionPlot == NULL || !pUnit->canAirBombAt(*pMissionPlot))
 				continue;
 			if (pMissionPlot->isCity())

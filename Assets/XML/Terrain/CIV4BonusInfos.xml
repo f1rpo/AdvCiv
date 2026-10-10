@@ -29,7 +29,8 @@
 			</YieldChanges>
 			<!-- advc.036: was 10 -->
 			<iAITradeModifier>0</iAITradeModifier>
-			<!-- custom: AdvCiv-SAS keeps iAIObjective at 0 for every current bonus because shared player-specific valuation derives ordinary importance from units, buildings, projects, routes, era/technology readiness, obsolescence, substitutes, corporations and health/happiness. Authors/mod-mods can set a nonzero value as an additive manual adjustment to that shared result; each point adds one final bonus-value unit consistently for trade, Settler, Worker and strategic consumers. (GPT-5.6-Sol) -->
+			<!-- custom: AdvCiv-SAS keeps iAIObjective at 0 for every current bonus because shared player-specific valuation derives ordinary importance from units, buildings, projects, routes, era/technology readiness, obsolescence, substitutes, corporations and health/happiness.
+			Authors/mod-mods can set a nonzero value as an additive manual adjustment to that shared result; each point adds one final bonus-value unit consistently for trade, Settler, Worker and strategic consumers. (GPT-5.6-Sol) -->
 			<iAIObjective>0</iAIObjective>
 			<iHealth>0</iHealth>
 			<iHappiness>0</iHappiness>
@@ -1061,7 +1062,8 @@
 					<bTerrain>1</bTerrain>
 				</TerrainBoolean>
 			</TerrainBooleans>
-			<!-- custom: in real world map forest-like areas seem much more prevalent, also fine to change to as of now forest according to chatgpt 5.2. Also, since we as of now removed sheep from grass, maybe this is fine to allow pig on forest that has a grass only, and since jungle is as of now stronger (no inherent food penalty) in advciv-sas, fine to weaken it a bit on that end as well i think, was FEATURE_JUNGLE -->
+			<!-- custom: in real world map forest-like areas seem much more prevalent, also fine to change to as of now forest according to chatgpt 5.2.
+			Also, since we as of now removed sheep from grass, maybe this is fine to allow pig on forest that has a grass only, and since jungle is as of now stronger (no inherent food penalty) in advciv-sas, fine to weaken it a bit on that end as well i think, was FEATURE_JUNGLE -->
 			<FeatureBooleans>
 				<FeatureBoolean>
 					<FeatureType>FEATURE_FOREST</FeatureType>
@@ -1096,7 +1098,7 @@
 			<iPlacementOrder>4</iPlacementOrder>
 			<iConstAppearance>50</iConstAppearance>
 			<iMinAreaSize>3</iMinAreaSize>
-			<!-- custom: Long_Comments_XML.txt #303, and to buff rice a bit if relevant here and possible indeed about/for rice since it is quite weak indeed  of it being how it (rice) works, was 0 / 40 -->
+			<!-- custom: Long_Comments_XML.txt #303, and to buff rice a bit if relevant here and possible indeed about/for rice since it is quite weak indeed of it being how it (rice) works, was 0 / 40 -->
 			<iMinLatitude>0</iMinLatitude>
 			<iMaxLatitude>55</iMaxLatitude>
 			<Rands>
@@ -1983,7 +1985,8 @@
 				<iRandApp3>0</iRandApp3>
 				<iRandApp4>0</iRandApp4>
 			</Rands>
-			<!-- custom: reducing iPlayer to 0 if need be to make it player-independent too and flat, always constant spanwing, was 67; buff water bonuses. Since it was 0, using a higher than 0 value to not disable it according to https://gforestshade.github.io/kujira/post/civ4bonusinfos/#itilesper, was 67 / 0; after tweaking it to 0 / 26 seems still a bit too high in frequency, whale appears a bit too often, reduce it a bit now from 0 / 26 to value(s) below that. -->
+			<!-- custom: reducing iPlayer to 0 if need be to make it player-independent too and flat, always constant spanwing, was 67; buff water bonuses.
+			Since it was 0, using a higher than 0 value to not disable it according to https://gforestshade.github.io/kujira/post/civ4bonusinfos/#itilesper, was 67 / 0; after tweaking it to 0 / 26 seems still a bit too high in frequency, whale appears a bit too often, reduce it a bit now from 0 / 26 to value(s) below that. -->
 			<iPlayer>0</iPlayer>
 			<iTilesPer>29</iTilesPer>
 			<iMinLandPercent>0</iMinLandPercent>

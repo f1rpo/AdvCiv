@@ -565,7 +565,8 @@ void CvTeam::addTeam(TeamTypes eTeam)
 	/*	K-Mod: The following cancel deals code has been moved from higher up.
 		I've done this so that when open-borders is canceled,
 		it doesn't bump our new allies out of our borders. */
-	// <!-- custom: Keep K-Mod's post-reassignment timing, but clear the obsolete relation between the surviving and absorbed team IDs directly. Generic deal teardown now sees both players on the surviving team and otherwise misreads the old Defensive Pact as a self-pact.
+	// <!-- custom: Keep K-Mod's post-reassignment timing, but clear the obsolete relation between the surviving and absorbed team IDs directly.
+	// Generic deal teardown now sees both players on the surviving team and otherwise misreads the old Defensive Pact as a self-pact.
 	// The absorbed team has no remaining players, so clearing only these stored old-team bits avoids unit bumping, false cancellation memory and AdvCiv's self-team assertion. See KI#613. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	m_abOpenBorders.set(eTeam, false);
 	GET_TEAM(eTeam).m_abOpenBorders.set(getID(), false);
@@ -662,16 +663,15 @@ void CvTeam::addTeam(TeamTypes eTeam)
 		// <!-- custom: After transferring an outsider's stolen-visibility timer to the surviving Permanent-Alliance team, clear its absorbed-team relation through the stateful setter so the old plot-level counts are removed. See KI#421. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if (kOther.isAlive())
 			kOther.setStolenVisibilityTimer(eTeam, 0);
-		// <!-- custom: Firaxis migrated neighboring temporary espionage state during a Permanent Alliance but omitted Counterespionage. Its effect is keyed to the current team identity,
-		// so retain the longer coherent timer/modifier pair from the outsider's direction rather than leaving it on the absorbed team. See KI#400. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: Firaxis migrated neighboring temporary espionage state during a Permanent Alliance but omitted Counterespionage.
+		// Its effect is keyed to the current team identity, so retain the longer coherent timer/modifier pair from the outsider's direction rather than leaving it on the absorbed team. See KI#400. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if (kOther.getCounterespionageTurnsLeftAgainstTeam(eTeam) > kOther.getCounterespionageTurnsLeftAgainstTeam(getID()))
 		{
 			kOther.setCounterespionageTurnsLeftAgainstTeam(getID(), kOther.getCounterespionageTurnsLeftAgainstTeam(eTeam));
 			kOther.setCounterespionageModAgainstTeam(getID(), kOther.getCounterespionageModAgainstTeam(eTeam));
 		}
 		kOther.AI_setAtPeaceCounter(getID(), (iOriginalTeamSize * kOther.AI_getAtPeaceCounter(getID()) + iSecondTeamSize * kOther.AI_getAtPeaceCounter(eTeam)) / getNumMembers());
-		// <!-- custom: HasMetCounter is exact bilateral history, but AdvCiv max-merged the survivor's direction and weighted the outsider's.
-		// Assign the same weighted Permanent-Alliance result to both directions like the neighboring exact AtWarCounter. See KI#420. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: HasMetCounter is exact bilateral history, but AdvCiv max-merged the survivor's direction and weighted the outsider's. Assign the same weighted Permanent-Alliance result to both directions like the neighboring exact AtWarCounter. See KI#420. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		int const iMergedHasMetCounter = (iOriginalTeamSize * kOther.AI_getHasMetCounter(getID()) + iSecondTeamSize * kOther.AI_getHasMetCounter(eTeam)) / getNumMembers();
 		kOther.AI_setHasMetCounter(getID(), iMergedHasMetCounter);
 		AI().AI_setHasMetCounter(kOther.getID(), iMergedHasMetCounter);
@@ -1246,7 +1246,8 @@ void CvTeam::declareWar(TeamTypes eTarget, bool bNewDiplo, WarPlanTypes eWarPlan
 	setAtWar(eTarget, true);
 	kTarget.setAtWar(getID(), true);
 	m_abJustDeclaredWar.set(eTarget, true); // advc.162
-	// <!-- custom: The inherited EventReporter callback only knew that two teams entered war. Log at the declaration itself, before secondary wars are triggered, so the declarer, target, plan, sponsor, primary/cascade status, and preserved cause remain unambiguous. (GPT-5.6-Sol) -->
+	// <!-- custom: The inherited EventReporter callback only knew that two teams entered war.
+	// Log at the declaration itself, before secondary wars are triggered, so the declarer, target, plan, sponsor, primary/cascade status, and preserved cause remain unambiguous. (GPT-5.6-Sol) -->
 	if (gGameRecordLogLevel >= 2) logSASGameRecordWarStarted(getID(), eTarget, eWarPlan, bPrimaryDoW, bNewDiplo, eSponsor, bRandomEvent, eCause);
 	// BETTER_BTS_AI_MOD (08/21/09, jdog5000, Efficiency): START
 	GC.getMap().invalidateBorderDangerCache(eTarget);
@@ -1475,7 +1476,8 @@ void CvTeam::makePeace(TeamTypes eTarget, bool bBumpUnits, TeamTypes eBroker, bo
 		kMembers[i]->updatePlotGroups();
 	for (size_t i = 0; i < kMembers.size(); i++)
 		kMembers[i]->updateTradeRoutes();
-	// <!-- custom: Base AdvCiv's AI_postMakePeace clears both teams' war-success values. Record the completed war and peace context after the war counts change but before that reset, so SASGameRecord can emit an accurate synthetic summary. (GPT-5.6-Sol) -->
+	// <!-- custom: Base AdvCiv's AI_postMakePeace clears both teams' war-success values.
+	// Record the completed war and peace context after the war counts change but before that reset, so SASGameRecord can emit an accurate synthetic summary. (GPT-5.6-Sol) -->
 	if (gGameRecordLogLevel >= 2) logSASGameRecordWarEnded(getID(), eTarget, AI().AI_getWarSuccess(eTarget).round(), kTarget.AI().AI_getWarSuccess(getID()).round(), bCapitulate, eBroker, bRandomEvent, pReparations != NULL);
 	// advc: AI code moved down a bit and then into a new function
 	AI().AI_postMakePeace(eTarget);
@@ -2737,7 +2739,8 @@ PlayerTypes CvTeam::getRandomMemberAlive(bool bHuman) const
 	int iValid = (bHuman ? PlayerIter<HUMAN,MEMBER_OF>::count(getID()) :
 			getAliveCount());
 	int iIndex = SyncRandNum(iValid);
-	// <!-- custom: Fix inherited AdvCiv practical 2945 bug: the random index is 0-based, while nextIndex() reports the next iterator position and also counts ineligible members. Compare against our own eligible-member index instead. See KI#207. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Fix inherited AdvCiv practical 2945 bug: the random index is 0-based, while nextIndex() reports the next iterator position and also counts ineligible members.
+	// Compare against our own eligible-member index instead. See KI#207. (ChatGPT-5.6-Sol) -->
 	int iValidIndex = 0;
 	for (MemberIter itMember(getID()); itMember.hasNext(); ++itMember)
 	{
@@ -4051,7 +4054,8 @@ void CvTeam::triggerWars(bool bForceUpdateAttitude)
 	else bTriggeringWars = true;
 	while (!attacking_queue.empty())
 	{
-		// <!-- custom: eCause follows the existing optional sponsor and random-event parameters. Pass their former NO_PLAYER/false defaults explicitly so adding the queued cause preserves gameplay exactly. (GPT-5.6-Sol) -->
+		// <!-- custom: eCause follows the existing optional sponsor and random-event parameters.
+		// Pass their former NO_PLAYER/false defaults explicitly so adding the queued cause preserves gameplay exactly. (GPT-5.6-Sol) -->
 		GET_TEAM(attacking_queue.front()).declareWar(
 				defending_queue.front(), newdiplo_queue.front(),
 				warplan_queue.front(), primarydow_queue.front(), NO_PLAYER, false, warcause_queue.front());
@@ -4795,7 +4799,8 @@ void CvTeam::setHasTech(TechTypes eTech, bool bNewValue, PlayerTypes ePlayer, bo
 
 		if (kTech.isMapVisible())
 		{
-			// <!-- custom: Map-visible technologies previously produced thousands of redundant coordinate entries. Suppress those per-plot hooks during this known bulk operation and record one exact full-map revelation row instead. (GPT-5.6-Sol) -->
+			// <!-- custom: Map-visible technologies previously produced thousands of redundant coordinate entries.
+			// Suppress those per-plot hooks during this known bulk operation and record one exact full-map revelation row instead. (GPT-5.6-Sol) -->
 			bool const bLogFullMapRevelation = (gGameRecordLogLevel >= 2 && getID() < MAX_CIV_TEAMS && kGame.getElapsedGameTurns() > 0);
 			if (bLogFullMapRevelation) beginSASGameRecordFullMapRevelation(getID(), eTech);
 			GC.getMap().setRevealedPlots(getID(), true, true);
@@ -5481,7 +5486,8 @@ void CvTeam::verifySpyUnitsValidPlot()
 		CvPlayer const& kMember = *it;
 		FOR_EACH_UNIT_VAR(pUnit, kMember)
 		{
-			// <!-- custom: A failed inherited Partisans initUnit(NO_UNIT) call left a reset/unplaced object in the unit container. This inherited loop dereferenced its null plot before checking whether it was a Spy, then a first repair still crashed by reading isSpy() before placement.
+			// <!-- custom: A failed inherited Partisans initUnit(NO_UNIT) call left a reset/unplaced object in the unit container.
+			// This inherited loop dereferenced its null plot before checking whether it was a Spy, then a first repair still crashed by reading isSpy() before placement.
 			// Check placement before all unit-info-backed state and ignore every unit outside this helper's placed-Spy scope. See KI#524.2 and KI#524.6. (GPT-5.6-Sol) -->
 			if (pUnit->plot() == NULL || !pUnit->isSpy())
 				continue;
@@ -5598,8 +5604,8 @@ void CvTeam::doWarWeariness()
 	static int const iWW_DECAY_RATE = GC.getDefineINT("WW_DECAY_RATE"); // advc.opt
 	static int const iWW_DECAY_PEACE_PERCENT = GC.getDefineINT("WW_DECAY_PEACE_PERCENT"); // advc.opt
 	CvGame const& kGame = GC.getGame();
-	// <!-- custom: AdvCiv practical 1837 restricted this BtS loop to living civilizations, making the retained dead-team decay branch unreachable and freezing stored war weariness until revival. Iterate every civilization team that has lived so dead-team weariness continues decaying.
-	// See KI#415. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: AdvCiv practical 1837 restricted this BtS loop to living civilizations, making the retained dead-team decay branch unreachable and freezing stored war weariness until revival.
+	// Iterate every civilization team that has lived so dead-team weariness continues decaying. See KI#415. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	for (TeamIter<EVER_ALIVE> it; it.hasNext(); ++it)
 	{
 		TeamTypes eLoopTeam = it->getID();

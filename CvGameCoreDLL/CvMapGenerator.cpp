@@ -88,7 +88,8 @@ bool CvMapGenerator::canPlaceBonusAt(BonusTypes eBonus, int iX, int iY, bool bIg
 		}
 	}
 
-	// <!-- custom: AdvCiv limits tightly packed clusters beyond the BTS XML range rules. Keep that rule together with AdvCiv's other cluster-shaping changes under one control. (GPT-5.6-Sol) -->
+	// <!-- custom: AdvCiv limits tightly packed clusters beyond the BTS XML range rules.
+	// Keep that rule together with AdvCiv's other cluster-shaping changes under one control. (GPT-5.6-Sol) -->
 	static const bool bSASAdvCivBonusClustering = GC.getDefineBOOL("SAS_MAP_ADVCIV_BONUS_CLUSTERING_ENABLE");
 	// <advc.129> Prevent more than one adjacent copy regardless of range.
 	if (bSASAdvCivBonusClustering)
@@ -193,7 +194,8 @@ void CvMapGenerator::addLakes()
 	static const int iLAKE_PLOT_RAND = GC.getDefineINT("LAKE_PLOT_RAND");
 	int iLakeRollSides = iLAKE_PLOT_RAND;
 	static const TerrainTypes eDesert = (TerrainTypes)GC.getDefineINT("BARREN_TERRAIN");
-	// <!-- custom: AdvCiv makes desert lake candidates one quarter as likely while preserving the overall expected lake count, and no longer lets lakes replace Peaks. Expose those choices independently. (GPT-5.6-Sol) -->
+	// <!-- custom: AdvCiv makes desert lake candidates one quarter as likely while preserving the overall expected lake count, and no longer lets lakes replace Peaks.
+	// Expose those choices independently. (GPT-5.6-Sol) -->
 	static const int iSASDesertLakeRelativePercent = GC.getDefineINT("SAS_MAP_DESERT_LAKE_RELATIVE_PERCENT");
 	static const bool bSASLakePeakReplacement = GC.getDefineBOOL("SAS_MAP_LAKE_PEAK_REPLACEMENT_ENABLE");
 	int iDesert = 0;
@@ -224,7 +226,8 @@ void CvMapGenerator::addLakes()
 	for (int i = 0; i < iCandidates; i++)
 	{
 		CvPlot& p = *apbCandidates[i].first;
-		// <!-- custom: AdvCiv snapshots lake candidates before any become water. Preserve its batched area rebuild, but reject plots that an earlier selected lake has made coastal before consuming their roll, as BTS/K-Mod did sequentially. See KI#566. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: AdvCiv snapshots lake candidates before any become water.
+		// Preserve its batched area rebuild, but reject plots that an earlier selected lake has made coastal before consuming their roll, as BTS/K-Mod did sequentially. See KI#566. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		bool bAdjacentSelectedLake = false;
 		FOR_EACH_ADJ_PLOT(p)
 		{
@@ -245,7 +248,8 @@ void CvMapGenerator::addLakes()
 	} // </advc.129e>
 	// <advc.opt> Recalc only once
 	// <!-- custom: AdvCiv asked only the final lake conversion to recalculate, but CvPlot::setPlotType can update that plot locally without rebuilding the whole map.
-	// Earlier lakes then retained their former land CvArea while features, bonuses and starts were generated. Convert the batch first, then explicitly rebuild all areas once. See KI#572. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// Earlier lakes then retained their former land CvArea while features, bonuses and starts were generated.
+	// Convert the batch first, then explicitly rebuild all areas once. See KI#572. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	for (size_t i = 0; i < apLakes.size(); i++)
 		apLakes[i]->setPlotType(PLOT_OCEAN, false, false);
 	if (!apLakes.empty())
@@ -256,7 +260,8 @@ void CvMapGenerator::addRivers()
 {
 	PROFILE_FUNC();
 
-	// <!-- custom: Water.py temporarily changes the default river generator's defines. Snapshot them before the map-script callback, consume the active values after it, then restore the shared globals so Water remains effective and cannot contaminate later map generations.
+	// <!-- custom: Water.py temporarily changes the default river generator's defines.
+	// Snapshot them before the map-script callback, consume the active values after it, then restore the shared globals so Water remains effective and cannot contaminate later map generations.
 	// CvGlobals::getInstance() is intentional: AdvCiv's GC accessor is const, but restoring changed defines requires the established mutable singleton accessor. See KI#243. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	CvGlobals& kGlobals = CvGlobals::getInstance();
 	const int iOriginalRiverSourceRange = kGlobals.getDefineINT("RIVER_SOURCE_MIN_RIVER_RANGE");
@@ -286,7 +291,8 @@ void CvMapGenerator::addRivers()
 	// <!-- custom: note: not using const as it causes a compile error: "CvMapGenerator.cpp(287): error C2662: 'CvMap::findWater' : cannot convert 'this' pointer from 'const CvMap' to 'CvMap &'" -->
 	CvMap& kMap = GC.getMap();
 	const int nPlots = kMap.numPlots();
-	// <!-- custom: AdvCiv replaced the retained BTS river-source traversal and direction-scoring block for advc.129. Make either routing path selectable; enabled by default to preserve current AdvCiv-SAS maps. (GPT-5.6-Sol) -->
+	// <!-- custom: AdvCiv replaced the retained BTS river-source traversal and direction-scoring block for advc.129.
+	// Make either routing path selectable; enabled by default to preserve current AdvCiv-SAS maps. (GPT-5.6-Sol) -->
 	static const bool bSASAdvCivRiverRouting = GC.getDefineBOOL("SAS_MAP_ADVCIV_RIVER_ROUTING_ENABLE");
 	// advc.129: Randomize the traversal
 	int* aiShuffledIndices = (bSASAdvCivRiverRouting ? mapRand().shuffle(kMap.numPlots()) : NULL);
@@ -688,7 +694,8 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonus)
 	for (int iPass = 0; iPass < (bSASAdvCivOneAreaBonusDistribution ? 2 : 1); iPass++)
 	{	/*  Two passes - just to make sure that the new per-area limit doesn't
 			lead to fewer resources overall. */
-		// <!-- custom: AdvCiv's uncapped second pass could not revisit areas capped during the first pass because this inherited set was never cleared. Resetting it allows the second pass to fill the remaining target where valid plots exist. See KI#202. (GPT-5.6-Sol) -->
+		// <!-- custom: AdvCiv's uncapped second pass could not revisit areas capped during the first pass because this inherited set was never cleared.
+		// Resetting it allows the second pass to fill the remaining target where valid plots exist. See KI#202. (GPT-5.6-Sol) -->
 		if (iPass > 0)
 			areas_tried.clear();
 		bool const bIgnoreAreaLimit = (!bSASAdvCivOneAreaBonusDistribution || iPass == 1); // </advc.129>
@@ -712,15 +719,15 @@ void CvMapGenerator::addUniqueBonusType(BonusTypes eBonus)
 					continue;
 				} // </advc>
 				int const iAddedTotal = kMap.getNumBonuses(eBonus);
-				// <!-- custom: Keep AdvCiv's small-island preference during the capped distribution pass, but let its uncapped fallback use valid small areas
-				// when larger ones cannot reach the target. See KI#568. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				// <!-- custom: Keep AdvCiv's small-island preference during the capped distribution pass, but let its uncapped fallback use valid small areas when larger ones cannot reach the target. See KI#568. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 				if (bSASAdvCivOneAreaBonusDistribution && !bIgnoreAreaLimit &&
 					iAddedTotal * 3 < 2 * iTarget &&
 					iNumTiles < 4 * NUM_CITY_PLOTS) // K-Mod
 				{
 					continue;
 				}
-				// <!-- custom: KI#202 made first-pass areas containing eBonus revisitable, so AdvCiv's unconditional "plus this one" counted eBonus twice there. Add it only on fresh areas. See KI#569. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				// <!-- custom: KI#202 made first-pass areas containing eBonus revisitable, so AdvCiv's unconditional "plus this one" counted eBonus twice there.
+				// Add it only on fresh areas. See KI#569. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 				int iNumUniqueBonusesOnArea = kLoopArea.countNumUniqueBonusTypes();
 				if (kLoopArea.getNumBonuses(eBonus) <= 0)
 					iNumUniqueBonusesOnArea++;
@@ -927,8 +934,7 @@ int CvMapGenerator::placeGroup(BonusTypes eBonus, CvPlot const& kCenter, bool bI
 		iLimit > 0; j++)
 	{
 		CvPlot& kPlot = *apGroupRange[aiShuffled[j]];
-		// <!-- custom: AdvCiv's extracted clustering path dropped BTS/K-Mod's OneArea boundary, allowing GroupRange 2 resources such as Elephants
-		// to cross narrow water gaps. See KI#564. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: AdvCiv's extracted clustering path dropped BTS/K-Mod's OneArea boundary, allowing GroupRange 2 resources such as Elephants to cross narrow water gaps. See KI#564. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if (kBonus.isOneArea() && !kPlot.sameArea(kCenter))
 			continue;
 		if (!canPlaceBonusAt(eBonus, kPlot.getX(), kPlot.getY(), bIgnoreLatitude))
@@ -997,8 +1003,7 @@ void CvMapGenerator::addGoodies()
 
 void CvMapGenerator::eraseRivers()
 {
-	// <!-- custom: Whole-network erasure also begins a fresh river-generation lifecycle; clear the invisible per-plot IDs and their next-ID counter together.
-	// See KI#567. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Whole-network erasure also begins a fresh river-generation lifecycle; clear the invisible per-plot IDs and their next-ID counter together. See KI#567. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	CvMap& kMap = GC.getMap();
 	for (int i = 0; i < kMap.numPlots(); i++)
 	{
@@ -1251,7 +1256,8 @@ int CvMapGenerator::calculateNumBonusesToAdd(BonusTypes eBonus)
 			iFromTiles += (iNumPossible / kBonus.getTilesPer());
 	}
 
-	// <!-- custom: AdvCiv bends the XML per-player resource component around 8 players; BTS scales it linearly. This is independent of eligible-tile scaling above. (GPT-5.6-Sol) -->
+	// <!-- custom: AdvCiv bends the XML per-player resource component around 8 players; BTS scales it linearly.
+	// This is independent of eligible-tile scaling above. (GPT-5.6-Sol) -->
 	static const bool bSASAdvCivBonusPlayerCountScaling = GC.getDefineBOOL("SAS_MAP_ADVCIV_BONUS_PLAYER_COUNT_SCALING_ENABLE");
 	int iFromPlayers;
 	if (bSASAdvCivBonusPlayerCountScaling)

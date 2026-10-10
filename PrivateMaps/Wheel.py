@@ -1136,7 +1136,8 @@ class WheelFeatureGenerator(CvMapGeneratorUtil.FeatureGenerator):
 
 		self.iGridW = self.map.getGridWidth()
 		self.iGridH = self.map.getGridHeight()
-		# <!-- custom: Inherited east/north formulas mixed the center coordinate with the full far-edge coordinate, placing those transition boundaries inside the Snowy center and eliminating the Evergreen bands. Mirror the west/south 70% distance calculation from the far edges. See KI#287. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: Inherited east/north formulas mixed the center coordinate with the full far-edge coordinate, placing those transition boundaries inside the Snowy center and eliminating the Evergreen bands.
+		# Mirror the west/south 70% distance calculation from the far edges. See KI#287. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		iMaxX = self.iGridW - 1
 		iMaxY = self.iGridH - 1
 		self.pineWestX = int(self.cenWestX * 0.7)
@@ -1313,7 +1314,8 @@ def findStartingPlot(argsList):
 	# Set up for maximum of 18 players! If more, use default implementation.
 	global bSuccessFlag
 	global bUseDefaultStartPlacement
-	# <!-- custom: SAS introduced bUseDefaultStartPlacement for Wheel games above 18 players, but this final validator ignored it and still constrained 18 players to handcrafted regions. Honor the all-player fallback already used by Hub and Ring. See KI#286. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: SAS introduced bUseDefaultStartPlacement for Wheel games above 18 players, but this final validator ignored it and still constrained 18 players to handcrafted regions.
+	# Honor the all-player fallback already used by Hub and Ring. See KI#286. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if bSuccessFlag == False or bUseDefaultStartPlacement == True:
 		return CvMapGeneratorUtil.findStartingPlot(playerID)
 

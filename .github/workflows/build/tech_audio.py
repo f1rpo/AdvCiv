@@ -2,7 +2,9 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
-# <!-- custom: Civ4 does not inherit missing technology audio entries from the base game's replaced mod-local audio tables. Resolve every normal and multiplayer technology sound through Audio2DScripts.xml and AudioDefines.xml so missing, malformed, or wrong-layer references fail in CI instead of becoming silent in-game. Also keep each technology's spoken recording distinct. (GPT-5.6-Sol) -->
+# <!-- custom: Civ4 does not inherit missing technology audio entries from the base game's replaced mod-local audio tables.
+# Resolve every normal and multiplayer technology sound through Audio2DScripts.xml and AudioDefines.xml so missing, malformed, or wrong-layer references fail in CI instead of becoming silent in-game.
+# Also keep each technology's spoken recording distinct. (GPT-5.6-Sol) -->
 
 from pathlib import Path
 import argparse

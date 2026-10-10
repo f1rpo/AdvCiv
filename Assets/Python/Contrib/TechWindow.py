@@ -250,7 +250,8 @@ class CvTechSplashScreen:
 			eLoopUnit = CyGlobalContext().getCivilizationInfo(CyGlobalContext().getGame().getActiveCivilizationType()).getCivilizationUnits(j)
 			if (eLoopUnit != -1):
 				if (isTechRequiredForUnit(self.iTech, eLoopUnit)):
-					# <!-- custom: SAS's line-collapse cleanup accidentally prefixed WidgetTypes with "y", raising NameError when the internally Detailed, user-facing Extended Tech Splash lists an enabled unit. Restore the valid enum reference. See KI#392. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+					# <!-- custom: SAS's line-collapse cleanup accidentally prefixed WidgetTypes with "y", raising NameError when the internally Detailed, user-facing Extended Tech Splash lists an enabled unit.
+					# Restore the valid enum reference. See KI#392. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 					screen.attachImageButton( panelName, "", CyGlobalContext().getUnitInfo(eLoopUnit).getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_UNIT, eLoopUnit, 1, False )
 
 		# Buildings Enabled
@@ -294,7 +295,8 @@ class CvTechSplashScreen:
 
 				if (bTechFound == 1):
 					if (CyGlobalContext().getBuildInfo(j).getImprovement() == -1):
-						# <!-- custom: BUG/K-Mod passed (BuildTypes j, 1), but WIDGET_HELP_IMPROVEMENT expects (TechTypes, BuildTypes). Pass the displayed technology and build so non-improvement actions show their actual unlock hover. See KI#391. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+						# <!-- custom: BUG/K-Mod passed (BuildTypes j, 1), but WIDGET_HELP_IMPROVEMENT expects (TechTypes, BuildTypes).
+						# Pass the displayed technology and build so non-improvement actions show their actual unlock hover. See KI#391. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 						screen.attachImageButton( panelName3, "", CyGlobalContext().getBuildInfo(j).getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_HELP_IMPROVEMENT, self.iTech, j, False )
 					else:
 						screen.attachImageButton( panelName3, "", CyGlobalContext().getBuildInfo(j).getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_IMPROVEMENT, CyGlobalContext().getBuildInfo(j).getImprovement(), 1, False )

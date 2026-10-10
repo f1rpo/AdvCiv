@@ -5,10 +5,13 @@
 from sas_utils_shared_with_civ4 import get_sas_python_file_header_lines
 
 
-# <!-- custom: This module is shared by Civ4 runtime Python and GitHub workflow Python. Keep it pure-helper only: no CvPythonExtensions imports, no game-context globals, and no syntax newer than Python 2.4 unless guarded outside runtime paths. (ChatGPT-5.5) -->
-# <!-- custom: Shared AIP enum/type metadata used by both the in-game Sevopedia AIP code and workflow predump validation. These specs mirror the compact subset currently assessed by the AIP panel, not every possible future field. (ChatGPT-5.5) -->
+# <!-- custom: This module is shared by Civ4 runtime Python and GitHub workflow Python.
+# Keep it pure-helper only: no CvPythonExtensions imports, no game-context globals, and no syntax newer than Python 2.4 unless guarded outside runtime paths. (ChatGPT-5.5) -->
+# <!-- custom: Shared AIP enum/type metadata used by both the in-game Sevopedia AIP code and workflow predump validation.
+# These specs mirror the compact subset currently assessed by the AIP panel, not every possible future field. (ChatGPT-5.5) -->
 def get_aip_excluded_leader_types():
-	# <!-- custom: AIP-only excluded leaders shared by the runtime Sevopedia AIP cache and the workflow predump checker. Keep separate from EXCLUDED_LEADER_TYPES_FROM_SEVOPEDIA in _sevopedia_helpers.py, which is the broader Sevopedia leader/civ association list used by Traits, Improvements, Religions, Civics, and groupings. (ChatGPT-5.5) -->
+	# <!-- custom: AIP-only excluded leaders shared by the runtime Sevopedia AIP cache and the workflow predump checker.
+	# Keep separate from EXCLUDED_LEADER_TYPES_FROM_SEVOPEDIA in _sevopedia_helpers.py, which is the broader Sevopedia leader/civ association list used by Traits, Improvements, Religions, Civics, and groupings. (ChatGPT-5.5) -->
 	return ("LEADER_BARBARIAN",)
 
 def get_aip_flavor_types_assessed():
@@ -33,7 +36,8 @@ def get_aip_no_war_attitude_types_assessed():
 	)
 
 def get_aip_contact_specs():
-	# <!-- custom: Central contact metadata tuple: (debug/index order, XML/DLL contact type, compact AIP UI label). Example: index 0 maps CONTACT_RELIGION_PRESSURE to "Relig Press", preserving the old 0: "Relig Press" clarity without a separate duplicated label dict. (ChatGPT-5.5) -->
+	# <!-- custom: Central contact metadata tuple: (debug/index order, XML/DLL contact type, compact AIP UI label).
+	# Example: index 0 maps CONTACT_RELIGION_PRESSURE to "Relig Press", preserving the old 0: "Relig Press" clarity without a separate duplicated label dict. (ChatGPT-5.5) -->
 	return (
 		(0, "CONTACT_RELIGION_PRESSURE", "Relig Press"),
 		(1, "CONTACT_CIVIC_PRESSURE", "Civic Press"),
@@ -57,7 +61,8 @@ def get_aip_contact_types_assessed():
 
 def get_aip_memory_specs():
 	# <!-- custom: indexes based on real ingame sevopedia leader debug output, see sevopedia_helpers py file code comments for details -->
-	# <!-- custom: Central memory metadata tuple: (debug/index order, XML/DLL memory type, compact AIP UI label, is_positive_memory). Positive/negative aggregate helpers derive from this single structure so type lists, labels, and polarity cannot drift separately. (ChatGPT-5.5) -->
+	# <!-- custom: Central memory metadata tuple: (debug/index order, XML/DLL memory type, compact AIP UI label, is_positive_memory).
+	# Positive/negative aggregate helpers derive from this single structure so type lists, labels, and polarity cannot drift separately. (ChatGPT-5.5) -->
 	return (
 		(0, "MEMORY_DECLARED_WAR", "D.W", False),
 		(1, "MEMORY_DECLARED_WAR_ON_FRIEND", "D.W onFr", False),
@@ -115,7 +120,10 @@ def get_aip_attitude_type_to_index():
 	}
 
 
-# <!-- custom: Shared AIP direct scalar field specs. Each direct-int tuple is (getter name, XML tag, CvLeaderHeadInfo::read explicit default, display label, invert-for-ranking flag). Each attitude-threshold tuple uses the same shape, with the default matching the constructor/XML-loader default integer. These central specs let the Sevopedia AIP panel and workflow predump checker use the same field list instead of maintaining parallel dictionaries. (ChatGPT-5.5) -->
+# <!-- custom: Shared AIP direct scalar field specs.
+# Each direct-int tuple is (getter name, XML tag, CvLeaderHeadInfo::read explicit default, display label, invert-for-ranking flag).
+# Each attitude-threshold tuple uses the same shape, with the default matching the constructor/XML-loader default integer.
+# These central specs let the Sevopedia AIP panel and workflow predump checker use the same field list instead of maintaining parallel dictionaries. (ChatGPT-5.5) -->
 def get_aip_direct_int_field_specs():
 	return (
 		('getWonderConstructRand', 'iWonderConstructRand', 0, 'Wonder C.R', False),
@@ -205,7 +213,8 @@ def get_aip_attitude_threshold_field_specs():
 	)
 
 def get_aip_extra_uwai_only_int_field_specs():
-	# <!-- custom: UWAI::applyPersonalityWeight also mutates iLoveOfPeace even though the current AIP panel does not display it. Keep it in the workflow median vector so XML+UWAI validation mirrors the DLL primitive-member list. (ChatGPT-5.5) -->
+	# <!-- custom: UWAI::applyPersonalityWeight also mutates iLoveOfPeace even though the current AIP panel does not display it.
+	# Keep it in the workflow median vector so XML+UWAI validation mirrors the DLL primitive-member list. (ChatGPT-5.5) -->
 	return (
 		('getLoveOfPeace', 'iLoveOfPeace', 0),
 	)
@@ -262,7 +271,9 @@ def get_aip_attitude_index_to_type(include_debug_always):
 	return index_to_type
 
 
-# <!-- custom: Shared AIP primitive array/list specs. These are used by the workflow checker to parse LeaderHeadInfo XML and by comments/helpers in the runtime AIP code to keep field-family metadata in one place. Each tuple is (xml parent tag, xml enum key tag, xml value tag, assessed enum/type names, synthetic AIP key prefix). (ChatGPT-5.5) -->
+# <!-- custom: Shared AIP primitive array/list specs.
+# These are used by the workflow checker to parse LeaderHeadInfo XML and by comments/helpers in the runtime AIP code to keep field-family metadata in one place.
+# Each tuple is (xml parent tag, xml enum key tag, xml value tag, assessed enum/type names, synthetic AIP key prefix). (ChatGPT-5.5) -->
 def get_aip_display_array_field_specs():
 	return (
 		("Flavors", "FlavorType", "iFlavor", get_aip_flavor_types_assessed(), "iFlavor"),
@@ -383,7 +394,8 @@ def round_half_away_from_zero(value):
 
 
 def round_current_runtime(value):
-	# <!-- custom: Built-in round() differs at exact half ties between Civ4's Python 2.4 runtime and Python 3 predump tooling. Implement ties-to-even explicitly so both paths preserve the committed contact aggregate value 52 instead of Python 2.4 returning 53 for 52.5. See KI#322. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: Built-in round() differs at exact half ties between Civ4's Python 2.4 runtime and Python 3 predump tooling.
+	# Implement ties-to-even explicitly so both paths preserve the committed contact aggregate value 52 instead of Python 2.4 returning 53 for 52.5. See KI#322. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	iTruncated = int(value)
 	fFraction = value - iTruncated
 	if fFraction > 0.5 or (fFraction == 0.5 and iTruncated % 2 != 0):
@@ -475,11 +487,14 @@ def normalize_to_100(value, min_val, max_val, B_WARN, invert, attr_name):
 
 
 def normalize_to_100_half_away_from_zero(value, min_val, max_val, B_WARN, invert, attr_name):
-	# <!-- custom: The existing committed predump has one known .5-sensitive memory aggregate family where normal Python 3 round() under-validates compared with the cache: e.g. MEMORY_TRADED_TECH_TO_US affection raw 36 in range 10..90 normalizes to 32.5, but the predump stores 33. Keep this explicit rather than silently changing the default contact behavior above. (ChatGPT-5.5) -->
+	# <!-- custom: The existing committed predump has one known .5-sensitive memory aggregate family where normal Python 3 round() under-validates compared with the cache: e.g. MEMORY_TRADED_TECH_TO_US affection raw 36 in range 10..90 normalizes to 32.5, but the predump stores 33.
+	# Keep this explicit rather than silently changing the default contact behavior above. (ChatGPT-5.5) -->
 	return normalize_to_100_with_rounder(value, min_val, max_val, B_WARN, invert, attr_name, round_half_away_from_zero)
 
 
-# <!-- custom: Shared final AIP tuple formatting. The runtime Sevopedia cache and workflow predump checker both call these pure helpers so labels, normalized numeric values, and scale strings cannot drift independently. Keep this section free of CvPythonExtensions/game-context dependencies. (ChatGPT-5.5) -->
+# <!-- custom: Shared final AIP tuple formatting.
+# The runtime Sevopedia cache and workflow predump checker both call these pure helpers so labels, normalized numeric values, and scale strings cannot drift independently.
+# Keep this section free of CvPythonExtensions/game-context dependencies. (ChatGPT-5.5) -->
 def get_aip_scale_symbols():
 	return {
 		"RAW_SCALE_SYMBOL": "+",
@@ -494,7 +509,8 @@ def get_aip_symbol_scale(score, symbol):
 
 
 def get_aip_labels_as_keys_or_suffixes_with_abbreviated_tail(key_or_suffix, tail_to_trim, abbreviated_tail, label_raw, max_length):
-	# <!-- custom: Shared raw-XML-name label compactor used when SAS_SEVOPEDIA_LEADER_AI_PERSONALITY_PANEL_SHOW_RAW_XML_FIELD_NAMES_INSTEAD is enabled. Kept byte-for-byte behavior-equivalent to the old runtime-local helper. (ChatGPT-5.5) -->
+	# <!-- custom: Shared raw-XML-name label compactor used when SAS_SEVOPEDIA_LEADER_AI_PERSONALITY_PANEL_SHOW_RAW_XML_FIELD_NAMES_INSTEAD is enabled.
+	# Kept byte-for-byte behavior-equivalent to the old runtime-local helper. (ChatGPT-5.5) -->
 	if tail_to_trim:
 		key_or_suffix_with_tail_trimmed = key_or_suffix[:-len(tail_to_trim)]
 	else:
@@ -510,7 +526,8 @@ def get_aip_labels_as_keys_or_suffixes_with_abbreviated_tail(key_or_suffix, tail
 
 
 def get_aip_labels_as_keys_or_suffixes_max_length_label(key_or_suffix, label_raw, max_length):
-	# <!-- custom: Returns key_or_suffix + label_raw, trimmed so total length <= max_length. This is shared with the predump checker so raw-name-mode labels are checked with the same compacting rules as runtime. (ChatGPT-5.5) -->
+	# <!-- custom: Returns key_or_suffix + label_raw, trimmed so total length <= max_length.
+	# This is shared with the predump checker so raw-name-mode labels are checked with the same compacting rules as runtime. (ChatGPT-5.5) -->
 	if key_or_suffix.startswith("get"):
 		key_or_suffix_without_front = key_or_suffix[len("get"):]
 
@@ -613,7 +630,8 @@ def get_aip_aggregated_memory_key(memory_type, is_positive, is_affection):
 
 
 def get_aip_raw_contact_aggregate_specs(contact_types=None):
-	# <!-- custom: Central synthetic raw contact specs. Each tuple is (contact index, contact type, synthetic raw key); e.g. CONTACT_RELIGION_PRESSURE creates iAggregatedRawContactProbReligionPressure before min/max normalization creates iAggregatedContactProbReligionPressure. (ChatGPT-5.5) -->
+	# <!-- custom: Central synthetic raw contact specs.
+	# Each tuple is (contact index, contact type, synthetic raw key); e.g. CONTACT_RELIGION_PRESSURE creates iAggregatedRawContactProbReligionPressure before min/max normalization creates iAggregatedContactProbReligionPressure. (ChatGPT-5.5) -->
 	if contact_types is None:
 		contact_types = get_aip_contact_types_assessed()
 	specs = []
@@ -635,7 +653,8 @@ def get_aip_displayed_contact_aggregate_specs(contact_types=None):
 
 
 def get_aip_raw_memory_aggregate_specs():
-	# <!-- custom: Central synthetic raw memory specs. This intentionally returns the full positive/negative x affection/resentment matrix even though the current panel displays only positive affections and negative resentments, keeping future UI expansion data-driven. (ChatGPT-5.5) -->
+	# <!-- custom: Central synthetic raw memory specs.
+	# This intentionally returns the full positive/negative x affection/resentment matrix even though the current panel displays only positive affections and negative resentments, keeping future UI expansion data-driven. (ChatGPT-5.5) -->
 	specs = []
 	for is_positive in (True, False):
 		for is_affection in (True, False):
@@ -646,7 +665,8 @@ def get_aip_raw_memory_aggregate_specs():
 
 
 def get_aip_displayed_memory_aggregate_specs():
-	# <!-- custom: Current displayed synthetic memory specs: positive memory affections and negative memory resentments. Each tuple includes both the synthetic raw key and normalized display/predump key, e.g. iAggregatedRawPositiveMemoryTradedTechToUsAffection -> iAggregatedPositiveMemoryTradedTechToUsAffection. (ChatGPT-5.5) -->
+	# <!-- custom: Current displayed synthetic memory specs: positive memory affections and negative memory resentments.
+	# Each tuple includes both the synthetic raw key and normalized display/predump key, e.g. iAggregatedRawPositiveMemoryTradedTechToUsAffection -> iAggregatedPositiveMemoryTradedTechToUsAffection. (ChatGPT-5.5) -->
 	memory_index_labels = get_aip_memory_index_labels_assessed()
 	specs = []
 	for is_positive in (True, False):
@@ -700,7 +720,8 @@ def get_adjusted_contact_values(contact_rand_raw, contact_delay_raw, is_debug, c
 			print(u"[INFO] In contact contact_type=%s Delay >=0 which is valid: adjusted delay is equal to delay raw, forced to zero aggregation has yet to be determined. Values of these are contact_delay_raw=%d, adjusted_delay=%d, force_zero_adjusted_values=%s." % (contact_type, contact_delay_raw, adjusted_delay, str(force_zero_adjusted_values)))
 
 		if contact_rand_raw <= 0:
-			# <!-- custom: (and else,) if rand is <=0, AI has a compatible delay but still never engages due to rand, so probability of contact is still 0. Only outside of these edge cases can the contact probabiltiy be computed if i'm not mistaken, else should be 0 as in this code block/check. -->
+			# <!-- custom: (and else,) if rand is <=0, AI has a compatible delay but still never engages due to rand, so probability of contact is still 0.
+			# Only outside of these edge cases can the contact probabiltiy be computed if i'm not mistaken, else should be 0 as in this code block/check. -->
 			# Can try, but refuses to ever engage → Aggregated ContactProb = 0
 			adjusted_rand = 0
 			force_zero_adjusted_values = True # Forced 0 aggregation
@@ -721,7 +742,8 @@ def get_adjusted_contact_values(contact_rand_raw, contact_delay_raw, is_debug, c
 def get_contact_rand_and_delay_invert_flags():
 	# <!-- custom: the higher the contact rand (say 200 > 50), the lower the 1/n = 1/200 vs 1/50 chance of contact event / prob from my memory of the terminology if i may say or words used in kujira about memory fields or such, so we invert -->
 	b_invert_contact_rands = True
-	# <!-- custom: also, the higher the delay (say 100 > 5 (turns? )), the longer until next contact, so the lower the contact event / prob, so we invert delays too if i may say or not or yes or etc -->
+	# <!-- custom: also, the higher the delay (say 100 > 5 (turns?
+	# )), the longer until next contact, so the lower the contact event / prob, so we invert delays too if i may say or not or yes or etc -->
 	b_invert_contact_delays = True
 	return b_invert_contact_rands, b_invert_contact_delays
 
@@ -785,7 +807,10 @@ def get_memory_attitude_percent_and_decay_invert_flags(is_positive, is_affection
 
 	else:
 		if is_affection:
-			# <!-- custom: similarly but in negative memories, higher attitude score (ex: + 350 > + 200) means more affection for them (more and more masochistic or similar AI anyways.. which i don't dislike but anyways... Not necessarily especially like but anyways (either/too)(or why not?) but anyways...), so we don't invert. -->
+			# <!-- custom: similarly but in negative memories, higher attitude score (ex: + 350 > + 200) means more affection for them (more and more masochistic or similar AI anyways..
+			# which i don't dislike but anyways...
+			# Not necessarily especially like but anyways (either/too)(or why not?)
+			# but anyways...), so we don't invert. -->
 			return False, False
 		else:
 			# # <!-- custom: similarly but in negative memories, lower attitude score (ex: -350 < -200) means more intense negative feeling (resentment) (resentful and (more) especially spiteful AI but this time in an (seemingly) expected way if (conventionally) harm(ful behaviour or other thing or similar thing) is done to it), closer to 0 means AI cares less (0 should be		- maximum -		attitudes after normalization), so we invert.. -->
@@ -795,7 +820,8 @@ def get_aggregated_raw_positive_or_negative_memory_affection_or_resentment_score
 	if force_zero_adjusted_values:
 		return 0
 	else:
-		# <!-- custom: see the same/similar function but for contact types' code code comments for details; approximation of the ratios based on kujira's website (translate(d?) to english with chrome web browser or such) https://gforestshade.github.io/kujira/post/civ4leaderheadinfos/#%e5%a4%96%e4%ba%a4%e7%9a%84%e5%87%ba%e6%9d%a5%e4%ba%8b%e3%81%ab%e3%82%88%e3%82%8b%e6%85%8b%e5%ba%a6%e8%a3%9c%e6%ad%a3 and https://gforestshade.github.io/kujira/post/civ4leaderheadinfos/#memoryattitudepercents and https://gforestshade.github.io/kujira/post/civ4leaderheadinfos/#memorydecays quite similarly to contact code -->
+		# <!-- custom: see the same/similar function but for contact types' code code comments for details; approximation of the ratios based on kujira's website (translate(d?)
+		# to english with chrome web browser or such) https://gforestshade.github.io/kujira/post/civ4leaderheadinfos/#%e5%a4%96%e4%ba%a4%e7%9a%84%e5%87%ba%e6%9d%a5%e4%ba%8b%e3%81%ab%e3%82%88%e3%82%8b%e6%85%8b%e5%ba%a6%e8%a3%9c%e6%ad%a3 and https://gforestshade.github.io/kujira/post/civ4leaderheadinfos/#memoryattitudepercents and https://gforestshade.github.io/kujira/post/civ4leaderheadinfos/#memorydecays quite similarly to contact code -->
 
 		# Weight configuration
 		# MAIN_WEIGHT represents the primary importance (e.g. randomness of contact)
@@ -815,7 +841,8 @@ def get_aggregated_raw_positive_or_negative_memory_affection_or_resentment_score
 
 
 # <!-- custom: Shared pre-normalization AIP derived-value builders.
-# These helpers create synthetic raw AIP fields from already-effective LeaderHeadInfo values before the normal Sevopedia min/max normalization and display-cache step. They are deliberately free of gc/UI imports so the in-game AIP code and the Python 3 workflow checker can reuse the same contact/memory aggregation logic with different value providers. (ChatGPT-5.5) -->
+# These helpers create synthetic raw AIP fields from already-effective LeaderHeadInfo values before the normal Sevopedia min/max normalization and display-cache step.
+# They are deliberately free of gc/UI imports so the in-game AIP code and the Python 3 workflow checker can reuse the same contact/memory aggregation logic with different value providers. (ChatGPT-5.5) -->
 def get_positive_or_negative_memory_indexes(is_positive):
 	if is_positive:
 		positive_or_negative_memory_indexes = tuple(sorted(get_positive_memory_indexes_to_types().keys()))
@@ -967,10 +994,13 @@ def compute_leaders_info_aggregated_raw_memory_affections_and_resentments(non_ex
 
 	return leaders_info_aggregated_raw_memory_affections_and_resentments
 
-# <!-- custom: Shared final numeric values for AIP-derived contact/memory fields. This still does not build UI labels/scales; it only turns shared raw aggregate formulas into the normalized numbers stored in the predumped cache, so workflow validation and in-game AIP can share the math without importing UI formatting.
-# Example: contact rand/delay first create a pre-normalization synthetic key such as iAggregatedRawContactProbReligionPressure; this function then normalizes that raw aggregate across leaders into iAggregatedContactProbReligionPressure, which is the displayed/predumped value. For memories, it similarly turns iAggregatedRawPositiveMemoryTradedTechToUsAffection into iAggregatedPositiveMemoryTradedTechToUsAffection. (ChatGPT-5.5) -->
+# <!-- custom: Shared final numeric values for AIP-derived contact/memory fields.
+# This still does not build UI labels/scales; it only turns shared raw aggregate formulas into the normalized numbers stored in the predumped cache, so workflow validation and in-game AIP can share the math without importing UI formatting.
+# Example: contact rand/delay first create a pre-normalization synthetic key such as iAggregatedRawContactProbReligionPressure; this function then normalizes that raw aggregate across leaders into iAggregatedContactProbReligionPressure, which is the displayed/predumped value.
+# For memories, it similarly turns iAggregatedRawPositiveMemoryTradedTechToUsAffection into iAggregatedPositiveMemoryTradedTechToUsAffection. (ChatGPT-5.5) -->
 def compute_leaders_info_aip_synthetic_raw_values(non_excluded_leaders, contact_types, get_contact_rand, get_contact_delay, get_memory_type, get_memory_attitude_percent, get_memory_decay_rand, B_WARN, is_debug):
-	# <!-- custom: Shared synthetic raw field creator. It combines contact and memory aggregate builders into one per-leader flat dict so callers do not need to know which synthetic raw family created each iAggregatedRaw* key. (ChatGPT-5.5) -->
+	# <!-- custom: Shared synthetic raw field creator.
+	# It combines contact and memory aggregate builders into one per-leader flat dict so callers do not need to know which synthetic raw family created each iAggregatedRaw* key. (ChatGPT-5.5) -->
 	contact_raw = compute_leaders_info_aggregated_raw_contact_probs(non_excluded_leaders, contact_types, get_contact_rand, get_contact_delay, B_WARN, is_debug)
 	memory_raw = compute_leaders_info_aggregated_raw_memory_affections_and_resentments(non_excluded_leaders, get_memory_type, get_memory_attitude_percent, get_memory_decay_rand, B_WARN, is_debug)
 	synthetic_raw_values = {}
@@ -1004,7 +1034,9 @@ def compute_leaders_info_aip_aggregate_display_values(non_excluded_leaders, cont
 
 	return display_values
 
-# <!-- custom: Shared provider-based AIP cache builder. Runtime Civ4 code supplies a provider backed by gc/DLL getters; workflow validation/generation supplies a provider backed by parsed XML+UWAI values. This keeps tuple creation, labels, normalization, scale strings, and displayed aggregate selection in one pure helper path. (ChatGPT-5.5) -->
+# <!-- custom: Shared provider-based AIP cache builder.
+# Runtime Civ4 code supplies a provider backed by gc/DLL getters; workflow validation/generation supplies a provider backed by parsed XML+UWAI values.
+# This keeps tuple creation, labels, normalization, scale strings, and displayed aggregate selection in one pure helper path. (ChatGPT-5.5) -->
 def compute_leaders_info_aip_cache_from_provider(non_excluded_leaders, provider, is_show_raw_xml_field_names_instead, B_WARN, is_debug):
 	contact_types = get_aip_contact_types_assessed()
 	memory_types = get_aip_memory_types_assessed()
@@ -1084,7 +1116,10 @@ def compute_leaders_info_aip_cache_from_provider(non_excluded_leaders, provider,
 
 	return leaders_info_cached
 
-# <!-- custom: Shared predump module serializer for both the in-game PythonDbg.log fallback and the outside-Civ4 workflow writer. The callers provide only source-specific header lines and leader-count text; markers, common generation metadata, and deterministic cache literal formatting stay in one place. Keep this Python 2.4-safe because the in-game AIP code imports this module. No real generation timestamp is written: the writer should be safe to rerun as a no-op without creating false diffs or future bot/maintenance churn. (ChatGPT-5.5) -->
+# <!-- custom: Shared predump module serializer for both the in-game PythonDbg.log fallback and the outside-Civ4 workflow writer.
+# The callers provide only source-specific header lines and leader-count text; markers, common generation metadata, and deterministic cache literal formatting stay in one place.
+# Keep this Python 2.4-safe because the in-game AIP code imports this module.
+# No real generation timestamp is written: the writer should be safe to rerun as a no-op without creating false diffs or future bot/maintenance churn. (ChatGPT-5.5) -->
 def format_aip_leader_index_type_pairs(index_type_pairs):
 	return ", ".join(["%d: %s" % (iLeader, leader_type) for iLeader, leader_type in index_type_pairs])
 

@@ -14,7 +14,9 @@
 
 namespace
 {
-	// <!-- custom: Python diplomacy already owns the rejected offer as TradeData objects. Pass only raw item/data integer pairs across the wrapper, then rebuild canonical TradeData here so SASGameRecord keeps one C++ trade serializer. The caller is already a rare resolved UI event. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Python diplomacy already owns the rejected offer as TradeData objects.
+	// Pass only raw item/data integer pairs across the wrapper, then rebuild canonical TradeData here so SASGameRecord keeps one C++ trade serializer.
+	// The caller is already a rare resolved UI event. (ChatGPT-5.6-Sol) -->
 	bool getSASGameRecordTradeListFromPython(boost::python::list const& kFlatItems, CLinkList<TradeData>& kOut)
 	{
 		int const iLength = (int)PySequence_Size(kFlatItems.ptr());
@@ -319,7 +321,8 @@ int CyGame::getElapsedGameTurns()
 }
 
 // <!-- custom: BUG DiplomacyUtil can see the exact package when a human rejects an AI ordinary trade offer, while the EXE does not expose that rejected package through a clean DLL callback.
-// Caller contract: Python must pre-gate level 2+ before constructing the raw lists and entering this bridge. Do not add an internal recorder-level gate here: it would be too late to save Python list construction and would duplicate the caller's responsibility.
+// Caller contract: Python must pre-gate level 2+ before constructing the raw lists and entering this bridge.
+// Do not add an internal recorder-level gate here: it would be too late to save Python list construction and would duplicate the caller's responsibility.
 // The bridge validates only payload correctness, then lets SASGameRecord own canonical formatting. (ChatGPT-5.6-Sol) -->
 void CyGame::logSASGameRecordRejectedAIOffer(int iProposer, int iResponder, boost::python::list& kProposerGives, boost::python::list& kResponderGives)
 {
@@ -574,7 +577,8 @@ void CyGame::setAIAutoPlay(int iNewValue)
 	m_kGame.setAIAutoPlay(iNewValue);
 }
 
-// <!-- custom: Python's AI Auto Play controller needs a separate explicit-stop API because the legacy setAIAutoPlay(0) cannot report why automation ended. Validate the Python enum value before forwarding it to CvGame. See KI#203. (GPT-5.6-Sol) -->
+// <!-- custom: Python's AI Auto Play controller needs a separate explicit-stop API because the legacy setAIAutoPlay(0) cannot report why automation ended.
+// Validate the Python enum value before forwarding it to CvGame. See KI#203. (GPT-5.6-Sol) -->
 void CyGame::endAIAutoPlay(int iEndCause)
 {
 	SASAutoPlayEndCause eEndCause = (SASAutoPlayEndCause)iEndCause;

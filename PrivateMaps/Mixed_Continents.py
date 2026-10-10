@@ -56,7 +56,8 @@ def getNumPlotsPercent(argsList):
 	if iWorldSize < 0:
 		return 100
 	sizeModifiers = {
-		# <!-- custom: Arena was absent from this direct dictionary, causing KeyError; the shifted length guard also bypassed the stored Huge value. Use the established Duel percentage for Arena. See KI#282.3. (GPT-5.6-Sol) -->
+		# <!-- custom: Arena was absent from this direct dictionary, causing KeyError; the shifted length guard also bypassed the stored Huge value.
+		# Use the established Duel percentage for Arena. See KI#282.3. (GPT-5.6-Sol) -->
 		WorldSizeTypes.WORLDSIZE_ARENA:		100,
 		WorldSizeTypes.WORLDSIZE_DUEL:		100,
 		WorldSizeTypes.WORLDSIZE_TINY:		98,
@@ -260,7 +261,8 @@ class BnSMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 				tinyWestLon = 0.01 * self.dice.get(85, "Tiny Longitude - Custom Continents PYTHON")
 				tinyWestX = int(self.iW * tinyWestLon)
 				tinySouthLat = 0.01 * self.dice.get(85, "Tiny Latitude - Custom Continents PYTHON")
-				# <!-- custom: The inherited script rolled an independent latitude but derived Y from longitude, diagonally correlating supposedly random tiny-island patches. Use the latitude roll while preserving RNG order. See KI#262. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+				# <!-- custom: The inherited script rolled an independent latitude but derived Y from longitude, diagonally correlating supposedly random tiny-island patches.
+				# Use the latitude roll while preserving RNG order. See KI#262. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 				tinySouthY = int(self.iH * tinySouthLat)
 				tinyWidth = int(self.iW * 0.15)
 				tinyHeight = int(self.iH * 0.15)

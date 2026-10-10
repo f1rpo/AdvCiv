@@ -129,7 +129,10 @@
 			<!-- was 20 -->
 			<iUnitCostPercent>100</iUnitCostPercent>
 			<iBuildTimePercent>100</iBuildTimePercent>
-			<!-- custom: see code comment at iAIGPThresholdPercent. Additionally a grep of "BaseGrowthThresholdPercent" with VS Code's global search lead to the base advciv's manual.txt explanation of this field. I gave it to ChatGPT 5.2 who said it's better for our goals of fair but hard to make it 100 at all handicaps. See for details known issue as of now 91. -->
+			<!-- custom: see code comment at iAIGPThresholdPercent.
+			Additionally a grep of "BaseGrowthThresholdPercent" with VS Code's global search lead to the base advciv's manual.txt explanation of this field.
+			I gave it to ChatGPT 5.2 who said it's better for our goals of fair but hard to make it 100 at all handicaps.
+			See for details known issue as of now 91. -->
 			<iBaseGrowthThresholdPercent>100</iBaseGrowthThresholdPercent>
 			<!-- custom: see code comment at iAIGPThresholdPercent -->
 			<iGPThresholdPercent>100</iGPThresholdPercent>
@@ -203,10 +206,15 @@
 			<iAIWorkRateModifier>0</iAIWorkRateModifier>
 			<!-- advc.251 (start) -->
 			<!-- was 160 -->
-			<!-- custom: see code comment at iBaseGrowthThresholdPercent. Additionally, I also thought we can adjust `iAIGrowthPercent` to 100 at all handicaps, since the human player now has no advantage or disadvantage, and it could have helped the issue of AI runaway at higher handicaps (or vice versa) and allow finer tuning instead through other knobs, but maybe the base growth change is enough for now. Possibly to keep in mind if AI is much smarter as a way to nerf it further perhaps. -->
+			<!-- custom: see code comment at iBaseGrowthThresholdPercent.
+			Additionally, I also thought we can adjust `iAIGrowthPercent` to 100 at all handicaps, since the human player now has no advantage or disadvantage, and it could have helped the issue of AI runaway at higher handicaps (or vice versa) and allow finer tuning instead through other knobs, but maybe the base growth change is enough for now.
+			Possibly to keep in mind if AI is much smarter as a way to nerf it further perhaps. -->
 			<iAIGrowthPercent>115</iAIGrowthPercent>
-			<!-- custom: adjusted based on this line "For GP and growth thresholds, I've added GPThresholdPercent and BaseGrowthThresholdPercent (for all civs) and AIGPThresholdPercent (for AI civs)." (from \_0_Common_Docs\AdvCiv_Base_Doc\manual.txt -->
-			<!-- custom: If human is fixed to 100, then easy difficulties should have AI > 100 (AI slower GPs), and hard difficulties should have AI < 100 (AI faster GPs). So it’s +8 on Warlord, -8 on Prince. This is nicely consistent with your chart philosophy, and it also keeps the top-end relative pressure close to what you had before (old Deity was 125/75 = 0.60; new is 100/60 = 0.60), while removing the "player penalty" side. (ChatGPT 5.2 Thinking) -->
+			<!-- custom: adjusted based on this line "For GP and growth thresholds, I've added GPThresholdPercent and BaseGrowthThresholdPercent (for all civs) and AIGPThresholdPercent (for AI civs)."
+			(from \_0_Common_Docs\AdvCiv_Base_Doc\manual.txt -->
+			<!-- custom: If human is fixed to 100, then easy difficulties should have AI > 100 (AI slower GPs), and hard difficulties should have AI < 100 (AI faster GPs).
+			So it’s +8 on Warlord, -8 on Prince.
+			This is nicely consistent with your chart philosophy, and it also keeps the top-end relative pressure close to what you had before (old Deity was 125/75 = 0.60; new is 100/60 = 0.60), while removing the "player penalty" side. (ChatGPT 5.2 Thinking) -->
 			<iAIGPThresholdPercent>124</iAIGPThresholdPercent>
 			<!-- custom: reworked tech costs, see deity code comment of <iResearchPercent> for details at least as of now the code comment is there -->
 			<iAIResearchPercent>118</iAIResearchPercent>
@@ -667,7 +675,8 @@
 			<FreeTechs/>
 			<AIFreeTechs/>
 			<!-- advc.250a -->
-			<!-- custom: With Rookie and Deity+ added, iDifficulty uses a linear 18..98 scale (+8 per row) so Noble stays 50 as the even/baseline difficulty while Deity remains 90 as before. Direct balance mostly comes from the specific handicap fields above rather than this score-like rating. (ChatGPT-5.5) -->
+			<!-- custom: With Rookie and Deity+ added, iDifficulty uses a linear 18..98 scale (+8 per row) so Noble stays 50 as the even/baseline difficulty while Deity remains 90 as before.
+			Direct balance mostly comes from the specific handicap fields above rather than this score-like rating. (ChatGPT-5.5) -->
 			<iDifficulty>50</iDifficulty>
 		</HandicapInfo>
 		<HandicapInfo> <!-- custom: HANDICAP_PRINCE -->
@@ -1351,7 +1360,8 @@
 			<iAIResearchPercent>70</iAIResearchPercent>
 			<!-- was 60 -->
 			<iAITrainPercent>75</iAITrainPercent>
-			<!-- custom: i want more reliable handicap settings and after asking chatgpt "According to the Civilization Wiki, the iAIWorldTrainPercent values vary across handicap levels:" etc.. until "Settler	160 Chieftain 130 Warlord 110 Noble 100 Prince 100 Monarch 100 Emperor 100 Immortal 100 Deity 100" so based on this xml raw data, is that i want reliable AI behaviour when it comes to military hammer train percents, regardless of world size at all handicaps; seemingly similar reasoning for iAIWorldConstructPercent and iAIWorldCreatePercent -->
+			<!-- custom: i want more reliable handicap settings and after asking chatgpt "According to the Civilization Wiki, the iAIWorldTrainPercent values vary across handicap levels:" etc..
+			until "Settler 160 Chieftain 130 Warlord 110 Noble 100 Prince 100 Monarch 100 Emperor 100 Immortal 100 Deity 100" so based on this xml raw data, is that i want reliable AI behaviour when it comes to military hammer train percents, regardless of world size at all handicaps; seemingly similar reasoning for iAIWorldConstructPercent and iAIWorldCreatePercent -->
 			<!-- was 100-->
 			<iAIWorldTrainPercent>100</iAIWorldTrainPercent>
 			<!-- was 60 -->
@@ -1373,7 +1383,8 @@
 			<iAIUnitUpgradePercent>100</iAIUnitUpgradePercent>
 			<iAIInflationPercent>75</iAIInflationPercent>
 			<iAIWarWearinessPercent>70</iAIWarWearinessPercent>
-			<!-- custom: now disabled at all handicaps, as it is unreliable, game breaking, and uneeded, i can adjust iAITrainPercent or such other fields for a more even and fair game if needed or harder one as i see fit, and not exponentially harder one. Our AI is efficient with its hammer now so it always runs away at emperor autoplay at least, i suspect due to this or it could be one of the contributing factors, i don't like it anyway so disabled xd, as confirmed by chatgpt 5, check if accurate; as a side effect, AIs will produce less units, so they'll go bankrupt later or not at all maybe, so will probably help them a lot in the long term, i hate this kind of very uneeded and sneaky settings added instead of improving the AI rather -->
+			<!-- custom: now disabled at all handicaps, as it is unreliable, game breaking, and uneeded, i can adjust iAITrainPercent or such other fields for a more even and fair game if needed or harder one as i see fit, and not exponentially harder one.
+			Our AI is efficient with its hammer now so it always runs away at emperor autoplay at least, i suspect due to this or it could be one of the contributing factors, i don't like it anyway so disabled xd, as confirmed by chatgpt 5, check if accurate; as a side effect, AIs will produce less units, so they'll go bankrupt later or not at all maybe, so will probably help them a lot in the long term, i hate this kind of very uneeded and sneaky settings added instead of improving the AI rather -->
 			<!-- advc.251: Renamed; was 5 per era. -->
 			<iAIHandicapIncrementTurns>0</iAIHandicapIncrementTurns>
 			<!-- custom: i didn't check what it would look like ingame as i don't use this feature, but our AI is noticeably as in much stronger than before i.e. than in base advciv in particular i mean, and i want these difficulties to be real challenges not placeholders, and handicap to be more grindy and less gradual at higher difficulties, so adjusted these a bit, check if accurate as i didn't check the ingame effect but made such a guess -->

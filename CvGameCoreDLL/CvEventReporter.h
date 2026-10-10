@@ -55,7 +55,8 @@ public:
 	void endPlayerTurn(int iGameTurn, PlayerTypes);
 
 	void firstContact(TeamTypes eTeamID1, TeamTypes eTeamID2);
-	// <!-- custom: Preserve the actual attacked plot for SASGameRecord because a dead attacker still occupies its origin when combatResult fires. Python retains its established winner/loser event contract. See KI#377. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Preserve the actual attacked plot for SASGameRecord because a dead attacker still occupies its origin when combatResult fires.
+	// Python retains its established winner/loser event contract. See KI#377. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	void combatResult(CvUnit* pWinner, CvUnit* pLoser, CvPlot const* pBattlePlot);
 	// advc:
 	void combatLogHit(CombatDetails const& kAttackerDetails, CombatDetails const& kDefenderDetails, int iDamage, bool bAttackerTakesHit);

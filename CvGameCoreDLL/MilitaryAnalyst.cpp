@@ -54,7 +54,8 @@ MilitaryAnalyst::MilitaryAnalyst(PlayerTypes eAgentPlayer, WarEvalParameters& kW
 	m_bPeaceScenario(bPeaceScenario), m_iTurnsSimulated(0)
 {
 	PROFILE_FUNC();
-	// <!-- custom: Mute depth is stable across this constructor; nested descendants may push/pop it only in balanced scopes. Reuse one descriptive level-2 gate for the constructor's scenario-context rows. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Mute depth is stable across this constructor; nested descendants may push/pop it only in balanced scopes.
+	// Reuse one descriptive level-2 gate for the constructor's scenario-context rows. (ChatGPT-5.6-Sol) -->
 	bool const bLogMilitaryAnalystContext = (gUWAIMilitaryAnalystLogLevel >= 2 && !m_kLogMuteState.isMuted());
 	m_playerResults.resize(MAX_CIV_PLAYERS, NULL);
 	m_warTable.resize(MAX_CIV_PLAYERS, std::vector<bool>(MAX_CIV_PLAYERS, false));
@@ -437,7 +438,8 @@ void MilitaryAnalyst::prepareResults()
 			pNode->getConquests(playerResult(ePlayer).getConqueredCities());
 		if (pNode->anyCityLosses())
 			pNode->getCityLosses(playerResult(ePlayer).getLostCities());
-		// <!-- custom: This raw vector is indexed by TeamTypes; unlike overloaded GET_TEAM(PlayerTypes), operator[] cannot convert a player ID. Union every member node's team-level result into its actual team slot. See KI#442. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: This raw vector is indexed by TeamTypes; unlike overloaded GET_TEAM(PlayerTypes), operator[] cannot convert a player ID.
+		// Union every member node's team-level result into its actual team slot. See KI#442. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		pNode->getCapitulationsAccepted(m_capitulationsAcceptedPerTeam[TEAMID(ePlayer)]);
 	}
 	// Predict scores as current game score modified based on gained/ lost population
@@ -686,7 +688,8 @@ void MilitaryAnalyst::logPower(PlayerTypes ePlayer, bool bGained)
 {
 	FAssert(gUWAIMilitaryAnalystLogLevel >= 2 && !m_kLogMuteState.isMuted());
 	// Some overlap with InvasionGraph::Node::logPower
-	// <!-- custom: Preserve the inherited distinction: the first measure is net build-up minus losses, while the second is power lost to casualties. A generic GAIN label obscured that the net value can be negative. (GPT-6.1-Sol) -->
+	// <!-- custom: Preserve the inherited distinction: the first measure is net build-up minus losses, while the second is power lost to casualties.
+	// A generic GAIN label obscured that the net value can be negative. (GPT-6.1-Sol) -->
 	char const* const szChange = (bGained ? "NET_BUILDUP_MINUS_LOSSES" : "CASUALTY_LOSS");
 	int iLogged = 0;
 	for (int i = 0; i < NUM_BRANCHES; i++)

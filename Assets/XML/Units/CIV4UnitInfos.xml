@@ -8,7 +8,10 @@
 <!-- custom: GPT-5.2-Codex: Long_Comments_XML.txt #83 -->
 <!-- custom: GPT-5.2-Codex: Long_Comments_XML.txt #84 -->
 <!-- custom: ObsoleteTech (unit field): Long_Comments_XML.txt #359 -->
-<!-- custom: terrain/feature combat-modifier balance rule: Terrain and Hills use 10/20% tiers with an absolute 20% cap because they can affect city combat; Features use 10/20/40% tiers because cities remove features; City modifiers are balanced separately. Historical fit decides where a unit specializes, while gameplay decides the magnitude. Combat-capable civ-specific units normally keep a focused terrain/feature identity: usually one strong 20% terrain or at most two weak 10% terrains, while relevant generic-unit affinities/weaknesses can carry through or be strengthened and feature specialization is budgeted separately. See _1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md for detailed current values and rationales. (ChatGPT-5.6-Sol) -->
+<!-- custom: terrain/feature combat-modifier balance rule: Terrain and Hills use 10/20% tiers with an absolute 20% cap because they can affect city combat; Features use 10/20/40% tiers because cities remove features; City modifiers are balanced separately.
+Historical fit decides where a unit specializes, while gameplay decides the magnitude.
+Combat-capable civ-specific units normally keep a focused terrain/feature identity: usually one strong 20% terrain or at most two weak 10% terrains, while relevant generic-unit affinities/weaknesses can carry through or be strengthened and feature specialization is budgeted separately.
+See _1_AdvCiv-SAS/Docs/README_Assets_Rebalancing.md for detailed current values and rationales. (ChatGPT-5.6-Sol) -->
 <Civ4UnitInfos xmlns="x-schema:CIV4UnitSchema.xml">
 	<UnitInfos>
 		<UnitInfo> <!-- custom: class: UNITCLASS_LION, type: UNIT_LION (useful for VS Code upper tree view while scrolling) -->
@@ -116,7 +119,7 @@
 			<FeatureImpassables/>
 			<TerrainPassableTechs/>
 			<FeaturePassableTechs/>
-			<!-- custom: was 2-->
+			<!-- custom: was 2 -->
 			<iCombat>3</iCombat>
 			<iCombatLimit>100</iCombatLimit>
 			<iAirCombat>0</iAirCombat>
@@ -2225,7 +2228,7 @@
 			<!-- advc.315a: Replaced with OnlyAttackAnimals -->
 			<bOnlyDefensive>0</bOnlyDefensive>
 			<!-- advc.315a -->
-			<!-- custom: minor rework, allow the scout to attack (or defend against) all rivals units and cities, but it should be disincentivized enough for players due its low strength and not much bonuses especially in city	attack-defense, still better than nothing -->
+			<!-- custom: minor rework, allow the scout to attack (or defend against) all rivals units and cities, but it should be disincentivized enough for players due its low strength and not much bonuses especially in city attack-defense, still better than nothing -->
 			<bOnlyAttackAnimals>0</bOnlyAttackAnimals>
 			<!-- advc.315b -->
 			<bOnlyAttackBarbarians>0</bOnlyAttackBarbarians>
@@ -2832,7 +2835,7 @@
 			<FeatureImpassables/>
 			<TerrainPassableTechs/>
 			<FeaturePassableTechs/>
-			<!-- custom: do not make it weaker than unit_explorer it is an upgrade of, also simulate some sort of modest defense if someone has a gun or something on the unit, as for iaircombat and iaircombatlimit fields, disabling them as per chatgpt's recommendation after asking it, was 0 0 4 20-->
+			<!-- custom: do not make it weaker than unit_explorer it is an upgrade of, also simulate some sort of modest defense if someone has a gun or something on the unit, as for iaircombat and iaircombatlimit fields, disabling them as per chatgpt's recommendation after asking it, was 0 0 4 20 -->
 			<iCombat>6</iCombat>
 			<iCombatLimit>100</iCombatLimit>
 			<iAirCombat>0</iAirCombat>
@@ -3151,7 +3154,9 @@
 			<Invisible>NONE</Invisible>
 			<SeeInvisible>NONE</SeeInvisible>
 			<Description>TXT_KEY_UNIT_SPY</Description>
-			<!-- custom: use a spy dedicated txt key entry to remove much of the unclear or potentially mistaken information. We only want the relevant info about the spy as a unit, not the whole espionnage concept. Also solves some display issues in the sevopedia history panel of this unit. -->
+			<!-- custom: use a spy dedicated txt key entry to remove much of the unclear or potentially mistaken information.
+			We only want the relevant info about the spy as a unit, not the whole espionnage concept.
+			Also solves some display issues in the sevopedia history panel of this unit. -->
 			<Civilopedia>TXT_KEY_SPY_UNIT_GENERIC_DESCRIPTION_WITH_INFO_ON_ALL_CIVS_NO_CIV_PEDIA</Civilopedia>
 			<Strategy>TXT_KEY_DUMMY_EMPTY_CUSTOM_TXTKEY_STRATEGY</Strategy>
 			<Advisor>ADVISOR_MILITARY</Advisor>
@@ -3568,7 +3573,8 @@
 			<PrereqReligion>NONE</PrereqReligion>
 			<PrereqCorporation>CORPORATION_2</PrereqCorporation>
 			<PrereqBuilding>NONE</PrereqBuilding>
-			<!-- custom: Executives now require a tech. See code comment at UNITCLASS_EXECUTIVE_1; was PrereqTech NONE and TechTypes empty -->
+			<!-- custom: Executives now require a tech.
+			See code comment at UNITCLASS_EXECUTIVE_1; was PrereqTech NONE and TechTypes empty -->
 			<ObsoleteTech>NONE</ObsoleteTech>
 			<PrereqTech>TECH_MARINE_TECHNOLOGY</PrereqTech>
 			<TechTypes>
@@ -3741,7 +3747,8 @@
 			<PrereqReligion>NONE</PrereqReligion>
 			<PrereqCorporation>CORPORATION_3</PrereqCorporation>
 			<PrereqBuilding>NONE</PrereqBuilding>
-			<!-- custom: Executives now require a tech. See code comment at UNITCLASS_EXECUTIVE_1; was PrereqTech NONE and TechTypes empty -->
+			<!-- custom: Executives now require a tech.
+			See code comment at UNITCLASS_EXECUTIVE_1; was PrereqTech NONE and TechTypes empty -->
 			<ObsoleteTech>NONE</ObsoleteTech>
 			<PrereqTech>TECH_COMBUSTION</PrereqTech>
 			<TechTypes>
@@ -3914,7 +3921,8 @@
 			<PrereqReligion>NONE</PrereqReligion>
 			<PrereqCorporation>CORPORATION_4</PrereqCorporation>
 			<PrereqBuilding>NONE</PrereqBuilding>
-			<!-- custom: Executives now require a tech. See code comment at UNITCLASS_EXECUTIVE_1; was PrereqTech NONE and TechTypes empty -->
+			<!-- custom: Executives now require a tech.
+			See code comment at UNITCLASS_EXECUTIVE_1; was PrereqTech NONE and TechTypes empty -->
 			<ObsoleteTech>NONE</ObsoleteTech>
 			<PrereqTech>TECH_RADIO</PrereqTech>
 			<TechTypes>
@@ -4087,7 +4095,8 @@
 			<PrereqReligion>NONE</PrereqReligion>
 			<PrereqCorporation>CORPORATION_5</PrereqCorporation>
 			<PrereqBuilding>NONE</PrereqBuilding>
-			<!-- custom: Executives now require a tech. See code comment at UNITCLASS_EXECUTIVE_1; was PrereqTech NONE and TechTypes empty -->
+			<!-- custom: Executives now require a tech.
+			See code comment at UNITCLASS_EXECUTIVE_1; was PrereqTech NONE and TechTypes empty -->
 			<ObsoleteTech>NONE</ObsoleteTech>
 			<PrereqTech>TECH_ELECTRICITY</PrereqTech>
 			<TechTypes>
@@ -4260,7 +4269,8 @@
 			<PrereqReligion>NONE</PrereqReligion>
 			<PrereqCorporation>CORPORATION_6</PrereqCorporation>
 			<PrereqBuilding>NONE</PrereqBuilding>
-			<!-- custom: Executives now require a tech. See code comment at UNITCLASS_EXECUTIVE_1; was PrereqTech NONE and TechTypes empty -->
+			<!-- custom: Executives now require a tech.
+			See code comment at UNITCLASS_EXECUTIVE_1; was PrereqTech NONE and TechTypes empty -->
 			<ObsoleteTech>NONE</ObsoleteTech>
 			<PrereqTech>TECH_ASSEMBLY_LINE</PrereqTech>
 			<TechTypes>
@@ -4433,7 +4443,8 @@
 			<PrereqReligion>NONE</PrereqReligion>
 			<PrereqCorporation>CORPORATION_7</PrereqCorporation>
 			<PrereqBuilding>NONE</PrereqBuilding>
-			<!-- custom: Executives now require a tech. See code comment at UNITCLASS_EXECUTIVE_1; was PrereqTech NONE and TechTypes empty -->
+			<!-- custom: Executives now require a tech.
+			See code comment at UNITCLASS_EXECUTIVE_1; was PrereqTech NONE and TechTypes empty -->
 			<ObsoleteTech>NONE</ObsoleteTech>
 			<PrereqTech>TECH_CORPORATION</PrereqTech>
 			<TechTypes/>
@@ -5823,7 +5834,8 @@
 			<PrereqReligion>NONE</PrereqReligion>
 			<PrereqCorporation>NONE</PrereqCorporation>
 			<PrereqBuilding>NONE</PrereqBuilding>
-			<!-- custom: this unit is useless especially soon, yet AIs often produce it; Long_Comments_XML.txt #372 . Most importantly, this tech is on the Hunting path, so it as of now guarantees archers are available. -->
+			<!-- custom: this unit is useless especially soon, yet AIs often produce it; Long_Comments_XML.txt #372 .
+			Most importantly, this tech is on the Hunting path, so it as of now guarantees archers are available. -->
 			<ObsoleteTech>TECH_ANIMAL_HUSBANDRY</ObsoleteTech>
 			<PrereqTech>NONE</PrereqTech>
 			<TechTypes/>
@@ -7320,7 +7332,7 @@
 			<ObsoleteTech>TECH_CIVIL_SERVICE</ObsoleteTech>
 			<PrereqTech>TECH_IRON_WORKING</PrereqTech>
 			<TechTypes/>
-			<!-- custom: the gallic_warrior had it so no reason why the roman_legionary can't, historically they could use copper/bronze just as well i guess, since it's their civ-specific unit it better be a good one!; as of now only applied to civ-specific swordsmen for balance and to keep strategic importance of iron, was BonusType bonus_iron and PrereqBonuses empty-->
+			<!-- custom: the gallic_warrior had it so no reason why the roman_legionary can't, historically they could use copper/bronze just as well i guess, since it's their civ-specific unit it better be a good one!; as of now only applied to civ-specific swordsmen for balance and to keep strategic importance of iron, was BonusType bonus_iron and PrereqBonuses empty -->
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses>
 				<BonusType>BONUS_COPPER</BonusType>
@@ -7545,7 +7557,7 @@
 			<ObsoleteTech>TECH_CIVIL_SERVICE</ObsoleteTech>
 			<PrereqTech>TECH_IRON_WORKING</PrereqTech>
 			<TechTypes/>
-			<!-- custom: the gallic_warrior had it so no reason why the roman_legionary can't, historically they could use copper/bronze just as well i guess, since it's their civ-specific unit it better be a good one!; as of now only applied to civ-specific swordsmen for balance and to keep strategic importance of iron, was BonusType bonus_iron and PrereqBonuses empty-->
+			<!-- custom: the gallic_warrior had it so no reason why the roman_legionary can't, historically they could use copper/bronze just as well i guess, since it's their civ-specific unit it better be a good one!; as of now only applied to civ-specific swordsmen for balance and to keep strategic importance of iron, was BonusType bonus_iron and PrereqBonuses empty -->
 			<BonusType>NONE</BonusType>
 			<PrereqBonuses>
 				<BonusType>BONUS_COPPER</BonusType>
@@ -8969,7 +8981,7 @@
 			</FeatureDefenses>
 			<UnitClassAttackMods/>
 			<UnitClassDefenseMods/>
-			<!-- custom: give an extra melee edge to match the shaka aggressive profile, see code comment at the generic spearman for details or related info-->
+			<!-- custom: give an extra melee edge to match the shaka aggressive profile, see code comment at the generic spearman for details or related info -->
 			<UnitCombatMods>
 				<UnitCombatMod>
 					<UnitCombatType>UNITCOMBAT_MOUNTED_MELEE</UnitCombatType>
@@ -9447,7 +9459,7 @@
 			<UnitClassAttackMods/>
 			<UnitClassDefenseMods/>
 			<!-- custom: was "MOUNTED" 100 -->
-			<!-- custom: This way (melee shock bonus), axes from bronze age (and to a lesser extent the older and cheaper iron age swords) no longer beat or match pikes which was nonsensical, especially considering cost difference; see also code comment at the generic spearman for details or related info-->
+			<!-- custom: This way (melee shock bonus), axes from bronze age (and to a lesser extent the older and cheaper iron age swords) no longer beat or match pikes which was nonsensical, especially considering cost difference; see also code comment at the generic spearman for details or related info -->
 			<UnitCombatMods>
 				<UnitCombatMod>
 					<UnitCombatType>UNITCOMBAT_MOUNTED_MELEE</UnitCombatType>
@@ -9574,13 +9586,14 @@
 				</UnitAI>
 			</UnitAIs>
 			<NotUnitAIs>
-				<!-- custom: this seems to be specifically against city attack suicides which i want to explicitly disable for most units, i don't know if
-				would/will help, would be nice if would help (in preventing these) -->
+				<!-- custom: this seems to be specifically against city attack suicides which i want to explicitly disable for most units, i don't know if would/will help, would be nice if would help (in preventing these) -->
 				<UnitAI>
 					<UnitAIType>UNITAI_ATTACK_CITY_LEMMING</UnitAIType>
 					<bUnitAI>1</bUnitAI>
 				</UnitAI>
-				<!-- custom: may be cool if AI used these as explore units due to their high withdraw chance but may be confused as an explore unit maybe (?) making the AI militarily less effective (/efficient too?) so disabling it -->
+				<!-- custom: may be cool if AI used these as explore units due to their high withdraw chance but may be confused as an explore unit maybe (?)
+				making the AI militarily less effective (/efficient too?)
+				so disabling it -->
 				<UnitAI>
 					<UnitAIType>UNITAI_EXPLORE</UnitAIType>
 					<bUnitAI>1</bUnitAI>
@@ -9808,20 +9821,21 @@
 					<UnitAIType>UNITAI_RESERVE</UnitAIType>
 					<bUnitAI>1</bUnitAI>
 				</UnitAI>
-				<!-- custom: important to keep if all else fails (no camel, no horse, no copper, no iron), the longbows are one of the best options except perhaps catapults later in tech, so do not punish very bad bonuses start if we are otherwise doing well and a longbow rush could helpand keep this UNITAI_COUNTER to hopefully help that-->
+				<!-- custom: important to keep if all else fails (no camel, no horse, no copper, no iron), the longbows are one of the best options except perhaps catapults later in tech, so do not punish very bad bonuses start if we are otherwise doing well and a longbow rush could helpand keep this UNITAI_COUNTER to hopefully help that -->
 				<UnitAI>
 					<UnitAIType>UNITAI_COUNTER</UnitAIType>
 					<bUnitAI>1</bUnitAI>
 				</UnitAI>
 			</UnitAIs>
 			<NotUnitAIs>
-				<!-- custom: this seems to be specifically against city attack suicides which i want to explicitly disable for most units, i don't know if
-				would/will help, would be nice if would help (in preventing these) -->
+				<!-- custom: this seems to be specifically against city attack suicides which i want to explicitly disable for most units, i don't know if would/will help, would be nice if would help (in preventing these) -->
 				<UnitAI>
 					<UnitAIType>UNITAI_ATTACK_CITY_LEMMING</UnitAIType>
 					<bUnitAI>1</bUnitAI>
 				</UnitAI>
-				<!-- custom: may be cool if AI used these as explore units due to their high withdraw chance but may be confused as an explore unit maybe (?) making the AI militarily less effective (/efficient too?) so disabling it -->
+				<!-- custom: may be cool if AI used these as explore units due to their high withdraw chance but may be confused as an explore unit maybe (?)
+				making the AI militarily less effective (/efficient too?)
+				so disabling it -->
 				<UnitAI>
 					<UnitAIType>UNITAI_EXPLORE</UnitAIType>
 					<bUnitAI>1</bUnitAI>
@@ -10053,13 +10067,14 @@
 				</UnitAI>
 			</UnitAIs>
 			<NotUnitAIs>
-				<!-- custom: this seems to be specifically against city attack suicides which i want to explicitly disable for most units, i don't know if
-				would/will help, would be nice if would help (in preventing these) -->
+				<!-- custom: this seems to be specifically against city attack suicides which i want to explicitly disable for most units, i don't know if would/will help, would be nice if would help (in preventing these) -->
 				<UnitAI>
 					<UnitAIType>UNITAI_ATTACK_CITY_LEMMING</UnitAIType>
 					<bUnitAI>1</bUnitAI>
 				</UnitAI>
-				<!-- custom: may be cool if AI used these as explore units due to their high withdraw chance but may be confused as an explore unit maybe (?) making the AI militarily less effective (/efficient too?) so disabling it -->
+				<!-- custom: may be cool if AI used these as explore units due to their high withdraw chance but may be confused as an explore unit maybe (?)
+				making the AI militarily less effective (/efficient too?)
+				so disabling it -->
 				<UnitAI>
 					<UnitAIType>UNITAI_EXPLORE</UnitAIType>
 					<bUnitAI>1</bUnitAI>
@@ -10306,13 +10321,14 @@
 				</UnitAI>
 			</UnitAIs>
 			<NotUnitAIs>
-				<!-- custom: this seems to be specifically against city attack suicides which i want to explicitly disable for most units, i don't know if
-				would/will help, would be nice if would help (in preventing these) -->
+				<!-- custom: this seems to be specifically against city attack suicides which i want to explicitly disable for most units, i don't know if would/will help, would be nice if would help (in preventing these) -->
 				<UnitAI>
 					<UnitAIType>UNITAI_ATTACK_CITY_LEMMING</UnitAIType>
 					<bUnitAI>1</bUnitAI>
 				</UnitAI>
-				<!-- custom: may be cool if AI used these as explore units due to their high withdraw chance but may be confused as an explore unit maybe (?) making the AI militarily less effective (/efficient too?) so disabling it -->
+				<!-- custom: may be cool if AI used these as explore units due to their high withdraw chance but may be confused as an explore unit maybe (?)
+				making the AI militarily less effective (/efficient too?)
+				so disabling it -->
 				<UnitAI>
 					<UnitAIType>UNITAI_EXPLORE</UnitAIType>
 					<bUnitAI>1</bUnitAI>
@@ -10801,14 +10817,16 @@
 			<iAirCombatLimit>0</iAirCombatLimit>
 			<iXPValueAttack>4</iXPValueAttack>
 			<iXPValueDefense>2</iXPValueDefense>
-			<!-- custom: Keep the generic Crossbowman's 1 guaranteed first strike and make the Zhuge Nu's additional first strike a chance, balancing its native collateral advantage. Combining first strikes with other effects like collateral also keeps the unit more versatile and useful against collateral-immune units or stacks too small for collateral to matter. (GPT-5.6-Sol) -->
+			<!-- custom: Keep the generic Crossbowman's 1 guaranteed first strike and make the Zhuge Nu's additional first strike a chance, balancing its native collateral advantage.
+			Combining first strikes with other effects like collateral also keeps the unit more versatile and useful against collateral-immune units or stacks too small for collateral to matter. (GPT-5.6-Sol) -->
 			<iFirstStrikes>1</iFirstStrikes>
 			<iChanceFirstStrikes>1</iChanceFirstStrikes>
 			<iInterceptionProbability>0</iInterceptionProbability>
 			<iEvasionProbability>0</iEvasionProbability>
 			<!-- custom: was 0 -->
 			<iWithdrawalProb>25</iWithdrawalProb>
-			<!-- custom: Keep a modest native collateral effect, reduced from 50 to 15, while free PROMOTION_COLLATERAL_DAMAGE1 adds its 15% modifier and can persist through upgrades. The separate first-strike reduction still nerfs the unit without making its collateral identity too weak. (GPT-5.6-Sol) -->
+			<!-- custom: Keep a modest native collateral effect, reduced from 50 to 15, while free PROMOTION_COLLATERAL_DAMAGE1 adds its 15% modifier and can persist through upgrades.
+			The separate first-strike reduction still nerfs the unit without making its collateral identity too weak. (GPT-5.6-Sol) -->
 			<iCollateralDamage>15</iCollateralDamage>
 			<iCollateralDamageLimit>200</iCollateralDamageLimit>
 			<iCollateralDamageMaxUnits>5</iCollateralDamageMaxUnits>
@@ -11082,7 +11100,8 @@
 			<bShiftDown>0</bShiftDown>
 			<bCtrlDown>0</bCtrlDown>
 			<iHotKeyPriority>0</iHotKeyPriority>
-			<!-- custom: according/from what i understand of the (wiki? didn't recheck since) description of it, it seems they are organized and such, so maybe logistics reflects quite well this, adding it -->
+			<!-- custom: according/from what i understand of the (wiki?
+			didn't recheck since) description of it, it seems they are organized and such, so maybe logistics reflects quite well this, adding it -->
 			<FreePromotions>
 				<FreePromotion>
 					<PromotionType>PROMOTION_LOGISTICS</PromotionType>
@@ -11155,7 +11174,8 @@
 			<UnitCombatDefenders/>
 			<FlankingStrikes/>
 			<!-- custom: more versatile unit, can definitely be used for attack i think but avoid city attack as melee units are less likely to be there defending; see also code comment note at UNIT_ARCHER -->
-			<!-- custom: this civ-specific variant is also a solid defensive choice unlike the generic crossbowman as of now; very hammer efficient and with a stronger focus on defense. With the no bonus requirement, it's a nice alternative for the english empire if they don't have bonuses, or simply to better fit their more defensive profile so added as of now defensive unitais, and removed very offensive ones and as chatgpt 5 recommends as well -->
+			<!-- custom: this civ-specific variant is also a solid defensive choice unlike the generic crossbowman as of now; very hammer efficient and with a stronger focus on defense.
+			With the no bonus requirement, it's a nice alternative for the english empire if they don't have bonuses, or simply to better fit their more defensive profile so added as of now defensive unitais, and removed very offensive ones and as chatgpt 5 recommends as well -->
 			<UnitAIs>
 				<UnitAI>
 					<UnitAIType>UNITAI_RESERVE</UnitAIType>
@@ -13551,7 +13571,7 @@
 			<FeatureDefenses/>
 			<UnitClassAttackMods/>
 			<UnitClassDefenseMods/>
-			<!-- custom: make it strong vs humans in particular if i may say but or not but or yes but-->
+			<!-- custom: make it strong vs humans in particular if i may say but or not but or yes but -->
 			<UnitCombatMods>
 				<UnitCombatMod>
 					<UnitCombatType>UNITCOMBAT_GUN</UnitCombatType>
@@ -13745,7 +13765,8 @@
 			<iEvasionProbability>0</iEvasionProbability>
 			<!-- custom: strengthen the versatile hit-and-run role slightly; was 0 in base AdvCiv and 15 in earlier AdvCiv-SAS. (ChatGPT-5.6-Sol) -->
 			<iWithdrawalProb>20</iWithdrawalProb>
-			<!-- custom: add some collateral damage, after all don't they have.. grenades xd, was 0 -->
+			<!-- custom: add some collateral damage, after all don't they have..
+			grenades xd, was 0 -->
 			<iCollateralDamage>25</iCollateralDamage>
 			<iCollateralDamageLimit>200</iCollateralDamageLimit>
 			<iCollateralDamageMaxUnits>3</iCollateralDamageMaxUnits>
@@ -13954,7 +13975,8 @@
 			<iEvasionProbability>0</iEvasionProbability>
 			<!-- custom: slightly strengthen the Grenadier baseline withdrawal for the Cacador light-infantry/skirmisher role. (ChatGPT-5.6-Sol) -->
 			<iWithdrawalProb>25</iWithdrawalProb>
-			<!-- custom: add some collateral damage, after all don't they have.. grenades xd, was 0 -->
+			<!-- custom: add some collateral damage, after all don't they have..
+			grenades xd, was 0 -->
 			<iCollateralDamage>25</iCollateralDamage>
 			<iCollateralDamageLimit>200</iCollateralDamageLimit>
 			<iCollateralDamageMaxUnits>3</iCollateralDamageMaxUnits>
@@ -14134,7 +14156,7 @@
 			<PrereqReligion>NONE</PrereqReligion>
 			<PrereqCorporation>NONE</PrereqCorporation>
 			<PrereqBuilding>NONE</PrereqBuilding>
-			<!-- custom: add TECH_ARTILLERY as it seems from very quick glances of it it seems they launch rockets/bazookas/rpgs and such from very little i know or guess of it, so fits more and quite well tech_artillery rather maybe, would make anti_tanks not appear too soon in history  too in the game, was TECH_ASSEMBLY_LINE -->
+			<!-- custom: add TECH_ARTILLERY as it seems from very quick glances of it it seems they launch rockets/bazookas/rpgs and such from very little i know or guess of it, so fits more and quite well tech_artillery rather maybe, would make anti_tanks not appear too soon in history too in the game, was TECH_ASSEMBLY_LINE -->
 			<ObsoleteTech>TECH_ADVANCED_FLIGHT</ObsoleteTech>
 			<PrereqTech>TECH_ARTILLERY</PrereqTech>
 			<TechTypes>
@@ -14185,7 +14207,9 @@
 			<iEvasionProbability>0</iEvasionProbability>
 			<!-- custom: add some small withdraw chance that goes with this hit and run ability, was 0 -->
 			<iWithdrawalProb>15</iWithdrawalProb>
-			<!-- custom: add some collateral damage, after all don't they have.. bazuuuuuuka! xd, i also believe it's an interesting balance change, was 0 -->
+			<!-- custom: add some collateral damage, after all don't they have..
+			bazuuuuuuka!
+			xd, i also believe it's an interesting balance change, was 0 -->
 			<iCollateralDamage>25</iCollateralDamage>
 			<iCollateralDamageLimit>200</iCollateralDamageLimit>
 			<iCollateralDamageMaxUnits>3</iCollateralDamageMaxUnits>
@@ -14715,7 +14739,8 @@
 			<bNukeImmune>0</bNukeImmune>
 			<bPrereqBonuses>0</bPrereqBonuses>
 			<bPrereqReligion>0</bPrereqReligion>
-			<!-- custom: although according to (translate to english using web browser or such) https://gforestshade.github.io/kujira/post/civ4unitinfos/#bmechanized) no effect seems to be used/activated by enabling this field if i may, still it seems very strange if i may say too in this casethat the mechanized_infantry, that has "mechanized" in its litteral name... Is not among mechanized units; now that we changed its combat type as well as of now to combat_armor, it also makes sense furthermore to enable this effect on this unit as well, was 0 -->
+			<!-- custom: although according to (translate to english using web browser or such) https://gforestshade.github.io/kujira/post/civ4unitinfos/#bmechanized) no effect seems to be used/activated by enabling this field if i may, still it seems very strange if i may say too in this casethat the mechanized_infantry, that has "mechanized" in its litteral name...
+			Is not among mechanized units; now that we changed its combat type as well as of now to combat_armor, it also makes sense furthermore to enable this effect on this unit as well, was 0 -->
 			<bMechanized>1</bMechanized>
 			<bSuicide>0</bSuicide>
 			<bHiddenNationality>0</bHiddenNationality>
@@ -14928,7 +14953,8 @@
 					<bUnitAI>1</bUnitAI>
 				</UnitAI>
 			</UnitAIs>
-			<!-- custom: Dedicated land anti-air units should not fill generic offensive or reserve roles; keep their explicit COUNTER, CITY_COUNTER, and CITY_SPECIAL roles instead. Save file 459 exposed repeated SAM Infantry/Mobile SAM selection as ATTACK, ATTACK_CITY, or RESERVE. See KI#199. (GPT-5.6 Thinking) -->
+			<!-- custom: Dedicated land anti-air units should not fill generic offensive or reserve roles; keep their explicit COUNTER, CITY_COUNTER, and CITY_SPECIAL roles instead.
+			Save file 459 exposed repeated SAM Infantry/Mobile SAM selection as ATTACK, ATTACK_CITY, or RESERVE. See KI#199. (GPT-5.6 Thinking) -->
 			<NotUnitAIs>
 				<UnitAI>
 					<UnitAIType>UNITAI_ATTACK</UnitAIType>
@@ -15122,7 +15148,8 @@
 					<bUnitAI>1</bUnitAI>
 				</UnitAI>
 			</UnitAIs>
-			<!-- custom: Dedicated land anti-air units should not fill generic offensive or reserve roles; keep their explicit COUNTER, CITY_COUNTER, and CITY_SPECIAL roles instead. Save file 459 exposed repeated SAM Infantry/Mobile SAM selection as ATTACK, ATTACK_CITY, or RESERVE. See KI#199. (GPT-5.6 Thinking) -->
+			<!-- custom: Dedicated land anti-air units should not fill generic offensive or reserve roles; keep their explicit COUNTER, CITY_COUNTER, and CITY_SPECIAL roles instead.
+			Save file 459 exposed repeated SAM Infantry/Mobile SAM selection as ATTACK, ATTACK_CITY, or RESERVE. See KI#199. (GPT-5.6 Thinking) -->
 			<NotUnitAIs>
 				<UnitAI>
 					<UnitAIType>UNITAI_ATTACK</UnitAIType>
@@ -15297,7 +15324,8 @@
 			<bSuicide>0</bSuicide>
 			<bHiddenNationality>0</bHiddenNationality>
 			<bAlwaysHostile>0</bAlwaysHostile>
-			<!-- custom: make chariots upgrade to horse_archer s instead, is in direct continuity (contiguity? After checking seems accurate maybe) of the chariot, should be more useful this way; also add camel_archer (the base one not the knight version of it), was UNITCLASS_HORSE_KNIGHT -->
+			<!-- custom: make chariots upgrade to horse_archer s instead, is in direct continuity (contiguity?
+			After checking seems accurate maybe) of the chariot, should be more useful this way; also add camel_archer (the base one not the knight version of it), was UNITCLASS_HORSE_KNIGHT -->
 			<UnitClassUpgrades>
 				<UnitClassUpgrade>
 					<UnitClassUpgradeType>UNITCLASS_HORSE_ARCHER</UnitClassUpgradeType>
@@ -15335,7 +15363,8 @@
 			<PrereqBuilding>NONE</PrereqBuilding>
 			<ObsoleteTech>TECH_MOUNTED_COMBAT</ObsoleteTech>
 			<PrereqTech>TECH_THE_WHEEL</PrereqTech>
-			<!-- custom: The Wheel can now be reached through Masonry or Animal Husbandry. Horse reveal and its Pasture normally enforce Animal Husbandry already, but making it an explicit Chariot requirement keeps this early mounted-unit gate visible and robust against unusual bonus access through the Masonry path. (GPT-5.6-Sol) -->
+			<!-- custom: The Wheel can now be reached through Masonry or Animal Husbandry.
+			Horse reveal and its Pasture normally enforce Animal Husbandry already, but making it an explicit Chariot requirement keeps this early mounted-unit gate visible and robust against unusual bonus access through the Masonry path. (GPT-5.6-Sol) -->
 			<TechTypes>
 				<PrereqTech>TECH_ANIMAL_HUSBANDRY</PrereqTech>
 				<PrereqTech>NONE</PrereqTech>
@@ -15525,7 +15554,8 @@
 			<bSuicide>0</bSuicide>
 			<bHiddenNationality>0</bHiddenNationality>
 			<bAlwaysHostile>0</bAlwaysHostile>
-			<!-- custom: make chariots upgrade to horse_archer s instead, is in direct continuity (contiguity? After checking seems accurate maybe) of the chariot, should be more useful this way; also add camel_archer (the base one not the knight version of it), was UNITCLASS_HORSE_KNIGHT -->
+			<!-- custom: make chariots upgrade to horse_archer s instead, is in direct continuity (contiguity?
+			After checking seems accurate maybe) of the chariot, should be more useful this way; also add camel_archer (the base one not the knight version of it), was UNITCLASS_HORSE_KNIGHT -->
 			<UnitClassUpgrades>
 				<UnitClassUpgrade>
 					<UnitClassUpgradeType>UNITCLASS_HORSE_ARCHER</UnitClassUpgradeType>
@@ -17364,7 +17394,8 @@
 				</TerrainAttack>
 			</TerrainAttacks>
 			<TerrainDefenses/>
-			<!-- custom: see longer code comment at one of the other mounted_melee units that have the forest/jungle penalty as well for details. Also remove_forest penalties due to civ geographic in world map advantage of forest, see other units code comments at terrainattacks or such, was empty -->
+			<!-- custom: see longer code comment at one of the other mounted_melee units that have the forest/jungle penalty as well for details.
+			Also remove_forest penalties due to civ geographic in world map advantage of forest, see other units code comments at terrainattacks or such, was empty -->
 			<FeatureAttacks>
 				<FeatureAttack>
 					<FeatureType>FEATURE_FOREST</FeatureType>
@@ -18889,7 +18920,8 @@
 			<iHillsDefense>0</iHillsDefense>
 			<TerrainNatives/>
 			<FeatureNatives/>
-			<!-- custom: although i didn't check too much, russia seems a bit better at defense than offense based on some comments  found online. Yet, in terms of gameplay this is still a mostly offensive/mobile unit, so emphasize cold resistance more and keep offense dominant (Similar reasoning as as of now for the Hajjan). -->
+			<!-- custom: although i didn't check too much, russia seems a bit better at defense than offense based on some comments found online.
+			Yet, in terms of gameplay this is still a mostly offensive/mobile unit, so emphasize cold resistance more and keep offense dominant (Similar reasoning as as of now for the Hajjan). -->
 			<TerrainAttacks>
 				<TerrainAttack>
 					<TerrainType>TERRAIN_TUNDRA</TerrainType>
@@ -19071,7 +19103,8 @@
 			<iAdvancedStartCost>100</iAdvancedStartCost>
 			<iAdvancedStartCostIncrease>0</iAdvancedStartCostIncrease>
 			<iMinAreaSize>-1</iMinAreaSize>
-			<!-- custom: was 2 in SAS Dragoon: Increasing it is stronger, more unique, and a thematic fit based on ChatGPT-5.5's explanation when i asked it about it thanks. Also, reminds me of the Civ3 Cavalry has 3 move speed flavor which i think is nice and cool to have too, in terms of gameplay too also. -->
+			<!-- custom: was 2 in SAS Dragoon: Increasing it is stronger, more unique, and a thematic fit based on ChatGPT-5.5's explanation when i asked it about it thanks.
+			Also, reminds me of the Civ3 Cavalry has 3 move speed flavor which i think is nice and cool to have too, in terms of gameplay too also. -->
 			<iMoves>3</iMoves>
 			<bNoRevealMap>0</bNoRevealMap>
 			<iAirRange>0</iAirRange>
@@ -20318,7 +20351,8 @@
 			<PrereqReligion>NONE</PrereqReligion>
 			<PrereqCorporation>NONE</PrereqCorporation>
 			<PrereqBuilding>NONE</PrereqBuilding>
-			<!-- custom: moved here as per tech rework, also buffs physics tech which is quite weak otherwise at least as of now, is a counter to main military gun path too strategically so interesting perhaps from gameplay standpoint to not overcrowd one tech and having alternate (or alternative?) strategies if one may say, was TECH_STEEL (now removed) -->
+			<!-- custom: moved here as per tech rework, also buffs physics tech which is quite weak otherwise at least as of now, is a counter to main military gun path too strategically so interesting perhaps from gameplay standpoint to not overcrowd one tech and having alternate (or alternative?)
+			strategies if one may say, was TECH_STEEL (now removed) -->
 			<ObsoleteTech>TECH_ARTILLERY</ObsoleteTech>
 			<PrereqTech>TECH_CHEMISTRY</PrereqTech>
 			<!-- custom: was empty -->
@@ -20521,7 +20555,7 @@
 				<PrereqTech>NONE</PrereqTech>
 				<PrereqTech>NONE</PrereqTech>
 			</TechTypes>
-			<!-- custom: was BONUS_IRON in the generic cannon as of now at least if not always or not-->
+			<!-- custom: was BONUS_IRON in the generic cannon as of now at least if not always or not -->
 			<BonusType/>
 			<PrereqBonuses/>
 			<ProductionTraits/>
@@ -20631,7 +20665,8 @@
 			<bShiftDown>0</bShiftDown>
 			<bCtrlDown>0</bCtrlDown>
 			<iHotKeyPriority>0</iHotKeyPriority>
-			<!-- custom: was empty. Note: this as of now new free PROMOTION_COLLATERAL_DAMAGE1 is also thematically more relevant according to chatgpt 5 as the unit fires many rockets if i understood it correctly but check if accurate -->
+			<!-- custom: was empty.
+			Note: this as of now new free PROMOTION_COLLATERAL_DAMAGE1 is also thematically more relevant according to chatgpt 5 as the unit fires many rockets if i understood it correctly but check if accurate -->
 			<FreePromotions>
 				<FreePromotion>
 					<PromotionType>PROMOTION_COLLATERAL_DAMAGE1</PromotionType>
@@ -20726,7 +20761,8 @@
 			<PrereqReligion>NONE</PrereqReligion>
 			<PrereqCorporation>NONE</PrereqCorporation>
 			<PrereqBuilding>NONE</PrereqBuilding>
-			<!-- custom: moved here as per tech rework, also buffs physics tech which is quite weak otherwise at least as of now, is a counter to main military gun path too strategically so interesting perhaps from gameplay standpoint to not overcrowd one tech and having alternate (or alternative?) strategies if one may say, was TECH_STEEL (now removed) -->
+			<!-- custom: moved here as per tech rework, also buffs physics tech which is quite weak otherwise at least as of now, is a counter to main military gun path too strategically so interesting perhaps from gameplay standpoint to not overcrowd one tech and having alternate (or alternative?)
+			strategies if one may say, was TECH_STEEL (now removed) -->
 			<ObsoleteTech>TECH_ARTILLERY</ObsoleteTech>
 			<PrereqTech>TECH_CHEMISTRY</PrereqTech>
 			<!-- custom: was empty -->
@@ -20746,7 +20782,7 @@
 			<ProductionTraits/>
 			<Flavors/>
 			<iAIWeight>0</iAIWeight>
-			<!-- custom: was 140 in the generic cannon in advciv-sas as of now-->
+			<!-- custom: was 140 in the generic cannon in advciv-sas as of now -->
 			<iCost>130</iCost>
 			<iHurryCostModifier>0</iHurryCostModifier>
 			<iAdvancedStartCost>100</iAdvancedStartCost>
@@ -20833,7 +20869,7 @@
 			<iCultureGarrison>4</iCultureGarrison>
 			<iExtraCost>0</iExtraCost>
 			<iAsset>3</iAsset>
-			<!-- custom: was 13 in the generic cannon in advciv-sas as of now-->
+			<!-- custom: was 13 in the generic cannon in advciv-sas as of now -->
 			<iPower>14</iPower>
 			<UnitMeshGroups>
 				<iGroupSize>2</iGroupSize>
@@ -20852,7 +20888,8 @@
 			<bShiftDown>0</bShiftDown>
 			<bCtrlDown>0</bCtrlDown>
 			<iHotKeyPriority>0</iHotKeyPriority>
-			<!-- custom: Do not grant PROMOTION_CITY_BOMBARD_DAMAGE for free. The Houfnice can still choose it with experience, but doing so delays City Raider, collateral or survival promotions instead of combining rapid bombardment with full assault specialization automatically. (GPT-5.6-Sol); Long_Comments_XML.txt #114 -->
+			<!-- custom: Do not grant PROMOTION_CITY_BOMBARD_DAMAGE for free.
+			The Houfnice can still choose it with experience, but doing so delays City Raider, collateral or survival promotions instead of combining rapid bombardment with full assault specialization automatically. (GPT-5.6-Sol); Long_Comments_XML.txt #114 -->
 			<FreePromotions/>
 			<LeaderPromotion>NONE</LeaderPromotion>
 			<iLeaderExperience>0</iLeaderExperience>
@@ -23354,7 +23391,8 @@
 			<iTradeMultiplier>0</iTradeMultiplier>
 			<iGreatWorkCulture>0</iGreatWorkCulture>
 			<iEspionagePoints>0</iEspionagePoints>
-			<!-- custom: was TERRAIN_OCEAN???? How can such a end of mid to late game unit not be able to cross oceans while frigates and such and galleons can?, so disabled this -->
+			<!-- custom: was TERRAIN_OCEAN????
+			How can such a end of mid to late game unit not be able to cross oceans while frigates and such and galleons can?, so disabled this -->
 			<TerrainImpassables/>
 			<FeatureImpassables/>
 			<TerrainPassableTechs/>

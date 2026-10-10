@@ -441,8 +441,7 @@ int CyGlobalContext::getTypesEnum(const char* szType) const
 }
 
 // <!-- custom: begin - Python can receive 3D audio script IDs, but older exposed APIs had no reverse lookup.
-// Cache Audio3DScripts.xml once so Python can resolve any 3D script ID back to AS3D_... and play Sevopedia previews
-// through CyInterface().playGeneralSound at normal volume. See KI#141. (GPT-5.5?) -->
+// Cache Audio3DScripts.xml once so Python can resolve any 3D script ID back to AS3D_... and play Sevopedia previews through CyInterface().playGeneralSound at normal volume. See KI#141. (GPT-5.5?) -->
 const char* CyGlobalContext::getAudio3DScriptName(int iScriptId) const
 {
 	static std::vector<CvString> aszAudio3DScripts;

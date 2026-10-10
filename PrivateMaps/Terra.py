@@ -58,7 +58,8 @@ def getNumPlotsPercent(argsList):
 	if iWorldSize < 0:
 		return 100
 	sizeModifiers = {
-		# <!-- custom: Arena was absent from this direct dictionary, causing KeyError; the shifted length guard also bypassed the stored Huge value. Use the established Duel percentage for Arena. See KI#282.3. (GPT-5.6-Sol) -->
+		# <!-- custom: Arena was absent from this direct dictionary, causing KeyError; the shifted length guard also bypassed the stored Huge value.
+		# Use the established Duel percentage for Arena. See KI#282.3. (GPT-5.6-Sol) -->
 		WorldSizeTypes.WORLDSIZE_ARENA:		96,
 		WorldSizeTypes.WORLDSIZE_DUEL:		96,
 		WorldSizeTypes.WORLDSIZE_TINY:		95,
@@ -187,7 +188,8 @@ class TerraMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 		# The following grain matrix is specific to Terra.py
 		sizekey = self.map.getWorldSize()
 		sizevalues = {
-			# <!-- custom: Terra's second direct world-size dictionary also omitted Arena and raised KeyError during regional generation. Match the established Duel/Tiny grain. See KI#282.3. (GPT-5.6-Sol) -->
+			# <!-- custom: Terra's second direct world-size dictionary also omitted Arena and raised KeyError during regional generation.
+			# Match the established Duel/Tiny grain. See KI#282.3. (GPT-5.6-Sol) -->
 			WorldSizeTypes.WORLDSIZE_ARENA:     (3,2,1,2),
 			WorldSizeTypes.WORLDSIZE_DUEL:      (3,2,1,2),
 			WorldSizeTypes.WORLDSIZE_TINY:      (3,2,1,2),

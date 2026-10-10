@@ -349,7 +349,9 @@ int CvUnitInfo::getTerrainAttackModifier(int i) const
 {
 	FAssertBounds(0, GC.getNumTerrainInfos(), i);
 
-	// <!-- custom: some players don't like units terrain or feature attack/defense modifiers (e.g. Roman Legionaries stronger (+25%) on plains; chariots weaker (-50%) on jungle, etc.). I think it's a super nice option to be able to disable them if needed/want! Added with the help of chatgpt 5.2 thanks -->
+	// <!-- custom: some players don't like units terrain or feature attack/defense modifiers (e.g. Roman Legionaries stronger (+25%) on plains; chariots weaker (-50%) on jungle, etc.).
+	// I think it's a super nice option to be able to disable them if needed/want!
+	// Added with the help of chatgpt 5.2 thanks -->
 	static const bool bSAS_CV_UNIT_INFO_ENABLE_XML_UNIT_TERRAIN_ATTACK_MODIFIERS = GC.getDefineBOOL("SAS_CV_UNIT_INFO_ENABLE_XML_UNIT_TERRAIN_ATTACK_MODIFIERS");
 	if (!bSAS_CV_UNIT_INFO_ENABLE_XML_UNIT_TERRAIN_ATTACK_MODIFIERS)
 	{
@@ -363,7 +365,9 @@ int CvUnitInfo::getTerrainDefenseModifier(int i) const
 {
 	FAssertBounds(0, GC.getNumTerrainInfos(), i);
 
-	// <!-- custom: some players don't like units terrain or feature attack/defense modifiers (e.g. Roman Legionaries stronger (+25%) on plains; chariots weaker (-50%) on jungle, etc.). I think it's a super nice option to be able to disable them if needed/want! Added with the help of chatgpt 5.2 thanks -->
+	// <!-- custom: some players don't like units terrain or feature attack/defense modifiers (e.g. Roman Legionaries stronger (+25%) on plains; chariots weaker (-50%) on jungle, etc.).
+	// I think it's a super nice option to be able to disable them if needed/want!
+	// Added with the help of chatgpt 5.2 thanks -->
 	static const bool bSAS_CV_UNIT_INFO_ENABLE_XML_UNIT_TERRAIN_DEFENSE_MODIFIERS = GC.getDefineBOOL("SAS_CV_UNIT_INFO_ENABLE_XML_UNIT_TERRAIN_DEFENSE_MODIFIERS");
 	if (!bSAS_CV_UNIT_INFO_ENABLE_XML_UNIT_TERRAIN_DEFENSE_MODIFIERS)
 	{
@@ -377,7 +381,9 @@ int CvUnitInfo::getFeatureAttackModifier(int i) const
 {
 	FAssertBounds(0, GC.getNumFeatureInfos(), i);
 
-	// <!-- custom: some players don't like units terrain or feature attack/defense modifiers (e.g. Roman Legionaries stronger (+25%) on plains; chariots weaker (-50%) on jungle, etc.). I think it's a super nice option to be able to disable them if needed/want! Added with the help of chatgpt 5.2 thanks -->
+	// <!-- custom: some players don't like units terrain or feature attack/defense modifiers (e.g. Roman Legionaries stronger (+25%) on plains; chariots weaker (-50%) on jungle, etc.).
+	// I think it's a super nice option to be able to disable them if needed/want!
+	// Added with the help of chatgpt 5.2 thanks -->
 	static const bool bSAS_CV_UNIT_INFO_ENABLE_XML_UNIT_FEATURE_ATTACK_MODIFIERS = GC.getDefineBOOL("SAS_CV_UNIT_INFO_ENABLE_XML_UNIT_FEATURE_ATTACK_MODIFIERS");
 	if (!bSAS_CV_UNIT_INFO_ENABLE_XML_UNIT_FEATURE_ATTACK_MODIFIERS)
 	{
@@ -391,7 +397,9 @@ int CvUnitInfo::getFeatureDefenseModifier(int i) const
 {
 	FAssertBounds(0, GC.getNumFeatureInfos(), i);
 
-	// <!-- custom: some players don't like units terrain or feature attack/defense modifiers (e.g. Roman Legionaries stronger (+25%) on plains; chariots weaker (-50%) on jungle, etc.). I think it's a super nice option to be able to disable them if needed/want! Added with the help of chatgpt 5.2 thanks -->
+	// <!-- custom: some players don't like units terrain or feature attack/defense modifiers (e.g. Roman Legionaries stronger (+25%) on plains; chariots weaker (-50%) on jungle, etc.).
+	// I think it's a super nice option to be able to disable them if needed/want!
+	// Added with the help of chatgpt 5.2 thanks -->
 	static const bool bSAS_CV_UNIT_INFO_ENABLE_XML_UNIT_FEATURE_DEFENSE_MODIFIERS = GC.getDefineBOOL("SAS_CV_UNIT_INFO_ENABLE_XML_UNIT_FEATURE_DEFENSE_MODIFIERS");
 	if (!bSAS_CV_UNIT_INFO_ENABLE_XML_UNIT_FEATURE_DEFENSE_MODIFIERS)
 	{

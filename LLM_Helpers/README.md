@@ -16,6 +16,8 @@ Always review diffs before committing generated source changes.
 ## Menu
 
 - [Inherited map-script reference sources](#inherited-map-script-reference-sources)
+- [Custom-comment logical reflow](#custom-comment-logical-reflow)
+  - [`reflow_custom_comments.py`](#reflow_custom_commentspy)
 - [Python source cleanup helpers](#python-source-cleanup-helpers)
   - [`collapse_multiline_calls.py`](#collapse_multiline_callspy)
   - [`collapse_multiline_calls2.py`](#collapse_multiline_calls2py)
@@ -76,6 +78,49 @@ Always review diffs before committing generated source changes.
 - Do not run formatting, lint autofixes or line-ending normalization over the corpus.
 - Ordinary player/GitHub Download ZIP archives and generated historical patches exclude it, while `make_light_source_zip.py` includes the current files for ChatGPT/code-agent archaeology.
 - Preserve upstream credits/readmes and treat hosting/authorship/licensing metadata as upstream provenance rather than AdvCiv-SAS ownership.
+
+## Custom-comment logical reflow
+
+### `reflow_custom_comments.py`
+
+Logical-layout helper for AdvCiv-SAS `<!-- custom: ... -->` prose comments in active C++, Python and XML source.
+
+- This is deliberately not a width formatter. It does not wrap at 80/120/etc. characters.
+- Joins obvious physical wraps that split one logical sentence, and separates substantial complete sentences onto distinct physical comment lines.
+- Preserves short related clauses already joined with semicolons. Small trailing configuration/provenance fragments such as `Was 70.` are folded into the preceding sentence as `; was 70.` when safe.
+- Keeps closing metadata such as `See KI#...`, model credits and `Long_Comments_*.txt` references on the final substantive line instead of stranding them.
+- Touches only explicitly marked custom comments. Ordinary inherited/BTS/K-Mod/AdvCiv comments are not candidates.
+- Skips structured lists/layout notes, code-like or assignment-like commented material, malformed/unclosed markers and genuinely ambiguous physical boundaries instead of guessing. Those skips are intended for LLM/manual review when desired.
+- C++ includes `.cpp`, `.h` and `.inl`; Python is `.py`; XML is `.xml`. Reference/history corpora such as `_0_Common_Docs`, `_SNAPSHOT_CONTEXT`, `LLM_Helpers/context`, and generated outputs are excluded.
+- Python rewrites must preserve the significant token stream; the helper refuses a Python change if its token-safety comparison changes executable code. Original text encoding and line-ending style are preserved.
+- Review the diff before committing. The helper is suitable as a reusable audit/reflow pass; wire `--check` into CI only after the repo has intentionally adopted the current rule and its remaining skips are understood.
+
+From the repo root, audit all supported active source without writing:
+
+```bash
+python LLM_Helpers/reflow_custom_comments.py --check
+```
+
+Preview the safe proposed edits as a unified diff:
+
+```bash
+python LLM_Helpers/reflow_custom_comments.py --diff
+```
+
+Apply the safe pass in place:
+
+```bash
+python LLM_Helpers/reflow_custom_comments.py --apply
+```
+
+Narrow to selected source families or paths when useful:
+
+```bash
+python LLM_Helpers/reflow_custom_comments.py CvGameCoreDLL Assets/Python --extensions cpp,h,inl,py --diff
+python LLM_Helpers/reflow_custom_comments.py Assets/XML --extensions xml --apply
+```
+
+The older [`comment_cleanup_pass_v2.py`](#comment_cleanup_pass_v2py) remains a historical CvMainInterface-specific cleanup reference. It uses length-oriented heuristics and should not replace this logical custom-comment pass.
 
 ## Python source cleanup helpers
 

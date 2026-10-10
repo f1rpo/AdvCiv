@@ -193,8 +193,8 @@ def _effective_line_and_gap(iLines):
 	iLinePlots = _line_thickness()
 	iBandPlots = _interline_gap()
 	# <!-- custom: This hard-cap fixed a reproducible startup crash on SAS48 world size at the full 48-player setup (SAS_Parallel_Lines only).
-	# Root cause was extreme vertical map dimensions from many lines + wide inter-line gaps. Preserve configured line thickness and reduce
-	# only inter-line water gap when necessary so normal sizes keep their original layout. (GPT-5.3-Codex) -->
+	# Root cause was extreme vertical map dimensions from many lines + wide inter-line gaps.
+	# Preserve configured line thickness and reduce only inter-line water gap when necessary so normal sizes keep their original layout. (GPT-5.3-Codex) -->
 	iMaxLateralSpanPlots = 192
 	if iLines > 0:
 		iMaxBand = (iMaxLateralSpanPlots / iLines) - iLinePlots
@@ -346,7 +346,8 @@ def findStartingPlot(argsList):
 		return _sas_start_assignments[playerID]
 
 	iIndex = lPlayers.index(playerID)
-	# <!-- custom: The custom slot count follows the world-size default, but Custom Game can contain more alive players. Let the DLL find unique starts for extras instead of reusing the final custom slot. See KI#238. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: The custom slot count follows the world-size default, but Custom Game can contain more alive players.
+	# Let the DLL find unique starts for extras instead of reusing the final custom slot. See KI#238. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if iIndex >= sum(layout["line_slots"]):
 		CyPythonMgr().allowDefaultImpl()
 		return

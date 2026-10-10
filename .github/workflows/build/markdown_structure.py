@@ -2,7 +2,8 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 
-# <!-- custom: Valid link anchors previously let missing menu entries and mismatched titles pass. Check declared menus against body headings, including hierarchy and ordering; Known Issues indexes numbered issue headings rather than every internal investigation subsection. (GPT-6.1-Sol) -->
+# <!-- custom: Valid link anchors previously let missing menu entries and mismatched titles pass.
+# Check declared menus against body headings, including hierarchy and ordering; Known Issues indexes numbered issue headings rather than every internal investigation subsection. (GPT-6.1-Sol) -->
 import argparse
 from collections import Counter
 from pathlib import Path
@@ -138,7 +139,8 @@ def redundant_hard_break_errors(text):
     lines = visible.splitlines()
     clean_lines = links.without_inline_code(visible).splitlines()
     errors = []
-    # <!-- custom: The first check mistook escaped literal backslashes for hard breaks and erased inline-code-only following lines into apparent blanks. Check odd trailing backslash runs outside code, but retain inline code when deciding whether the next line has content. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+    # <!-- custom: The first check mistook escaped literal backslashes for hard breaks and erased inline-code-only following lines into apparent blanks.
+    # Check odd trailing backslash runs outside code, but retain inline code when deciding whether the next line has content. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
     for index, line in enumerate(lines):
         if not re.search(r"(?<!\\)(?:\\\\)*\\$", line):
             continue
@@ -178,7 +180,8 @@ def render_menu(text, known_issues=False, document=None):
         destination = destinations.get(anchor, "#" + anchor)
         rows.append(f"{prefix}[{label}]({destination})" + ("" if bullet else "\\"))
         rows.extend(external_after.get(anchor, []))
-    # <!-- custom: A trailing backslash only forces a hard break before another line. Drop it from the final menu row instead of emitting redundant Markdown before the section-ending blank line. (ChatGPT-5.6-Sol) -->
+    # <!-- custom: A trailing backslash only forces a hard break before another line.
+    # Drop it from the final menu row instead of emitting redundant Markdown before the section-ending blank line. (ChatGPT-5.6-Sol) -->
     if not bullet:
         for index in range(len(rows) - 1, -1, -1):
             if not rows[index].strip():

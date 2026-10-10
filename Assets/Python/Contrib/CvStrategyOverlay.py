@@ -79,14 +79,16 @@ def onLoad(argsList):
 		try:
 			import CvScreensInterface
 			if bAnnotationsHidden:
-				# <!-- custom: reload hidden-annotation state from save data. In-game testing confirmed this fixes hide annotations -> save -> reload: the previous implementation made hidden captions reappear immediately on save while BFC drawings stayed hidden, then reloading that save showed only the BFC annotations and lost the caption annotations. (GPT-5.5) -->
+				# <!-- custom: reload hidden-annotation state from save data.
+				# In-game testing confirmed this fixes hide annotations -> save -> reload: the previous implementation made hidden captions reappear immediately on save while BFC drawings stayed hidden, then reloading that save showed only the BFC annotations and lost the caption annotations. (GPT-5.5) -->
 				aHiddenSigns = SdToolKit.sdGetGlobal(SAS_ANNOTATION_SAVE_MOD_ID, SAS_HIDDEN_ANNOTATION_SIGNS_SAVE_ID)
 				CvScreensInterface.mainInterface.loadHiddenMapAnnotationSigns(aHiddenSigns)
 				StratLayerOpt.setShowDotMap(False)
 				getDotMap().hide()
 				getDotMap().clearCityLayers()
 			else:
-				# <!-- custom: absence of the hidden-annotations save flag means this save was written with annotations visible. In-game testing found that hiding annotations in the current session before loading such a save left the runtime DotMap option false, so reload showed captions only until toggling off/on; reset visible state here so BFC annotations redraw immediately. (GPT-5.5) -->
+				# <!-- custom: absence of the hidden-annotations save flag means this save was written with annotations visible.
+				# In-game testing found that hiding annotations in the current session before loading such a save left the runtime DotMap option false, so reload showed captions only until toggling off/on; reset visible state here so BFC annotations redraw immediately. (GPT-5.5) -->
 				CvScreensInterface.mainInterface.loadVisibleMapAnnotations()
 				StratLayerOpt.setShowDotMap(True)
 				getDotMap().show()
@@ -104,7 +106,8 @@ def onLoad(argsList):
 def onPreSave(argsList):
 	try:
 		import CvScreensInterface
-		# <!-- custom: persist the hidden annotation state and cached signs instead of re-adding signs before save. In-game testing showed restore-before-save made hidden captions appear immediately on save while BFC drawings stayed hidden, then reloading that save showed only BFC annotations and lost the caption annotations; storing the cache keeps hidden annotations hidden and lets the toggle restore captions after reload. (GPT-5.5) -->
+		# <!-- custom: persist the hidden annotation state and cached signs instead of re-adding signs before save.
+		# In-game testing showed restore-before-save made hidden captions appear immediately on save while BFC drawings stayed hidden, then reloading that save showed only BFC annotations and lost the caption annotations; storing the cache keeps hidden annotations hidden and lets the toggle restore captions after reload. (GPT-5.5) -->
 		if CvScreensInterface.mainInterface.isMapAnnotationsHiddenForSave():
 			SdToolKit.sdSetGlobal(SAS_ANNOTATION_SAVE_MOD_ID, SAS_ANNOTATIONS_HIDDEN_SAVE_ID, True)
 			aHiddenSigns = CvScreensInterface.mainInterface.getHiddenMapAnnotationSignsForSave()

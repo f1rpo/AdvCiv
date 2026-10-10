@@ -4,7 +4,8 @@
 <!-- Copyright Firaxis Games 2005 -->
 <!-- -->
 <!-- Build Infos -->
-<!-- custom: Added new Build Help/Civilopedia text keys (GPT-5.2-Codex). Generated with the help of ChatGPT-5.2 Thinking. -->
+<!-- custom: Added new Build Help/Civilopedia text keys (GPT-5.2-Codex).
+Generated with the help of ChatGPT-5.2 Thinking. -->
 <Civ4BuildInfos xmlns="x-schema:CIV4UnitSchema.xml">
 	<BuildInfos>
 		<BuildInfo> <!-- custom: BUILD_ROAD (useful for VS Code upper tree view while scrolling) -->
@@ -60,7 +61,8 @@
 			<ImprovementType>IMPROVEMENT_FARM</ImprovementType>
 			<RouteType>NONE</RouteType>
 			<EntityEvent>ENTITY_EVENT_IRRIGATE</EntityEvent>
-			<!-- custom: Apply jungle removal consistently to every compatible build. Move it from Masonry to Metal Casting so Masonry does not combine Slavery, forest removal and jungle removal, while keeping the existing 20 production reward. (GPT-5.6-Sol) -->
+			<!-- custom: Apply jungle removal consistently to every compatible build.
+			Move it from Masonry to Metal Casting so Masonry does not combine Slavery, forest removal and jungle removal, while keeping the existing 20 production reward. (GPT-5.6-Sol) -->
 			<FeatureStructs>
 				<FeatureStruct>
 					<FeatureType>FEATURE_JUNGLE</FeatureType>

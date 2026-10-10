@@ -210,7 +210,8 @@
 			<OrPreReqs>
 				<PrereqTech>TECH_MYSTICISM</PrereqTech>
 			</OrPreReqs>
-			<!-- custom: Polytheism is a specialized religious commitment from Mysticism and does not need the unrelated Mining branch. Its focused path contrasts with Calendar's broader policy unlocks. (GPT-5.6-Sol) -->
+			<!-- custom: Polytheism is a specialized religious commitment from Mysticism and does not need the unrelated Mining branch.
+			Its focused path contrasts with Calendar's broader policy unlocks. (GPT-5.6-Sol) -->
 			<AndPreReqs/>
 			<Quote>TXT_KEY_TECH_POLYTHEISM_QUOTE</Quote>
 			<Sound>AS2D_TECH_POLYTHEISM</Sound>
@@ -349,7 +350,8 @@
 					<iFlavor>8</iFlavor>
 				</Flavor>
 			</Flavors>
-			<!-- custom: Monotheism combines the organized state reached through Monarchy with the explicitly religious Polytheism branch. This keeps Monarchy itself secular while preserving a deliberate religious commitment before Christianity and Theocracy. (GPT-5.6-Sol) -->
+			<!-- custom: Monotheism combines the organized state reached through Monarchy with the explicitly religious Polytheism branch.
+			This keeps Monarchy itself secular while preserving a deliberate religious commitment before Christianity and Theocracy. (GPT-5.6-Sol) -->
 			<OrPreReqs>
 				<PrereqTech>TECH_MONARCHY</PrereqTech>
 			</OrPreReqs>
@@ -681,7 +683,8 @@
 			<OrPreReqs>
 				<PrereqTech>TECH_LITERATURE</PrereqTech>
 			</OrPreReqs>
-			<!-- custom: Restore Construction as Paper's cross-branch beeline gate. Code of Laws is already a strong central prerequisite, while Construction keeps the builder branch relevant and avoids concentrating this part of the tree on the same legal path. (GPT-5.6-Sol) -->
+			<!-- custom: Restore Construction as Paper's cross-branch beeline gate.
+			Code of Laws is already a strong central prerequisite, while Construction keeps the builder branch relevant and avoids concentrating this part of the tree on the same legal path. (GPT-5.6-Sol) -->
 			<AndPreReqs>
 				<PrereqTech>TECH_CONSTRUCTION</PrereqTech>
 			</AndPreReqs>
@@ -2051,7 +2054,8 @@
 					<iFlavor>3</iFlavor>
 				</Flavor>
 			</Flavors>
-			<!-- custom: Let either settled construction through Masonry or animal-drawn transport through Animal Husbandry lead to The Wheel; Pottery is not inherently required. Moving the node to their shared upper row keeps both arrows clear. (GPT-5.6-Sol) -->
+			<!-- custom: Let either settled construction through Masonry or animal-drawn transport through Animal Husbandry lead to The Wheel; Pottery is not inherently required.
+			Moving the node to their shared upper row keeps both arrows clear. (GPT-5.6-Sol) -->
 			<OrPreReqs>
 				<PrereqTech>TECH_MASONRY</PrereqTech>
 				<PrereqTech>TECH_ANIMAL_HUSBANDRY</PrereqTech>
@@ -2698,9 +2702,7 @@
 			<Help/>
 			<Strategy>TXT_KEY_DUMMY_EMPTY_CUSTOM_TXTKEY_STRATEGY</Strategy>
 			<Advisor>ADVISOR_ECONOMY</Advisor>
-			<!-- custom: There is some value in getting currency soon in the game but not that high of a value that would require
-			decreasing the iAIWeight of concurrent techs, so slightly increasing the priority of currency while still giving some
-			variety of gameplay between AIs possibly ideally maybe, was 0. -->
+			<!-- custom: There is some value in getting currency soon in the game but not that high of a value that would require decreasing the iAIWeight of concurrent techs, so slightly increasing the priority of currency while still giving some variety of gameplay between AIs possibly ideally maybe, was 0. -->
 			<iAIWeight>20</iAIWeight>
 			<iAITradeModifier>0</iAITradeModifier>
 			<!-- custom: trying to make tech pace more gradual or accurate, was 400 -->
@@ -2758,7 +2760,8 @@
 			<OrPreReqs>
 				<PrereqTech>TECH_BRONZE_WORKING</PrereqTech>
 			</OrPreReqs>
-			<!-- custom: Currency combines Code of Laws' enforceable shared rules and record-keeping with Bronze Working's practical coinage metallurgy. Requiring Bronze Working also makes the lower tech-advisor arrow represent the actual rule rather than merely crossing that node. (GPT-5.6-Sol) -->
+			<!-- custom: Currency combines Code of Laws' enforceable shared rules and record-keeping with Bronze Working's practical coinage metallurgy.
+			Requiring Bronze Working also makes the lower tech-advisor arrow represent the actual rule rather than merely crossing that node. (GPT-5.6-Sol) -->
 			<AndPreReqs>
 				<PrereqTech>TECH_CODE_OF_LAWS</PrereqTech>
 			</AndPreReqs>
@@ -2815,7 +2818,8 @@
 			<CommerceFlexible/>
 			<TerrainTrades/>
 			<bRiverTrade>0</bRiverTrade>
-			<!-- custom: was flavor religion 3 culture 6 military 0 (add FLAVOR_MILITARY to account for vassal state addition to this tech now as of now i mean.) science 8. -->
+			<!-- custom: was flavor religion 3 culture 6 military 0 (add FLAVOR_MILITARY to account for vassal state addition to this tech now as of now i mean.)
+			science 8. -->
 			<Flavors>
 				<Flavor>
 					<FlavorType>FLAVOR_RELIGION</FlavorType>
@@ -3337,7 +3341,8 @@
 			<CommerceFlexible/>
 			<TerrainTrades/>
 			<bRiverTrade>0</bRiverTrade>
-			<!-- custom: current SAS Chemistry directly unlocks Cannon/Hwacha/Houfnice/Frigate and leads into Military Science, so treat it as a key military tech; keep only a modest Science flavor because Physics/Biology are the more science-focused continuations. Chemistry remains tradeable. (ChatGPT-5.6-Sol) -->
+			<!-- custom: current SAS Chemistry directly unlocks Cannon/Hwacha/Houfnice/Frigate and leads into Military Science, so treat it as a key military tech; keep only a modest Science flavor because Physics/Biology are the more science-focused continuations.
+			Chemistry remains tradeable. (ChatGPT-5.6-Sol) -->
 			<Flavors>
 				<Flavor>
 					<FlavorType>FLAVOR_PRODUCTION</FlavorType>
@@ -3404,7 +3409,8 @@
 			<bBridgeBuilding>0</bBridgeBuilding>
 			<!-- custom: was 0 -->
 			<bIrrigation>1</bIrrigation>
-			<!-- custom: not sure if strictly accurate, but from very quick glance it seems signficant progress was made in irrigation technology around 0 AD/BC. +/- 1000 years, so maybe this fits, as i really want this irrigation ignore thing to be available sooner, before game ends, and seems quite relevant to do so at this tech for example, was 0 -->
+			<!-- custom: not sure if strictly accurate, but from very quick glance it seems signficant progress was made in irrigation technology around 0 AD/BC.
+			+/- 1000 years, so maybe this fits, as i really want this irrigation ignore thing to be available sooner, before game ends, and seems quite relevant to do so at this tech for example, was 0 -->
 			<bIgnoreIrrigation>1</bIgnoreIrrigation>
 			<bWaterWork>0</bWaterWork>
 			<iGridX>8</iGridX>
@@ -6578,7 +6584,8 @@
 			<CommerceFlexible/>
 			<TerrainTrades/>
 			<bRiverTrade>0</bRiverTrade>
-			<!-- custom: keep a modest Military flavor because Computers is primarily a science tech but currently helps gate Modern Tank; Composites remains the stronger military branch. Revisit if those prerequisites move. (ChatGPT-5.6-Sol) -->
+			<!-- custom: keep a modest Military flavor because Computers is primarily a science tech but currently helps gate Modern Tank; Composites remains the stronger military branch.
+			Revisit if those prerequisites move. (ChatGPT-5.6-Sol) -->
 			<Flavors>
 				<Flavor>
 					<FlavorType>FLAVOR_PRODUCTION</FlavorType>

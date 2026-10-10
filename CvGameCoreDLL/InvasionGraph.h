@@ -167,7 +167,8 @@ public:
 		scaled m_rDistractionByDefense;
 
 		scaled productionPortion() const; // Remaining production capacity after losses
-		// <!-- custom: Real CvArea counts do not reflect hypothetical conquests. Count this node's remaining simulated cities for spatial Army and garrison allocation. See KI#592. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: Real CvArea counts do not reflect hypothetical conquests.
+		// Count this node's remaining simulated cities for spatial Army and garrison allocation. See KI#592. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		int remainingCitiesInArea(CvArea const& kArea) const;
 		// Default: based on m_pPrimaryTarget
 		// <!-- custom: hoisted from multiline signature before `eTargetOwner` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->

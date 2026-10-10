@@ -425,7 +425,8 @@ public:
 	int calculateNatureYield(YieldTypes eIndex, TeamTypes eTeam /* advc: */ = NO_TEAM, bool bIgnoreFeature = false, /* advc.300: */ bool bIgnoreHills = false) const; // Exposed to Python
 	int calculateBestNatureYield(YieldTypes eIndex, TeamTypes eTeam) const;							// Exposed to Python
 	int calculateTotalBestNatureYield(TeamTypes eTeam) const;										// Exposed to Python
-	// <!-- custom: Share resource/domain and structural food-potential logic across settler, city-site, and worker AI so XML yield changes cannot make their terrain-name checks drift apart. Callers still decide visibility, BFC scope, and whether an ocean-coastal candidate should assume its configured water-food building. (GPT-5.5) -->
+	// <!-- custom: Share resource/domain and structural food-potential logic across settler, city-site, and worker AI so XML yield changes cannot make their terrain-name checks drift apart.
+	// Callers still decide visibility, BFC scope, and whether an ocean-coastal candidate should assume its configured water-food building. (GPT-5.5) -->
 	BuildTypes SAS_getBonusSpecificBuild(BonusTypes eBonus) const;
 	ImprovementTypes SAS_getBonusSpecificImprovement(BonusTypes eBonus) const;
 	int SAS_getBonusImprovementFoodChange(BonusTypes eBonus) const;
@@ -624,7 +625,8 @@ public:
 	int numAdjacentPlots() const { return m_iAdjPlots; }
 	// </advc.003s>
 
-	// <!-- custom: Retired the inherited debugStr() declaration with its unused implementation after Found logging switched to explicit coordinates/scoring fields. The earlier owning-string fix is retained in the historical issue record. See KI#349. See KI#505.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol + GPT-6.1-Sol) -->
+	// <!-- custom: Retired the inherited debugStr() declaration with its unused implementation after Found logging switched to explicit coordinates/scoring fields.
+	// The earlier owning-string fix is retained in the historical issue record. See KI#349. See KI#505.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol + GPT-6.1-Sol) -->
 
 	void read(FDataStreamBase* pStream);
 	void write(FDataStreamBase* pStream);

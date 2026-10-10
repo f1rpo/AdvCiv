@@ -207,7 +207,8 @@ def getWrapY():
 	map = CyMap()
 	return (map.getCustomMapOption(0) == 2)
 
-# <!-- custom: Generic SAS calibration preserves aspect ratio, but Grid's selectable 1/2/3-row geometry needs fixed height and additional horizontal columns as player count grows. Use a Grid-specific lookup so its dynamic hubs retain Huge's per-hub area. See KI#253. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+# <!-- custom: Generic SAS calibration preserves aspect ratio, but Grid's selectable 1/2/3-row geometry needs fixed height and additional horizontal columns as player count grows.
+# Use a Grid-specific lookup so its dynamic hubs retain Huge's per-hub area. See KI#253. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 def lookupGridSizeWithSASRows(eWorldSize, grid_sizes):
 	key = sas_find_world_size_key(eWorldSize, grid_sizes)
 	if key is not None:
@@ -335,7 +336,8 @@ def getGridSize(argsList):
 
 	return grid_size
 
-# <!-- custom: Static BTG templates stop below the player counts advertised by AdvCiv-SAS. Build equal rectangular rows for every missing capacity so each supported player can still receive a distinct hub. See KI#253. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+# <!-- custom: Static BTG templates stop below the player counts advertised by AdvCiv-SAS.
+# Build equal rectangular rows for every missing capacity so each supported player can still receive a distinct hub. See KI#253. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 def buildGridTemplate(iRegions, iRows):
 	iColumns = iRegions // iRows
 	template = {}
@@ -626,7 +628,8 @@ class GridMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 		thisRegion = remaining_regions[region_roll]
 		regions_in_use.append(thisRegion)
 		del remaining_regions[region_roll]
-		# <!-- custom: BTG's second region pool still contained the already-generated mirror source, so open maps generated that hub twice and all modes recorded it twice. Consume the source in both pools. See KI#274. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: BTG's second region pool still contained the already-generated mirror source, so open maps generated that hub twice and all modes recorded it twice.
+		# Consume the source in both pools. See KI#274. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		remaining_regionsTwo.remove(thisRegion)
 
 		# Region dimensions
@@ -727,7 +730,8 @@ class GridMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 
 			#duplicate land for other used regions
 			other_regions = []
-			# <!-- custom: Record each physical mirrored hub once, including the source once, then crop every copy to the largest common in-bounds footprint. BTG duplicated the source ID and assumed rounded source/target dimensions were equal. See KI#274. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			# <!-- custom: Record each physical mirrored hub once, including the source once, then crop every copy to the largest common in-bounds footprint.
+			# BTG duplicated the source ID and assumed rounded source/target dimensions were equal. See KI#274. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			for region_loop in range(len(region_coords)):
 				if len(regions_in_use) >= iNumRegions:
 					break
@@ -895,7 +899,8 @@ def assignStartingPlots():
 		return
 	iActualPlayers = gc.getGame().countCivPlayersEverAlive()
 	if len(regions_in_use) < iActualPlayers:
-		# <!-- custom: If actual players exceed distinct scripted region slots, fall back before assigning any custom start. Removing BTG's duplicate source-region bookkeeping makes this guard detect one-over-template cases; compare the actual count because Grid's legacy iPlayers can instead mean rounded capacity for an intentionally empty hub. See KI#247 and KI#274. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: If actual players exceed distinct scripted region slots, fall back before assigning any custom start.
+		# Removing BTG's duplicate source-region bookkeeping makes this guard detect one-over-template cases; compare the actual count because Grid's legacy iPlayers can instead mean rounded capacity for an intentionally empty hub. See KI#247 and KI#274. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		CyPythonMgr().allowDefaultImpl()
 		return
 
@@ -1093,7 +1098,8 @@ def assignStartingPlots():
 			area_list = region_best_areas[reg]
 			# Print Data for debugging
 			# Error Handling (if valid start plot not found, reduce MinDistance)
-			# <!-- custom: Keep iPass outside the retry loop so a failed regional search reaches the finite default-placement fallback instead of repeating pass 0 forever. Resolve the player/range before the area loop so an empty area list also falls back safely.
+			# <!-- custom: Keep iPass outside the retry loop so a failed regional search reaches the finite default-placement fallback instead of repeating pass 0 forever.
+			# Resolve the player/range before the area loop so an empty area list also falls back safely.
 			# No supported trigger was reproduced; this defensively restores the retry contract used by current BTG_Cross. See KI#329. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			player = gc.getPlayer(playerID)
 			player.AI_updateFoundValues(True)
@@ -1387,7 +1393,8 @@ def normalizeAddExtras():
 							p.setBonusType(silver)
 							has_precious = True
 							break
-					# <!-- custom: The inherited forced-Silver fallback indexed an unproven nonempty boundary list. If narrow/tiny geometry has no diagonal boundary candidate, use an empty legal land plot already collected within seven tiles; if neither list has a plot, safely leave the optional normalization unmet. See KI#329. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+					# <!-- custom: The inherited forced-Silver fallback indexed an unproven nonempty boundary list.
+					# If narrow/tiny geometry has no diagonal boundary candidate, use an empty legal land plot already collected within seven tiles; if neither list has a plot, safely leave the optional normalization unmet. See KI#329. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 					if not has_precious:
 						plotsforced = plotsboundaries
 						if len(plotsforced) == 0:

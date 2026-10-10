@@ -7,12 +7,10 @@
 # be pushed to a later starting tech column or an earlier obsolete tech column
 # than the generic asset they replace.
 #
-# <!-- custom: Same-column tech variation is allowed. For example, a unique
-# building or unit using a parallel tech at the same iGridX can be useful flavor.
-# Requiring a later iGridX prereq tech is likely to be clunky because the
-# replacement can arrive after the generic asset slot it is meant to replace.
-# Obsoleting earlier is likewise suspicious because the civ-specific asset can
-# disappear before the generic asset would. (ChatGPT-5.5) -->
+# <!-- custom: Same-column tech variation is allowed.
+# For example, a unique building or unit using a parallel tech at the same iGridX can be useful flavor.
+# Requiring a later iGridX prereq tech is likely to be clunky because the replacement can arrive after the generic asset slot it is meant to replace.
+# Obsoleting earlier is likewise suspicious because the civ-specific asset can disappear before the generic asset would. (ChatGPT-5.5) -->
 
 from pathlib import Path
 import argparse

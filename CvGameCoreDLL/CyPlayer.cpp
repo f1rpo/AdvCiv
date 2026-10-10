@@ -545,10 +545,12 @@ int CyPlayer::calculateUnitCost()
 	return m_pPlayer ? m_pPlayer->calculateUnitCost() : -1;
 }
 
-// <!-- custom: Start Military Advisor Summary tab support-cost breakdown exposure. Python previously had to approximate these values and could not show the real unit-cost multiplier path. (GPT-5.5) -->
+// <!-- custom: Start Military Advisor Summary tab support-cost breakdown exposure.
+// Python previously had to approximate these values and could not show the real unit-cost multiplier path. (GPT-5.5) -->
 python::tuple CyPlayer::calculateUnitCostBreakdown()
 {
-	// <!-- custom: expose CvPlayer::calculateUnitCost's exact intermediate values to Python so the Military Advisor Summary tab can show the real support math instead of approximating hidden K-Mod multipliers in Python. Tuple order: free units, free military, paid units, paid military, unit-cost multiplier, regular unit cost, military cost, extra cost, total pre-inflation. (GPT-5.5) -->
+	// <!-- custom: expose CvPlayer::calculateUnitCost's exact intermediate values to Python so the Military Advisor Summary tab can show the real support math instead of approximating hidden K-Mod multipliers in Python.
+	// Tuple order: free units, free military, paid units, paid military, unit-cost multiplier, regular unit cost, military cost, extra cost, total pre-inflation. (GPT-5.5) -->
 	if (!m_pPlayer)
 		return python::make_tuple();
 	int iFreeUnits, iFreeMilitaryUnits, iPaidUnits, iPaidMilitaryUnits,
@@ -571,7 +573,8 @@ int CyPlayer::calculateUnitSupply()
 // <!-- custom: Start Military Advisor Summary tab outside-supply breakdown exposure; Python needs the DLL-paid outside-unit count and subtotal to show the actual calculation. (GPT-5.5) -->
 python::tuple CyPlayer::calculateUnitSupplyBreakdown()
 {
-	// <!-- custom: expose CvPlayer::calculateUnitSupply's exact paid-outside count and pre-inflation subtotal to Python; this includes AdvCiv game-speed extra free outside units that were not otherwise exposed to Python. Tuple order: paid outside units, base/pre-inflation supply cost, total pre-inflation supply cost. (GPT-5.5) -->
+	// <!-- custom: expose CvPlayer::calculateUnitSupply's exact paid-outside count and pre-inflation subtotal to Python; this includes AdvCiv game-speed extra free outside units that were not otherwise exposed to Python.
+	// Tuple order: paid outside units, base/pre-inflation supply cost, total pre-inflation supply cost. (GPT-5.5) -->
 	if (!m_pPlayer)
 		return python::make_tuple();
 	int iPaidOutsideUnits, iBaseSupplyCost;

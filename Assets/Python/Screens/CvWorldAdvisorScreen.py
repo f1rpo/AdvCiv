@@ -77,7 +77,8 @@ class CvWorldAdvisorScreen:
 		self.pActiveTeam = gc.getTeam(self.iActiveTeam)
 
 	def getMapObserverTeam(self):
-		# <!-- custom: Vassal perspective changes the World Advisor's subject, but the active human remains the map observer. Using the vassal team for fog and resource knowledge exposed plots and bonuses the human had not discovered; debug player selection retains its reveal bypass and selected-team resource behavior. See KI#224. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: Vassal perspective changes the World Advisor's subject, but the active human remains the map observer.
+		# Using the vassal team for fog and resource knowledge exposed plots and bonuses the human had not discovered; debug player selection retains its reveal bypass and selected-team resource behavior. See KI#224. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if CyGame().isDebugMode():
 			return self.iActiveTeam
 		return gc.getPlayer(CyGame().getActivePlayer()).getTeam()
@@ -138,7 +139,8 @@ class CvWorldAdvisorScreen:
 		self.BUTTON_TERRAIN_PEAK = gc.getTerrainInfo(self.iTerrainPeak).getButton()
 		self.BUTTON_TERRAIN_HILL = gc.getTerrainInfo(self.iTerrainHill).getButton()
 		# <!-- custom: River has no terrain type (it's a plot-edge property), so reuse the WorldBuilder river-placement art.
-		# Lake intentionally stays text-only because BTS represents lakes as coast-type water plots and TERRAIN_COAST's icon is already used for Coast, making the Lake column misleading. Coastal Land has no canonical art so it stays text-only like Land/Water/Flat. (Claude code Opus 4.7; summarized GPT-5.5) -->
+		# Lake intentionally stays text-only because BTS represents lakes as coast-type water plots and TERRAIN_COAST's icon is already used for Coast, making the Lake column misleading.
+		# Coastal Land has no canonical art so it stays text-only like Land/Water/Flat. (Claude code Opus 4.7; summarized GPT-5.5) -->
 		self.BUTTON_RIVER = ArtFileMgr.getInterfaceArtInfo("WORLDBUILDER_RIVER_PLACEMENT").getPath()
 
 		# Shared (used across multiple tabs)
@@ -447,7 +449,8 @@ class CvWorldAdvisorScreen:
 			(pCity, iter) = player.nextCity(iter, False)
 		return aszRows, aaiBonusCounts, aaiImprovementCounts, aaiRouteCounts
 
-	# <!-- custom: aoGroups is a list of (aiColumns, fnGetInfo, aaiCounts) tuples; aaiCounts[iCity][iType] holds the per-city count for that group. Multi-group support lets one BFC 2 table render two icon families side by side (improvements + routes). (Claude code Opus 4.7) -->
+	# <!-- custom: aoGroups is a list of (aiColumns, fnGetInfo, aaiCounts) tuples; aaiCounts[iCity][iType] holds the per-city count for that group.
+	# Multi-group support lets one BFC 2 table render two icon families side by side (improvements + routes). (Claude code Opus 4.7) -->
 	def drawBFC2IconTable(self, aszRows, aoGroups, iY, iH):
 		screen = self.getScreen()
 		szTable = self.getNextWidgetName()
@@ -591,8 +594,8 @@ class CvWorldAdvisorScreen:
 			[self.TEXT_COASTAL, "", WidgetTypes.WIDGET_GENERAL, -1, aiPlotCounts[7][0], aiPlotCounts[7][1]],
 			[self.TEXT_TOTAL, "", WidgetTypes.WIDGET_GENERAL, -1, aiPlotCounts[0][0], aiPlotCounts[0][1]],
 			]
-		# <!-- custom: Peak and Hill are plot-shape categories, not real terrain here: e.g. a Grassland Hill still has
-		# Grassland as getTerrainType(). Keep them in Plots, not Terrain. (GPT-5.5) -->
+		# <!-- custom: Peak and Hill are plot-shape categories, not real terrain here: e.g. a Grassland Hill still has Grassland as getTerrainType().
+		# Keep them in Plots, not Terrain. (GPT-5.5) -->
 		aTerrainRows = []
 		for iTerrain in self.getTerrainColumnsWithoutPlotShapes():
 			self.appendTerritoryInfoRow(aTerrainRows, gc.getTerrainInfo(iTerrain), WidgetTypes.WIDGET_PEDIA_JUMP_TO_TERRAIN, iTerrain, aaiTerrainCounts[iTerrain])
@@ -631,8 +634,7 @@ class CvWorldAdvisorScreen:
 		return aiBFCPlots
 
 	def appendTerritoryInfoRow(self, aRows, info, eWidget, iData, aiCounts):
-		# <!-- custom: Keep zero-count rows in Territory so each table doubles as a stable checklist of map types known
-		# to the mod; players can still sort by BFC/Sub/Tot to put present assets first. (GPT-5.5) -->
+		# <!-- custom: Keep zero-count rows in Territory so each table doubles as a stable checklist of map types known to the mod; players can still sort by BFC/Sub/Tot to put present assets first. (GPT-5.5) -->
 		aRows.append([info.getDescription(), info.getButton(), eWidget, iData, aiCounts[0], aiCounts[1]])
 
 	def drawTerritoryCountTable(self, aRows, szTitle, iX, iY, iW, iH):

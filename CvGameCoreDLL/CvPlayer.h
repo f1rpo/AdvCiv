@@ -321,7 +321,8 @@ public:
 	int getUnitCostMultiplier() const; // K-Mod
 	// K-Mod: changed iBaseUnitCost to iUnitCost
 	// <!-- custom: hoisted from multiline signature between `iPaidUnits` and `iPaidMilitaryUnits` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
-	// <!-- custom: Add `iExtraMilitaryUnits` to both overloads because AdvCiv's `iExtraUnits` prospective total-unit delta also changed military support, including for Settlers and Workers. Keep the populations distinct as they are at runtime. See KI#769. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Add `iExtraMilitaryUnits` to both overloads because AdvCiv's `iExtraUnits` prospective total-unit delta also changed military support, including for Settlers and Workers.
+	// Keep the populations distinct as they are at runtime. See KI#769. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	int calculateUnitCost(int& iFreeUnits, int& iFreeMilitaryUnits, int& iPaidUnits, int& iPaidMilitaryUnits, int& iUnitCost, int& iMilitaryCost, int& iExtraCost, int iExtraPop = 0, int iExtraUnits = 0, int iExtraMilitaryUnits = 0) const; // advc.004b
 	int calculateUnitCost(int iExtraPop = 0, int iExtraUnits = 0, int iExtraMilitaryUnits = 0) const; // advc.004b; Exposed to Python
 	int calculateUnitSupply(int& iPaidUnits, int& iBaseSupplyCost, int iExtraOutsideUnits = 0) const; // advc.004b; Exposed to Python

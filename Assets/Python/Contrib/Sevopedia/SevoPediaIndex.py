@@ -26,8 +26,7 @@ class SevoPediaIndex:
 
 		self.index = None
 		self.letterTextIDs = None
-		# <!-- custom: filter reads SevoPediaMain.SAS_szSearchString; the shared top-header search bar
-		# is drawn by SevoPediaMain.SAS_syncSearchPanel and refreshed via SAS_refreshActiveListView.
+		# <!-- custom: filter reads SevoPediaMain.SAS_szSearchString; the shared top-header search bar is drawn by SevoPediaMain.SAS_syncSearchPanel and refreshed via SAS_refreshActiveListView.
 		# This page owns no search state of its own. (Claude code Opus 4.7) -->
 		self.SAS_indexWidgetNames = []
 
@@ -85,7 +84,8 @@ class SevoPediaIndex:
 		# <!-- custom: add Builds to index, inspired by Middle-earth mod's PlatyPedia approach (Claude Opus 4.5) -->
 		buildList = self.top.getBuildList()
 
-		# <!-- custom: Note: keep Index list/cell handling local and direct instead of sharing Main's per-category widget metadata. Index is one flattened table while Main drives many independent pedia pages, so sharing would push Index-only rules into Main code for no real reuse win. (GPT-5.5) -->
+		# <!-- custom: Note: keep Index list/cell handling local and direct instead of sharing Main's per-category widget metadata.
+		# Index is one flattened table while Main drives many independent pedia pages, so sharing would push Index-only rules into Main code for no real reuse win. (GPT-5.5) -->
 		# <!-- custom: Dropped the legacy TXT_KEY_* prefix-strip and "The X" comma-flip sort-key cleanup here (sorted the same items differently in Index vs the type-specific pedia pages, hurt diagnosis of missing translations, needless per-entry build-time cost in any locale - and especially wasteful in non-English ones where "The X" never matches anyway, and needless code complexity). See KI#133 for full rationale. (Claude code Opus 4.7) -->
 		list=[]
 		for item in techList:
@@ -154,12 +154,11 @@ class SevoPediaIndex:
 					pass
 			self.SAS_indexWidgetNames = []
 
-		# <!-- custom: draw the shared top-header search bar from SevoPediaMain, and register this
-		# method as the active refresher so Main's search handlers can invoke it on each keystroke
-		# without needing any category-specific branching. (Claude code Opus 4.7) -->
+		# <!-- custom: draw the shared top-header search bar from SevoPediaMain, and register this method as the active refresher so Main's search handlers can invoke it on each keystroke without needing any category-specific branching. (Claude code Opus 4.7) -->
 		self.top.SAS_syncSearchPanel()
 		self.top.SAS_activeListRefresher = self.placeIndex
-		# <!-- custom: register Index's own arrow-key navigator and reset the cell list / cursor. UP/DOWN steps cell-by-cell in reading order (left->right, top->bottom) by re-rendering the previous and current cells with text highlight; the widget has no per-cell focus API. (Claude code Opus 4.7 + GPT-5.5) -->
+		# <!-- custom: register Index's own arrow-key navigator and reset the cell list / cursor.
+		# UP/DOWN steps cell-by-cell in reading order (left->right, top->bottom) by re-rendering the previous and current cells with text highlight; the widget has no per-cell focus API. (Claude code Opus 4.7 + GPT-5.5) -->
 		self.top.SAS_activeKeyNavigator = self.SAS_navigateIndexTable
 		self.SAS_indexCells = []
 		self.SAS_indexCursorPos = -1
@@ -169,15 +168,13 @@ class SevoPediaIndex:
 		self.SAS_rowToBuild = {}
 		self.SAS_rowToTrait = {}  # <!-- custom: row-to-trait mapping for WIDGET_PYTHON trait handling. (Claude Opus 4.5) -->
 		self.iTableWidgetId = int(self.tableName.replace(self.top.WIDGET_ID, ""))
-		# <!-- custom: search bar lives in the top header, so the Index table uses the full Y_INDEX
-		# area below it. (Claude code Opus 4.7) -->
+		# <!-- custom: search bar lives in the top header, so the Index table uses the full Y_INDEX area below it. (Claude code Opus 4.7) -->
 		iTableY = self.Y_INDEX
 		iTableH = self.H_INDEX
-		# <!-- custom: For Build entries, table selection is the only reliable click signal, so keep the table selectable and capture
-		# row->Build mapping in handleInput. We previously tried overlay buttons, but they ignored table scrolling and desynced from rows.
-		# Also, if the table doesn't have focus on first open, NOTIFY_CHARACTER goes nowhere and the search bar appears "dead" until
-		# you navigate away and back. Setting focus here keeps search responsive and avoids the broken first-load behavior. Credit:
-		# Claude Opus 4.5 + GPT-5.2-Codex. (GPT-5.2-Codex (summarized)) -->
+		# <!-- custom: For Build entries, table selection is the only reliable click signal, so keep the table selectable and capture row->Build mapping in handleInput.
+		# We previously tried overlay buttons, but they ignored table scrolling and desynced from rows.
+		# Also, if the table doesn't have focus on first open, NOTIFY_CHARACTER goes nowhere and the search bar appears "dead" until you navigate away and back.
+		# Setting focus here keeps search responsive and avoids the broken first-load behavior. Credit: Claude Opus 4.5 + GPT-5.2-Codex. (GPT-5.2-Codex (summarized)) -->
 		screen.addTableControlGFC(self.tableName, nColumns, self.X_INDEX, iTableY, self.W_INDEX, iTableH, True, True, self.LIST_BUTTON_SIZE, self.LIST_BUTTON_SIZE, TableStyles.TABLE_STYLE_STANDARD)
 		screen.enableSelect(self.tableName, True)
 		screen.setFocus(self.tableName)
@@ -191,7 +188,8 @@ class SevoPediaIndex:
 		iX = self.X_LETTER
 		iLetterY = self.Y_INDEX
 		self.letterTextIDs = {}
-		# <!-- custom: note: while adding leaderhead art_def in AdvCiv-SAS-NIF-Gallery mod we saw the error "UnicodeDecodeError: 'ascii' codec can't decode byte 0xc8 in position 0" and in Sevopedia Leader, fixed by respecting path case sensitivity (e.g. "Art/LeaderHeads"). So reverted a previous patch that would workaround that: prefer to fail loudly instead and fix path or asset cause directly rather. See KI#111. (GPT-5.3-Codex) -->
+		# <!-- custom: note: while adding leaderhead art_def in AdvCiv-SAS-NIF-Gallery mod we saw the error "UnicodeDecodeError: 'ascii' codec can't decode byte 0xc8 in position 0" and in Sevopedia Leader, fixed by respecting path case sensitivity (e.g. "Art/LeaderHeads").
+		# So reverted a previous patch that would workaround that: prefer to fail loudly instead and fix path or asset cause directly rather. See KI#111. (GPT-5.3-Codex) -->
 		szFilter = self.top.SAS_szSearchString.strip().lower()
 		bFilter = (len(szFilter) > 0)
 		for name, type, item in self.index:
@@ -282,12 +280,15 @@ class SevoPediaIndex:
 
 		self.iLastRow = iRow
 
-	# <!-- custom: helper used during placeIndex so every cell's args are remembered for arrow-key re-render. Keeps the placement loop one-line-per-type while ensuring SAS_indexCells stays in sync with what's actually drawn. (Claude code Opus 4.7) -->
+	# <!-- custom: helper used during placeIndex so every cell's args are remembered for arrow-key re-render.
+	# Keeps the placement loop one-line-per-type while ensuring SAS_indexCells stays in sync with what's actually drawn. (Claude code Opus 4.7) -->
 	def _SAS_indexPlaceCell(self, screen, iRow, iColumn, sText, sButton, eWidget, iData1, iData2):
 		screen.setTableText(self.tableName, iColumn, iRow, sText, sButton, eWidget, iData1, iData2, CvUtil.FONT_LEFT_JUSTIFY)
 		self.SAS_indexCells.append((iRow, iColumn, sText, sButton, eWidget, iData1, iData2))
 
-	# <!-- custom: cell-by-cell UP/DOWN navigation in reading order across the 3-column table. The widget has no per-cell highlight API, so the "cursor" is drawn by re-rendering the previous and current cells via setTableText with COLOR_HIGHLIGHT_TEXT (the same color the items list uses elsewhere). selectRow is called too, and the table is refocused first so its built-in row-selection visual can paint if the search bar had stolen focus. (Claude code Opus 4.7) -->
+	# <!-- custom: cell-by-cell UP/DOWN navigation in reading order across the 3-column table.
+	# The widget has no per-cell highlight API, so the "cursor" is drawn by re-rendering the previous and current cells via setTableText with COLOR_HIGHLIGHT_TEXT (the same color the items list uses elsewhere).
+	# selectRow is called too, and the table is refocused first so its built-in row-selection visual can paint if the search bar had stolen focus. (Claude code Opus 4.7) -->
 	def SAS_navigateIndexTable(self, iDirection):
 		if not self.SAS_indexCells:
 			return False
@@ -324,8 +325,7 @@ class SevoPediaIndex:
 
 	def handleInput (self, inputClass):
 		BugUtil.debugInput(inputClass)
-		# <!-- custom: search typing + CLEAR live in SevoPediaMain.handleInput; this method only
-		# handles letter buttons and table-row clicks specific to the Index page. (Claude code Opus 4.7) -->
+		# <!-- custom: search typing + CLEAR live in SevoPediaMain.handleInput; this method only handles letter buttons and table-row clicks specific to the Index page. (Claude code Opus 4.7) -->
 		if (inputClass.getNotifyCode() == NotifyCode.NOTIFY_CLICKED and inputClass.getFunctionName() + str(inputClass.getID()) in self.letterTextIDs):
 			screen = self.top.getScreen()
 			screen.selectRow(self.tableName, self.iLastRow, True)
@@ -334,8 +334,7 @@ class SevoPediaIndex:
 
 		if inputClass.getNotifyCode() == NotifyCode.NOTIFY_CLICKED and inputClass.getButtonType() == WidgetTypes.WIDGET_HELP_IMPROVEMENT:
 			iBuild = inputClass.getData2()
-			# <!-- custom: Build rows now use WIDGET_HELP_IMPROVEMENT to restore hover text in Index; route click
-			# explicitly to Sevopedia Builds so behavior matches other Build entries. See KI#113. (GPT-5.3-Codex) -->
+			# <!-- custom: Build rows now use WIDGET_HELP_IMPROVEMENT to restore hover text in Index; route click explicitly to Sevopedia Builds so behavior matches other Build entries. See KI#113. (GPT-5.3-Codex) -->
 			if iBuild >= 0 and iBuild < gc.getNumBuildInfos():
 				return self.top.pediaJump(SevoScreenEnums.PEDIA_BUILDS, iBuild, True, False)
 

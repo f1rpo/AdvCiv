@@ -81,9 +81,12 @@ def _getNormalSinglePlayerSaveDir():
 def _getInitialSeedTokens():
 	game = gc.getGame()
 	# <!-- custom: Keep the map and sync seeds near the filename tail because they are mainly useful for exact map/gameplay-RNG lineage and advanced filename filtering rather than immediate identification in Civ4's narrow save UI.
-	# A map seed alone is not a complete map fingerprint when reused with another map script/options, so readable world-size and map-script tokens remain in the filename too. Reading either serialized initial seed does not advance RNG state. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-	# <!-- custom: An earlier draft defensively used long(seed) & 0xFFFFFFFFL. '&' is bitwise AND, and that mask would keep the low 32 bits if Python had received a signed or wider value.
-	# The mask was removed because these C++ getters already return unsigned int values, so it was redundant. Python 2's trailing 'L' long-literal syntax also prevents modern Ruff/Pylance Python-3 parsers from parsing the file. (ChatGPT-5.6-Sol) -->
+	# A map seed alone is not a complete map fingerprint when reused with another map script/options, so readable world-size and map-script tokens remain in the filename too.
+	# Reading either serialized initial seed does not advance RNG state. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: An earlier draft defensively used long(seed) & 0xFFFFFFFFL.
+	# '&' is bitwise AND, and that mask would keep the low 32 bits if Python had received a signed or wider value.
+	# The mask was removed because these C++ getters already return unsigned int values, so it was redundant.
+	# Python 2's trailing 'L' long-literal syntax also prevents modern Ruff/Pylance Python-3 parsers from parsing the file. (ChatGPT-5.6-Sol) -->
 	uiMapSeed = game.getInitialMapRandSeed()
 	uiSyncSeed = game.getInitialSyncRandSeed()
 	# <!-- custom: Our earlier SAS Fast Save filenames formatted seeds as eight hexadecimal digits for compactness; Civ4 does not require that filename format.
@@ -112,7 +115,8 @@ def _getMapScriptToken():
 	return _safeToken(szMapScript, "", 24)
 
 def _getLeaderToken(iLeader):
-	# <!-- custom: Cutting compound names mid-word produced awkward labels such as JULIUS_CAE. Keep complete underscore-separated name chunks within the cap; truncate only when the first chunk itself is too long. (GPT-6) -->
+	# <!-- custom: Cutting compound names mid-word produced awkward labels such as JULIUS_CAE.
+	# Keep complete underscore-separated name chunks within the cap; truncate only when the first chunk itself is too long. (GPT-6) -->
 	iMaxLen = 10
 	szName = _safeToken(gc.getLeaderHeadInfo(iLeader).getType(), "LEADER_", 0)
 	if len(szName) <= iMaxLen:
@@ -135,7 +139,9 @@ def _getInitialLeaderToken():
 	# <!-- custom: Use the original player's stable XML leader type (e.g. LEADER_GANDHI -> GANDHI), never a user-entered player name such as "PC".
 	# AdvCiv serializes the initial active player, so this token continues to identify the original test/game even if unattended autoplay later hands control to another player after defeat. (ChatGPT-5.6-Sol) -->
 	# <!-- custom: Long leader names use space needed to recognize the turn and map in Civ4's narrow save list.
-	# Keep complete sanitized name chunks within a length cap for both original and winning leaders. Preserve internal underscores so compound names remain recognizable instead of being reduced to their first word; spaces and punctuation become underscores through the shared sanitizer. These abbreviations are display labels, not unique identities. (GPT-6) -->
+	# Keep complete sanitized name chunks within a length cap for both original and winning leaders.
+	# Preserve internal underscores so compound names remain recognizable instead of being reduced to their first word; spaces and punctuation become underscores through the shared sanitizer.
+	# These abbreviations are display labels, not unique identities. (GPT-6) -->
 	return _getLeaderToken(iLeader)
 
 def _getGameSpeedToken():
@@ -143,7 +149,8 @@ def _getGameSpeedToken():
 	iSpeed = game.getGameSpeedType()
 	if iSpeed < 0:
 		return "NOSPEED"
-	# <!-- custom: Use the stable, language-independent XML type. Standard names are already short; cap only unusually long custom names as a filename safety measure. (ChatGPT-5.6-Sol) -->
+	# <!-- custom: Use the stable, language-independent XML type.
+	# Standard names are already short; cap only unusually long custom names as a filename safety measure. (ChatGPT-5.6-Sol) -->
 	return _safeToken(gc.getGameSpeedInfo(iSpeed).getType(), "GAMESPEED_", 20)
 
 def _getVictoryTokens():
@@ -157,7 +164,8 @@ def _getVictoryTokens():
 	# <!-- custom: Long victory labels such as SPACE_RACE consume the narrow save list's visible filename space.
 	# Use short recognizable standard labels so more of the winner remains visible; retain custom victory names when no abbreviation is defined. (GPT-6) -->
 	szVictory = {"SPACE_RACE": "SPACE", "DOMINATION": "DOM", "CONQUEST": "CONQ", "CULTURAL": "CULT", "DIPLOMATIC": "DIPLO"}.get(szVictoryType, szVictoryType)
-	# <!-- custom: The original player leader is already shown before the turn in every Fast Save. If that player's team won, the victory type alone is enough and avoids duplicating the same leader in the narrow save UI.
+	# <!-- custom: The original player leader is already shown before the turn in every Fast Save.
+	# If that player's team won, the victory type alone is enough and avoids duplicating the same leader in the narrow save UI.
 	# If another team won, append that winning team's XML leader so a filename such as GANDHI_..._CULT_BOUDICA shows both the original player and the actual winner at a glance. (ChatGPT-5.6-Sol) -->
 	iInitialPlayer = game.getInitialActivePlayer()
 	if iInitialPlayer >= 0 and gc.getPlayer(iInitialPlayer).getTeam() == iWinner:
@@ -210,13 +218,16 @@ def _save(szReason):
 
 # <!-- custom: START fast saves intentionally use BUG GameStart, which runs after BUG's earlier PreGameStart initialization.
 # The first implementation called from CvGame::autoSave(true), but that path can run on turn slice 0; runtime testing created no START file there.
-# Moving the hook here was runtime-tested successfully with a turn-0 START save. argsList is unused and optional so the helper can still be called directly. (ChatGPT-5.6-Sol) -->
+# Moving the hook here was runtime-tested successfully with a turn-0 START save.
+# argsList is unused and optional so the helper can still be called directly. (ChatGPT-5.6-Sol) -->
 def saveGameStart(argsList=None):
 	if not _isGameStartSaveEnabled():
 		return None
 	return _save("START")
 
-# <!-- custom: The victory event runs after CvGame::setWinner assigns the winner/victory needed for the filename, but before the later OVER/EXTENDED end-game transition. Earlier C++ hooks during or after that transition produced no victory file in autoplay testing. argsList is unused and optional so genuine non-victory GAMESTATE_OVER endings can still call this helper directly. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+# <!-- custom: The victory event runs after CvGame::setWinner assigns the winner/victory needed for the filename, but before the later OVER/EXTENDED end-game transition.
+# Earlier C++ hooks during or after that transition produced no victory file in autoplay testing.
+# argsList is unused and optional so genuine non-victory GAMESTATE_OVER endings can still call this helper directly. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 def saveGameEnd(argsList=None):
 	if not _isGameEndSaveEnabled():
 		return None

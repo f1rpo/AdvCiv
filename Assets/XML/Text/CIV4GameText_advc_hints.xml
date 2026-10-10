@@ -78,7 +78,8 @@
 	<English>(UWAI) If a war opponent refuses to negotiate peace, it's because everything you could offer them in trade wouldn't be enough. (Or because you're fighting the war on behalf of a third party.)</English>
 </TEXT>
 
-<!-- custom: Removed older duplicate TXT_KEY_HINT_61 fighter text. The later TXT_KEY_HINT_61 block says nearly the same thing, uses the refined "take damage" wording, and this AdvCiv-SAS hints file intentionally supports English only, so there were no non-English translations to preserve here. See KI#149. (GPT-5.5) -->
+<!-- custom: Removed older duplicate TXT_KEY_HINT_61 fighter text.
+The later TXT_KEY_HINT_61 block says nearly the same thing, uses the refined "take damage" wording, and this AdvCiv-SAS hints file intentionally supports English only, so there were no non-English translations to preserve here. See KI#149. (GPT-5.5) -->
 <!-- "Use your mouse wheel to zoom" duh -->
 <TEXT>
 	<Tag>TXT_KEY_HINT_INTERFACE_1</Tag>

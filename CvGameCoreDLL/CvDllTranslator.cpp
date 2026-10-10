@@ -91,7 +91,8 @@ bool CvDllTranslator::replaceOur(const CvWString& szKey, int iForm, CvWString& s
 	}
 	else if(szKey == L"[OUR_BEST_UNIT")
 	{
-		// <!-- custom: UNIT_BRAG must display the exact randomized unit that its greeting selector remembered. The one-shot handoff leaves all other [OUR_BEST_UNIT] contexts on their ordinary current selector. See KI#692. (GPT-5.6-Sol) -->
+		// <!-- custom: UNIT_BRAG must display the exact randomized unit that its greeting selector remembered.
+		// The one-shot handoff leaves all other [OUR_BEST_UNIT] contexts on their ordinary current selector. See KI#692. (GPT-5.6-Sol) -->
 		UnitTypes const eBragUnit = GET_PLAYER(kPlayer.getID()).AI_consumeGreetingBragUnit();
 		szReplacement = (eBragUnit == NO_UNIT ? kPlayer.getBestAttackUnitName(iForm) : gDLL->getObjectText((CvString)GC.getInfo(eBragUnit).getTextKeyWide(), iForm, true));
 	}

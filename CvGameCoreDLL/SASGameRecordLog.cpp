@@ -110,7 +110,8 @@ static int getSASGameRecordSystemContextLevel()
 
 int getSASGameRecordTurnInterval()
 {
-	// <!-- custom: Separate snapshot frequency from detail level. Level 0 disables the game-record rows; the interval is still clamped so modulo callers are safe. (ChatGPT-5.5) -->
+	// <!-- custom: Separate snapshot frequency from detail level.
+	// Level 0 disables the game-record rows; the interval is still clamped so modulo callers are safe. (ChatGPT-5.5) -->
 	static const int iInterval = std::max(1, GC.getDefineINT("SAS_GAME_RECORD_INTERVAL_TURNS_UNSCALED_GAMESPEED"));
 	return iInterval;
 }
@@ -134,7 +135,8 @@ static int getSASGameRecordMapAsciiHorizontalCharsPerCell()
 	return iChars;
 }
 
-// <!-- custom: Two initial geography overviews provide quick small/medium impressions before the authoritative full text maps. Clamp each percentage to 0..100 so malformed values cannot create oversized drawings; 0 disables that overview. (GPT-5.6-Sol) -->
+// <!-- custom: Two initial geography overviews provide quick small/medium impressions before the authoritative full text maps.
+// Clamp each percentage to 0..100 so malformed values cannot create oversized drawings; 0 disables that overview. (GPT-5.6-Sol) -->
 static int getSASGameRecordMapAsciiOverview1ScalePercent()
 {
 	static const int iPercent = std::min(100, std::max(0, GC.getDefineINT("SAS_GAME_RECORD_MAP_ASCII_OVERVIEW_1_SCALE_PERCENT")));
@@ -196,7 +198,8 @@ static int g_iSASGameRecordLogSequence = 0;
 static CvString g_szSASGameRecordLogContext;
 // <!-- custom: Structured row sequence and transaction IDs are recorder/session-local only; they never enter gameplay or save state.
 // `seq` is assigned only when a GAME_RECORD_* row is actually emitted, so buffered initialization actions receive their canonical chronology at flush time rather than when first formatted.
-// `tx` is attached when a row is formatted inside an active causal scope, so delayed emission cannot accidentally inherit a later unrelated transaction. Raw pipe-framed ASCII-map drawing rows intentionally remain undecorated. (ChatGPT-5.6-Sol) -->
+// `tx` is attached when a row is formatted inside an active causal scope, so delayed emission cannot accidentally inherit a later unrelated transaction.
+// Raw pipe-framed ASCII-map drawing rows intentionally remain undecorated. (ChatGPT-5.6-Sol) -->
 static unsigned __int64 g_uiSASGameRecordSemanticSequence = 0;
 static unsigned __int64 g_uiSASGameRecordNextTransaction = 0;
 static unsigned __int64 g_uiSASGameRecordActiveTransaction = 0;
@@ -243,10 +246,12 @@ static bool g_bSASGameRecordFlushingCityBombard = false;
 
 // <!-- custom: Level-3 reproducibility telemetry observes the two authoritative CvGame RNG streams without changing CvRandom's serialized 8-byte layout.
 // RandLog intentionally remains the raw per-roll diagnostic; these trackers instead retain compact checkpoint-interval/session counts plus two order-sensitive FNV-1a fingerprints.
-// Session fingerprints stay 64-bit; interval fingerprints deliberately use 32-bit FNV because every checkpoint also carries interval start/end state and counters plus both independent fingerprints. This halves duplicated 64-bit multiply work in Civ4's 32-bit hot RNG path while retaining a strong interval-local diagnostic signal.
+// Session fingerprints stay 64-bit; interval fingerprints deliberately use 32-bit FNV because every checkpoint also carries interval start/end state and counters plus both independent fingerprints.
+// This halves duplicated 64-bit multiply work in Civ4's 32-bit hot RNG path while retaining a strong interval-local diagnostic signal.
 // The stream fingerprint hashes the ordered abstract RNG operations needed to reproduce returned values: ROLL(requested upper bound) plus effective SEED_SET(new state) operations; a redundant same-state assignment is retained only in call provenance because it cannot alter any random value.
 // With the same session-start state and CvRandom algorithm, it therefore remains useful across source builds even when logging labels move, and still stays meaningful if benchmark/Python code deliberately reseeds an authoritative stream mid-session.
-// The richer call fingerprint additionally hashes a compact stable digest/length of the optional message, data1/data2 and EXE-wrapper origin for rolls, plus old/new state and reset-vs-reseed origin for seed sets. Each detailed operation is first reduced with cheap 32-bit FNV, then fed into the 64-bit session accumulator and native 32-bit interval accumulator, avoiding duplicated emulated 64-bit multiplies on Civ4's 32-bit build.
+// The richer call fingerprint additionally hashes a compact stable digest/length of the optional message, data1/data2 and EXE-wrapper origin for rolls, plus old/new state and reset-vs-reseed origin for seed sets.
+// Each detailed operation is first reduced with cheap 32-bit FNV, then fed into the 64-bit session accumulator and native 32-bit interval accumulator, avoiding duplicated emulated 64-bit multiplies on Civ4's 32-bit build.
 // Messages often contain CALL_LOC_STR source locations, so exact call-fingerprint comparison is intentionally strongest for runs using the same DLL/source build; states, counts and stream fingerprints remain independently useful across builds.
 // As with the existing DLL FNV identifier, these are diagnostic divergence fingerprints rather than cryptographic proofs; independent seed/state/counter fields remain visible beside them.
 // NULL-message calls are important: CvRandom shuffles and some iterator randomization advance synchronized state while intentionally producing no RandLog row.
@@ -359,8 +364,10 @@ static void updateSASGameRecordFNV1A32UInt32(unsigned int& uiHash, unsigned int 
 // Hash selected durable/core gameplay and AI-planning state in deterministic slot/free-list/map-index order; never hash raw object memory, pointers, padding, localized/user-entered strings, recorder state, RNG seeds, UI state, or incidental implementation caches whose differences are not gameplay-relevant.
 // Serialized/AI-visible bookkeeping such as power/assets/maintenance is intentionally retained: divergence in such cached gameplay values can itself change later AI/economic behavior even when the underlying units/buildings still match.
 // Deliberately omit very large per-plot-per-player culture/reveal arrays, per-build plot work-progress matrices and inactive per-city production inventories from this turn-by-turn CORE coverage; exact unit/group missions, city culture/buildings/current production, plot ownership/physical state, team/player state and ordinary SASGameRecord history still provide strong divergence sensitivity without turning each turn boundary into a full save/snapshot scan.
-// Each object's fields are first reduced with a cheap native 32-bit ordered mix, then that fixed-width signature enters a 64-bit FNV-1a component hash. This keeps the 32-bit Civ4 hot-turn cost far below hashing every scalar with emulated 64-bit multiplication.
-// The recordRevision identifies the exact recipe. These are diagnostic fingerprints rather than cryptographic proofs or savegame-equivalence guarantees. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+// Each object's fields are first reduced with a cheap native 32-bit ordered mix, then that fixed-width signature enters a 64-bit FNV-1a component hash.
+// This keeps the 32-bit Civ4 hot-turn cost far below hashing every scalar with emulated 64-bit multiplication.
+// The recordRevision identifies the exact recipe.
+// These are diagnostic fingerprints rather than cryptographic proofs or savegame-equivalence guarantees. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 struct SASGameRecordStateFingerprints
 {
 	SASGameRecordStateFingerprints()
@@ -398,7 +405,8 @@ struct SASGameRecordStateObjectHash
 static void updateSASGameRecordStateValue(SASGameRecordStateObjectHash& kHash, int iValue)
 {
 	// <!-- custom: Two cheap native-32-bit ordered reducers retain substantially more divergence information per object before the 64-bit component hash, without paying an emulated 64-bit multiply for every scalar on Civ4's 32-bit build.
-	// Cast preserves negative sentinel bit patterns deterministically. The secondary hash-combine-style reducer intentionally differs from the primary FNV-like multiply/xor path; together they remain diagnostic rather than cryptographic. (ChatGPT-5.6-Sol) -->
+	// Cast preserves negative sentinel bit patterns deterministically.
+	// The secondary hash-combine-style reducer intentionally differs from the primary FNV-like multiply/xor path; together they remain diagnostic rather than cryptographic. (ChatGPT-5.6-Sol) -->
 	unsigned int const uiValue = (unsigned int)iValue;
 	kHash.uiPrimary ^= uiValue;
 	kHash.uiPrimary *= 16777619u;
@@ -1132,7 +1140,8 @@ void noteSASGameRecordRandomCall(CvRandom const* pRandom, unsigned short usRange
 		return;
 	bool const bExternal = pTracker->bNextCallExternal;
 	pTracker->bNextCallExternal = false;
-	// <!-- custom: Hash the abstract stream operation directly, avoiding a nested signature. The requested range is intrinsically 16-bit, so hash exactly those two bytes rather than doing redundant work on two guaranteed-zero bytes.
+	// <!-- custom: Hash the abstract stream operation directly, avoiding a nested signature.
+	// The requested range is intrinsically 16-bit, so hash exactly those two bytes rather than doing redundant work on two guaranteed-zero bytes.
 	// Keep cumulative/session hashes 64-bit, but use native 32-bit FNV for interval copies; checkpoint state/counters plus both hashes make that cheaper signal sufficiently strong for interval-local diagnosis. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	updateSASGameRecordFNV1AByte(pTracker->uiSessionStreamFingerprint, 0x52);
 	updateSASGameRecordFNV1AUInt16(pTracker->uiSessionStreamFingerprint, usRange);
@@ -1153,7 +1162,8 @@ void noteSASGameRecordRandomCall(CvRandom const* pRandom, unsigned short usRange
 		pTracker->uiSessionExternalCalls++;
 		pTracker->uiIntervalExternalCalls++;
 	}
-	// <!-- custom: A low-level range <=1 still advances the seed despite yielding no entropy (the ordinary public range-0 wrapper returns before reaching here, so this is normally range 1). CvRandom::shuffle deliberately reaches range 1 on its final iteration.
+	// <!-- custom: A low-level range <=1 still advances the seed despite yielding no entropy (the ordinary public range-0 wrapper returns before reaching here, so this is normally range 1).
+	// CvRandom::shuffle deliberately reaches range 1 on its final iteration.
 	// Count rather than "optimizing" such calls away because their seed consumption is part of Civ4's synchronized RNG sequence and shifts every later result. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (usRange <= 1)
 	{
@@ -1168,7 +1178,8 @@ void noteSASGameRecordRandomSeedSet(CvRandom const* pRandom, unsigned int uiOldS
 	if (pTracker == NULL || !pTracker->bInitialized)
 		return;
 	pTracker->bNextCallExternal = false; // <!-- custom: A seed replacement cannot inherit a pending EXE-roll classification. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-	// <!-- custom: A seed replacement is part of the authoritative RNG operation stream even though it consumes no roll. This is rare (notably benchmark Python can call CyRandom.init mid-session), so retain an explicit row too.
+	// <!-- custom: A seed replacement is part of the authoritative RNG operation stream even though it consumes no roll.
+	// This is rare (notably benchmark Python can call CyRandom.init mid-session), so retain an explicit row too.
 	// Hash it into the value-stream fingerprint only when it actually changes state: redundantly assigning the current seed changes call provenance but not any present/future random values, so it belongs only in the richer call fingerprint/counters below. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (uiOldState != uiNewState)
 	{
@@ -1250,7 +1261,8 @@ void logSASGameRecordTurnCompleted(int iGameTurn)
 	logSASGameRecord("GAME_RECORD_TURN_COMPLETED turn=%d", iGameTurn);
 }
 
-// <!-- custom: Windows exposes focus separately from minimization. Find Civ4's visible, unowned top-level process window so background-visible and minimized snapshots remain distinguishable.
+// <!-- custom: Windows exposes focus separately from minimization.
+// Find Civ4's visible, unowned top-level process window so background-visible and minimized snapshots remain distinguishable.
 // Return -1 if no suitable window exists. (GPT-5.6-Sol) -->
 struct SASGameRecordProcessWindowState
 {
@@ -1279,7 +1291,8 @@ static int getSASGameRecordProcessWindowMinimized()
 }
 
 // <!-- custom: Native Win32 and Wine/Proton expose the same DLL APIs, but the distinction helps qualify support/performance results.
-// Wine does not reliably expose whether its host is Linux or macOS, so do not guess beyond the compatibility layer. Preserve its own version string when available. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
+// Wine does not reliably expose whether its host is Linux or macOS, so do not guess beyond the compatibility layer.
+// Preserve its own version string when available. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
 static FARPROC getSASGameRecordWineVersionProc()
 {
 	static HMODULE const hNtdll = GetModuleHandleA("ntdll.dll");
@@ -1871,7 +1884,8 @@ static void logSASGameRecordFormattedLine(CvString const& szLogName, TCHAR* form
 	}
 	if (g_bSASGameRecordBufferInitializingActions && szLine.find("GAME_RECORD_ACTION ") == 0)
 	{
-		// <!-- custom: Successful initialization replaces this procedural transcript with compact finalized state. If initialization aborts, preserve event timing only on the raw fallback actions instead of adding a redundant timestamp to every normal row. (GPT-5.6-Sol) -->
+		// <!-- custom: Successful initialization replaces this procedural transcript with compact finalized state.
+		// If initialization aborts, preserve event timing only on the raw fallback actions instead of adding a redundant timestamp to every normal row. (GPT-5.6-Sol) -->
 		CvString szSessionWall;
 		szSessionWall.Format(" sessionWallMilliseconds=%u", getSASElapsedMilliseconds(g_uiSASGameRecordSessionStartTime, getSASMonotonicMilliseconds()));
 		szLine += szSessionWall.GetCString();
@@ -2167,7 +2181,8 @@ static void logSASGameRecordGameState(const char* szRowType)
 	logSASGameRecordDisplayContext();
 	// <!-- custom: A Civ4 custom DLL is a Win32 binary even when Wine/Proton runs it on another host OS.
 	// At the default privacy tier, retain raw Windows build/update identity and native architecture because OS/runtime changes can explain compatibility regressions while revealing far less than CPU/GPU models or absolute paths.
-	// Level 3 keeps the more identifying coarse CPU/GPU vendor families plus processor-count/RAM capacity fields. Wine version is compatibility-layer identity only; do not guess its host OS. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
+	// Level 3 keeps the more identifying coarse CPU/GPU vendor families plus processor-count/RAM capacity fields.
+	// Wine version is compatibility-layer identity only; do not guess its host OS. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
 	int const iSystemContextLevel = getSASGameRecordSystemContextLevel();
 	if (iSystemContextLevel >= 2)
 	{
@@ -2318,7 +2333,8 @@ void logSASGameRecordNewGameStarted()
 	int iTeamStateRows = 0;
 	int iTechRows = 0;
 	int iDeals = 0;
-	// <!-- custom: Finalized team/tech/deal expansion is level-2-only. Own that gate here so the helper never starts or validates work that its caller already knows is disabled. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Finalized team/tech/deal expansion is level-2-only.
+	// Own that gate here so the helper never starts or validates work that its caller already knows is disabled. (ChatGPT-5.6-Sol) -->
 	bool const bLogInitialDetails = (gGameRecordLogLevel >= 2);
 	if (bLogInitialDetails) logSASGameRecordFinalizedInitialState(iTeamStateRows, iTechRows, iDeals);
 	logSASGameRecordInitialContext(true);
@@ -2336,10 +2352,12 @@ void startSASGameRecordLogForLoadedSave()
 {
 	rollSASGameRecordLog("load");
 	resetSASGameRecordState();
-	// <!-- custom: Loaded RNG state already exists when onAllGameDataRead starts this new recorder session, so use it directly as the level-3 baseline. Session counters intentionally restart at each timestamped load log.
+	// <!-- custom: Loaded RNG state already exists when onAllGameDataRead starts this new recorder session, so use it directly as the level-3 baseline.
+	// Session counters intentionally restart at each timestamped load log.
 	// GAMEOPTION_NEW_RANDOM_SEED is likewise applied during deserialization while old-session tracking is already finalized; its resulting seed is intentionally the new session baseline rather than a cross-session SEED_SET operation. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (gGameRecordLogLevel >= 3) initializeSASGameRecordRngTracking();
-	// <!-- custom: The save contains no recorder-local war history. Begin partial observations for wars already in progress, with the loaded turn and current war success recorded explicitly as their observable baseline. (GPT-5.6-Sol) -->
+	// <!-- custom: The save contains no recorder-local war history.
+	// Begin partial observations for wars already in progress, with the loaded turn and current war success recorded explicitly as their observable baseline. (GPT-5.6-Sol) -->
 	if (gGameRecordLogLevel >= 2) initializeSASGameRecordWarsFromLoadedSave();
 	logSASGameRecordGameState("GAME_RECORD_SAVE_LOADED");
 	// <!-- custom: Keep static mod/source/binary identity immediately after the load-session marker; it does not depend on the loaded save's generated/game state. (ChatGPT-5.6-Sol) -->
@@ -2595,7 +2613,8 @@ enum SASGameRecordProductionKindIndex
 	NUM_SAS_PRODUCTION_KINDS
 };
 
-// <!-- custom: Level 3 preserves exact production, military and natural city-population evidence, but thousands of routine rows can distract broad analysis. Accumulate the same strategic totals into compact per-player interval rows for level 2+; dynamic type buckets use the loaded mod's XML rather than fixed BTS categories.
+// <!-- custom: Level 3 preserves exact production, military and natural city-population evidence, but thousands of routine rows can distract broad analysis.
+// Accumulate the same strategic totals into compact per-player interval rows for level 2+; dynamic type buckets use the loaded mod's XML rather than fixed BTS categories.
 // `productionNeeded` is the loaded ruleset's production threshold at the action time, providing a consistent material-cost comparison; it is not a claim about raw hammers historically invested after production modifiers. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
 struct SASGameRecordPlayerFlow
 {
@@ -2634,7 +2653,8 @@ struct SASGameRecordPlayerFlow
 	int iAIProductionParked;
 	int iAIProductionTargetResumes;
 	int iAIProductionResumed;
-	// <!-- custom: Realized AI building commitments complement target-switch and completion history. Categories are mutually exclusive; origins and effect families are compact overlapping counts. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
+	// <!-- custom: Realized AI building commitments complement target-switch and completion history.
+	// Categories are mutually exclusive; origins and effect families are compact overlapping counts. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
 	int iAIBuildingChoices;
 	int iAIBuildingChoiceRegular;
 	int iAIBuildingChoiceNationalWonders;
@@ -2870,7 +2890,8 @@ struct SASGameRecordWorkerBuildTurn
 
 static int g_iSASGameRecordPendingPlotTurn = -1;
 
-// <!-- custom: Keep the city-bombard member named szMode. During the 6385 city-raze logging work it was accidentally renamed to szRazeMode while the existing bombard code still referenced szMode, causing MSVC C2039 compile errors.
+// <!-- custom: Keep the city-bombard member named szMode.
+// During the 6385 city-raze logging work it was accidentally renamed to szRazeMode while the existing bombard code still referenced szMode, causing MSVC C2039 compile errors.
 // The separate city-raze context intentionally owns szRazeMode instead. (ChatGPT-5.6-Sol) -->
 struct SASGameRecordCityBombardPending
 {
@@ -3992,7 +4013,8 @@ static const char* getSASGameRecordCommerceType(CommerceTypes eCommerce)
 	return (eCommerce == NO_COMMERCE ? "-" : GC.getInfo(eCommerce).getType());
 }
 
-// <!-- custom: YieldTypes also has loaded-XML identities, but SASGameRecord had no yield translator before building-choice effect lists first called getSASGameRecordYieldType and failed compilation. Keep the explicit helper beside the equivalent CommerceTypes translator so future diagnostic code does not repeat that assumption. (GPT-5.6-Sol) -->
+// <!-- custom: YieldTypes also has loaded-XML identities, but SASGameRecord had no yield translator before building-choice effect lists first called getSASGameRecordYieldType and failed compilation.
+// Keep the explicit helper beside the equivalent CommerceTypes translator so future diagnostic code does not repeat that assumption. (GPT-5.6-Sol) -->
 static const char* getSASGameRecordYieldType(YieldTypes eYield)
 {
 	return (eYield == NO_YIELD ? "-" : GC.getInfo(eYield).getType());
@@ -4281,8 +4303,8 @@ static void addSASGameRecordTerritoryDevelopment(SASGameRecordTerritoryDevelopme
 	}
 	else if (kPlot.isWater() && (eBonus != NO_BONUS || bImproved))
 	{
-		// <!-- custom: Ordinary water cannot receive an improvement. Count only visible bonus water or an already improved water plot in the
-		// development denominator, so seafood coverage is not diluted by unusable ocean. (GPT-5.6-Sol) -->
+		// <!-- custom: Ordinary water cannot receive an improvement.
+		// Count only visible bonus water or an already improved water plot in the development denominator, so seafood coverage is not diluted by unusable ocean. (GPT-5.6-Sol) -->
 		kDevelopment.iDevelopmentWater++;
 		if (bImproved)
 			kDevelopment.iImprovedWater++;
@@ -4994,8 +5016,10 @@ static void logSASGameRecordLandmassBonusCoordinates(SASGameRecordLandmassGeogra
 }
 
 // <!-- custom: Record a map-geography snapshot once per new/load context so autoplay analysis can distinguish crowded continents, isolated islands, coast-connected landmasses, terrain/feature composition, lake/sea structure, map-resource distribution, and underlying land quality without reconstructing the map from later city history.
-// Landmass names use a deterministic anchor coordinate plus the Civ4 area ID; center coordinates are wrap-aware approximations. "habitable" uses CvPlot::isHabitable, while impassable and zero-natural-yield plots remain separate.
-// Nature yields exclude bonuses. Per-era raw value adds a bonus only from its reveal era; conservative potential improves only revealed/connectable bonus plots through an XML-valid resource improvement, leaving ordinary non-bonus specialization choices untouched.
+// Landmass names use a deterministic anchor coordinate plus the Civ4 area ID; center coordinates are wrap-aware approximations.
+// "habitable" uses CvPlot::isHabitable, while impassable and zero-natural-yield plots remain separate.
+// Nature yields exclude bonuses.
+// Per-era raw value adds a bonus only from its reveal era; conservative potential improves only revealed/connectable bonus plots through an XML-valid resource improvement, leaving ordinary non-bonus specialization choices untouched.
 // Routes, civics and improvement maturation remain excluded because they are not intrinsic geography. (ChatGPT-5.6-Sol); or because they are available everywhere, so counting them or not has no extra strategic information value so do not count them. -->
 static void addSASGameRecordNoOceanConnections(CvMap const& kMap, TerrainTypes eOcean, bool bSkipImpassable, std::vector<SASGameRecordLandmassGeography>& aLandmasses)
 {
@@ -5522,7 +5546,8 @@ enum
 };
 
 // <!-- custom: Parse and cache all ASCII-map symbols and related terrain-case settings together once per DLL session; callers therefore do not need separate static define caches.
-// Keep each layer's palette independent. Ice deliberately has separately configurable Geography, Terrain-override, and Features symbols so a mod-mod can choose how it reads in each picture rather than inheriting one presentation everywhere. (GPT-5.6-Sol) -->
+// Keep each layer's palette independent.
+// Ice deliberately has separately configurable Geography, Terrain-override, and Features symbols so a mod-mod can choose how it reads in each picture rather than inheriting one presentation everywhere. (GPT-5.6-Sol) -->
 struct SASGameRecordMapAsciiPalette
 {
 	bool bValid;
@@ -6061,7 +6086,8 @@ static void logSASGameRecordMapAsciiGeographyRows(CvMap const& kMap, SASGameReco
 	}
 }
 
-// <!-- custom: The full multi-layer text map remains authoritative, but its geography picture is too large for a quick first impression. Add tunable initial overviews using the same aspect correction and geography palette.
+// <!-- custom: The full multi-layer text map remains authoritative, but its geography picture is too large for a quick first impression.
+// Add tunable initial overviews using the same aspect correction and geography palette.
 // Derive only each overview's dimensions from the bounded full preview, then resample its cells directly from the original plot grid so the compact picture does not compound the full preview's aggregation loss. (GPT-5.6-Sol) -->
 static void logSASGameRecordMapAsciiGeographyOverview(CvMap const& kMap, SASGameRecordMapAsciiPalette const& kPalette, int iFullPreviewWidth, int iFullPreviewHeight, int iHorizontalCharsPerCell, int iOverview, int iScalePercent, char const* szReason)
 {
@@ -6099,9 +6125,12 @@ static void logSASGameRecordMapAsciiNativeGeography(CvMap const& kMap, SASGameRe
 		getSASDiagnosticQuoted(getSASGameRecordMapAsciiSymbolCounts(aiSymbolCounts).GetCString()).GetCString());
 }
 
-// <!-- custom: A bounded text map gives external LLMs and text-only reviewers the broad spatial relationships that aggregate landmass statistics cannot show. Fit the generated map, rather than the selected XML world size, into the tunable box with one scale so Tiny maps remain exact while horizontal SAS_Longworld and possible vertical/tower maps preserve their shapes.
-// Monospace characters are usually much taller than wide, so repeat each map cell horizontally by a tunable amount. Keep metadata outside the pipe-framed drawing rows so humans and LLMs can parse each layer as one uninterrupted picture.
-// Geography, terrain, directional river edges, and bonuses are normally stable enough to record once at setup/load; structured map-change rows preserve later exceptions. Record features initially because jungle, forest, flood plains, oases, and ice affect settling, movement, health, and yields; repeat features and political borders at level-3 snapshots to show Forest/Jungle clearing and regrowth, fallout, expansion, conquest, and collapse. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
+// <!-- custom: A bounded text map gives external LLMs and text-only reviewers the broad spatial relationships that aggregate landmass statistics cannot show.
+// Fit the generated map, rather than the selected XML world size, into the tunable box with one scale so Tiny maps remain exact while horizontal SAS_Longworld and possible vertical/tower maps preserve their shapes.
+// Monospace characters are usually much taller than wide, so repeat each map cell horizontally by a tunable amount.
+// Keep metadata outside the pipe-framed drawing rows so humans and LLMs can parse each layer as one uninterrupted picture.
+// Geography, terrain, directional river edges, and bonuses are normally stable enough to record once at setup/load; structured map-change rows preserve later exceptions.
+// Record features initially because jungle, forest, flood plains, oases, and ice affect settling, movement, health, and yields; repeat features and political borders at level-3 snapshots to show Forest/Jungle clearing and regrowth, fallout, expansion, conquest, and collapse. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
 static void logSASGameRecordMapAscii(bool bIncludeStaticLayers, char const* szReason)
 {
 	uint const uiMapAsciiStartTime = getSASMonotonicMilliseconds();
@@ -6429,7 +6458,8 @@ static void logSASGameRecordBattleBuckets(int iGameTurn)
 		SASGameRecordBattleQuality& kQuality = g_akSASGameRecordBattleQuality[iI];
 		if (g_aiSASGameRecordBattleWins[iI] != 0 || g_aiSASGameRecordBattleLosses[iI] != 0 || g_aiSASGameRecordCityBattleWins[iI] != 0 || g_aiSASGameRecordCityBattleLosses[iI] != 0 || kQuality.hasAny())
 		{
-			// <!-- custom: Expected wins are the sum of exact own pre-combat odds for the same binary battles counted by luckEligibleWins. luckDeltaX1000 is therefore observed minus expected wins in thousandths of a win.
+			// <!-- custom: Expected wins are the sum of exact own pre-combat odds for the same binary battles counted by luckEligibleWins.
+			// luckDeltaX1000 is therefore observed minus expected wins in thousandths of a win.
 			// Withdrawals/combat-limit outcomes remain separate. (ChatGPT-5.6-Sol) -->
 			logSASGameRecord("GAME_RECORD_BATTLE_SUMMARY turn=%d range=%d-%d player=%d wins=%d losses=%d cityPlotWins=%d cityPlotLosses=%d withdrawals=%d enemyWithdrawals=%d combatLimitAttacks=%d combatLimitDefenses=%d luckEligibleBattles=%d luckEligibleWins=%d expectedWinsX1000=%d luckDeltaX1000=%+d upsetWins=%d upsetLosses=%d lowestOddsWinPermille=%d highestOddsLossPermille=%d",
 				iGameTurn, g_iSASGameRecordBattleStartTurn, iGameTurn, eLoopPlayer, g_aiSASGameRecordBattleWins[iI],
@@ -7636,7 +7666,8 @@ static void logSASGameRecordDiploStatus(PlayerTypes ePlayer, int iGameTurn)
 }
 
 // <!-- custom: Pairwise trade-market rows primarily mirror resolved information available through the active player's Foreign Advisor/diplomacy interface rather than speculative AI candidate reasoning.
-// `NO_TALK` is kept separate from DenialTypes. Optional bonus GPT quotes and AI_techTradeVal fields add compact resolved valuation context under independent gates; they remain const observations and never submit an offer or alter trade state.
+// `NO_TALK` is kept separate from DenialTypes.
+// Optional bonus GPT quotes and AI_techTradeVal fields add compact resolved valuation context under independent gates; they remain const observations and never submit an offer or alter trade state.
 // All market observations use const query APIs, do not consume synchronized RNG, and do not mutate gameplay state. (ChatGPT-5.6-Sol) -->
 static char const* getSASGameRecordDenialType(DenialTypes eDenial)
 {
@@ -7718,7 +7749,8 @@ static void appendSASGameRecordStrategicTradeStatus(CvString& szStatus, CvPlayer
 
 // <!-- custom: Mirror the strategically important Foreign Advisor/trade-screen state that is derived only when the UI asks for it rather than stored as authoritative persistent state.
 // Keep this active-viewer-relative and periodic: exact transition hooks do not exist for these derived willingness queries, and evaluating every possible viewer would turn the record into an unnecessary player^3 trade matrix.
-// City ids map back to GAME_RECORD_CITY. Third-party war targets use team ids and mirror the Glance tab's "will declare war for trade" test, with exact denial reasons retained for the same evaluated targets. (ChatGPT-5.6-Sol) -->
+// City ids map back to GAME_RECORD_CITY.
+// Third-party war targets use team ids and mirror the Glance tab's "will declare war for trade" test, with exact denial reasons retained for the same evaluated targets. (ChatGPT-5.6-Sol) -->
 static void logSASGameRecordStrategicTradeMarketPair(int iGameTurn, CvPlayerAI const& kViewer, CvPlayerAI const& kOther, bool bOtherWillingToTalk)
 {
 	PlayerTypes const eViewer = kViewer.getID();
@@ -8168,7 +8200,8 @@ static void logSASGameRecordUnitPosture(PlayerTypes ePlayer, int iGameTurn)
 	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
 	TeamTypes eTeam = kPlayer.getTeam();
 	SASGameRecordPlayerPrevious& kPrevious = g_akSASGameRecordPlayerPrevious[ePlayer];
-	// <!-- custom: Promotion detail and exact assault-fleet mission destinations are level 3 only. Cache the immutable gates once instead of querying them for every unit/group. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Promotion detail and exact assault-fleet mission destinations are level 3 only.
+	// Cache the immutable gates once instead of querying them for every unit/group. (ChatGPT-5.6-Sol) -->
 	bool const bLogPromotionDetails = (gGameRecordLogLevel >= 3);
 	bool const bLogNavalMissionTargets = (gGameRecordLogLevel >= 3);
 	int iTotal = 0;
@@ -8205,7 +8238,8 @@ static void logSASGameRecordUnitPosture(PlayerTypes ePlayer, int iGameTurn)
 	int iLevel2Plus = 0;
 	int iLevel4Plus = 0;
 	int iLevel6Plus = 0;
-	// <!-- custom: Military-only quality complements all-unit totals. Keep health in percentX100 (10000 = full health) so averages remain precise without floating-point logging.
+	// <!-- custom: Military-only quality complements all-unit totals.
+	// Keep health in percentX100 (10000 = full health) so averages remain precise without floating-point logging.
 	// Promotion-instance scans remain level 3 only. (ChatGPT-5.6-Sol) -->
 	int iMilitaryExperience = 0;
 	int iMaxMilitaryExperience = 0;
@@ -8233,7 +8267,8 @@ static void logSASGameRecordUnitPosture(PlayerTypes ePlayer, int iGameTurn)
 	std::vector<int> aiPromotions(bLogPromotionDetails ? GC.getNumPromotionInfos() : 0, 0);
 	std::vector<int> aiMilitaryPromotions(bLogPromotionDetails ? GC.getNumPromotionInfos() : 0, 0);
 	// <!-- custom: Reuse this already-required unit census to preserve the broad state between "owns assault transports" and "successfully projects an army overseas."
-	// Individual lift/cargo counters are collected here; assault-group state is classified once per group below. Keep per-target UWAI/InvasionGraph reasoning in BBAI rather than duplicating it into SASGameRecord. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// Individual lift/cargo counters are collected here; assault-group state is classified once per group below.
+	// Keep per-target UWAI/InvasionGraph reasoning in BBAI rather than duplicating it into SASGameRecord. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	int iAssaultTransports = 0;
 	int iCargoCapacity = 0;
 	int iLoadedCargo = 0;
@@ -8872,7 +8907,8 @@ static void logSASGameRecordExpansion(PlayerTypes ePlayer, int iGameTurn)
 		iPrimarySiteY = kPrimarySite.getY();
 		iPrimarySiteFoundValue = kPrimarySite.getFoundValue(ePlayer);
 		// <!-- custom: At level 3, preserve the whole already-maintained city-site shortlist rather than only its primary entry.
-		// AI_updateCitySites keeps at most four sites by default, so this stays compact and adds no city-site evaluation, map scan, pathfinding or RNG. Rank is the cached AI order and each item stores x/y plus its current found value. (ChatGPT-5.6-Sol) -->
+		// AI_updateCitySites keeps at most four sites by default, so this stays compact and adds no city-site evaluation, map scan, pathfinding or RNG.
+		// Rank is the cached AI order and each item stores x/y plus its current found value. (ChatGPT-5.6-Sol) -->
 		if (gGameRecordLogLevel >= 3)
 		{
 			for (int iSite = 0; iSite < iCitySites; iSite++)
@@ -9351,7 +9387,8 @@ static void noteSASGameRecordAIProductionTargetChangedCity(SASGameRecordPlayerFl
 
 // <!-- custom: SASGameRecord reports the broad all-city outcome at the control-path-aware turn boundary, while dedicated BBAI diagnostics explain exact chooser paths and legal-target context.
 // Manual human cities are sampled before end-turn city processing so a normal newly completed item awaiting its popup is not misclassified.
-// AI-controlled and production-automated cities are sampled afterward so their chooser and emergency-building rules get their opportunity first. The sole caller prevalidates the log level, city state and eligible civilization player. See KI#51. (GPT-5.6-Sol) -->
+// AI-controlled and production-automated cities are sampled afterward so their chooser and emergency-building rules get their opportunity first.
+// The sole caller prevalidates the log level, city state and eligible civilization player. See KI#51. (GPT-5.6-Sol) -->
 void logSASGameRecordCityProductionNoTarget(CvCity const& kCity, char const* szPhase)
 {
 	PlayerTypes const ePlayer = kCity.getOwner();
@@ -9386,7 +9423,8 @@ void SASGameRecordAIProductionChoiceScope::end()
 	bool const bOldTarget = (m_eOldOrder != NO_ORDER);
 	bool const bNewTarget = (eNewOrder != NO_ORDER);
 	bool const bResume = (bNewTarget && iNewStored > 0);
-	// <!-- custom: Normal completion -> fresh next target is not churn. Preserve only a real active-target change or selection that resumes previously stored production. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Normal completion -> fresh next target is not churn.
+	// Preserve only a real active-target change or selection that resumes previously stored production. (ChatGPT-5.6-Sol) -->
 	if (!bOldTarget && !bResume)
 		return;
 	PlayerTypes const ePlayer = m_pCity->getOwner();
@@ -10702,13 +10740,15 @@ static void logSASGameRecordSnapshot(int iGameTurn, char const* szReason)
 
 void logSASGameRecordTurn(int iGameTurn)
 {
-	// <!-- custom: Victory now forces a full snapshot immediately. If it occurs on an ordinary snapshot turn, do not repeat the same large snapshot again at end-of-turn. (GPT-5.6-Sol) -->
+	// <!-- custom: Victory now forces a full snapshot immediately.
+	// If it occurs on an ordinary snapshot turn, do not repeat the same large snapshot again at end-of-turn. (GPT-5.6-Sol) -->
 	if (g_iSASGameRecordLastFullSnapshotTurn == iGameTurn)
 		return;
 	logSASGameRecordSnapshot(iGameTurn, "interval");
 }
 
-// <!-- custom: High-level queue-mutating paths call this only at SASGameRecord level 2+. Keep the latest authoritative cause until the player's next finalized research-target observation.
+// <!-- custom: High-level queue-mutating paths call this only at SASGameRecord level 2+.
+// Keep the latest authoritative cause until the player's next finalized research-target observation.
 // If it produces no invested-tech redirection, the observer discards it rather than emitting a standalone/noisy action. (ChatGPT-5.6-Sol) -->
 void noteSASGameRecordResearchTargetChangeCause(PlayerTypes ePlayer, ResearchTargetChangeCause eCause)
 {
@@ -10920,7 +10960,8 @@ static void logSASGameRecordSettlerCombatIfNeeded(CvUnit const* pWinner, CvUnit 
 }
 
 // <!-- custom: GAME_RECORD_ACTION is narrower than a generic row: it records chronological gameplay happenings such as techs, city ownership, war state, Great People, unit upgrades, and victory.
-// Do not rename this to GAME_RECORD_ROW; "row" is too generic because every log line is already a row. This keeps the row type useful without using "event", which can be confused with Civ4 EventInfo/random events. (GPT-5.5) -->
+// Do not rename this to GAME_RECORD_ROW; "row" is too generic because every log line is already a row.
+// This keeps the row type useful without using "event", which can be confused with Civ4 EventInfo/random events. (GPT-5.5) -->
 // <!-- custom: Ordinary unit-completion hooks do not see animals and other Barbarian units created directly from fog.
 // Record those explicit spawn sites without instrumenting every unrelated CvPlayer::initUnit caller. (GPT-5.6-Sol) -->
 void logSASGameRecordBarbarianSpawn(CvUnit const* pUnit, char const* szCause)
@@ -11005,7 +11046,8 @@ static CvString getSASGameRecordGoodyUnits(std::vector<CvUnit const*> const& apU
 	return getSASDiagnosticOrDash(szUnits);
 }
 
-// <!-- custom: Log the resolved goody result rather than only the XML label. AdvCiv goodies can randomize gold/research, reveal a variable map area, upgrade free units, spawn variable hostile units, or roll a same-sign follow-up outcome.
+// <!-- custom: Log the resolved goody result rather than only the XML label.
+// AdvCiv goodies can randomize gold/research, reveal a variable map area, upgrade free units, spawn variable hostile units, or roll a same-sign follow-up outcome.
 // Generic TECH_ACQUIRED and map-revelation rows remain complementary chronology; this rare level-2 row ties those downstream effects back to the hut that caused them. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordGoodyReceived(PlayerTypes ePlayer, CvPlot const* pPlot, CvUnit const* pTriggerUnit, GoodyTypes eGoody, SASGameRecordGoodyResult const& kResult)
 {
@@ -11156,7 +11198,8 @@ static CvString getSASGameRecordRandomEventEffects(CvEventInfo const& kEvent)
 
 static char const* getSASGameRecordRandomEventNormalSelectionMode(CvEventTriggerInfo const& kTrigger)
 {
-	// <!-- custom: Mirror CvPlayer::doEvents/getEventTriggerWeight semantics exactly. Weight -1 is auto-fired whenever eligible.
+	// <!-- custom: Mirror CvPlayer::doEvents/getEventTriggerWeight semantics exactly.
+	// Weight -1 is auto-fired whenever eligible.
 	// Values below -1 are excluded from the ordinary weighted/forced loop and are reserved for direct/special firing (e.g. the -2 Partisans trigger), while weight 0 can only reach the delivery boundary through a direct/special caller.
 	// The row describes normal engine selection semantics, not an unverifiable claim about this instance's actual caller. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	int const iWeight = kTrigger.getProbability();
@@ -11197,7 +11240,8 @@ static CvString getSASGameRecordRandomEventPythonHooks(CvEventInfo const& kEvent
 }
 
 // <!-- custom: Civ4 EventInfo/random-event rows use dedicated RANDOM_EVENT_* row names so they cannot be confused with generic GAME_RECORD_ACTION chronology or Python/CvEventReporter callbacks.
-// Target existence is sampled only at actual trigger/reply boundaries. A -1 existence value means that no concrete target of that kind was stored; 0 means an ID/coordinate was stored but no longer resolves, which is important for stale-popup diagnostics such as KI#809/KI#810. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+// Target existence is sampled only at actual trigger/reply boundaries.
+// A -1 existence value means that no concrete target of that kind was stored; 0 means an ID/coordinate was stored but no longer resolves, which is important for stale-popup diagnostics such as KI#809/KI#810. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 struct SASGameRecordRandomEventTargets
 {
 	SASGameRecordRandomEventTargets(CvPlayer const& kPlayer, EventTriggeredData const* pData, EventTypes eEvent)
@@ -11826,7 +11870,8 @@ void logSASGameRecordCityFoundingSite(CvPlayer const& kPlayer, CvPlot const& kPl
 	int iKnownSustainableProductivePlotValue = 0;
 	CitySiteEvaluator kKnownEvaluator(kPlayerAI, -1, bFirstCity);
 	// <!-- custom: Ignore the maintained city-site list during this explicitly hypothetical founding-time rescore.
-	// Those sites were not all present when this plot was originally selected; leaving them active can reject/distort the founded plot itself. This is a comparison, not the original decision score; ordinary Found logging now captures the original pass separately. See KI#505.2. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	// Those sites were not all present when this plot was originally selected; leaving them active can reject/distort the founded plot itself.
+	// This is a comparison, not the original decision score; ordinary Found logging now captures the original pass separately. See KI#505.2. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	kKnownEvaluator.setDebug(true);
 	kKnownEvaluator.setLogContext(SAS_FOUND_LOG_RECORD_KNOWN_MAP_COMPARISON);
 	if (bFirstCity)
@@ -12251,7 +12296,8 @@ void logSASGameRecordWarPlanChanged(TeamTypes eTeam, TeamTypes eTarget, WarPlanT
 		GET_TEAM(eTeam).isAtWar(eTarget), iOldStateCounter, GET_TEAM(eTeam).getNumWars(true, true), GET_TEAM(eTarget).getNumWars(true, true));
 }
 
-// <!-- custom: CvTeam::addTeam is the authoritative team-merge boundary. Log both pre-merge member lists while the absorbed team still owns its players.
+// <!-- custom: CvTeam::addTeam is the authoritative team-merge boundary.
+// Log both pre-merge member lists while the absorbed team still owns its players.
 // Periodic team snapshots can then describe the resulting state without forcing a consumer to infer the exact merge turn. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordTeamMerged(TeamTypes eSurvivingTeam, TeamTypes eAbsorbedTeam)
 {
@@ -12578,7 +12624,8 @@ void logSASGameRecordAIGiveHelpDecision(CvPlayerAI const& kPlayer, PlayerTypes e
 	int const iTargetHadBonus = (eSelectedBonus == NO_BONUS ? -1 : (kTarget.getNumAvailableBonuses(eSelectedBonus) > 0 ? 1 : 0));
 	int const iSelectedTechCost = (eSelectedTech == NO_TECH ? -1 : GC.getInfo(eSelectedTech).getResearchCost());
 	bool const bProactive = (eOrigin == SAS_AI_GIVE_HELP_PROACTIVE_TECH);
-	// <!-- custom: attitudeValue is chooser provenance only for proactive gifts. RELATION_RESOURCE does not use attitude here, while RELATION_TECH can deliberately use AI_getAttitude(..., false); the normal forced-attitude lookup would therefore be misleading for those origins.
+	// <!-- custom: attitudeValue is chooser provenance only for proactive gifts.
+	// RELATION_RESOURCE does not use attitude here, while RELATION_TECH can deliberately use AI_getAttitude(..., false); the normal forced-attitude lookup would therefore be misleading for those origins.
 	// Keep this lookup proactive-only (-1 otherwise), matching the proactive-only threshold/assets fields and avoiding an unnecessary recorder lookup. (ChatGPT-5.6-Sol) -->
 	int const iAttitudeValue = (bProactive ? kPlayer.AI_getAttitudeVal(eTarget) : -1);
 	AttitudeTypes const eAttitude = (bProactive ? CvPlayerAI::AI_getAttitudeFromValue(iAttitudeValue) : NO_ATTITUDE);
@@ -12631,7 +12678,8 @@ static char const* getSASGameRecordAIDealCancellationReason(SASGameRecordAIDealC
 	}
 }
 
-// <!-- custom: Preserve only the realized AI_doDeals cancellation boundary. The authoritative DIPLO_DEAL_ENDED action still owns the deal payload; this row keeps the otherwise-lost decision cause and already-computed denial/GPT-cap context.
+// <!-- custom: Preserve only the realized AI_doDeals cancellation boundary.
+// The authoritative DIPLO_DEAL_ENDED action still owns the deal payload; this row keeps the otherwise-lost decision cause and already-computed denial/GPT-cap context.
 // Trigger formatting and the static dual-denial probability are recorder-only and run only after the caller's level-2 gate; no AI_considerOffer, trade denial, bonus valuation or RNG is repeated. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordAIDealCancellationDecision(CvPlayerAI const& kPlayer, PlayerTypes eOther, CvDeal const& kDeal, SASGameRecordAIDealCancellationReason eReason, TradeData const* pTriggerItem, bool bTriggerFromAI, DenialTypes eDenial, int iGptOverdraftBefore, int iDealGpt, int iGptOverdraftAfter)
 {
@@ -12795,7 +12843,8 @@ void logSASGameRecordAISpaceshipLaunchDecision(CvPlayerAI const& kPlayer, Victor
 }
 
 
-// <!-- custom: MAPS <-> MAPS loses its pre-exchange valuation asymmetry as soon as the deal reveals both maps. Serialize only the already-live proposer/target values and threshold; the generic CONTACT_TRADE_MAP row remains authoritative for delivery/package. (ChatGPT-5.6-Sol) -->
+// <!-- custom: MAPS <-> MAPS loses its pre-exchange valuation asymmetry as soon as the deal reveals both maps.
+// Serialize only the already-live proposer/target values and threshold; the generic CONTACT_TRADE_MAP row remains authoritative for delivery/package. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordAIMapTradeDecision(CvPlayerAI const& kPlayer, PlayerTypes eTarget, int iOurReceiveValue, int iTargetReceiveValue, int iTargetReceiveMinExclusive)
 {
 	if (eTarget == NO_PLAYER)
@@ -12857,7 +12906,8 @@ static char const* getSASGameRecordAICityTradeFormation(SASGameRecordAICityTrade
 }
 
 // <!-- custom: Preserve the selected AI_proposeCityTrade boundary only after its live cede/counterproposal logic has formed a real human contact or immediate AI deal.
-// Candidate rank/count and signed initial value gap reuse the function's existing sorted pair state; final trade lists are already formed. No city valuation, cede test, counterproposal search or RNG is repeated for logging. (ChatGPT-5.6-Sol) -->
+// Candidate rank/count and signed initial value gap reuse the function's existing sorted pair state; final trade lists are already formed.
+// No city valuation, cede test, counterproposal search or RNG is repeated for logging. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordAICityTradeIntent(CvPlayerAI const& kPlayer, PlayerTypes eTarget, SASGameRecordAICityTradeFormation eFormation, int iCandidateRank, int iCandidateCount, int iInitialValueGap, bool bInverseGapFallback, int iOurCityId, int iTheirCityId, bool bLiberation, bool bEvacuating, bool bSameTeam, bool bNegotiable, CLinkList<TradeData> const& kAIGives, CLinkList<TradeData> const& kAIReceives)
 {
 	CvPlayerAI const& kTarget = GET_PLAYER(eTarget);
@@ -12943,7 +12993,8 @@ void logSASGameRecordAICorporationTarget(CvUnit const* pUnit, CorporationTypes e
 }
 
 // <!-- custom: Preserve the compact selected Missionary destination boundary without duplicating AI_spreadReligion's city/player scoring internals.
-// Ordinary land rows are emitted only for a new/retargeted MISSIONAI_SPREAD destination; airlift rows preserve the realized redirect. The eventual RELIGION_SPREAD_ATTEMPT remains authoritative for the actual spread outcome. (ChatGPT-5.6-Sol) -->
+// Ordinary land rows are emitted only for a new/retargeted MISSIONAI_SPREAD destination; airlift rows preserve the realized redirect.
+// The eventual RELIGION_SPREAD_ATTEMPT remains authoritative for the actual spread outcome. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordAIReligionSpreadTarget(CvUnit const* pUnit, ReligionTypes eReligion, CvCity const* pTargetCity, int iPlayerMultiplierPercent, int iPathTurns, int iTargetScore, char const* szAction)
 {
 	if (pUnit == NULL || eReligion == NO_RELIGION || pTargetCity == NULL)
@@ -13240,7 +13291,8 @@ static char const* getSASGameRecordAITargetCityChangeSource(SASGameRecordAITarge
 }
 
 // <!-- custom: Target-city state is changed by periodic AI search/random clearing, diplomacy coordination and area reassignment; deleting the referenced city also makes the stored IDInfo resolve to NULL without a setter.
-// Record those authoritative/effective changes only from their real paths. `selectionValue` is the already-computed randomized winning AI_targetCityValue from AREA_SEARCH and is -1 for non-search causes; no target valuation is repeated for logging. (ChatGPT-5.6-Sol) -->
+// Record those authoritative/effective changes only from their real paths.
+// `selectionValue` is the already-computed randomized winning AI_targetCityValue from AREA_SEARCH and is -1 for non-search causes; no target valuation is repeated for logging. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordAITargetCityChanged(CvPlayerAI const& kPlayer, CvArea const& kArea, CvCity const* pOldCity, CvCity const* pNewCity, SASGameRecordAITargetCityChangeSource eSource, int iSelectionValue)
 {
 	if (pOldCity == pNewCity)
@@ -13403,7 +13455,8 @@ static char const* getSASGameRecordAIGreatGeneralAction(SASGameRecordAIGreatGene
 	}
 }
 
-// <!-- custom: Compact Great-General policy provenance. Unlike ordinary Great People, AI_generalMove uses an ordered fallback chain rather than a cross-action score; stage therefore records the live policy branch and the optional helper context preserves only the target/value/path the selected helper already computed. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Compact Great-General policy provenance.
+// Unlike ordinary Great People, AI_generalMove uses an ordered fallback chain rather than a cross-action score; stage therefore records the live policy branch and the optional helper context preserves only the target/value/path the selected helper already computed. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordAIGreatGeneralDecision(CvUnitAI const& kUnit, SASGreatGeneralChoiceContext const& kChoice)
 {
 	CvGame const& kGame = GC.getGame();
@@ -13446,8 +13499,10 @@ static CvString getSASGameRecordReligionCandidateScores(std::vector<std::pair<Re
 	return szResult;
 }
 
-// <!-- custom: Record only meaningful AI religion-switch decisions. `evaluatedBest` is the pre-spread-gate winner using AI_bestReligion's real post-bias score; `selectedReligion` is the post-gate/fallback target actually considered by AI_doReligion.
-// Raw values are present only when gameplay itself needed them for the conversion probability. `stateReligionAfter` confirms realized conversion without adding another decision evaluation. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Record only meaningful AI religion-switch decisions.
+// `evaluatedBest` is the pre-spread-gate winner using AI_bestReligion's real post-bias score; `selectedReligion` is the post-gate/fallback target actually considered by AI_doReligion.
+// Raw values are present only when gameplay itself needed them for the conversion probability.
+// `stateReligionAfter` confirms realized conversion without adding another decision evaluation. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordAIReligionDecision(PlayerTypes ePlayer, ReligionTypes eCurrentReligion, ReligionTypes eEvaluatedBest, ReligionTypes eSelectedReligion, ReligionTypes eRunnerUp, int iBestValue, int iRunnerUpValue, int iCurrentScore, int iCurrentRawValue, int iSelectedRawValue, int iConvertProbabilityPercent, int iRollSuccess, char const* szOutcome, std::vector<std::pair<ReligionTypes, int> > const* paCandidateValues)
 {
 	CvPlayerAI const& kPlayer = GET_PLAYER(ePlayer).AI();
@@ -13897,7 +13952,8 @@ static char const* getSASGameRecordAIHurryReason(SASGameRecordAIHurryReason eRea
 void logSASGameRecordAIBuildingChoice(CvCityAI const& kCity, BuildingTypes eBuilding, SASGameRecordAIBuildingChoiceOrigin eOrigin, int iFocusFlags, bool bDetailed, char const* szFocus, int iHelperMaxTurns, int iHelperMinThreshold, int iDecisionValue, int iHelperBaseOdds, int iHelperRandomRoll)
 {
 	// <!-- custom: Caller-side pre-gating is intentional: every realized-choice hook proves SASGameRecord level 2+ before calling, and passes bDetailed from the same cached level-3 decision.
-	// Do not add a hidden log-level guard/assert here; keeping the contract at call sites makes disabled-path cost and future regressions grep-visible. Only semantic/invariant assertions belong in this emitter. (ChatGPT-5.6-Sol) -->
+	// Do not add a hidden log-level guard/assert here; keeping the contract at call sites makes disabled-path cost and future regressions grep-visible.
+	// Only semantic/invariant assertions belong in this emitter. (ChatGPT-5.6-Sol) -->
 	FAssert(eBuilding >= 0 && eBuilding < GC.getNumBuildingInfos());
 	FAssert(!bDetailed || szFocus != NULL);
 	CvBuildingInfo const& kBuilding = GC.getInfo(eBuilding);
@@ -13911,7 +13967,8 @@ void logSASGameRecordAIBuildingChoice(CvCityAI const& kCity, BuildingTypes eBuil
 	int iAssumedHealthGood = 0;
 	int iAssumedHealthBad = 0;
 	int const iProjectedHappy = kCity.getAdditionalHappinessByBuilding(eBuilding, iHappyGood, iHappyBad);
-	// <!-- custom: The first revision-130 candidate used the AI valuation's assumed-strategic-bonus health for factual health-food-relief/starvation aggregates, which could count a conditional future bonus as immediate relief. Aggregate actual current-bonus relief, while level 3 keeps both projections to explain the AI choice. (GPT-5.6-Sol) -->
+	// <!-- custom: The first revision-130 candidate used the AI valuation's assumed-strategic-bonus health for factual health-food-relief/starvation aggregates, which could count a conditional future bonus as immediate relief.
+	// Aggregate actual current-bonus relief, while level 3 keeps both projections to explain the AI choice. (GPT-5.6-Sol) -->
 	int const iProjectedActualHealth = kCity.getAdditionalHealthByBuilding(eBuilding, iActualHealthGood, iActualHealthBad, false);
 	int const iProjectedAssumedHealth = (bDetailed ? kCity.getAdditionalHealthByBuilding(eBuilding, iAssumedHealthGood, iAssumedHealthBad, true) : 0);
 	int const iHappySurplus = kCity.happyLevel() - kCity.unhappyLevel();
@@ -14447,7 +14504,8 @@ void logSASGameRecordProductionOverflow(CvCity const* pCity, int iRawModifiedOve
 	kFlow.iUnusedOverflowCapacity += iUnusedCapacity;
 	kFlow.iOverflowGold += iGold;
 	// <!-- custom: Level 3 already carries these exact values on the corresponding production-completion row, so avoid a duplicate action.
-	// At level 2, PROJECT_BUILT already owns its exact overflow. Otherwise keep strategically exceptional loss/gold and every Barbarian overflow because ordinary unit/building completion rows and Barbarian production-flow summaries are unavailable there. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// At level 2, PROJECT_BUILT already owns its exact overflow.
+	// Otherwise keep strategically exceptional loss/gold and every Barbarian overflow because ordinary unit/building completion rows and Barbarian production-flow summaries are unavailable there. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (gGameRecordLogLevel == 2 && !pCity->isProductionProject() && (pCity->isBarbarian() || iLostProduction > 0 || iGold > 0)) logSASGameRecord("GAME_RECORD_ACTION turn=%d type=PRODUCTION_OVERFLOW player=%d cityId=%d city=%S productionKind=%s production=%s rawModifiedOverflow=%d unmodifiedOverflow=%d keptOverflow=%d lostProduction=%d unusedOverflowCapacity=%d gold=%d",
 		GC.getGame().getGameTurn(), pCity->getOwner(), pCity->getID(), getSASGameRecordQuotedCityName(pCity).GetCString(),
 		getSASGameRecordCityProductionKind(*pCity), getSASGameRecordCityProductionType(*pCity), iRawModifiedOverflow,
@@ -14690,7 +14748,8 @@ void logSASGameRecordAutoPlayChanged(int iOldValue, int iNewValue, bool bChangeP
 		iAutoPlayWallMilliseconds, g_iSASGameRecordAutoPlayStartTurn, g_iSASGameRecordAutoPlayStartElapsedTurn,
 		g_eSASGameRecordAutoPlayStartPlayer, g_iSASGameRecordAutoPlayPlayerChanges, g_iSASGameRecordTotalActivePlayerChanges,
 		getSASAutoPlayEndCause(eEndCause));
-	// <!-- custom: Treat only actual autoplay start/end as rare level-3 RNG boundaries, not the ordinary per-turn countdown changes. This isolates the benchmark/autoplay random-consumption window even when it begins or ends partway through a game turn.
+	// <!-- custom: Treat only actual autoplay start/end as rare level-3 RNG boundaries, not the ordinary per-turn countdown changes.
+	// This isolates the benchmark/autoplay random-consumption window even when it begins or ends partway through a game turn.
 	// A benchmark seed entered in AIAutoPlay.py is applied immediately before AUTOPLAY_STARTED, so AUTOPLAY_BEGIN opens from that newly assigned authoritative state. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (g_bSASGameRecordRngTrackingActive && (bStarted || bEnded)) logSASGameRecordRngCheckpoint(kGame.getGameTurn(), bStarted ? SAS_RNG_CHECKPOINT_AUTOPLAY_BEGIN : SAS_RNG_CHECKPOINT_AUTOPLAY_END);
 	// <!-- custom: Manual or scheduled autoplay completion is also a useful record boundary even when the game and its wars continue. (GPT-5.6-Sol) -->

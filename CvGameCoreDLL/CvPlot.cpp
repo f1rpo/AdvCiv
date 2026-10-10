@@ -886,7 +886,9 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 	std::vector<NukeEffect> aBuildingDestroyed;
 	std::vector<NukeEffect> aCitizensKilled;
 	// <!-- custom: Reuse this existing single explosion pass for compact SASGameRecord effect totals; no diagnostic-only second scan is needed.
-	// Cache the level-2 plot-history gate once for the whole explosion rather than re-reading it for every affected plot. Per-city consequences use level 2; exact affected-unit identities/damage use level 3. Keep both inert unless a unit-launched detonation is actually being recorded. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// Cache the level-2 plot-history gate once for the whole explosion rather than re-reading it for every affected plot.
+	// Per-city consequences use level 2; exact affected-unit identities/damage use level 3.
+	// Keep both inert unless a unit-launched detonation is actually being recorded. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	bool const bLogPlotChange = (gGameRecordLogLevel >= 2);
 	bool const bLogSASNukeEffects = (bBomb && pNukeUnit != NULL && bLogPlotChange);
 	bool const bLogSASNukeUnitEffects = (bLogSASNukeEffects && gGameRecordLogLevel >= 3);
@@ -897,7 +899,7 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 	// <!-- custom: make these static const for performance optimization as advised by chatgpt 5 too. -->
 	// <!-- custom: code/performance optimization: hoist -->
 	static const int iNUKE_FEATURE = GC.getDefineINT("NUKE_FEATURE");
-	// <!-- custom: also static const the enum as it shouldn't change as chatgpt 5 agrees as well after i asked it but check if accurate as i don't know too much about these but it does seem so but check to be sure-->
+	// <!-- custom: also static const the enum as it shouldn't change as chatgpt 5 agrees as well after i asked it but check if accurate as i don't know too much about these but it does seem so but check to be sure -->
 	static const FeatureTypes eNUKE_FEATURE = (FeatureTypes)iNUKE_FEATURE;
 
 	for (SquareIter it(*this, iRange); it.hasNext(); ++it)
@@ -3971,9 +3973,11 @@ void CvPlot::setNOfRiver(bool bNewValue, CardinalDirectionTypes eRiverDir)
 	m_eRiverWEDirection = eRiverDir;
 
 	updateRiverSymbol(true, true);
-	// <!-- custom: The setup-only directional river picture would otherwise become stale after a rare WorldBuilder/script/event edge edit. Preserve the exact changed coordinate and before/after boundary state; map generation at elapsed turn zero skips the snapshot work. (GPT-5.6-Sol) -->
+	// <!-- custom: The setup-only directional river picture would otherwise become stale after a rare WorldBuilder/script/event edge edit.
+	// Preserve the exact changed coordinate and before/after boundary state; map generation at elapsed turn zero skips the snapshot work. (GPT-5.6-Sol) -->
 	if (bLogRiverChange) logSASGameRecordRiverEdgeChanged(*this, bOldSouthBoundary, bOldEastBoundary);
-	// <!-- custom: A finalized-game south-edge change also changes fresh water and can change river trade connectivity. Refresh the inherited derived state that the setter omitted. See KI#351. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: A finalized-game south-edge change also changes fresh water and can change river trade connectivity.
+	// Refresh the inherited derived state that the setter omitted. See KI#351. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (bOldSouthBoundary != bNewValue && GC.getGame().isFinalInitialized())
 		updateRiverDerivedState(*this);
 }
@@ -4860,7 +4864,8 @@ void CvPlot::setBonusType(BonusTypes eNewValue)
 	updateYield();
 	setLayoutDirty(true);
 	gDLL->UI().setDirty(GlobeLayer_DIRTY_BIT, true);
-	// <!-- custom: Some bonuses can appear or disappear after game start, e.g. save-file-450 follow-up testing showed Shaka gaining Gems. Log only after elapsed turns start so initial map bonus placement does not flood the game-record file. (GPT-5.5) -->
+	// <!-- custom: Some bonuses can appear or disappear after game start, e.g. save-file-450 follow-up testing showed Shaka gaining Gems.
+	// Log only after elapsed turns start so initial map bonus placement does not flood the game-record file. (GPT-5.5) -->
 	if (gGameRecordLogLevel >= 2 && GC.getGame().getElapsedGameTurns() > 0) logSASGameRecordBonusChanged(this, eOldBonus, eNewValue);
 }
 
@@ -4885,7 +4890,9 @@ void CvPlot::setImprovementType(ImprovementTypes eNewValue, bool bUpdateInFoW) /
 			GET_PLAYER(getOwner()).changeImprovementCount(eOldImprovement, -1);
 	}
 
-	// <!-- custom: Diagnostic-only log for repeated Work Boat replacement. BBAI logs showed Work Boats successfully improving the same seafood multiple times, then cities later counting the target as unimproved again; log when an owned water bonus loses a connecting sea improvement so we can distinguish pillage/destruction/ownership churn from production overqueue. No behavior change. See KI#157. (GPT-5.5 + ChatGPT-5.5) -->
+	// <!-- custom: Diagnostic-only log for repeated Work Boat replacement.
+	// BBAI logs showed Work Boats successfully improving the same seafood multiple times, then cities later counting the target as unimproved again; log when an owned water bonus loses a connecting sea improvement so we can distinguish pillage/destruction/ownership churn from production overqueue.
+	// No behavior change. See KI#157. (GPT-5.5 + ChatGPT-5.5) -->
 	if (gWorkerSeaLogLevel >= 2 && isWater() && isOwned() && eOldImprovement != NO_IMPROVEMENT)
 	{
 		CvPlayer const& kOwner = GET_PLAYER(getOwner());
@@ -5403,7 +5410,9 @@ BuildTypes CvPlot::SAS_getBonusSpecificBuild(BonusTypes eBonus) const
 	if (eBonus < 0 || eBonus >= iNumBonuses)
 		return NO_BUILD;
 
-	// <!-- custom: Resource improvements are unique per (bonus, land/water) in current XML except that Oil intentionally has Well on land and Offshore Platform on water. Cache both domains together; if future XML adds a same-domain alternative, prefer food, then total yield, then later XML order. Fort-like improvements connect resources generically rather than being their intended yield improvement, so exclude them. (GPT-5.5) -->
+	// <!-- custom: Resource improvements are unique per (bonus, land/water) in current XML except that Oil intentionally has Well on land and Offshore Platform on water.
+	// Cache both domains together; if future XML adds a same-domain alternative, prefer food, then total yield, then later XML order.
+	// Fort-like improvements connect resources generically rather than being their intended yield improvement, so exclude them. (GPT-5.5) -->
 	static std::vector<BuildTypes> aBuildsByDomain[2];
 	static bool bInitialized = false;
 	if (!bInitialized)
@@ -5467,7 +5476,8 @@ int CvPlot::SAS_getBonusImprovementFoodChange(BonusTypes eBonus) const
 	ImprovementTypes const eImprovement = GC.getInfo(eBuild).getImprovement();
 	CvImprovementInfo const& kImprovement = GC.getInfo(eImprovement);
 	int iFoodChange = kImprovement.getYieldChange(YIELD_FOOD) + kImprovement.getImprovementBonusYield(eBonus, YIELD_FOOD);
-	// <!-- custom: The low-food helper omitted Farm's already-active irrigated yield even though normal improvement-yield calculation includes it. Count only irrigation currently available on this plot; future irrigation-chain potential remains outside this narrow repair. See KI#503. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: The low-food helper omitted Farm's already-active irrigated yield even though normal improvement-yield calculation includes it.
+	// Count only irrigation currently available on this plot; future irrigation-chain potential remains outside this narrow repair. See KI#503. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (isIrrigationAvailable())
 		iFoodChange += kImprovement.getIrrigatedYieldChange(YIELD_FOOD);
 	if (isRiverSide())
@@ -5489,7 +5499,8 @@ int CvPlot::SAS_getBonusImprovementFoodChange(BonusTypes eBonus) const
 }
 
 
-// <!-- custom: A candidate city can work a water tile in its BFC without bordering that water area, but improving its resource requires Work Boat access. Assume the bonus-specific improvement when the candidate or another owned city borders the same connected water area, or when a connecting improvement already exists (e.g. retained after culture expansion); a rival city bordering the area does not give us access. (GPT-5.5) -->
+// <!-- custom: A candidate city can work a water tile in its BFC without bordering that water area, but improving its resource requires Work Boat access.
+// Assume the bonus-specific improvement when the candidate or another owned city borders the same connected water area, or when a connecting improvement already exists (e.g. retained after culture expansion); a rival city bordering the area does not give us access. (GPT-5.5) -->
 bool CvPlot::SAS_canAssumeWaterBonusImprovement(BonusTypes eVisibleBonus, PlayerTypes ePlayer, CvPlot const& kCandidateCityPlot) const
 {
 	if (!isWater())
@@ -5503,7 +5514,9 @@ bool CvPlot::SAS_canAssumeWaterBonusImprovement(BonusTypes eVisibleBonus, Player
 }
 
 
-// <!-- custom: Measure net food pressure as the food consumed by one citizen minus this plot's potential food. Potential food includes natural terrain/feature food, visible bonus food, food from its bonus-specific improvement, and caller-approved Harbor-class food for water plots. Surplus food returns a negative score and offsets poor plots across the BFC; crediting bonus food first lets callers use stricter thresholds for sites that remain net food-poor without hardcoding terrain names. (GPT-5.5) -->
+// <!-- custom: Measure net food pressure as the food consumed by one citizen minus this plot's potential food.
+// Potential food includes natural terrain/feature food, visible bonus food, food from its bonus-specific improvement, and caller-approved Harbor-class food for water plots.
+// Surplus food returns a negative score and offsets poor plots across the BFC; crediting bonus food first lets callers use stricter thresholds for sites that remain net food-poor without hardcoding terrain names. (GPT-5.5) -->
 int CvPlot::SAS_getLowFoodEnvironmentScore(BonusTypes eVisibleBonus, int iSeaPlotFoodChange, bool bCanAssumeWaterBonusImprovement) const
 {
 	int const iFoodPerPopulation = GC.getFOOD_CONSUMPTION_PER_POPULATION();
@@ -5522,14 +5535,18 @@ int CvPlot::SAS_getLowFoodEnvironmentScore(BonusTypes eVisibleBonus, int iSeaPlo
 			iPotentialFood += iSeaPlotFoodChange;
 	}
 	int const iScore = iFoodPerPopulation - iPotentialFood;
-	// <!-- custom: Grass Hill currently stands out without naming Grass: its underlying terrain can feed one citizen, and becoming a hill trades one food for strong production. Keep any hill whose non-hill food potential is self-feeding from making an otherwise productive environment look food-poor. (GPT-5.5) -->
+	// <!-- custom: Grass Hill currently stands out without naming Grass: its underlying terrain can feed one citizen, and becoming a hill trades one food for strong production.
+	// Keep any hill whose non-hill food potential is self-feeding from making an otherwise productive environment look food-poor. (GPT-5.5) -->
 	if (isHills() && iPotentialFoodWithoutHill >= iFoodPerPopulation)
 		return std::min(0, iScore);
 	return iScore;
 }
 
 
-// <!-- custom: Classify permanently weak BFC slots from XML properties and yields instead of terrain names. Impassable plots always count; visible bonuses on usable plots do not, because their specialized value is handled elsewhere. For other plots, compare 4 * food + 2 * production + commerce using natural yield and long-term XML-valid improvement potential. Stop once an improvement reaches the minimum because only the below-threshold classification and exact failing score are needed. (GPT-5.5 + ChatGPT-5.5 review) -->
+// <!-- custom: Classify permanently weak BFC slots from XML properties and yields instead of terrain names.
+// Impassable plots always count; visible bonuses on usable plots do not, because their specialized value is handled elsewhere.
+// For other plots, compare 4 * food + 2 * production + commerce using natural yield and long-term XML-valid improvement potential.
+// Stop once an improvement reaches the minimum because only the below-threshold classification and exact failing score are needed. (GPT-5.5 + ChatGPT-5.5 review) -->
 bool CvPlot::SAS_isVeryBadBFCPlot(BonusTypes eVisibleBonus, PlayerTypes ePlayer, int iSeaPlotFoodChange, int iMinPotentialYieldScore, int& iBestPotentialYieldScore) const
 {
 	FAssert(ePlayer != NO_PLAYER);
@@ -5593,7 +5610,9 @@ bool CvPlot::SAS_isVeryBadBFCPlot(BonusTypes eVisibleBonus, PlayerTypes ePlayer,
 }
 
 
-// <!-- custom: Classify whether a non-home BFC slot is good enough for the first-city minimum-tile sanity check. This is deliberately weaker than "good": usable land with a visible bonus counts, no-bonus land must not be persistently very bad, and water only counts when a visible bonus can reasonably be improved or is already improved. Ordinary coast/ocean stays excluded so the first city still needs enough useful BFC slots. (ChatGPT-5.5) -->
+// <!-- custom: Classify whether a non-home BFC slot is good enough for the first-city minimum-tile sanity check.
+// This is deliberately weaker than "good": usable land with a visible bonus counts, no-bonus land must not be persistently very bad, and water only counts when a visible bonus can reasonably be improved or is already improved.
+// Ordinary coast/ocean stays excluded so the first city still needs enough useful BFC slots. (ChatGPT-5.5) -->
 bool CvPlot::SAS_isGoodEnoughFirstCityBFCPlot(BonusTypes eVisibleBonus, PlayerTypes ePlayer, CvPlot const& kCandidateCityPlot, bool bVeryBadBFCPlot) const
 {
 	FAssert(ePlayer != NO_PLAYER);
@@ -6606,7 +6625,8 @@ void CvPlot::setRevealed(TeamTypes eTeam, bool bNewValue, bool bTerrainOnly, Tea
 	}
 	if (bOldValue != bNewValue) // </advc.124>
 	{
-		// <!-- custom: Buffer permanent map revelation by team and flush it once per turn. This preserves exact coordinates without producing one log row for every newly revealed plot. (GPT-5.6-Sol) -->
+		// <!-- custom: Buffer permanent map revelation by team and flush it once per turn.
+		// This preserves exact coordinates without producing one log row for every newly revealed plot. (GPT-5.6-Sol) -->
 		if (gGameRecordLogLevel >= 2 && bNewValue) recordSASGameRecordPlotRevealed(*this, eTeam);
 		if (eTeam == getActiveTeam())
 		{
@@ -6778,7 +6798,7 @@ bool CvPlot::changeBuildProgress(BuildTypes eBuild, int iChange, /*TeamTypes eTe
 		ImprovementTypes const eNewImprovement = kBuild.getImprovement();
 
 		// <!-- custom: Log completed worker builds that replace one improvement with another.
-		// This helps find real farm/cottage/workshop oscillation cases before changing worker logic. Credit: ChatGPT 5.5.  (GPT-5.5 review) -->
+		// This helps find real farm/cottage/workshop oscillation cases before changing worker logic. Credit: ChatGPT 5.5. (GPT-5.5 review) -->
 		// <!-- custom: this fires 339 times in a ~421 turn sample at normal gamespeed large pangea, so fine to keep to level 2 and useful info deemed important enough for now. -->
 		if (gWorkerLogLevel >= 2 && eOldImprovement != NO_IMPROVEMENT && eOldImprovement != eNewImprovement) logBBAI("    WORKER-IMPROVEMENT overwrite: turn=%d elapsed=%d player=%S plot=%d,%d old=%S new=%S build=%S owner=%d bonus=%S route=%S",
 			GC.getGame().getGameTurn(),
@@ -7752,7 +7772,7 @@ void CvPlot::read(FDataStreamBase* pStream)
 	pStream->Read(&m_eTeam);
 	// </advc.opt>
 
-	// <!-- custom: the base advciv comment note initial tag seems to be missing, i didn't remove it, not adding it either just in case, and is  hehe-->
+	// <!-- custom: the base advciv comment note initial tag seems to be missing, i didn't remove it, not adding it either just in case, and is hehe -->
 	// </advc.opt>
 	pStream->Read(&m_ePlotType);
 	pStream->Read(&m_eTerrainType);
@@ -8369,7 +8389,8 @@ void CvPlot::applyEvent(EventTypes eEvent)
 		if (iChange != 0)
 			GC.getMap().setPlotExtraYield(*this, eLoopYield, iChange);
 	}
-	// <!-- custom: A random event can change several properties of one plot. Preserve one combined before/after record instead of treating its feature, resource, improvement and route effects as unrelated changes. (GPT-5.6-Sol) -->
+	// <!-- custom: A random event can change several properties of one plot.
+	// Preserve one combined before/after record instead of treating its feature, resource, improvement and route effects as unrelated changes. (GPT-5.6-Sol) -->
 	if (bLogPlotChange) recordSASGameRecordPlotChange(*this, kOldState, "randomEvents", "RANDOM_EVENT", true);
 }
 
@@ -8728,7 +8749,8 @@ bool CvPlot::checkLateEra() const
 	if (eBestPlayer == NO_PLAYER)
 	{
 		// <!-- custom: A T281 crash dump pointed to the CvPlot::setLayoutDirty/checkLateEra export region, but later runs did not reproduce the crash and its cause remains unknown.
-		// During review, we found that getCulture was called with getActivePlayer even when it returned NO_PLAYER, and GET_PLAYER could also receive NO_PLAYER below. Fix that bug by using the active player only when valid and otherwise selecting from alive players; we do not know whether this caused the crash. See KI#171. (GPT-5.5) -->
+		// During review, we found that getCulture was called with getActivePlayer even when it returned NO_PLAYER, and GET_PLAYER could also receive NO_PLAYER below.
+		// Fix that bug by using the active player only when valid and otherwise selecting from alive players; we do not know whether this caused the crash. See KI#171. (GPT-5.5) -->
 		int iBestCulture = -1;
 		PlayerTypes const eActivePlayer = getActivePlayer();
 		if (eActivePlayer != NO_PLAYER)
@@ -8849,4 +8871,5 @@ bool CvPlot::isConnectSea() const
 	   to do, but shortening paths within a water area can also be valuable. */
 } // </advc.121>
 
-// <!-- custom: Retired inherited CvPlot::debugStr() after the Found diagnostic redesign removed all callers: generic descriptions exposed actual bonus/owner identities during player-known evaluation. The earlier owning-string lifetime fix remains documented historically; retain explicit diagnostic fields instead of an unused general formatter. See KI#349. See KI#505.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol + GPT-6.1-Sol) -->
+// <!-- custom: Retired inherited CvPlot::debugStr() after the Found diagnostic redesign removed all callers: generic descriptions exposed actual bonus/owner identities during player-known evaluation.
+// The earlier owning-string lifetime fix remains documented historically; retain explicit diagnostic fields instead of an unused general formatter. See KI#349. See KI#505.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol + GPT-6.1-Sol) -->

@@ -23,7 +23,8 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
-# <!-- custom: AdvCiv-SAS does not actively maintain this third-party BUG library file. Edits here are limited to repo-wide consistency passes (e.g. getInfoTypeOrFail for fail-loud XML lookups). (Claude code Opus 4.7) -->
+# <!-- custom: AdvCiv-SAS does not actively maintain this third-party BUG library file.
+# Edits here are limited to repo-wide consistency passes (e.g. getInfoTypeOrFail for fail-loud XML lookups). (Claude code Opus 4.7) -->
 
 from CvPythonExtensions import *
 from SASUtils import getInfoTypeOrFail
@@ -274,7 +275,8 @@ def getGreatPeopleText(city, iGPTurns, iGPBarWidth, bGPBarTypesNone, bGPBarTypes
 				szTypes = ""
 				for iPercent, iUnit in lPercents:
 					szNewTypes = szTypes + u" %c%d%%" % (getUnitIcon(iUnit), iPercent)
-					# <!-- custom: Maximum-types measured the previously accepted list, so the first candidate exceeding the GP bar width was still appended. Measure the candidate list before accepting it. See KI#237. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+					# <!-- custom: Maximum-types measured the previously accepted list, so the first candidate exceeding the GP bar width was still appended.
+					# Measure the candidate list before accepting it. See KI#237. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 					szNewText = szText + u" -%s" % szNewTypes
 					# <!-- custom: SAS moved font ownership to both callers, but untagged measurement could disagree with their configurable Label-font rendering; wrap only the temporary candidate used for width measurement so returned text remains unnested. See KI#1066. (GPT-5.6-Sol) -->
 					if (CyInterface().determineWidth(SASTextScale.labelText(szNewText)) > iGPBarWidth - 10):

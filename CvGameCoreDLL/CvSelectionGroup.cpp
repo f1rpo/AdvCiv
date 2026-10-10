@@ -207,7 +207,9 @@ void CvSelectionGroup::doTurn()
 
 	bool const bCouldAnyMove = canAnyMove(); // advc.153: was AllMove in K-Mod
 	CvUnit* pHeadUnit = getHeadUnit(); // advc
-	// <!-- custom: WORKER_MOVE_ENTRY cannot reveal a Worker group that remains asleep/held and never reaches Unit AI. At Worker log level 3, record every land Worker group's turn-boundary state, then log any wake/cleanup transition below so persistent parking can be distinguished from an ordinary one-turn Skip. No behavior change. (GPT-5.5) -->
+	// <!-- custom: WORKER_MOVE_ENTRY cannot reveal a Worker group that remains asleep/held and never reaches Unit AI.
+	// At Worker log level 3, record every land Worker group's turn-boundary state, then log any wake/cleanup transition below so persistent parking can be distinguished from an ordinary one-turn Skip.
+	// No behavior change. (GPT-5.5) -->
 	bool const bLogSASWorkerTurn = (gWorkerLogLevel >= 3 && pHeadUnit != NULL && pHeadUnit->AI_getUnitAIType() == UNITAI_WORKER);
 	ActivityTypes const eSASWorkerActivityBefore = (bLogSASWorkerTurn ? getActivityType() : NO_ACTIVITY);
 	MissionAITypes const eSASWorkerMissionAIBefore = (bLogSASWorkerTurn ? AI().AI_getMissionAIType() : NO_MISSIONAI);
@@ -524,7 +526,8 @@ void CvSelectionGroup::updateTimers()
 		return;
 	} // </advc>
 	bool bCombat = false;
-	// <!-- custom: updateCombat can advance the winner and split a future member from this group through advc.153. Snapshot identities before any combat update, then fresh-lookup membership so the loop never resumes through a prefetched deleted list node while preserving K-Mod's multiple-queued-combat updates. See KI#479. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: updateCombat can advance the winner and split a future member from this group through advc.153.
+	// Snapshot identities before any combat update, then fresh-lookup membership so the loop never resumes through a prefetched deleted list node while preserving K-Mod's multiple-queued-combat updates. See KI#479. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	std::vector<IDInfo> aOriginalUnits;
 	FOR_EACH_UNIT_IN(pUnit, *this)
 		aOriginalUnits.push_back(pUnit->getIDInfo());
@@ -814,7 +817,8 @@ void CvSelectionGroup::startMission()
 		if (readyForMission())
 		{
 			setActivityType(ACTIVITY_MISSION);
-			// <!-- custom: Removed AdvCiv's pre-move recon cleanup from here: shared destination capacity can change while grouped aircraft move sequentially. CvUnit::move now clears recon only for each aircraft that actually rebases. See KI#471 and KI#1049. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			// <!-- custom: Removed AdvCiv's pre-move recon cleanup from here: shared destination capacity can change while grouped aircraft move sequentially.
+			// CvUnit::move now clears recon only for each aircraft that actually rebases. See KI#471 and KI#1049. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		}
 		else setActivityType(ACTIVITY_HOLD);
 		// K-Mod end
@@ -1322,7 +1326,9 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 	CvPlot* pFromPlot = plot(); // advc.102
 	bool bDone = false;
 	bool bAction = false;
-	// <!-- custom: Worker city jobs were selected repeatedly without reaching their target. At Worker log level 3, trace the queued MISSIONAI_BUILD movement/build through execution so path failure can be separated from scoring or reassignment. No behavior change. (GPT-5.5) -->
+	// <!-- custom: Worker city jobs were selected repeatedly without reaching their target.
+	// At Worker log level 3, trace the queued MISSIONAI_BUILD movement/build through execution so path failure can be separated from scoring or reassignment.
+	// No behavior change. (GPT-5.5) -->
 	CvUnit const* pSASWorker = NULL;
 	bool bLogSASWorkerMission = false;
 	if (gWorkerLogLevel >= 3 && AI().AI_getMissionAIType() == MISSIONAI_BUILD)
@@ -1584,7 +1590,8 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 				isn't reached, then any improvement build needs to be canceled. */
 			CvPlot const* pMissionAIPlot = AI().AI_getMissionAIPlot();
 			// <!-- custom: Save file 446 exposed a stale AI worker mission queue where a target plot 58,24 Cottage build executed on the current plot 59,24 after route movement failed, overwriting an intended Mine.
-			// MISSION_BUILD has no stored plot coordinates, so require non-route builds to still be standing on the mission target before allowing groupBuild to act on the current plot. The AdvCiv 1.14 version of this SAS fix correctly exempts route builds, which may intentionally be constructed along the way.
+			// MISSION_BUILD has no stored plot coordinates, so require non-route builds to still be standing on the mission target before allowing groupBuild to act on the current plot.
+			// The AdvCiv 1.14 version of this SAS fix correctly exempts route builds, which may intentionally be constructed along the way.
 			// Validation: the save-file-446 t200 replay after this guard fired this cancel 7 times (T64 Japan 59,24->58,24; T71 Ottoman 50,34->51,33; T110 Greece 66,24->67,25; T127 Greece 66,25->67,26; T162 Native America 54,32->55,32; T178 Celts 27,45->31,48; T181 Native America 53,31->56,32), confirming this was a systemic stale-target safety issue rather than only the original Japan tile. See KI#176. (ChatGPT-5.5 + GPT-5.5; AdvCiv 1.14 merge reviewed by ChatGPT-5.6-Sol) -->
 			bool bCancel = (pMissionAIPlot != NULL && eBuild != NO_BUILD &&
 					GC.getInfo(eBuild).getRoute() == NO_ROUTE && !atPlot(pMissionAIPlot));
@@ -1802,7 +1809,10 @@ bool CvSelectionGroup::continueMission_bulk(int iSteps)
 			}
 			else deleteMissionQueueNode(pHeadMission);
 
-			// <!-- custom: Explicit Chop/Clear followed by an evaluator-selected improvement was queued correctly, but completing the removal consumed all worker moves. Immediate activation deleted the follow-up; merely delaying activation left the group AWAKE, so AI turn-start cleanup still cleared it. Berlin (32,12), Beijing (28,12), and Cologne (29,11) therefore lost queued Mines and workers left their newly cleared Hills. Keep a waiting follow-up in MISSION activity until the next turn; invalid builds that consume no moves can continue immediately. (GPT-5.5) -->
+			// <!-- custom: Explicit Chop/Clear followed by an evaluator-selected improvement was queued correctly, but completing the removal consumed all worker moves.
+			// Immediate activation deleted the follow-up; merely delaying activation left the group AWAKE, so AI turn-start cleanup still cleared it.
+			// Berlin (32,12), Beijing (28,12), and Cologne (29,11) therefore lost queued Mines and workers left their newly cleared Hills.
+			// Keep a waiting follow-up in MISSION activity until the next turn; invalid builds that consume no moves can continue immediately. (GPT-5.5) -->
 			if (headMissionQueueNode() != NULL)
 			{
 				if (missionData.eMissionType != MISSION_BUILD || readyForMission())
@@ -1929,7 +1939,8 @@ bool CvSelectionGroup::canEverDoCommand(CommandTypes eCommand, int iData1, int i
 	{
 		if(bUseCache)
 		{
-			// <!-- custom: Upgrade affordability is per-unit because promotions can change the price. Test every ready cached unit rather than one arbitrary representative per UnitType. See KI#474. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			// <!-- custom: Upgrade affordability is per-unit because promotions can change the price.
+			// Test every ready cached unit rather than one arbitrary representative per UnitType. See KI#474. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			for (size_t i = 0; i < m_aUpgradeUnitCache.size(); i++)
 			{
 				CvUnit const* pUnit = m_aUpgradeUnitCache[i];
@@ -2906,7 +2917,8 @@ void CvSelectionGroup::groupMove(CvPlot* pPlot, bool bCombat, CvUnit* pCombatUni
 		passed along through a bunch of function calls. */
 	bool const bGroupAdvance = (!bCombat || bAIControl);
 	// </advc.153>
-	// <!-- custom: CvUnit::move can reenter conquest/culture handling and regroup a future member of this group. Snapshot identities before the first move, then fresh-lookup current membership instead of retaining live CLinkList nodes across movement side effects; this restores K-Mod practical 1230 / 1.46's lifetime invariant while preserving AdvCiv's two-stage movement. See KI#478. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: CvUnit::move can reenter conquest/culture handling and regroup a future member of this group.
+	// Snapshot identities before the first move, then fresh-lookup current membership instead of retaining live CLinkList nodes across movement side effects; this restores K-Mod practical 1230 / 1.46's lifetime invariant while preserving AdvCiv's two-stage movement. See KI#478. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	std::vector<IDInfo> aOriginalUnits;
 	FOR_EACH_UNIT_IN(pUnit, *this)
 		aOriginalUnits.push_back(pUnit->getIDInfo());
@@ -3364,7 +3376,8 @@ bool CvSelectionGroup::groupAmphibMove(CvPlot const& kPlot, MovementFlags eFlags
 			for (size_t i = 0; i < apCargoGroups.size(); ++i)
 			{
 				CvSelectionGroup& kCargoGroup = *apCargoGroups[i];
-				// <!-- custom: A pushed cargo mission is not proof that this transport group can land. Require one of its own ready cargo members to be legally able to move or attack into the adjacent destination before consuming the deferred order.
+				// <!-- custom: A pushed cargo mission is not proof that this transport group can land.
+				// Require one of its own ready cargo members to be legally able to move or attack into the adjacent destination before consuming the deferred order.
 				// A mixed-carrier cargo group must not qualify through another ship's unit. See KI#472. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 				bool bCanLand = false;
 				if (kCargoGroup.canAllMove())
@@ -3974,7 +3987,8 @@ void CvSelectionGroup::setAutomateType(AutomateTypes eNewValue)
 
 	// If canceling automation, cancel on cargo as well.
 	// <!-- custom: Replace BtS/AdvCiv's member-based all-cargo loop: changing an admitted member's whole group also canceled cargo carried by another sea group.
-	// KI#477 first replaced it with the land-only Boarded helper, but that omitted automated aircraft. Apply the ownership proof to every cargo domain while preserving mixed-carrier groups. See KI#477 and KI#1046. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// KI#477 first replaced it with the land-only Boarded helper, but that omitted automated aircraft.
+	// Apply the ownership proof to every cargo domain while preserving mixed-carrier groups. See KI#477 and KI#1046. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	std::vector<CvSelectionGroup*> apCargoGroups;
 	getExclusiveCargoGroups(apCargoGroups);
 	for (size_t i = 0; i < apCargoGroups.size(); i++)
@@ -4043,7 +4057,8 @@ bool CvSelectionGroup::generatePath(CvPlot const& kFrom, CvPlot const& kTo, Move
 
 void CvSelectionGroup::clearUnits()
 {
-	// <!-- custom: Full group teardown should not repeatedly use deleteUnitNode, setAutomateType, clearMissionQueue, or setActivityType, because those normal single-unit-removal helpers can inspect the head unit, plot, cargo, selection state, and mission callbacks while the unit list is being destroyed. Directly reset the small group-owned state here, then clear the list once. See KI#163. (ChatGPT-5.5 + GPT-5.5); (commented-out old code for reference). -->
+	// <!-- custom: Full group teardown should not repeatedly use deleteUnitNode, setAutomateType, clearMissionQueue, or setActivityType, because those normal single-unit-removal helpers can inspect the head unit, plot, cargo, selection state, and mission callbacks while the unit list is being destroyed.
+	// Directly reset the small group-owned state here, then clear the list once. See KI#163. (ChatGPT-5.5 + GPT-5.5); (commented-out old code for reference). -->
 	// for (CLLNode<IDInfo>* pNode = headUnitNode(); pNode != NULL;
 	// 	pNode = deleteUnitNode(pNode))
 	// {} // advc
@@ -4055,7 +4070,8 @@ void CvSelectionGroup::clearUnits()
 		m_eActivityType = ACTIVITY_AWAKE;
 	}
 	m_units.clear();
-	// <!-- custom: Full list clearing also changes every movement-relevant group property. Invalidate the reusable main finder while it exists; save loading destroys the map-owned static finder before the EXE clears selection groups, and the unconditional KI#475 call caused a reproducible null dereference.
+	// <!-- custom: Full list clearing also changes every movement-relevant group property.
+	// Invalidate the reusable main finder while it exists; save loading destroys the map-owned static finder before the EXE clears selection groups, and the unconditional KI#475 call caused a reproducible null dereference.
 	// The alternate finder is reset before every execution use; do not reset it during a live groupMove because its caller still consults that execution path afterward. See KI#475 and KI#475.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (m_pPathFinder != NULL)
 		pathFinder().invalidateGroup(*this);
@@ -4097,7 +4113,8 @@ bool CvSelectionGroup::addUnit(CvUnit* pUnit, bool bMinimalChange)
 	}
 	if (!bAdded)
 		m_units.insertAtEnd(pUnit->getIDInfo());
-	// <!-- custom: Reusable path nodes are keyed by group pointer but not membership. Adding a unit can change terrain legality, costs and combat strength without changing minimum moves, so discard cached main-finder state at the mutation boundary.
+	// <!-- custom: Reusable path nodes are keyed by group pointer but not membership.
+	// Adding a unit can change terrain legality, costs and combat strength without changing minimum moves, so discard cached main-finder state at the mutation boundary.
 	// Do not reset the alternate finder during a live groupMove because its caller still consults that execution path afterward. See KI#475. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	pathFinder().invalidateGroup(*this);
 
@@ -4162,7 +4179,8 @@ CLLNode<IDInfo>* CvSelectionGroup::deleteUnitNode(CLLNode<IDInfo>* pNode)
 		}
 	}
 	pNextUnitNode = m_units.deleteNode(pNode);
-	// <!-- custom: Removing a unit can make previously closed paths legal while the surviving group keeps the same pointer and minimum moves. Invalidate reusable main-finder state after the actual membership mutation.
+	// <!-- custom: Removing a unit can make previously closed paths legal while the surviving group keeps the same pointer and minimum moves.
+	// Invalidate reusable main-finder state after the actual membership mutation.
 	// Do not reset the alternate finder during a live groupMove because its caller still consults that execution path afterward. See KI#475. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	pathFinder().invalidateGroup(*this);
 	return pNextUnitNode;

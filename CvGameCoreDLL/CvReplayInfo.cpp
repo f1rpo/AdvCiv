@@ -362,7 +362,8 @@ void CvReplayInfo::appendSettingsMsg(CvWString& szSettings, PlayerTypes ePlayer)
 	}
 	if(iOptions > 0)
 		szSettings = szSettings.substr(0, szSettings.length() - 2) + L"\n";
-	// <!-- custom: Persist compact runtime source identity and the save's complete revision lineage into the replay Settings message. Unlike live replay-screen labels, these rows remain truthful when the replay is viewed years later under another runtime build. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Persist compact runtime source identity and the save's complete revision lineage into the replay Settings message.
+	// Unlike live replay-screen labels, these rows remain truthful when the replay is viewed years later under another runtime build. (ChatGPT-5.6-Sol) -->
 	CvWString const szRuntimeSource = getSASRuntimeDisplayNameAndVersion();
 	if (szRuntimeSource.empty())
 		szSettings = szSettings.substr(0, szSettings.length() - 1); // drop \n
@@ -1041,7 +1042,9 @@ bool CvReplayInfo::checkBounds(int iValue, int iLower, int iUpper) const
 
 bool CvReplayInfo::isStoringReplaysAsBtS() const
 {
-	// <!-- custom: AdvCiv-SAS intentionally changes raw XML info order for replay-stored values such as game speeds, world sizes, and handicaps. Always store the normal mod replay format instead of pretending an AdvCiv-SAS replay is vanilla BtS-compatible. This still writes normal AdvCiv-SAS replays; it only disables the optional BtS-compatible replay export path. See KI#166. (ChatGPT-5.5); we do not need nor support reading AdvCiv-SAS replay/Hall of Fame data from unmodded BTS, nor do we need or support reading unmodded BTS replay/Hall of Fame data into AdvCiv-SAS. -->
+	// <!-- custom: AdvCiv-SAS intentionally changes raw XML info order for replay-stored values such as game speeds, world sizes, and handicaps.
+	// Always store the normal mod replay format instead of pretending an AdvCiv-SAS replay is vanilla BtS-compatible.
+	// This still writes normal AdvCiv-SAS replays; it only disables the optional BtS-compatible replay export path. See KI#166. (ChatGPT-5.5); we do not need nor support reading AdvCiv-SAS replay/Hall of Fame data from unmodded BTS, nor do we need or support reading unmodded BTS replay/Hall of Fame data into AdvCiv-SAS. -->
 	return false;
 
 	// <!-- custom: Old AdvCiv BtS-compatible replay checks kept below for reference, but disabled/commented-out in AdvCiv-SAS because shifted raw XML ids would need a full remapping layer to be truly compatible. See KI#166. (ChatGPT-5.5) -->

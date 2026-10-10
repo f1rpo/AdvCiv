@@ -81,7 +81,8 @@ def format_refresh_summary(result: tuple[int, int, int, int]) -> str:
 
 
 def main() -> int:
-    # <!-- custom: Keep this command independently usable by people, Codex and other agents while sharing the exact renderer/cache/filtering policy with the light-source exporter. Import lazily so make_light_source_zip.py can reuse the synchronization function without a circular import. (GPT-5.6-Sol) -->
+    # <!-- custom: Keep this command independently usable by people, Codex and other agents while sharing the exact renderer/cache/filtering policy with the light-source exporter.
+    # Import lazily so make_light_source_zip.py can reuse the synchronization function without a circular import. (GPT-5.6-Sol) -->
     import make_light_source_zip as light_source
 
     args = parse_args()

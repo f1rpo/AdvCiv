@@ -2,7 +2,8 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 
-# <!-- custom: Stray-text checks accepted loose Type/NIF/Button elements when BuildingArtInfo was missing. Validate the ArtDefines collection and entry wrappers as well; the Tipi's missing wrapper caused a startup crash. (GPT-6.1-Sol) -->
+# <!-- custom: Stray-text checks accepted loose Type/NIF/Button elements when BuildingArtInfo was missing.
+# Validate the ArtDefines collection and entry wrappers as well; the Tipi's missing wrapper caused a startup crash. (GPT-6.1-Sol) -->
 import argparse
 from pathlib import Path
 import sys

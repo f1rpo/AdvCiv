@@ -2043,7 +2043,8 @@
 		<Italian>Passa alla forma di governo: %s1, prima che sia troppo tardi!</Italian>
 		<Spanish>&#161;Adoptad [NUM1:el:la:los:las] %s1 antes de que sea demasiado tarde!</Spanish>
 	</TEXT>
-	<!-- custom: Removed duplicate AI_DIPLO_STOP_TRADING_1 block. CIV4GameText_advc.xml keeps the active AdvCiv wording with %s2 grammar; this older ActualQuotesText copy used %s1 and made the duplicate-tag workflow fail. See KI#149. (GPT-5.5) -->
+	<!-- custom: Removed duplicate AI_DIPLO_STOP_TRADING_1 block.
+	CIV4GameText_advc.xml keeps the active AdvCiv wording with %s2 grammar; this older ActualQuotesText copy used %s1 and made the duplicate-tag workflow fail. See KI#149. (GPT-5.5) -->
 	<!-- reworded a bit -->
 	<TEXT>
 		<Tag>AI_DIPLO_UNIT_BRAG_2</Tag>

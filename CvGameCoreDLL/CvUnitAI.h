@@ -10,7 +10,8 @@
 class CvCity;
 class CvSelectionGroupAI; // advc.003u
 
-// <!-- custom: Optional recorder-only output from the existing espionage chooser. Plain scalars keep the real chooser values compact; this is filled only when the live caller enables GameRecord level 2+, never by reevaluating a mission. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Optional recorder-only output from the existing espionage chooser.
+// Plain scalars keep the real chooser values compact; this is filled only when the live caller enables GameRecord level 2+, never by reevaluating a mission. (ChatGPT-5.6-Sol) -->
 struct SASEspionageCandidateContext
 {
 	EspionageMissionTypes eMission;
@@ -54,7 +55,8 @@ public:
 
 	bool AI_update();
 	bool AI_follow(/* K-Mod: */ bool bFirst = true);
-	// <!-- custom: Add an optional max price so emergency calls stay uncapped by default, while upgrade-budget code can reject unaffordable candidates without changing the old candidate iteration/random calls for affordable upgrades. See corresponding .cpp function and KI#160. (ChatGPT-5.5 + GPT-5.5) -->
+	// <!-- custom: Add an optional max price so emergency calls stay uncapped by default, while upgrade-budget code can reject unaffordable candidates without changing the old candidate iteration/random calls for affordable upgrades.
+	// See corresponding .cpp function and KI#160. (ChatGPT-5.5 + GPT-5.5) -->
 	bool AI_upgrade(int iMaxUpgradePrice = MAX_INT);
 	void AI_promote();
 	scaled AI_upgradePriority() const; // advc.131e
@@ -394,7 +396,8 @@ protected:
 	// advc.pf:
 	bool AI_canRouteThroughSafeTerritory(CvPlot const& kDest, MovementFlags& eFlags) const;
 	bool AI_moveSettlerToCoast(int iMaxPathTurns = 5); // advc.040
-	// <!-- custom: Explicit exception for the inherited no-valid-site Settler cleanup, which SAS's general anti-scrapping rules intentionally block. Keep this specialized operation out of the generic CvUnit scrap API. (GPT-5.6-Sol) -->
+	// <!-- custom: Explicit exception for the inherited no-valid-site Settler cleanup, which SAS's general anti-scrapping rules intentionally block.
+	// Keep this specialized operation out of the generic CvUnit scrap API. (GPT-5.6-Sol) -->
 	bool AI_scrapSettlerWithNoValidSite(bool bDanger, MovementFlags eMoveFlags);
 
 	// added so under cheat mode we can call protected functions for testing

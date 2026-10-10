@@ -298,7 +298,8 @@ class CvTechSplashScreen:
 
 				if (bTechFound == 1):
 					if (CyGlobalContext().getBuildInfo(j).getImprovement() == -1):
-						# <!-- custom: BUG/K-Mod passed (BuildTypes j, 1), but WIDGET_HELP_IMPROVEMENT expects (TechTypes, BuildTypes). Pass the displayed technology and build so non-improvement actions show their actual unlock hover. See KI#391. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+						# <!-- custom: BUG/K-Mod passed (BuildTypes j, 1), but WIDGET_HELP_IMPROVEMENT expects (TechTypes, BuildTypes).
+						# Pass the displayed technology and build so non-improvement actions show their actual unlock hover. See KI#391. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 						screen.attachImageButton( panelName3, "", CyGlobalContext().getBuildInfo(j).getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_HELP_IMPROVEMENT, self.iTech, j, False )
 					else:
 						screen.attachImageButton( panelName3, "", CyGlobalContext().getBuildInfo(j).getButton(), GenericButtonSizes.BUTTON_SIZE_CUSTOM, WidgetTypes.WIDGET_PEDIA_JUMP_TO_IMPROVEMENT, CyGlobalContext().getBuildInfo(j).getImprovement(), 1, False )

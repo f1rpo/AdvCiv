@@ -91,7 +91,8 @@ public:
 	int getGameTurnYear();
 
 	int getElapsedGameTurns();
-	// <!-- custom: Python diplomacy bridge for the exact package of AI ordinary offers rejected by a human. Raw item/data pairs are converted and logged only at SASGameRecord level 2+. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Python diplomacy bridge for the exact package of AI ordinary offers rejected by a human.
+	// Raw item/data pairs are converted and logged only at SASGameRecord level 2+. (ChatGPT-5.6-Sol) -->
 	void logSASGameRecordRejectedAIOffer(int iProposer, int iResponder, boost::python::list& kProposerGives, boost::python::list& kResponderGives);
 	// <!-- custom: Expose persisted game-source history separately from current runtime source details so later Victory/Sevopedia UI can show creation and transition revisions. (ChatGPT-5.6-Sol) -->
 	int getNumSASVersionHistoryEntries() const;

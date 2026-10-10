@@ -6,8 +6,11 @@
 #ifndef UWAI_LOG_MUTE_STATE_H
 #define UWAI_LOG_MUTE_STATE_H
 
-// <!-- custom: Shared nested mute depth for UWAI diagnostics. Unlike ordinary BBAI paths, UWAI recursively evaluates hypothetical alternatives inside one top-level decision; selected internal passes can therefore calculate normally while remaining diagnostically silent.
-// Keeping those speculative alternatives silent prevents them from being mistaken for the selected scenario in the shared BBAI stream. This state is not a logger, formatter or cache, and it must not affect scoring, cache policy, RNG or gameplay. Output still goes directly through BBAI. See KI#505.3. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Shared nested mute depth for UWAI diagnostics.
+// Unlike ordinary BBAI paths, UWAI recursively evaluates hypothetical alternatives inside one top-level decision; selected internal passes can therefore calculate normally while remaining diagnostically silent.
+// Keeping those speculative alternatives silent prevents them from being mistaken for the selected scenario in the shared BBAI stream.
+// This state is not a logger, formatter or cache, and it must not affect scoring, cache policy, RNG or gameplay.
+// Output still goes directly through BBAI. See KI#505.3. (ChatGPT-5.6-Sol) -->
 class UWAILogMuteState
 {
 public:

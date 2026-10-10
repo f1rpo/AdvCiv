@@ -344,7 +344,8 @@ WarEvaluator::WarEvaluator(WarEvalParameters& kWarEvalParams, bool bUseCache)
 void WarEvaluator::logPreamble()
 {
 	FAssert(gUWAIWarUtilityLogLevel >= 2 && !m_kLogMuteState.isMuted());
-	// <!-- custom: Replace the inherited report prose with compact stable events. The BEGIN row carries evaluation-wide context; member/relationship rows add only variable-length detail. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Replace the inherited report prose with compact stable events.
+	// The BEGIN row carries evaluation-wide context; member/relationship rows add only variable-length detail. (ChatGPT-5.6-Sol) -->
 	logBBAI("UWAI_WAR_EVALUATION_BEGIN turn=%d agentTeam=%d targetTeam=%d proposedPlan=%s naval=%d currentPlan=%s consideringPeace=%d prepTurns=%d immediateDoW=%d ignoreDistraction=%d agentHuman=%d targetHuman=%d",
 			GC.getGame().getGameTurn(), m_kAgent.getID(), m_kTarget.getID(),
 			m_kParams.isTotal() ? getSASWarPlanType(WARPLAN_TOTAL) : getSASWarPlanType(WARPLAN_LIMITED), m_kParams.isNaval(),
@@ -450,7 +451,8 @@ int WarEvaluator::evaluate(WarPlanTypes eWarPlan, int iPreparationTime)
 			bSkipNaval = false;
 		}
 	}
-	// <!-- custom: When both naval and non-naval scenarios are evaluated, suppress their nested level-2+ diagnostics and rerun only the selected scenario for detail. Level 1 remains compact and does not pay for this diagnostic-only third evaluation. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: When both naval and non-naval scenarios are evaluated, suppress their nested level-2+ diagnostics and rerun only the selected scenario for detail.
+	// Level 1 remains compact and does not pay for this diagnostic-only third evaluation. (ChatGPT-5.6-Sol) -->
 	bool const bDetailedLog = (!m_kLogMuteState.isMuted() &&
 		(gUWAIWarUtilityLogLevel >= 2 || gUWAIMilitaryAnalystLogLevel >= 2 ||
 		gUWAIInvasionGraphLogLevel >= 2 || gUWAIArmamentForecastLogLevel >= 2));
@@ -468,9 +470,11 @@ int WarEvaluator::evaluate(WarPlanTypes eWarPlan, int iPreparationTime)
 	if (bExtraRun)
 	{
 		m_kLogMuteState.popMute();
-		// <!-- custom: This third pass exists only to emit UWAI detail for the selected scenario. It bypasses WarEvaluator cache reads/writes and focused WarEvaluator structured WAR diagnostics, and its return value can never replace the gameplay utility chosen by the original comparison. (ChatGPT-5.6-Sol) -->
+		// <!-- custom: This third pass exists only to emit UWAI detail for the selected scenario.
+		// It bypasses WarEvaluator cache reads/writes and focused WarEvaluator structured WAR diagnostics, and its return value can never replace the gameplay utility chosen by the original comparison. (ChatGPT-5.6-Sol) -->
 		int const iDiagnosticU = evaluateScenario(true, eWarPlan, bNaval, iPreparationTime);
-		// <!-- custom: Cached/UI evaluations can intentionally reuse an older result; only assert direct recomputation parity when no cache path can have supplied the gameplay value. Compare outside FAssert so old MSVC /WX still sees iDiagnosticU as used when assertions compile out. (ChatGPT-5.6-Sol) -->
+		// <!-- custom: Cached/UI evaluations can intentionally reuse an older result; only assert direct recomputation parity when no cache path can have supplied the gameplay value.
+		// Compare outside FAssert so old MSVC /WX still sees iDiagnosticU as used when assertions compile out. (ChatGPT-5.6-Sol) -->
 		if (!m_bCheckCache && !m_bUseCache && !gDLL->isDiplomacy() && iDiagnosticU != iU) FAssertMsg(false, "Diagnostic-only UWAI rerun changed utility");
 	}
 	/*  Calls to evaluate(WarPlanTypes,bool,int) change some members of m_kParams
@@ -484,20 +488,23 @@ int WarEvaluator::evaluate(WarPlanTypes eWarPlan, int iPreparationTime)
 
 int WarEvaluator::evaluate(WarPlanTypes eWarPlan, bool bNaval, int iPreparationTime)
 {
-	// <!-- custom: Preserve the inherited gameplay overload: callers such as UWAICache need the selected-scenario utility and normal cache semantics. Logging-only selected-scenario reruns use evaluateForDiagnostics instead. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	// <!-- custom: Preserve the inherited gameplay overload: callers such as UWAICache need the selected-scenario utility and normal cache semantics.
+	// Logging-only selected-scenario reruns use evaluateForDiagnostics instead. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	return evaluateScenario(false, eWarPlan, bNaval, iPreparationTime);
 }
 
 
 void WarEvaluator::evaluateForDiagnostics(WarPlanTypes eWarPlan, bool bNaval, int iPreparationTime)
 {
-	// <!-- custom: Keep the logging-only rerun observation-only by construction: no utility is returned to the caller, and evaluateScenario(true, ...) bypasses evaluator cache reads/writes and focused WAR diagnostics. Added after the remaining UWAIAgent logging rerun was identified during review. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	// <!-- custom: Keep the logging-only rerun observation-only by construction: no utility is returned to the caller, and evaluateScenario(true, ...) bypasses evaluator cache reads/writes and focused WAR diagnostics.
+	// Added after the remaining UWAIAgent logging rerun was identified during review. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	evaluateScenario(true, eWarPlan, bNaval, iPreparationTime);
 }
 
 
 // <!-- custom: Extracted the inherited fixed-naval evaluate implementation into evaluateScenario and added bDiagnosticOnly for logging-only reruns; the original public evaluate overload remains a gameplay wrapper passing false.
-// Diagnostic passes bypass evaluator caches. Keep this mode internal so ordinary callers cannot accidentally use a diagnostic pass as a gameplay evaluator. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+// Diagnostic passes bypass evaluator caches.
+// Keep this mode internal so ordinary callers cannot accidentally use a diagnostic pass as a gameplay evaluator. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 int WarEvaluator::evaluateScenario(bool bDiagnosticOnly, WarPlanTypes eWarPlan, bool bNaval, int iPreparationTime)
 {
 	PROFILE_FUNC(); // All war evaluation goes through here

@@ -106,7 +106,8 @@ bool CvPlayer::AI_considerOfferExternal(PlayerTypes ePlayer, CLinkList<TradeData
 	SASGameRecordDiploRelationState kSASBefore;
 	if (bLogSASGameRecord) captureSASGameRecordDiploRelationState(getID(), ePlayer, kSASBefore);
 	bool const bAccepted = AI().AI_considerOffer(ePlayer, *pTheirList, *pOurList, iChange); // advc: The list params are now references
-	// <!-- custom: This external wrapper is the real submitted offer boundary. Keep relation capture and exact trade-list serialization behind the SASGameRecord level gate; internal speculative AI_considerOffer calls are untouched. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: This external wrapper is the real submitted offer boundary.
+	// Keep relation capture and exact trade-list serialization behind the SASGameRecord level gate; internal speculative AI_considerOffer calls are untouched. (ChatGPT-5.6-Sol) -->
 	if (bLogSASGameRecord)
 	{
 		SASGameRecordDiploRelationState kSASAfter;
@@ -119,7 +120,8 @@ bool CvPlayer::AI_considerOfferExternal(PlayerTypes ePlayer, CLinkList<TradeData
 bool CvPlayer::AI_counterProposeExternal(PlayerTypes ePlayer, CLinkList<TradeData>* pTheirList, CLinkList<TradeData>* pOurList, CLinkList<TradeData>* pTheirInventory, CLinkList<TradeData>* pOurInventory, CLinkList<TradeData>* pTheirCounter, CLinkList<TradeData>* pOurCounter) {
 	pTheirCounter->clear(); pOurCounter->clear(); // Moved out of the DLL-internal function
 	bool const bProposed = AI().AI_counterPropose(ePlayer, *pTheirList, *pOurList, *pTheirInventory, *pOurInventory, *pTheirCounter, *pOurCounter);
-	// <!-- custom: Counterproposal generation can be internally complex, but this EXE wrapper exposes the one resolved package shown to the human. Avoid logging any candidate-loop valuation work. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Counterproposal generation can be internally complex, but this EXE wrapper exposes the one resolved package shown to the human.
+	// Avoid logging any candidate-loop valuation work. (ChatGPT-5.6-Sol) -->
 	if (gGameRecordLogLevel >= 2) logSASGameRecordDiploCounterProposal(ePlayer, getID(), *pTheirList, *pOurList, *pTheirCounter, *pOurCounter, bProposed);
 	return bProposed;
 }

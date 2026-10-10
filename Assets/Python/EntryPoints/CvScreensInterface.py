@@ -151,8 +151,8 @@ def createDomesticAdvisor():
 	global domesticAdvisor
 	global domesticAdvisorUsesBUG
 	bUseBUG = CustDomAdvOpt.isEnabled()
-	# <!-- custom: Fix: Domestic and Military advisor variant options are live BUG settings, but cached screen objects
-	# previously kept using the old variant until restarting Civ4. Rebuild on option changes so F1/F5 switch immediately.
+	# <!-- custom: Fix: Domestic and Military advisor variant options are live BUG settings, but cached screen objects previously kept using the old variant until restarting Civ4.
+	# Rebuild on option changes so F1/F5 switch immediately.
 	# Religion did not need this path after moving into Policy Advisor. See KI#123. (GPT-5.5) -->
 	if domesticAdvisor is not None and domesticAdvisorUsesBUG == bUseBUG:
 		return
@@ -515,7 +515,8 @@ def pediaJumpToBuild(argsList):
 	if (bUsingSevopedia):
 		pediaMainScreen.pediaJump(SevoScreenEnums.PEDIA_BUILDS, argsList[0], True, False)
 	else:
-		# <!-- custom: Standard Civilopedia has no Build page, and BuildTypes IDs are unrelated to ImprovementTypes IDs. Redirect only improvement-producing Builds through their real ImprovementTypes value; unsupported route/feature-removal Builds now stay on the current screen instead of opening an unrelated Improvement. See KI#301. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: Standard Civilopedia has no Build page, and BuildTypes IDs are unrelated to ImprovementTypes IDs.
+		# Redirect only improvement-producing Builds through their real ImprovementTypes value; unsupported route/feature-removal Builds now stay on the current screen instead of opening an unrelated Improvement. See KI#301. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		iImprovement = gc.getBuildInfo(argsList[0]).getImprovement()
 		if iImprovement >= 0:
 			pediaMainScreen.pediaJump(PEDIA_IMPROVEMENT, iImprovement, True)
@@ -1181,8 +1182,9 @@ def featAccomplishedOnFocusCallback(argsList):
 	bOption2 = argsList[6]
 
 	CyInterface().playGeneralSound("AS2D_FEAT_ACCOMPLISHED")
-	# <!-- custom: implementing our new unit combat types, for example archery units: archers bow short, archers bow long, archers crossbow
-	# i am not sure exactly what this code does except play a sound and why it does to some unit combat types and not others, but for now for simplicity and such i am just going to change the combat type here too. Adding the crossbows too, i don't know if this is safe considering they were not added before, but testing to see what happens, maybe it works. (?) -->
+	# <!-- custom: implementing our new unit combat types, for example archery units: archers bow short, archers bow long, archers crossbow i am not sure exactly what this code does except play a sound and why it does to some unit combat types and not others, but for now for simplicity and such i am just going to change the combat type here too.
+	# Adding the crossbows too, i don't know if this is safe considering they were not added before, but testing to see what happens, maybe it works.
+	# (?) -->
 	#if ((iData1 >= FeatTypes.FEAT_UNITCOMBAT_ARCHER) and (iData1 <= FeatTypes.FEAT_FOOD_CONNECTED)):
 	#	CyInterface().lookAtCityOffset(iData2)
 	if (( (iData1 >= FeatTypes.FEAT_UNITCOMBAT_ARCHER_BOW_SHORT) or (iData1 >= FeatTypes.FEAT_UNITCOMBAT_ARCHER_BOW_LONG) or (iData1 >= FeatTypes.FEAT_UNITCOMBAT_ARCHER_CROSSBOW) ) and (iData1 <= FeatTypes.FEAT_FOOD_CONNECTED)):

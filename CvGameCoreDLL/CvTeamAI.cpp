@@ -706,7 +706,8 @@ int CvTeamAI::AI_calculateCapitalProximity(TeamTypes eTeam) const { ... }*/
 bool CvTeamAI::AI_haveSeenCities(TeamTypes eTeam, bool bPrimaryAreaOnly, int iMinimum) const
 {
 	int iCount = 0;
-	// <!-- custom: AdvCiv's practical-1842 iterator refactor substituted our own members for the requested target team, so known own cities could authorize war planning against an unseen rival. Restore the target-team population. See KI#354. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: AdvCiv's practical-1842 iterator refactor substituted our own members for the requested target team, so known own cities could authorize war planning against an unseen rival.
+	// Restore the target-team population. See KI#354. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	for (MemberIter it(eTeam); it.hasNext(); ++it)
 	{
 		CvPlayer const& kMember = *it;
@@ -1023,7 +1024,8 @@ void CvTeamAI::AI_preDeclareWar(TeamTypes eTarget, WarPlanTypes eWarPlan, bool b
 	for (MemberAIIter itOur(getID()); itOur.hasNext(); ++itOur)
 	{
 		CvPlayerAI& kOurMember = *itOur;
-		// <!-- custom: AdvCiv practical 1842 changed the observers of a human war despite prior tribute from AIs who knew the tribute-paying victim to potential enemies who knew the attacker. Restore the victim-contact audience while preserving the master/vassal-locus exclusion. See KI#358. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: AdvCiv practical 1842 changed the observers of a human war despite prior tribute from AIs who knew the tribute-paying victim to potential enemies who knew the attacker.
+		// Restore the victim-contact audience while preserving the master/vassal-locus exclusion. See KI#358. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if (bPrimaryDoW && kOurMember.isHuman() &&
 			kTarget.AI_getMemoryCount(getID(), MEMORY_MADE_DEMAND) > 0)
 		{
@@ -1734,7 +1736,8 @@ int CvTeamAI::AI_warCommitmentCost(TeamTypes eTarget, WarPlanTypes eWarPlan, boo
 		{
 			CvPlayerAI const& kMember = *it;
 			 // (ugly, I know. But that's just how it's done.)
-			// <!-- custom: AdvCiv practical 1842 accidentally passed the accumulating AI cost back as raw war weariness. Restore K-Mod's `iTotalWW` input so every member evaluates the actual weariness that triggered this branch. See KI#357. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			// <!-- custom: AdvCiv practical 1842 accidentally passed the accumulating AI cost back as raw war weariness.
+			// Restore K-Mod's `iTotalWW` input so every member evaluates the actual weariness that triggered this branch. See KI#357. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			int iEstimatedPercentAnger = kMember.getModifiedWarWearinessPercentAnger(iTotalWW) / 10;
 			// note. Unfortunately, we haven't taken the effect of jails into account.
 			iWWCost += iS * kMember.getNumCities() * kMember.AI_getHappinessWeight(iS * iEstimatedPercentAnger *
@@ -2016,7 +2019,8 @@ scaled CvTeamAI::AI_knownTechValModifier(TechTypes eTech) const
 	for (TeamIter<CIV_ALIVE,OTHER_KNOWN_TO> it(getID()); it.hasNext(); ++it)
 	{
 		CvTeam const& kOther = *it;
-		// <!-- custom: AdvCiv practical 1842 left capitulated teams in the known-civilization denominator while excluding them from the tech-owner numerator. Exclude them from both populations as before the refactor. See KI#360. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: AdvCiv practical 1842 left capitulated teams in the known-civilization denominator while excluding them from the tech-owner numerator.
+		// Exclude them from both populations as before the refactor. See KI#360. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if (kOther.isCapitulated())
 			continue;
 		if (kOther.isHasTech(eTech)) // advc.551
@@ -2035,7 +2039,8 @@ scaled CvTeamAI::AI_knownTechValModifier(TechTypes eTech) const
 	return 1 + r; // </advc.551>
 }
 
-// <!-- custom: Treat a master, any of its vassals and sibling vassals as one preference locus. This prevents an internal seller from being mistaken for an outsider merely because another internal source exists. See KI#312. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+// <!-- custom: Treat a master, any of its vassals and sibling vassals as one preference locus.
+// This prevents an internal seller from being mistaken for an outsider merely because another internal source exists. See KI#312. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 bool CvTeamAI::AI_isLocusMember(TeamTypes eTeam) const
 {
 	if (eTeam == NO_TEAM)
@@ -2046,7 +2051,8 @@ bool CvTeamAI::AI_isLocusMember(TeamTypes eTeam) const
 	return (eTeam == eAnchorTeam || GET_TEAM(eTeam).isVassal(eAnchorTeam));
 }
 
-// <!-- custom: Test the real player-level trade contract instead of treating team knowledge as supply. This covers No Tech Trading, non-tradeable technologies, No Tech Brokering/no-trade state, recipient research legality and optionally the source's denial. See KI#312. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+// <!-- custom: Test the real player-level trade contract instead of treating team knowledge as supply.
+// This covers No Tech Trading, non-tradeable technologies, No Tech Brokering/no-trade state, recipient research legality and optionally the source's denial. See KI#312. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 bool CvTeamAI::AI_canTradeTechFrom(TechTypes eTech, TeamTypes eSourceTeam, bool bTestDenial) const
 {
 	if (eSourceTeam == NO_TEAM || eSourceTeam == getID())
@@ -2063,7 +2069,8 @@ bool CvTeamAI::AI_canTradeTechFrom(TechTypes eTech, TeamTypes eSourceTeam, bool 
 	return false;
 }
 
-// <!-- custom: Search the recipient team's actual master/vassal locus for a legal technology source, excluding the external seller currently being evaluated. Centralizing this keeps self-research, outsider valuation and contact redirection on the same supply contract. See KI#312. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+// <!-- custom: Search the recipient team's actual master/vassal locus for a legal technology source, excluding the external seller currently being evaluated.
+// Centralizing this keeps self-research, outsider valuation and contact redirection on the same supply contract. See KI#312. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 bool CvTeamAI::AI_hasLocusTechTradeSource(TechTypes eTech, TeamTypes eExcludedSourceTeam, bool bTestDenial) const
 {
 	TeamTypes const eAnchorTeam = (isAVassal() ? getMasterTeam() : getID());
@@ -2194,7 +2201,8 @@ int CvTeamAI::AI_techTradeVal(TechTypes eTech, TeamTypes eFromTeam, bool bIgnore
 		// End - SAS techTradePowerDanger
 	} // </advc.550a>
 
-	// <!-- custom: Devalue an outsider's technology only when the shared exact predicate finds a legally transferable internal source. This retains the intended locus preference without discounting for knowledge that cannot actually be supplied. See KI#312. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Devalue an outsider's technology only when the shared exact predicate finds a legally transferable internal source.
+	// This retains the intended locus preference without discounting for knowledge that cannot actually be supplied. See KI#312. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	static const bool bSAS_AI_TECH_TRADE_VAL_MASTER_VASSAL_CLUSTER_KNOWN_OPTIMIZE = GC.getDefineBOOL("SAS_AI_TECH_TRADE_VAL_MASTER_VASSAL_CLUSTER_KNOWN_OPTIMIZE");
 	if (bSAS_AI_TECH_TRADE_VAL_MASTER_VASSAL_CLUSTER_KNOWN_OPTIMIZE && !isHasTech(eTech) && !AI_isLocusMember(eFromTeam) && AI_hasLocusTechTradeSource(eTech, eFromTeam, false))
 	{
@@ -3190,7 +3198,8 @@ int CvTeamAI::AI_getWarSuccessRating() const
 
 	for (TeamAIIter<FREE_MAJOR_CIV,ENEMY_OF> itEnemy(getID()); itEnemy.hasNext(); ++itEnemy)
 	{
-		// <!-- custom: K-Mod paired master-plus-vassal power with only master-to-master WarSuccess. Aggregate both directional success terms over those same coalitions. See KI#371. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: K-Mod paired master-plus-vassal power with only master-to-master WarSuccess.
+		// Aggregate both directional success terms over those same coalitions. See KI#371. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		scaled const rThisTeamSuccess = AI_getWarSuccessAgainstTeamAndVassals(itEnemy->getID());
 		scaled const rOtherTeamSuccess = itEnemy->AI_getWarSuccessAgainstTeamAndVassals(getID());
 		int iOtherTeamPower = itEnemy->getPower(true);
@@ -3207,7 +3216,8 @@ int CvTeamAI::AI_getWarSuccessRating() const
 int CvTeamAI::AI_getEnemyPowerPercent(bool bConsiderOthers) const
 {
 	// <!-- custom: Each chosen target's defensive power independently included its master/vassal locus and Defensive Pact allies, so a shared ally could be counted once per target and again as a current enemy.
-	// The removed advc.104j FIXME already noted this overlap; explicit coalition expansion replaces its getDefensivePower call so members can be deduplicated. Record the strongest applicable relevance weight for each actual or committed defending team, then sum every team's power once. See KI#361. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// The removed advc.104j FIXME already noted this overlap; explicit coalition expansion replaces its getDefensivePower call so members can be deduplicated.
+	// Record the strongest applicable relevance weight for each actual or committed defending team, then sum every team's power once. See KI#361. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	CivTeamMap<int> aiWeightNumerator;
 	CivTeamMap<int> aiWeightDenominator;
 	for (TeamAIIter<CIV_ALIVE,KNOWN_POTENTIAL_ENEMY_OF> itEnemy(getID());
@@ -3322,7 +3332,8 @@ int CvTeamAI::AI_getRivalAirPower() const
 	int iRivalAirPower = 0;
 	int iEnemyAirPower = 0;
 	int iTeamCount = 0;
-	// <!-- custom: K-Mod counted the rival population once per qualifying air class, understating the average by roughly the number of air classes. Iterate eligible rivals outside the air-class sum so numerator and denominator use the same teams exactly once. See KI#355. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: K-Mod counted the rival population once per qualifying air class, understating the average by roughly the number of air classes.
+	// Iterate eligible rivals outside the air-class sum so numerator and denominator use the same teams exactly once. See KI#355. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	TeamAIIter<MAJOR_CIV,KNOWN_POTENTIAL_ENEMY_OF> itRival(getID());
 	for (; itRival.hasNext(); ++itRival)
 	{
@@ -3405,7 +3416,8 @@ bool CvTeamAI::AI_acceptSurrender(TeamTypes eSurrenderTeam) const
 	{
 		if (itOther->getID() == getID()) 
 			continue;
-		// <!-- custom: AdvCiv practical 1842 inverted K-Mod's minimum war-duration condition, treating an early rival war as evidence of likely capitulation and dropping that evidence once the intended threshold was reached. Restore the long-enough-war comparison. See KI#359. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: AdvCiv practical 1842 inverted K-Mod's minimum war-duration condition, treating an early rival war as evidence of likely capitulation and dropping that evidence once the intended threshold was reached.
+		// Restore the long-enough-war comparison. See KI#359. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if (kSurrenderTeam.AI_getAtWarCounter(itOther->getID()) >=
 			12 - itOther->AI_getCurrEraFactor() && // advc.112: was 10 flat
 			kSurrenderTeam.AI_getWarSuccess(itOther->getID()) +
@@ -4094,7 +4106,8 @@ DenialTypes CvTeamAI::AI_declareWarTrade(TeamTypes eTarget, TeamTypes eSponsor, 
 	FAssert(GET_TEAM(eTarget).isAlive());
 	FAssert(!isAtWar(eTarget));
 
-	// <!-- custom: Mirror canTradeItem's structural master-coalition rule for direct AI callers. The inherited nominal-team test missed the sponsor's own master, sibling vassals and Defensive Pacts held by either canonical master.
+	// <!-- custom: Mirror canTradeItem's structural master-coalition rule for direct AI callers.
+	// The inherited nominal-team test missed the sponsor's own master, sibling vassals and Defensive Pacts held by either canonical master.
 	// This preserves foreign voluntary-vassal war trades while refusing requests whose declaration cascade would make the hireling attack its sponsor. See KI#612. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	TeamTypes const eSponsorMaster = GET_TEAM(eSponsor).getMasterTeam();
 	TeamTypes const eTargetMaster = GET_TEAM(eTarget).getMasterTeam();
@@ -4656,7 +4669,8 @@ void CvTeamAI::AI_setWarSuccess(TeamTypes eTeam, scaled rNewValue)
 	FAssert(AI_getWarSuccess(eTeam) >= 0);
 }
 
-// <!-- custom: WarSuccess is stored by actual team ID while K-Mod coalition formulas use master-plus-vassal power. Sum every directional pairing across those same two populations without counting either coalition's power more than once. See KI#371. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+// <!-- custom: WarSuccess is stored by actual team ID while K-Mod coalition formulas use master-plus-vassal power.
+// Sum every directional pairing across those same two populations without counting either coalition's power more than once. See KI#371. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 scaled CvTeamAI::AI_getWarSuccessAgainstTeamAndVassals(TeamTypes eTeam) const
 {
 	scaled rSuccess = AI_getWarSuccess(eTeam);
@@ -4922,7 +4936,8 @@ bool CvTeamAI::AI_isChosenWar(TeamTypes eIndex) const
 			AI_getWarPlan(/* advc.104j: */ GET_TEAM(eIndex).getMasterTeam())));
 }
 
-// <!-- custom: Strategic plans are master-keyed after KI#368, but active wars legitimately retain actual-team plans. Let preparation consumers include a target vassal through its master's plan without replacing live raw state. See KI#368. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+// <!-- custom: Strategic plans are master-keyed after KI#368, but active wars legitimately retain actual-team plans.
+// Let preparation consumers include a target vassal through its master's plan without replacing live raw state. See KI#368. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 WarPlanTypes CvTeamAI::AI_getWarPlanForPreparation(TeamTypes eIndex) const
 {
 	WarPlanTypes const eRawWarPlan = AI_getWarPlan(eIndex);
@@ -5641,7 +5656,8 @@ TeamTypes CvTeamAI::AI_diploVoteCounterCandidate(VoteSourceTypes eVS) const
 {
 	/*  Only cover this obvious case: we're among the two teams with the
 		most votes (clearly ahead of the third). Otherwise, don't hazard a guess. */
-	// <!-- custom: AdvCiv practical 1832 compared the first-place vote count with our numeric team ID while trying to identify the other top-two team. Track the teams owning first and second place explicitly. See KI#353. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: AdvCiv practical 1832 compared the first-place vote count with our numeric team ID while trying to identify the other top-two team.
+	// Track the teams owning first and second place explicitly. See KI#353. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	TeamTypes eFirstTeam = NO_TEAM, eSecondTeam = NO_TEAM;
 	int iFirstMostVotes = -1, iSecondMostVotes = -1, iThirdMostVotes = -1;
 	for (TeamIter<MAJOR_CIV> it; it.hasNext(); ++it)
@@ -6503,7 +6519,8 @@ void CvTeamAI::AI_doWar()
 	{
 		bool bAggressive = kGame.isOption(GAMEOPTION_AGGRESSIVE_AI);
 
-		// <!-- custom: K-Mod/BBAI subtracted the total Dagger population from independent Financial Trouble and Get Better Units populations. Count the intended non-Dagger intersections and denominator directly so one healthy Dagger member cannot cancel another member's economic or upgrade concern. See KI#356. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		// <!-- custom: K-Mod/BBAI subtracted the total Dagger population from independent Financial Trouble and Get Better Units populations.
+		// Count the intended non-Dagger intersections and denominator directly so one healthy Dagger member cannot cancel another member's economic or upgrade concern. See KI#356. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		int iFinancialTroubleCount = 0;
 		int iDaggerCount = 0;
 		int iGetBetterUnitsCount = 0;
@@ -6658,7 +6675,8 @@ void CvTeamAI::AI_doWar()
 										if (iValue > iBestValue)
 										{
 											iBestValue = iValue;
-											// <!-- custom: AdvCiv's strategic readers normalize a voluntary-vassal target to its master, but Legacy AI stored the preparation on the raw vassal key. Preserve the vassal as the evaluated tactical front while storing the strategic plan on its master. See KI#368. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+											// <!-- custom: AdvCiv's strategic readers normalize a voluntary-vassal target to its master, but Legacy AI stored the preparation on the raw vassal key.
+											// Preserve the vassal as the evaluated tactical front while storing the strategic plan on its master. See KI#368. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 											eBestTarget = eLoopMasterTeam;
 										}
 									}

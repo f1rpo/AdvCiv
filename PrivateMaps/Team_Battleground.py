@@ -564,7 +564,8 @@ def assignStartingPlots():
 
 		shuffle_Array = []
 
-		# <!-- custom: A compact 0..alive-count player list omitted supported sparse/high-ID players and could assign dead slots. Enumerate actual ever-alive IDs before applying the same one-roll-per-player shuffle. See KI#267. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: A compact 0..alive-count player list omitted supported sparse/high-ID players and could assign dead slots.
+		# Enumerate actual ever-alive IDs before applying the same one-roll-per-player shuffle. See KI#267. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		for playerLoop in range(gc.getMAX_CIV_PLAYERS()):
 			if not gc.getPlayer(playerLoop).isEverAlive():
 				continue
@@ -596,7 +597,8 @@ def assignStartingPlots():
 #			BugUtil.debug("Team_Battleground: assignStartingPlots shuffle array #4")
 #			print shuffle_Array
 		elif userInputProximity == 1: # team members start separated
-			# <!-- custom: Round/Donut previously treated Start Separated exactly like random Start Anywhere. Preserve the randomized player/team order, then interleave one member from each team per circuit so teammates are spread around the circle as evenly as their team sizes permit. See KI#289. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			# <!-- custom: Round/Donut previously treated Start Separated exactly like random Start Anywhere.
+			# Preserve the randomized player/team order, then interleave one member from each team per circuit so teammates are spread around the circle as evenly as their team sizes permit. See KI#289. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			teamOrder = []
 			playersByTeam = {}
 			for playerEntry in shuffle_Array:
@@ -630,7 +632,8 @@ def assignStartingPlots():
 		centerx = (iNumPlotsX - 1)//2
 		radii = centery - 2
 
-		# <!-- custom: Python 2 integer division made N-1 circle gaps floor(360/N) while the closing gap absorbed the remainder. Use one floating step and phase for uniform angular spacing. See KI#290. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: Python 2 integer division made N-1 circle gaps floor(360/N) while the closing gap absorbed the remainder.
+		# Use one floating step and phase for uniform angular spacing. See KI#290. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		fAngleStep = 360.0 / float(player_num)
 		fBaseTheta = fAngleStep * float(dice.get(1000, "Starting Plot - base theta")) / 1000.0
 		startData = []
@@ -646,7 +649,8 @@ def assignStartingPlots():
 				break
 			usedPlotNums.add(iPlot)
 			startData.append((pPlayer, iPlot))
-		# <!-- custom: SAS supports up to 48 players, but small Round/Donut circumferences cannot guarantee unique rounded coordinates. Validate the complete circle before assigning anyone; if any coordinate repeats, delegate the complete start assignment to the engine instead of creating duplicate or partial starts. See KI#291. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: SAS supports up to 48 players, but small Round/Donut circumferences cannot guarantee unique rounded coordinates.
+		# Validate the complete circle before assigning anyone; if any coordinate repeats, delegate the complete start assignment to the engine instead of creating duplicate or partial starts. See KI#291. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if not bUseDefaultCircleStarts:
 			for pPlayer, iPlot in startData:
 				gc.getPlayer(pPlayer).setStartingPlot(map.plotByIndex(iPlot), True)
@@ -779,7 +783,8 @@ def findStartingPlot(argsList):
 			if corner == 3 and x >= iW * 0.6 and y >= iH * 0.6:
 				return true
 			return false
-		# <!-- custom: With more than four teams, Start Separated previously collapsed to Start Anywhere. Cycle successive members of each team across the four map quarters; Together still delegates to the engine and Anywhere remains unrestricted. See KI#289. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: With more than four teams, Start Separated previously collapsed to Start Anywhere.
+		# Cycle successive members of each team across the four map quarters; Together still delegates to the engine and Anywhere remains unrestricted. See KI#289. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		elif numTeams > 4 and userInputProximity == 1:
 			corner = (teamID + assignedPlayers[teamID]) % 4
 			if corner == 0 and x <= iW * 0.4 and y <= iH * 0.4:

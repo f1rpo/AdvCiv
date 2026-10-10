@@ -4,9 +4,8 @@
 #
 # Build check: the Assets folder should contain only the shipped game-core DLL.
 #
-# <!-- custom: Search recursively under Assets so accidentally shipped backup or
-# test DLLs in subfolders are caught too. Report the shipped DLL byte size for
-# convenient release verification. (ChatGPT-5.5; ChatGPT-5.6-Sol) -->
+# <!-- custom: Search recursively under Assets so accidentally shipped backup or test DLLs in subfolders are caught too.
+# Report the shipped DLL byte size for convenient release verification. (ChatGPT-5.5; ChatGPT-5.6-Sol) -->
 
 from pathlib import Path
 import argparse

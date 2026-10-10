@@ -546,7 +546,8 @@ class CvInfoScreen:
 
 		self.X_LEGEND = self.X_DEMO_DROPDOWN
 		self.Y_LEGEND = self.Y_ZOOM_DROPDOWN + self.H_GRAPH_DROPDOWN + 3
-		# <!-- custom: we widened the left control column for legend readability at larger label fonts (3+); keep dropdown width matched to this same column so both stay aligned. In AdvCiv-SAS, most advisors were expanded to use more of the screen, so plenty width still remains for the graph even after this legend increase. (GPT-5.3-Codex) -->
+		# <!-- custom: we widened the left control column for legend readability at larger label fonts (3+); keep dropdown width matched to this same column so both stay aligned.
+		# In AdvCiv-SAS, most advisors were expanded to use more of the screen, so plenty width still remains for the graph even after this legend increase. (GPT-5.3-Codex) -->
 		self.W_LEGEND = self.W_DEMO_DROPDOWN
 		#self.H_LEGEND = 200	this is computed from the number of players
 
@@ -783,14 +784,16 @@ class CvInfoScreen:
 		# Set the background widget and exit button
 		screen.addDDSGFC("DemographicsScreenBackground", self.ART_MAINMENU_SLIDESHOW_LOAD, 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 		screen.addPanel( "TechTopPanel", u"", u"", True, False, 0, 0, self.W_SCREEN, self.PANEL_HEIGHT, PanelStyles.PANEL_STYLE_TOPBAR )
-		# <!-- custom: in the foreign advisor and similar screens, too many players do not fit in one view, and the window does not use the full game window space. Make it larger like Sevopedia to reduce scrolling. Credit: Gemini 3 Pro; fixes reviewed by Claude Sonnet 4.5. (GPT-5.2-Codex (summarized)) -->
+		# <!-- custom: in the foreign advisor and similar screens, too many players do not fit in one view, and the window does not use the full game window space.
+		# Make it larger like Sevopedia to reduce scrolling. Credit: Gemini 3 Pro; fixes reviewed by Claude Sonnet 4.5. (GPT-5.2-Codex (summarized)) -->
 		# Top panels cutting off content: The TopPanel and BottomPanel are positioned at y=0 and y=713 respectively. These need updating:
 		# screen.addPanel( "TechBottomPanel", u"", u"", True, False, 0, 713, self.W_SCREEN, 55, PanelStyles.PANEL_STYLE_BOTTOMBAR )
 		# screen.showWindowBackground( False )
 		screen.addPanel( "TechBottomPanel", u"", u"", True, False, 0, self.H_SCREEN - self.PANEL_HEIGHT, self.W_SCREEN, self.PANEL_HEIGHT, PanelStyles.PANEL_STYLE_BOTTOMBAR )
 		screen.showWindowBackground( False )
 
-		# <!-- custom: unlike the foreign advisor reuse, we must change the center settings here or the screen stays centered. With this change we can move the military advisor screen around the window. Credit: Gemini 3 Pro. (GPT-5.2-Codex (summarized)) -->
+		# <!-- custom: unlike the foreign advisor reuse, we must change the center settings here or the screen stays centered.
+		# With this change we can move the military advisor screen around the window. Credit: Gemini 3 Pro. (GPT-5.2-Codex (summarized)) -->
 		# screen.setDimensions(screen.centerX(self.X_SCREEN), screen.centerY(self.Y_SCREEN), self.W_SCREEN, self.H_SCREEN)
 		screen.setDimensions(self.X_SCREEN, self.Y_SCREEN, self.W_SCREEN, self.H_SCREEN)
 
@@ -990,7 +993,8 @@ class CvInfoScreen:
 					iRevealedOwner = pPlot.getRevealedOwner(self.iActiveTeam, False)
 					if iRevealedOwner != iPlayer:
 						bHideCityFounded = True
-			# <!-- custom: hide "city founded" unless revealed owner matches the replay message player; this avoids barbarian spoilers when the plot is revealed but ownership is not. Finding a reliable barbarian hide required checking revealed owner rather than plot visibility alone; optional debug line left for future verification, not tested with this exact code path. (GPT-5.2-Codex); Long_Comments_py.txt #13 -->
+			# <!-- custom: hide "city founded" unless revealed owner matches the replay message player; this avoids barbarian spoilers when the plot is revealed but ownership is not.
+			# Finding a reliable barbarian hide required checking revealed owner rather than plot visibility alone; optional debug line left for future verification, not tested with this exact code path. (GPT-5.2-Codex); Long_Comments_py.txt #13 -->
 			# <!-- custom: Classify founding messages even when the plot is now visible; a razed holy city has no current object from which to infer whether its historical replay name was known. See KI#300. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			if not self.bRevealAll:
 				szText = replayInfo.getReplayMessageText(iMessage)
@@ -1083,7 +1087,9 @@ class CvInfoScreen:
 			szLabel = sasFontTagLabel + self.TEXT_TIMELINE_DBG_LOG_PRETTY_SUMMARY_BUTTON.upper() + SAS_FONT_TAG_CLOSE
 			screen.setButtonGFC(self.szTimelineDbgLogPrettySummaryButton, szLabel, "", self.X_TIMELINE_TABLE_LOG_BUTTON, self.Y_TIMELINE_TABLE_LOG_BUTTON, self.W_TIMELINE_TABLE_LOG_BUTTON, self.H_TIMELINE_TABLE_LOG_BUTTON, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_STANDARD)
 
-		# <!-- custom: Timeline entry caching avoids replay parsing, but rebuilding hundreds of rows was still slow. Preserving the old ListBox helped tab switches, but not Info Screen close/reopen; convert it to a one-column table so we can verify/reuse it with getTableNumRows like Military Advisor's Battles table. Rebuild when player/reveal/turn/language/layout/history signature changes so spoiler filtering can refresh at turn boundaries. (GPT-5.5) -->
+		# <!-- custom: Timeline entry caching avoids replay parsing, but rebuilding hundreds of rows was still slow.
+		# Preserving the old ListBox helped tab switches, but not Info Screen close/reopen; convert it to a one-column table so we can verify/reuse it with getTableNumRows like Military Advisor's Battles table.
+		# Rebuild when player/reveal/turn/language/layout/history signature changes so spoiler filtering can refresh at turn boundaries. (GPT-5.5) -->
 		if self.IS_SAS_CV_INFO_SCREEN_TIMELINE_CACHE_ENABLE and self.TIMELINE_TABLE_CACHE_KEY == timelineTableCacheKey and self.canReuseTimelineTableWidget(screen, aEntries):
 			screen.show(self.TIMELINE_TABLE_ID)
 			screen.moveToFront(self.TIMELINE_TABLE_ID)
@@ -1152,7 +1158,8 @@ class CvInfoScreen:
 				continue
 			visiblePlayers.append(ePlayer)
 
-		# <!-- custom: wrap the dense Score Table in a high-contrast panel so the slideshow background no longer bleeds through empty rows; this keeps the score matrix readable while still using the shared maximized advisor layout helper. Panel widget name MUST come from getNextWidgetName so it joins the per-tab deletion pool (deleteAllWidgets at the iNumPermanentWidgets snapshot in redrawContents); a hardcoded name persists across tab switches and bleeds the panel into other tabs. (Claude code Opus 4.7 + GPT-5.5) -->
+		# <!-- custom: wrap the dense Score Table in a high-contrast panel so the slideshow background no longer bleeds through empty rows; this keeps the score matrix readable while still using the shared maximized advisor layout helper.
+		# Panel widget name MUST come from getNextWidgetName so it joins the per-tab deletion pool (deleteAllWidgets at the iNumPermanentWidgets snapshot in redrawContents); a hardcoded name persists across tab switches and bleeds the panel into other tabs. (Claude code Opus 4.7 + GPT-5.5) -->
 		(iPanelX, iPanelY, iPanelW, iPanelH), (iTableX, iTableY, iTableW, iTableH) = getAdvisorMaximizedPanelLayout(self.W_SCREEN, self.H_SCREEN - self.PANEL_HEIGHT)
 		screen.addPanel(self.getNextWidgetName(), "", "", True, True, iPanelX, iPanelY, iPanelW, iPanelH, PanelStyles.PANEL_STYLE_SOLID)
 
@@ -1218,7 +1225,8 @@ class CvInfoScreen:
 		iLandPctW = iMinColW + 28
 		iVMW = iMinColW
 		iResearchW = iMinColW
-		# <!-- custom: width equalization buffer goes into V/M so it grows when horizontal space allows. If needed, let V/M absorb the small width cost instead, since even accounting for double digit vassals/master and font upscaling, we rarely have that many, and if so they are still visible via Scoreboard. (GPT-5.3-Codex + ChatGPT-5.5) -->
+		# <!-- custom: width equalization buffer goes into V/M so it grows when horizontal space allows.
+		# If needed, let V/M absorb the small width cost instead, since even accounting for double digit vassals/master and font upscaling, we rarely have that many, and if so they are still visible via Scoreboard. (GPT-5.3-Codex + ChatGPT-5.5) -->
 		iUsedW = (2 * iIconW + iScoreW + iDeltaW + iDipW + iPowerW + iPowerAbsW + iCitiesW + iPowerPerCityW + iLandPctW + iVMW + iTraitW + iTraitW + iAttNumW + iColorW + iResearchPctW + iTechsW + iAttW + 8 * iFlagW + iPidW + iNameW + iResearchW)
 		iExtraW = iW - iUsedW
 		iVMW += iExtraW
@@ -1324,8 +1332,7 @@ class CvInfoScreen:
 			screen.appendTableRow(szTable)
 			iRow = screen.getTableNumRows(szTable) - 1
 
-			# <!-- custom: Score Tab is a reference matrix, so leader/civ identity cells open Sevopedia
-			# instead of diplomacy; contact actions are already covered by the scoreboard and Foreign Advisor. (GPT-5.5) -->
+			# <!-- custom: Score Tab is a reference matrix, so leader/civ identity cells open Sevopedia instead of diplomacy; contact actions are already covered by the scoreboard and Foreign Advisor. (GPT-5.5) -->
 			# <!-- custom: Pass the displayed player's civilization to leader-hover trait help; literal data2=1 meant Arabia and could name the wrong civ-specific production replacement. See KI#332. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			SASTextScale.setTableTextLabel(screen, szTable, iColLeader, iRow, getAdvisorIconSortKey(pPlayer.getLeaderType() + 1, iRow), gc.getLeaderHeadInfo(pPlayer.getLeaderType()).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_LEADER, pPlayer.getLeaderType(), pPlayer.getCivilizationType(), CvUtil.FONT_LEFT_JUSTIFY)
 			SASTextScale.setTableTextLabel(screen, szTable, iColCiv, iRow, getAdvisorIconSortKey(pPlayer.getCivilizationType() + 1, iRow), gc.getCivilizationInfo(pPlayer.getCivilizationType()).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_CIV, pPlayer.getCivilizationType(), -1, CvUtil.FONT_LEFT_JUSTIFY)
@@ -1367,8 +1374,8 @@ class CvInfoScreen:
 			if ePlayer == eActivePlayer:
 				eScoreWidget = WidgetTypes.WIDGET_SCORE_BREAKDOWN
 			# <!-- custom: data2=-1 preserves the active-player score breakdown without triggering the scoreboard-only data2=0 expansion control. See KI#388. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-			# <!-- custom: Score-tab sort fix: Civ4 table sorting is type-aware, and values inserted with setTableText sort lexicographically
-			# (e.g. "96" before "413"), which broke PoT/C and other numeric columns. Use setTableInt for numeric fields so ordering is truly numeric, while still keeping setTableText fallbacks where values are unknown/hidden so blanks remain blank instead of fake defaults. (GPT-5.3-Codex) -->
+			# <!-- custom: Score-tab sort fix: Civ4 table sorting is type-aware, and values inserted with setTableText sort lexicographically (e.g. "96" before "413"), which broke PoT/C and other numeric columns.
+			# Use setTableInt for numeric fields so ordering is truly numeric, while still keeping setTableText fallbacks where values are unknown/hidden so blanks remain blank instead of fake defaults. (GPT-5.3-Codex) -->
 			SASTextScale.setTableIntLabel(screen, szTable, iColScore, iRow, str(iScore), "", eScoreWidget, ePlayer, -1, CvUtil.FONT_RIGHT_JUSTIFY)
 
 			iGameTurn = iActiveGameTurn
@@ -1384,8 +1391,7 @@ class CvInfoScreen:
 			if iPrevGameTurn >= 0:
 				iScoreDelta -= pPlayer.getScoreHistory(iPrevGameTurn)
 			# <!-- custom: keep dSc color cues (green/red) while preserving numeric sort.
-			# Civ4 sorting uses cell type, so this must stay setTableInt; we pass a colorized string value to keep visual feedback
-			# without falling back to lexicographic setTableText sorting. (GPT-5.3-Codex) -->
+			# Civ4 sorting uses cell type, so this must stay setTableInt; we pass a colorized string value to keep visual feedback without falling back to lexicographic setTableText sorting. (GPT-5.3-Codex) -->
 			szScoreDelta = str(iScoreDelta)
 			if iScoreDelta > 0:
 				szScoreDelta = u"+%d" % iScoreDelta
@@ -1569,7 +1575,8 @@ class CvInfoScreen:
 					szGoldenAge = self.SCORETAB_GOLDEN_AGE_CHAR
 			SASTextScale.setTableTextLabel(screen, szTable, iColGoldenAge, iRow, szGoldenAge, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 
-		# <!-- custom: refactored to the shared placeAdvisorLegendLink helper in SASUtils so AdvCiv-SAS advisors share one canonical legend-link path. The helper applies the SAS_SHOW_LEGEND_LINK gate and missing-concept guard internally. (Claude code Opus 4.7) -->
+		# <!-- custom: refactored to the shared placeAdvisorLegendLink helper in SASUtils so AdvCiv-SAS advisors share one canonical legend-link path.
+		# The helper applies the SAS_SHOW_LEGEND_LINK gate and missing-concept guard internally. (Claude code Opus 4.7) -->
 		placeAdvisorLegendLink(self, "CONCEPT_SAS_SCORE_TAB_COLUMNS", iTableX + iTableW - 6, self.Y_TITLE)
 
 	def dbgLogPrettySummary(self):
@@ -2183,7 +2190,8 @@ class CvInfoScreen:
 		iLegendMaxW = self.X_GRAPH - self.X_LEGEND - 6
 		if iW_LEGEND > iLegendMaxW:
 			iW_LEGEND = iLegendMaxW
-		# <!-- custom: cap row height at runtime so the legend fits between dropdown controls and graph bottom with any number of players. H_LEGEND_TEXT is the preferred height; shrink only when needed. (Claude code Sonnet 4.6) -->
+		# <!-- custom: cap row height at runtime so the legend fits between dropdown controls and graph bottom with any number of players.
+		# H_LEGEND_TEXT is the preferred height; shrink only when needed. (Claude code Sonnet 4.6) -->
 		if AdvisorOpt.isGraphs():
 			iExtraRows = 4
 		else:
@@ -2405,7 +2413,8 @@ class CvInfoScreen:
 		else:
 			return str(iRank)
 
-	# <!-- custom: rank buttons for demographics tab, added with claude opus 4.5's help thanks. Old code removed or commented-out for concision and readability. -->
+	# <!-- custom: rank buttons for demographics tab, added with claude opus 4.5's help thanks.
+	# Old code removed or commented-out for concision and readability. -->
 	def getPlayerValueStr(self, valuePlayerPair, szMeasure = "", aiGroup = None):
 		iPlayer = valuePlayerPair[1]
 		szPlayerName = ""
@@ -2727,7 +2736,8 @@ class CvInfoScreen:
 		#iRow = iNumRows - 1 # unused
 		#iCol = 0 # Use the column ids from above instead
 
-		# <!-- custom: not sure it helps, but since we reuse the same variables every time, may as well cache them once if i'm not mistaken. Note: using longer and more detailed names to avoid weird python inheritance issues with variables in unrelated scopes if i'm not mistaken. -->
+		# <!-- custom: not sure it helps, but since we reuse the same variables every time, may as well cache them once if i'm not mistaken.
+		# Note: using longer and more detailed names to avoid weird python inheritance issues with variables in unrelated scopes if i'm not mistaken. -->
 		chartRowWidget = WidgetTypes.WIDGET_GENERAL
 		chartRowId1 = -1
 		chartRowId2 = -1
@@ -2778,7 +2788,8 @@ class CvInfoScreen:
 			# row was 21
 			SASTextScale.setTableTextLabel(screen, szTable, iValueCol, 24, separateThousands(iNetTrade, self.TEXT_THOUSANDS_SEPARATOR_COMMA), "", chartRowWidget, chartRowId1, chartRowId2, chartRowFont)
 
-		# <!-- custom: add buttons in the demographics tab with the help of claude opus 4.5 thanks. Old code removed or commented-out for readability and concision. -->
+		# <!-- custom: add buttons in the demographics tab with the help of claude opus 4.5 thanks.
+		# Old code removed or commented-out for readability and concision. -->
 		#iCol = 2
 		if bShowBest:
 			# Replaced str(i...GameBest) with getPlayerStr and getValueStr, and put them in separate rows.
@@ -3792,7 +3803,8 @@ class CvInfoScreen:
 			# SASTextScale.setTableTextLabel(screen, self.szWondersTable, 0, iWonderLoop, "", zoomArt, WidgetTypes.WIDGET_ZOOM_CITY, pCity.getOwner(), pCity.getID(), CvUtil.FONT_LEFT_JUSTIFY)
 			SASTextScale.setTableTextLabel(screen, self.szWondersTable, 0, iWonderLoop, "", pWonderInfo.getButton(), iWidget, iWonderType, -1, CvUtil.FONT_LEFT_JUSTIFY)
 			SASTextScale.setTableTextLabel(screen, self.szWondersTable, 1, iWonderLoop, szWonderName, "", iWidget, iWonderType, -1, CvUtil.FONT_LEFT_JUSTIFY)
-			# <!-- custom: Wonders keeps formatted date/status text (e.g. BC/AD or production icon) rather than raw signed years. World Advisor already has compact signed numeric years for sortable year display. (GPT-5.5) -->
+			# <!-- custom: Wonders keeps formatted date/status text (e.g. BC/AD or production icon) rather than raw signed years.
+			# World Advisor already has compact signed numeric years for sortable year display. (GPT-5.5) -->
 			SASTextScale.setTableTextLabel(screen, self.szWondersTable, 2, iWonderLoop, szTurnYearBuilt, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 			SASTextScale.setTableTextLabel(screen, self.szWondersTable, 3, iWonderLoop, szWonderBuiltBy, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 			# SASTextScale.setTableTextLabel(screen, self.szWondersTable, 4, iWonderLoop, szCityName, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
@@ -3952,7 +3964,8 @@ class CvInfoScreen:
 		# Graph itself
 		iRow = 0
 
-		# <!-- custom: not sure it helps, but since we reuse the same variables every time, may as well cache them once if i'm not mistaken. Note: using longer and more detailed names to avoid weird python inheritance issues with variables in unrelated scopes if i'm not mistaken. -->
+		# <!-- custom: not sure it helps, but since we reuse the same variables every time, may as well cache them once if i'm not mistaken.
+		# Note: using longer and more detailed names to avoid weird python inheritance issues with variables in unrelated scopes if i'm not mistaken. -->
 		statsRowWidget = WidgetTypes.WIDGET_GENERAL
 		statsRowId1 = -1
 		statsRowId2 = -1

@@ -21,7 +21,8 @@ public:
 	unsigned short get(int iNum, TCHAR const* szMsg = NULL, int iData1 = MIN_INT, int iData2 = MIN_INT) { return getInt(iNum, szMsg, iData1, iData2); } // advc.128 // New name to avoid issues in CyRandomPythonInterface
 	unsigned short getInt(int iNum, TCHAR const* szMsg, int iData1, int iData2 = MIN_INT)
 	{	
-		// <!-- custom: this assert fails sometimes, so fixing the issue as recommended by chatgpt 5, minimally fixed here so that we don't have to tediously check every place where it may be called or not and if it is done correctly (patched the places throwing this failed assert as well but others may remain in other functions maybe, as i didn't check them all only the ones that fired these failed asserts ingame). Sanity check maybe as well and possibly future proof as chatgpt 5 said and as i would also think too before that xd thanks i mean but check if accurate, see known issue as of now 72 for details, and check if accurate i mean too -->
+		// <!-- custom: this assert fails sometimes, so fixing the issue as recommended by chatgpt 5, minimally fixed here so that we don't have to tediously check every place where it may be called or not and if it is done correctly (patched the places throwing this failed assert as well but others may remain in other functions maybe, as i didn't check them all only the ones that fired these failed asserts ingame).
+		// Sanity check maybe as well and possibly future proof as chatgpt 5 said and as i would also think too before that xd thanks i mean but check if accurate, see known issue as of now 72 for details, and check if accurate i mean too -->
 		// Assert Failed
 		// File: c:\program files (x86)\steam\steamapps\common\sid meier's civilization iv beyond the sword\beyond the sword\mods\advciv-sas\cvgamecoredll\CvRandom.h
 		// Line: 31

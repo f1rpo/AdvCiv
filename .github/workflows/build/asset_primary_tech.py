@@ -2,7 +2,8 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 
-# <!-- custom: Tech-tree timing is iGridX (columns), not iGridY (rows). Keep the displayed primary unit/building prerequisite in the latest required column, and ensure a bonus can enter the trade network by the first improvement that connects it. (GPT-6.1-Sol) -->
+# <!-- custom: Tech-tree timing is iGridX (columns), not iGridY (rows).
+# Keep the displayed primary unit/building prerequisite in the latest required column, and ensure a bonus can enter the trade network by the first improvement that connects it. (GPT-6.1-Sol) -->
 import argparse
 from pathlib import Path
 import sys
@@ -50,7 +51,8 @@ def check(repo):
     improvements = nodes(repo, "Terrain/CIV4ImprovementInfos.xml", "ImprovementInfo")
     connecting = {}
     for improvement in improvements:
-        # <!-- custom: City-like improvements connect every bonus independently of their resource-specific BonusTypeStruct entries. Excluding them keeps this check tied to the XML-defined resource improvement unlock. (GPT-6.1-Sol) -->
+        # <!-- custom: City-like improvements connect every bonus independently of their resource-specific BonusTypeStruct entries.
+        # Excluding them keeps this check tied to the XML-defined resource improvement unlock. (GPT-6.1-Sol) -->
         if value(improvement, "bActsAsCity") == "1":
             continue
         unlocked = [value(b, "PrereqTech") for b in builds if value(b, "ImprovementType") == value(improvement, "Type")]

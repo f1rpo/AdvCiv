@@ -259,9 +259,7 @@ class SevoPediaVote:
 		voteInfo = gc.getVoteInfo(self.iVote)
 		bFound = False
 		if voteInfo:
-			# <!-- custom: panel is sized for one civic button in AdvCiv-SAS because votes are expected
-			# to force at most one civic; if modders add multiple forced civics later, extra buttons
-			# are still appended in sequence. (GPT-5.4?) -->
+			# <!-- custom: panel is sized for one civic button in AdvCiv-SAS because votes are expected to force at most one civic; if modders add multiple forced civics later, extra buttons are still appended in sequence. (GPT-5.4?) -->
 			for iCivic in range(gc.getNumCivicInfos()):
 				if voteInfo.isForceCivic(iCivic):
 					ci = gc.getCivicInfo(iCivic)
@@ -315,7 +313,8 @@ class SevoPediaVote:
 				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_FORCE_WAR", ()))
 			if voteInfo.isAssignCity():
 				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_ASSIGN_CITY", ()))
-			# <!-- custom: CvGame::processVote applies getTradeRoutes globally when the resolution passes; it is an effect, not a prerequisite. Keeping it only here prevents Single Currency from showing the same trade-route reward under both Requirements and Effects. See KI#227. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			# <!-- custom: CvGame::processVote applies getTradeRoutes globally when the resolution passes; it is an effect, not a prerequisite.
+			# Keeping it only here prevents Single Currency from showing the same trade-route reward under both Requirements and Effects. See KI#227. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			iTradeRoutesEffect = voteInfo.getTradeRoutes()
 			if iTradeRoutesEffect != 0:
 				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_TRADE_ROUTES_ALL_CITIES", ()) + u": %+d%s" % (iTradeRoutesEffect, self.TRADE_CHAR))

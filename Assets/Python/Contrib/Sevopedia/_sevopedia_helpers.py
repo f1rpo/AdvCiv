@@ -16,25 +16,26 @@ localText = CyTranslator()
 IS_SAS_CV_INFO_SCREEN_TIMELINE_LOG_BUTTON_ENABLE = (gc.getDefineINT("SAS_CV_INFO_SCREEN_TIMELINE_LOG_BUTTON_ENABLE") > 0)
 IS_SAS_SHOW_LEGEND_LINK = (gc.getDefineINT("SAS_SHOW_LEGEND_LINK") > 0)
 
-# <!-- custom: constants useful for numTxt under button placement in a grid-like manner, i got the idea to move them here rather to enhance reuse and remove redundance thanks to chatgpt general comment about them hehe thanks thanks chatgpt etc and me toot thanks; note: these are for non-multilist panels, commented-out if we don't need them but kept for reference still if may serve someday-->
+# <!-- custom: constants useful for numTxt under button placement in a grid-like manner, i got the idea to move them here rather to enhance reuse and remove redundance thanks to chatgpt general comment about them hehe thanks thanks chatgpt etc and me toot thanks; note: these are for non-multilist panels, commented-out if we don't need them but kept for reference still if may serve someday -->
 #HYPOTHESIZED_FIRST_BUTTON_LEFT_PADDING = 9
 #HYPOTHESIZED_INTER_BUTTON_SPACING = 4
-# <!-- custom: "non-multilist panel" means simple horizontal panels where we place buttons directly
-# with attachImageButton/setImageButtonAt and compute width manually.
-# This is distinct from multilist panels (addMultiListControlGFC), which use their own layout
-# constants below (HYPOTHESIZED_MULTI_LIST_*). Keep these constant families separate. (GPT-5.3-Codex) -->
-# <!-- custom: edge padding is inferred from the classic 84px mini-panel that fits one 64px button:
-# 84 - 64 = 20 total horizontal slack, so 10px per side. This keeps computed panel widths aligned
-# with existing Sevopedia panel/button visuals. (GPT-5.3-Codex) -->
+# <!-- custom: "non-multilist panel" means simple horizontal panels where we place buttons directly with attachImageButton/setImageButtonAt and compute width manually.
+# This is distinct from multilist panels (addMultiListControlGFC), which use their own layout constants below (HYPOTHESIZED_MULTI_LIST_*).
+# Keep these constant families separate. (GPT-5.3-Codex) -->
+# <!-- custom: edge padding is inferred from the classic 84px mini-panel that fits one 64px button: 84 - 64 = 20 total horizontal slack, so 10px per side.
+# This keeps computed panel widths aligned with existing Sevopedia panel/button visuals. (GPT-5.3-Codex) -->
 HYPOTHESIZED_NON_MULTILIST_PANEL_EDGE_PADDING = 10
 HYPOTHESIZED_NON_MULTILIST_PANEL_INTER_BUTTON_SPACING = 4
 # <!-- custom: shared standard height for Sevopedia single-row non-multilist panels. (GPT-5.3-Codex) -->
 NON_MULTILIST_PANEL_STANDARD_HEIGHT = 110
-# <!-- custom: shared Y offset for history/background text panels that sit below an animation but have no panel header. Used by Bonus, Improvement, Building, Tech, Unit and the expandable text panel helper. (Claude code Sonnet 4.6) -->
+# <!-- custom: shared Y offset for history/background text panels that sit below an animation but have no panel header.
+# Used by Bonus, Improvement, Building, Tech, Unit and the expandable text panel helper. (Claude code Sonnet 4.6) -->
 H_ADJUST_Y_AFTER_ANIMATION_NO_HEADER = 22
-# <!-- custom: Y offset to place the EXPAND button above a headerless animation panel. Smaller than H_ADJUST_Y_AFTER_ANIMATION_NO_HEADER because animation panels sit near the top of the pedia area, leaving less room above them. (Claude code Sonnet 4.6) -->
+# <!-- custom: Y offset to place the EXPAND button above a headerless animation panel.
+# Smaller than H_ADJUST_Y_AFTER_ANIMATION_NO_HEADER because animation panels sit near the top of the pedia area, leaving less room above them. (Claude code Sonnet 4.6) -->
 H_ADJUST_ANIMATION_NO_HEADER_EXPAND_BUTTON = 28
-# <!-- custom: Y offset for the CLOSE button inside the expanded overlay header bar. Shared by both draw_expandable_text_panel and draw_expandable_content_panel_container. (Claude code Sonnet 4.6) -->
+# <!-- custom: Y offset for the CLOSE button inside the expanded overlay header bar.
+# Shared by both draw_expandable_text_panel and draw_expandable_content_panel_container. (Claude code Sonnet 4.6) -->
 EXPANDED_OVERLAY_CLOSE_BUTTON_Y_OFFSET = 4
 # <!-- custom: leaderhead expanded overlay: width = height * PCT / 100, keeping portrait proportions. Tune this value to taste.
 # Empirically, 80 shows most of the animation height (head to torso/clothes) and most of the width (background included). (Claude code Sonnet 4.6) -->
@@ -60,11 +61,13 @@ def _sas_pedia_collect_bg_names():
         pInfo = gc.getInterfaceArtInfo(iIdx)
         if pInfo is None:
             continue
-        # <!-- custom: keep this playground to DDS backgrounds only because draw_expandable_text_panel renders them with addDDSGFC. MAINMENU_SCENE* art points to NIF/KFM scene files; cycling those through addDDSGFC empirically correlated with native EXE critical-section corruption/crashes on shutdown after browsing Sevopedia/style options. See KI#128. (GPT-5.5) -->
+        # <!-- custom: keep this playground to DDS backgrounds only because draw_expandable_text_panel renders them with addDDSGFC.
+        # MAINMENU_SCENE* art points to NIF/KFM scene files; cycling those through addDDSGFC empirically correlated with native EXE critical-section corruption/crashes on shutdown after browsing Sevopedia/style options. See KI#128. (GPT-5.5) -->
         sPath = pInfo.getPath().lower()
         if not sPath.endswith(".dds"):
             continue
-        # <!-- custom: use getTag() rather than getType() because the Python binding for CvArtInfoInterface (CyInfoInterface3.cpp:348) inherits only from CvAssetInfoBase, which is bound as a standalone Python class without CvInfoBase as a base — so getType() is not accessible from Python on art infos even though it exists in C++. getTag() and getType() return the same string per the C++ comment "'tag' is the same as 'type'" in CvInfo_Asset.h. (Claude code Opus 4.7) -->
+        # <!-- custom: use getTag() rather than getType() because the Python binding for CvArtInfoInterface (CyInfoInterface3.cpp:348) inherits only from CvAssetInfoBase, which is bound as a standalone Python class without CvInfoBase as a base — so getType() is not accessible from Python on art infos even though it exists in C++.
+        # getTag() and getType() return the same string per the C++ comment "'tag' is the same as 'type'" in CvInfo_Asset.h. (Claude code Opus 4.7) -->
         sName = pInfo.getTag()
         for sPrefix in SAS_PEDIA_BG_NAME_PREFIXES:
             if sName.startswith(sPrefix):
@@ -96,7 +99,8 @@ def _sas_pedia_collect_text_colors():
     return (tuple(aNames), tuple(aRgbs))
 
 def init_sas_pedia_playground_cache():
-    # <!-- custom: lazy-init avoids import-time UI/DLL probing after an empirical native crash while cycling style/background options. Define changes still require a game restart. See KI#128. (GPT-5.5 + Claude code Opus 4.7) -->
+    # <!-- custom: lazy-init avoids import-time UI/DLL probing after an empirical native crash while cycling style/background options.
+    # Define changes still require a game restart. See KI#128. (GPT-5.5 + Claude code Opus 4.7) -->
     global SAS_PEDIA_PANEL_STYLE_NAMES, SAS_PEDIA_PANEL_STYLE_VALUES, SAS_PEDIA_BG_NAMES
     global SAS_PEDIA_TEXT_COLOR_NAMES, SAS_PEDIA_TEXT_COLOR_RGBS
     global g_iSasPediaPanelStyleIdx, g_iSasPediaBgIdx, g_iSasPediaTextColorIdx
@@ -115,7 +119,9 @@ def init_sas_pedia_playground_cache():
             g_iSasPediaTextColorIdx = 0
         return
     if SAS_PEDIA_PANEL_STYLE_NAMES is None:
-        # <!-- custom: auto-discover all PanelStyles enum values exposed by the DLL via boost::python (CvEnums.h PanelStyles). The selected style is applied to the expanded overlay and shown in the header so it can be copied into target call sites. Python 2.4 tuples have no .index(), so default lookup is a manual scan. (Claude code Opus 4.7 + GPT-5.5) -->
+        # <!-- custom: auto-discover all PanelStyles enum values exposed by the DLL via boost::python (CvEnums.h PanelStyles).
+        # The selected style is applied to the expanded overlay and shown in the header so it can be copied into target call sites.
+        # Python 2.4 tuples have no .index(), so default lookup is a manual scan. (Claude code Opus 4.7 + GPT-5.5) -->
         SAS_PEDIA_PANEL_STYLE_NAMES = tuple(sorted(sName for sName in dir(PanelStyles) if sName.startswith("PANEL_STYLE_")))
         SAS_PEDIA_PANEL_STYLE_VALUES = tuple(getattr(PanelStyles, sName) for sName in SAS_PEDIA_PANEL_STYLE_NAMES)
         g_iSasPediaPanelStyleIdx = 0
@@ -124,7 +130,8 @@ def init_sas_pedia_playground_cache():
                 g_iSasPediaPanelStyleIdx = _iIdx
                 break
     if SAS_PEDIA_BG_NAMES is None:
-        # <!-- custom: companion playground for the underlying full-screen background DDS that an expanded overlay draws first. Keep only plausible DDS backgrounds so the cycle list stays short and safe; NIF/KFM scene assets are not valid for addDDSGFC. (Claude code Opus 4.7 + GPT-5.5) -->
+        # <!-- custom: companion playground for the underlying full-screen background DDS that an expanded overlay draws first.
+        # Keep only plausible DDS backgrounds so the cycle list stays short and safe; NIF/KFM scene assets are not valid for addDDSGFC. (Claude code Opus 4.7 + GPT-5.5) -->
         SAS_PEDIA_BG_NAMES = _sas_pedia_collect_bg_names()
         g_iSasPediaBgIdx = 0
         for _iIdx in range(len(SAS_PEDIA_BG_NAMES)):
@@ -186,8 +193,8 @@ HYPOTHESIZED_MULTI_LIST_EDGE_PADDING = HYPOTHESIZED_MULTI_LIST_LEFT_EDGE_PADDING
 HYPOTHESIZED_MULTI_LIST_INTER_BUTTON_SPACING = 2
 # <!-- custom: note: below line not yet tested. -->
 HYPOTHESIZED_MULTI_LIST_INTER_LINE_VERTICAL_SPACING = 4
-# <!-- custom: global numTxt horizontal nudge for multilist labels. With symmetric 10/10 side insets,
-# shifting labels 1px left visually re-centers most numTxt strings under buttons. (GPT-5.3-Codex) -->
+# <!-- custom: global numTxt horizontal nudge for multilist labels.
+# With symmetric 10/10 side insets, shifting labels 1px left visually re-centers most numTxt strings under buttons. (GPT-5.3-Codex) -->
 MULTILIST_NUMTXT_GLOBAL_X_ADJUST = -1
 # <!-- custom: when displaying only one row, adjust height to hide the 2nd row's buttons so it is prettier/clearer to read -->
 HIDE_SECOND_ROW_MULTI_LIST = - 4
@@ -198,16 +205,10 @@ SEVOPEDIA_MULTILIST_NUM_LISTS_AUTO_CALCULATE = 1
 # Column index (always 0 when numLists=1)
 SEVOPEDIA_MULTILIST_COLUMN_INDEX_AUTO = 0
 
-# <!-- custom: wrap an asset description in Civ4's <link=literal>...</link> markup so
-# addMultilineText renders it as a clickable link. When clicked, the engine calls
-# SevoPediaMain.link(szLink), which reverse-looks-up the text through SAS_linkMatchDefs
-# (techs, civics, buildings, units, promotions, specialists, features, improvements,
-# bonuses, religions, corporations, traits, concepts, etc.) via each info's
-# isMatchForLink(...) and pedia-jumps to the right page. No DLL change needed — this
-# piggybacks on the mechanism already used by Sevopedia Building/Unit/Trait/Leader pages
-# and by CvGameTextMgr for inline pedia links. Pass the exact localized description
-# string (whatever info.getDescription() returned) so the reverse lookup finds a match.
-# (Claude code Opus 4.7) -->
+# <!-- custom: wrap an asset description in Civ4's <link=literal>...</link> markup so addMultilineText renders it as a clickable link.
+# When clicked, the engine calls SevoPediaMain.link(szLink), which reverse-looks-up the text through SAS_linkMatchDefs (techs, civics, buildings, units, promotions, specialists, features, improvements, bonuses, religions, corporations, traits, concepts, etc.) via each info's isMatchForLink(...) and pedia-jumps to the right page.
+# No DLL change needed — this piggybacks on the mechanism already used by Sevopedia Building/Unit/Trait/Leader pages and by CvGameTextMgr for inline pedia links.
+# Pass the exact localized description string (whatever info.getDescription() returned) so the reverse lookup finds a match. (Claude code Opus 4.7) -->
 def make_pedia_link(szText):
 	if not szText:
 		return szText
@@ -230,8 +231,7 @@ def get_panel_width_for_buttons(iNumButtons, iButtonSize, iEdgePadding, iInterBu
 		raise ValueError("get_panel_width_for_buttons requires iNumButtons > 0, got %d" % iNumButtons)
 	return (iNumButtons * iButtonSize) + (2 * iEdgePadding) + ((iNumButtons - 1) * iInterButtonSpacing)
 
-# <!-- custom: shared row helper for bonus-yields-style panels (one attached child panel per row,
-# spacer + image button + label). (Claude code Opus 4.7) -->
+# <!-- custom: shared row helper for bonus-yields-style panels (one attached child panel per row, spacer + image button + label). (Claude code Opus 4.7) -->
 def attach_button_label_row(screen, top, panelName, buttonPath, widgetType, widgetID1, widgetID2, szText):
 	childPanelName = top.getNextWidgetName()
 	screen.attachPanel(panelName, childPanelName, "", "", False, False, PanelStyles.PANEL_STYLE_EMPTY)
@@ -256,7 +256,8 @@ CHART_TABLE_MARGIN = 4
 CHART_TABLE_ROW_H = 15
 CHART_TABLE_W_ICON = 24
 CHART_TABLE_STYLE = TableStyles.TABLE_STYLE_STANDARD
-# <!-- custom: All known enum prefixes to strip. Grouped here for simplicity across all charts. -->
+# <!-- custom: All known enum prefixes to strip.
+# Grouped here for simplicity across all charts. -->
 CHART_ENUM_PREFIXES = ("TECH_", "HANDICAP_", "GOODY_", "GAMESPEED_", "ERA_", "WORLDSIZE_")
 # <!-- custom: # Stable icon sorting (fixes "emoji order changes / ties shuffle")
 #
@@ -424,7 +425,8 @@ def place_new_concept_legend_link(top, new_concept_type):
 	screen.setText(top.getNextWidgetName(), "Background", szLegendText, CvUtil.FONT_LEFT_JUSTIFY, top.SAS_getFooterLegendX(), top.Y_BOT_PANEL + 16, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_PEDIA_DESCRIPTION, CivilopediaPageTypes.CIVILOPEDIA_PAGE_CONCEPT_NEW, iConcept)
 
 def draw_none_text(screen, selfTop, panelX, panelY, panelW, panelH, txtKey=None):
-	# <!-- custom: place a centered "None" (or custom-keyed) message inside a panel that has no buttons/content to show. Replaces the ~5-line addMultilineText boilerplate scattered across pedia files. (Claude code Opus 4.7) -->
+	# <!-- custom: place a centered "None" (or custom-keyed) message inside a panel that has no buttons/content to show.
+	# Replaces the ~5-line addMultilineText boilerplate scattered across pedia files. (Claude code Opus 4.7) -->
 	if txtKey is None:
 		txtKey = "TXT_KEY_PEDIA_SAS_NO_BUTTON_FOUND_NONE"
 
@@ -449,7 +451,8 @@ def draw_expandable_text_panel(screen, top, panelTitle, panelX, panelY, panelW, 
 		iOverlayH = top.B_PEDIA_PAGE - top.Y_PEDIA_PAGE
 		init_sas_pedia_playground_cache()
 
-		# <!-- custom: pick the underlying full-screen background DDS from the playground cache; index 0 is the "(none)" sentinel which means "skip drawing a background entirely" so a transparent panel style reveals whatever is behind the pedia screen. When the playground is off, fall back to the previous hardcoded SCREEN_BG_OPAQUE so default behavior is identical to before this feature. (Claude code Opus 4.7) -->
+		# <!-- custom: pick the underlying full-screen background DDS from the playground cache; index 0 is the "(none)" sentinel which means "skip drawing a background entirely" so a transparent panel style reveals whatever is behind the pedia screen.
+		# When the playground is off, fall back to the previous hardcoded SCREEN_BG_OPAQUE so default behavior is identical to before this feature. (Claude code Opus 4.7) -->
 		if IS_SAS_PEDIA_PANEL_STYLE_PLAYGROUND_ENABLE and len(SAS_PEDIA_BG_NAMES) > 0:
 			sBgArtKey = SAS_PEDIA_BG_NAMES[g_iSasPediaBgIdx]
 		else:
@@ -469,7 +472,9 @@ def draw_expandable_text_panel(screen, top, panelTitle, panelX, panelY, panelW, 
 			ePanelStyle = PanelStyles.PANEL_STYLE_MAIN
 		screen.addPanel(panelName, expandedTitle, "", True, True, iOverlayX, iOverlayY, iOverlayW, iOverlayH, ePanelStyle)
 		screen.setButtonGFC(top.getNextWidgetName(), SASTextScale.labelText(u"CLOSE"), "", iOverlayX + iOverlayW - (iCloseButtonW + 10), iOverlayY + EXPANDED_OVERLAY_CLOSE_BUTTON_Y_OFFSET, iCloseButtonW, 26, WidgetTypes.WIDGET_PYTHON, iPythonWidgetData1, 0, ButtonStyles.BUTTON_STYLE_STANDARD)
-		# <!-- custom: panel style playground header strip: "[label] [PREV] [NEXT] [CLOSE]" sits on the same row as CLOSE inside the header bar. iData2 is the signed cycle delta (-1 / +1); a separate widget id (SAS_MAGIC_PEDIA_PYTHON_PANEL_STYLE_CYCLE) keeps the existing iData2 dispatch on HISTORY_EXPAND (0=close, 1=expand) untouched. The label uses RIGHT_JUSTIFY so it grows leftward without us having to measure the variable-length style name width. (Claude code Opus 4.7) -->
+		# <!-- custom: panel style playground header strip: "[label] [PREV] [NEXT] [CLOSE]" sits on the same row as CLOSE inside the header bar.
+		# iData2 is the signed cycle delta (-1 / +1); a separate widget id (SAS_MAGIC_PEDIA_PYTHON_PANEL_STYLE_CYCLE) keeps the existing iData2 dispatch on HISTORY_EXPAND (0=close, 1=expand) untouched.
+		# The label uses RIGHT_JUSTIFY so it grows leftward without us having to measure the variable-length style name width. (Claude code Opus 4.7) -->
 		if IS_SAS_PEDIA_PANEL_STYLE_PLAYGROUND_ENABLE and len(SAS_PEDIA_PANEL_STYLE_VALUES) > 0:
 			iCycleBtnW = 28
 			iCycleBtnSpacing = 6
@@ -484,7 +489,9 @@ def draw_expandable_text_panel(screen, top, panelTitle, panelX, panelY, panelW, 
 			# <!-- custom: use "-" / "+" rather than "<" / ">" because angle brackets are parsed as font/markup tag delimiters by the Civ4 text renderer (see agents.md), which breaks the button label rendering. (Claude code Opus 4.7) -->
 			screen.setButtonGFC(top.getNextWidgetName(), SASTextScale.labelText(u"-"), "", iPrevX, iCycleY, iCycleBtnW, 26, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_PANEL_STYLE_CYCLE, -1, ButtonStyles.BUTTON_STYLE_STANDARD)
 			screen.setButtonGFC(top.getNextWidgetName(), SASTextScale.labelText(u"+"), "", iNextX, iCycleY, iCycleBtnW, 26, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_PANEL_STYLE_CYCLE, 1, ButtonStyles.BUTTON_STYLE_STANDARD)
-			# <!-- custom: background DDS playground row, sits one row ABOVE the style row (the user said "we have plenty room up" so it lives in the gutter above the panel header). Same x columns as the style row so the two stacked groups align visually. Routing uses a separate widget id (SAS_MAGIC_PEDIA_PYTHON_BACKGROUND_CYCLE) so the iData2 cycle delta does not collide with the style row's dispatch. (Claude code Opus 4.7) -->
+			# <!-- custom: background DDS playground row, sits one row ABOVE the style row (the user said "we have plenty room up" so it lives in the gutter above the panel header).
+			# Same x columns as the style row so the two stacked groups align visually.
+			# Routing uses a separate widget id (SAS_MAGIC_PEDIA_PYTHON_BACKGROUND_CYCLE) so the iData2 cycle delta does not collide with the style row's dispatch. (Claude code Opus 4.7) -->
 			if len(SAS_PEDIA_BG_NAMES) > 0:
 				iBgRowYBtn = iCycleY - 30
 				iBgRowYLabel = iLabelY - 30
@@ -514,7 +521,8 @@ def draw_expandable_text_panel(screen, top, panelTitle, panelX, panelY, panelW, 
 
 	panelName = top.getNextWidgetName()
 	screen.addPanel(panelName, panelTitle, "", True, True, panelX, panelY, panelW, panelH, PanelStyles.PANEL_STYLE_BLUE50)
-	# <!-- custom: when the panel has no title, Civ4 renders no header bar so the button at panelY+6 would overlap the content. Place it just above the panel instead. (Claude code Sonnet 4.6) -->
+	# <!-- custom: when the panel has no title, Civ4 renders no header bar so the button at panelY+6 would overlap the content.
+	# Place it just above the panel instead. (Claude code Sonnet 4.6) -->
 	iExpandButtonY = panelY + 6
 	if not panelTitle:
 		iExpandButtonY -= H_ADJUST_Y_AFTER_ANIMATION_NO_HEADER
@@ -524,7 +532,9 @@ def draw_expandable_text_panel(screen, top, panelTitle, panelX, panelY, panelW, 
 	return 0
 
 def draw_expandable_content_panel_container(screen, top, panelTitle, panelX, panelY, panelW, panelH, bExpanded, iPythonWidgetData1, iPythonReloadData1):
-	# <!-- custom: reusable expandable panel container helper for non-text content (animations, 3D previews, etc.). Draws expand/collapse chrome and returns content rect (x, y, w, h). Always shows a bracketed title when none given, mirroring draw_expandable_text_panel. (Claude code Sonnet 4.6 + GPT-5.3-Codex) -->
+	# <!-- custom: reusable expandable panel container helper for non-text content (animations, 3D previews, etc.).
+	# Draws expand/collapse chrome and returns content rect (x, y, w, h).
+	# Always shows a bracketed title when none given, mirroring draw_expandable_text_panel. (Claude code Sonnet 4.6 + GPT-5.3-Codex) -->
 	iCloseButtonW = 85
 	iReloadButtonW = 106
 	iExpandButtonW = 107
@@ -557,7 +567,10 @@ def draw_expandable_content_panel_container(screen, top, panelTitle, panelX, pan
 	return (panelX, panelY, panelW, panelH)
 
 def draw_expandable_leaderhead_panel(screen, top, panelX, panelY, panelW, panelH, leaderX, leaderY, leaderW, leaderH, bExpanded, iPythonWidgetData1):
-	# <!-- custom: expandable panel helper for the leaderhead. Like draw_expandable_content_panel_container but has no RELOAD button (leaderhead re-renders only on attitude/action button clicks, not on reload — use the attitude/action buttons in the right column instead) and reserves a right column for those buttons. Returns ((lhX, lhY, lhW, lhH), (attX, attY, attW, attH)). Collapsed returns the passed leader coords unchanged. (Claude code Sonnet 4.6) -->
+	# <!-- custom: expandable panel helper for the leaderhead.
+	# Like draw_expandable_content_panel_container but has no RELOAD button (leaderhead re-renders only on attitude/action button clicks, not on reload — use the attitude/action buttons in the right column instead) and reserves a right column for those buttons.
+	# Returns ((lhX, lhY, lhW, lhH), (attX, attY, attW, attH)).
+	# Collapsed returns the passed leader coords unchanged. (Claude code Sonnet 4.6) -->
 	iCloseButtonW = 85
 	iAttColW = 260
 	iExpandButtonW = 107
@@ -674,9 +687,8 @@ def get_extra_correction_x(numTxt):
 		return -8
 
 def get_extra_correction_x_inbetween_buttons(button_size):
-	# <!-- custom: offset numTxt from the current button center into the gap before it, for connector labels such as "or"
-	# that describe the relationship between adjacent buttons rather than either button itself. The small extra nudge
-	# keeps the connector visually centered in the gap. (GPT-5.5) -->
+	# <!-- custom: offset numTxt from the current button center into the gap before it, for connector labels such as "or" that describe the relationship between adjacent buttons rather than either button itself.
+	# The small extra nudge keeps the connector visually centered in the gap. (GPT-5.5) -->
 	extraCorrectionOffFromTheCenter = -3
 
 	return (-1 * (int(button_size / 2))) + extraCorrectionOffFromTheCenter
@@ -712,9 +724,7 @@ def add_multilist_numTxt_under_button(multiListX, multiListY, extraCorrectionX, 
 
 def add_multilist_connector_numTxt_before_button(multiListX, multiListY, iButtonIndex, button_size, maxButtonsPerRow, numTxt, screen, selfTop, widgetType, font):
 	# <!-- custom: draw a connector numTxt before the current button, e.g. "A or B" for OR prereqs/obsolete alternatives.
-	# It deliberately skips the first button and row-start buttons because there is no previous same-row button to connect
-	# to; callers should use normal add_multilist_numTxt_under_button when the text labels one specific icon instead.
-	# (GPT-5.5) -->
+	# It deliberately skips the first button and row-start buttons because there is no previous same-row button to connect to; callers should use normal add_multilist_numTxt_under_button when the text labels one specific icon instead. (GPT-5.5) -->
 	if not numTxt:
 		return
 	if iButtonIndex <= 0:
@@ -884,8 +894,7 @@ def _chart_to_csv_cell(text):
 	return text
 
 # <!-- custom: In-Category Chart Helpers (InChart) - shared across Traits, Tech, Improvement charts.
-# These are charts that appear WITHIN a category item page (e.g. leader pairing table in Traits),
-# as opposed to "Chart as category" pages like Handicap Chart where the chart IS the category.
+# These are charts that appear WITHIN a category item page (e.g. leader pairing table in Traits), as opposed to "Chart as category" pages like Handicap Chart where the chart IS the category.
 # Centralized here to reduce code duplication and ensure consistent styling. (Claude Opus 4.5) -->
 
 # <!-- custom: In-Category Chart Constants -->

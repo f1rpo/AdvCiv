@@ -136,7 +136,8 @@ class SevoPediaWorldSizeChart:
 		row_specs = (
 			# NOTE: Some rows are direct XML fields, others are convenience composites.
 			# Use a trailing '*' in the *display label* when the displayed value is not a single XML tag.
-			# <!-- custom: CvWorldInfo GridWidth/GridHeight are terrain-cell units. Ordinary map generation doubles each axis into plots, while custom map scripts can override the dimensions and scaling; label their product as cells rather than tiles/plots. See KI#305. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+			# <!-- custom: CvWorldInfo GridWidth/GridHeight are terrain-cell units.
+			# Ordinary map generation doubles each axis into plots, while custom map scripts can override the dimensions and scaling; label their product as cells rather than tiles/plots. See KI#305. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			# <!-- custom: use "Usual" to clarify the grid size may change (e.g., depending on mapscripts like SAS_Longworld being low height and high width) -->
 			# (field_name, display_label_or_None, getter_name_or_None, icon_token)
 			("GridSize",                       "Usual Grid Cells W x H",        None,                               "glyph:map"),

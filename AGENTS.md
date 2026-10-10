@@ -175,10 +175,12 @@ If you find yourself stuck like for audio stopping issues, feel free to ask the 
 - Do NOT commit changes without explicit user approval - wait for review at the end.
 - Preserve problem descriptions, observed behaviors, empirical results (e.g., "city C fully improved at turn 105"), and intended fixes while removing verbosity
 - Pattern: Keep technical details and "why" verbose, remove conversational filler
-- Preserve the existing physical line structure of pre-existing comments unless you are changing that comment for content/correctness or the user explicitly asks to reflow it. Do not join or split existing comment lines merely to satisfy a width target.
+- Preserve the existing physical line structure of pre-existing comments unless you are changing that comment for content/correctness, the user explicitly asks to reflow it, or a dedicated custom-comment logical-reflow pass is being run. Never join or split comment lines merely to satisfy a width target.
 - Keep distinct adjacent comments distinct, especially an untagged/base/upstream comment followed by an AdvCiv-SAS `<!-- custom: ... -->` comment; adjacency does not make them one comment.
-- When adding or substantively editing a comment, wrap only at natural logical boundaries when needed (normally complete sentences or independent clauses), not at an arbitrary character count.
-  - A reasonably readable long sentence can stay on one line; do not strand a short ending, `See KI#...`, or the model credit on its own line just to meet a width target.
+- For AdvCiv-SAS `<!-- custom: ... -->` prose comments, physical lines follow logical sentences/clauses rather than character count. Wrap only at natural logical boundaries when needed (normally complete sentences or independent clauses), and do not arbitrarily split one sentence across `//`, `#`, or XML-comment lines.
+  - A reasonably readable long sentence can stay on one physical line; do not strand a short ending, `See KI#...`, or the model credit on its own line just to meet a width target.
+  - Do not normally place two substantial complete sentences on one physical custom-comment line. Put them on separate comment lines instead. If two short, closely related independent clauses read naturally together, prefer a semicolon on one line (e.g. `A is true; B follows.`); if that combined thought becomes clearly long, prefer a period and a new logical line.
+  - Short trailing provenance/configuration fragments can stay with the preceding thought when that reads better rather than becoming tiny standalone lines; e.g. `... See KI#48.5; was 70.`. Closing metadata such as `See KI#...`, a source/Long_Comments reference, or the model credit may remain on the final substantive line and does not itself force a new physical line.
 
 ## Comment Style Example
 

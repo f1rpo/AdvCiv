@@ -15,7 +15,8 @@
 // Keep the widespread g*LogLevel hot gates as direct reads; call sites should still gate before evaluating logging-only arguments because logBBAI cannot undo argument work already performed by its caller. (GPT-5.5? + ChatGPT-5.6-Sol) -->
 struct SASBBAILogSettings
 {
-	// <!-- custom: This remains the one cached "any BBAI diagnostics active" bit. UWAI categories are ordinary BBAI categories now that their separate report sink is gone. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: This remains the one cached "any BBAI diagnostics active" bit.
+	// UWAI categories are ordinary BBAI categories now that their separate report sink is gone. (ChatGPT-5.6-Sol) -->
 	bool bEnabled;
 	bool bMasterEnabled;
 	int iPlayerLogLevel;
@@ -81,7 +82,8 @@ int getSASBBAILogSessionSequence(); // <!-- custom: Let high-volume diagnostic c
 #define gDealCancelLogLevel (gSASBBAILogSettings.iDealCancelLogLevel) // advc.133
 #define gBonusLogLevel (gSASBBAILogSettings.iBonusLogLevel) // <!-- custom: Shared bonus valuation, trade, and strategic-resource diagnostics independent of their Worker/Settler consumers. (GPT-5.6-Sol) -->
 #define gCultureLogLevel (gSASBBAILogSettings.iCultureLogLevel) // <!-- custom: Separate culture-victory diagnostics from general PLAYER and CITY logging. (ChatGPT-5.5) -->
-// <!-- custom: UWAI follows the normal cached BBAI category contract. Keep these as direct hot reads so callers can pre-gate diagnostic-only work before formatting, helper calls or extra simulations. (ChatGPT-5.6-Sol) -->
+// <!-- custom: UWAI follows the normal cached BBAI category contract.
+// Keep these as direct hot reads so callers can pre-gate diagnostic-only work before formatting, helper calls or extra simulations. (ChatGPT-5.6-Sol) -->
 #define gUWAIAgentLogLevel (gSASBBAILogSettings.iUWAIAgentLogLevel)
 #define gUWAIMilitaryAnalystLogLevel (gSASBBAILogSettings.iUWAIMilitaryAnalystLogLevel)
 #define gUWAIInvasionGraphLogLevel (gSASBBAILogSettings.iUWAIInvasionGraphLogLevel)

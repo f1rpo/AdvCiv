@@ -19,7 +19,8 @@
 			<!-- (K-Mod has removed the BugFinanceAdvisor option) -->
 			<!-- Foreign Advisor (F4) by Requies, Dresden, EmperorFool -->
 			<!-- advc.004: Set the default to Numbers (was Smilies in K-Mod) -->
-			<!-- custom: AdvCiv-SAS now overrides that and defaults to Both after Large Pangaea/default-player testing showed upscaled Glance cells still fully displayed a long case such as -17 + at-war + worst-enemy icons after the per-page player cap. Higher-player games were not tested here and may behave differently; the tunable Glance players-per-page cap is the adjustment point if needed. (GPT-5.5) -->
+			<!-- custom: AdvCiv-SAS now overrides that and defaults to Both after Large Pangaea/default-player testing showed upscaled Glance cells still fully displayed a long case such as -17 + at-war + worst-enemy icons after the per-page player cap.
+			Higher-player games were not tested here and may behave differently; the tunable Glance players-per-page cap is the adjustment point if needed. (GPT-5.5) -->
 			<!-- custom: updated Foreign Advisor name above: removed "Exotic" since it is now unified in a single file -->
 			<!-- custom: no longer using old Glance (EFAGlanceTab) and Cities (EFACityTrades) visibility options because those tabs are now always shown. (GPT-5.5) -->
 			<!-- <option id="EFAGlanceTab" key="EFA Glance" 
@@ -42,7 +43,8 @@
 			<!-- <option id="EFACityTrades" key="EFA City Trades" 
 					type="boolean" default="True" 
 					get="isCityTradesTab"/> -->
-			<!-- custom: Info tab always uses drawInfoImproved in CvForeignAdvisor, so the old EFAImprovedInfo toggle is obsolete. Base AdvCiv 1.12 also displayed it on the same row as the Glance attitude dropdown, which made that dropdown look like an Info-tab setting; see KI#139. (GPT-5.5) -->
+			<!-- custom: Info tab always uses drawInfoImproved in CvForeignAdvisor, so the old EFAImprovedInfo toggle is obsolete.
+			Base AdvCiv 1.12 also displayed it on the same row as the Glance attitude dropdown, which made that dropdown look like an Info-tab setting; see KI#139. (GPT-5.5) -->
 			<!-- advc.004: default was True in K-Mod -->
 			<!-- <option id="EFAImprovedInfo" key="EFA Improved Info"
 					type="boolean" default="False" 

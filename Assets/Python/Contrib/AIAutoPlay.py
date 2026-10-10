@@ -348,7 +348,8 @@ class AIAutoPlay :
 		popup.setBodyString( localText.getText("TXT_KEY_AIAUTOPLAY_TURNS", ()) )
 		popup.addSeparator()
 		# <!-- custom: AI Auto Play QoL: when enabled, use the selected game speed's actual configured total turn count + 1 (Normal 500 -> 501, Marathon 1000 -> 1001).
-		# If disabled, retain the manual unscaled value. Reading the timeline itself stays correct if a speed is retuned later. (ChatGPT-5.6-Sol) -->
+		# If disabled, retain the manual unscaled value.
+		# Reading the timeline itself stays correct if a speed is retuned later. (ChatGPT-5.6-Sol) -->
 		iDefaultTurnsToAuto = self.DefaultTurnsToAuto
 		if _isDefaultTurnsScaledByGameSpeed():
 			speedInfo = gc.getGameSpeedInfo(game.getGameSpeedType())

@@ -98,7 +98,8 @@ class SevoPediaSpecialist:
 		textName = self.top.getNextWidgetName()
 		szSpecialText = CyGameTextMgr().getSpecialistHelp(self.iSpecialist, True)
 		szSpecialText = SASTextScale.normalizeLabelText(szSpecialText)
-		# <!-- custom: reduce top padding now that the traits header is removed (GPT-5.2-Codex). Was Y + headerExtraHeight (i.e. + 10) -->
+		# <!-- custom: reduce top padding now that the traits header is removed (GPT-5.2-Codex).
+		# Was Y + headerExtraHeight (i.e. + 10) -->
 		headerExtraHeight = 10
 		screen.addMultilineText(textName, szSpecialText, self.X_EFFECTS_PANEL + 5, self.Y_EFFECTS_PANEL - headerExtraHeight, self.W_EFFECTS_PANEL - 10, self.H_TOP_PANEL - headerExtraHeight, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 

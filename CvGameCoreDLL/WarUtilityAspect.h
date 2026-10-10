@@ -24,7 +24,8 @@ public:
 		afterwards). Sets some protected data members that derived classes should
 		find useful; concrete derived classes should override evaluate(void) instead. */
 	virtual int evaluate(MilitaryAnalyst const& kMilitaryAnalyst);
-	// <!-- custom: WarEvaluator deletes concrete aspects through WarUtilityAspect pointers. A virtual destructor makes those polymorphic deletions defined and releases derived containers. See KI#464. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: WarEvaluator deletes concrete aspects through WarUtilityAspect pointers.
+	// A virtual destructor makes those polymorphic deletions defined and releases derived containers. See KI#464. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	virtual ~WarUtilityAspect() {}
 	char const* aspectName() const;
 	int utility() const { return m_iU; }
@@ -66,7 +67,8 @@ protected:
 	// Eval helpers - start
 	// Between the agent team and eOther - or m_kRivalTeam if eOther=NO_TEAM.
 	scaled normalizeUtility(scaled rUtilityTeamOnTeam, TeamTypes eOther = NO_TEAM) const;
-	// <!-- custom: Compute eVictim's net asset loss to eTo, or to every player when eTo is NO_PLAYER, from the agent's knowledge. Ignore gains from eIgnoreGainsFrom when requested, and return eVictim's total present asset score through prTotalScore when requested; using the victim cache's totalAssetScore would expose cities the agent may not know.
+	// <!-- custom: Compute eVictim's net asset loss to eTo, or to every player when eTo is NO_PLAYER, from the agent's knowledge.
+	// Ignore gains from eIgnoreGainsFrom when requested, and return eVictim's total present asset score through prTotalScore when requested; using the victim cache's totalAssetScore would expose cities the agent may not know.
 	// Requiring eVictim explicitly prevents loops over teammates and vassals from silently reusing the aspect rival's assets. See KI#432. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	 scaled netLostAssetScore(PlayerTypes eVictim, PlayerTypes eTo = NO_PLAYER, scaled* prTotalScore = NULL, TeamTypes eIgnoreGainsFrom = NO_TEAM) const;
 	 scaled lossesFromBlockade(PlayerTypes eVictim, PlayerTypes eTo) const;
@@ -176,7 +178,8 @@ public:
 	void evaluate();
 	UWAI::AspectTypes xmlID() const { return UWAI::GREED_FOR_SPACE; }
 private:
-	// <!-- custom: Rival teammates can cache the same physical settlement plot independently. Preserve plot identity across this agent member's rival passes, while nearest-city ownership coordinates the opportunity across agent teammates. See KI#454 and KI#1050. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Rival teammates can cache the same physical settlement plot independently.
+	// Preserve plot identity across this agent member's rival passes, while nearest-city ownership coordinates the opportunity across agent teammates. See KI#454 and KI#1050. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	std::set<PlotNumTypes> m_countedSites;
 	// <!-- custom: Select the one agent teammate allowed to value a physical site instead of letting aspect iteration order claim it. See KI#1050. (GPT-5.6-Sol) -->
 	PlayerTypes siteOwner(CvPlot const& kSite) const;
@@ -324,7 +327,8 @@ public:
 	UWAI::AspectTypes xmlID() const { return UWAI::KING_MAKING; }
 private:
 	static scaled const m_rScoreMargin;
-	// <!-- custom: Civ4 awards victories to teams. Store each likely winning team once while player-local victory inputs remain evaluated through anyVictory. See KI#433. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Civ4 awards victories to teams.
+	// Store each likely winning team once while player-local victory inputs remain evaluated through anyVictory. See KI#433. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	TeamSet m_winningFuture;
 	TeamSet m_winningPresent;
 	void addWinning(TeamSet& kWinning, bool bPredict) const;

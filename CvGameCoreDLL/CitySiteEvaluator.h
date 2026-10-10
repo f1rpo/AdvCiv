@@ -80,7 +80,8 @@ public:
 	bool isSeafaring() const { return m_bSeafaring; }
 	// willing to place cities further apart. (not directly based on the expansive trait)
 	bool isExpansive() const { return m_bExpansive; }
-	// <!-- custom: Typed context describes the caller, not a scoring mode; changing it never changes evaluation or cache policy. The shared getSASFoundLogContextType helper converts it to text only for enabled output. See KI#505.2. (GPT-6.1-Sol) -->
+	// <!-- custom: Typed context describes the caller, not a scoring mode; changing it never changes evaluation or cache policy.
+	// The shared getSASFoundLogContextType helper converts it to text only for enabled output. See KI#505.2. (GPT-6.1-Sol) -->
 	void setLogContext(SASFoundLogContextTypes eContext) { m_eLogContext = eContext; }
 	SASFoundLogContextTypes getLogContext() const { return m_eLogContext; }
 
@@ -112,7 +113,8 @@ private:
 	bool m_bAllSeeing;
 	// <!-- custom: True only for the level-3 true-map comparison evaluator; an evaluator whose result can drive an AI decision must leave this false. (GPT-5.6-Sol) -->
 	bool m_bDiagnosticOmniscience;
-	// <!-- custom: Diagnostic-only caller identity, stored as an enum to prevent misspelled string labels and avoid carrying a raw string pointer. Only enabled BBAI output converts it to text; it never selects scoring rules. See KI#505.2. (GPT-6.1-Sol) -->
+	// <!-- custom: Diagnostic-only caller identity, stored as an enum to prevent misspelled string labels and avoid carrying a raw string pointer.
+	// Only enabled BBAI output converts it to text; it never selects scoring rules. See KI#505.2. (GPT-6.1-Sol) -->
 	SASFoundLogContextTypes m_eLogContext;
 	int m_iClaimThreshold;
 	bool m_bEasyCulture;
@@ -133,7 +135,8 @@ private:
 class AIFoundValue
 {
 public:
-	// <!-- custom: A non-null breakdown output or Found level 2+ enables diagnostic accounting during the same evaluation; neither changes the returned score. Disabled logging with no output skips formatting. See KI#505.2. (GPT-5.5 + GPT-6.1-Sol) -->
+	// <!-- custom: A non-null breakdown output or Found level 2+ enables diagnostic accounting during the same evaluation; neither changes the returned score.
+	// Disabled logging with no output skips formatting. See KI#505.2. (GPT-5.5 + GPT-6.1-Sol) -->
 	// <!-- custom: Let SPI construct the shared workable-plot context without also running and discarding a complete city-site evaluation; optional output pointers expose decision components already computed during the same pass. See KI#492. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	AIFoundValue(CvPlot const& kPlot, CitySiteEvaluator const& kSettings, CvString* pszBreakdown = NULL, bool bEvaluateSite = true, int* paiGrowthCorePlotValues = NULL, int* piSustainableProductivePlotValue = NULL, int* paiPlotCoreSums = NULL, int* paiPlotCoreCutoffs = NULL, int* piPositivePlots = NULL);
 	int get() const { return m_iResult; }
@@ -144,7 +147,8 @@ public:
 
 private:
 	int m_iResult;
-	// <!-- custom: Snapshot of the constructor's bEvaluateSite argument for diagnostic scope only: true means a complete SITE evaluation; false means SPI's shared WORKABLE_PLOT context. Prevent partial helper output from looking like a full site result; this is not a logging-enable flag. See KI#505.2. (GPT-6.1-Sol) -->
+	// <!-- custom: Snapshot of the constructor's bEvaluateSite argument for diagnostic scope only: true means a complete SITE evaluation; false means SPI's shared WORKABLE_PLOT context.
+	// Prevent partial helper output from looking like a full site result; this is not a logging-enable flag. See KI#505.2. (GPT-6.1-Sol) -->
 	bool const m_bSiteEvaluation;
 	CvString* m_pszBreakdown;
 	// <!-- custom: Optional caller-owned outputs reuse results already computed by this evaluation.
@@ -183,9 +187,12 @@ private:
 	// <!-- custom: The event name already states a simple reason; optional payloads add values or explanation rather than repeating that name as prose. See KI#505.2. (GPT-6.1-Sol) -->
 	void logBBAIFoundDetail(char const* szEvent, char const* szFormat = "", ...) const;
 	static wchar const* cityName(CvCity const& kCity);
-	// <!-- custom: Former AIFoundValue::logSite() emitted site identity and coastal/city context. The explicit BBAI name now also covers the settings formerly emitted by CitySiteEvaluator::logSettings(), recorded with the actual evaluation rather than a replay. See KI#505.2. (GPT-6.1-Sol) -->
+	// <!-- custom: Former AIFoundValue::logSite() emitted site identity and coastal/city context.
+	// The explicit BBAI name now also covers the settings formerly emitted by CitySiteEvaluator::logSettings(), recorded with the actual evaluation rather than a replay. See KI#505.2. (GPT-6.1-Sol) -->
 	void logBBAIFoundSiteSettings() const;
-	// <!-- custom: Renamed inherited AIFoundValue::logPlot(): reports BFC plot yields, culture and resource-access diagnostics without calculating valuation. Consolidated rows now also carry the already-computed nature/potential scores and cache-hit result. The BBAI prefix identifies its output sink; logBBAIFoundDetail supplies the shared row context. See KI#505.2. (GPT-6.1-Sol) -->
+	// <!-- custom: Renamed inherited AIFoundValue::logPlot(): reports BFC plot yields, culture and resource-access diagnostics without calculating valuation.
+	// Consolidated rows now also carry the already-computed nature/potential scores and cache-hit result.
+	// The BBAI prefix identifies its output sink; logBBAIFoundDetail supplies the shared row context. See KI#505.2. (GPT-6.1-Sol) -->
 	void logBBAIFoundPlotDetails(CvPlot const& p, int iPlotValue, int const* aiYield, int iCultureModifier, BonusTypes eBonus, ImprovementTypes eBonusImprovement, bool bCanTradeBonus, bool bCanSoonTradeBonus, bool bCanImproveBonus, bool bCanSoonImproveBonus, bool bEasyAccess, int iFeatureProduction, bool bPersistentFeature, bool bRemovableFeature, int iNatureYieldValue, int iPotentialValue, ImprovementTypes ePotentialImprovement, int const* aiPotentialYield, int iPotentialTimingPercent, bool bPotentialCacheHit) const;
 	// </advc.031c>
 	int evaluate();
@@ -221,7 +228,9 @@ private:
 	// <!-- custom: removed and now added inline in parent caller AIFoundValue::evaluate() directly, as it seems to be called only once, and we'd have more parameters to fine tune it further in parent caller rather, it is also clearer this way i think -->
 	//int foundOnResourceValue(int const* aiBonusImprovementYield) const;
 	int applyCultureModifier(CvPlot const& p, int iPlotValue, int iCultureModifier, bool bShare) const;
-	// <!-- custom: Base AdvCiv had no diagnostic pointer parameters here; our previous SAS diagnostics exposed baseBonusVal/multiplier/earlyPercent from the broad AI_bonusVal path. Replace those with explicit new health/happiness value, plausible ordinary and capped special-building health/happiness effects, final adjustment, and water-penalty diagnostics. The old first-growth/luxury extra is not a separate parameter because new health/happiness already represents that empire-wide effect; adding a flat first-bonus value would double-count it. See KI#178. (GPT-5.5 + GPT-5.6-Sol) -->
+	// <!-- custom: Base AdvCiv had no diagnostic pointer parameters here; our previous SAS diagnostics exposed baseBonusVal/multiplier/earlyPercent from the broad AI_bonusVal path.
+	// Replace those with explicit new health/happiness value, plausible ordinary and capped special-building health/happiness effects, final adjustment, and water-penalty diagnostics.
+	// The old first-growth/luxury extra is not a separate parameter because new health/happiness already represents that empire-wide effect; adding a flat first-bonus value would double-count it. See KI#178. (GPT-5.5 + GPT-5.6-Sol) -->
 	bool isPlotInKnownRivalFutureBFC(CvPlot const& p) const;
 	bool isBonusOwnedOrClaimedByFutureBFC(BonusTypes eBonus) const;
 	bool isBonusBuildingEffectValued(BuildingTypes eBuilding, int iMaxPrereqEra, bool bCoastal) const;
@@ -233,7 +242,8 @@ private:
 	void calculateBuildingYields(CvPlot const& p, int const* aiNatureYield, int* aiBuildingYield) const;
 	// <!-- custom: The weighted site total still uses the complete sorted BFC, while optional outputs expose best-1/2/3/6/10/14 sums, their cutoff plots and the positive-plot count from that same sort without rescanning or changing the score. (GPT-5.6-Sol) -->
 	int sumUpPlotValues(std::vector<int>& aiPlotValues, int* aiCoreSums = NULL, int* aiCoreCutoffs = NULL, int* piPositivePlots = NULL) const;
-	// <!-- custom: Disabled after XML-tunable SAS bonus-improvement yield valuation made this obscure hardcoded path redundant and retaining both overscored bonus-heavy sites in KI#173 follow-up testing. Kept commented with its implementation for reference. (GPT-5.5) -->
+	// <!-- custom: Disabled after XML-tunable SAS bonus-improvement yield valuation made this obscure hardcoded path redundant and retaining both overscored bonus-heavy sites in KI#173 follow-up testing.
+	// Kept commented with its implementation for reference. (GPT-5.5) -->
 	// int evaluateSpecialYields(int const* aiSpecialYield, int iSpecialYieldTiles, int iSpecialFoodPlus, int iSpecialFoodMinus) const;
 	// <!-- custom: simplify logic and attempt to spread cities more, currently they are way too crowded which is inefficient -->
 	// bool isTooManyTakenTiles(int iTaken, int iResourceValue, bool bLowValue) const;
@@ -252,9 +262,11 @@ private:
 	// 		int iGreenTiles) const;
 	// <!-- custom: see code comment there for details -->
 	// int adjustToProduction(int iValue, scaled rBaseProduction) const;
-	// <!-- custom: Barbarian spawning already requires eligible fogged land; disable Base AdvCiv's additional penalty against a new Barbarian city near an existing city because it could make a stronger nearby tile lose to a weaker farther one. This never controlled normal Settlers avoiding Barbarian cities. (GPT-5.6-Sol) -->
+	// <!-- custom: Barbarian spawning already requires eligible fogged land; disable Base AdvCiv's additional penalty against a new Barbarian city near an existing city because it could make a stronger nearby tile lose to a weaker farther one.
+	// This never controlled normal Settlers avoiding Barbarian cities. (GPT-5.6-Sol) -->
 	//int adjustToBarbarianSurroundings(int iValue) const;
-	// <!-- custom: this adjustToCivSurroundings caused a bug of AI settler settling on bonus camel desert which is very bad in a desert surroudning even worse, it is seemingly called only once in AIFoundValue::evaluate, may as well disable it since it is so complicated and who knows where the bugs is(/are?) and instead migrate only a very simplified version of the logic we want directly inline in its only caller so in AIFoundValue::evaluate, done so with the help of chatgpt 5, check if accurate, see known issue as of now 54 for details -->
+	// <!-- custom: this adjustToCivSurroundings caused a bug of AI settler settling on bonus camel desert which is very bad in a desert surroudning even worse, it is seemingly called only once in AIFoundValue::evaluate, may as well disable it since it is so complicated and who knows where the bugs is(/are?)
+	// and instead migrate only a very simplified version of the logic we want directly inline in its only caller so in AIFoundValue::evaluate, done so with the help of chatgpt 5, check if accurate, see known issue as of now 54 for details -->
 	// int adjustToCivSurroundings(int iValue, int iStealPercent) const;
 	int adjustToCitiesPerArea(int iValue) const;
 	int adjustToBonusCount(int iValue, std::vector<int> const& aiBonusCount) const;

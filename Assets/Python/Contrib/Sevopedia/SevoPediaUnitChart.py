@@ -41,9 +41,9 @@ class SevoPediaUnitChart:
 
 		self.placeUnitTable()
 
-	# <!-- custom: i did not know about this ChatGPT told me about this or made me understand it and solve it, so adding this explanation in case it helps others or me:
-	# in python, here for placeUnitTable function, when we call it using self.placeUnitTable(), self is passed automatically as an argument so no need to write it (else there would be 2 arguments) at function.
-	# However, in function definition, self is not known, so it needs to be defined as a parameter. This is why there is an apparent mismatch in the number of parameters vs arguments in placeUnitTable(self) vs self.placeUnitTable(), but this is how it should be done else it does not work.
+	# <!-- custom: i did not know about this ChatGPT told me about this or made me understand it and solve it, so adding this explanation in case it helps others or me: in python, here for placeUnitTable function, when we call it using self.placeUnitTable(), self is passed automatically as an argument so no need to write it (else there would be 2 arguments) at function.
+	# However, in function definition, self is not known, so it needs to be defined as a parameter.
+	# This is why there is an apparent mismatch in the number of parameters vs arguments in placeUnitTable(self) vs self.placeUnitTable(), but this is how it should be done else it does not work.
 	# Thanks to ChatGPT for the guidance; adding this in case it helps others. (GPT-5.2-Codex (summarized)) -->
 	def placeUnitTable(self):
 		screen = self.top.getScreen()
@@ -56,8 +56,7 @@ class SevoPediaUnitChart:
 		else:
 			self.N_COLUMNS = 10
 
-		# <!-- custom: simple per-column width tuning (no extra structures):
-		# tighter numeric columns free room for collateral text; air evasion/intercept stay equal. (GPT-5.3-Codex) -->
+		# <!-- custom: simple per-column width tuning (no extra structures): tighter numeric columns free room for collateral text; air evasion/intercept stay equal. (GPT-5.3-Codex) -->
 		wTight = self.W_NUM - 7
 		wDefault = self.W_NUM
 		wWide = self.W_NUM + 28
@@ -102,10 +101,11 @@ class SevoPediaUnitChart:
 
 		szCost = u"%c" % gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar()
 
-		# <!-- custom: trick (to center the headers text too) taught to me by ChatGPT, quoting it: "screen.setTableColumnHeader(...) don't use FONT_*_JUSTIFY like the cell contents, but there's a workaround." + "Workaround: Pad the header label string manually" thanks, that i adjusted too or not for advciv-sas. -->
+		# <!-- custom: trick (to center the headers text too) taught to me by ChatGPT, quoting it: "screen.setTableColumnHeader(...)
+		# don't use FONT_*_JUSTIFY like the cell contents, but there's a workaround."
+		# + "Workaround: Pad the header label string manually" thanks, that i adjusted too or not for advciv-sas. -->
 		# <!-- custom: table headers do not honor text-justify in this widget.
-		# Keep per-header legacy spacing (worked well at font 2), then reduce spaces gradually
-		# when label font > 2 to avoid right-shift at larger scales. (GPT-5.3-Codex) -->
+		# Keep per-header legacy spacing (worked well at font 2), then reduce spaces gradually when label font > 2 to avoid right-shift at larger scales. (GPT-5.3-Codex) -->
 		iLabelFont = getSASUIFontLabel()
 		iShrink = 0
 		if iLabelFont > 2:

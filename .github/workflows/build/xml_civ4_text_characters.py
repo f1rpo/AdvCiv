@@ -21,7 +21,8 @@ ENCODINGS_TO_TRY = (
 	"latin1",
 )
 
-# <!-- custom: Civ4 renders these Unicode typography characters as artifacts in GameText. Keep readable accented letters valid and use simple ASCII punctuation instead. (GPT-5.6-Sol) -->
+# <!-- custom: Civ4 renders these Unicode typography characters as artifacts in GameText.
+# Keep readable accented letters valid and use simple ASCII punctuation instead. (GPT-5.6-Sol) -->
 UNSUPPORTED_CHARACTERS = {
 	"\u00a0": "non-breaking space",
 	"\u2010": "Unicode hyphen",

@@ -252,8 +252,11 @@ protected:
 		kElements.addInt(VoteIntervalPercent, "VoteIntervalPercent", 100);
 		kElements.addInt(UnitCostPercent, "UnitCostPercent", 100);
 
-		// <!-- custom: ExtraFreeOutsideUnits is a UNIT COUNT (added to INITIAL_FREE_OUTSIDE_UNITS in CvPlayer::calculateUnitSupply), not a percent. The XML schema allows the tag to be omitted (minOccurs=0), so the default matters.
-		// It was previously defaulted to 100 (copied from percent-style fields), which effectively means "+100 free outside units" on any game speed missing <iExtraFreeOutsideUnits>, causing confusing mismatches (spotted via the SevoPedia Game Speed Chart). Defaulting to 0 makes "tag missing" behave like "no extra", which matches intent and avoids accidental huge free allowances. (ChatGPT 5.2 Thinking). See known issue as of now 92 for details. -->
+		// <!-- custom: ExtraFreeOutsideUnits is a UNIT COUNT (added to INITIAL_FREE_OUTSIDE_UNITS in CvPlayer::calculateUnitSupply), not a percent.
+		// The XML schema allows the tag to be omitted (minOccurs=0), so the default matters.
+		// It was previously defaulted to 100 (copied from percent-style fields), which effectively means "+100 free outside units" on any game speed missing <iExtraFreeOutsideUnits>, causing confusing mismatches (spotted via the SevoPedia Game Speed Chart).
+		// Defaulting to 0 makes "tag missing" behave like "no extra", which matches intent and avoids accidental huge free allowances. (ChatGPT 5.2 Thinking).
+		// See known issue as of now 92 for details. -->
 		kElements.addInt(ExtraFreeOutsideUnits, "ExtraFreeOutsideUnits", 0);
 
 		// </advc.252>

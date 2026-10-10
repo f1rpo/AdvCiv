@@ -496,7 +496,8 @@ void CvDeal::doTurn()
 // XXX probably should have some sort of message for the user or something...
 void CvDeal::verify()
 {
-	// <!-- custom: Preserve CvDeal::verify's first live invalidation cause for SASGameRecord without evaluating either direction or the peace-expiry gate twice. The POD context remains untouched when level 2 is disabled. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Preserve CvDeal::verify's first live invalidation cause for SASGameRecord without evaluating either direction or the peace-expiry gate twice.
+	// The POD context remains untouched when level 2 is disabled. (ChatGPT-5.6-Sol) -->
 	SASGameRecordDealInvalidationContext kSASContext;
 	SASGameRecordDealInvalidationContext* pSASContext = (gGameRecordLogLevel >= 2 ? &kSASContext : NULL);
 	// advc: Moved into auxiliary function to get rid of duplicate code
@@ -1192,7 +1193,8 @@ void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToP
 	if (!bAlive)
 		bUpdateAttitude = false; // </advc>
 	if (gGameRecordLogLevel >= 3) logSASGameRecordTradeItemAction("DIPLO_TRADE_ITEM_ENDED", getID(), trade, eFromPlayer, eToPlayer, bTeam, bAlive, eCancelPlayer);
-	// <!-- custom: Permanent Alliance cleanup runs after player reassignment to avoid unit bumping. Its team-level state was cleared through the preserved old team IDs in CvTeam::addTeam; do not reinterpret those saved items as self-team cancellations here.
+	// <!-- custom: Permanent Alliance cleanup runs after player reassignment to avoid unit bumping.
+	// Its team-level state was cleared through the preserved old team IDs in CvTeam::addTeam; do not reinterpret those saved items as self-team cancellations here.
 	// Player-level annual components in the same deal still continue through ordinary teardown below. See KI#613. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (TEAMID(eFromPlayer) == TEAMID(eToPlayer))
 	{

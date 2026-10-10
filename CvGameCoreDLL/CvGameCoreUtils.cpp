@@ -14,7 +14,8 @@
 #include "CvInfo_Civics.h" // <!-- custom: Shared trade serialization resolves CvCivicInfo type names; CvGlobals only forward-declares the info class. (ChatGPT-5.6-Sol) -->
 #include "CvInfo_Organization.h" // <!-- custom: Shared diagnostic trade-list text resolves religion trade items. (ChatGPT-5.6-Sol) -->
 
-// <!-- custom: Centralize second-precision UTC formatting for diagnostic identities and filenames. The explicit-time overload lets a caller reuse one sampled clock reading; the no-argument overload samples it here. See KI#629. (GPT-5.6-Sol) -->
+// <!-- custom: Centralize second-precision UTC formatting for diagnostic identities and filenames.
+// The explicit-time overload lets a caller reuse one sampled clock reading; the no-argument overload samples it here. See KI#629. (GPT-5.6-Sol) -->
 CvString createSASUtcTimestamp(const time_t kTime)
 {
 	CvString szTimestamp;
@@ -33,7 +34,8 @@ CvString createSASUtcTimestamp()
 	return createSASUtcTimestamp(kNow);
 }
 
-// <!-- custom: SYSTEMTIME is the common millisecond-precision UTC representation used both for a live UTC sample and for Win32 FILETIME conversion. Keep formatting centralized here. (ChatGPT-5.6-Sol) -->
+// <!-- custom: SYSTEMTIME is the common millisecond-precision UTC representation used both for a live UTC sample and for Win32 FILETIME conversion.
+// Keep formatting centralized here. (ChatGPT-5.6-Sol) -->
 static CvString formatSASUtcSystemTime(SYSTEMTIME const& kUtcTime)
 {
 	CvString szTimestamp;
@@ -87,7 +89,8 @@ void logSASDiagnosticLiteralLine(char const* szLogName, char const* szLine)
 	gDLL->logMsg(szLogName, szEscapedLine.c_str(), false, false);
 }
 
-// <!-- custom: The Makefile stamps the real nmake target through /DSAS_DLL_BUILD_CONFIGURATION; keep 0 only as an UNKNOWN fallback for alternate or legacy build paths that do not inject it. This lives in shared diagnostics code because BBAI and SASGameRecord both report the same compiled binary. (ChatGPT-5.6-Sol) -->
+// <!-- custom: The Makefile stamps the real nmake target through /DSAS_DLL_BUILD_CONFIGURATION; keep 0 only as an UNKNOWN fallback for alternate or legacy build paths that do not inject it.
+// This lives in shared diagnostics code because BBAI and SASGameRecord both report the same compiled binary. (ChatGPT-5.6-Sol) -->
 #ifndef SAS_DLL_BUILD_CONFIGURATION
 #define SAS_DLL_BUILD_CONFIGURATION 0
 #endif
@@ -219,7 +222,8 @@ CvWString getSASRuntimeDisplayNameAndVersion()
 	return szName;
 }
 
-// <!-- custom: Distinguish the exact loaded DLL and Civ4 executable candidates from source/version identity. The nmake target is embedded at compile time; size, linker timestamp, last-write time and FNV-1a fingerprints come from the files backing the loaded modules.
+// <!-- custom: Distinguish the exact loaded DLL and Civ4 executable candidates from source/version identity.
+// The nmake target is embedded at compile time; size, linker timestamp, last-write time and FNV-1a fingerprints come from the files backing the loaded modules.
 // FNV-1a is a compact diagnostic fingerprint rather than a security hash, but it is strong enough to tell different local DLL/EXE candidates apart without adding a CryptoAPI/library dependency.
 // Cache each once because neither loaded image can change within this process. (ChatGPT-5.6-Sol) -->
 struct SASBinaryDiagnosticContext
@@ -1484,8 +1488,10 @@ char const* getSASAIStrategyType(AIStrategy eStrategy)
 }
 
 // <!-- custom: AI, map, UI and recorder paths share this Found-context vocabulary, so keep its canonical text mapping beside the other getSAS*Type helpers.
-// The enum is used across files; the conversion itself currently has one caller in CitySiteEvaluator's enabled Found output. A file-local converter would also work, but this placement follows the shared diagnostic-enum convention without duplicating labels.
-// Preserve the existing labels; invalid values assert and print an explicit error marker. This is diagnostic metadata, not a gameplay rule. See KI#505.2. (GPT-6.1-Sol) -->
+// The enum is used across files; the conversion itself currently has one caller in CitySiteEvaluator's enabled Found output.
+// A file-local converter would also work, but this placement follows the shared diagnostic-enum convention without duplicating labels.
+// Preserve the existing labels; invalid values assert and print an explicit error marker.
+// This is diagnostic metadata, not a gameplay rule. See KI#505.2. (GPT-6.1-Sol) -->
 char const* getSASFoundLogContextType(SASFoundLogContextTypes eContext)
 {
 	switch (eContext)
@@ -1597,7 +1603,8 @@ int getSASTeamSpaceshipPartsPercent(TeamTypes eTeam)
 	return (iPartsRequired <= 0 ? 0 : getSASTeamSpaceshipPartsBuilt(eTeam) * 100 / iPartsRequired);
 }
 
-// <!-- custom: Victory countdown lengths themselves use VictoryDelayPercent, so SAS countdown gates expressed in Normal-speed turns must use the same scale. Keep the adjusted value per call rather than static so starting a different game speed in the same Civ4 process cannot reuse a stale result. (GPT-5.6 Thinking) -->
+// <!-- custom: Victory countdown lengths themselves use VictoryDelayPercent, so SAS countdown gates expressed in Normal-speed turns must use the same scale.
+// Keep the adjusted value per call rather than static so starting a different game speed in the same Civ4 process cannot reuse a stale result. (GPT-5.6 Thinking) -->
 int getSASVictoryDelayTurnsFromNormalGameSpeed(int iNormalTurns)
 {
 	if (iNormalTurns <= 0)
@@ -1621,11 +1628,14 @@ bool isSASTeamStage3SpaceVictoryThreat(TeamTypes eTeam)
 		return false;
 	int const iPartsBuilt = getSASTeamSpaceshipPartsBuilt(eTeam);
 	static const int iLeaderPartMargin = GC.getDefineINT("SAS_UWAI_VICTORY_DENIAL_STAGE3_SPACE_LEADER_PART_MARGIN");
-	// <!-- custom: Save-file 452 showed raw part count was too crude: England and Egypt were both major Space threats at 8/16 parts, but every Apollo builder should not trigger emergency wars. Require enough completion and near-leader Space progress. (GPT-5.5) -->
+	// <!-- custom: Save-file 452 showed raw part count was too crude: England and Egypt were both major Space threats at 8/16 parts, but every Apollo builder should not trigger emergency wars.
+	// Require enough completion and near-leader Space progress. (GPT-5.5) -->
 	return (iPartsBuilt * 100 >= getSASSpaceshipPartsRequired() * iStage3SpacePercentThreshold && getSASLeadingSpaceshipPartsBuilt() - iPartsBuilt <= iLeaderPartMargin);
 }
 
-// <!-- custom: Victory-denial peace refusal was implemented only as a final CvDeal guard. A fresh Pangaea diagnostic run logged 57 negotiations that returned success although the guard kept the teams at war, causing repeated ineffective treaties. Share the exact threat test so UWAI can reject those negotiations before building a deal while CvDeal retains its safety net. (GPT-5.6-Sol) -->
+// <!-- custom: Victory-denial peace refusal was implemented only as a final CvDeal guard.
+// A fresh Pangaea diagnostic run logged 57 negotiations that returned success although the guard kept the teams at war, causing repeated ineffective treaties.
+// Share the exact threat test so UWAI can reject those negotiations before building a deal while CvDeal retains its safety net. (GPT-5.6-Sol) -->
 bool isSASUWAIVictoryDenialPeaceThreat(TeamTypes eTeam, int* piVictoryCountdown, int* piMaxVictoryStage)
 {
 	static const bool bSASUWAIVictoryDenialEnable = GC.getDefineBOOL("SAS_UWAI_VICTORY_DENIAL_ENABLE");
@@ -2148,7 +2158,8 @@ int intHash(std::vector<int> const& kInputs, PlayerTypes ePlayer)
 
 int getTurnYearForGame(int iGameTurn, int iStartYear, CalendarTypes eCalendar, GameSpeedTypes eSpeed)
 {
-	// <!-- custom: Signed C++ division truncated negative fractional BC years toward AD. Subtract AdvCiv's nonnegative calendar remainder first to obtain the mathematical floor year, matching its sibling BC-month correction. See KI#594. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Signed C++ division truncated negative fractional BC years toward AD.
+	// Subtract AdvCiv's nonnegative calendar remainder first to obtain the mathematical floor year, matching its sibling BC-month correction. See KI#594. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	int const iMonthsPerYear = std::max(1, GC.getNumMonthInfos()); // advc: max
 	int const iTurnMonth = getTurnMonthForGame(iGameTurn, iStartYear, eCalendar, eSpeed);
 	return (iTurnMonth - intdiv::umodulo(iTurnMonth, iMonthsPerYear)) / iMonthsPerYear;

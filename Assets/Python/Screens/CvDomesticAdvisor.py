@@ -110,7 +110,8 @@ class CvDomesticAdvisor:
 		self.iFOOD_CONSUMPTION_PER_POPULATION = None
 
 	def initText(self):
-		# <!-- custom: cache Domestic Advisor header texts/icons once per language to avoid repeated translation/symbol lookups on redraw. Keep column widths runtime-based because they depend on current screen size. (GPT-5.3-Codex) -->
+		# <!-- custom: cache Domestic Advisor header texts/icons once per language to avoid repeated translation/symbol lookups on redraw.
+		# Keep column widths runtime-based because they depend on current screen size. (GPT-5.3-Codex) -->
 		if self.iLanguageLoaded == CyGame().getCurrentLanguage() or not CyGame().isFinalInitialized():
 			return
 		self.iLanguageLoaded = CyGame().getCurrentLanguage()
@@ -276,7 +277,8 @@ class CvDomesticAdvisor:
 			(loopCity, iter) = player.nextCity(iter, false)
 		if not bCanLiberate:
 			return
-		# <!-- custom: The SAS tabbed Domestic Advisor shell lost base AdvCiv's visible Free Colony/Liberate action even though the native control remained available. Restore its original WIDGET_ACTION and style for the real active-player perspective; the native action supplies the tooltip and popup. See KI#233. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: The SAS tabbed Domestic Advisor shell lost base AdvCiv's visible Free Colony/Liberate action even though the native control remained available.
+		# Restore its original WIDGET_ACTION and style for the real active-player perspective; the native action supplies the tooltip and popup. See KI#233. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		iY = self.Y_BOTTOM_PANEL + (55 - self.FREE_COLONY_BUTTON_SIZE) / 2
 		screen.setImageButton(self.FREE_COLONY_BUTTON_ID, "", self.X_FREE_COLONY_BUTTON, iY, self.FREE_COLONY_BUTTON_SIZE, self.FREE_COLONY_BUTTON_SIZE, WidgetTypes.WIDGET_ACTION, gc.getControlInfo(ControlTypes.CONTROL_FREE_COLONY).getActionInfoIndex(), -1)
 		screen.setStyle(self.FREE_COLONY_BUTTON_ID, "Button_HUDAdvisorVictory_Style")
@@ -437,7 +439,8 @@ class CvDomesticAdvisor:
 		# Population Column
 		screen.setTableColumnHeader( self.TABLE_OVERVIEW1, 2, self.getOverviewHeaderLabel(self.HEADER_POPULATION), (35 * self.nTableWidth) / self.nNormalizedTableWidth )
 
-		# <!-- custom: keep religions in a compact aligned column; appending glyphs to city names was harder to scan. Corporations stay on Overview 3 because they matter less often and would crowd Overview 1. (GPT-5.5) -->
+		# <!-- custom: keep religions in a compact aligned column; appending glyphs to city names was harder to scan.
+		# Corporations stay on Overview 3 because they matter less often and would crowd Overview 1. (GPT-5.5) -->
 		screen.setTableColumnHeader( self.TABLE_OVERVIEW1, 3, self.getOverviewHeaderLabel(self.HEADER_RELIGIONS), (self.getOverviewReligionColumnWidth() * self.nTableWidth) / self.nNormalizedTableWidth )
 
 		# Happiness Column  advc.ctr: width was 40
@@ -1370,7 +1373,8 @@ class CvDomesticAdvisor:
 
 		szCorps = self.getCityCorporationText(pLoopCity)
 		screen.setTableInt( self.TABLE_OVERVIEW4, 2, i, szFontTagOpen + unicode(pLoopCity.getPopulation()) + szFontTagClose, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
-		# <!-- custom: Founded used localized BC/AD text in a lexical table cell, so sorting did not follow chronology across differently sized years or the BC/AD boundary. Match World Advisor by using the raw signed founding year in a numeric cell. See KI#223. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+		# <!-- custom: Founded used localized BC/AD text in a lexical table cell, so sorting did not follow chronology across differently sized years or the BC/AD boundary.
+		# Match World Advisor by using the raw signed founding year in a numeric cell. See KI#223. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		iFoundYear = CyGame().getTurnYear(pLoopCity.getGameTurnFounded())
 		SASTextScale.setTableIntLabel(screen, self.TABLE_OVERVIEW4, 3, i, iFoundYear, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 		screen.setTableInt( self.TABLE_OVERVIEW4, 4, i, szFontTagOpen + unicode(pLoopCity.getRealPopulation()) + szFontTagClose, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )

@@ -1394,8 +1394,7 @@ bool CvPythonCaller::canPlaceItemAt(char const* szItemName, CvPlot const& kPlot,
 		bOverride = false;
 		return false;
 	}
-	// <!-- custom: Preserve the inherited map-callback contract: after negative fallback results are removed above,
-	// every positive value permits placement rather than only exactly 1. See KI#598. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Preserve the inherited map-callback contract: after negative fallback results are removed above, every positive value permits placement rather than only exactly 1. See KI#598. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	return (lResult > 0);
 }
 
@@ -1480,7 +1479,8 @@ int CvPythonCaller::minStartingDistanceMod() const
 {
 	long lResult = 0;
 	call("minStartingDistanceModifier", lResult, m_python.getMapScriptModule(), false);
-	// <!-- custom: AdvCiv's callback extraction clamped negative script modifiers to 0 before CvGame added 100, turning inherited values such as -95 into neutral 100% instead of 5%. Restore BtS's -100 lower bound while preserving positive modifiers. See KI#285. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: AdvCiv's callback extraction clamped negative script modifiers to 0 before CvGame added 100, turning inherited values such as -95 into neutral 100% instead of 5%.
+	// Restore BtS's -100 lower bound while preserving positive modifiers. See KI#285. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	return std::max(-100, toInt(lResult));
 }
 

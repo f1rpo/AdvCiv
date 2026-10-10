@@ -270,7 +270,8 @@
 		<Italian>Certo che no! L'onore di [OUR_CIV_SHORT] vuole che questa guerra continui fino a quando non sarai ridotto in pezzi molto piccoli.</Italian>
 		<Spanish>¡Por supuesto que no! El honor de [OUR_CIV_SHORT] exige que la guerra continúe hasta que os hayamos hecho paté de foie.</Spanish>
 	</TEXT>
-	<!-- custom: Moved modified de Gaulle friendly greeting overrides to AdvCiv-SAS_main.xml. See as of now AdvCiv-SAS Text XML and KI#149. (GPT-5.5) -->
+	<!-- custom: Moved modified de Gaulle friendly greeting overrides to AdvCiv-SAS_main.xml.
+	See as of now AdvCiv-SAS Text XML and KI#149. (GPT-5.5) -->
 	<TEXT>
 		<Tag>AI_DIPLO_GREETINGS_ATT_FUR_LEADER_DE_GAULLE_1</Tag>
 		<English>[CT_NAME]. I predict you will sink step by step into a bottomless quagmire, however much you spend in men and money. What do you want now?</English>

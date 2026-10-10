@@ -2,7 +2,8 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 
-# <!-- custom: Rebuild generated reports into a temporary directory and compare actual content, rather than merely requiring that a stale report was touched in the same commit. The pinned handicap baseline reproduces the published comparison without a sibling mod installation. (GPT-6.1-Sol) -->
+# <!-- custom: Rebuild generated reports into a temporary directory and compare actual content, rather than merely requiring that a stale report was touched in the same commit.
+# The pinned handicap baseline reproduces the published comparison without a sibling mod installation. (GPT-6.1-Sol) -->
 import argparse
 import datetime
 from dataclasses import dataclass
@@ -31,7 +32,9 @@ class TextConversion:
     refresh_command: str
     related_sources: tuple[Path, ...] = ()
 
-# <!-- custom: Register each canonical source, searchable text output and its converter together. Related source artifacts also require a paired text refresh; the AdvCiv manual is currently the only registered conversion. Future conversions use the same checks without manual-specific branches. (GPT-6.1-Sol) -->
+# <!-- custom: Register each canonical source, searchable text output and its converter together.
+# Related source artifacts also require a paired text refresh; the AdvCiv manual is currently the only registered conversion.
+# Future conversions use the same checks without manual-specific branches. (GPT-6.1-Sol) -->
 TEXT_CONVERSIONS = (
     TextConversion(MANUAL / "manual.odt", MANUAL / "manual.txt", manual.convert, "python LLM_Helpers/convert_advciv_manual_to_txt.py", (MANUAL / "manual.pdf",)),
 )
@@ -60,13 +63,16 @@ def has_commit(repo, ref):
     return subprocess.run(["git", "cat-file", "-e", ref + "^{commit}"], cwd=repo, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
 
 def changed_conversion_errors(repo, base_ref, conversions=TEXT_CONVERSIONS, event_name=None):
-    # <!-- custom: Compare the whole PR/push range, not only its last commit, so a later paired text update satisfies an earlier source edit. Root pushes have no prior tree. (GPT-6.1-Sol) -->
+    # <!-- custom: Compare the whole PR/push range, not only its last commit, so a later paired text update satisfies an earlier source edit.
+    # Root pushes have no prior tree. (GPT-6.1-Sol) -->
     if not base_ref or set(base_ref) == {"0"}:
         return []
     if not has_commit(repo, base_ref):
         if event_name != "push":
             return [f"change-range base {base_ref} is unavailable; fetch the base commit before checking paired source/text updates"]
-        # <!-- custom: A force-push after amending left github.event.before pointing to a commit absent from the runner's full-history checkout, causing fatal bad object. Try fetching that exact commit first; if it is no longer served, explicitly report the unavailable push-range check while retaining current-content validation. PR/ordinary local missing bases remain errors. (GPT-6.1-Sol) -->
+        # <!-- custom: A force-push after amending left github.event.before pointing to a commit absent from the runner's full-history checkout, causing fatal bad object.
+        # Try fetching that exact commit first; if it is no longer served, explicitly report the unavailable push-range check while retaining current-content validation.
+        # PR/ordinary local missing bases remain errors. (GPT-6.1-Sol) -->
         fetched = subprocess.run(["git", "fetch", "--no-tags", "origin", base_ref], cwd=repo, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         if fetched.returncode != 0 or not has_commit(repo, base_ref):
             print(f"NOTICE: push-before commit {base_ref} is unavailable even after fetching origin; paired source/text change-range validation cannot run (rewritten push history). Current generated-content validation still runs.", file=sys.stderr)

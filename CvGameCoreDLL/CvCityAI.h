@@ -178,9 +178,11 @@ protected:
 
 	int m_iCultureWeight; // K-Mod
 	// <!-- custom: BEGIN transient culture-victory city state. (GPT-5.5) -->
-	// <!-- custom: Transient projected culture-victory rank, refreshed with commerce weights and intentionally not serialized. It lets local process evaluation distinguish required Legendary candidates from unrelated cities without repeating the empire-wide ranking pass. (GPT-5.5) -->
+	// <!-- custom: Transient projected culture-victory rank, refreshed with commerce weights and intentionally not serialized.
+	// It lets local process evaluation distinguish required Legendary candidates from unrelated cities without repeating the empire-wide ranking pass. (GPT-5.5) -->
 	int m_iCultureVictoryRank;
-	// <!-- custom: Transient victory-specific culture investment percentage after candidate balancing, also intentionally not serialized. Zero prevents a far-ahead candidate from using Culture process while preserving independent base/pressure culture value. (GPT-5.5) -->
+	// <!-- custom: Transient victory-specific culture investment percentage after candidate balancing, also intentionally not serialized.
+	// Zero prevents a far-ahead candidate from using Culture process while preserving independent base/pressure culture value. (GPT-5.5) -->
 	int m_iCultureVictoryInvestmentPercent;
 	// <!-- custom: END transient culture-victory city state. (GPT-5.5) -->
 	int m_iEmphasizeAvoidGrowthCount;

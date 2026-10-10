@@ -887,7 +887,8 @@ class PeirceMultilayeredFractal(CvMapGeneratorUtil.MultilayeredFractal):
 				iParallelOffset = iQuadW/4
 				iParallelHeight = iQuadW/2 - 6
 
-	# <!-- custom: The original Peirce script computed a distinct anchor for each portrait companion arm but passed the preceding landscape arm's anchor instead, shifting and overlapping the intended E-W continent pieces. Use each freshly computed second anchor. See KI#255. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: The original Peirce script computed a distinct anchor for each portrait companion arm but passed the preceding landscape arm's anchor instead, shifting and overlapping the intended E-W continent pieces.
+	# Use each freshly computed second anchor. See KI#255. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	# Top Right North Continent
 				if iPrim != 0:
 					iRefX1 = iTRCentreX - 1
@@ -2233,7 +2234,8 @@ def isPeirceCrease(iX, iY):
 
 	bPeirceCrease = 0
 
-	# <!-- custom: The original Peirce script used Python's bitwise XOR operator as if it squared each coordinate delta, so crease classification did not measure circular distance and materially changed map topology. Explicit multiplication fixed the four quadrant tests. See KI#254. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	# <!-- custom: The original Peirce script used Python's bitwise XOR operator as if it squared each coordinate delta, so crease classification did not measure circular distance and materially changed map topology.
+	# Explicit multiplication fixed the four quadrant tests. See KI#254. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if iX < iTRCentreX and iY < iTRCentreY: # Bottom Left Quad
 		if (iX >= iLAX and iY <= iBBY) or (iX <= iLAX and iY >= iBBY):
 			if ((iX - iLAX)*(iX - iLAX) + (iY - iBBY)*(iY - iBBY) >= iRadius2):
