@@ -7605,15 +7605,12 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 						iNationalParkCurrentPlacementValue, iTurnsLeft, pNationalParkBestPlacementCity->getID(),
 						iNationalParkBestPlacementValue, iNationalParkBestPlacementTurns, iBestVsCurrentPercent,
 						bNationalParkRejectedForBetterCity);
-					if (SAS_shouldLogBuildingValueGateChange(*this, eLoopBuilding, "NATIONAL_PARK_INHERITED_PLACEMENT", szNationalParkPlacementSignature))
-					{
-						logBBAI("NATIONAL_PARK_INHERITED_PLACEMENT_AUDIT turn=%d player=%d %S city=%S cityId=%d building=%s currentValue=%d currentTurns=%d bestCity=%S bestCityId=%d bestValue=%d bestTurns=%d bestVsCurrentPercent=%d rejectedForBetterCity=%d limit=%d",
-							GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
-							kBuilding.getType(), iNationalParkCurrentPlacementValue, iTurnsLeft,
-							pNationalParkBestPlacementCity->getName().GetCString(), pNationalParkBestPlacementCity->getID(),
-							iNationalParkBestPlacementValue, iNationalParkBestPlacementTurns, iBestVsCurrentPercent,
-							bNationalParkRejectedForBetterCity, GC.getInfo(eLoopClass).getLimit());
-					}
+					if (SAS_shouldLogBuildingValueGateChange(*this, eLoopBuilding, "NATIONAL_PARK_INHERITED_PLACEMENT", szNationalParkPlacementSignature)) logBBAI("NATIONAL_PARK_INHERITED_PLACEMENT_AUDIT turn=%d player=%d %S city=%S cityId=%d building=%s currentValue=%d currentTurns=%d bestCity=%S bestCityId=%d bestValue=%d bestTurns=%d bestVsCurrentPercent=%d rejectedForBetterCity=%d limit=%d",
+						GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(),
+						kBuilding.getType(), iNationalParkCurrentPlacementValue, iTurnsLeft,
+						pNationalParkBestPlacementCity->getName().GetCString(), pNationalParkBestPlacementCity->getID(),
+						iNationalParkBestPlacementValue, iNationalParkBestPlacementTurns, iBestVsCurrentPercent,
+						bNationalParkRejectedForBetterCity, GC.getInfo(eLoopClass).getLimit());
 				}
 				// Subtract some points from wonder value, just to stop us from wasting it
 				if (kBuilding.isNationalWonder())
@@ -7700,17 +7697,14 @@ BuildingTypes CvCityAI::AI_bestBuildingThreshold(int iFocusFlags, int iMaxTurns,
 					bWorldWonderLocalExposureApplies, kLocalRivals.iIndependentRivalTeams, kLocalRivals.iUnknownIndependentRivalTeams,
 					kLocalRivals.iOurBlocPower, kLocalRivals.iCombinedKnownLocalRivalBlocPower, kLocalRivals.iHighestKnownLocalRivalBlocPower,
 					kLocalRivals.iLocalPowerAdvantagePercent, kLocalRivals.iHighestLocalPowerAdvantagePercent);
-				if (SAS_shouldLogBuildingValueGateChange(*this, eLoopBuilding, "WORLD_WONDER_LOCAL_OPPORTUNITY_COST", szSignature))
-				{
-					logBBAI("WORLD_WONDER_LOCAL_OPPORTUNITY_COST turn=%d player=%d %S city=%S cityId=%d building=%s valueBefore=%d valueAfter=%d selectionPercent=%d eagernessPercent=%d localExposurePercent=%d localExposureApplies=%d dominanceMinPowerPercent=%d area=%d areaAlone=%d independentRivalTeamsInArea=%d unknownIndependentRivalTeamsInArea=%d independentRivalCitiesInArea=%d ourBlocPower=%d combinedKnownLocalRivalBlocPower=%d highestKnownLocalRivalBlocPower=%d combinedLocalPowerAdvantagePercent=%d highestLocalPowerAdvantagePercent=%d stored=%d needed=%d turnsLeft=%d",
-						GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(), kBuilding.getType(),
-						iValueBeforeSASWorldWonderOpportunityCost, iValue, iWorldWonderSelectionValuePercent, iEagernessPercent, iWorldWonderLocalExposurePercent,
-						bWorldWonderLocalExposureApplies, iDominanceMinPowerPercent, getArea().getID(), bAreaAlone, kLocalRivals.iIndependentRivalTeams,
-						kLocalRivals.iUnknownIndependentRivalTeams, kLocalRivals.iIndependentRivalCities, kLocalRivals.iOurBlocPower,
-						kLocalRivals.iCombinedKnownLocalRivalBlocPower, kLocalRivals.iHighestKnownLocalRivalBlocPower, kLocalRivals.iLocalPowerAdvantagePercent,
-						kLocalRivals.iHighestLocalPowerAdvantagePercent, getBuildingProduction(eLoopBuilding), getProductionNeeded(eLoopBuilding),
-						(iTurnsLeft == MAX_INT ? -1 : iTurnsLeft));
-				}
+				if (SAS_shouldLogBuildingValueGateChange(*this, eLoopBuilding, "WORLD_WONDER_LOCAL_OPPORTUNITY_COST", szSignature)) logBBAI("WORLD_WONDER_LOCAL_OPPORTUNITY_COST turn=%d player=%d %S city=%S cityId=%d building=%s valueBefore=%d valueAfter=%d selectionPercent=%d eagernessPercent=%d localExposurePercent=%d localExposureApplies=%d dominanceMinPowerPercent=%d area=%d areaAlone=%d independentRivalTeamsInArea=%d unknownIndependentRivalTeamsInArea=%d independentRivalCitiesInArea=%d ourBlocPower=%d combinedKnownLocalRivalBlocPower=%d highestKnownLocalRivalBlocPower=%d combinedLocalPowerAdvantagePercent=%d highestLocalPowerAdvantagePercent=%d stored=%d needed=%d turnsLeft=%d",
+					GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getName().GetCString(), getID(), kBuilding.getType(),
+					iValueBeforeSASWorldWonderOpportunityCost, iValue, iWorldWonderSelectionValuePercent, iEagernessPercent, iWorldWonderLocalExposurePercent,
+					bWorldWonderLocalExposureApplies, iDominanceMinPowerPercent, getArea().getID(), bAreaAlone, kLocalRivals.iIndependentRivalTeams,
+					kLocalRivals.iUnknownIndependentRivalTeams, kLocalRivals.iIndependentRivalCities, kLocalRivals.iOurBlocPower,
+					kLocalRivals.iCombinedKnownLocalRivalBlocPower, kLocalRivals.iHighestKnownLocalRivalBlocPower, kLocalRivals.iLocalPowerAdvantagePercent,
+					kLocalRivals.iHighestLocalPowerAdvantagePercent, getBuildingProduction(eLoopBuilding), getProductionNeeded(eLoopBuilding),
+					(iTurnsLeft == MAX_INT ? -1 : iTurnsLeft));
 			}
 		}
 
@@ -9033,15 +9027,12 @@ static int SAS_adjustUnhealthinessReducerWonderForMilitaryPressure(CvCityAI cons
 		szSignature.Format("%d|%d|%d|%d|%d|%d|%d|%d|%d",
 			iInheritedValue, iAdjustedValue, bDanger, bEnemyStrong, kWarPower.iEnemyPowerPercent,
 			iTurnsForPressure, iStored, iCompletionPercent, iAppliedPenaltyPercent);
-		if (SAS_shouldLogBuildingValueGateChange(kCity, eBuilding, "NATIONAL_PARK_PRESSURE_VALUE", szSignature))
-		{
-			logBBAI("NATIONAL_PARK_PRESSURE_VALUE_AUDIT turn=%d player=%d %S city=%S cityId=%d building=%s inheritedValue=%d adjustedValue=%d danger=%d enemyStrong=%d enemyPowerPercent=%d turnsLeft=%d stored=%d needed=%d completionPercent=%d rawPenaltyPercent=%d appliedPenaltyPercent=%d",
-				GC.getGame().getGameTurn(), kCity.getOwner(), GET_PLAYER(kCity.getOwner()).getCivilizationDescription(0),
-				kCity.getName().GetCString(), kCity.getID(), GC.getInfo(eBuilding).getType(),
-				iInheritedValue, iAdjustedValue, bDanger, bEnemyStrong, kWarPower.iEnemyPowerPercent,
-				(iTurnsLeft == MAX_INT ? -1 : iTurnsLeft), iStored, iNeeded, iCompletionPercent,
-				iRawPenaltyPercent, iAppliedPenaltyPercent);
-		}
+		if (SAS_shouldLogBuildingValueGateChange(kCity, eBuilding, "NATIONAL_PARK_PRESSURE_VALUE", szSignature)) logBBAI("NATIONAL_PARK_PRESSURE_VALUE_AUDIT turn=%d player=%d %S city=%S cityId=%d building=%s inheritedValue=%d adjustedValue=%d danger=%d enemyStrong=%d enemyPowerPercent=%d turnsLeft=%d stored=%d needed=%d completionPercent=%d rawPenaltyPercent=%d appliedPenaltyPercent=%d",
+			GC.getGame().getGameTurn(), kCity.getOwner(), GET_PLAYER(kCity.getOwner()).getCivilizationDescription(0),
+			kCity.getName().GetCString(), kCity.getID(), GC.getInfo(eBuilding).getType(),
+			iInheritedValue, iAdjustedValue, bDanger, bEnemyStrong, kWarPower.iEnemyPowerPercent,
+			(iTurnsLeft == MAX_INT ? -1 : iTurnsLeft), iStored, iNeeded, iCompletionPercent,
+			iRawPenaltyPercent, iAppliedPenaltyPercent);
 	}
 	return iAdjustedValue;
 }

@@ -360,12 +360,13 @@ Conservative formatter for simple one-statement C++ logging guards.
 
 - Collapses ordinary `if (...)` and `else if (...)` logging pre-gates so the condition and log-like call head stay together, e.g. `if (bLog) logBBAI(...);`; the body recognizer is not limited to BBAI and also accepts SASGameRecord/domain logging helpers and `myLog...`-style names.
 - Arbitrary functions that merely contain `Log` in the middle of a gameplay/event name are intentionally excluded; this is a diagnostic-logging formatter, not a general one-statement formatter.
-- Eligible conditions must contain a recognizable logging gate such as a local `bLog...` flag, a `g*LogLevel`/`i*LogLevel` comparison, `GC.isLogging()`, or an explicit logging-enabled predicate; the exact variable name is otherwise generic.
+- Eligible conditions must contain a recognizable logging gate such as a local `bLog...`/`bSAS...Log`/`b...Logging` flag, a `g*LogLevel`/`i*LogLevel` comparison, `GC.isLogging()`, `GC.getLogger().isEnabled...()`, or an explicit `shouldLog...()`/logging-enabled predicate; the exact variable name is otherwise generic.
 - Semantic-only conditions such as `isNormalizing()`, `isDebug()`, `bCoastal`, or gameplay predicates are intentionally skipped even when their sole body is a log call. Those branches may already sit inside an outer logging pre-gate, and collapsing them would add unrelated cosmetic churn rather than make pre-gating clearer.
-- Long logging argument tails remain multiline; the helper joins only the guard to the call head, removes a truly redundant one-statement brace pair, and normalizes the shallowest continuation tail to one body indent below the unified head while preserving deeper relative nesting.
+- Long logging argument tails remain multiline. Multiline guard conditions are left unchanged: joining their final condition line to the log call obscured the boundary between complex predicates and logging arguments, notably in corporation-transit and naval-invasion diagnostics.
+- These pointer accesses and calls can fail independently; keeping the condition and log call on separate source lines helps a debugger distinguish predicate failures from failures while evaluating logging arguments. This preserves useful crash-location evidence as well as readability, although optimized builds can still limit source-line precision.
 - Safe trailing `//` comments are preserved. Preprocessor/macro bodies, block comments, ambiguous call shapes, multi-statement blocks, and braced `if/else` structures are skipped.
 - This is formatting only. It does **not** invent missing log-level gates or reorder `&&` operands; use `audit_cpp_logging_pregates.py` plus LLM/manual review for architectural pre-gating.
-- Prefer targeted/touched-file runs. A whole-DLL scan can expose many historical cosmetic candidates and is normally unnecessary diff noise.
+- Prefer targeted/touched-file runs. A whole-DLL scan is useful as an occasional hygiene audit, but can expose historical cosmetic candidates and is normally unnecessary diff noise.
 
 ```bash
 python LLM_Helpers/collapse_cpp_log_guards.py CvGameCoreDLL/CvPlayerAI.cpp --repo-root .

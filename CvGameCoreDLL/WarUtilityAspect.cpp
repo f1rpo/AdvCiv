@@ -4268,14 +4268,11 @@ void FairPlay::evaluate()
 			m_iU -= iOtherEnemiesUtility;
 		}
 	}
-	if (bLogWarUtilityDetail && (rOtherEnemies.abs() >= fixp(0.01) || iOtherEnemiesUtility != 0))
-	{
-		logBBAI("UWAI_WAR_UTILITY_FAIR_PLAY_DOGPILE_RESULT turn=%d agentPlayer=%d rivalPlayer=%d potentialOtherEnemies=%d otherEnemiesPercent=%d lostRivalCities=%d agentConquests=%d sneakAttackReady=%d potentialEnemyMultiplierPercent=%d cost=%d utility=%d",
-				GC.getGame().getGameTurn(), eWe, eThey, iPotentialOtherEnemies,
-				rOtherEnemies.getPercent(), (int)militAnalyst().lostCities(eThey).size(),
-				(int)militAnalyst().conqueredCities(eWe).size(), kOurTeam.AI_isSneakAttackReady(eTheirTeam),
-				rPotentialEnemyMult.getPercent(), rFromOtherEnemies.round(), -iOtherEnemiesUtility);
-	}
+	if (bLogWarUtilityDetail && (rOtherEnemies.abs() >= fixp(0.01) || iOtherEnemiesUtility != 0)) logBBAI("UWAI_WAR_UTILITY_FAIR_PLAY_DOGPILE_RESULT turn=%d agentPlayer=%d rivalPlayer=%d potentialOtherEnemies=%d otherEnemiesPercent=%d lostRivalCities=%d agentConquests=%d sneakAttackReady=%d potentialEnemyMultiplierPercent=%d cost=%d utility=%d",
+		GC.getGame().getGameTurn(), eWe, eThey, iPotentialOtherEnemies,
+		rOtherEnemies.getPercent(), (int)militAnalyst().lostCities(eThey).size(),
+		(int)militAnalyst().conqueredCities(eWe).size(), kOurTeam.AI_isSneakAttackReady(eTheirTeam),
+		rPotentialEnemyMult.getPercent(), rFromOtherEnemies.round(), -iOtherEnemiesUtility);
 	// The rest of this function deals with the early game
 	/*	Assume that early AI-on-AI wars are always fair b/c they have the same
 		handicap. Not actually true in e.g. the EarthAD1000 scenario. Still,

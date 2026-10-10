@@ -6,7 +6,7 @@
 #
 # Collapses only simple `if` / `else if` guards whose condition contains a recognizable logging pre-gate and whose sole body statement is a logging call.
 # Semantic-only conditions such as `isNormalizing()`, `bCoastal`, or `isDebug()` are intentionally skipped even when their body logs; an enclosing block may already perform the real logging pre-gate, and compacting those semantic branches would create unrelated cosmetic churn.
-# Eligible guards include local `bLog...` flags, BBAI/SAS log-level expressions such as `gGameRecordLogLevel >= 3`, and explicit logging predicates such as `GC.isLogging()`. For example:
+# Eligible guards include local logging flags such as `bLog...`, `bSAS...Log`, or `b...Logging`; BBAI/SAS log-level expressions such as `gGameRecordLogLevel >= 3`; and explicit logging predicates such as `GC.isLogging()`, `GC.getLogger().isEnabled...()`, or `shouldLog...()`. For example:
 #   if (gGameRecordLogLevel >= 3)
 #       logThing(...);
 #   if (bLogSomething)
@@ -17,7 +17,7 @@
 #   if (gGameRecordLogLevel >= 3) logThing(...);
 #   if (bLogSomething) logThing(...);
 #
-# Multiline logging calls stay multiline; this helper only joins the guard to the first call line, removes a now-unnecessary one-statement brace pair, and shifts continuation indentation left by the removed body indent.
+# Multiline logging calls stay multiline. Multiline logging conditions are left unchanged as a readability/debugger exception. The helper removes only a now-unnecessary one-statement brace pair and shifts continuation indentation left by the removed body indent.
 # Safe trailing `//` comments are preserved; block comments/macros/uncertain calls are skipped.
 # Review the diff before committing.
 
@@ -42,10 +42,13 @@ from collapse_cpp_signatures import (
 )
 
 LOG_GATE_RE = re.compile(
-    r"(?:\bg[A-Za-z0-9_]*LogLevel\b|\bi[A-Za-z0-9_]*LogLevel\b|\bbLog[A-Za-z0-9_]*\b|"
+    r"(?:\bg[A-Za-z0-9_]*LogLevel\b|\bi[A-Za-z0-9_]*LogLevel\b|"
+    r"\bb[A-Za-z0-9_]*(?:Log|Logging)[A-Za-z0-9_]*\b|"
+    r"\bm_b[A-Za-z0-9_]*Log[A-Za-z0-9_]*\b|"
     r"\bgLogBBAI\b|\bg_bSASGameRecord[A-Za-z0-9_]*\b|\bgetSASGameRecordLogLevel\s*\(|"
-    r"\bGC\.isLogging\s*\(|\bisSAS(?:BBAI|GameRecord)[A-Za-z0-9_]*Log[A-Za-z0-9_]*Enabled\s*\(|"
-    r"\bisFound(?:Value)?Log(?:ging)?Enabled\s*\()"
+    r"\bGC\.isLogging\s*\(|\bGC\.getLogger\s*\(\s*\)\.isEnabled[A-Za-z0-9_]*\s*\(|"
+    r"\bisSAS(?:BBAI|GameRecord)[A-Za-z0-9_]*Log[A-Za-z0-9_]*Enabled\s*\(|"
+    r"\bisFound(?:Value)?Log(?:ging)?Enabled\s*\(|\b(?:SAS_)?shouldLog[A-Za-z0-9_]*\s*\()"
 )
 
 class Rewrite:
@@ -129,26 +132,62 @@ def scan_matching_paren(text: str, open_pos: int) -> int | None:
     return None
 
 
-def simple_control_header(text: str) -> tuple[str, str, str] | None:
-    """Return (indent, exact header text, condition) for a plain `if (...)` or `else if (...)`."""
-    if has_block_comment_or_directive(text):
+def control_header(lines: list[str], index: int) -> tuple[str, list[str], str, int, bool] | None:
+    """Return (indent, exact header lines, condition, end index, inline brace) for plain `if` / `else if`."""
+    if index >= len(lines):
         return None
-    code, comment = split_cpp_line_comment(text)
-    if comment is not None:
+    first_body, _first_eol = split_line_ending(lines[index])
+    if has_block_comment_or_directive(first_body):
         return None
-    indent = leading_ws(code)
-    stripped = code[len(indent):].rstrip()
-    match = re.match(r"(?:else\s+)?if\b", stripped)
+    first_code, first_comment = split_cpp_line_comment(first_body)
+    if first_comment is not None:
+        return None
+    indent = leading_ws(first_code)
+    first_stripped = first_code[len(indent):].rstrip()
+    match = re.match(r"(?:else\s+)?if\b", first_stripped)
     if match is None:
         return None
-    open_pos = stripped.find("(", match.end())
+
+    header_bodies = [first_code]
+    combined = first_stripped
+    open_pos = combined.find("(", match.end())
+    end_index = index
+
+    while open_pos < 0 and end_index + 1 < len(lines) and end_index - index < 20:
+        end_index += 1
+        body, _eol = split_line_ending(lines[end_index])
+        if has_block_comment_or_directive(body):
+            return None
+        code, comment = split_cpp_line_comment(body)
+        if comment is not None:
+            return None
+        header_bodies.append(code)
+        combined += "\n" + code
+        open_pos = combined.find("(", match.end())
+
     if open_pos < 0:
         return None
-    close_pos = scan_matching_paren(stripped, open_pos)
-    if close_pos is None or stripped[close_pos + 1 :].strip():
+
+    close_pos = scan_matching_paren(combined, open_pos)
+    while close_pos is None and end_index + 1 < len(lines) and end_index - index < 20:
+        end_index += 1
+        body, _eol = split_line_ending(lines[end_index])
+        if has_block_comment_or_directive(body):
+            return None
+        code, comment = split_cpp_line_comment(body)
+        if comment is not None:
+            return None
+        header_bodies.append(code)
+        combined += "\n" + code
+        close_pos = scan_matching_paren(combined, open_pos)
+
+    if close_pos is None:
         return None
-    condition = stripped[open_pos + 1 : close_pos]
-    return indent, stripped, condition
+    tail = combined[close_pos + 1 :].strip()
+    if tail not in ("", "{"):
+        return None
+    condition = combined[open_pos + 1 : close_pos]
+    return indent, header_bodies, condition, end_index, tail == "{"
 
 
 def log_like_callee(statement_start: str) -> bool:
@@ -256,20 +295,33 @@ def deindent_statement_lines(lines: list[str], start: int, end: int, header_inde
 
 
 def try_rewrite(lines: list[str], index: int) -> Rewrite | None:
-    header_body, header_eol = split_line_ending(lines[index])
-    header = simple_control_header(header_body)
-    if header is None or index + 1 >= len(lines):
+    header = control_header(lines, index)
+    if header is None:
         return None
-    header_indent, header_text, condition = header
+    header_indent, header_bodies, condition, header_end, inline_brace = header
+    # <!-- custom: Joining a log call to the last line of a technically complex condition blurred the condition/argument boundary in corporation-transit and naval-invasion diagnostics. Their pointer accesses and calls can fail independently.
+	# Preserve separate condition/call source lines so a debugger can better distinguish a failure in the predicate from one while evaluating logging arguments.
+	# Preserve multiline guards as a readability and crash-investigation exception; compact only single-line guards. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+    if header_end != index:
+        return None
     # Formatting this helper is intentionally narrower than "any conditional whose body logs":
     # only an explicit logging pre-gate qualifies. Semantic-only branches may sit inside an
     # already-gated logging block and are left author-maintained.
     if LOG_GATE_RE.search(condition) is None:
         return None
 
-    next_body, _next_eol = split_line_ending(lines[index + 1])
-    braced = next_body.strip() == "{" and leading_ws(next_body) == header_indent
-    statement_start = index + 2 if braced else index + 1
+    if inline_brace:
+        braced = True
+        statement_start = header_end + 1
+        open_brace_index = None
+    else:
+        if header_end + 1 >= len(lines):
+            return None
+        next_body, _next_eol = split_line_ending(lines[header_end + 1])
+        braced = next_body.strip() == "{" and leading_ws(next_body) == header_indent
+        statement_start = header_end + 2 if braced else header_end + 1
+        open_brace_index = header_end + 1 if braced else None
+
     end = statement_end(lines, statement_start)
     if end is None:
         return None
@@ -294,8 +346,23 @@ def try_rewrite(lines: list[str], index: int) -> Rewrite | None:
     shifted = deindent_statement_lines(lines, statement_start, end, header_indent)
     if shifted is None:
         return None
+
     first_shifted_body, _first_shifted_eol = split_line_ending(shifted[0])
-    replacement = [header_indent + header_text + " " + first_shifted_body.lstrip(" \t") + header_eol]
+    replacement: list[str] = []
+
+    # Preserve multiline guard layout. For a multiline condition, the logging
+    # call head joins the final condition line rather than flattening the whole
+    # condition into one enormous line.
+    for header_index in range(index, header_end):
+        replacement.append(lines[header_index])
+
+    final_header_body, final_header_eol = split_line_ending(lines[header_end])
+    if inline_brace:
+        brace_pos = final_header_body.rfind("{")
+        if brace_pos < 0 or final_header_body[brace_pos + 1 :].strip():
+            return None
+        final_header_body = final_header_body[:brace_pos].rstrip()
+    replacement.append(final_header_body.rstrip() + " " + first_shifted_body.lstrip(" \t") + final_header_eol)
     replacement.extend(shifted[1:])
     return Rewrite(index, rewrite_end, replacement, braced)
 

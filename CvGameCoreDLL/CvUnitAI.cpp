@@ -3348,18 +3348,17 @@ static bool SAS_pickWorkerYieldBuild(CvUnitAI const& kUnit, CvCityAI const& kCit
 	{
 		// <!-- custom: Zero legal candidates are already covered by the compact once-per-plot rejection diagnostic.
 		// Keep WORKER_YIELD_NO_BUILD for the strategically useful case where replacement hysteresis rejected otherwise legal Builds. (GPT-5.6-Sol) -->
-		if (bDetailedYieldLogging && iLegalCandidateCount > 0 && SAS_shouldLogWorkerYieldDecision(kUnit, kCity, kPlot, SAS_WORKER_YIELD_LOG_NO_BUILD, eBestMarginRejectedCandidate, kContext.kCurrentWeights, kBestMarginRejectedTransitionWeights))
-			logBBAI("    WORKER_YIELD_NO_BUILD turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) worked=%d current=%S weights=(%d,%d,%d) prospectiveWeights=(%d,%d,%d) valuationWeights=(%d,%d,%d) currentUtility=%d legal=%d marginRejected=%d bestRejected=%S bestRejectedGain=%d bestRejectedMargin=%d",
-				GC.getGame().getGameTurn(), kUnit.getOwner(), GET_PLAYER(kUnit.getOwner()).getCivilizationDescription(0), kUnit.getID(),
-				kCity.getName().GetCString(), kPlot.getX(), kPlot.getY(), kCity.isWorkingPlot(kPlot),
-				(eCurrentImprovement == NO_IMPROVEMENT ? L"-" : GC.getInfo(eCurrentImprovement).getDescription()),
-				kContext.kCurrentWeights.iFood, kContext.kCurrentWeights.iProduction, kContext.kCurrentWeights.iCommerce,
-				kBestMarginRejectedProspectiveWeights.iFood, kBestMarginRejectedProspectiveWeights.iProduction, kBestMarginRejectedProspectiveWeights.iCommerce,
-				kBestMarginRejectedTransitionWeights.iFood, kBestMarginRejectedTransitionWeights.iProduction, kBestMarginRejectedTransitionWeights.iCommerce,
-				iBestMarginRejectedCurrentUtility, iLegalCandidateCount, iMarginRejectedCount,
-				(eBestMarginRejectedCandidate == NO_BUILD ? L"-" : GC.getInfo(eBestMarginRejectedCandidate).getDescription()),
-				(eBestMarginRejectedCandidate == NO_BUILD ? 0 : iBestMarginRejectedGain),
-				(eBestMarginRejectedCandidate == NO_BUILD ? 0 : iBestMarginRejectedReplacementMargin));
+		if (bDetailedYieldLogging && iLegalCandidateCount > 0 && SAS_shouldLogWorkerYieldDecision(kUnit, kCity, kPlot, SAS_WORKER_YIELD_LOG_NO_BUILD, eBestMarginRejectedCandidate, kContext.kCurrentWeights, kBestMarginRejectedTransitionWeights)) logBBAI("    WORKER_YIELD_NO_BUILD turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) worked=%d current=%S weights=(%d,%d,%d) prospectiveWeights=(%d,%d,%d) valuationWeights=(%d,%d,%d) currentUtility=%d legal=%d marginRejected=%d bestRejected=%S bestRejectedGain=%d bestRejectedMargin=%d",
+			GC.getGame().getGameTurn(), kUnit.getOwner(), GET_PLAYER(kUnit.getOwner()).getCivilizationDescription(0), kUnit.getID(),
+			kCity.getName().GetCString(), kPlot.getX(), kPlot.getY(), kCity.isWorkingPlot(kPlot),
+			(eCurrentImprovement == NO_IMPROVEMENT ? L"-" : GC.getInfo(eCurrentImprovement).getDescription()),
+			kContext.kCurrentWeights.iFood, kContext.kCurrentWeights.iProduction, kContext.kCurrentWeights.iCommerce,
+			kBestMarginRejectedProspectiveWeights.iFood, kBestMarginRejectedProspectiveWeights.iProduction, kBestMarginRejectedProspectiveWeights.iCommerce,
+			kBestMarginRejectedTransitionWeights.iFood, kBestMarginRejectedTransitionWeights.iProduction, kBestMarginRejectedTransitionWeights.iCommerce,
+			iBestMarginRejectedCurrentUtility, iLegalCandidateCount, iMarginRejectedCount,
+			(eBestMarginRejectedCandidate == NO_BUILD ? L"-" : GC.getInfo(eBestMarginRejectedCandidate).getDescription()),
+			(eBestMarginRejectedCandidate == NO_BUILD ? 0 : iBestMarginRejectedGain),
+			(eBestMarginRejectedCandidate == NO_BUILD ? 0 : iBestMarginRejectedReplacementMargin));
 		return false;
 	}
 	eBestBuild = eBestCandidate;
@@ -25813,17 +25812,16 @@ bool CvUnitAI::AI_improveBonus(int iMissingWorkersInArea) // advc.121
 				iValue /= (iPathTurns + 1);
 				if(kPlot.isCityRadius())
 					iValue *= 2;
-				if (bDetailedBonusLogging)
-					logBBAI("    WORKER_IMPROVE_BONUS_CANDIDATE turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) bonus=%S build=%S baseBonusValue=%d outsideBFCImprovementFoodValue=%d outsideBFCNatureFoodValue=%d economicCurrentYields=(%d,%d,%d) economicResultYields=(%d,%d,%d) economicWeights=(%d,%d,%d) economicBuildValue=%d economicYieldValue=%d economicGain=%d economicReplacementMargin=%d dynamicBonusPriorityValue=%d noTradeableBonus=%d valueBeforePath=%d pathTurns=%d cityRadius=%d finalValue=%d",
-						GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getID(),
-						(kPlot.getWorkingCity() == NULL ? L"-" : kPlot.getWorkingCity()->getName().GetCString()),
-						kPlot.getX(), kPlot.getY(), GC.getInfo(eNonObsoleteBonus).getDescription(), GC.getInfo(eBestTempBuild).getDescription(),
-						iBaseBonusValue, iOutsideBFCImprovementFoodValue, iOutsideBFCNatureFoodValue,
-						aiEconomicCurrentYields[YIELD_FOOD], aiEconomicCurrentYields[YIELD_PRODUCTION], aiEconomicCurrentYields[YIELD_COMMERCE],
-						aiEconomicResultYields[YIELD_FOOD], aiEconomicResultYields[YIELD_PRODUCTION], aiEconomicResultYields[YIELD_COMMERCE],
-						kEconomicWeights.iFood, kEconomicWeights.iProduction, kEconomicWeights.iCommerce,
-						iEconomicBuildValue, iEconomicYieldValue, iEconomicGain, iEconomicReplacementMargin, iDynamicBonusPriorityValue, bNoTradeableBonus,
-						iValueBeforePath, iPathTurns, kPlot.isCityRadius(), iValue);
+				if (bDetailedBonusLogging) logBBAI("    WORKER_IMPROVE_BONUS_CANDIDATE turn=%d player=%d %S workerId=%d city=%S plot=(%d,%d) bonus=%S build=%S baseBonusValue=%d outsideBFCImprovementFoodValue=%d outsideBFCNatureFoodValue=%d economicCurrentYields=(%d,%d,%d) economicResultYields=(%d,%d,%d) economicWeights=(%d,%d,%d) economicBuildValue=%d economicYieldValue=%d economicGain=%d economicReplacementMargin=%d dynamicBonusPriorityValue=%d noTradeableBonus=%d valueBeforePath=%d pathTurns=%d cityRadius=%d finalValue=%d",
+					GC.getGame().getGameTurn(), getOwner(), kOwner.getCivilizationDescription(0), getID(),
+					(kPlot.getWorkingCity() == NULL ? L"-" : kPlot.getWorkingCity()->getName().GetCString()),
+					kPlot.getX(), kPlot.getY(), GC.getInfo(eNonObsoleteBonus).getDescription(), GC.getInfo(eBestTempBuild).getDescription(),
+					iBaseBonusValue, iOutsideBFCImprovementFoodValue, iOutsideBFCNatureFoodValue,
+					aiEconomicCurrentYields[YIELD_FOOD], aiEconomicCurrentYields[YIELD_PRODUCTION], aiEconomicCurrentYields[YIELD_COMMERCE],
+					aiEconomicResultYields[YIELD_FOOD], aiEconomicResultYields[YIELD_PRODUCTION], aiEconomicResultYields[YIELD_COMMERCE],
+					kEconomicWeights.iFood, kEconomicWeights.iProduction, kEconomicWeights.iCommerce,
+					iEconomicBuildValue, iEconomicYieldValue, iEconomicGain, iEconomicReplacementMargin, iDynamicBonusPriorityValue, bNoTradeableBonus,
+					iValueBeforePath, iPathTurns, kPlot.isCityRadius(), iValue);
 				if (iValue > iBestValue)
 				{
 					iBestValue = iValue;

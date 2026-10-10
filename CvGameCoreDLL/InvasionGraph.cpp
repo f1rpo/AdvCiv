@@ -1152,13 +1152,10 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender, scaled rA
 			}
 			kStep.setSuccess(false);
 			kStep.setDuration(iDeployTurns + (bSneakAttack ? 0 : 2));
-			if (bSASLogNavalInvasionStep && rArmyPortionDefender > 0)
-			{
-				logBBAI("WAR_NAVAL_INVASION_STEP turn=%d agentTeam=%d targetTeam=%d total=%d prepTurns=%d stage=LANDING_REPELLED targetCityX=%d targetCityY=%d cacheDistance=%d targetValue=%d armyPortionAttackerPercent=%d armyPortionDefenderPercent=%d attackerArmyPower=%d defenderArmyPower=%d attackerFleetPower=%d defenderFleetPower=%d cargoCapacity=%d armySize=%d duration=%d",
-					GC.getGame().getGameTurn(), TEAMID(m_eAgent), kEvalParams.getTarget(), kEvalParams.isTotal(), kEvalParams.getPreparationTime(),
-					pCity->getX(), pCity->getY(), pCacheCity->getDistance(), pCacheCity->getTargetValue(), rArmyPortionAttacker.getPercent(), rArmyPortionDefender.getPercent(),
-					rArmyPowRaw.uround(), rDefArmyPow.uround(), rSASFleetPow.uround(), rSASDefFleetPow.uround(), rSASCargoCap.uround(), rSASArmySize.uround(), kStep.getDuration());
-			}
+			if (bSASLogNavalInvasionStep && rArmyPortionDefender > 0) logBBAI("WAR_NAVAL_INVASION_STEP turn=%d agentTeam=%d targetTeam=%d total=%d prepTurns=%d stage=LANDING_REPELLED targetCityX=%d targetCityY=%d cacheDistance=%d targetValue=%d armyPortionAttackerPercent=%d armyPortionDefenderPercent=%d attackerArmyPower=%d defenderArmyPower=%d attackerFleetPower=%d defenderFleetPower=%d cargoCapacity=%d armySize=%d duration=%d",
+				GC.getGame().getGameTurn(), TEAMID(m_eAgent), kEvalParams.getTarget(), kEvalParams.isTotal(), kEvalParams.getPreparationTime(),
+				pCity->getX(), pCity->getY(), pCacheCity->getDistance(), pCacheCity->getTargetValue(), rArmyPortionAttacker.getPercent(), rArmyPortionDefender.getPercent(),
+				rArmyPowRaw.uround(), rDefArmyPow.uround(), rSASFleetPow.uround(), rSASDefFleetPow.uround(), rSASCargoCap.uround(), rSASArmySize.uround(), kStep.getDuration());
 			return &kStep;
 		}
 		if (rLossesAtt > 0 || rLossesDef > 0)
@@ -1639,18 +1636,15 @@ SimulationStep* InvasionGraph::Node::step(scaled rArmyPortionDefender, scaled rA
 			kStep.reducePower(m_ePlayer, CAVALRY, rLossesAttArmy * rCavPow / rArmyPow);
 		kStep.setSuccess(false);
 	}
-	if (bSASLogNavalInvasionStep && rArmyPortionDefender > 0)
-	{
-		logBBAI("WAR_NAVAL_INVASION_STEP turn=%d agentTeam=%d targetTeam=%d total=%d prepTurns=%d stage=CITY_ATTACK targetCityX=%d targetCityY=%d cacheDistance=%d targetValue=%d fleetWin=%d armyPortionAttackerPercent=%d armyPortionDefenderPercent=%d attackerArmyRawPower=%d defenderArmyPower=%d attackerFleetPower=%d defenderFleetPower=%d cargoCapacity=%d survivingCargo=%d armySize=%d landingRatioPercent=%d navalAreaBonusPercent=%d deploymentDistance=%d attackerDeploymentPercent=%d attackerAreaWeightPercent=%d defenderAreaWeightPercent=%d localGarrisonPower=%d ralliedGarrisonPower=%d mobileDefenderPower=%d mobileDefenderPortionPercent=%d canBombard=%d canSoften=%d bombardTurns=%d besiegerPower=%d cityDefenderPower=%d powerRatioPercent=%d duration=%d success=%d",
-			GC.getGame().getGameTurn(), TEAMID(m_eAgent), kEvalParams.getTarget(), kEvalParams.isTotal(), kEvalParams.getPreparationTime(),
-			pCity->getX(), pCity->getY(), pCacheCity->getDistance(), pCacheCity->getTargetValue(), bSASFleetWin,
-			rArmyPortionAttacker.getPercent(), rArmyPortionDefender.getPercent(), rArmyPowRaw.uround(), rDefArmyPow.uround(),
-			rSASFleetPow.uround(), rSASDefFleetPow.uround(), rSASCargoCap.uround(), rSASSurvivingCargo.uround(), rSASArmySize.uround(),
-			rNavalLandingRatio.getPercent(), rSASNavalAreaBonus.getPercent(), rDeploymentDistAttacker.uround(),
-			rAttDeploymentMod.getPercent(), rAreaWeightAtt.getPercent(), rAreaWeightDef.getPercent(), rLocalGarrisonPow.uround(),
-			rRalliedGarrisonPow.uround(), rDefendingArmyPow.uround(), rDefArmyPortion.getPercent(), bCanBombard, bCanSoften, iBombTurns,
-			rArmyPowModified.uround(), rDefenderPow.uround(), rPowRatio.getPercent(), kStep.getDuration(), kStep.isAttackerSuccessful());
-	}
+	if (bSASLogNavalInvasionStep && rArmyPortionDefender > 0) logBBAI("WAR_NAVAL_INVASION_STEP turn=%d agentTeam=%d targetTeam=%d total=%d prepTurns=%d stage=CITY_ATTACK targetCityX=%d targetCityY=%d cacheDistance=%d targetValue=%d fleetWin=%d armyPortionAttackerPercent=%d armyPortionDefenderPercent=%d attackerArmyRawPower=%d defenderArmyPower=%d attackerFleetPower=%d defenderFleetPower=%d cargoCapacity=%d survivingCargo=%d armySize=%d landingRatioPercent=%d navalAreaBonusPercent=%d deploymentDistance=%d attackerDeploymentPercent=%d attackerAreaWeightPercent=%d defenderAreaWeightPercent=%d localGarrisonPower=%d ralliedGarrisonPower=%d mobileDefenderPower=%d mobileDefenderPortionPercent=%d canBombard=%d canSoften=%d bombardTurns=%d besiegerPower=%d cityDefenderPower=%d powerRatioPercent=%d duration=%d success=%d",
+		GC.getGame().getGameTurn(), TEAMID(m_eAgent), kEvalParams.getTarget(), kEvalParams.isTotal(), kEvalParams.getPreparationTime(),
+		pCity->getX(), pCity->getY(), pCacheCity->getDistance(), pCacheCity->getTargetValue(), bSASFleetWin,
+		rArmyPortionAttacker.getPercent(), rArmyPortionDefender.getPercent(), rArmyPowRaw.uround(), rDefArmyPow.uround(),
+		rSASFleetPow.uround(), rSASDefFleetPow.uround(), rSASCargoCap.uround(), rSASSurvivingCargo.uround(), rSASArmySize.uround(),
+		rNavalLandingRatio.getPercent(), rSASNavalAreaBonus.getPercent(), rDeploymentDistAttacker.uround(),
+		rAttDeploymentMod.getPercent(), rAreaWeightAtt.getPercent(), rAreaWeightDef.getPercent(), rLocalGarrisonPow.uround(),
+		rRalliedGarrisonPow.uround(), rDefendingArmyPow.uround(), rDefArmyPortion.getPercent(), bCanBombard, bCanSoften, iBombTurns,
+		rArmyPowModified.uround(), rDefenderPow.uround(), rPowRatio.getPercent(), kStep.getDuration(), kStep.isAttackerSuccessful());
 	return &kStep;
 }
 

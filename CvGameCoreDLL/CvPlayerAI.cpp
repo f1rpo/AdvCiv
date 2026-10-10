@@ -13621,12 +13621,9 @@ int CvPlayerAI::AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes eFromPlayer, int
 		// <!-- custom: Raw market/blended fractions drift frequently without changing the rounded deal value.
 		// Keep them in emitted rows for explanation, but deduplicate on the strategic stages and actual price so irrelevant fractional churn does not recreate the 689 MB diagnostic run. (GPT-5.6-Sol) -->
 		szDiagnosticSignature.Format("%d|%d|%d|%d|%d|%d", bUseOurBonusVal, rDynamicOurVal.getPercent(), rAfterMultiEffectVal.getPercent(), iLoggedCorporationValue, iR, iTradeValue);
-		if (shouldLogSASBonusValueChange(szDiagnosticKey, szDiagnosticSignature))
-		{
-			logBBAI("BONUS_TRADE_VALUE turn=%d buyer=%d seller=%d bonus=%s change=%d useBuyerValue=%d dynamicOurValX100=%d corporationValue=%d multiEffectOurValX100=%d cityScaledOurValX100=%d marketValX100=%d blendedBeforeTradeModifierX100=%d aiTradeModifier=%d finalPerTurnX100=%d roundedPerTurn=%d finalTradeValue=%d",
-				GC.getGame().getGameTurn(), getID(), eFromPlayer, GC.getInfo(eBonus).getType(), iChange, bUseOurBonusVal, rDynamicOurVal.getPercent(), iLoggedCorporationValue,
-				rAfterMultiEffectVal.getPercent(), rOurVal.getPercent(), rMarketVal.getPercent(), rBlendedValue.getPercent(), GC.getInfo(eBonus).getAITradeModifier(), r.getPercent(), iR, iTradeValue);
-		}
+		if (shouldLogSASBonusValueChange(szDiagnosticKey, szDiagnosticSignature)) logBBAI("BONUS_TRADE_VALUE turn=%d buyer=%d seller=%d bonus=%s change=%d useBuyerValue=%d dynamicOurValX100=%d corporationValue=%d multiEffectOurValX100=%d cityScaledOurValX100=%d marketValX100=%d blendedBeforeTradeModifierX100=%d aiTradeModifier=%d finalPerTurnX100=%d roundedPerTurn=%d finalTradeValue=%d",
+			GC.getGame().getGameTurn(), getID(), eFromPlayer, GC.getInfo(eBonus).getType(), iChange, bUseOurBonusVal, rDynamicOurVal.getPercent(), iLoggedCorporationValue,
+			rAfterMultiEffectVal.getPercent(), rOurVal.getPercent(), rMarketVal.getPercent(), rBlendedValue.getPercent(), GC.getInfo(eBonus).getAITradeModifier(), r.getPercent(), iR, iTradeValue);
 	}
 	return iTradeValue;
 }
@@ -13697,12 +13694,9 @@ DenialTypes CvPlayerAI::AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer, 
 			szDiagnosticKey.Format("N|%d|%d|%d|%d", getID(), eToPlayer, eBonus, iChange);
 			CvString szDiagnosticSignature;
 			szDiagnosticSignature.Format("%d|%d", iValueForThem, iTradeValThresh);
-			if (shouldLogSASBonusValueChange(szDiagnosticKey, szDiagnosticSignature))
-			{
-				logBBAI("BONUS_TRADE_DYNAMIC_NEED turn=%d seller=%d buyer=%d bonus=%s change=%d buyerAvailable=%d recipientValue=%d threshold=%d outcome=%s",
-					GC.getGame().getGameTurn(), getID(), eToPlayer, GC.getInfo(eBonus).getType(), iChange, iAvailThem,
-					iValueForThem, iTradeValThresh, (iValueForThem < iTradeValThresh ? "DENIAL_NO_GAIN" : "CONTINUE"));
-			}
+			if (shouldLogSASBonusValueChange(szDiagnosticKey, szDiagnosticSignature)) logBBAI("BONUS_TRADE_DYNAMIC_NEED turn=%d seller=%d buyer=%d bonus=%s change=%d buyerAvailable=%d recipientValue=%d threshold=%d outcome=%s",
+				GC.getGame().getGameTurn(), getID(), eToPlayer, GC.getInfo(eBonus).getType(), iChange, iAvailThem,
+				iValueForThem, iTradeValThresh, (iValueForThem < iTradeValThresh ? "DENIAL_NO_GAIN" : "CONTINUE"));
 		}
 	// </advc.036>
 		if (isHuman() &&

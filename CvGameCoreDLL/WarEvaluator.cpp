@@ -577,10 +577,8 @@ int WarEvaluator::evaluateScenario(bool bDiagnosticOnly, WarPlanTypes eWarPlan, 
 		m_asSASNavalOpportunityPeaceAspectNames = asAspectNames;
 		m_aiSASNavalOpportunityPeaceAspectUtilities = aiAspectUtilities;
 	}
-	if (bSASSuspiciousPeaceLog)
-		logSASBBAISuspiciousPeaceScenario(m_kParams, eWarPlan, bNaval, iPreparationTime, m_bPeaceScenario ? "PEACE" : "WAR", iU, asAspectNames, aiAspectUtilities);
-	if (bSASHighUtilityLog && isSASHighWarUtility(iU))
-		logSASBBAIHighWarUtilityScenario(m_kParams, eWarPlan, bNaval, iPreparationTime, m_bPeaceScenario ? "PEACE" : "WAR", iU, asAspectNames, aiAspectUtilities);
+	if (bSASSuspiciousPeaceLog) logSASBBAISuspiciousPeaceScenario(m_kParams, eWarPlan, bNaval, iPreparationTime, m_bPeaceScenario ? "PEACE" : "WAR", iU, asAspectNames, aiAspectUtilities);
+	if (bSASHighUtilityLog && isSASHighWarUtility(iU)) logSASBBAIHighWarUtilityScenario(m_kParams, eWarPlan, bNaval, iPreparationTime, m_bPeaceScenario ? "PEACE" : "WAR", iU, asAspectNames, aiAspectUtilities);
 	if (!m_bPeaceScenario)
 	{
 		int const iWarScenarioUtility = iU;
@@ -588,17 +586,12 @@ int WarEvaluator::evaluateScenario(bool bDiagnosticOnly, WarPlanTypes eWarPlan, 
 		iU -= iPeaceScenarioUtility;
 		if (gUWAIWarUtilityLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_WAR_UTILITY_FINAL turn=%d agentTeam=%d targetTeam=%d warUtility=%d peaceUtility=%d finalUtility=%d",
 				GC.getGame().getGameTurn(), m_kAgent.getID(), m_kTarget.getID(), iWarScenarioUtility, iPeaceScenarioUtility, iU);
-		if (bSASSuspiciousPeaceLog)
-			logSASBBAISuspiciousPeaceFinal(m_kParams, eWarPlan, bNaval, iPreparationTime, iWarScenarioUtility, iPeaceScenarioUtility, iU);
-		if (bSASHighUtilityLog && isSASHighWarUtility(iU))
-			logSASBBAIHighWarUtilityFinal(m_kParams, eWarPlan, bNaval, iPreparationTime, iWarScenarioUtility, iPeaceScenarioUtility, iU);
+		if (bSASSuspiciousPeaceLog) logSASBBAISuspiciousPeaceFinal(m_kParams, eWarPlan, bNaval, iPreparationTime, iWarScenarioUtility, iPeaceScenarioUtility, iU);
+		if (bSASHighUtilityLog && isSASHighWarUtility(iU)) logSASBBAIHighWarUtilityFinal(m_kParams, eWarPlan, bNaval, iPreparationTime, iWarScenarioUtility, iPeaceScenarioUtility, iU);
 		// <!-- custom: WAR_TARGET_HARD_REJECT already explains the deliberate ~-100000 contact/lift veto.
 		// Keep the naval-opportunity row for ordinary UWAI valuation only so the focused log is not dominated by duplicate hard rejects. See KI#53.6. (ChatGPT-5.6-Sol) -->
-		if (m_bSASLogNavalOpportunity && !hasSASBBAIHardRejectAspect(aiAspectUtilities))
-		{
-			logSASBBAINavalOpportunity(m_kParams, m_kAgent, m_kTarget, eWarPlan, iPreparationTime, m_iSASNavalOpportunityNearestCityDistance, iWarScenarioUtility, iPeaceScenarioUtility, iU,
-				asAspectNames, aiAspectUtilities, m_asSASNavalOpportunityPeaceAspectNames, m_aiSASNavalOpportunityPeaceAspectUtilities);
-		}
+		if (m_bSASLogNavalOpportunity && !hasSASBBAIHardRejectAspect(aiAspectUtilities)) logSASBBAINavalOpportunity(m_kParams, m_kAgent, m_kTarget, eWarPlan, iPreparationTime, m_iSASNavalOpportunityNearestCityDistance, iWarScenarioUtility, iPeaceScenarioUtility, iU,
+			asAspectNames, aiAspectUtilities, m_asSASNavalOpportunityPeaceAspectNames, m_aiSASNavalOpportunityPeaceAspectUtilities);
 		// Restore params (changed by recursive call)
 		m_kParams.setNaval(bNaval);
 		m_kParams.setTotal(eWarPlan == WARPLAN_TOTAL ||
@@ -682,8 +675,7 @@ void WarEvaluator::evaluate(PlayerTypes eAgentPlayer, vector<WarUtilityAspect*>&
 		if (iDelta <= -100000)
 			bSASNavalOpportunityHardReject = true;
 	}
-	if (m_bSASLogNavalOpportunity && !m_bPeaceScenario && !bSASNavalOpportunityHardReject)
-		logSASBBAINavalOpportunitySimulation(m_kParams, militaryAnalyst, eAgentPlayer);
+	if (m_bSASLogNavalOpportunity && !m_bPeaceScenario && !bSASNavalOpportunityHardReject) logSASBBAINavalOpportunitySimulation(m_kParams, militaryAnalyst, eAgentPlayer);
 	if (gUWAIWarUtilityLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_WAR_PLAYER_UTILITY_TOTAL turn=%d agentTeam=%d targetTeam=%d scenario=%s player=%d utility=%d",
 			GC.getGame().getGameTurn(), m_kAgent.getID(), m_kTarget.getID(), m_bPeaceScenario ? "PEACE" : "WAR", eAgentPlayer, iU);
 }

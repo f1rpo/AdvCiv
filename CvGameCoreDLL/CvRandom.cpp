@@ -10,8 +10,7 @@
 
 unsigned short CvRandom::getInt(unsigned short usNum, TCHAR const* szLog, int iData1, int iData2) // advc.001n
 {	// <advc.003t>
-	if (GC.getLogger().isEnabledRand() && szLog != NULL)
-		printToLog(szLog, usNum, iData1, iData2); // </advc.003t>
+	if (GC.getLogger().isEnabledRand() && szLog != NULL) printToLog(szLog, usNum, iData1, iData2); // </advc.003t>
 	// <!-- custom: Count/fingerprint the real RNG consumption before advancing the seed. Unlike RandLog, this deliberately includes NULL-message calls such as shuffles.
 	// The caller-side boolean keeps levels 0-2 and pre-session/main-menu randomness at a single cheap branch; the helper itself ignores async and local CvRandom objects by identity. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (g_bSASGameRecordRngTrackingActive) noteSASGameRecordRandomCall(this, usNum, szLog, iData1, iData2);

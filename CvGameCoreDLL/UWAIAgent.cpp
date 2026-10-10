@@ -2190,11 +2190,8 @@ void UWAI::Team::scheme(set<TeamTypes> const& aeChangedTargets)
 		bool const bCanHireOld = kCache.canBeHiredAgainst(eTarget);
 		kCache.updateCanBeHiredAgainst(eTarget, iU, iWarTradeUtilityThresh);
 		bool const bCanHireNew = kCache.canBeHiredAgainst(eTarget);
-		if (bCanHireOld != bCanHireNew && (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted()))
-		{
-			logBBAI("UWAI_AGENT_SCHEME_HIRE_AVAILABILITY_CHANGED turn=%d agentTeam=%d targetTeam=%d canBeHired=%d",
-				GC.getGame().getGameTurn(), kAgent.getID(), eTarget, bCanHireNew);
-		}
+		if (bCanHireOld != bCanHireNew && (gUWAIAgentLogLevel >= 2 && !m_kLogMuteState.isMuted())) logBBAI("UWAI_AGENT_SCHEME_HIRE_AVAILABILITY_CHANGED turn=%d agentTeam=%d targetTeam=%d canBeHired=%d",
+			GC.getGame().getGameTurn(), kAgent.getID(), eTarget, bCanHireNew);
 		if (iU <= 0)
 			continue;
 		scaled rDrive = iU;
@@ -2409,11 +2406,8 @@ void UWAI::Team::scheme(set<TeamTypes> const& aeChangedTargets)
 				if (!isInBackground())
 				{
 					bool const bAmendedTensions = kAgentPlayer.uwai().amendTensions(eTargetPlayer);
-					if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted())
-					{
-						logBBAI("UWAI_AGENT_SCHEME_AMEND_TENSIONS_RESULT turn=%d agentTeam=%d targetTeam=%d targetPlayer=%d success=%d",
-							GC.getGame().getGameTurn(), kAgent.getID(), eTarget, eTargetPlayer, bAmendedTensions);
-					}
+					if (gUWAIAgentLogLevel >= 1 && !m_kLogMuteState.isMuted()) logBBAI("UWAI_AGENT_SCHEME_AMEND_TENSIONS_RESULT turn=%d agentTeam=%d targetTeam=%d targetPlayer=%d success=%d",
+						GC.getGame().getGameTurn(), kAgent.getID(), eTarget, eTargetPlayer, bAmendedTensions);
 				}
 			}
 			else
