@@ -28,12 +28,14 @@ int getSASGameRecordTurnInterval();
 // Standalone docs/example-log/package refreshes do not require a bump.
 // Keep the matching revision-history entry in the same commit.
 // An anonymous enum keeps this a C++03 compile-time integer without a separate storage/linkage definition. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-enum { SAS_GAME_RECORD_REVISION = 140 };
+enum { SAS_GAME_RECORD_REVISION = 141 };
 // <!-- custom: Finalize buffered observations in the old game state before a new game or loaded save resets/replaces it. See KI#382. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 void finalizeSASGameRecordLogSession();
 void startSASGameRecordLogForNewGame();
 void logSASGameRecordNewGameStarted();
 void startSASGameRecordLogForLoadedSave();
+// <!-- custom: Record the exact checkpoint metadata embedded in a real CvGame serialization; checkpoint persistence is unconditional save provenance, while the caller pre-gates only this diagnostic row at level 1+. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+void logSASGameRecordSaveCheckpointSerialized(char const* szKind, int iTurn, int iElapsedTurn, char const* szUtc, uint uiMapRandState, uint uiSyncRandState, char const* szReason, char const* szOriginalBasename);
 
 class CvRandom;
 // <!-- custom: Level-3 RNG divergence tracking observes every advance of the authoritative game map/synchronized RNGs, including calls with NULL RandLog messages.

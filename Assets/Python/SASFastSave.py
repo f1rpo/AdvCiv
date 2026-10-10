@@ -213,7 +213,13 @@ def _save(szReason):
 
 	szPath = CvUtil.convertToStr(szPath)
 	BugUtil.debug("SASFastSave - saving normal game to %s", szPath)
-	game.saveGame(szPath)
+	# <!-- custom: The final path is exact here, including UTC and any collision suffix.
+	# Pass only its portable basename/reason into the DLL around the synchronous save so the save can identify its original SASFastSave even if SASGameRecord logging is disabled when it is created. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	game.setSASFastSaveContext(szReason, os.path.basename(szPath))
+	try:
+		game.saveGame(szPath)
+	finally:
+		game.clearSASFastSaveContext()
 	return szPath
 
 # <!-- custom: START fast saves intentionally use BUG GameStart, which runs after BUG's earlier PreGameStart initialization.

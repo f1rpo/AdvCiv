@@ -2292,6 +2292,45 @@ static void logSASGameRecordProvenanceContext()
 	logSASGameRecord("GAME_RECORD_INSTALL_CONTEXT systemContextLevel=%d %s", iSystemContextLevel, getSASInstallContextFields(iSystemContextLevel).GetCString());
 }
 
+// <!-- custom: Save checkpoints identify one exact serialized game state without pretending Civ4 exposed its native filename.
+// Initial seeds identify the game lineage; saved turn/UTC and the two authoritative RNG states distinguish the checkpoint within that lineage. (ChatGPT-5.6-Sol) -->
+static CvString getSASGameRecordSaveCheckpointId(int iTurn, int iElapsedTurn, char const* szUtc, uint uiMapRandState, uint uiSyncRandState)
+{
+	std::pair<uint,uint> const kInitialRandSeed = GC.getGame().getInitialRandSeed();
+	CvString szCheckpointId;
+	szCheckpointId.Format("SASCP1_%u_%u_T%d_E%d_%s_M%u_S%u", kInitialRandSeed.first, kInitialRandSeed.second, iTurn, iElapsedTurn,
+		(szUtc == NULL || szUtc[0] == '\0' ? "unknown_time" : szUtc), uiMapRandState, uiSyncRandState);
+	return szCheckpointId;
+}
+
+void logSASGameRecordSaveCheckpointSerialized(char const* szKind, int iTurn, int iElapsedTurn, char const* szUtc, uint uiMapRandState, uint uiSyncRandState, char const* szReason, char const* szOriginalBasename)
+{
+	CvString const szCheckpointId = getSASGameRecordSaveCheckpointId(iTurn, iElapsedTurn, szUtc, uiMapRandState, uiSyncRandState);
+	bool const bFilenameKnown = (szOriginalBasename != NULL && szOriginalBasename[0] != '\0' && strcmp(szOriginalBasename, "-") != 0);
+	logSASGameRecord("GAME_RECORD_SAVE_CHECKPOINT_SERIALIZED checkpointId=%s kind=%s turn=%d elapsed=%d utc=%s mapRandState=%u syncRandState=%u reason=%s filenameKnown=%d originalBasename=%s",
+		szCheckpointId.GetCString(), (szKind == NULL || szKind[0] == '\0' ? "-" : szKind), iTurn, iElapsedTurn,
+		(szUtc == NULL || szUtc[0] == '\0' ? "-" : szUtc), uiMapRandState, uiSyncRandState,
+		(szReason == NULL || szReason[0] == '\0' ? "-" : szReason), bFilenameKnown, (bFilenameKnown ? szOriginalBasename : "-"));
+}
+
+static void logSASGameRecordLoadedSaveCheckpoint()
+{
+	CvGame const& kGame = GC.getGame();
+	if (!kGame.hasSASLoadedSaveCheckpoint())
+	{
+		logSASGameRecord("GAME_RECORD_SAVE_CHECKPOINT_LOADED available=0 checkpointId=- kind=- turn=-1 elapsed=-1 utc=- mapRandState=0 syncRandState=0 reason=- filenameKnown=0 originalBasename=-");
+		return;
+	}
+	CvString const szCheckpointId = getSASGameRecordSaveCheckpointId(kGame.getSASLoadedSaveCheckpointTurn(), kGame.getSASLoadedSaveCheckpointElapsedTurn(),
+		kGame.getSASLoadedSaveCheckpointUtc(), kGame.getSASLoadedSaveCheckpointMapRandState(), kGame.getSASLoadedSaveCheckpointSyncRandState());
+	bool const bFilenameKnown = (kGame.getSASLoadedSaveCheckpointOriginalBasename()[0] != '\0');
+	logSASGameRecord("GAME_RECORD_SAVE_CHECKPOINT_LOADED available=1 checkpointId=%s kind=%s turn=%d elapsed=%d utc=%s mapRandState=%u syncRandState=%u reason=%s filenameKnown=%d originalBasename=%s",
+		szCheckpointId.GetCString(), kGame.getSASLoadedSaveCheckpointKind(), kGame.getSASLoadedSaveCheckpointTurn(), kGame.getSASLoadedSaveCheckpointElapsedTurn(),
+		kGame.getSASLoadedSaveCheckpointUtc(), kGame.getSASLoadedSaveCheckpointMapRandState(), kGame.getSASLoadedSaveCheckpointSyncRandState(),
+		(kGame.getSASLoadedSaveCheckpointReason()[0] == '\0' ? "-" : kGame.getSASLoadedSaveCheckpointReason()), bFilenameKnown,
+		(bFilenameKnown ? kGame.getSASLoadedSaveCheckpointOriginalBasename() : "-"));
+}
+
 // <!-- custom: Persisted game-source history is separate from the current SOURCE_CONTEXT: it records where this save lineage began and each later runtime-source transition without storing noisy dirty-file lists in the save itself. (ChatGPT-5.6-Sol) -->
 static void logSASGameRecordVersionHistory()
 {
@@ -2360,6 +2399,8 @@ void startSASGameRecordLogForLoadedSave()
 	// Begin partial observations for wars already in progress, with the loaded turn and current war success recorded explicitly as their observable baseline. (GPT-5.6-Sol) -->
 	if (gGameRecordLogLevel >= 2) initializeSASGameRecordWarsFromLoadedSave();
 	logSASGameRecordGameState("GAME_RECORD_SAVE_LOADED");
+	// <!-- custom: Emit the save's own persisted checkpoint identity immediately after the generic load state, before current-runtime provenance can be mistaken for file provenance. (ChatGPT-5.6-Sol) -->
+	logSASGameRecordLoadedSaveCheckpoint();
 	// <!-- custom: Keep static mod/source/binary identity immediately after the load-session marker; it does not depend on the loaded save's generated/game state. (ChatGPT-5.6-Sol) -->
 	logSASGameRecordProvenanceContext();
 	// <!-- custom: onAllGameDataRead reconciles the persisted lineage before starting this log, so a load records any newly encountered source transition here. (ChatGPT-5.6-Sol) -->

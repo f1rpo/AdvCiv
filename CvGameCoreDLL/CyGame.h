@@ -94,6 +94,9 @@ public:
 	// <!-- custom: Python diplomacy bridge for the exact package of AI ordinary offers rejected by a human.
 	// Raw item/data pairs are converted and logged only at SASGameRecord level 2+. (ChatGPT-5.6-Sol) -->
 	void logSASGameRecordRejectedAIOffer(int iProposer, int iResponder, boost::python::list& kProposerGives, boost::python::list& kResponderGives);
+	// <!-- custom: One-shot SASFastSave provenance bridge; Python already knows the exact chosen basename while CvGame::write owns the persisted checkpoint. (ChatGPT-5.6-Sol) -->
+	void setSASFastSaveContext(std::string szReason, std::string szOriginalBasename);
+	void clearSASFastSaveContext();
 	// <!-- custom: Expose persisted game-source history separately from current runtime source details so later Victory/Sevopedia UI can show creation and transition revisions. (ChatGPT-5.6-Sol) -->
 	int getNumSASVersionHistoryEntries() const;
 	int getSASVersionHistoryTurn(int iIndex) const;

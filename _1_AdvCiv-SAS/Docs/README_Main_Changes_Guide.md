@@ -149,6 +149,11 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
   - If source metadata itself is unavailable, the creation entry keeps honest unknown values rather than inventing provenance.
   - As with other AdvCiv-SAS save-schema changes, older save layouts are intentionally unsupported rather than migrated.
   - The history is exposed read-only to Python for later Victory/Sevopedia/replay presentation and is emitted by SASGameRecord for immediate testing/analysis.
+- (Requires AdvCiv-SAS 6617+) **Exact save-checkpoint provenance without extra saves:**
+  - Every `CvGame` serialization embeds a private checkpoint only in the serialized copy of game script data, avoiding another save serialization. Loading strips the checkpoint regardless of the current logging level, preserving Python-visible script data; checkpoint persistence is independent of SASGameRecord so archival saves remain identifiable even if logging was disabled when they were created.
+  - SASGameRecord can therefore match a later loaded file to its saved turn/elapsed turn, millisecond UTC and authoritative RNG states through one stable checkpoint ID; initial map/sync seeds identify the game lineage.
+  - Civ4 does not expose the native save filename at this DLL boundary, so unknown filenames stay explicit instead of being inferred from directory order or modification time.
+  - SASFastSave is the known exception: its Python helper already owns the exact final basename, including UTC and any collision suffix, and passes that one-shot basename/reason into the checkpoint so later loaded records can identify the original START/STOP/END/victory fast save.
 - (Requires AdvCiv-SAS 6378+) **Visible version/source and save-lineage UI:**
   - Victory Screen -> Settings now replaces the old plain mod-name row with the compact current runtime identity and every persisted save creation/transition entry; the runtime row opens a new dynamic Sevopedia Mods Info page with full version/SHA, branch/date, metadata source, dirty status/files, actual folder/path and current save lineage.
   - Replay Settings persist the compact runtime source and full save lineage into the replay message itself, while replay filenames add the practical AdvCiv-SAS version when known so replay/Hall-of-Fame files remain identifiable without SHA/dirty filename clutter.
@@ -243,6 +248,7 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
   - Each option can be disabled independently and is separate from BUG AutoSave settings.
 - (Requires AdvCiv-SAS 6374+) **Recognize a game quickly in the narrow save list and find its matching replay files:**
   - `SASFastSave` save file names show the original leader, turn, world size and map first, followed by victory/winner when applicable, game speed, initial map and sync seeds, and UTC timestamp.
+  - The exact chosen basename/reason is also embedded in AdvCiv-SAS save-checkpoint provenance regardless of the current SASGameRecord level, so a later SASGameRecord can identify the original fast-save file even if logging was disabled when it was created and Civ4 does not expose the current loaded path.
   - Compact leader labels and short victory labels leave more useful information visible; `START`/`STOP`/`END` sit at the end.
   - For example, in a SASGameRecord the game was recorded as Alexander Custom Continents game with initial map and sync seeds `41500016`, so the corresponding `SASFastSave` starting and victory save files would be named `ALEXANDER_T0000_HUGE_CUSTOM_CONTINENTS_NORMAL_41500016_41500016_20260909T171232Z_START` and `ALEXANDER_T0459_HUGE_CUSTOM_CONTINENTS_SPACE_ZARA_YAQOB_NORMAL_41500016_41500016_20260910T184208Z`.
   - To find related saves while another autoplay runs, copy an initial seed's number from its game record and search the save folder: `41500016` matches these names directly.

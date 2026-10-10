@@ -28,6 +28,7 @@
 #include "CvHallOfFameInfo.h" // advc.106i
 #include "BBAILog.h" // BBAI
 #include "SASGameRecordLog.h" // <!-- custom: Structured run-summary files are initialized separately from BBAI diagnostics. (GPT-5.5) -->
+#include "CvGameCoreUtils.h" // <!-- custom: Save-checkpoint provenance reuses the shared UTC formatter so serialized checkpoint identity and diagnostics use the same stable timestamp syntax. (ChatGPT-5.6-Sol) -->
 #include "ModName.h" // <!-- custom: Persist the cached runtime version/SHA identity into each game's source-transition history. (ChatGPT-5.6-Sol) -->
 #include "CvBugOptions.h" // K-Mod
 
@@ -35,6 +36,85 @@
 	(Won't matter so long as CvGame is a singleton class.) */
 #undef CVGAME_INSTANCE_FOR_RNG
 #define CVGAME_INSTANCE_FOR_RNG (*this) // </advc.007c>
+
+// <!-- custom: Embed save-checkpoint identity inside only the serialized copy of CvGame script data, then strip the private trailer immediately on load.
+// This keeps Python-visible getScriptData/setScriptData unchanged without another save-management system; checkpoint persistence is independent of SASGameRecord logging so old archival saves remain identifiable later.
+// The feature-named marker covers manual saves, native autosaves and SASFastSave; only SASFastSave supplies its known original basename/reason.
+// The leading newline separates the private marker from script data; only this current trailer format is supported. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+static char const* const SAS_SAVE_CHECKPOINT_PREFIX = "\n[SAS_SAVE_CHECKPOINT_V1:";
+
+// <!-- custom: Named positions define our SAS trailer layout, not a native Civ4 field order; both parsing and serialization use these indices and the final count.
+// Changing the stored layout also requires updating the trailer format marker; an enum prevents magic-index drift but does not provide old-save compatibility. (GPT-6.1-Sol) -->
+enum SASSaveCheckpointFieldTypes
+{
+	SAS_SAVE_CHECKPOINT_KIND,
+	SAS_SAVE_CHECKPOINT_TURN,
+	SAS_SAVE_CHECKPOINT_ELAPSED_TURN,
+	SAS_SAVE_CHECKPOINT_UTC,
+	SAS_SAVE_CHECKPOINT_MAP_RNG_STATE,
+	SAS_SAVE_CHECKPOINT_SYNC_RNG_STATE,
+	SAS_SAVE_CHECKPOINT_REASON,
+	SAS_SAVE_CHECKPOINT_ORIGINAL_BASENAME,
+	NUM_SAS_SAVE_CHECKPOINT_FIELDS
+};
+
+static bool SAS_parseUnsignedSaveCheckpointField(std::string const& szField, uint& uiValue)
+{
+	if (szField.empty())
+		return false;
+	uint uiResult = 0;
+	for (size_t i = 0; i < szField.size(); i++)
+	{
+		char const c = szField[i];
+		if (c < '0' || c > '9')
+			return false;
+		uint const uiDigit = (uint)(c - '0');
+		if (uiResult > (MAX_UNSIGNED_INT - uiDigit) / 10u)
+			return false;
+		uiResult = uiResult * 10u + uiDigit;
+	}
+	uiValue = uiResult;
+	return true;
+}
+
+static bool SAS_extractSaveCheckpointTrailer(CvString& szScriptData, CvString& szKind, int& iTurn, int& iElapsedTurn, CvString& szUtc, uint& uiMapRandState, uint& uiSyncRandState, CvString& szReason, CvString& szOriginalBasename)
+{
+	std::string const& szSerialized = szScriptData;
+	std::string const szPrefix = SAS_SAVE_CHECKPOINT_PREFIX;
+	std::string::size_type const iMarker = szSerialized.rfind(szPrefix);
+	if (iMarker == std::string::npos || szSerialized.empty() || szSerialized[szSerialized.size() - 1] != ']')
+		return false;
+	std::string const szPayload = szSerialized.substr(iMarker + szPrefix.size(), szSerialized.size() - (iMarker + szPrefix.size()) - 1);
+	std::vector<std::string> asFields;
+	std::string::size_type iStart = 0;
+	while (true)
+	{
+		std::string::size_type const iSeparator = szPayload.find(':', iStart);
+		asFields.push_back(szPayload.substr(iStart, iSeparator == std::string::npos ? std::string::npos : iSeparator - iStart));
+		if (iSeparator == std::string::npos)
+			break;
+		iStart = iSeparator + 1;
+	}
+	if (asFields.size() != NUM_SAS_SAVE_CHECKPOINT_FIELDS || asFields[SAS_SAVE_CHECKPOINT_KIND].empty() || asFields[SAS_SAVE_CHECKPOINT_UTC].empty())
+		return false;
+	uint uiTurn = 0;
+	uint uiElapsedTurn = 0;
+	if (!SAS_parseUnsignedSaveCheckpointField(asFields[SAS_SAVE_CHECKPOINT_TURN], uiTurn) || uiTurn > (uint)MAX_INT ||
+		!SAS_parseUnsignedSaveCheckpointField(asFields[SAS_SAVE_CHECKPOINT_ELAPSED_TURN], uiElapsedTurn) || uiElapsedTurn > (uint)MAX_INT ||
+		!SAS_parseUnsignedSaveCheckpointField(asFields[SAS_SAVE_CHECKPOINT_MAP_RNG_STATE], uiMapRandState) ||
+		!SAS_parseUnsignedSaveCheckpointField(asFields[SAS_SAVE_CHECKPOINT_SYNC_RNG_STATE], uiSyncRandState))
+	{
+		return false;
+	}
+	szKind = asFields[SAS_SAVE_CHECKPOINT_KIND].c_str();
+	iTurn = (int)uiTurn;
+	iElapsedTurn = (int)uiElapsedTurn;
+	szUtc = asFields[SAS_SAVE_CHECKPOINT_UTC].c_str();
+	szReason = (asFields[SAS_SAVE_CHECKPOINT_REASON] == "-" ? "" : asFields[SAS_SAVE_CHECKPOINT_REASON].c_str());
+	szOriginalBasename = (asFields[SAS_SAVE_CHECKPOINT_ORIGINAL_BASENAME] == "-" ? "" : asFields[SAS_SAVE_CHECKPOINT_ORIGINAL_BASENAME].c_str());
+	szScriptData = szSerialized.substr(0, iMarker).c_str();
+	return true;
+}
 
 
 CvGame::CvGame() :
@@ -658,6 +738,16 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	// <!-- custom: Reset persisted source history with the rest of CvGame serialized state.
 	// New games establish creation provenance at gameStart, while loads refill the current-format history from the stream. (ChatGPT-5.6-Sol) -->
 	m_aSASVersionHistory.clear();
+	m_iSASLoadedSaveCheckpointTurn = -1;
+	m_iSASLoadedSaveCheckpointElapsedTurn = -1;
+	m_uiSASLoadedSaveCheckpointMapRandState = 0;
+	m_uiSASLoadedSaveCheckpointSyncRandState = 0;
+	m_szSASLoadedSaveCheckpointUtc = "";
+	m_szSASLoadedSaveCheckpointKind = "";
+	m_szSASLoadedSaveCheckpointReason = "";
+	m_szSASLoadedSaveCheckpointOriginalBasename = "";
+	m_szSASPendingFastSaveReason = "";
+	m_szSASPendingFastSaveOriginalBasename = "";
 
 	m_bScoreDirty = false;
 	m_bCircumnavigated = false;
@@ -9374,6 +9464,9 @@ void CvGame::read(FDataStreamBase* pStream)
 	// </advc.004m>
 
 	pStream->ReadString(m_szScriptData);
+	// <!-- custom: Strip valid checkpoint metadata even when logging is now disabled so Python never sees the private trailer; absent/malformed trailers remain untouched.
+	// This load-time extraction is deliberately independent of the logging gate so a checkpoint created while logging was disabled remains available if the save is later loaded with logging enabled. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	SAS_extractSaveCheckpointTrailer(m_szScriptData, m_szSASLoadedSaveCheckpointKind, m_iSASLoadedSaveCheckpointTurn, m_iSASLoadedSaveCheckpointElapsedTurn, m_szSASLoadedSaveCheckpointUtc, m_uiSASLoadedSaveCheckpointMapRandState, m_uiSASLoadedSaveCheckpointSyncRandState, m_szSASLoadedSaveCheckpointReason, m_szSASLoadedSaveCheckpointOriginalBasename);
 
 	m_aeRankPlayer.read(pStream);
 	m_aePlayerRank.read(pStream);
@@ -9553,6 +9646,21 @@ void CvGame::read(FDataStreamBase* pStream)
 }
 
 
+// <!-- custom: Python owns SASFastSave naming because it already owns the lifecycle hooks, BugPath save-directory lookup, sanitization, UTC token and collision suffix.
+// The DLL receives only the exact chosen basename/reason for the immediately following save so provenance cannot drift through duplicated filename logic. (ChatGPT-5.6-Sol) -->
+void CvGame::setSASFastSaveContext(char const* szReason, char const* szOriginalBasename)
+{
+	m_szSASPendingFastSaveReason = (szReason == NULL ? "" : szReason);
+	m_szSASPendingFastSaveOriginalBasename = (szOriginalBasename == NULL ? "" : szOriginalBasename);
+}
+
+void CvGame::clearSASFastSaveContext()
+{
+	m_szSASPendingFastSaveReason = "";
+	m_szSASPendingFastSaveOriginalBasename = "";
+}
+
+
 void CvGame::write(FDataStreamBase* pStream)
 {
 	PROFILE_FUNC(); // advc
@@ -9617,7 +9725,36 @@ void CvGame::write(FDataStreamBase* pStream)
 	pStream->Write(m_eInitialActivePlayer); // advc.106h
 	pStream->Write(m_eCurrentLayer); // advc.004m
 
-	pStream->WriteString(m_szScriptData);
+	// <!-- custom: Persist a compact checkpoint in every serialized save, independent of SASGameRecord logging, so an archival save created with logging disabled can still identify its exact serialization when loaded later.
+	// Only the diagnostic row is logging-gated; the trailer exists solely in the serialized script-data copy and is stripped on load. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	int const iSASSaveCheckpointTurn = getGameTurn();
+	int const iSASSaveCheckpointElapsedTurn = getElapsedGameTurns();
+	CvString const szSASSaveCheckpointUtc = createSASUtcTimestampMilliseconds();
+	uint const uiSASSaveCheckpointMapRandState = getMapRand().getSeed();
+	uint const uiSASSaveCheckpointSyncRandState = getSorenRand().getSeed();
+	bool const bSASKnownFastSave = !m_szSASPendingFastSaveOriginalBasename.empty();
+	char const* const szSASSaveCheckpointKind = (bSASKnownFastSave ? "SAS_FAST_SAVE" : "ENGINE_SAVE_UNKNOWN");
+	char const* const szSASSaveCheckpointReason = (bSASKnownFastSave && !m_szSASPendingFastSaveReason.empty() ? m_szSASPendingFastSaveReason.c_str() : "-");
+	char const* const szSASSaveCheckpointOriginalBasename = (bSASKnownFastSave ? m_szSASPendingFastSaveOriginalBasename.c_str() : "-");
+	CvString szSerializedScriptData = m_szScriptData;
+	CvString asCheckpointFields[NUM_SAS_SAVE_CHECKPOINT_FIELDS];
+	asCheckpointFields[SAS_SAVE_CHECKPOINT_KIND] = szSASSaveCheckpointKind;
+	asCheckpointFields[SAS_SAVE_CHECKPOINT_TURN].Format("%d", iSASSaveCheckpointTurn);
+	asCheckpointFields[SAS_SAVE_CHECKPOINT_ELAPSED_TURN].Format("%d", iSASSaveCheckpointElapsedTurn);
+	asCheckpointFields[SAS_SAVE_CHECKPOINT_UTC] = szSASSaveCheckpointUtc;
+	asCheckpointFields[SAS_SAVE_CHECKPOINT_MAP_RNG_STATE].Format("%u", uiSASSaveCheckpointMapRandState);
+	asCheckpointFields[SAS_SAVE_CHECKPOINT_SYNC_RNG_STATE].Format("%u", uiSASSaveCheckpointSyncRandState);
+	asCheckpointFields[SAS_SAVE_CHECKPOINT_REASON] = szSASSaveCheckpointReason;
+	asCheckpointFields[SAS_SAVE_CHECKPOINT_ORIGINAL_BASENAME] = szSASSaveCheckpointOriginalBasename;
+	szSerializedScriptData += SAS_SAVE_CHECKPOINT_PREFIX;
+	for (int iField = 0; iField < NUM_SAS_SAVE_CHECKPOINT_FIELDS; iField++)
+	{
+		if (iField > 0) szSerializedScriptData += ':';
+		szSerializedScriptData += asCheckpointFields[iField];
+	}
+	szSerializedScriptData += ']';
+	pStream->WriteString(szSerializedScriptData);
+	if (gGameRecordLogLevel >= 1) logSASGameRecordSaveCheckpointSerialized(szSASSaveCheckpointKind, iSASSaveCheckpointTurn, iSASSaveCheckpointElapsedTurn, szSASSaveCheckpointUtc.GetCString(), uiSASSaveCheckpointMapRandState, uiSASSaveCheckpointSyncRandState, szSASSaveCheckpointReason, szSASSaveCheckpointOriginalBasename);
 
 	m_aeRankPlayer.write(pStream);
 	m_aePlayerRank.write(pStream);

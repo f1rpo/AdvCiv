@@ -220,6 +220,20 @@ public:
 	char const* getSASVersionHistoryCommitHash(int iIndex) const;
 	int getSASVersionHistoryDirtyState(int iIndex) const;
 	void initializeSASVersionHistoryForNewGame();
+	// <!-- custom: Expose only the persisted checkpoint loaded from the current save; live saves are logged directly while serializing and do not mutate synchronized game state merely to remember diagnostic wall-clock metadata. (ChatGPT-5.6-Sol) -->
+	bool hasSASLoadedSaveCheckpoint() const { return m_iSASLoadedSaveCheckpointTurn >= 0; }
+	int getSASLoadedSaveCheckpointTurn() const { return m_iSASLoadedSaveCheckpointTurn; }
+	int getSASLoadedSaveCheckpointElapsedTurn() const { return m_iSASLoadedSaveCheckpointElapsedTurn; }
+	uint getSASLoadedSaveCheckpointMapRandState() const { return m_uiSASLoadedSaveCheckpointMapRandState; }
+	uint getSASLoadedSaveCheckpointSyncRandState() const { return m_uiSASLoadedSaveCheckpointSyncRandState; }
+	char const* getSASLoadedSaveCheckpointUtc() const { return m_szSASLoadedSaveCheckpointUtc.c_str(); }
+	char const* getSASLoadedSaveCheckpointKind() const { return m_szSASLoadedSaveCheckpointKind.c_str(); }
+	char const* getSASLoadedSaveCheckpointReason() const { return m_szSASLoadedSaveCheckpointReason.c_str(); }
+	char const* getSASLoadedSaveCheckpointOriginalBasename() const { return m_szSASLoadedSaveCheckpointOriginalBasename.c_str(); }
+	// <!-- custom: SASFastSave already owns its exact final target basename before calling CyGame.saveGame.
+	// Carry that one-shot context into CvGame::write so the serialized checkpoint and later loaded-save record can identify the original SASFastSave without duplicating filename construction in C++. (ChatGPT-5.6-Sol) -->
+	void setSASFastSaveContext(char const* szReason, char const* szOriginalBasename);
+	void clearSASFastSaveContext();
 
 	int AIHandicapAdjustment() const; // advc.251
 
@@ -786,6 +800,18 @@ protected:
 		CvString szCommitHash;
 	};
 	std::vector<SASVersionHistoryEntry> m_aSASVersionHistory;
+	// <!-- custom: Save-checkpoint provenance is embedded only in the serialized script-data copy and stripped again on load, so Python-visible game script data keeps its original contract while a loaded save can identify the exact serialization that produced it. (ChatGPT-5.6-Sol) -->
+	int m_iSASLoadedSaveCheckpointTurn;
+	int m_iSASLoadedSaveCheckpointElapsedTurn;
+	uint m_uiSASLoadedSaveCheckpointMapRandState;
+	uint m_uiSASLoadedSaveCheckpointSyncRandState;
+	CvString m_szSASLoadedSaveCheckpointUtc;
+	CvString m_szSASLoadedSaveCheckpointKind;
+	CvString m_szSASLoadedSaveCheckpointReason;
+	CvString m_szSASLoadedSaveCheckpointOriginalBasename;
+	// <!-- custom: Transient only; Python sets these immediately around a SASFastSave call and they are never ordinary synchronized gameplay/save state. (ChatGPT-5.6-Sol) -->
+	CvString m_szSASPendingFastSaveReason;
+	CvString m_szSASPendingFastSaveOriginalBasename;
 
 	bool m_bScoreDirty;
 	bool m_bCircumnavigated;

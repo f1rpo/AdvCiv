@@ -86,6 +86,9 @@ void CyGamePythonInterface()
 		.def("getElapsedGameTurns", &CyGame::getElapsedGameTurns, "int () - Elapsed turns thus far")
 		// <!-- custom: Internal BUG diplomacy bridge; captures only resolved AI->human ordinary offers rejected at the UI boundary. (ChatGPT-5.6-Sol) -->
 		.def("logSASGameRecordRejectedAIOffer", &CyGame::logSASGameRecordRejectedAIOffer)
+		// <!-- custom: Expose only one-shot SASFastSave basename/reason context; filename construction remains in Python so the DLL cannot drift from BugPath/collision behavior. (ChatGPT-5.6-Sol) -->
+		.def("setSASFastSaveContext", &CyGame::setSASFastSaveContext)
+		.def("clearSASFastSaveContext", &CyGame::clearSASFastSaveContext)
 		// <!-- custom: Read-only persistent source-history API for later game-version UI/replay presentation. (ChatGPT-5.6-Sol) -->
 		.def("getNumSASVersionHistoryEntries", &CyGame::getNumSASVersionHistoryEntries)
 		.def("getSASVersionHistoryTurn", &CyGame::getSASVersionHistoryTurn)

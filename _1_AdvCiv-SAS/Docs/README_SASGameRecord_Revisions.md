@@ -28,7 +28,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=140 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=141 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -71,10 +71,26 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
-### Revision 140 - SAS practical 6616
+### Revision 141 - SAS practical 6617
 
 - **Date:** 2026-10-10
 - **Git commit:** `pending`
+- **Change:** Persist and emit exact save-checkpoint identity without adding another autosave system or guessing native Civ4 filenames.
+
+Every `CvGame` serialization embeds a private checkpoint trailer only in the serialized copy of game script data; the trailer is stripped immediately when loading, so Python-visible `getScriptData()` remains unchanged. Checkpoint persistence is independent of SASGameRecord logging so archival saves created with logging disabled remain identifiable later.
+
+The checkpoint records saved turn/elapsed turn, millisecond UTC and both authoritative RNG states, while existing initial map/sync seeds identify the game lineage.
+
+At level 1+, `GAME_RECORD_SAVE_CHECKPOINT_SERIALIZED` records the checkpoint as serialization occurs and `GAME_RECORD_SAVE_CHECKPOINT_LOADED` exposes the same stable `checkpointId` after a later load. Native Civ4 filenames remain unknown at this boundary and therefore keep `filenameKnown=0` rather than being inferred.
+
+SASFastSave always passes its already-chosen basename/reason into the DLL around the synchronous save; fast-save checkpoints therefore carry `kind=SAS_FAST_SAVE`, `filenameKnown=1`, `reason` and `originalBasename` without duplicating Python filename construction, even if SASGameRecord is disabled when the save is created.
+
+Disabled logging skips only the `GAME_RECORD_SAVE_CHECKPOINT_SERIALIZED` output. Loading always extracts any valid current-format trailer to keep Python-visible script data unchanged; if logging is enabled for that later session, the loaded checkpoint can then be reported. Saves without a valid trailer report `available=0`; earlier draft formats are not supported.
+
+### Revision 140 - SAS practical 6616
+
+- **Date:** 2026-10-10
+- **Git commit:** `2ffe5568570ef82aa0d514cb316db790e6c6c9bf`
 - **Change:** Maintain shared first-city scouting expected-gain summaries and the optional linear-opportunity output only when Settler BBAI level 2+ or SASGameRecord level 2+ consumes them; recorded fields and AI decisions are unchanged.
 
 ### Revision 139 - SAS practical 6615

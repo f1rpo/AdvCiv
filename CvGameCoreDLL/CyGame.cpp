@@ -336,6 +336,18 @@ void CyGame::logSASGameRecordRejectedAIOffer(int iProposer, int iResponder, boos
 	logSASGameRecordAIToHumanOfferRejected((PlayerTypes)iProposer, (PlayerTypes)iResponder, kProposerList, kResponderList);
 }
 
+// <!-- custom: SASFastSave remains the single owner of filename construction; this bridge only supplies the exact final basename/reason to the immediately following serialization checkpoint. (ChatGPT-5.6-Sol) -->
+void CyGame::setSASFastSaveContext(std::string szReason, std::string szOriginalBasename)
+{
+	m_kGame.setSASFastSaveContext(szReason.c_str(), szOriginalBasename.c_str());
+}
+
+void CyGame::clearSASFastSaveContext()
+{
+	m_kGame.clearSASFastSaveContext();
+}
+
+
 // <!-- custom: Thin Python-facing accessors keep save-version history read-only; presentation policy belongs to later UI code. (ChatGPT-5.6-Sol) -->
 int CyGame::getNumSASVersionHistoryEntries() const
 {
