@@ -11498,7 +11498,13 @@ Diagnostics:
 
 - Settler BBAI level 3 now records raw and discounted information value, settle-now found value and best-6/best-10 core, linear and squared remaining-opportunity percentages, settle-now core-quality percentage, elapsed-window/time-pressure percentages, base and effective delay cost, expected gain, and whether the candidate is worth another scouting turn.
 - Level 2 records the chosen scouting summary and explicit `FIRST_CITY_END_SCOUT_LOW_UPSIDE_FOUND` / `FIRST_CITY_END_SCOUT_LOW_UPSIDE_RETURN` outcomes.
-- Candidate-level detail intentionally remains BBAI-only. A compact realized Settler-scout history in SASGameRecord is a separate follow-up so permanent telemetry does not duplicate every rejected scouting candidate.
+- Candidate-level detail intentionally remains BBAI-only; SASGameRecord revision 139 adds compact realized Settler-scout history without duplicating every rejected scouting candidate.
+
+Performance follow-up (ChatGPT-5.6-Sol + GPT-6.1-Sol):
+
+- Reuse best-6/best-10 core values already computed by the same first-city evaluator in the current call when the continuation target is the identical current or best-known plot and both values are available. Other return targets still receive a fresh evaluation; no persistent cache is added.
+- Keep core quality, remaining opportunity and delay calculations independent of logging because they determine gameplay. Maintain the logging-only expected-gain summaries and optional linear-opportunity output only when Settler BBAI level 2+ or SASGameRecord level 2+ consumes them.
+- The autoplay results above validate the original scouting change; this later optimization requires its own compilation and runtime validation.
 
 <a id="ki-145"></a>
 

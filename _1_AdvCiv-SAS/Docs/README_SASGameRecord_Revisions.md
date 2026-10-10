@@ -28,7 +28,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=139 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=140 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -71,10 +71,16 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
-### Revision 139 - SAS practical 6615
+### Revision 140 - SAS practical 6616
 
 - **Date:** 2026-10-10
 - **Git commit:** `pending`
+- **Change:** Maintain shared first-city scouting expected-gain summaries and the optional linear-opportunity output only when Settler BBAI level 2+ or SASGameRecord level 2+ consumes them; recorded fields and AI decisions are unchanged.
+
+### Revision 139 - SAS practical 6615
+
+- **Date:** 2026-10-10
+- **Git commit:** `38aba896ef201c61bfc2a43f963a5ac105cc42d0`
 - **Change:** Added compact realized Settler-scout provenance and rare loaded-transport defender-selection diagnostics without changing AI or combat behavior.
 
 Settler scouting now preserves only realized actions rather than BBAI's rejected-candidate search:

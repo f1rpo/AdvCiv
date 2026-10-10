@@ -5973,6 +5973,8 @@ bool CvUnitAI::AI_foundFirstCity()
 	const bool bLogSettlerAILevel2 = (gSettlerLogLevel >= 2);
 	const bool bLogSettlerAILevel3 = (gSettlerLogLevel >= 3);
 	const bool bLogSASSettlerScout = (gGameRecordLogLevel >= 2);
+	// <!-- custom: Both Settler BBAI and SASGameRecord consume these decision summaries; maintain logging-only trackers and optional outputs only when either consumer is enabled, while gameplay scoring remains unconditional. See KI#144.2. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	const bool bLogSettlerScoutDecision = (bLogSettlerAILevel2 || bLogSASSettlerScout);
 	std::auto_ptr<CitySiteEvaluator> pFirstCityOmniscientEvaluator;
 	if (bLogSettlerAILevel3)
 	{
@@ -6535,12 +6537,24 @@ bool CvUnitAI::AI_foundFirstCity()
 			int iBestSettleNowBest6PlotValue = 0;
 			int iBestSettleNowBest10PlotValue = 0;
 			int iBestSettleNowReferencePlotValue = iSustainablePlotValue;
-			if (pBestEarlyReturnPlot != NULL)
+			// <!-- custom: This continuation gate can target a plot whose best-6/10 core was already computed above by the same first-city evaluator.
+			// Reuse those values only for that identical current or best-known plot; other return targets still get a fresh evaluation, avoiding a redundant site scan without adding persistent cache state. See KI#144.2. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+			if (pBestEarlyReturnPlot == plot() && iCurrentBest6PlotValue >= 0 && iCurrentBest10PlotValue >= 0)
+			{
+				iBestSettleNowBest6PlotValue = iCurrentBest6PlotValue;
+				iBestSettleNowBest10PlotValue = iCurrentBest10PlotValue;
+			}
+			else if (pBestEarlyReturnPlot != NULL && pBestEarlyReturnPlot == pBestPlot && iBestKnownBest6PlotValue >= 0 && iBestKnownBest10PlotValue >= 0)
+			{
+				iBestSettleNowBest6PlotValue = iBestKnownBest6PlotValue;
+				iBestSettleNowBest10PlotValue = iBestKnownBest10PlotValue;
+			}
+			else if (pBestEarlyReturnPlot != NULL)
 				kFirstCityEvaluator.evaluateWithGrowthCorePlotValues(*pBestEarlyReturnPlot, iBestSettleNowBest6PlotValue, iBestSettleNowBest10PlotValue, iBestSettleNowReferencePlotValue);
 			FAssert(iBestSettleNowReferencePlotValue == iSustainablePlotValue);
 			int iScoutOpportunityLinearPercent = 100;
 			int iSettleNowCoreQualityPercent = 100;
-			const int iScoutRemainingOpportunityPercent = SAS_getFirstCityScoutRemainingOpportunityPercent(iBestSettleNowBest6PlotValue, iBestSettleNowBest10PlotValue, iSustainablePlotValue, &iScoutOpportunityLinearPercent, &iSettleNowCoreQualityPercent);
+			const int iScoutRemainingOpportunityPercent = SAS_getFirstCityScoutRemainingOpportunityPercent(iBestSettleNowBest6PlotValue, iBestSettleNowBest10PlotValue, iSustainablePlotValue, (bLogSettlerScoutDecision ? &iScoutOpportunityLinearPercent : NULL), &iSettleNowCoreQualityPercent);
 			const int iScoutWindowProgressPercent = std::min(100, (100 * std::max(0, kGame.getElapsedGameTurns())) / std::max(1, iMaxTurnsToFound));
 			const int iScoutTimePressurePercent = (iScoutWindowProgressPercent * iScoutWindowProgressPercent * iScoutWindowProgressPercent) / 10000;
 			const int iScoutDelayCost = (iFirstCityReturnTravelValuePerTurn * iScoutTimePressurePercent * iSettleNowCoreQualityPercent) / 10000;
@@ -6592,8 +6606,7 @@ bool CvUnitAI::AI_foundFirstCity()
 				const int iExploreValueWithoutKnownTarget = iInformationValue + iKnownProspectValue + iFoundValueGain;
 				const int iKnownTargetApproachValue = (&kEndTurnPlot == pBestKnownApproachStep ? std::max(0, iBestValue - iExploreValueWithoutKnownTarget) : 0);
 				const int iExploreValue = iExploreValueWithoutKnownTarget + iKnownTargetApproachValue;
-				if (iExploreValue > 0)
-					iBestScoutExpectedGain = std::max(iBestScoutExpectedGain, iScoutExpectedGain);
+				if (bLogSettlerScoutDecision && iExploreValue > 0) iBestScoutExpectedGain = std::max(iBestScoutExpectedGain, iScoutExpectedGain);
 				// <!-- custom: Five fresh high-player-count test maps exposed three first Settlers that followed the largest fog frontier for several turns and then returned to their original capital, alongside a Zulu counterexample where scouting found a genuinely stronger site.
 				// The old arbitrary 1000 points per revealed plot dwarfed complete capital values, so direction choice ignored whether the already visible part of that direction looked habitable.
 				// Value new information in shared XML-derived sustainable-plot units and add the endpoint's nonnegative player-known city-site value only when the step can actually reveal something; checking canSeePlot is essential because an earlier test counted line-of-sight-blocked outer-ring plots repeatedly and made Byzantine and Benin Settlers oscillate.
@@ -6614,7 +6627,7 @@ bool CvUnitAI::AI_foundFirstCity()
 				if (bWorthScoutDelay && iExploreValue > iBestExploreValue)
 				{
 					iBestExploreValue = iExploreValue;
-					iBestExploreExpectedGain = iScoutExpectedGain;
+					if (bLogSettlerScoutDecision) iBestExploreExpectedGain = iScoutExpectedGain;
 					if (bLogSASSettlerScout)
 					{
 						iBestExploreInformationValue = iInformationValue;
