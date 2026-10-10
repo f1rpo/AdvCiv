@@ -237,6 +237,9 @@ private:
 	int calculateBonusBuildingHappyHealthValue(BonusTypes eBonus, bool bCoastal) const;
 	int calculateBonusConnectionEra(BonusTypes eBonus, CvPlot const& p) const;
 	int nonYieldBonusValue(CvPlot const& p, BonusTypes eBonus, bool bCanTrade, bool bEasyAccess, bool bCoastal, std::vector<int>* paiBonusCount, int iCultureModifier, int* piHappyHealthValue = NULL, int* piBuildingHappyHealthValue = NULL, int* piAdjustPercent = NULL, int* piWaterPenalty = NULL) const;
+	// <!-- custom: Observe known radius-3 resources and their BFC/ownership/claim context without granting resource credit.
+	// Replaces the experimental outer-ring scoring helper; call only behind Found level 3 for first-capital evaluation. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	void logBBAIFirstCityOuterRingResources(std::vector<int> const& aiBFCBonusCount) const;
 	int calculateSpecialYieldModifier(int iCultureModifier, bool bEasyAccess, bool bBonus, bool bCanSoonImproveBonus, bool bCanImproveBonus) const;
 	void calculateSpecialYields(CvPlot const& p, int const* aiBonusImprovementYield, int const* aiNatureYield, int iModifier, int* aiSpecialYield, int& iSpecialFoodPlus, int& iSpecialFoodMinus, int& iSpecialYieldTiles) const;
 	void calculateBuildingYields(CvPlot const& p, int const* aiNatureYield, int* aiBuildingYield) const;

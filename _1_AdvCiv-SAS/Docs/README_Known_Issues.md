@@ -11454,6 +11454,8 @@ Update during the XML-driven Settler site-valuation rework:
 
 ## KI#144.2 - (Improved AdvCiv-SAS first-city scouting efficiency) Strong known capitals could spend late scouting turns on low expected upside
 
+Screenshots/files for this issue: [google drive folder link](https://drive.google.com/drive/folders/1yMXAndnpGjVlqFwLNqsFzetm1moKxRL3?usp=sharing).
+
 This is a follow-up to [KI#144](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-144), kept as a decimal issue so the historical sequential numbering can resume independently.
 
 Observed problem:

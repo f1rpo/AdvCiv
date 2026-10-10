@@ -19,6 +19,128 @@
 
 static int const iDEFAULT_BARB_DISCOURAGED_RANGE = 8; // advc.303
 
+// <!-- custom: Diagnostic-only first-capital capacity rows pair the existing scalar plot ranking with plausible improved F/P/C yields and natural/unimproved food capacity.
+// They expose the food budget of the preferred best-6/10/14 plots; no value from this structure feeds AI decisions.
+// The food-ranked alternative reorders those same selected improvement outcomes by Food; it does not search each plot for a different, food-maximizing improvement and is not an absolute food ceiling.
+// The natural-food alternative separately ranks unimproved terrain/resource yields with existing features retained; the free city center still uses its settled yield, since founding removes its feature.
+// Natural yields do not assume improvements, buildings or worker feature removal, and do not promise immediate workability before required technologies. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+struct SASFirstCityBFCCapacityPlot
+{
+	SASFirstCityBFCCapacityPlot() : iPlotValue(0), iPlotIndex(-1)
+	{
+		FOR_EACH_ENUM(Yield)
+		{
+			aiYield[eLoopYield] = 0;
+			aiNatureYield[eLoopYield] = 0;
+		}
+	}
+	int iPlotValue;
+	int iPlotIndex;
+	int aiYield[NUM_YIELD_TYPES];
+	int aiNatureYield[NUM_YIELD_TYPES];
+};
+
+struct SASFirstCityBFCCapacityValueGreater
+{
+	bool operator()(SASFirstCityBFCCapacityPlot const& a, SASFirstCityBFCCapacityPlot const& b) const
+	{
+		if (a.iPlotValue != b.iPlotValue)
+			return a.iPlotValue > b.iPlotValue;
+		if (a.aiYield[YIELD_FOOD] != b.aiYield[YIELD_FOOD])
+			return a.aiYield[YIELD_FOOD] > b.aiYield[YIELD_FOOD];
+		if (a.aiYield[YIELD_PRODUCTION] != b.aiYield[YIELD_PRODUCTION])
+			return a.aiYield[YIELD_PRODUCTION] > b.aiYield[YIELD_PRODUCTION];
+		if (a.aiYield[YIELD_COMMERCE] != b.aiYield[YIELD_COMMERCE])
+			return a.aiYield[YIELD_COMMERCE] > b.aiYield[YIELD_COMMERCE];
+		return a.iPlotIndex < b.iPlotIndex;
+	}
+};
+
+struct SASFirstCityBFCCapacityFoodGreater
+{
+	bool operator()(SASFirstCityBFCCapacityPlot const& a, SASFirstCityBFCCapacityPlot const& b) const
+	{
+		if (a.aiYield[YIELD_FOOD] != b.aiYield[YIELD_FOOD])
+			return a.aiYield[YIELD_FOOD] > b.aiYield[YIELD_FOOD];
+		if (a.aiYield[YIELD_PRODUCTION] != b.aiYield[YIELD_PRODUCTION])
+			return a.aiYield[YIELD_PRODUCTION] > b.aiYield[YIELD_PRODUCTION];
+		if (a.aiYield[YIELD_COMMERCE] != b.aiYield[YIELD_COMMERCE])
+			return a.aiYield[YIELD_COMMERCE] > b.aiYield[YIELD_COMMERCE];
+		if (a.iPlotValue != b.iPlotValue)
+			return a.iPlotValue > b.iPlotValue;
+		return a.iPlotIndex < b.iPlotIndex;
+	}
+};
+
+struct SASFirstCityBFCCapacityNaturalFoodGreater
+{
+	bool operator()(SASFirstCityBFCCapacityPlot const& a, SASFirstCityBFCCapacityPlot const& b) const
+	{
+		if (a.aiNatureYield[YIELD_FOOD] != b.aiNatureYield[YIELD_FOOD])
+			return a.aiNatureYield[YIELD_FOOD] > b.aiNatureYield[YIELD_FOOD];
+		if (a.aiNatureYield[YIELD_PRODUCTION] != b.aiNatureYield[YIELD_PRODUCTION])
+			return a.aiNatureYield[YIELD_PRODUCTION] > b.aiNatureYield[YIELD_PRODUCTION];
+		if (a.aiNatureYield[YIELD_COMMERCE] != b.aiNatureYield[YIELD_COMMERCE])
+			return a.aiNatureYield[YIELD_COMMERCE] > b.aiNatureYield[YIELD_COMMERCE];
+		if (a.iPlotValue != b.iPlotValue)
+			return a.iPlotValue > b.iPlotValue;
+		return a.iPlotIndex < b.iPlotIndex;
+	}
+};
+
+static CvString getSASFirstCityBFCCapacityFields(std::vector<SASFirstCityBFCCapacityPlot> const& aPlots, int const* aiHomeYield)
+{
+	std::vector<SASFirstCityBFCCapacityPlot> aValueCore = aPlots;
+	std::vector<SASFirstCityBFCCapacityPlot> aFoodCore = aPlots;
+	std::vector<SASFirstCityBFCCapacityPlot> aNaturalFoodCore = aPlots;
+	std::sort(aValueCore.begin(), aValueCore.end(), SASFirstCityBFCCapacityValueGreater());
+	std::sort(aFoodCore.begin(), aFoodCore.end(), SASFirstCityBFCCapacityFoodGreater());
+	std::sort(aNaturalFoodCore.begin(), aNaturalFoodCore.end(), SASFirstCityBFCCapacityNaturalFoodGreater());
+	int const aiCoreSizes[3] = {6, 10, 14};
+	int const iFoodPerCitizen = GC.getFOOD_CONSUMPTION_PER_POPULATION();
+	CvString szResult;
+	for (int iCore = 0; iCore < 3; ++iCore)
+	{
+		int const iCoreSize = aiCoreSizes[iCore];
+		int aiValueCoreYield[NUM_YIELD_TYPES] = {aiHomeYield[YIELD_FOOD], aiHomeYield[YIELD_PRODUCTION], aiHomeYield[YIELD_COMMERCE]};
+		int aiValueCoreNaturalYield[NUM_YIELD_TYPES] = {aiHomeYield[YIELD_FOOD], aiHomeYield[YIELD_PRODUCTION], aiHomeYield[YIELD_COMMERCE]};
+		int aiFoodCoreYield[NUM_YIELD_TYPES] = {aiHomeYield[YIELD_FOOD], aiHomeYield[YIELD_PRODUCTION], aiHomeYield[YIELD_COMMERCE]};
+		int aiNaturalFoodCoreYield[NUM_YIELD_TYPES] = {aiHomeYield[YIELD_FOOD], aiHomeYield[YIELD_PRODUCTION], aiHomeYield[YIELD_COMMERCE]};
+		for (int iPlot = 0; iPlot < iCoreSize; ++iPlot)
+		{
+			if (iPlot < (int)aValueCore.size())
+			{
+				FOR_EACH_ENUM(Yield)
+				{
+					aiValueCoreYield[eLoopYield] += aValueCore[iPlot].aiYield[eLoopYield];
+					aiValueCoreNaturalYield[eLoopYield] += aValueCore[iPlot].aiNatureYield[eLoopYield];
+				}
+			}
+			if (iPlot < (int)aFoodCore.size())
+			{
+				FOR_EACH_ENUM(Yield)
+					aiFoodCoreYield[eLoopYield] += aFoodCore[iPlot].aiYield[eLoopYield];
+			}
+			if (iPlot < (int)aNaturalFoodCore.size())
+			{
+				FOR_EACH_ENUM(Yield)
+					aiNaturalFoodCoreYield[eLoopYield] += aNaturalFoodCore[iPlot].aiNatureYield[eLoopYield];
+			}
+		}
+		int const iValueCoreFoodSurplus = aiValueCoreYield[YIELD_FOOD] - iCoreSize * iFoodPerCitizen;
+		int const iValueCoreNaturalFoodSurplus = aiValueCoreNaturalYield[YIELD_FOOD] - iCoreSize * iFoodPerCitizen;
+		int const iFoodCoreFoodSurplus = aiFoodCoreYield[YIELD_FOOD] - iCoreSize * iFoodPerCitizen;
+		int const iNaturalFoodCoreFoodSurplus = aiNaturalFoodCoreYield[YIELD_FOOD] - iCoreSize * iFoodPerCitizen;
+		CvString szCore;
+		szCore.Format(" valueCore%d=%dF%dP%dC valueCore%dFoodSurplus=%d valueCore%dNaturalFoodSurplus=%d foodRanked%d=%dF%dP%dC foodRanked%dSurplus=%d naturalFoodRanked%d=%dF%dP%dC naturalFoodRanked%dSurplus=%d",
+			iCoreSize, aiValueCoreYield[YIELD_FOOD], aiValueCoreYield[YIELD_PRODUCTION], aiValueCoreYield[YIELD_COMMERCE], iCoreSize, iValueCoreFoodSurplus, iCoreSize, iValueCoreNaturalFoodSurplus,
+			iCoreSize, aiFoodCoreYield[YIELD_FOOD], aiFoodCoreYield[YIELD_PRODUCTION], aiFoodCoreYield[YIELD_COMMERCE], iCoreSize, iFoodCoreFoodSurplus,
+			iCoreSize, aiNaturalFoodCoreYield[YIELD_FOOD], aiNaturalFoodCoreYield[YIELD_PRODUCTION], aiNaturalFoodCoreYield[YIELD_COMMERCE], iCoreSize, iNaturalFoodCoreFoodSurplus);
+		szResult += szCore;
+	}
+	return szResult;
+}
+
 // <!-- custom: Keep the three top-level Settler yield-emphasis percentages shared by ordinary plot potential, resource-improvement value, home-plot opportunity and XML-derived scouting references. (GPT-5.6-Sol) -->
 static int getSASEvaluateYieldValuePercent(YieldTypes eYield)
 {
@@ -508,6 +630,14 @@ int AIFoundValue::evaluate()
 	int aiBreakdownPlotCoreCutoffs[6];
 	int iBreakdownPositivePlots;
 
+	// <!-- custom: Keep food-sustainability diagnostics entirely behind Found level 3; ordinary evaluation does not allocate, sort or retain per-plot yield-capacity data.
+	// The city center is free to work, so later surplus fields include its yields but subtract Food only for the 6/10/14 citizens working non-home plots. (ChatGPT-5.6-Sol) -->
+	bool const bLogFirstCityBFCCapacity = (gFoundLogLevel >= 3 && bStartPhase && kSet.isStartingLoc() && !kSet.isNormalizing());
+	std::vector<SASFirstCityBFCCapacityPlot> aFirstCityBFCCapacityPlots;
+	if (bLogFirstCityBFCCapacity)
+		aFirstCityBFCCapacityPlots.reserve(NUM_CITY_PLOTS - 1);
+	int aiFirstCityBFCCapacityHomeYield[NUM_YIELD_TYPES] = {0, 0, 0};
+
 	if (gFoundLogLevel >= 3) logBBAIFoundDetail("EVALUATE_CITY_RADIUS");
 	std::vector<int> aiPlotValues(NUM_CITY_PLOTS, 0);
 
@@ -617,6 +747,13 @@ int AIFoundValue::evaluate()
 			bool const bCanAssumeWaterBonusImprovement = p.SAS_canAssumeWaterBonusImprovement(eBonusPlot, ePlayer, kPlot);
 			int iBestPotentialYieldScore = 0;
 			bool const bVeryBadBFCPlot = p.SAS_isVeryBadBFCPlot(eBonusPlot, ePlayer, iAssumedSeaPlotFoodChange, iMinAcceptableVeryBadPlotPotentialYieldScore, iBestPotentialYieldScore);
+			// <!-- custom: Observe the existing inland-water classification without forcing low-food water into the very-bad category; this row explains the current rule rather than applying the experimental penalty. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+			if (gFoundLogLevel >= 3 && bStartPhase && !kSet.isNormalizing() && !bOceanCoastal && p.isWater() && eBonusPlot == NO_BONUS)
+			{
+				int const iNaturalWaterFood = p.calculateNatureYield(YIELD_FOOD, NO_TEAM, false);
+				logBBAIFoundDetail("FIRST_CITY_INLAND_WATER_CLASSIFICATION", "plot=%d,%d naturalFood=%d selfFeedingFood=%d selfFeeding=%d potentialYieldScore=%d currentVeryBad=%d",
+					p.getX(), p.getY(), iNaturalWaterFood, GC.getFOOD_CONSUMPTION_PER_POPULATION(), iNaturalWaterFood >= GC.getFOOD_CONSUMPTION_PER_POPULATION(), iBestPotentialYieldScore, bVeryBadBFCPlot);
+			}
 			if (bVeryBadBFCPlot)
 			{
 				++iVeryBadBFCTiles;
@@ -946,6 +1083,35 @@ int AIFoundValue::evaluate()
 			iPlotValue = applyCultureModifier(p, iPlotValue, iCultureModifier, bShare);
 			aiPlotValues[eLoopCityPlot] = iPlotValue; // Sum these up later
 		}
+		if (bLogFirstCityBFCCapacity)
+		{
+			if (bHome)
+			{
+				FOR_EACH_ENUM(Yield)
+					aiFirstCityBFCCapacityHomeYield[eLoopYield] = aiNatureYield[eLoopYield];
+			}
+			else
+			{
+				SASFirstCityBFCCapacityPlot kCapacityPlot;
+				kCapacityPlot.iPlotValue = iPlotValue;
+				kCapacityPlot.iPlotIndex = eLoopCityPlot;
+				int aiBuildingYield[NUM_YIELD_TYPES];
+				calculateBuildingYields(p, aiNatureYield, aiBuildingYield);
+				FOR_EACH_ENUM(Yield)
+				{
+					int iPotentialYield = aiNatureYield[eLoopYield] + aiBuildingYield[eLoopYield];
+					if (eBonus != NO_BONUS && eBonusImprovement != NO_IMPROVEMENT)
+						iPotentialYield += aiBonusImprovementYield[eLoopYield];
+					else if (eBonus == NO_BONUS && !p.isWater() && eBestPotentialImprovement != NO_IMPROVEMENT)
+						iPotentialYield = aiBestPotentialYield[eLoopYield];
+					kCapacityPlot.aiYield[eLoopYield] = iPotentialYield;
+					// <!-- custom: The scoring aiNatureYield can already omit removable features; reusing it here overstated pre-improvement Food on plots such as Jungle.
+					// Retain features for this diagnostic-only sample, using the same known-resource visibility as scoring; all extra calls remain inside the capacity logging gate. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+					kCapacityPlot.aiNatureYield[eLoopYield] = p.calculateNatureYield(eLoopYield, eBonus == NO_BONUS ? NO_TEAM : eTeam, false);
+				}
+				aFirstCityBFCCapacityPlots.push_back(kCapacityPlot);
+			}
+		}
 		bool const bEasyAccess = /* K-Mod (!!): */ ((p.isWater() && (bCoastal ||
 				p.getArea().getCitiesPerPlayer(ePlayer, true) > 0)) || // advc.031
 				p.sameArea(kPlot) || p.getArea().getCitiesPerPlayer(ePlayer) > 0);
@@ -986,6 +1152,13 @@ int AIFoundValue::evaluate()
 			// For capital-only food-bonus scaling, use normal improved food on land and XML food only for water bonuses when the candidate city is coastal.
 			// This keeps AI_foundValue from treating inland fish or low-food bonuses like Pig + Corn. (GPT-5.5) -->
 			const bool bStartingFoodBonus = (kSet.isStartingLoc() && (p.isWater() ? bCoastal && GC.getInfo(eBonus).getYieldChange(YIELD_FOOD) > 0 : aiBonusImprovementYield[YIELD_FOOD] > 0));
+			// <!-- custom: Record the actual starting-food classification beside its improved Food capacity; feeding two citizens is an observation, not a replacement classifier or scoring threshold. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+			if (gFoundLogLevel >= 3 && kSet.isStartingLoc() && !kSet.isNormalizing())
+			{
+				int const iImprovedFood = aiNatureYield[YIELD_FOOD] + aiBonusImprovementYield[YIELD_FOOD];
+				logBBAIFoundDetail("STARTING_BONUS_GROWTH_CLASSIFICATION", "plot=%d,%d bonus=%S water=%d coastal=%d scoringNatureFood=%d improvementFoodGain=%d improvedFood=%d foodForTwoCitizens=%d feedsTwoCitizens=%d currentStartingFoodBonus=%d",
+					p.getX(), p.getY(), GC.getInfo(eBonus).getDescription(), p.isWater(), bCoastal, aiNatureYield[YIELD_FOOD], aiBonusImprovementYield[YIELD_FOOD], iImprovedFood, 2 * GC.getFOOD_CONSUMPTION_PER_POPULATION(), iImprovedFood >= 2 * GC.getFOOD_CONSUMPTION_PER_POPULATION(), bStartingFoodBonus);
+			}
 
 			// <!-- custom: Base AdvCiv skipped barbarian non-yield bonus value because barbarians do not care about ordinary bonus trade.
 			// AdvCiv-SAS still wants barbarian-founded cities to be good long-term sites, both for barbarian strength and because they are often captured by normal players, so value health/happiness/building effects while ignoring barbarian trade-timing limits. See KI#178. (GPT-5.5) -->
@@ -1067,6 +1240,13 @@ int AIFoundValue::evaluate()
 				int const iDynamicBonusValue = GET_PLAYER(ePlayer).AI_baseBonusVal(eBonus);
 				iBonusScoreDynamicValue = iExtraValueNotHomeDynamicBonusValueMultiplier * iDynamicBonusValue;
 				iValue += iBonusScoreDynamicValue;
+				// <!-- custom: Retain evidence of potential generic happiness/health overlap while applying the full original dynamic score; the rounded component is diagnostic only and is not deducted. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+				if (gFoundLogLevel >= 3 && kSet.isStartingLoc() && !kSet.isNormalizing() && iCities == 0)
+				{
+					int const iGenericHappyHealth = GET_PLAYER(ePlayer).AI_getStartingBonusHappyHealthDiagnostic(eBonus);
+					logBBAIFoundDetail("STARTING_BONUS_DYNAMIC_HAPPY_HEALTH_COMPARISON", "plot=%d,%d bonus=%S fullDynamicValue=%d genericHappyHealthComponentRounded=%d fullDynamicScoreApplied=%d separatelyAppliedNonYieldScore=%d scoreRemoved=0",
+						p.getX(), p.getY(), GC.getInfo(eBonus).getDescription(), iDynamicBonusValue, iGenericHappyHealth, iBonusScoreDynamicValue, iBonusScoreNonYield);
+				}
 
 				// <!-- custom: AdvCiv's aggregated special-yield formula applied hardcoded weights, nonlinear power, and a second food modifier after older SAS logic had already weighted Food x3 and Production x2.
 				// This made six resources contribute 5015 points to Karakorum's low-food (49,43) candidate and overwhelm the stronger Pig + Maize river-grass site at (52,40) (save file 360).
@@ -1090,6 +1270,16 @@ int AIFoundValue::evaluate()
 			calculateSpecialYields(p, eBonusImprovement == NO_IMPROVEMENT ? NULL : aiBonusImprovementYield, aiNatureYield, iSpecialYieldModifier, aiSpecialYield, iSpecialFoodPlus, iSpecialFoodMinus, iSpecialYieldTiles);
 		}
 	}
+
+	if (bLogFirstCityBFCCapacity)
+	{
+		CvString const szCapacity = getSASFirstCityBFCCapacityFields(aFirstCityBFCCapacityPlots, aiFirstCityBFCCapacityHomeYield);
+		logBBAIFoundDetail("FIRST_CITY_BFC_POTENTIAL_CAPACITY", "center=%dF%dP%dC knownUsableNonHome=%d foodPerCitizen=%d%s",
+			aiFirstCityBFCCapacityHomeYield[YIELD_FOOD], aiFirstCityBFCCapacityHomeYield[YIELD_PRODUCTION], aiFirstCityBFCCapacityHomeYield[YIELD_COMMERCE],
+			(int)aFirstCityBFCCapacityPlots.size(), GC.getFOOD_CONSUMPTION_PER_POPULATION(), szCapacity.GetCString());
+	}
+
+	if (gFoundLogLevel >= 3 && bStartPhase && kSet.isStartingLoc() && !kSet.isNormalizing() && iCities == 0) logBBAIFirstCityOuterRingResources(aiBonusCount);
 
 	if (bNeedBreakdown)
 		iBreakdownDirect = iValue - iBreakdownBase;
@@ -3084,6 +3274,51 @@ int AIFoundValue::calculateBonusConnectionEra(BonusTypes eBonus, CvPlot const& p
 	}
 	FAssertMsg(iEarliestConnectionEra != MAX_INT, "Every visible bonus should have a non-Fort improvement that can connect it");
 	return (iEarliestConnectionEra == MAX_INT ? GC.getNumEraInfos() - 1 : iEarliestConnectionEra);
+}
+
+
+// <!-- custom: Keep the outer-ring investigation as an observation of known resource locations, not the proposed resource-credit cure.
+// Existing scoring gives these outside-BFC resources no direct resource term; report the unscaled non-yield reference and full dynamic value for eligible occurrences without adding either to the site score or deduplicating them into a new policy.
+// Visibility, ownership, duplicate types and rival future BFCs remain explicit context; all scanning, helper calls and formatting are behind the caller's Found-level-3 gate. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+void AIFoundValue::logBBAIFirstCityOuterRingResources(std::vector<int> const& aiBFCBonusCount) const
+{
+	FAssert(gFoundLogLevel >= 3 && iCities == 0);
+	int const iOuterRingDistance = CITY_PLOTS_RADIUS + 1;
+	std::vector<bool> abSeenType(GC.getNumBonusInfos(), false);
+	for (SquareIter it(kPlot, iOuterRingDistance); it.hasNext(); ++it)
+	{
+		CvPlot const& p = *it;
+		if (plotDistance(kPlot.getX(), kPlot.getY(), p.getX(), p.getY()) != iOuterRingDistance || !isRevealed(p))
+			continue;
+		BonusTypes const eBonus = getBonus(p);
+		if (eBonus == NO_BONUS)
+			continue;
+		PlayerTypes const eOwner = getRevealedOwner(p);
+		bool const bRivalOwned = (eOwner != NO_PLAYER && GET_PLAYER(eOwner).getTeam() != eTeam);
+		bool const bRivalFutureBFC = isPlotInKnownRivalFutureBFC(p);
+		bool const bTypeInBFC = (aiBFCBonusCount[eBonus] > 0);
+		bool const bRepeatedType = abSeenType[eBonus];
+		abSeenType[eBonus] = true;
+		if (bRivalOwned || bRivalFutureBFC || bTypeInBFC)
+		{
+			logBBAIFoundDetail("STARTING_OUTER_RING_BONUS_CONTEXT", "plot=%d,%d bonus=%S distance=%d owner=%d rivalOwned=%d knownRivalFutureBFC=%d typeAlreadyInBFC=%d repeatedOuterType=%d currentDirectResourceScore=0",
+				p.getX(), p.getY(), GC.getInfo(eBonus).getDescription(), iOuterRingDistance, eOwner, bRivalOwned, bRivalFutureBFC, bTypeInBFC, bRepeatedType);
+			continue;
+		}
+		bool bCanTradeBonus = false;
+		bool bCanSoonTradeBonus = false;
+		bool bCanImproveBonus = false;
+		bool bCanSoonImproveBonus = false;
+		bool bImprovementRemovesFeature = false;
+		int aiBonusImprovementYield[NUM_YIELD_TYPES] = {0, 0, 0};
+		getBonusImprovement(eBonus, p, bCanTradeBonus, bCanSoonTradeBonus, aiBonusImprovementYield, bCanImproveBonus, bCanSoonImproveBonus, bImprovementRemovesFeature);
+		bool const bEasyAccess = ((p.isWater() && bCoastal) || p.sameArea(kPlot) || p.getArea().getCitiesPerPlayer(ePlayer) > 0);
+		int const iReferenceNonYieldValue = nonYieldBonusValue(p, eBonus, bBarbarian ? true : bCanTradeBonus, bEasyAccess, bCoastal, NULL, 100);
+		int const iFullDynamicValue = GET_PLAYER(ePlayer).AI_baseBonusVal(eBonus);
+		int const iGenericHappyHealth = GET_PLAYER(ePlayer).AI_getStartingBonusHappyHealthDiagnostic(eBonus);
+		logBBAIFoundDetail("STARTING_OUTER_RING_BONUS_REFERENCE", "plot=%d,%d bonus=%S distance=%d owner=%d rivalOwned=0 knownRivalFutureBFC=0 typeAlreadyInBFC=0 repeatedOuterType=%d referenceNonYieldUnscaled=%d fullDynamicValue=%d genericHappyHealthComponentRounded=%d canTrade=%d canSoonTrade=%d canImprove=%d canSoonImprove=%d easyAccess=%d currentDirectResourceScore=0",
+			p.getX(), p.getY(), GC.getInfo(eBonus).getDescription(), iOuterRingDistance, eOwner, bRepeatedType, iReferenceNonYieldValue, iFullDynamicValue, iGenericHappyHealth, bCanTradeBonus, bCanSoonTradeBonus, bCanImproveBonus, bCanSoonImproveBonus, bEasyAccess);
+	}
 }
 
 

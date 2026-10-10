@@ -268,6 +268,9 @@ public:
 	// <!-- custom: hoisted from multiline signature between `bAssumeEnabled` and `bTrade` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled = false, bool bTrade = false) const;
 	int AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade = false) const;
+	// <!-- custom: Found-level-3-only observation of the no-city generic happiness/health component in AI_baseBonusVal(false); no scoring subtraction is applied.
+	// Call only before the first city exists; this replaces the experimental strategic-remainder scoring accessor with diagnostic-only evidence. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	int AI_getStartingBonusHappyHealthDiagnostic(BonusTypes eBonus) const;
 	int AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes eFromPlayer, int iChange, bool bExtraHappyOrHealth = false) const; // advc.036
 	DenialTypes AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer, int iChange = 0) const; // advc.133
 	// advc.210e: Exposed to Python

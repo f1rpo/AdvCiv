@@ -12696,6 +12696,31 @@ static bool shouldLogSASBonusValueChange(CvString const& szKey, CvString const& 
 	return true;
 }
 
+// <!-- custom: Preserve the proposed first-capital resource-overlap investigation without subtracting anything from AI scores.
+// Reproduce only AI_baseBonusVal(false)'s no-city happiness/health component for Found level-3 comparisons; this independently rounded component is explanatory, not an exact decomposition of the rounded full value.
+// The caller must pre-gate this diagnostic and require no existing cities; unit/building/project/route/manual-policy scoring remains untouched. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+int CvPlayerAI::AI_getStartingBonusHappyHealthDiagnostic(BonusTypes eBonus) const
+{
+	FAssert(gFoundLogLevel >= 3 && getNumCities() == 0);
+	CvBonusInfo const& kBonus = GC.getInfo(eBonus);
+	int const iHappy = kBonus.getHappiness();
+	int const iHealth = kBonus.getHealth();
+	scaled rHappyHealthValue;
+	scaled const rScaleFactor = 2 + fixp(0.1);
+	int const iExtraPop1 = 1;
+	int const iExtraPop2 = 2;
+	scaled rExtraPopFactor = fixp(0.1) * (10 - (fixp(0.7) * iExtraPop1 + fixp(0.3) * iExtraPop2));
+	rExtraPopFactor.increaseTo(fixp(0.5));
+	if (iHappy > 0)
+		rHappyHealthValue += rScaleFactor * AI_getHappinessWeight(iHappy, iExtraPop2);
+	if (iHealth > 0)
+		rHappyHealthValue += (rScaleFactor - fixp(0.5)) * fixp(0.5) * (AI_getHealthWeight(iHealth, iExtraPop1) + AI_getHealthWeight(iHealth, iExtraPop2));
+	rHappyHealthValue *= rExtraPopFactor;
+	rHappyHealthValue /= 10;
+	return rHappyHealthValue.round();
+}
+
+
 int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) const
 {
 	// <!-- custom: Cache dynamic bonus values per player and current game state, not as timeless per-era tables.
