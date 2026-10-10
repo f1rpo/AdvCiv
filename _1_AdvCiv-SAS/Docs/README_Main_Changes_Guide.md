@@ -1618,6 +1618,10 @@ The aim is that, in many cases, they also benefit vassals (or at least do not cl
   - Safe scout steps value newly revealed fog in shared XML-derived plot units, the known site quality near their endpoint, and progress toward a stronger already-known candidate; direction is therefore based on prospective yields and bonuses rather than a large flat reward for revealing any tile.
   - Nearby candidates within the tunable local range are compared by full site and growth-core value without a redundant one-turn movement penalty.
   - Longer exploration remains bounded by the whole scouting-plus-return window; before another step, the Settler protects the strongest reachable known site and queues return movement plus founding together.
+  - (Requires AdvCiv-SAS 6614+) A later continuation gate now asks whether one more scouting turn is worth delaying the best capital already known.
+    - Uncertain fog information is discounted continuously as the best known best-6/best-10 growth core approaches a strong XML-derived reference, while delay cost rises with both elapsed share of the scouting window and settle-now core quality. Poor starts therefore remain cheap to investigate, while an already excellent capital becomes progressively harder to postpone.
+    - This changes whether to keep scouting, not the existing direction score, and adds no terrain/resource/found-value cutoff.
+    - In the targeted Korea case it kept the same strong Maize + Pig `(47,25)` capital but founded on turn 5 instead of turn 7; a five-map SAS48 turn-11 suite left 230/240 starts on the exact same tile and turn and showed no broad earlier-settling regression; see [KI#144.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-144.2).
   - Empirical tests preserved or improved Berlin, Karakorum, Cuzco, Aztec, Aachen, and Wang Kon cases without map- or civilization-specific rules.
   - See [KI#144](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-144).
 - **Optional naval-heavy-map coastal settling bias:**

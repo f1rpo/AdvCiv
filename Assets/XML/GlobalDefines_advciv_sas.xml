@@ -1510,8 +1510,8 @@ Enforced by the turn_define_gamespeed CI check. (GPT-5.6 Thinking) -->
 		<iDefineIntVal>7</iDefineIntVal>
 	</Define>
 	<!-- custom: First-city return cost per path turn, as a percentage of one sustainable productive reference plot (citizen food consumption + 1 Production under the shared weights).
-	This follows the found-value scale without altering site valuation.
-	Default 125% resolves to the tested 150 that preserved Berlin, Karakorum, and Cuzco; 0 ignores return time. (GPT-5.5 + GPT-5.6-Sol) -->
+	This follows the found-value scale without altering site valuation; the same one-turn value also serves as the opportunity cost that a new scouting step must beat after its uncertain information gain is discounted by known-capital quality.
+	Default 125% resolves to the tested 150 that preserved Berlin, Karakorum, and Cuzco; 0 ignores return/scouting delay. See also KI#144.2. (GPT-5.5 + GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
 	<Define>
 		<DefineName>SAS_AI_FOUND_FIRST_CITY_RETURN_TRAVEL_REFERENCE_PLOT_PERCENT</DefineName>
 		<iDefineIntVal>125</iDefineIntVal>

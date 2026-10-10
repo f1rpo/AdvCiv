@@ -787,6 +787,22 @@ static int SAS_getFirstCityReturnTravelValuePerTurn()
 	return (CitySiteEvaluator::getSustainableProductivePlotValue() * iReferencePlotPercent) / 100;
 }
 
+// <!-- custom: Convert the best capital core already known to the Settler into continuous scouting-opportunity and settle-now-quality measures.
+// The same best-6 and best-10 worked-plot sums used by first-city decisions are compared with 6+10 XML-derived sustainable productive plots, so no raw found-value threshold decides whether a capital is "good".
+// `reference / (reference + knownCore)` falls smoothly as the known capital gets stronger; squaring it deliberately represents the two linked reasons to stop searching: the plausible improvement gets smaller and the chance of finding an improvement also falls.
+// The reciprocal `knownCore / reference` quality scale also lets the delay cost rise for an unusually strong known capital and fall for a poor one, reflecting that postponing a great capital is itself more expensive without naming any terrain, resource or found-value cutoff; see KI#144.2. (ChatGPT-5.6-Sol) -->
+static int SAS_getFirstCityScoutRemainingOpportunityPercent(int iBest6PlotValue, int iBest10PlotValue, int iSustainablePlotValue, int* piLinearPercent = NULL, int* piSettleNowCoreQualityPercent = NULL)
+{
+	const int iReferenceCoreValue = std::max(0, 16 * iSustainablePlotValue);
+	const int iKnownCoreValue = std::max(0, iBest6PlotValue) + std::max(0, iBest10PlotValue);
+	const int iLinearPercent = (iReferenceCoreValue <= 0 ? 100 : (100 * iReferenceCoreValue) / std::max(1, iReferenceCoreValue + iKnownCoreValue));
+	if (piLinearPercent != NULL)
+		*piLinearPercent = iLinearPercent;
+	if (piSettleNowCoreQualityPercent != NULL)
+		*piSettleNowCoreQualityPercent = (iReferenceCoreValue <= 0 ? 100 : (100 * iKnownCoreValue) / std::max(1, iReferenceCoreValue));
+	return (iLinearPercent * iLinearPercent) / 100;
+}
+
 // <!-- custom: Choose where a first-city scout should finish by charging each return turn against the site's current found value.
 // Keep this separate from city-site valuation: the same site retains the same strategic value, but a nearly equal nearby capital can be more efficient than several turns of backtracking.
 // The early deadline can instead protect the best raw-value site, using travel cost only to break exact ties, so wandering cannot progressively replace it with weaker nearby sites.
@@ -6501,7 +6517,22 @@ bool CvUnitAI::AI_foundFirstCity()
 			}
 			CvPlot* pBestExploreStep = NULL;
 			int iBestExploreValue = 0;
+			int iBestExploreExpectedGain = -MAX_INT;
+			int iBestScoutExpectedGain = 0;
+			bool bHadSafeExploreStep = false;
 			const int iSustainablePlotValue = CitySiteEvaluator::getSustainableProductivePlotValue();
+			int iBestSettleNowBest6PlotValue = 0;
+			int iBestSettleNowBest10PlotValue = 0;
+			int iBestSettleNowReferencePlotValue = iSustainablePlotValue;
+			if (pBestEarlyReturnPlot != NULL)
+				kFirstCityEvaluator.evaluateWithGrowthCorePlotValues(*pBestEarlyReturnPlot, iBestSettleNowBest6PlotValue, iBestSettleNowBest10PlotValue, iBestSettleNowReferencePlotValue);
+			FAssert(iBestSettleNowReferencePlotValue == iSustainablePlotValue);
+			int iScoutOpportunityLinearPercent = 100;
+			int iSettleNowCoreQualityPercent = 100;
+			const int iScoutRemainingOpportunityPercent = SAS_getFirstCityScoutRemainingOpportunityPercent(iBestSettleNowBest6PlotValue, iBestSettleNowBest10PlotValue, iSustainablePlotValue, &iScoutOpportunityLinearPercent, &iSettleNowCoreQualityPercent);
+			const int iScoutWindowProgressPercent = std::min(100, (100 * std::max(0, kGame.getElapsedGameTurns())) / std::max(1, iMaxTurnsToFound));
+			const int iScoutTimePressurePercent = (iScoutWindowProgressPercent * iScoutWindowProgressPercent * iScoutWindowProgressPercent) / 10000;
+			const int iScoutDelayCost = (iFirstCityReturnTravelValuePerTurn * iScoutTimePressurePercent * iSettleNowCoreQualityPercent) / 10000;
 			MovementFlags const eFirstCityExploreFlags = (MOVE_NO_ENEMY_TERRITORY | MOVE_AVOID_DANGER);
 			const int iScoutReferenceValue = (bContinuingFirstCityScout ? iFirstCityScoutOriginValue : SAS_evaluateFirstCityFoundValue(kFirstCityEvaluator, getPlot()));
 			CvPlot* pBestKnownApproachStep = NULL;
@@ -6538,13 +6569,20 @@ bool CvUnitAI::AI_foundFirstCity()
 					if (!(*itReveal).isRevealed(getTeam()) && kEndTurnPlot.canSeePlot(&*itReveal, getTeam(), visibilityRange()))
 						iRevealValue += iSustainablePlotValue / std::max(1, stepDistance(kEndTurnPlot.getX(), kEndTurnPlot.getY(), (*itReveal).getX(), (*itReveal).getY()));
 				}
+				bHadSafeExploreStep = true;
 				const int iEndTurnFoundValue = SAS_evaluateFirstCityFoundValue(kFirstCityEvaluator, kEndTurnPlot);
 				const int iFoundValueGain = std::max(0, iEndTurnFoundValue - iBestValue);
 				const int iInformationValue = iEndpointFogValue + iRevealValue;
+				const int iDiscountedInformationValue = (iInformationValue * iScoutRemainingOpportunityPercent) / 100;
+				const int iSettleNowFoundValueGain = (pBestEarlyReturnPlot == NULL ? std::max(0, iEndTurnFoundValue) : std::max(0, iEndTurnFoundValue - iBestEarlyReturnRawValue));
+				const int iScoutExpectedGain = iDiscountedInformationValue + iSettleNowFoundValueGain;
+				const bool bWorthScoutDelay = (iScoutExpectedGain > iScoutDelayCost);
 				const int iKnownProspectValue = (iInformationValue <= 0 ? 0 : std::max(0, iEndTurnFoundValue));
 				const int iExploreValueWithoutKnownTarget = iInformationValue + iKnownProspectValue + iFoundValueGain;
 				const int iKnownTargetApproachValue = (&kEndTurnPlot == pBestKnownApproachStep ? std::max(0, iBestValue - iExploreValueWithoutKnownTarget) : 0);
 				const int iExploreValue = iExploreValueWithoutKnownTarget + iKnownTargetApproachValue;
+				if (iExploreValue > 0)
+					iBestScoutExpectedGain = std::max(iBestScoutExpectedGain, iScoutExpectedGain);
 				// <!-- custom: Five fresh high-player-count test maps exposed three first Settlers that followed the largest fog frontier for several turns and then returned to their original capital, alongside a Zulu counterexample where scouting found a genuinely stronger site.
 				// The old arbitrary 1000 points per revealed plot dwarfed complete capital values, so direction choice ignored whether the already visible part of that direction looked habitable.
 				// Value new information in shared XML-derived sustainable-plot units and add the endpoint's nonnegative player-known city-site value only when the step can actually reveal something; checking canSeePlot is essential because an earlier test counted line-of-sight-blocked outer-ring plots repeatedly and made Byzantine and Benin Settlers oscillate.
@@ -6552,30 +6590,61 @@ bool CvUnitAI::AI_foundFirstCity()
 				// When a known site beats the remembered scout origin, raise the safe path step toward it to at least that site's value; this guides information gathering toward evidence the normal evaluator already found without committing to the site or bypassing the existing bad/fog founding guards.
 				// Unrelated exploration can still win with a higher score.
 				// These rules favour promising rivers, yields and bonuses without naming any XML asset.
-				// Keep the components separate in level-3 logging for further tuning. (GPT-5.6-Sol) -->
-				if (bLogSettlerAILevel3) logBBAI("FIRST_CITY_SCOUT_STEP_CANDIDATE player=%d from=%d,%d endTurn=%d,%d pathTurns=%d endpointFog=%d nearbyReveal=%d informationValue=%d foundValue=%d knownProspectValue=%d bestKnownPlot=%d,%d bestKnownFoundValue=%d knownTargetApproachValue=%d foundValueGain=%d total=%d",
-					getOwner(), getX(), getY(), kEndTurnPlot.getX(), kEndTurnPlot.getY(), iPathTurns, iEndpointFogValue,
-					iRevealValue, iInformationValue, iEndTurnFoundValue, iKnownProspectValue, (pBestPlot == NULL ? -1 : pBestPlot->getX()),
-					(pBestPlot == NULL ? -1 : pBestPlot->getY()), iBestValue, iKnownTargetApproachValue, iFoundValueGain, iExploreValue);
+				// Keep the components separate in level-3 logging for further tuning.
+				// The continuation gate below deliberately does not count the endpoint's whole knownProspectValue as expected improvement: that value helps choose a direction once scouting is worthwhile, but an already-good known tile is not itself evidence that delaying settlement will improve on the best capital already available.
+				// Delay pressure rises smoothly with the cube of elapsed share of the configured first-city window and is scaled by the best settle-now core against the same XML-derived sustainable reference: early or poor-site scouting is cheap, while postponing an unusually strong capital near the deadline is correspondingly expensive; see KI#144.2. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
+				if (bLogSettlerAILevel3) logBBAI("FIRST_CITY_SCOUT_STEP_CANDIDATE player=%d from=%d,%d endTurn=%d,%d pathTurns=%d endpointFog=%d nearbyReveal=%d informationValue=%d discountedInformationValue=%d scoutOpportunityLinearPercent=%d scoutOpportunityPercent=%d settleNowValue=%d settleNowBest6=%d settleNowBest10=%d settleNowCoreQualityPercent=%d foundValue=%d settleNowFoundValueGain=%d scoutExpectedGain=%d scoutDelayBaseCost=%d scoutWindowProgressPercent=%d scoutTimePressurePercent=%d scoutDelayCost=%d worthScoutDelay=%d knownProspectValue=%d bestKnownPlot=%d,%d bestKnownFoundValue=%d knownTargetApproachValue=%d foundValueGain=%d total=%d",
+					getOwner(), getX(), getY(), kEndTurnPlot.getX(), kEndTurnPlot.getY(), iPathTurns, iEndpointFogValue, iRevealValue, iInformationValue,
+					iDiscountedInformationValue, iScoutOpportunityLinearPercent, iScoutRemainingOpportunityPercent, iBestEarlyReturnRawValue, iBestSettleNowBest6PlotValue,
+					iBestSettleNowBest10PlotValue, iSettleNowCoreQualityPercent, iEndTurnFoundValue, iSettleNowFoundValueGain, iScoutExpectedGain, iFirstCityReturnTravelValuePerTurn, iScoutWindowProgressPercent,
+					iScoutTimePressurePercent, iScoutDelayCost, bWorthScoutDelay, iKnownProspectValue,
+					(pBestPlot == NULL ? -1 : pBestPlot->getX()), (pBestPlot == NULL ? -1 : pBestPlot->getY()), iBestValue, iKnownTargetApproachValue, iFoundValueGain, iExploreValue);
 				if (bLogSettlerAILevel3) SAS_logFirstCityCandidateBFCDiagnostics(pFirstCityOmniscientEvaluator.get(), "explore-step-end", kEndTurnPlot, getOwner(), getTeam(), iEndTurnFoundValue, iExploreValue, iPathTurns);
-				if (iExploreValue > iBestExploreValue)
+				if (bWorthScoutDelay && iExploreValue > iBestExploreValue)
 				{
 					iBestExploreValue = iExploreValue;
+					iBestExploreExpectedGain = iScoutExpectedGain;
 					pBestExploreStep = &kEndTurnPlot;
 				}
 			}
 			if (pBestExploreStep != NULL)
 			{
-				if (bLogSettlerAILevel2) logBBAI("FIRST_CITY_SCOUT_FOOD_POOR_SITE civilization=%S player=%d from=%d,%d target=%d,%d value=%d scoutOrigin=(%d,%d) scoutOriginValue=%d currentFoodEnvironmentScore=%d currentCitizenUnworkable=%d currentBest6PlotValue=%d currentBest10PlotValue=%d bestFoodEnvironmentScore=%d bestCitizenUnworkable=%d bestKnownBest6PlotValue=%d bestKnownBest10PlotValue=%d badFoodEnvironmentThreshold=%d sustainableProductivePlotValue=%d goodEnoughBest6ReferencePercent=%d goodEnoughBest6PlotValue=%d exploreValue=%d elapsed=%d maxFirstCityTurns=%d",
+				if (bLogSettlerAILevel2) logBBAI("FIRST_CITY_SCOUT_FOOD_POOR_SITE civilization=%S player=%d from=%d,%d target=%d,%d value=%d scoutOrigin=(%d,%d) scoutOriginValue=%d currentFoodEnvironmentScore=%d currentCitizenUnworkable=%d currentBest6PlotValue=%d currentBest10PlotValue=%d bestFoodEnvironmentScore=%d bestCitizenUnworkable=%d bestKnownBest6PlotValue=%d bestKnownBest10PlotValue=%d bestSettleNowValue=%d bestSettleNowBest6=%d bestSettleNowBest10=%d settleNowCoreQualityPercent=%d scoutOpportunityLinearPercent=%d scoutOpportunityPercent=%d scoutExpectedGain=%d scoutDelayBaseCost=%d scoutWindowProgressPercent=%d scoutTimePressurePercent=%d scoutDelayCost=%d badFoodEnvironmentThreshold=%d sustainableProductivePlotValue=%d goodEnoughBest6ReferencePercent=%d goodEnoughBest6PlotValue=%d exploreValue=%d elapsed=%d maxFirstCityTurns=%d",
 					kOwner.getCivilizationDescription(0), getOwner(), getX(), getY(), pBestExploreStep->getX(), pBestExploreStep->getY(),
 					iBestKnownFirstCityValue, (bContinuingFirstCityScout ? pFirstCityScoutOrigin->getX() : getX()),
 					(bContinuingFirstCityScout ? pFirstCityScoutOrigin->getY() : getY()),
 					(bContinuingFirstCityScout ? iFirstCityScoutOriginValue : SAS_evaluateFirstCityFoundValue(kFirstCityEvaluator, getPlot())),
 					iCurrentFoodEnvironmentScore, iCurrentCitizenUnworkablePlots, iCurrentBest6PlotValue, iCurrentBest10PlotValue, iBestPlotFoodEnvironmentScore,
-					iBestPlotCitizenUnworkablePlots, iBestKnownBest6PlotValue, iBestKnownBest10PlotValue, iBadFoodEnvironmentScoreThreshold, iSustainableProductivePlotValue, iGoodEnoughBest6ReferencePercent, iGoodEnoughBest6PlotValue, iBestExploreValue, kGame.getElapsedGameTurns(),
-					iMaxTurnsToFound);
+					iBestPlotCitizenUnworkablePlots, iBestKnownBest6PlotValue, iBestKnownBest10PlotValue, iBestEarlyReturnRawValue, iBestSettleNowBest6PlotValue, iBestSettleNowBest10PlotValue,
+					iSettleNowCoreQualityPercent, iScoutOpportunityLinearPercent, iScoutRemainingOpportunityPercent, iBestExploreExpectedGain, iFirstCityReturnTravelValuePerTurn, iScoutWindowProgressPercent, iScoutTimePressurePercent,
+					iScoutDelayCost, iBadFoodEnvironmentScoreThreshold, iSustainableProductivePlotValue,
+					iGoodEnoughBest6ReferencePercent, iGoodEnoughBest6PlotValue, iBestExploreValue, kGame.getElapsedGameTurns(), iMaxTurnsToFound);
 				CvPlot* pScoutOrigin = (bContinuingFirstCityScout ? pFirstCityScoutOrigin : &getPlot());
 				pushGroupMoveTo(*pBestExploreStep, eFirstCityExploreFlags, false, false, MISSIONAI_EXPLORE, pScoutOrigin);
+				return true;
+			}
+			// <!-- custom: If safe scouting steps exist but none has enough quality-discounted expected upside to beat the elapsed-window-scaled delay cost, stop the scout instead of consuming the rest of the hard window.
+			// Reuse the same best-known return target and queued FOUND mission as the deadline path above, so this gate changes only whether one more information-gathering turn is worthwhile.
+			// A poor known capital naturally keeps more expected opportunity and also carries less delay cost, while an unusually strong core raises that cost; elapsed-window pressure remains small early and rises near the configured deadline.
+			// Validated on the Korea marginal-return case and a five-map SAS48 turn-11 autoplay suite; see KI#144.2. (ChatGPT-5.6-Sol) -->
+			if (bHadSafeExploreStep && pBestEarlyReturnPlot != NULL)
+			{
+				if (at(*pBestEarlyReturnPlot))
+				{
+					if (bLogSettlerAILevel2) logBBAI("FIRST_CITY_END_SCOUT_LOW_UPSIDE_FOUND civilization=%S player=%d site=%d,%d rawValue=%d best6=%d best10=%d settleNowCoreQualityPercent=%d scoutOpportunityLinearPercent=%d scoutOpportunityPercent=%d bestScoutExpectedGain=%d scoutDelayBaseCost=%d scoutWindowProgressPercent=%d scoutTimePressurePercent=%d scoutDelayCost=%d elapsed=%d maxFirstCityTurns=%d",
+						kOwner.getCivilizationDescription(0), getOwner(), getX(), getY(), iBestEarlyReturnRawValue, iBestSettleNowBest6PlotValue, iBestSettleNowBest10PlotValue,
+						iSettleNowCoreQualityPercent, iScoutOpportunityLinearPercent, iScoutRemainingOpportunityPercent, iBestScoutExpectedGain, iFirstCityReturnTravelValuePerTurn, iScoutWindowProgressPercent, iScoutTimePressurePercent, iScoutDelayCost, kGame.getElapsedGameTurns(), iMaxTurnsToFound);
+					getGroup()->pushMission(MISSION_FOUND);
+				}
+				else
+				{
+					if (bLogSettlerAILevel2) logBBAI("FIRST_CITY_END_SCOUT_LOW_UPSIDE_RETURN civilization=%S player=%d from=%d,%d target=%d,%d rawValue=%d best6=%d best10=%d pathTurns=%d settleNowCoreQualityPercent=%d scoutOpportunityLinearPercent=%d scoutOpportunityPercent=%d bestScoutExpectedGain=%d scoutDelayBaseCost=%d scoutWindowProgressPercent=%d scoutTimePressurePercent=%d scoutDelayCost=%d elapsed=%d maxFirstCityTurns=%d",
+						kOwner.getCivilizationDescription(0), getOwner(), getX(), getY(), pBestEarlyReturnPlot->getX(), pBestEarlyReturnPlot->getY(), iBestEarlyReturnRawValue,
+						iBestSettleNowBest6PlotValue, iBestSettleNowBest10PlotValue, iBestEarlyReturnPathTurns, iSettleNowCoreQualityPercent, iScoutOpportunityLinearPercent, iScoutRemainingOpportunityPercent,
+						iBestScoutExpectedGain, iFirstCityReturnTravelValuePerTurn, iScoutWindowProgressPercent, iScoutTimePressurePercent, iScoutDelayCost, kGame.getElapsedGameTurns(), iMaxTurnsToFound);
+					pushGroupMoveTo(*pBestEarlyReturnPlot, MOVE_SAFE_TERRITORY, false, false, MISSIONAI_FOUND, pBestEarlyReturnPlot);
+					getGroup()->pushMission(MISSION_FOUND, -1, -1, NO_MOVEMENT_FLAGS, true, false, MISSIONAI_FOUND, pBestEarlyReturnPlot);
+				}
 				return true;
 			}
 			if (bLogSettlerAILevel2) logBBAI("FIRST_CITY_WAIT_FOOD_POOR_SITE civilization=%S player=%d site=%d,%d reason=NO_SAFE_ADJACENT_SCOUT_STEP value=%d currentFoodEnvironmentScore=%d currentCitizenUnworkable=%d bestFoodEnvironmentScore=%d bestCitizenUnworkable=%d badFoodEnvironmentThreshold=%d elapsed=%d maxFirstCityTurns=%d",

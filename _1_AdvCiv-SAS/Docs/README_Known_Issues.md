@@ -205,6 +205,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#142 - (Fixed) Base AdvCiv issue: Military Advisor Map tab debug mode did not draw the full minimap section](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-142)\
 [KI#143 - (Fixed) BUG configobj comment writer used undefined `_a_to_u` instead of correct `self._a_to_u`; old BUG syntax had prevented Ruff from seeing the bug](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-143)\
 [KI#144 - (Fixed) Base AdvCiv issue and AdvCiv-SAS settler free window follow-up: AI settlers sometimes do not move away from a high bad plot count start (e.g., high non-bonus tundra and plains): they now scout and hunt for better not very bad sites, and no longer stop at first good-enough site, but instead now rerun evaluate city site again on newly visible plots if a better site (e.g., more food/rivers/fresh water) exists nearby (which we now value more too for first city as well)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-144)\
+[KI#144.2 - (Improved AdvCiv-SAS first-city scouting efficiency) Strong known capitals could spend late scouting turns on low expected upside](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-144.2)\
 [KI#145 - (Implemented / needs in-game test) Military Advisor Map tab lost selected leaders after tab switch or close/reopen](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-145)\
 [KI#146 - (Fixed/Enhanced) Base AdvCiv issue of AI undervaluing coastal settling on naval-heavy maps](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-146)\
 [KI#147 - (Fixed/Enhanced) Base AdvCiv issue of AI settlers not adding extra valuation to unowned bonuses in city-site scoring](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-147)\
@@ -11448,6 +11449,56 @@ Update during the XML-driven Settler site-valuation rework:
   - New level-2 `FIRST_CITY_LOCAL_RECHECK_RESULT` and `FIRST_CITY_CACHED_SITE_COMPARISON` rows state the strongest local/cached alternative, both compared values, path turns and final action directly; level 3 now also identifies first-city site, local-recheck and scout-step rejection reasons, every eligible return candidate, and ordinary post-capital city-site eligibility/path scoring.
 - Detailed BFC dumps remain level 3, while level-2 `SETTLER_FOUND_RESULT` identifies an ordinary Settler for which no candidate survived and `SETTLER_FLOW_*` covers first-city fallback, financial suppression, overseas loading/coast movement and escort rendezvous that return outside the normal city-site mission path.
   - Transport-internal cargo decisions remain in their dedicated category. Implemented with the help of GPT-5.6-Sol, thanks.
+
+<a id="ki-144.2"></a>
+
+## KI#144.2 - (Improved AdvCiv-SAS first-city scouting efficiency) Strong known capitals could spend late scouting turns on low expected upside
+
+This is a follow-up to [KI#144](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-144), kept as a decimal issue so the historical sequential numbering can resume independently.
+
+Observed problem:
+
+- The first-city scout already had a bounded search window and efficient-return logic, but while the window remained open it still lacked an explicit answer to a narrower question: is one more information-gathering turn actually worth delaying the best capital already known?
+- Korea exposed the issue cleanly. Scouting west from the original start was useful because it revealed a much stronger Maize + Pig river area, but once the Settler reached the excellent `(47,25)` site it could still spend another turn stepping into marginal fog and then return to the same capital.
+- This was not random oscillation. BBAI showed that the extra step still received enough raw reveal value to beat the old continuation logic even though the already known capital had very little plausible upside left.
+- A pure turn-based cutoff would be the wrong cure: a Settler surrounded by Tundra or another genuinely poor opening should remain willing to scout much longer than one already holding an excellent capital.
+
+Fix:
+
+- Keep the existing scouting-direction score unchanged. It still decides where to scout once another scouting turn is justified.
+- Add a separate continue-versus-settle gate for the realized adjacent scout step.
+- Derive the best settle-now capital core from the same best-6 and best-10 worked-plot sums already used by first-city logic. Compare their combined value with `16 * CitySiteEvaluator::getSustainableProductivePlotValue()`, i.e. the same XML-derived sustainable productive-plot scale rather than a raw found-value threshold.
+- Convert that into a continuous remaining-opportunity factor. The linear term `reference / (reference + knownCore)` falls as the known capital gets stronger; squaring it represents the two linked reasons that further scouting becomes less attractive: the plausible improvement is smaller and the chance of finding an improvement is also lower.
+- Discount only the uncertain information component by that remaining-opportunity factor. A genuinely discovered better site remains a real gain.
+- Scale the existing XML-derived one-turn return value by two additional continuous factors before using it as scouting delay cost:
+  - elapsed share of the configured first-city scouting window, cubed, so early scouting remains cheap while late scouting becomes progressively harder to justify;
+  - the best settle-now core quality relative to the same sustainable reference, so postponing a very strong capital costs more while a poor capital remains cheap to delay.
+- If no otherwise viable scouting step has expected gain above that delay cost, stop scouting and reuse the existing best-known return/found path.
+- No terrain, resource, river, civilization, map, or raw found-value cutoff is hardcoded.
+
+Why the first attempt was rejected:
+
+- The first implementation charged the full one-turn delay cost immediately.
+- Korea then stopped after the first exploratory move and never investigated the promising Maize + Pig direction.
+- That showed that early scouting itself was not the problem; only late low-upside continuation was. The final implementation therefore makes delay pressure near-zero at the start and progressively stronger toward the configured deadline.
+
+Validation:
+
+- In the targeted Korea replay, the final code still found the strong `(47,25)` Maize + Pig capital.
+- Its best-6 value remained `1154`, best-10 remained `1800`, and omniscient rescored found value remained `6220`.
+- The Settler founded there on turn 5 instead of turn 7. The known rescored value was `5208` instead of `5256` only because the final marginal fog detour was no longer taken; the actual selected capital and its growth core were unchanged.
+- A five-map SAS48 turn-11 autoplay regression suite then compared 240 identical starting positions before and after the change.
+- `230 / 240` capitals kept the exact same founding tile and turn, `235 / 240` kept the same tile, and `232 / 240` kept the same founding turn.
+- Total founding-turn sum changed only from `125` to `124` (`0.521` to `0.517` average turns), so the change did not create a broad settle-as-soon-as-possible bias.
+- Average known rescored first-city value changed from about `5854.35` to `5855.85`; average omniscient rescore from about `6125.45` to `6136.43`; average best-6 + best-10 core from about `2545.33` to `2544.33`. These are effectively flat at suite scale, with no clear regression.
+- The new low-upside stop/return path activated only five times across the 240 starts. Two cases founded the same capital materially earlier, one chose an equal-raw-value adjacent site with a stronger core, one chose a nearby stronger-core site one turn earlier, and one returned to the same capital one turn later.
+- All five turn-11 autoplays completed cleanly.
+
+Diagnostics:
+
+- Settler BBAI level 3 now records raw and discounted information value, settle-now found value and best-6/best-10 core, linear and squared remaining-opportunity percentages, settle-now core-quality percentage, elapsed-window/time-pressure percentages, base and effective delay cost, expected gain, and whether the candidate is worth another scouting turn.
+- Level 2 records the chosen scouting summary and explicit `FIRST_CITY_END_SCOUT_LOW_UPSIDE_FOUND` / `FIRST_CITY_END_SCOUT_LOW_UPSIDE_RETURN` outcomes.
+- Candidate-level detail intentionally remains BBAI-only. A compact realized Settler-scout history in SASGameRecord is a separate follow-up so permanent telemetry does not duplicate every rejected scouting candidate.
 
 <a id="ki-145"></a>
 
