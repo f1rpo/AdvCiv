@@ -523,6 +523,10 @@ Verifies the independent `SASGameRecord` report is disabled by default in `Asset
 
 It also checks that the public `SAS_GAME_RECORD_REVISION` matches the newest contiguous entry in the maintained revision history, that the history's current emitted `recordRevision` example is not stale, and that the emitted `GAME_RECORD_SOURCE_CONTEXT recordRevision` field remains wired to that constant.
 
+The shared `SASSaveStreamFormat.h` registry supplies gameplay/replay writer markers and the session component-format row.
+
+The check rejects duplicate registry IDs/names, writers detached from their registered constants, and unregistered serializers using the recognized `uiFlag`/`iSaveVersion`/`savegameVersion` writer patterns. `CvInfo_*` XML-info cache files are excluded. It requires the diagnostic row to identify these as current writer markers rather than loaded-object values.
+
 The same check pins the cheap `GAME_RECORD_TURN_COMPLETED` bridge to the authoritative end of `CvGame::doTurn`: after event reporting and the optional level-3 `END_GAME_TURN` RNG/state checkpoint, but before `incrementGameTurn`. This prevents lower-detail crash/truncation completeness markers from silently drifting into the next-turn initialization boundary.
 
 Every revision heading must follow the documented format; the newest entry must also contain its Date, Git commit field (latest-entry `pending` is allowed), and a completed Change description. Regression tests reject a source-only revision bump, a missing latest entry, a stale example, malformed extra headings and missing metadata.

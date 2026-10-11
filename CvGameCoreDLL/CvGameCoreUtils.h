@@ -102,9 +102,9 @@ CvString getSASSourceContextFields();
 CvWString getSASCompactSourceVersion(char const* szVersion, char const* szCommitHash, int iDirtyState);
 // <!-- custom: Combine the configured mod display name with the current cached runtime source identity for replay/UI surfaces. (ChatGPT-5.6-Sol) -->
 CvWString getSASRuntimeDisplayNameAndVersion();
-// <!-- custom: Serialize exact loaded-DLL build/binary provenance shared by diagnostic log headers. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Serialize exact loaded-DLL build/binary provenance shared by diagnostic log headers, including numeric file/product resource versions when present; missing resources remain "-" rather than assuming the source .rc was linked. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 CvString getSASDllContextFields();
-// <!-- custom: Serialize exact Civ4 executable binary provenance independently from source/mod identity. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Serialize exact Civ4 executable binary provenance independently from source/mod identity, through the same fingerprint/time/resource-version schema as the DLL. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 CvString getSASExeContextFields();
 // <!-- custom: Serialize privacy-tiered installation provenance: low-detail distribution hints at level 2 and exact EXE/mod paths only at explicitly selected level 3. (ChatGPT-5.6-Sol) -->
 CvString getSASInstallContextFields(int iSystemContextLevel);

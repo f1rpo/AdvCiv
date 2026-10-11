@@ -1,4 +1,5 @@
 #include "CvGameCoreDLL.h"
+#include "SASSaveStreamFormat.h" // <!-- custom: Use the same compile-time write markers as the session diagnostic registry, avoiding duplicated version literals. (GPT-6.1-Sol) -->
 #include "RiseFall.h"
 #include "CvInfo_GameOption.h"
 #include "CoreAI.h"
@@ -184,7 +185,8 @@ void RiseFall::setPlayerHandicap(PlayerTypes civId, bool bHuman, bool bIncrease)
 
 void RiseFall::write(FDataStreamBase* pStream) {
 
-	int savegameVersion = 1; // For later changes that may break compatibility
+	// <!-- custom: Reuse the existing RiseFall write marker from the shared diagnostic registry; its value and serialized layout are unchanged. (GPT-6.1-Sol) -->
+	int savegameVersion = SASSaveStreamFormat::RISE_FALL; // For later changes that may break compatibility
 	pStream->Write(savegameVersion);
 	bool origNameGiven = (originalName != NULL);
 	pStream->Write(origNameGiven);

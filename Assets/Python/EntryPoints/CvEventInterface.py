@@ -15,6 +15,7 @@
 
 import BugEventManager
 import SASDefineGuard
+from CvPythonExtensions import CyGlobalContext, CyGame # <!-- custom: Gate and dispatch the session diagnostic observation only after Python lifecycle handlers finalize BUG/Autolog state. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 
 eventManager = BugEventManager.BugEventManager()
 
@@ -29,9 +30,16 @@ def onEvent(argsList):
 	# Called when a game event happens - return 1 if the event was consumed.
 	#
 	tag = argsList[0]
-	if (tag == "OnLoad" or tag == "GameStart"):
+	# <!-- custom: Reuse only the event classification; keep it before the logging lookup so ordinary events never query the Define or construct a CyGame wrapper. (GPT-6.1-Sol) -->
+	bSessionEvent = (tag == "OnLoad" or tag == "GameStart")
+	if bSessionEvent:
 		SASDefineGuard.verify_or_raise("CvEventInterface.onEvent[%s]" % tag)
-	return getEventManager().handleEvent(argsList)
+	result = getEventManager().handleEvent(argsList)
+	# <!-- custom: Autolog resets LoggingOn inside GameStart/OnLoad handlers; recording it from the earlier native session header reported pre-handler state.
+	# Emit once after all handlers return, with a caller gate before entering the DLL logger. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	if bSessionEvent and CyGlobalContext().getDefineINT("SAS_GAME_RECORD_LOG_LEVEL") > 0:
+		CyGame().logSASGameRecordDiagnosticContext()
+	return result
 
 def applyEvent(argsList):
 	context, playerID, netUserData, popupReturn = argsList

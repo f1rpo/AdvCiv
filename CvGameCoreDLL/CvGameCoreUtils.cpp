@@ -1,5 +1,7 @@
 #include "CvGameCoreDLL.h"
 #include "CvGameCoreUtils.h"
+#include <winver.h> // <!-- custom: VS_FIXEDFILEINFO describes the binary resource version; version.dll APIs are resolved dynamically for optional diagnostics without a linker dependency. (GPT-6.1-Sol) -->
+#include "ReproTest.h" // <!-- custom: Read ENABLE_REPRO_TEST from its owning header so DLL diagnostics report the actual serialization instrumentation switch, including a source-enabled build. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 #include "CoreAI.h"
 #include "CvUnitAI.h"
 #include "CvSelectionGroupAI.h"
@@ -228,7 +230,7 @@ CvWString getSASRuntimeDisplayNameAndVersion()
 // Cache each once because neither loaded image can change within this process. (ChatGPT-5.6-Sol) -->
 struct SASBinaryDiagnosticContext
 {
-	SASBinaryDiagnosticContext() : bModuleFound(false), bFileReadable(false), iFileSize(-1), uiPETimestamp(0), uiFingerprint(0), szLastWriteUtc("-"), szPath("-") {}
+	SASBinaryDiagnosticContext() : bModuleFound(false), bFileReadable(false), iFileSize(-1), uiPETimestamp(0), uiFingerprint(0), szLastWriteUtc("-"), szPath("-"), szFileVersion("-"), szProductVersion("-") {}
 	bool bModuleFound;
 	bool bFileReadable;
 	__int64 iFileSize;
@@ -236,6 +238,8 @@ struct SASBinaryDiagnosticContext
 	unsigned __int64 uiFingerprint;
 	CvString szLastWriteUtc;
 	CvString szPath;
+	CvString szFileVersion;
+	CvString szProductVersion;
 };
 
 static char const* getSASDllBuildConfiguration()
@@ -261,6 +265,44 @@ static CvString getSASFileTimeUtc(FILETIME const& kFileTime)
 	return formatSASUtcSystemTime(kUtcTime);
 }
 
+// <!-- custom: Read the backing DLL/EXE's numeric VERSIONINFO rather than duplicating AdvCiv's resource literals in recorder code.
+// These are binary metadata, not the mod source revision or save-layout markers; builds without a version resource retain explicit unknown fields.
+// AdvCiv's Makefile links CvGameCoreDLL.rc only for Final_Release, so an absent version in Debug-opt/Release is expected.
+// Resolve version.dll only on this enabled, cached diagnostic path; release the temporary library handle after querying both versions. (GPT-6.1-Sol) -->
+static void resolveSASBinaryResourceVersions(SASBinaryDiagnosticContext& kContext)
+{
+	typedef DWORD (WINAPI* VersionSizeFunction)(LPCSTR, LPDWORD);
+	typedef BOOL (WINAPI* VersionInfoFunction)(LPCSTR, DWORD, DWORD, LPVOID);
+	typedef BOOL (WINAPI* VersionQueryFunction)(LPCVOID, LPCSTR, LPVOID*, PUINT);
+	HMODULE const hVersion = LoadLibraryA("version.dll");
+	if (hVersion == NULL)
+		return;
+	VersionSizeFunction const pSize = (VersionSizeFunction)GetProcAddress(hVersion, "GetFileVersionInfoSizeA");
+	VersionInfoFunction const pInfo = (VersionInfoFunction)GetProcAddress(hVersion, "GetFileVersionInfoA");
+	VersionQueryFunction const pQuery = (VersionQueryFunction)GetProcAddress(hVersion, "VerQueryValueA");
+	if (pSize != NULL && pInfo != NULL && pQuery != NULL)
+	{
+		DWORD uiIgnored = 0;
+		DWORD const uiBytes = pSize(kContext.szPath.GetCString(), &uiIgnored);
+		if (uiBytes > 0)
+		{
+			std::vector<BYTE> aVersion(uiBytes);
+			if (pInfo(kContext.szPath.GetCString(), 0, uiBytes, &aVersion[0]))
+			{
+				VS_FIXEDFILEINFO* pFixed = NULL;
+				UINT uiFixedBytes = 0;
+				if (pQuery(&aVersion[0], "\\", (LPVOID*)&pFixed, &uiFixedBytes) &&
+					pFixed != NULL && uiFixedBytes >= sizeof(VS_FIXEDFILEINFO) && pFixed->dwSignature == VS_FFI_SIGNATURE)
+				{
+					kContext.szFileVersion.Format("%u.%u.%u.%u", (uint)HIWORD(pFixed->dwFileVersionMS), (uint)LOWORD(pFixed->dwFileVersionMS), (uint)HIWORD(pFixed->dwFileVersionLS), (uint)LOWORD(pFixed->dwFileVersionLS));
+					kContext.szProductVersion.Format("%u.%u.%u.%u", (uint)HIWORD(pFixed->dwProductVersionMS), (uint)LOWORD(pFixed->dwProductVersionMS), (uint)HIWORD(pFixed->dwProductVersionLS), (uint)LOWORD(pFixed->dwProductVersionLS));
+				}
+			}
+		}
+	}
+	FreeLibrary(hVersion);
+}
+
 static void resolveSASBinaryDiagnosticContext(HMODULE hModule, SASBinaryDiagnosticContext& kContext)
 {
 	if (hModule == NULL)
@@ -280,6 +322,7 @@ static void resolveSASBinaryDiagnosticContext(HMODULE hModule, SASBinaryDiagnost
 	if (uiPathLength == 0 || uiPathLength >= MAX_PATH)
 		return;
 	kContext.szPath = szPath;
+	resolveSASBinaryResourceVersions(kContext);
 
 	HANDLE const hFile = CreateFileA(szPath, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if (hFile == INVALID_HANDLE_VALUE)
@@ -363,10 +406,21 @@ static CvString getSASBinaryFingerprint(SASBinaryDiagnosticContext const& kConte
 	return szFingerprint;
 }
 
+// <!-- custom: DLL and EXE diagnostics share one binary-identity schema, including unavailable version-resource fields.
+// Keep their established fingerprint/time field prefixes while avoiding two independently maintained copies of the common payload. (GPT-6.1-Sol) -->
+static CvString getSASBinaryContextFields(SASBinaryDiagnosticContext const& kContext, char const* szKind)
+{
+	CvString szContext;
+	szContext.Format("moduleFound=%d fileReadable=%d fileSizeBytes=%I64d %sFingerprint=%s %sLastWriteUtc=%s peTimestampRaw=%u peTimestampUtc=%s resourceFileVersion=%s resourceProductVersion=%s",
+		kContext.bModuleFound, kContext.bFileReadable, kContext.iFileSize,
+		szKind, getSASBinaryFingerprint(kContext).GetCString(), szKind, kContext.szLastWriteUtc.GetCString(),
+		kContext.uiPETimestamp, getSASPETimestampUtc(kContext.uiPETimestamp).GetCString(), kContext.szFileVersion.GetCString(), kContext.szProductVersion.GetCString());
+	return szContext;
+}
+
 CvString getSASDllContextFields()
 {
 	SASBinaryDiagnosticContext const& kContext = getSASDllDiagnosticContext();
-	CvString const szFingerprint = getSASBinaryFingerprint(kContext);
 #ifdef FASSERT_ENABLE
 	int const iFAssertEnabled = 1;
 #else
@@ -382,22 +436,48 @@ CvString getSASDllContextFields()
 #else
 	int const iNDebugDefine = 0;
 #endif
+#ifdef _MSC_VER
+	int const iMsvcVersion = _MSC_VER;
+#else
+	int const iMsvcVersion = -1;
+#endif
+#ifdef _MSC_FULL_VER
+	int const iMsvcFullVersion = _MSC_FULL_VER;
+#else
+	int const iMsvcFullVersion = -1;
+#endif
+#ifdef USE_INTERNAL_PROFILER
+	int const iInternalProfilerCompiled = 1;
+#else
+	int const iInternalProfilerCompiled = 0;
+#endif
+#ifdef USE_TSC_PROFILER
+	int const iTscProfilerCompiled = 1;
+#else
+	int const iTscProfilerCompiled = 0;
+#endif
+#ifdef PROFILE_AI_AUTO_PLAY
+	int const iProfileAIAutoPlayCompiled = 1;
+#else
+	int const iProfileAIAutoPlayCompiled = 0;
+#endif
+#ifdef ENABLE_REPRO_TEST
+	int const iReproTestCompiled = 1;
+#else
+	int const iReproTestCompiled = 0;
+#endif
 	CvString szContext;
-	szContext.Format("build=%s moduleFound=%d fileReadable=%d fileSizeBytes=%I64d dllFingerprint=%s dllLastWriteUtc=%s peTimestampRaw=%u peTimestampUtc=%s fassertEnabled=%d debugDefine=%d ndebugDefine=%d",
-			getSASDllBuildConfiguration(), kContext.bModuleFound, kContext.bFileReadable, kContext.iFileSize, szFingerprint.GetCString(), kContext.szLastWriteUtc.GetCString(), kContext.uiPETimestamp, getSASPETimestampUtc(kContext.uiPETimestamp).GetCString(), iFAssertEnabled, iDebugDefine, iNDebugDefine);
+	// <!-- custom: Build configuration already distinguishes Debug-opt/Release/Profile.
+	// Add the actual compiler identity and profiler/ReproTest compile switches because they can materially affect performance comparisons even when runtime logging settings match. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	szContext.Format("build=%s %s fassertEnabled=%d debugDefine=%d ndebugDefine=%d msvcVersion=%d msvcFullVersion=%d internalProfilerCompiled=%d tscProfilerCompiled=%d profileAIAutoPlayCompiled=%d reproTestCompiled=%d",
+			getSASDllBuildConfiguration(), getSASBinaryContextFields(kContext, "dll").GetCString(), iFAssertEnabled, iDebugDefine, iNDebugDefine,
+			iMsvcVersion, iMsvcFullVersion, iInternalProfilerCompiled, iTscProfilerCompiled, iProfileAIAutoPlayCompiled, iReproTestCompiled);
 	return szContext;
 }
 
 CvString getSASExeContextFields()
 {
-	SASBinaryDiagnosticContext const& kContext = getSASExeDiagnosticContext();
-	CvString const szFingerprint = getSASBinaryFingerprint(kContext);
-	CvString szContext;
-	szContext.Format("moduleFound=%d fileReadable=%d fileSizeBytes=%I64d exeFingerprint=%s exeLastWriteUtc=%s peTimestampRaw=%u peTimestampUtc=%s",
-			kContext.bModuleFound, kContext.bFileReadable, kContext.iFileSize,
-			szFingerprint.GetCString(), kContext.szLastWriteUtc.GetCString(),
-			kContext.uiPETimestamp, getSASPETimestampUtc(kContext.uiPETimestamp).GetCString());
-	return szContext;
+	return getSASBinaryContextFields(getSASExeDiagnosticContext(), "exe");
 }
 
 static char getSASLowerAscii(char c)

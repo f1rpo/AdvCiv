@@ -28,7 +28,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=144 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=145 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -71,10 +71,32 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
-### Revision 144 - SAS practical 6628
+### Revision 145 - SAS practical 6629
 
 - **Date:** 2026-10-11
 - **Git commit:** `pending`
+- **Change:** Make each SASGameRecord session self-describing about diagnostic/logging overhead, build instrumentation and save-stream format without adding per-turn monitoring.
+
+- Add one finalized new/load `GAME_RECORD_DIAGNOSTIC_CONTEXT` row after Python lifecycle handlers finish, so Autolog running state reflects the current session.
+  - Reuse BBAI's iterable registry to distinguish configured levels from effective categories when its master switch is off.
+  - Include the BBAI session sequence, timestamped files, score-interval activity and whether the later-city Food-support audit and high-war-utility logging are armed; one supporting-options group shares readers and profile formatting with `BBAI_LOG_SUPPORTING_SETTINGS`, retaining each option's policy and runtime cache.
+- Record the DLL-readable CivilizationIV.ini logging state (`MessageLog`, `RandLog`, `SynchLog`, `OverwriteLogs`), map-stat/per-player logging gates, BUG screen/file logging levels and Autolog master/running state. The DLL cannot read the top-level `LoggingEnabled` INI key, so the row records that limitation explicitly rather than inferring a value.
+- Extend shared `DLL_CONTEXT` with MSVC version and internal/TSC/AI-autoplay profiler and ReproTest compile switches so performance runs can distinguish instrumented builds as well as Debug-opt/Release/Profile configuration.
+- Share DLL/EXE binary-identity formatting and read actual numeric file/product version resources when available; these are binary metadata, distinct from source and save-format revisions. AdvCiv links the DLL resource only for `Final_Release`, so absent resources remain `-`.
+- Use one runtime/display row schema at every context level, retaining explicit uncollected fields (`-1` / `-`) while keeping OS/hardware/process queries behind their existing detail gates.
+- At system-context level 3 only, extend `GAME_RECORD_RUNTIME_CONTEXT` with debugger presence and a point-in-time boolean sample for `VCExpress`, `devenv`, `MSBuild`, `nmake`, `cl` and `link`. No PIDs, window titles or unrelated process names are recorded, and process presence is not interpreted as an active build.
+- Add `GAME_RECORD_SAVE_FORMAT`: the mod/replay `SAVE_VERSION` Define, the current CvGame stream-layout write flag and, for loaded saves, the exact stream flag read from that save. The existing hardcoded write value remains 27 and is centralized as the constant used directly by the writer and diagnostics; serialized bytes do not change.
+  - `GAME_RECORD_SAVE_COMPONENT_FORMATS` adds the current write markers for core/AI objects, statistics, UWAI, Rise & Fall and replay records, using one iterable `SASSaveStreamFormat.h` registry shared with their writers.
+  - Existing values, encoded marker arithmetic and read/write layouts remain unchanged; CI rejects registered writers that revert to separate literals and recognizable gameplay serializers missing from the registry; XML-info cache writers remain outside its scope.
+  - These are current writer markers, including optional inactive subsystems, not values captured from every loaded object or a complete save-schema compatibility certificate; exact source/DLL provenance still identifies the implementation as a whole.
+- Keep `GAME_RECORD_LOG_SETTINGS` explicit rather than forcing its heterogeneous booleans, dimensions, intervals and clamped settings into BBAI's homogeneous category-level registry.
+
+Developed with ChatGPT-5.6-Sol; reviewed and adjusted with GPT-6.1-Sol, after the revision-144 Reddit/empire-management audit and the BBAI logging-performance investigation.
+
+### Revision 144 - SAS practical 6628
+
+- **Date:** 2026-10-11
+- **Git commit:** `a80bd0e525d5f2a710a15f53d86a5e905b22b048`
 - **Change:** Add compact empire-cost/city-management context for expansion analysis without inferring player neglect or logging UI behavior.
 
 - `GAME_RECORD_CITIES` now separates pre-city-modifier maintenance into distance, number-of-cities, colony and corporation components while retaining actual total maintenance, and counts zero-Food-surplus cities, cities with assigned specialists, their overlap, citizen/production automation, and cities whose maintenance is currently waived.

@@ -1,4 +1,5 @@
 #include "CvGameCoreDLL.h"
+#include "SASSaveStreamFormat.h" // <!-- custom: Use the same compile-time write markers as the session diagnostic registry, avoiding duplicated version literals. (GPT-6.1-Sol) -->
 #include "RFChapter.h"
 #include "CoreAI.h"
 
@@ -37,7 +38,8 @@ RFChapter::RFChapter(int pos, int maxChapters, int playLength, int len) {
 
 void RFChapter::write(FDataStreamBase* pStream) {
 
-	int savegameVersion = 0;
+	// <!-- custom: Reuse the existing RFChapter write marker from the shared diagnostic registry; its value and serialized layout are unchanged. (GPT-6.1-Sol) -->
+	int savegameVersion = SASSaveStreamFormat::RF_CHAPTER;
 	pStream->Write(savegameVersion);
 	pStream->Write(length);
 	pStream->Write(endless);

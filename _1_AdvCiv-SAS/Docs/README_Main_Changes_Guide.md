@@ -271,6 +271,10 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 
 ### Code/Performance optimizations
 
+- (Requires AdvCiv-SAS 6629+) **Centralized save-stream writer markers** in [SASSaveStreamFormat.h](/CvGameCoreDLL/SASSaveStreamFormat.h) replace scattered numeric constants (for example, values assigned to `uiFlag`, `iSaveVersion`, `savegameVersion` and replay's `REPLAY_VERSION`) with named definitions shared by serialization and diagnostics.
+  - This covers core/AI records (for example `CvGame`, `CvCity`, `CvPlayer` and their AI counterparts), statistics, `UWAICache` and its city records, `MilitaryBranch`, Rise & Fall records and `CvReplayInfo`.
+  - For example, `CvCity` now assigns `uiFlag = SASSaveStreamFormat::CV_CITY` instead of `17`, and replay's `REPLAY_VERSION` uses `SASSaveStreamFormat::CV_REPLAY_INFO` instead of `6`; the shared definitions retain those values.
+  - One iterable list makes the current markers easier to find and maintain; CI checks writer bindings and flags recognizable serializers missing from the list. Existing marker values and serialized layouts are preserved.
 - **Merged** the **old split/interdependent Foreign Advisor** implementation from the two-file setup (`CvForeignAdvisor.py` + `CvExoticForeignAdvisor.py`) into a **single unified** [CvForeignAdvisor.py](/Assets/Python/Screens/CvForeignAdvisor.py) with the **full tab set** (as of now Relations/Glance/Active/Bonus/Info/Tech/Cities).
   - In our findings, **this was the only screen file** using that **interdependent split** pattern, so merging it into one file directly **fixes that inconsistency** and **reduces maintenance burden**; other major screen files such as [CvMainInterface.py](/Assets/Python/Screens/CvMainInterface.py) and [CvInfoScreen.py](/Assets/Python/Screens/CvInfoScreen.py) are lengthy but unified files.
   - By contrast, true alternatives use independent variants (for example BUG/non-BUG [CvBUGMilitaryAdvisor.py](/Assets/Python/Screens/CvBUGMilitaryAdvisor.py) / [CvMilitaryAdvisor.py](/Assets/Python/Screens/CvMilitaryAdvisor.py) paths), not interdependent split files.
@@ -544,6 +548,11 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
   - This complements SASGameRecord's exact production-loss history by explaining the city-level decision that caused a Project to move.
 
 #### SASGameRecord log
+
+- (Requires AdvCiv-SAS 6629+) **Run diagnostics are easier to interpret and compare:**
+  - Each new/load session records the configured and effective BBAI categories, DLL-readable CivilizationIV.ini logging switches, and finalized BUG/Autolog settings, helping explain differences in diagnostic coverage and performance without collecting those settings separately.
+  - Shared DLL context identifies the compiler and compiled profiler/ReproTest switches alongside the existing build configuration, while DLL/EXE identity includes actual binary resource versions when available; optional system-context level 3 also records debugger presence and selected development-tool processes at session start, without treating an open IDE or lingering build process as proof of active compilation.
+  - Save-format context distinguishes mod/replay identity and the loaded save's game-stream flag from the current writer markers for core/AI objects and supporting subsystems; the shared writer registry supplies that component context without changing serialized bytes.
 
 (Requires AdvCiv-SAS 6440+) Note: `SASGameRecord` log has its own revision system, see [`README_SASGameRecord_Revisions.md`](/_1_AdvCiv-SAS/Docs/README_SASGameRecord_Revisions.md) for details and miscellanous information.
 

@@ -1,4 +1,5 @@
 #include "CvGameCoreDLL.h"
+#include "SASSaveStreamFormat.h" // <!-- custom: Use the same compile-time write markers as the session diagnostic registry, avoiding duplicated version literals. (GPT-6.1-Sol) -->
 #include "CvReplayInfo.h"
 #include "CvPlayer.h"
 #include "CvGameAI.h" // advc.104
@@ -10,7 +11,8 @@
 #include "StartPointsAsHandicap.h" // advc.250b
 #include "CvBugOptions.h" // advc.106i
 
-int CvReplayInfo::REPLAY_VERSION = 6; // advc.707, advc.106i: 4 in BtS
+// <!-- custom: Share the existing replay layout marker with the current-writer diagnostic registry; the SAVE_VERSION-based replay encoding remains unchanged. (GPT-6.1-Sol) -->
+int CvReplayInfo::REPLAY_VERSION = SASSaveStreamFormat::CV_REPLAY_INFO; // advc.707, advc.106i: 4 in BtS
 
 CvReplayInfo::CvReplayInfo() :
 	m_eActivePlayer(NO_PLAYER), // (advc: was 0)

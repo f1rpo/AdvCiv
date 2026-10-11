@@ -1,4 +1,5 @@
 #include "CvGameCoreDLL.h"
+#include "SASSaveStreamFormat.h" // <!-- custom: Use the same compile-time write markers as the session diagnostic registry, avoiding duplicated version literals. (GPT-6.1-Sol) -->
 #include "CvUnitAI.h"
 #include "CombatOdds.h"
 #include "CvSelectionGroupAI.h"
@@ -30839,7 +30840,8 @@ void CvUnitAI::write(FDataStreamBase* pStream)
 	REPRO_TEST_BEGIN_WRITE(CvString::format("Unit[AI](%d,%d,%d)", getID(), getX(), getY()));
 	CvUnit::write(pStream);
 
-	uint uiFlag=0;
+	// <!-- custom: Reuse the existing CvUnitAI write marker from the shared diagnostic registry; its value and serialized layout are unchanged. (GPT-6.1-Sol) -->
+	uint uiFlag=SASSaveStreamFormat::CV_UNIT_AI;
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iBirthmark);

@@ -10,7 +10,7 @@
 #include "CyReplayInfo.h"
 #include "CvMap.h" // advc.enum
 #include "CvDLLPythonIFaceBase.h" // <!-- custom: Needed for the concrete Python-interface method used by the rejected-offer bridge; CvDLLUtilityIFaceBase only forward-declares this type. (ChatGPT-5.6-Sol) -->
-#include "SASGameRecordLog.h" // <!-- custom: Bridge only resolved Python diplomacy-UI events into the factual game record; AI valuation remains elsewhere. (ChatGPT-5.6-Sol) -->
+#include "SASGameRecordLog.h" // <!-- custom: Bridge resolved Python diplomacy-UI events and post-handler session diagnostics into the factual game record; AI valuation remains elsewhere. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 
 namespace
 {
@@ -318,6 +318,12 @@ int CyGame::getGameTurnYear()
 int CyGame::getElapsedGameTurns()
 {
 	return m_kGame.getElapsedGameTurns();
+}
+
+// <!-- custom: Bridge only the post-Python lifecycle observation; the cached native gate also protects direct Python callers before any option reads or formatting. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+void CyGame::logSASGameRecordDiagnosticContext()
+{
+	if (isSASGameRecordLogEnabled()) ::logSASGameRecordDiagnosticContext();
 }
 
 // <!-- custom: BUG DiplomacyUtil can see the exact package when a human rejects an AI ordinary trade offer, while the EXE does not expose that rejected package through a clean DLL callback.

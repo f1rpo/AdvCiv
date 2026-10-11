@@ -1,4 +1,5 @@
 #include "CvGameCoreDLL.h"
+#include "SASSaveStreamFormat.h" // <!-- custom: Use the shared current writer marker directly here, keeping its registry out of the widely included CvGame.h. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 #include "CvGame.h"
 #include "CvDeal.h"
 #include "CvAgents.h" // advc.agent
@@ -9668,8 +9669,9 @@ void CvGame::write(FDataStreamBase* pStream)
 	PROFILE_FUNC(); // advc
 
 	// <!-- custom: removed old uiflag code (e.g. `if(uiFlag < 12)`), and now running any modern compliant uiflag such as of now according to chatgpt 5 anyways where uiflag == xx latest for example == 17 is true such as uiflag >= 6, uiflag >= 15 or such, see code comment around as of now the top of CvCity::read. -->
-	uint uiFlag;
-	uiFlag = 27; // advc.130w: RivalVassalAttitude tweak
+	// <!-- custom: Keep the serialized CvGame stream-layout flag and diagnostic reporting on one source of truth.
+	// This remains 27; the refactor does not change save bytes. (ChatGPT-5.6-Sol) -->
+	uint const uiFlag = SASSaveStreamFormat::CV_GAME; // advc.130w: RivalVassalAttitude tweak
 
 	pStream->Write(uiFlag);
 	REPRO_TEST_BEGIN_WRITE("Game pt1");

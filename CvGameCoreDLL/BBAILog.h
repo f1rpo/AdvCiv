@@ -53,6 +53,14 @@ void cacheSASBBAILogSettings();
 __forceinline bool isSASBBAILogEnabled() { return gSASBBAILogSettings.bEnabled; }
 __forceinline bool isSASBBAILogMasterEnabled() { return gSASBBAILogSettings.bMasterEnabled; }
 int getSASBBAIScoreLogInterval();
+// <!-- custom: Shared first-use cache for the later-city diagnostic switch; callers must check Found level 2 first, and site eligibility remains the evaluator's responsibility. See KI#144.4. (GPT-6.1-Sol) -->
+bool isSASBBAILaterCityFoodSupportAuditEnabled();
+// <!-- custom: Move WarEvaluator's existing cached diagnostic threshold here so BBAI and SASGameRecord share its reader and armed-state policy; callers must gate WAR level 3 first. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+int getSASBBAIHighWarUtilityLogThreshold();
+// <!-- custom: Expose one compact session-start diagnostic profile to SASGameRecord without duplicating BBAI's iterable category registry.
+// Configured category levels remain visible even when the master switch makes their effective levels zero; supporting options share their readers and formatter with BBAI.
+// Callers must gate before constructing this profile. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+CvString getSASBBAILogProfileFields();
 void startSASBBAILogForNewGame(); // <!-- custom: Roll to a new timestamped BBAI diagnostic file before new-game map generation can log. (GPT-5.5 + GPT-5.5) -->
 void logSASBBAINewGameStarted(); // <!-- custom: Log complete new-game identification after map and player initialization. (GPT-5.5) -->
 void startSASBBAILogForLoadedSave(); // <!-- custom: Roll and identify a loaded save after its complete game state is read. (GPT-5.5) -->

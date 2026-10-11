@@ -1,4 +1,5 @@
 #include "CvGameCoreDLL.h"
+#include "SASSaveStreamFormat.h" // <!-- custom: Use the same compile-time write markers as the session diagnostic registry, avoiding duplicated version literals. (GPT-6.1-Sol) -->
 #include "CvStatistics.h"
 #include "CvPlayer.h"
 #include "CvUnit.h"
@@ -67,7 +68,8 @@ void CvGameRecord::read(FDataStreamBase* pStream)
 
 void CvGameRecord::write(FDataStreamBase* pStream)
 {
-	uint uiFlag=0;
+	// <!-- custom: Reuse the existing CvGameRecord write marker from the shared diagnostic registry; its value and serialized layout are unchanged. (GPT-6.1-Sol) -->
+	uint uiFlag=SASSaveStreamFormat::CV_GAME_RECORD;
 	pStream->Write(uiFlag);	// flags for expansion
 
 	pStream->Write(m_eEra);
@@ -292,7 +294,8 @@ void CvPlayerRecord::read(FDataStreamBase* pStream)
 
 void CvPlayerRecord::write(FDataStreamBase* pStream)
 {
-	uint uiFlag=0;
+	// <!-- custom: Reuse the existing CvPlayerRecord write marker from the shared diagnostic registry; its value and serialized layout are unchanged. (GPT-6.1-Sol) -->
+	uint uiFlag=SASSaveStreamFormat::CV_PLAYER_RECORD;
 	pStream->Write(uiFlag);	// flags for expansion
 
 	pStream->Write(m_iID);

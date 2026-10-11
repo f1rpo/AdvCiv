@@ -1,4 +1,5 @@
 #include "CvGameCoreDLL.h"
+#include "SASSaveStreamFormat.h" // <!-- custom: Use the same compile-time write markers as the session diagnostic registry, avoiding duplicated version literals. (GPT-6.1-Sol) -->
 #include "CvCity.h"
 #include "CvCityAI.h"
 #include "PlotRange.h"
@@ -11714,7 +11715,8 @@ void CvCity::write(FDataStreamBase* pStream)
 	PROFILE_FUNC(); // advc
 	REPRO_TEST_BEGIN_WRITE(CvString::format("City(%d,%d)", getX(), getY()));
 	uint uiFlag;
-	uiFlag = 17; // advc.313: Disorganized promo removed, advc.enum: bugfix.
+	// <!-- custom: Reuse the existing CvCity write marker from the shared diagnostic registry; its value and serialized layout are unchanged. (GPT-6.1-Sol) -->
+	uiFlag = SASSaveStreamFormat::CV_CITY; // advc.313: Disorganized promo removed, advc.enum: bugfix.
 	pStream->Write(uiFlag);
 
 	pStream->Write(m_iID);

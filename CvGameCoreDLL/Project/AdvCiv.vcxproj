@@ -216,6 +216,7 @@
     <ClInclude Include="..\BarbarianWeightMap.h" />
     <ClInclude Include="..\BBAILog.h" />
     <ClInclude Include="..\SASGameRecordLog.h" />
+    <ClInclude Include="..\SASSaveStreamFormat.h" />
     <ClInclude Include="..\BitUtil.h" />
     <ClInclude Include="..\BoostPythonPCH.h" />
     <ClInclude Include="..\CityPlotIterator.h" />

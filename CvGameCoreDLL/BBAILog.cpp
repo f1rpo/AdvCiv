@@ -86,10 +86,47 @@ void cacheSASBBAILogSettings()
 	kSettings.bEnabled = (bMasterEnabled && bAnyCategoryEnabled);
 }
 
+// <!-- custom: Keep each supporting option's XML lookup and normalization in one reader, shared by its runtime cache and the session profiles.
+// These are not category levels: the score interval is clamped to at least one, the timestamp/Food-support switches are booleans, and the high-war-utility threshold remains an integer. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+static int getSASBBAIScoreLogIntervalConfigured()
+{
+	return std::max(1, GC.getDefineINT("SAS_BBAI_SCORE_LOG_INTERVAL_TURNS_UNSCALED_GAMESPEED"));
+}
+
+static int getSASBBAITimestampedFilenameConfigured()
+{
+	return GC.getDefineBOOL("SAS_BBAI_LOG_USE_TIMESTAMPED_FILENAME");
+}
+
+static int getSASBBAIFoodSupportAuditConfigured()
+{
+	return GC.getDefineBOOL("SAS_BBAI_FOUND_LATER_CITY_FOOD_SUPPORT_AUDIT_ENABLE");
+}
+
+// <!-- custom: The high-war-utility threshold controls potentially large WAR level-3 scenario/component output; zero disables it independently of the category.
+// Share this reader with the diagnostic profile while preserving the evaluator's first-use cache and threshold semantics. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+static int getSASBBAIHighWarUtilityThresholdConfigured()
+{
+	return GC.getDefineINT("SAS_UWAI_HIGH_UTILITY_LOG_THRESHOLD");
+}
+
+int getSASBBAIHighWarUtilityLogThreshold()
+{
+	static int const iThreshold = getSASBBAIHighWarUtilityThresholdConfigured();
+	return iThreshold;
+}
+
+// <!-- custom: Preserve the audit's first-use cache, but callers now check Found level 2 before entering this getter so disabled diagnostics do not initialize it. See KI#144.4. (GPT-6.1-Sol) -->
+bool isSASBBAILaterCityFoodSupportAuditEnabled()
+{
+	static bool const bEnabled = (getSASBBAIFoodSupportAuditConfigured() > 0);
+	return bEnabled;
+}
+
 int getSASBBAIScoreLogInterval()
 {
 	// <!-- custom: This is reached only inside enabled PLAYER logging; keep the modulo divisor at least 1. (GPT-5.5? + ChatGPT-5.6-Sol) -->
-	static const int iInterval = (isSASBBAILogMasterEnabled() ? std::max(1, GC.getDefineINT("SAS_BBAI_SCORE_LOG_INTERVAL_TURNS_UNSCALED_GAMESPEED")) : 1);
+	static const int iInterval = (isSASBBAILogMasterEnabled() ? getSASBBAIScoreLogIntervalConfigured() : 1);
 	return iInterval;
 }
 
@@ -106,8 +143,96 @@ static CvString getSASBBAILogTimestamp()
 
 static bool isSASBBAILogTimestampedFilenameEnabled()
 {
-	static const bool bUseTimestampedFilename = (GC.getDefineINT("SAS_BBAI_LOG_USE_TIMESTAMPED_FILENAME") > 0);
+	static const bool bUseTimestampedFilename = (getSASBBAITimestampedFilenameConfigured() > 0);
 	return bUseTimestampedFilename;
+}
+
+// <!-- custom: These three no-argument activity callbacks are a session-profile exception to gating before helper entry: the registry calls them only during enabled BBAI/SASGameRecord new/load logging, never from the gameplay loop.
+// Their category checks stay inside so the registry can report inactive options too; short-circuit && skips the cached option getter when its category is disabled, and no caller arguments require preparation.
+// This retains a few session-start callback calls; ordinary gameplay logging must still pre-gate before calling helpers or evaluating logging-only arguments. (GPT-6.1-Sol) -->
+static bool isSASBBAIScoreIntervalActive()
+{
+	return (gPlayerLogLevel > 0);
+}
+
+static bool isSASBBAIFoodSupportAuditArmed()
+{
+	return (gFoundLogLevel >= 2 && isSASBBAILaterCityFoodSupportAuditEnabled());
+}
+
+static bool isSASBBAIHighWarUtilityLoggingArmed()
+{
+	return (gWarLogLevel >= 3 && getSASBBAIHighWarUtilityLogThreshold() > 0);
+}
+
+// <!-- custom: A small supporting-options group shares configured readers and activity policies between the BBAI and SASGameRecord session profiles.
+// Keep those policies explicit: PLAYER activates the score interval, Found level 2 plus its switch arms the food audit, and WAR level 3 plus a positive threshold arms high-utility logging; site/scenario-specific exclusions still apply.
+// Iteration and formatting occur only in caller-gated session logging; gameplay consumers retain their existing first-use caches. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+struct SASBBAILogSupportingOptionDescriptor
+{
+	char const* szConfiguredField;
+	int (*getConfigured)();
+	char const* szActivityField;
+	bool (*isActive)();
+};
+
+// <!-- custom: Names without () below store function pointers; the formatter invokes them through kOption.getConfigured() / kOption.isActive().
+// A reader can therefore serve both a direct cache-initialization call and this registry even when searching for its name followed by ( finds only one direct call. (GPT-6.1-Sol) -->
+static SASBBAILogSupportingOptionDescriptor const aSASBBAILogSupportingOptions[] =
+{
+	{ "bbaiTimestampedFilename", getSASBBAITimestampedFilenameConfigured, NULL, NULL },
+	{ "bbaiScoreIntervalConfigured", getSASBBAIScoreLogIntervalConfigured, "bbaiScoreIntervalActive", isSASBBAIScoreIntervalActive },
+	{ "foundLaterCityFoodSupportAuditConfigured", getSASBBAIFoodSupportAuditConfigured, "foundLaterCityFoodSupportAuditArmed", isSASBBAIFoodSupportAuditArmed },
+	{ "uwaiHighUtilityThresholdConfigured", getSASBBAIHighWarUtilityThresholdConfigured, "uwaiHighUtilityLoggingArmed", isSASBBAIHighWarUtilityLoggingArmed }
+};
+
+static CvString getSASBBAILogSupportingProfileFields()
+{
+	// <!-- custom: Emit the same session sequence in both logs, including fixed-filename mode where the filename does not identify each new/load session. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	CvString szFields = CvString::format("bbaiSessionSequence=%d", getSASBBAILogSessionSequence());
+	int const iCount = (int)(sizeof(aSASBBAILogSupportingOptions) / sizeof(aSASBBAILogSupportingOptions[0]));
+	for (int i = 0; i < iCount; i++)
+	{
+		SASBBAILogSupportingOptionDescriptor const& kOption = aSASBBAILogSupportingOptions[i];
+		appendSASDiagnosticListValue(szFields, CvString::format("%s=%d", kOption.szConfiguredField, kOption.getConfigured()).GetCString(), " ");
+		if (kOption.isActive != NULL)
+			appendSASDiagnosticListValue(szFields, CvString::format("%s=%d", kOption.szActivityField, kOption.isActive()).GetCString(), " ");
+	}
+	return szFields;
+}
+
+static CvString getSASBBAILogCategoryToken(char const* szDefineName)
+{
+	CvString szToken(szDefineName == NULL ? "" : szDefineName);
+	size_t const iPrefix = strlen("SAS_BBAI_");
+	size_t const iSuffix = szToken.rfind("_LOG_LEVEL");
+	if (szToken.length() > iPrefix && iSuffix != CvString::npos && iSuffix > iPrefix)
+		szToken = szToken.substr(iPrefix, iSuffix - iPrefix);
+	return szToken;
+}
+
+CvString getSASBBAILogProfileFields()
+{
+	// <!-- custom: BBAI's cached category fields intentionally store effective levels only, becoming zero when the master switch is disabled.
+	// Re-read the same registered Defines once per SASGameRecord session so the profile preserves what was configured as well as whether any category can actually run. (ChatGPT-5.6-Sol) -->
+	CvString szConfiguredLevels;
+	CvString szEffectiveLevels;
+	int const iCategoryCount = getSASBBAILogCategoryCount();
+	for (int iI = 0; iI < iCategoryCount; iI++)
+	{
+		SASBBAILogCategoryDescriptor const& kCategory = aSASBBAILogCategories[iI];
+		CvString const szToken = getSASBBAILogCategoryToken(kCategory.szDefineName);
+		int const iConfiguredLevel = getClampedSASBBAILogLevel(kCategory.szDefineName);
+		int const iEffectiveLevel = gSASBBAILogSettings.*(kCategory.pLogLevel);
+		appendSASDiagnosticListValue(szConfiguredLevels, CvString::format("%s:%d", szToken.GetCString(), iConfiguredLevel).GetCString());
+		if (iEffectiveLevel > 0)
+			appendSASDiagnosticListValue(szEffectiveLevels, CvString::format("%s:%d", szToken.GetCString(), iEffectiveLevel).GetCString());
+	}
+	CvString szFields;
+	szFields.Format("bbaiMasterEnabled=%d bbaiAnyCategoryEffective=%d bbaiConfiguredLevels=%s bbaiEffectiveLevels=%s %s",
+		isSASBBAILogMasterEnabled(), isSASBBAILogEnabled(), (szConfiguredLevels.empty() ? "-" : szConfiguredLevels.GetCString()),
+		(szEffectiveLevels.empty() ? "-" : szEffectiveLevels.GetCString()), getSASBBAILogSupportingProfileFields().GetCString());
+	return szFields;
 }
 
 // <!-- custom: When timestamped filenames are enabled, use a new file for every new game and loaded save.
@@ -151,9 +276,7 @@ static void logSASBBAIGameState(const char* szRowType)
 	{
 		if (!kGame.isOption(eLoopGameOption))
 			continue;
-		if (!szGameOptions.empty())
-			szGameOptions += ",";
-		szGameOptions += GC.getInfo(eLoopGameOption).getType();
+		appendSASDiagnosticListValue(szGameOptions, GC.getInfo(eLoopGameOption).getType());
 	}
 	if (szGameOptions.empty())
 		szGameOptions = "-";
@@ -196,6 +319,8 @@ static void logSASBBAILogSettings()
 	}
 	logBBAI("BBAI_LOG_SETTINGS SAS_BBAI_LOG_ENABLE=%d SAS_BBAI_LOG_USE_TIMESTAMPED_FILENAME=%d%s SAS_BBAI_SCORE_LOG_INTERVAL_TURNS_UNSCALED_GAMESPEED=%d",
 		isSASBBAILogMasterEnabled(), isSASBBAILogTimestampedFilenameEnabled(), szCategorySettings.GetCString(), gScoreLogInterval);
+	// <!-- custom: Reuse the same supporting-option fields as SASGameRecord while preserving the existing BBAI_LOG_SETTINGS row. (GPT-6.1-Sol) -->
+	logBBAI("BBAI_LOG_SUPPORTING_SETTINGS %s", getSASBBAILogSupportingProfileFields().GetCString());
 }
 
 // <!-- custom: Replace setup-time tech/diplomacy construction chatter with one authoritative finalized state shared with SASGameRecord.

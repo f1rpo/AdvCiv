@@ -218,15 +218,10 @@ namespace
 		}
 	}
 
-	int getSASHighWarUtilityLogThreshold()
-	{
-		static const int iThreshold = GC.getDefineINT("SAS_UWAI_HIGH_UTILITY_LOG_THRESHOLD");
-		return iThreshold;
-	}
-
+	// <!-- custom: Former local getSASHighWarUtilityLogThreshold now lives in BBAILog as getSASBBAIHighWarUtilityLogThreshold so both log profiles use the same cached threshold as this evaluator. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	bool isSASHighWarUtility(int iUtility)
 	{
-		int const iThreshold = getSASHighWarUtilityLogThreshold();
+		int const iThreshold = getSASBBAIHighWarUtilityLogThreshold();
 		return (iUtility >= iThreshold || iUtility <= -iThreshold);
 	}
 
@@ -554,7 +549,7 @@ int WarEvaluator::evaluateScenario(bool bDiagnosticOnly, WarPlanTypes eWarPlan, 
 	fillWithAspects(apAspects);
 	for (MemberIter itMember(m_kAgent.getID()); itMember.hasNext(); ++itMember)
 		evaluate(itMember->getID(), apAspects);
-	bool const bSASHighUtilityLog = (!bDiagnosticOnly && gWarLogLevel >= 3 && getSASHighWarUtilityLogThreshold() > 0);
+	bool const bSASHighUtilityLog = (!bDiagnosticOnly && gWarLogLevel >= 3 && getSASBBAIHighWarUtilityLogThreshold() > 0);
 	// <!-- custom: Save-file 452 showed Mali seeking peace immediately after capturing two Maya cities despite leading heavily in cities, power and war success.
 	// For similarly dominant wars, retain each utility aspect for both scenarios so a sudden reversal can be traced without enabling broad level-3 UWAI spam. (GPT-5.6-Sol) -->
 	bool const bSASSuspiciousPeaceLog = (!bDiagnosticOnly && m_bSASLogSuspiciousPeace && isSASSuspiciousPeaceLead(m_kParams));

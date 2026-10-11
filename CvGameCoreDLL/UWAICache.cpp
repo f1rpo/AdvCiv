@@ -1,4 +1,5 @@
 #include "CvGameCoreDLL.h"
+#include "SASSaveStreamFormat.h" // <!-- custom: Use the same compile-time write markers as the session diagnostic registry, avoiding duplicated version literals. (GPT-6.1-Sol) -->
 #include "UWAICache.h"
 #include "UWAIAgent.h"
 #include "UWAILogMuteState.h" // <!-- custom: Silent cache-side WarEvaluator probes use the shared nested diagnostic mute state rather than a standalone UWAI report object. See KI#505.3. (ChatGPT-5.6-Sol) -->
@@ -128,7 +129,8 @@ void UWAICache::write(FDataStreamBase* pStream) const
 	//iSaveVersion = 6; // advc.enum: Store as float
 	//iSaveVersion = 7; // remove latestTurnReachableBySea
 	//iSaveVersion = 8; // advc.fract: Store as scaled (not float)
-	iSaveVersion = 9; // advc.enum: new enum map save behavior
+	// <!-- custom: Reuse the existing UWAICache write marker from the shared diagnostic registry; its value and serialized layout are unchanged. (GPT-6.1-Sol) -->
+	iSaveVersion = SASSaveStreamFormat::UWAI_CACHE; // advc.enum: new enum map save behavior
 	/*	I hadn't thought of a version number in the initial release. Need
 		to fold it into ownerId now to avoid breaking compatibility. */
 	pStream->Write(m_eOwner + 100 * iSaveVersion);
@@ -1720,7 +1722,8 @@ void UWAICache::City::write(FDataStreamBase* pStream) const
 	//iSaveVersion = 3; // reachBySea removed
 	//iSaveVersion = 4; // capitalArea added
 	// <!-- custom: Version 5 adds distanceByLand for route-specific UWAI deployment estimates. See KI#591. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-	iSaveVersion = 5;
+	// <!-- custom: Reuse the existing UWAICache::City write marker from the shared diagnostic registry; its value and serialized layout are unchanged. (GPT-6.1-Sol) -->
+	iSaveVersion = SASSaveStreamFormat::UWAI_CACHE_CITY;
 	pStream->Write(m_ePlot);
 	pStream->Write(m_iAssetScore);
 	/*	I hadn't thought of a version number in the initial release.

@@ -6,6 +6,7 @@
 
 #include "CvGameCoreDLL.h"
 #include "SASGameRecordLog.h"
+#include "SASSaveStreamFormat.h" // <!-- custom: Generate the current-writer marker profile from the same list used by native serializers. (GPT-6.1-Sol) -->
 #include "CvGame.h" // <!-- custom: Needed for game-record turn, game-state, victory, RNG, and map-classification context rows. (GPT-5.5) -->
 #include "CvDeal.h" // <!-- custom: Needed directly for canonical state-checkpoint deal identities and persisted trade-item lists; do not rely on CvGame headers to complete CvDeal transitively. (ChatGPT-5.6-Sol) -->
 #include "CvCity.h" // <!-- custom: Needed by game-record city action/BFC rows; SASGameRecordLog.h only forward-declares CvCity. (GPT-5.5) -->
@@ -42,9 +43,13 @@
 #include "CvGameAI.h" // <!-- custom: Complete CvGameAI is needed for getUWAI(). (ChatGPT-5.6-Sol) -->
 #include "CvPythonCaller.h" // <!-- custom: Resolve map-option defaults and descriptions. (ChatGPT-5.6-Sol) -->
 #include "CvStatistics.h" // <!-- custom: Needed for persistent player-record statistics in game-record benchmark rows. (GPT-5.5) -->
-#include "CvGameCoreUtils.h" // <!-- custom: Needed for the shared DLL-process UTC identity used by BBAI and SASGameRecord. See KI#629. (GPT-5.6-Sol) -->
+#include "CvGameCoreUtils.h" // <!-- custom: Needed for shared provenance/runtime diagnostic helpers. See KI#629. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
+#include "BBAILog.h" // <!-- custom: Reuse BBAI's single iterable category registry when recording the session diagnostic profile instead of duplicating category names in SASGameRecord. (ChatGPT-5.6-Sol) -->
+#include "CvBugOptions.h" // <!-- custom: Read the finalized BUG/Autolog logging controls once per new/load session; this is diagnostic context only and never enters a gameplay hot path. (ChatGPT-5.6-Sol) -->
 #include <time.h>
 #include <psapi.h> // <!-- custom: Reuse AdvCiv's existing Windows process-memory API for compact game-record performance context. (GPT-5.6-Sol) -->
+#include <tlhelp32.h> // <!-- custom: Level-3 runtime context samples only named Civ4 development/build processes at session start; no general process list or window titles are logged. (ChatGPT-5.6-Sol) -->
+#include <wchar.h> // <!-- custom: Declare _wcsicmp directly for the SDK-compatible wide-character process-name comparisons. (GPT-6.1-Sol) -->
 #include <algorithm> // <!-- custom: Needed to deduplicate buffered plot-change/map-revelation coordinates within each turn. (GPT-5.6-Sol) -->
 #include <map> // <!-- custom: Level-3 city snapshot delta compression keeps small session-local previous-row state keyed by city identity/row family; disabled lower record levels never populate it. (ChatGPT-5.6-Sol) -->
 #include <utility> // <!-- custom: Needed for Great Person odds pairs in game-record city rows. (ChatGPT-5.5) -->
@@ -2000,32 +2005,36 @@ static void logSASGameRecordDisplayContext()
 	if (g_bSASGameRecordDisplayContextLogged)
 		return;
 	int const iSystemContextLevel = getSASGameRecordSystemContextLevel();
-	if (iSystemContextLevel < 1)
-	{
-		logSASGameRecord("GAME_RECORD_DISPLAY_CONTEXT systemContextLevel=0 resolution=-1x-1 graphicsInitialized=-1 fullscreen=-1 graphicOptions=- gpuAdapterCount=-1 gpuDesktopAdapterCount=-1 gpuVendorFamilyCount=-1 gpuPrimaryVendor=- gpuVendors=-");
-		g_bSASGameRecordDisplayContextLogged = true;
-		return;
-	}
-	if (!GC.IsGraphicsInitialized())
-		return;
-	CvString szGraphicOptions;
-	FOR_EACH_ENUM(GraphicOption)
-	{
-		if (!gDLL->getGraphicOption(eLoopGraphicOption))
-			continue;
-		if (!szGraphicOptions.empty())
-			szGraphicOptions += ",";
-		szGraphicOptions += GC.getInfo(eLoopGraphicOption).getType();
-	}
-	if (szGraphicOptions.empty())
-		szGraphicOptions = "-";
-	CvGame const& kGame = GC.getGame();
+	// <!-- custom: Use one display-row schema for collected and disabled context so adding a field cannot leave the placeholder row stale.
+	// -1 is unknown/uncollected, distinct from a real zero size/count or a false boolean; level 0 must not query graphics. (GPT-6.1-Sol) -->
+	int iScreenWidth = -1;
+	int iScreenHeight = -1;
+	int iGraphicsInitialized = -1;
+	int iFullscreen = -1;
+	CvString szGraphicOptions = "-";
 	SASGameRecordDisplayAdapterContext kDisplayAdapters;
-	if (iSystemContextLevel >= 3)
-		kDisplayAdapters = getSASGameRecordDisplayAdapterContext();
-	logSASGameRecord("GAME_RECORD_DISPLAY_CONTEXT systemContextLevel=%d resolution=%dx%d graphicsInitialized=1 fullscreen=%d graphicOptions=%s gpuAdapterCount=%d gpuDesktopAdapterCount=%d gpuVendorFamilyCount=%d gpuPrimaryVendor=%s gpuVendors=%s",
-		iSystemContextLevel, kGame.getScreenWidth(), kGame.getScreenHeight(),
-		gDLL->getGraphicOption(GRAPHICOPTION_FULLSCREEN), szGraphicOptions.GetCString(),
+	if (iSystemContextLevel >= 1)
+	{
+		if (!GC.IsGraphicsInitialized())
+			return;
+		iGraphicsInitialized = 1;
+		CvGame const& kGame = GC.getGame();
+		iScreenWidth = kGame.getScreenWidth();
+		iScreenHeight = kGame.getScreenHeight();
+		iFullscreen = gDLL->getGraphicOption(GRAPHICOPTION_FULLSCREEN);
+		szGraphicOptions.clear();
+		FOR_EACH_ENUM(GraphicOption)
+		{
+			if (gDLL->getGraphicOption(eLoopGraphicOption))
+				appendSASDiagnosticListValue(szGraphicOptions, GC.getInfo(eLoopGraphicOption).getType());
+		}
+		if (szGraphicOptions.empty())
+			szGraphicOptions = "-";
+		if (iSystemContextLevel >= 3)
+			kDisplayAdapters = getSASGameRecordDisplayAdapterContext();
+	}
+	logSASGameRecord("GAME_RECORD_DISPLAY_CONTEXT systemContextLevel=%d resolution=%dx%d graphicsInitialized=%d fullscreen=%d graphicOptions=%s gpuAdapterCount=%d gpuDesktopAdapterCount=%d gpuVendorFamilyCount=%d gpuPrimaryVendor=%s gpuVendors=%s",
+		iSystemContextLevel, iScreenWidth, iScreenHeight, iGraphicsInitialized, iFullscreen, szGraphicOptions.GetCString(),
 		iSystemContextLevel >= 3 ? kDisplayAdapters.iAdapters : -1, iSystemContextLevel >= 3 ? kDisplayAdapters.iDesktopAdapters : -1,
 		iSystemContextLevel >= 3 ? kDisplayAdapters.iVendorFamilies : -1,
 		iSystemContextLevel >= 3 ? kDisplayAdapters.szPrimaryVendor.GetCString() : "-",
@@ -2086,6 +2095,83 @@ static void logSASGameRecordWarAISettings(CvGame const& kGame)
 			iUseKModAINonAggressive, iDisableUWAI, iUWAIInBackground, iNavalLogisticsDeploymentOptimize);
 }
 
+// <!-- custom: System-context level 3 may sample only the named IDE/build processes that can explain build overlap, file locks, or unusual benchmark conditions.
+// Presence is point-in-time evidence only: an idle MSBuild node or open IDE does not prove that compilation is active.
+// Keep the full process list, PIDs and window titles private. (ChatGPT-5.6-Sol) -->
+struct SASGameRecordDevelopmentProcessContext
+{
+	SASGameRecordDevelopmentProcessContext() : iScanAvailable(-1), iVCExpressRunning(-1), iDevenvRunning(-1), iMSBuildRunning(-1), iNMakeRunning(-1), iClRunning(-1), iLinkRunning(-1) {}
+	int iScanAvailable;
+	int iVCExpressRunning;
+	int iDevenvRunning;
+	int iMSBuildRunning;
+	int iNMakeRunning;
+	int iClRunning;
+	int iLinkRunning;
+};
+
+static SASGameRecordDevelopmentProcessContext getSASGameRecordDevelopmentProcessContext()
+{
+	SASGameRecordDevelopmentProcessContext kResult;
+	HANDLE const hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	if (hSnapshot == INVALID_HANDLE_VALUE)
+	{
+		kResult.iScanAvailable = 0;
+		return kResult;
+	}
+	// <!-- custom: The installed Windows 7.0A SDK declares PROCESSENTRY32W/Process32FirstW/Process32NextW but no ...A variants; use the explicit wide APIs and matching comparisons. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	PROCESSENTRY32W kEntry;
+	ZeroMemory(&kEntry, sizeof(kEntry));
+	kEntry.dwSize = sizeof(kEntry);
+	if (Process32FirstW(hSnapshot, &kEntry))
+	{
+		kResult.iScanAvailable = 1;
+		kResult.iVCExpressRunning = kResult.iDevenvRunning = kResult.iMSBuildRunning = 0;
+		kResult.iNMakeRunning = kResult.iClRunning = kResult.iLinkRunning = 0;
+		do
+		{
+			if (_wcsicmp(kEntry.szExeFile, L"VCExpress.exe") == 0) kResult.iVCExpressRunning = 1;
+			else if (_wcsicmp(kEntry.szExeFile, L"devenv.exe") == 0) kResult.iDevenvRunning = 1;
+			else if (_wcsicmp(kEntry.szExeFile, L"MSBuild.exe") == 0) kResult.iMSBuildRunning = 1;
+			else if (_wcsicmp(kEntry.szExeFile, L"nmake.exe") == 0) kResult.iNMakeRunning = 1;
+			else if (_wcsicmp(kEntry.szExeFile, L"cl.exe") == 0) kResult.iClRunning = 1;
+			else if (_wcsicmp(kEntry.szExeFile, L"link.exe") == 0) kResult.iLinkRunning = 1;
+		}
+		while (Process32NextW(hSnapshot, &kEntry));
+		// <!-- custom: Only ERROR_NO_MORE_FILES proves a complete scan; another enumeration failure must not turn unknown process presence into false absence. (GPT-6.1-Sol) -->
+		if (GetLastError() != ERROR_NO_MORE_FILES)
+		{
+			kResult = SASGameRecordDevelopmentProcessContext();
+			kResult.iScanAvailable = 0;
+		}
+	}
+	else kResult.iScanAvailable = 0;
+	CloseHandle(hSnapshot);
+	return kResult;
+}
+
+// <!-- custom: One runtime snapshot supplies one row schema at every system-context level; uncollected fields retain explicit unknown values.
+// The previous real-value and placeholder format strings duplicated every field, making additions easy to omit from one branch; collection stays behind the same level-2/level-3 gates. (GPT-6.1-Sol) -->
+struct SASGameRecordRuntimeContext
+{
+	SASGameRecordRuntimeContext() : szWin32Runtime("-"), szWineVersionField("-"), szWindowsDisplayVersionField("-"),
+		iPointerBits(-1), szProcessArch("-"), szNativeArch("-"), iWow64(-1), szCpuVendor("-"),
+		iLogicalProcessors(-1), iTotalPhysicalMemoryMB(-1), iDebuggerAttached(-1) {}
+	SASGameRecordWindowsVersion kWindowsVersion;
+	char const* szWin32Runtime;
+	CvString szWineVersionField;
+	CvString szWindowsDisplayVersionField;
+	int iPointerBits;
+	char const* szProcessArch;
+	char const* szNativeArch;
+	int iWow64;
+	char const* szCpuVendor;
+	int iLogicalProcessors;
+	int iTotalPhysicalMemoryMB;
+	int iDebuggerAttached;
+	SASGameRecordDevelopmentProcessContext kDevelopmentProcesses;
+};
+
 // <!-- custom: Use "row" wording for generic SASGameRecord row prefixes because Civ4 also has EventInfo/random events.
 // Keep GAME_RECORD_ACTION only for chronological gameplay action rows. (GPT-5.5) -->
 static void logSASGameRecordGameState(const char* szRowType)
@@ -2103,14 +2189,13 @@ static void logSASGameRecordGameState(const char* szRowType)
 		if (kActivePlayer.getHandicapType() != NO_HANDICAP)
 			szActiveHandicap = GC.getInfo(kActivePlayer.getHandicapType()).getType();
 	}
+	// <!-- custom: Reuse the shared token-list appender for game options, victories and multiplayer options, matching BBAI and display context without duplicating comma/empty-list plumbing. (GPT-6.1-Sol) -->
 	CvString szGameOptions;
 	FOR_EACH_ENUM(GameOption)
 	{
 		if (!kGame.isOption(eLoopGameOption))
 			continue;
-		if (!szGameOptions.empty())
-			szGameOptions += ",";
-		szGameOptions += GC.getInfo(eLoopGameOption).getType();
+		appendSASDiagnosticListValue(szGameOptions, GC.getInfo(eLoopGameOption).getType());
 	}
 	if (szGameOptions.empty())
 		szGameOptions = "-";
@@ -2119,9 +2204,7 @@ static void logSASGameRecordGameState(const char* szRowType)
 	{
 		if (!kGame.isVictoryValid(eLoopVictory))
 			continue;
-		if (!szVictories.empty())
-			szVictories += ",";
-		szVictories += GC.getInfo(eLoopVictory).getType();
+		appendSASDiagnosticListValue(szVictories, GC.getInfo(eLoopVictory).getType());
 	}
 	if (szVictories.empty())
 		szVictories = "-";
@@ -2130,9 +2213,7 @@ static void logSASGameRecordGameState(const char* szRowType)
 	{
 		if (!kGame.isMPOption(eLoopMPOption))
 			continue;
-		if (!szMPOptions.empty())
-			szMPOptions += ",";
-		szMPOptions += GC.getInfo(eLoopMPOption).getType();
+		appendSASDiagnosticListValue(szMPOptions, GC.getInfo(eLoopMPOption).getType());
 	}
 	if (szMPOptions.empty())
 		szMPOptions = "-";
@@ -2184,38 +2265,46 @@ static void logSASGameRecordGameState(const char* szRowType)
 	// Level 3 keeps the more identifying coarse CPU/GPU vendor families plus processor-count/RAM capacity fields.
 	// Wine version is compatibility-layer identity only; do not guess its host OS. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
 	int const iSystemContextLevel = getSASGameRecordSystemContextLevel();
+	SASGameRecordRuntimeContext kRuntime;
 	if (iSystemContextLevel >= 2)
 	{
-		SASGameRecordWindowsVersion const& kWindowsVersion = getSASGameRecordWindowsVersion();
+		kRuntime.kWindowsVersion = getSASGameRecordWindowsVersion();
 		SYSTEM_INFO kProcessSystemInfo;
 		SYSTEM_INFO kNativeSystemInfo;
 		ZeroMemory(&kProcessSystemInfo, sizeof(kProcessSystemInfo));
 		ZeroMemory(&kNativeSystemInfo, sizeof(kNativeSystemInfo));
 		GetSystemInfo(&kProcessSystemInfo);
 		getSASGameRecordNativeSystemInfo(kNativeSystemInfo);
+		kRuntime.szWin32Runtime = getSASGameRecordWin32Runtime();
+		kRuntime.iPointerBits = (int)(8 * sizeof(void*));
+		kRuntime.szProcessArch = getSASGameRecordArchitectureName(kProcessSystemInfo.wProcessorArchitecture);
+		kRuntime.szNativeArch = getSASGameRecordArchitectureName(kNativeSystemInfo.wProcessorArchitecture);
+		kRuntime.iWow64 = getSASGameRecordWow64State();
 		CvString const szWineVersion = getSASGameRecordWineVersion();
-		CvString const szWineVersionField = (szWineVersion == "-" ? CvString("-") : getSASDiagnosticQuoted(szWineVersion.GetCString()));
-		CvString const szWindowsDisplayVersionField = (kWindowsVersion.szDisplayVersion == "-" ? CvString("-") : getSASDiagnosticQuoted(kWindowsVersion.szDisplayVersion.GetCString()));
-		int iLogicalProcessors = -1;
-		int iTotalPhysicalMemoryMB = -1;
-		char const* szCpuVendor = "-";
+		kRuntime.szWineVersionField = (szWineVersion == "-" ? CvString("-") : getSASDiagnosticQuoted(szWineVersion.GetCString()));
+		kRuntime.szWindowsDisplayVersionField = (kRuntime.kWindowsVersion.szDisplayVersion == "-" ? CvString("-") : getSASDiagnosticQuoted(kRuntime.kWindowsVersion.szDisplayVersion.GetCString()));
 		if (iSystemContextLevel >= 3)
 		{
-			szCpuVendor = getSASGameRecordProcessorVendor();
-			iLogicalProcessors = (int)kNativeSystemInfo.dwNumberOfProcessors;
+			kRuntime.szCpuVendor = getSASGameRecordProcessorVendor();
+			kRuntime.iLogicalProcessors = (int)kNativeSystemInfo.dwNumberOfProcessors;
 			MEMORYSTATUSEX kSystemMemory;
 			ZeroMemory(&kSystemMemory, sizeof(kSystemMemory));
 			kSystemMemory.dwLength = sizeof(kSystemMemory);
-			if (GlobalMemoryStatusEx(&kSystemMemory)) iTotalPhysicalMemoryMB = (int)(kSystemMemory.ullTotalPhys / (1024 * 1024));
+			if (GlobalMemoryStatusEx(&kSystemMemory)) kRuntime.iTotalPhysicalMemoryMB = (int)(kSystemMemory.ullTotalPhys / (1024 * 1024));
+			kRuntime.iDebuggerAttached = (IsDebuggerPresent() ? 1 : 0);
+			kRuntime.kDevelopmentProcesses = getSASGameRecordDevelopmentProcessContext();
 		}
-		logSASGameRecord("GAME_RECORD_RUNTIME_CONTEXT systemContextLevel=%d win32Runtime=%s wineVersion=%s windowsMajor=%d windowsMinor=%d windowsBuild=%d windowsUpdateRevision=%d windowsServicePackMajor=%d windowsServicePackMinor=%d windowsDisplayVersion=%s pointerBits=%d processArch=%s nativeArch=%s wow64=%d cpuVendor=%s logicalProcessors=%d totalPhysicalMemoryMB=%d",
-			iSystemContextLevel, getSASGameRecordWin32Runtime(), szWineVersionField.GetCString(), kWindowsVersion.iMajor, kWindowsVersion.iMinor, kWindowsVersion.iBuild,
-			kWindowsVersion.iUpdateRevision, kWindowsVersion.iServicePackMajor, kWindowsVersion.iServicePackMinor, szWindowsDisplayVersionField.GetCString(),
-			(int)(8 * sizeof(void*)), getSASGameRecordArchitectureName(kProcessSystemInfo.wProcessorArchitecture),
-			getSASGameRecordArchitectureName(kNativeSystemInfo.wProcessorArchitecture), getSASGameRecordWow64State(), szCpuVendor, iLogicalProcessors, iTotalPhysicalMemoryMB);
 	}
-	else logSASGameRecord("GAME_RECORD_RUNTIME_CONTEXT systemContextLevel=%d win32Runtime=- wineVersion=- windowsMajor=-1 windowsMinor=-1 windowsBuild=-1 windowsUpdateRevision=-1 windowsServicePackMajor=-1 windowsServicePackMinor=-1 windowsDisplayVersion=- pointerBits=-1 processArch=- nativeArch=- wow64=-1 cpuVendor=- logicalProcessors=-1 totalPhysicalMemoryMB=-1",
-		iSystemContextLevel);
+	// <!-- custom: Group these long runtime fields by OS, architecture/hardware and debugger/process context; adjacent literals concatenate at compile time and preserve the emitted row. (GPT-6.1-Sol) -->
+	logSASGameRecord("GAME_RECORD_RUNTIME_CONTEXT systemContextLevel=%d win32Runtime=%s wineVersion=%s"
+		" windowsMajor=%d windowsMinor=%d windowsBuild=%d windowsUpdateRevision=%d windowsServicePackMajor=%d windowsServicePackMinor=%d windowsDisplayVersion=%s"
+		" pointerBits=%d processArch=%s nativeArch=%s wow64=%d cpuVendor=%s logicalProcessors=%d totalPhysicalMemoryMB=%d"
+		" debuggerAttached=%d developmentProcessScanAvailable=%d vcExpressRunning=%d devenvRunning=%d msBuildRunning=%d nmakeRunning=%d clRunning=%d linkRunning=%d",
+		iSystemContextLevel, kRuntime.szWin32Runtime, kRuntime.szWineVersionField.GetCString(), kRuntime.kWindowsVersion.iMajor, kRuntime.kWindowsVersion.iMinor, kRuntime.kWindowsVersion.iBuild,
+		kRuntime.kWindowsVersion.iUpdateRevision, kRuntime.kWindowsVersion.iServicePackMajor, kRuntime.kWindowsVersion.iServicePackMinor, kRuntime.szWindowsDisplayVersionField.GetCString(),
+		kRuntime.iPointerBits, kRuntime.szProcessArch, kRuntime.szNativeArch, kRuntime.iWow64, kRuntime.szCpuVendor, kRuntime.iLogicalProcessors, kRuntime.iTotalPhysicalMemoryMB,
+		kRuntime.iDebuggerAttached, kRuntime.kDevelopmentProcesses.iScanAvailable, kRuntime.kDevelopmentProcesses.iVCExpressRunning, kRuntime.kDevelopmentProcesses.iDevenvRunning,
+		kRuntime.kDevelopmentProcesses.iMSBuildRunning, kRuntime.kDevelopmentProcesses.iNMakeRunning, kRuntime.kDevelopmentProcesses.iClRunning, kRuntime.kDevelopmentProcesses.iLinkRunning);
 	// <!-- custom: Keep the game's persisted initial seeds beside the current post-initialization/load RNG states.
 	// Level-3 checkpoints add session-local consumption counts/fingerprints; this compact baseline remains useful at every enabled level. (GPT-5.6-Sol) -->
 	std::pair<uint,uint> const kInitialRandSeed = kGame.getInitialRandSeed();
@@ -2235,6 +2324,63 @@ static void logSASGameRecordLogSettings()
 		isSASGameRecordMapAsciiRiversEnabled(), isSASGameRecordMapAsciiBonusesEnabled(), isSASGameRecordMapAsciiFeaturesEnabled(),
 		isSASGameRecordMapAsciiPoliticalEnabled(), isSASGameRecordTradeMarketEnabled(), isSASGameRecordTradeMarketBonusGPTQuotesEnabled(),
 		isSASGameRecordTradeMarketAITechValuesEnabled(), isSASGameRecordPerformanceMetricsEnabled(), getSASGameRecordSystemContextLevel());
+}
+
+// <!-- custom: One session-start profile makes performance/diagnostic context self-contained in SASGameRecord rather than requiring the BBAI log, CivilizationIV.ini and BUG options to be inspected separately.
+// Civ4's DLL exposes MessageLog/RandLog/SynchLog/OverwriteLogs but not the top-level LoggingEnabled INI key; report that limitation explicitly instead of guessing.
+// The initial candidate read Autolog before Python GameStart/OnLoad handlers reset LoggingOn, which could report the previous session's state.
+// CvEventInterface now calls this only after those handlers return, behind the logging gate; no per-turn polling is added. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+void logSASGameRecordDiagnosticContext()
+{
+	CvGame const& kGame = GC.getGame();
+	bool const bPerPlayerMessageControlConfigured = GC.getDefineBOOL(CvGlobals::PER_PLAYER_MESSAGE_CONTROL_LOG);
+	bool const bMapStatsConfigured = GC.getDefineBOOL("LOG_MAP_STATS");
+	int const iBugScreenLogLevel = BUGOption::getValue("Core__ScreenLogLevel", -1, false);
+	int const iBugFileLogLevel = BUGOption::getValue("Core__FileLogLevel", -1, false);
+	int const iBugLogTime = BUGOption::getValue("Core__LogTime", -1, false);
+	int const iAutologEnabled = BUGOption::getValue("Autolog__Enabled", -1, false);
+	int const iAutologLoggingOn = BUGOption::getValue("Autolog__LoggingOn", -1, false);
+	bool const bBugOptionsReadable = (iBugScreenLogLevel >= 0 && iBugFileLogLevel >= 0 && iBugLogTime >= 0 && iAutologEnabled >= 0 && iAutologLoggingOn >= 0);
+	logSASGameRecord("GAME_RECORD_DIAGNOSTIC_CONTEXT %s iniLoggingEnabledReadableFromDll=0 iniMessageLog=%d iniRandLog=%d iniSynchLog=%d iniOverwriteLogs=%d perPlayerMessageControlLogConfigured=%d perPlayerRandLogRoutingActive=%d logMapStatsConfigured=%d logMapStatsEffective=%d bugOptionsReadable=%d bugScreenLogLevel=%d bugFileLogLevel=%d bugLogTime=%d autologEnabled=%d autologLoggingOn=%d",
+		getSASBBAILogProfileFields().GetCString(), GC.isLogging(), GC.isRandLogging(), GC.isSynchLogging(), GC.isOverwriteLogs(),
+		bPerPlayerMessageControlConfigured, (bPerPlayerMessageControlConfigured && GC.isRandLogging() && kGame.isNetworkMultiPlayer()),
+		bMapStatsConfigured, (bMapStatsConfigured && GC.isLogging()), bBugOptionsReadable, iBugScreenLogLevel, iBugFileLogLevel, iBugLogTime, iAutologEnabled, iAutologLoggingOn);
+}
+
+// <!-- custom: This cold-path descriptor table is generated from the same marker list as the writers; adding a registered subsystem automatically includes its name/value here.
+// Report capabilities even for inactive optional subsystems, and do not confuse these current write markers with markers actually read from a loaded save. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+struct SASGameRecordSaveComponentFormat
+{
+	char const* szName;
+	int iMarker;
+};
+
+static CvString getSASGameRecordSaveComponentFormatFields()
+{
+#define SAS_SAVE_STREAM_MARKER_ROW(ID, LABEL, VALUE) { #LABEL, SASSaveStreamFormat::ID },
+	static SASGameRecordSaveComponentFormat const aFormats[] =
+	{
+		SAS_SAVE_STREAM_FORMATS(SAS_SAVE_STREAM_MARKER_ROW)
+	};
+#undef SAS_SAVE_STREAM_MARKER_ROW
+	CvString szFormats;
+	int const iCount = (int)(sizeof(aFormats) / sizeof(aFormats[0]));
+	for (int i = 0; i < iCount; i++)
+	{
+		appendSASDiagnosticListValue(szFormats, CvString::format("%s:%d", aFormats[i].szName, aFormats[i].iMarker).GetCString());
+	}
+	return szFormats;
+}
+
+// <!-- custom: Distinguish three version concepts that are otherwise easy to conflate: source/recorder revision lives in SOURCE_CONTEXT, SAVE_VERSION is the mod/replay identity Define, and CvGame's first serialized uint is its stream-layout flag.
+// A newly created game has no loaded stream flag; a loaded save exposes exactly what was read while currentWriteCvGameStreamFlag identifies what this DLL will write next. (ChatGPT-5.6-Sol) -->
+static void logSASGameRecordSaveFormatContext(bool bLoadedSave)
+{
+	CvGame const& kGame = GC.getGame();
+	// <!-- custom: SAVE_VERSION is read once per enabled new/load session, so another cache adds state without avoiding repeated gameplay work; the loaded flag is an inline read of the current game's retained input, which must follow each load. (GPT-6.1-Sol) -->
+	logSASGameRecord("GAME_RECORD_SAVE_FORMAT modSaveVersionDefine=%d currentWriteCvGameStreamFlag=%u loadedCvGameStreamFlagKnown=%d loadedCvGameStreamFlag=%d",
+		GC.getDefineINT("SAVE_VERSION"), (unsigned int)SASSaveStreamFormat::CV_GAME, bLoadedSave, (bLoadedSave ? (int)kGame.getLoadedSaveStreamFlag() : -1));
+	logSASGameRecord("GAME_RECORD_SAVE_COMPONENT_FORMATS scope=CURRENT_WRITER_MARKERS markers=%s", getSASGameRecordSaveComponentFormatFields().GetCString());
 }
 
 // <!-- custom: Compact finalized team rows preserve which technologies each team owns and which diplomacy capabilities are active, but replacing setup-time TECH_ACQUIRED spam otherwise loses which technology grants each capability.
@@ -2366,6 +2512,7 @@ void startSASGameRecordLogForNewGame()
 void logSASGameRecordNewGameStarted()
 {
 	logSASGameRecordGameState("GAME_RECORD_NEW_GAME_STARTED");
+	logSASGameRecordSaveFormatContext(false);
 	// <!-- custom: gameStart has now established the persisted creation entry, so expose it immediately in the successful new-game record. (ChatGPT-5.6-Sol) -->
 	logSASGameRecordVersionHistory();
 	logSASGameRecordInitialPlayerIdentities();
@@ -2399,6 +2546,7 @@ void startSASGameRecordLogForLoadedSave()
 	// Begin partial observations for wars already in progress, with the loaded turn and current war success recorded explicitly as their observable baseline. (GPT-5.6-Sol) -->
 	if (gGameRecordLogLevel >= 2) initializeSASGameRecordWarsFromLoadedSave();
 	logSASGameRecordGameState("GAME_RECORD_SAVE_LOADED");
+	logSASGameRecordSaveFormatContext(true);
 	// <!-- custom: Emit the save's own persisted checkpoint identity immediately after the generic load state, before current-runtime provenance can be mistaken for file provenance. (ChatGPT-5.6-Sol) -->
 	logSASGameRecordLoadedSaveCheckpoint();
 	// <!-- custom: Keep static mod/source/binary identity immediately after the load-session marker; it does not depend on the loaded save's generated/game state. (ChatGPT-5.6-Sol) -->

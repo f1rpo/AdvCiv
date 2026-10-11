@@ -84,6 +84,8 @@ void CyGamePythonInterface()
 		.def("getTurnYear", &CyGame::getTurnYear, "int (iGameTurn) - turn Time")
 		.def("getGameTurnYear", &CyGame::getGameTurnYear)
 		.def("getElapsedGameTurns", &CyGame::getElapsedGameTurns, "int () - Elapsed turns thus far")
+		// <!-- custom: Expose the post-GameStart/OnLoad diagnostic hook; Python invokes it after event dispatch and only while SASGameRecord is enabled. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+		.def("logSASGameRecordDiagnosticContext", &CyGame::logSASGameRecordDiagnosticContext, "void () - record finalized session diagnostic settings")
 		// <!-- custom: Internal BUG diplomacy bridge; captures only resolved AI->human ordinary offers rejected at the UI boundary. (ChatGPT-5.6-Sol) -->
 		.def("logSASGameRecordRejectedAIOffer", &CyGame::logSASGameRecordRejectedAIOffer)
 		// <!-- custom: Expose only one-shot SASFastSave basename/reason context; filename construction remains in Python so the DLL cannot drift from BugPath/collision behavior. (ChatGPT-5.6-Sol) -->

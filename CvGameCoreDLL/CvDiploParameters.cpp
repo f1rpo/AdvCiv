@@ -1,4 +1,5 @@
 #include "CvGameCoreDLL.h"
+#include "SASSaveStreamFormat.h" // <!-- custom: Use the same compile-time write markers as the session diagnostic registry, avoiding duplicated version literals. (GPT-6.1-Sol) -->
 #include "CvDiploParameters.h"
 #include "CvGamePlay.h"
 #include "FVariableSystem.h" // advc (moved from header)
@@ -241,7 +242,8 @@ void CvDiploParameters::read(FDataStreamBase& stream)
 
 void CvDiploParameters::write(FDataStreamBase& stream) const
 {
-	uint uiFlag = 0;
+	// <!-- custom: Reuse the existing CvDiploParameters write marker from the shared diagnostic registry; its value and serialized layout are unchanged. (GPT-6.1-Sol) -->
+	uint uiFlag = SASSaveStreamFormat::CV_DIPLO_PARAMETERS;
 	stream.Write(uiFlag);
 
 	stream.Write(m_eWhoTalkingTo);

@@ -1,6 +1,7 @@
 // CvDeal.cpp
 
 #include "CvGameCoreDLL.h"
+#include "SASSaveStreamFormat.h" // <!-- custom: Use the same compile-time write markers as the session diagnostic registry, avoiding duplicated version literals. (GPT-6.1-Sol) -->
 #include "CvDeal.h"
 #include "CoreAI.h"
 #include "UWAIAgent.h" // advc.104
@@ -788,7 +789,8 @@ CLinkList<TradeData> const& CvDeal::getReceivesList(TeamTypes eReceivingTeam) co
 void CvDeal::write(FDataStreamBase* pStream)
 {
 	PROFILE_FUNC(); // advc
-	uint uiFlag=0;
+	// <!-- custom: Reuse the existing CvDeal write marker from the shared diagnostic registry; its value and serialized layout are unchanged. (GPT-6.1-Sol) -->
+	uint uiFlag=SASSaveStreamFormat::CV_DEAL;
 	pStream->Write(uiFlag);
 	REPRO_TEST_BEGIN_WRITE(CvString::format("Deal(%d,%d,%d)", getID(), getFirstPlayer(), getSecondPlayer()));
 	pStream->Write(m_iID);

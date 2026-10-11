@@ -94,6 +94,56 @@ def check_revision(repo_root: Path) -> list[str]:
 	return failures
 
 
+# <!-- custom: The recorder must report the markers used by real writers, not a parallel list that can silently drift; validate bindings without hardcoding today's numeric versions. (GPT-6.1-Sol) -->
+def check_save_component_formats(repo_root: Path) -> list[str]:
+	failures = []
+	header_path = repo_root / "CvGameCoreDLL/SASSaveStreamFormat.h"
+	if not header_path.is_file():
+		return ["missing shared save-component marker registry"]
+	header = header_path.read_text(encoding="utf-8")
+	entries = re.findall(r"^\s*DO\((\w+),\s*([\w:]+),\s*(\d+)\)", header, flags=re.MULTILINE)
+	if not entries:
+		return ["empty shared save-component marker registry"]
+	if len({key for key, _, _ in entries}) != len(entries) or len({label for _, label, _ in entries}) != len(entries):
+		failures.append("save-component marker registry has duplicate IDs or labels")
+	# <!-- custom: Check both directions: registry entries must bind to writers, and recognizable gameplay writer markers must belong to the registry.
+	# CvInfo_* files serialize XML-info caches, not gameplay saves, and remain deliberately excluded; this is a narrow check of the existing marker patterns, not a complete C++ serializer parser. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	writer_pattern = re.compile(r"\bvoid\s+([\w:]+)::write\([^)]*\)(?:\s+const)?\s*\{")
+	marker_pattern = re.compile(r"\b(?:uiFlag|iSaveVersion|savegameVersion)\s*=\s*([^;]+);")
+	registry = {label: "SASSaveStreamFormat::" + key for key, label, _ in entries}
+	sources = {}
+	writers = {}
+	for path in (repo_root / "CvGameCoreDLL").glob("*.cpp"):
+		if path.stem.startswith("CvInfo_"):
+			continue
+		source = _strip_cpp_comments(path.read_text(encoding="utf-8-sig", errors="replace"))
+		sources[path.stem] = source
+		for function in writer_pattern.finditer(source):
+			label = function.group(1)
+			# <!-- custom: Existing writer setup precedes the first top-level closing brace; comments are stripped so historical marker examples do not count as live assignments. (GPT-6.1-Sol) -->
+			body = source[function.end():].split("\n}", 1)[0]
+			writers[label] = body
+			assignments = marker_pattern.findall(body)
+			if assignments and label not in registry:
+				failures.append(f"{label}: writer marker missing from shared registry")
+			elif assignments and any(value.strip() != registry[label] for value in assignments):
+				failures.append(f"{label}: writer must use registered marker {registry[label]}")
+	for key, label, _ in entries:
+		stem = "CvStatistics" if label in {"CvGameRecord", "CvPlayerRecord"} else label.split("::")[0]
+		source = sources.get(stem, "")
+		marker = "SASSaveStreamFormat::" + key
+		if label == "CvReplayInfo":
+			bound = "CvReplayInfo::REPLAY_VERSION = " + marker + ";" in source and "iSAVE_VERSION * 100 + REPLAY_VERSION" in source
+		else:
+			bound = marker in [value.strip() for value in marker_pattern.findall(writers.get(label, ""))]
+		if not bound:
+			failures.append(f"{label}: writer must use registered marker {key}")
+	record = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8")
+	if "SAS_SAVE_STREAM_FORMATS(SAS_SAVE_STREAM_MARKER_ROW)" not in record or "scope=CURRENT_WRITER_MARKERS markers=%s" not in record:
+		failures.append("save-component diagnostic row must use the shared registry and identify current-writer scope")
+	return failures
+
+
 def check_context_consumer_contracts(repo_root: Path) -> list[str]:
 	failures = []
 	if not (repo_root / REVISION_SOURCE).is_file():
@@ -104,12 +154,28 @@ def check_context_consumer_contracts(repo_root: Path) -> list[str]:
 	display_fields = "gpuAdapterCount=%d gpuDesktopAdapterCount=%d gpuVendorFamilyCount=%d gpuPrimaryVendor=%s gpuVendors=%s"
 	if display_fields not in record_text:
 		failures.append(f"{REVISION_SOURCE}: GAME_RECORD_DISPLAY_CONTEXT missing multi-GPU topology fields")
-	display_placeholders = "gpuAdapterCount=-1 gpuDesktopAdapterCount=-1 gpuVendorFamilyCount=-1 gpuPrimaryVendor=- gpuVendors=-"
-	if display_placeholders not in record_text:
-		failures.append(f"{REVISION_SOURCE}: disabled/lower-level GAME_RECORD_DISPLAY_CONTEXT placeholders changed")
+	# <!-- custom: The shared display schema uses sentinel arguments instead of a second literal placeholder row; preserve explicit unknown values below the collection level. (GPT-6.1-Sol) -->
+	for required in ("int iScreenWidth = -1;", "int iScreenHeight = -1;", "int iGraphicsInitialized = -1;", "int iFullscreen = -1;", 'CvString szGraphicOptions = "-";', "iSystemContextLevel >= 3 ? kDisplayAdapters.iAdapters : -1", "iSystemContextLevel >= 3 ? kDisplayAdapters.iDesktopAdapters : -1", "iSystemContextLevel >= 3 ? kDisplayAdapters.iVendorFamilies : -1", 'iSystemContextLevel >= 3 ? kDisplayAdapters.szPrimaryVendor.GetCString() : "-"', 'iSystemContextLevel >= 3 ? kDisplayAdapters.szVendors.GetCString() : "-"'):
+		if required not in record_text:
+			failures.append(f"{REVISION_SOURCE}: disabled/lower-level display context missing sentinel contract: {required}")
 	for required in ("getSASGameRecordDisplayAdapterContext", "DISPLAY_DEVICE_MIRRORING_DRIVER", "DISPLAY_DEVICE_ATTACHED_TO_DESKTOP", "DISPLAY_DEVICE_PRIMARY_DEVICE"):
 		if required not in record_text:
 			failures.append(f"{REVISION_SOURCE}: display-adapter context missing {required}")
+
+	# <!-- custom: Keep binary resource-version fields in the shared DLL/EXE schema; output-contract checks catch either consumer silently dropping them. (GPT-6.1-Sol) -->
+	utils_path = repo_root / GAME_CORE_UTILS_SOURCE
+	if not utils_path.is_file():
+		failures.append(f"missing binary context-contract file: {GAME_CORE_UTILS_SOURCE}")
+	else:
+		utils_text = utils_path.read_text(encoding="utf-8", errors="replace")
+		binary_formatter = re.search(r"static CvString getSASBinaryContextFields\([^\n]+\)\s*\{(.*?)^\}", utils_text, re.DOTALL | re.MULTILINE)
+		for field in ("resourceFileVersion=%s", "resourceProductVersion=%s"):
+			if binary_formatter is None or field not in binary_formatter.group(1):
+				failures.append(f"{GAME_CORE_UTILS_SOURCE}: shared binary context missing {field}")
+		for function, kind in (("getSASDllContextFields", "dll"), ("getSASExeContextFields", "exe")):
+			consumer = re.search(rf"CvString {function}\(\)\s*\{{(.*?)^\}}", utils_text, re.DOTALL | re.MULTILINE)
+			if consumer is None or not re.search(rf'getSASBinaryContextFields\([^;\n]*"{kind}"\)', consumer.group(1)):
+				failures.append(f"{GAME_CORE_UTILS_SOURCE}: {function} must consume the shared {kind} binary context")
 
 	# <!-- custom: Structured text-map rows are independently grep/parser friendly; raw |...| drawing rows intentionally remain undecorated. (ChatGPT-5.6-Sol) -->
 	if record_text.count('GAME_RECORD_MAP_ASCII_LEGEND turn=%d') != 6:
@@ -2285,6 +2351,7 @@ def main() -> int:
 	defines = read_global_define_ints(args.repo_root)
 	failures = require_int_values(defines, EXPECTED_GAME_RECORD_DEFAULTS)
 	failures.extend(check_revision(args.repo_root))
+	failures.extend(check_save_component_formats(args.repo_root))
 	failures.extend(check_context_consumer_contracts(args.repo_root))
 	failures.extend(check_turn_completion_contract(args.repo_root))
 	failures.extend(check_city_delta_contracts(args.repo_root))

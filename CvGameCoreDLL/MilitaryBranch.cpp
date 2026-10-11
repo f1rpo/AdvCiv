@@ -1,4 +1,5 @@
 #include "CvGameCoreDLL.h"
+#include "SASSaveStreamFormat.h" // <!-- custom: Use the same compile-time write markers as the session diagnostic registry, avoiding duplicated version literals. (GPT-6.1-Sol) -->
 #include "MilitaryBranch.h"
 #include "UWAIAgent.h"
 #include "CoreAI.h"
@@ -33,7 +34,8 @@ void MilitaryBranch::write(FDataStreamBase* pStream) const
 {
 	int iSaveVersion;
 	//iSaveVersion = 0;
-	iSaveVersion = 1; // scaled instead of double
+	// <!-- custom: Reuse the existing MilitaryBranch write marker from the shared diagnostic registry; its value and serialized layout are unchanged. (GPT-6.1-Sol) -->
+	iSaveVersion = SASSaveStreamFormat::MILITARY_BRANCH; // scaled instead of double
 	/*	I hadn't thought of a version number in the initial release. Need
 		to fold it into m_eTypicalUnit now to avoid breaking compatibility.
 		Add 1 b/c the typical unit can be -1. */

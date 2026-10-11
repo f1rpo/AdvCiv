@@ -1,4 +1,5 @@
 #include "CvGameCoreDLL.h"
+#include "SASSaveStreamFormat.h" // <!-- custom: Use the same compile-time write markers as the session diagnostic registry, avoiding duplicated version literals. (GPT-6.1-Sol) -->
 #include "CvGame.h" // <!-- custom: WAR_ATTACK_ORDER diagnostics need CvGame::getGameTurn for unit-age logging. (GPT-5.6 Thinking) -->
 #include "CvSelectionGroupAI.h"
 #include "CvUnitAI.h"
@@ -1511,7 +1512,8 @@ void CvSelectionGroupAI::write(FDataStreamBase* pStream)
 {
 	CvSelectionGroup::write(pStream);
 
-	uint uiFlag=0;
+	// <!-- custom: Reuse the existing CvSelectionGroupAI write marker from the shared diagnostic registry; its value and serialized layout are unchanged. (GPT-6.1-Sol) -->
+	uint uiFlag=SASSaveStreamFormat::CV_SELECTION_GROUP_AI;
 	pStream->Write(uiFlag);
 	REPRO_TEST_BEGIN_WRITE(CvString::format("SelGroupAI(%d,%d,%d)", getID(), getX(), getY()));
 	pStream->Write(m_iMissionAIX);

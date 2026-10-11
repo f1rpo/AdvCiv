@@ -1,4 +1,5 @@
 #include "CvGameCoreDLL.h"
+#include "SASSaveStreamFormat.h" // <!-- custom: Use the same compile-time write markers as the session diagnostic registry, avoiding duplicated version literals. (GPT-6.1-Sol) -->
 #include "RFTotalScore.h"
 #include "CvGamePlay.h"
 #include "CvInfo_GameOption.h"
@@ -25,7 +26,8 @@ void RFTotalScore::reset() {
 
 void RFTotalScore::write(FDataStreamBase* pStream) {
 
-	int savegameVersion = 0;
+	// <!-- custom: Reuse the existing RFTotalScore write marker from the shared diagnostic registry; its value and serialized layout are unchanged. (GPT-6.1-Sol) -->
+	int savegameVersion = SASSaveStreamFormat::RF_TOTAL_SCORE;
 	pStream->Write(savegameVersion);
 	pStream->Write(total);
 	pStream->Write(fromScored);

@@ -1034,8 +1034,8 @@ int AIFoundValue::evaluate()
 	// Keep the expensive food-feasible 3/6/10/14 subset search opt-in for focused investigations; Found level 2 supplies candidate context without the much larger level-3 per-plot output.
 	// Exclude normalization, starting-location, Advanced Start and omniscient replay contexts; known-map diagnostic comparisons can also emit rows under their explicit context.
 	// No AI score is changed. See KI#144.4. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
-	static bool const bLaterCityFoodSupportAuditEnabled = GC.getDefineBOOL("SAS_BBAI_FOUND_LATER_CITY_FOOD_SUPPORT_AUDIT_ENABLE");
-	bool const bLogLaterCityFoodSupportAudit = (gFoundLogLevel >= 2 && bLaterCityFoodSupportAuditEnabled && !bStartPhase &&
+	// <!-- custom: Share the audit switch reader/cache with the BBAI profiles, and pre-gate its first use by Found level 2. See KI#144.4. (GPT-6.1-Sol) -->
+	bool const bLogLaterCityFoodSupportAudit = (gFoundLogLevel >= 2 && isSASBBAILaterCityFoodSupportAuditEnabled() && !bStartPhase &&
 		!kSet.isStartingLoc() && !kSet.isNormalizing() && !kSet.isAdvancedStart() && !kSet.isDiagnosticOmniscience() && !bBarbarian);
 	bool const bCollectFirstCityBFCCapacity = (bEvaluateFirstCityFoodSupport || bLogFirstCityBFCCapacity);
 	bool const bCollectCitySiteFoodSupportCapacity = (bCollectFirstCityBFCCapacity || bLogLaterCityFoodSupportAudit || m_pFoodSummary != NULL);
