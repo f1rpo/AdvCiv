@@ -394,8 +394,10 @@ int WarEvaluator::evaluateScenario(bool bDiagnosticOnly, WarPlanTypes eWarPlan, 
 
 - By default, let the user compile the DLL; the local legacy Civ4 SDK toolchain is configured, and the user generally prefers to handle compilation to save agent time/tokens. Do not compile merely for routine verification when the user has said they will do it.
 - If compilation is needed or the user is fine with the agent doing it, follow the tested [AdvCiv-SAS DLL Compilation Guide](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md).
-- The user compiles the DLL with Microsoft Visual C++ 2010 Express, not VS Code. Check for the IDE and build processes with PowerShell: `Get-Process -Name VCExpress,MSBuild,nmake,cl,link -ErrorAction SilentlyContinue`.
-  - An open `VCExpress` window does not prove compilation is active; if unsure, leave DLL build files untouched until the user confirms the build has finished.
+- The user currently compiles the DLL only through Microsoft Visual C++ 2010 Express, not VS Code. For user-started builds, check `Get-Process -Name VCExpress -ErrorAction SilentlyContinue`.
+  - If `VCExpress` is closed and the agent has not started a build, do not treat a lingering `MSBuild.exe` process alone as an active compile or ask the user to confirm again; MSBuild has remained open after completed builds and during autoplay.
+  - An open `VCExpress` window does not prove compilation is active; if build status is uncertain, leave DLL build files untouched until the user confirms completion. An existing completion confirmation remains valid unless a new build starts or the user says otherwise.
+  - For agent-started builds, track the actual command/session and its completion; inspect `MSBuild`, `nmake`, `cl` or `link` processes as relevant rather than relying on the IDE check.
   - While compilation is running, do not modify C++ source/headers, project/build files, intermediates or DLL/PDB outputs. Documentation edits are safe.
   - Light-source ZIP creation currently seems to fail with `PermissionError` while reading `CvGameCoreDLL/Project/AdvCiv.opensdf` with Visual C++ 2010 Express open, even without compilation running. This IDE database can remain locked while the IDE is open; close the IDE before retrying this packaging failure.
 - Core safety rule: before every full compile attempt or retry, delete that configuration's exact `CvGameCoreDLL/Project/temp_files/<target>` folder so the accepted DLL never resumes from stale or partial intermediates.

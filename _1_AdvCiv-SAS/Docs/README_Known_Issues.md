@@ -246,6 +246,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#176 - (Fixed) Base AdvCiv/K-Mod mission-queue bug exposed by AdvCiv-SAS Worker follow-up improvements: stale AI Worker build target could execute on the wrong plot](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-176)\
 [KI#177 - (Fixed) Multiple base AdvCiv/K-Mod Barbarian city-placement issues could produce poor captured city sites](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-177)\
 [KI#178 - (Fixed/Improved) City-site bonus valuation used broad trade-style `AI_bonusVal` instead of settlement-specific long-term value](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-178)\
+[KI#178.2 - (Fixed AdvCiv-SAS regression found during KI#144.2 follow-up) First-capital dynamic bonus value double-counted generic resource happiness/health](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-178.2)\
 [KI#179 - (Fixed/Improved) AdvCiv-SAS early-settler anti-parking override could let post-capital Settlers found exposed cities without escorts](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-179)\
 [KI#179.2 - (Fixed/Improved) AdvCiv-SAS guarded-Settler regression: stronger escort safety outgrew inherited AdvCiv production assumptions](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-179.2)\
 [KI#179.3 - (Fixed/Improved) AdvCiv-SAS first-Settler escort sequencing could over-delay expansion through overlapping inherited and SAS safety gates](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-179.3)\
@@ -10196,6 +10197,10 @@ Dedicated BBAI component/price diagnostics and SASGameRecord's ordinary/trade ma
 
 In the final validation run, Byzantium owned both Horse and Camel and late Camel declined to value `1`; owning Coal similarly reduced Oil's Railroad contribution from `4000` to `2000` while preserving Oil's independent military-unit value.
 
+Update:
+	- [KI#178.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-178.2) later found one first-capital consumer-side interaction: the shared dynamic value's generic no-city happiness/health component overlapped KI#178's explicit settlement-specific resource value.
+	- The shared dynamic valuation remains unchanged for ordinary callers; only actual first-capital scoring requests the exact no-overlap remainder.
+
 <a id="ki-110"></a>
 
 ## KI#110 - (AdvCiv-SAS music shuffle cleanup) Intermittent Python startup/MainInterface errors from early BUG path calls in Sevopedia music path helper
@@ -11507,6 +11512,8 @@ Performance follow-up (ChatGPT-5.6-Sol + GPT-6.1-Sol):
 - Reuse best-6/best-10 core values already computed by the same first-city evaluator in the current call when the continuation target is the identical current or best-known plot and both values are available. Other return targets still receive a fresh evaluation; no persistent cache is added.
 - Keep core quality, remaining opportunity and delay calculations independent of logging because they determine gameplay. Maintain the logging-only expected-gain summaries and optional linear-opportunity output only when Settler BBAI level 2+ or SASGameRecord level 2+ consumes them.
 - The autoplay results above validate the original scouting change; this later optimization requires its own compilation and runtime validation.
+
+Follow-up: the later first-capital diagnostic pass prompted by this work exposed the separate [KI#178.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-178.2) AdvCiv-SAS resource-value overlap; that issue is documented with the city-site bonus valuation work rather than consuming a new sequential KI number.
 
 <a id="ki-145"></a>
 
@@ -13259,7 +13266,50 @@ The same run also showed that the new Zulu western city Nobamba at `(9,45)` was 
 
 That result is a defense/history issue, not evidence that the city-site valuation itself rejected the west.
 
+Update:
+	- [KI#178.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-178.2) later found that practical 6577's dynamic `AI_baseBonusVal` layer reintroduced generic no-city happiness/health on top of this explicit settlement value for actual first-capital scoring.
+	- KI#178.2 removes only that overlap while preserving the dynamic strategic components.
+
 Fixed with the help of GPT-5.5 (on ChatGPT Codex) thanks.
+
+<a id="ki-178.2"></a>
+
+## KI#178.2 - (Fixed AdvCiv-SAS regression found during KI#144.2 follow-up) First-capital dynamic bonus value double-counted generic resource happiness/health
+
+Screenshots/files for this issue: [google drive folder link](https://drive.google.com/drive/folders/1COER-Ivo8iVYm6IgE7xxCC3uL9elI9Ug?usp=sharing).
+
+Following the [KI#144.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-144.2) first-city scouting follow-up, first-capital Found diagnostics introduced in practical 6618 exposed a SAS-specific interaction between two individually useful settlement-resource layers.
+
+[KI#178](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-178), introduced in practical 6025, replaced broad trade-style `AI_bonusVal` settlement scoring with explicit long-term bonus health/happiness and ordinary early-building effects in `nonYieldBonusValue`. Strategic resource importance remained a separate term.
+
+Practical 6577 later replaced the old static `iAIObjective` strategic add-on with the shared player-specific `AI_baseBonusVal`. This was desirable for civilization-, era- and state-specific units, buildings, projects, routes, obsolescence and substitutes, but `AI_baseBonusVal` also contains a generic happiness/health component.
+
+For an actual first capital, the site evaluator therefore applied explicit settlement-oriented resource health/happiness through `nonYieldBonusValue` and then applied the generic no-city happiness/health component again through the dynamic layer.
+
+This overlap is an **AdvCiv-SAS regression/interaction**, not an inherited BtS, K-Mod or base AdvCiv defect: the inherited code did not combine SAS practical 6025's explicit settlement-specific resource value with practical 6577's shared dynamic bonus layer.
+
+The repair is intentionally narrow.
+
+When evaluating an actual first capital, the dynamic layer now requests a domestic no-city `AI_baseBonusVal` result with its original scaled generic happiness/health subtotal removed **before** the shared `/10` division and final rounding. Subtracting independently rounded totals can differ by one bonus-value unit, so the rounded Found diagnostic component is not used for gameplay arithmetic.
+
+Unit, building, project, route and manual `iAIObjective` contributions remain in the dynamic value. Normalization and later-city site scoring retain the ordinary full `AI_baseBonusVal`; those contexts were not established as defective by this investigation.
+
+The exact first-capital remainder has a separate runtime-only cache. It follows the existing domestic bonus-value invalidation boundaries, is discarded and recomputed after loading rather than serialized, and preserves the inherited multiplayer eager-refresh policy.
+
+Found level 3 retains `STARTING_BONUS_DYNAMIC_HAPPY_HEALTH_OVERLAP_EXCLUDED`, reporting the full dynamic value, independently rounded generic component, exact strategic remainder, full/applied dynamic scores, separate non-yield score and score removed. This keeps the repair auditable without letting diagnostic rounding control gameplay.
+
+The targeted SAS48 validation used `BBAI_20261011T065149Z_load1.log` through `BBAI_20261011T065804Z_load6.log` and matching SASGameRecord logs.
+
+Representative results:
+
+- Mehmed's old Gold/Grapes Istanbul candidate `(87,33)` fell from `5592` to `3792` after four `450`-point generic happiness/health dynamic contributions were removed. The healthier river/Flood Plains `(86,32)` candidate fell only from `4326` to `3876` after one `450`-point removal and became the founded capital. No food-surplus, outer-ring or scouting rule was changed.
+- Wang Kon remained the regression guard: he still scouted west and founded Seoul at `(47,25)` on turn 5. The earlier turn-8 `(51,23)` regression required the separate experimental outer-ring resource credit in addition to this overlap repair.
+- Bibracte remained at `(77,36)` rather than being forced to the alternative. Its lead over `(78,36)` narrowed from `6091` vs `5190` (gap `901`) to `4841` vs `4390` (gap `451`), showing that the duplicated component materially distorted the comparison without being the sole cause of the original choice.
+- Nidaros remained `(87,59)` and Persepolis remained `(35,49)`; the broader controls therefore did not require compensating changes.
+
+This layer is deliberately separate from the still-diagnostic questions about starting-growth-resource classification, non-self-feeding inland water and resources immediately outside the capital BFC. Those can be evaluated independently without coupling their policies to this confirmed overlap.
+
+Found during ChatGPT-5.6-Sol's first-capital diagnostic review of practical 6618; the exact pre-rounding/cache implementation was refined and independently reviewed with GPT-6.1-Sol, and validated by wonderingabout, thanks.
 
 <a id="ki-179"></a>
 

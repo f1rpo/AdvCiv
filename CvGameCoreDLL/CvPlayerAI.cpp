@@ -106,6 +106,7 @@ CvPlayerAI::CvPlayerAI(/* advc.003u: */ PlayerTypes eID) : CvPlayer(eID)
 
 	m_pUWAI = new UWAI::Player(); // advc.104
 	m_aiBonusValue = NULL;
+	m_aiStartingBonusValueWithoutHappyHealth = NULL; // <!-- custom: Initialize the new runtime-only first-capital cache before allocation in AI_reset. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	m_aiBonusValueTrade = NULL; // advc.036
 	m_bBonusValueCacheDirty = false; // <!-- custom: See KI#820. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	m_aiUnitClassWeights = NULL;
@@ -191,6 +192,7 @@ void CvPlayerAI::AI_updatePersonality()
 void CvPlayerAI::AI_uninit()
 {
 	SAFE_DELETE_ARRAY(m_aiBonusValue);
+	SAFE_DELETE_ARRAY(m_aiStartingBonusValueWithoutHappyHealth); // <!-- custom: Release this derived cache alongside the existing bonus-value arrays. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	SAFE_DELETE_ARRAY(m_aiBonusValueTrade); // advc.036
 	SAFE_DELETE_ARRAY(m_aiUnitClassWeights);
 	SAFE_DELETE_ARRAY(m_aiUnitCombatWeights);
@@ -318,10 +320,12 @@ void CvPlayerAI::AI_reset(bool bConstructor)
 	{
 		FAssert(m_aiBonusValue == NULL);
 		m_aiBonusValue = new int[GC.getNumBonusInfos()];
+		m_aiStartingBonusValueWithoutHappyHealth = new int[GC.getNumBonusInfos()]; // <!-- custom: Allocate one exact no-happiness/health remainder per XML bonus type. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 		m_aiBonusValueTrade = new int[GC.getNumBonusInfos()]; // advc.036
 		for (iI = 0; iI < GC.getNumBonusInfos(); iI++)
 		{
 			m_aiBonusValue[iI] = -1;
+			m_aiStartingBonusValueWithoutHappyHealth[iI] = -1; // <!-- custom: Start uncached, matching the full domestic/trade arrays; zero is a valid computed value. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 			m_aiBonusValueTrade[iI] = -1; // advc.036
 		}
 		FAssert(m_aiUnitClassWeights == NULL);
@@ -12696,9 +12700,10 @@ static bool shouldLogSASBonusValueChange(CvString const& szKey, CvString const& 
 	return true;
 }
 
-// <!-- custom: Preserve the proposed first-capital resource-overlap investigation without subtracting anything from AI scores.
-// Reproduce only AI_baseBonusVal(false)'s no-city happiness/health component for Found level-3 comparisons; this independently rounded component is explanatory, not an exact decomposition of the rounded full value.
-// The caller must pre-gate this diagnostic and require no existing cities; unit/building/project/route/manual-policy scoring remains untouched. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+// <!-- custom: First-capital settlement scoring separately applies explicit long-term health/happiness resource value.
+// Reproduce AI_baseBonusVal(false)'s no-city generic happiness/health component for caller-pre-gated Found diagnostics only; this independently rounded observation must not drive gameplay subtraction.
+// AI_baseBonusVal removes the original scaled component before final division/rounding when first-capital scoring requests the exact remainder.
+// Callers require no existing cities. See KI#178.2. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 int CvPlayerAI::AI_getStartingBonusHappyHealthDiagnostic(BonusTypes eBonus) const
 {
 	FAssert(gFoundLogLevel >= 3 && getNumCities() == 0);
@@ -12721,17 +12726,21 @@ int CvPlayerAI::AI_getStartingBonusHappyHealthDiagnostic(BonusTypes eBonus) cons
 }
 
 
-int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) const
+// <!-- custom: Added bExcludeStartingHappyHealth for actual first-capital scoring; when requested for a domestic no-city value, remove the existing scaled generic happiness/health subtotal before final division/rounding.
+// Ordinary callers retain the full value and cache; the exact no-overlap remainder has its own runtime cache so repeated site evaluations do not repeat unit/building/project/route scans. See KI#178.2. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade, bool bExcludeStartingHappyHealth) const
 {
+	FAssert(!bExcludeStartingHappyHealth || (!bTrade && getNumCities() == 0));
+	int* const aiDomesticValues = (bExcludeStartingHappyHealth ? m_aiStartingBonusValueWithoutHappyHealth : m_aiBonusValue);
 	// <!-- custom: Cache dynamic bonus values per player and current game state, not as timeless per-era tables.
 	// Technology progress, owned alternative resources, available replacement units, constructed buildings, corporations and city health/happiness needs can change the correct value within one era.
 	// AI_doTurnPre clears all entries each turn.
 	// Explicit full refreshes invalidate them immediately, while domestic capital-network changes temporarily bypass the whole cache because one resource can change another resource's value. See KI#820. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	//recalculate if not defined
 	if (!m_bBonusValueCacheDirty && !bTrade && // advc.036
-		m_aiBonusValue[eBonus] != -1)
+		aiDomesticValues[eBonus] != -1)
 	{
-		return m_aiBonusValue[eBonus];
+		return aiDomesticValues[eBonus];
 	}
 	// <advc.036>
 	if (!m_bBonusValueCacheDirty && bTrade && m_aiBonusValueTrade[eBonus] != -1)
@@ -12743,6 +12752,7 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 		if (!m_bBonusValueCacheDirty)
 		{
 			m_aiBonusValue[eBonus] = 0;
+			m_aiStartingBonusValueWithoutHappyHealth[eBonus] = 0;
 			m_aiBonusValueTrade[eBonus] = 0; // advc.036
 		}
 		return 0;
@@ -12934,6 +12944,9 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 	// <!-- custom: Preserve the inherited dynamic valuation as explicit reusable components before replacing SAS's later named-resource modifiers.
 	// This first checkpoint does not alter their arithmetic; dedicated BBAI rows expose which civilization-specific XML assets actually give each bonus value. (GPT-5.6-Sol) -->
 	scaled const rDynamicValueBeforeDivisor = rValue;
+	// <!-- custom: Round the exact remaining components once; round(total) minus round(happiness/health) can differ by one unit, so the rounded diagnostic component must not drive gameplay subtraction.
+	// Only domestic no-city valuations need this additional cached result; logging does not control its gameplay calculation. (GPT-6.1-Sol) -->
+	int const iStartingValueWithoutHappyHealth = (!bTrade && getNumCities() == 0 ? std::max(0, ((rValue - rHappyHealthValue) / 10).round()) : 0);
 	rValue /= 10;
 	// <advc.036>
 	int iValue = rValue.round();
@@ -12982,8 +12995,12 @@ int CvPlayerAI::AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade) 
 	/*  To address karadoc's "@*#!" comment in the middle of this function;
 		coupled with a change in AI_updateBonusValue(BonusTypes). */
 	if (!GC.getGame().isNetworkMultiPlayer() && !m_bBonusValueCacheDirty)
-		(bTrade ? m_aiBonusValueTrade : m_aiBonusValue)[eBonus] = iValue;	
-	return iValue; // </advc.036>
+	{
+		(bTrade ? m_aiBonusValueTrade : m_aiBonusValue)[eBonus] = iValue;
+		if (!bTrade && getNumCities() == 0)
+			m_aiStartingBonusValueWithoutHappyHealth[eBonus] = iStartingValueWithoutHappyHealth;
+	}
+	return (bExcludeStartingHappyHealth ? iStartingValueWithoutHappyHealth : iValue); // </advc.036>
 }
 
 // advc: K-Mod code cut from AI_baseBonusVal. (Original BtS code deleted.)
@@ -26149,6 +26166,9 @@ void CvPlayerAI::read(FDataStreamBase* pStream)
 	}
 
 	pStream->Read(GC.getNumBonusInfos(), m_aiBonusValue);
+	// <!-- custom: The exact first-capital remainder is derived runtime state, not serialized; discard it on load so it cannot retain values from the previous in-memory game. (GPT-6.1-Sol) -->
+	FOR_EACH_ENUM(Bonus)
+		m_aiStartingBonusValueWithoutHappyHealth[eLoopBonus] = -1;
 	// <advc.036>
 	pStream->Read(GC.getNumBonusInfos(), m_aiBonusValueTrade); // </advc.036>
 
@@ -32274,6 +32294,8 @@ void CvPlayerAI::AI_updateBonusValue(BonusTypes eBonus)
 	// <!-- custom: Invalidating both variants lets every Settler, Worker, trade and strategic caller share one current player-specific valuation without preserving stale values across state changes. (GPT-5.6-Sol) -->
 	m_aiBonusValue[eBonus] = -1;
 	m_aiBonusValueTrade[eBonus] = -1;
+	// <!-- custom: Invalidate the first-capital remainder at the same per-resource boundary as the full domestic/trade values. (GPT-6.1-Sol) -->
+	m_aiStartingBonusValueWithoutHappyHealth[eBonus] = -1;
 	/*  <advc.036> Don't just reset; recompute them all, and never update the
 		cache in AI_baseBonusVal. This should make sure we're not going OOS.
 		Tbd.: Updating only on demand could lead to undesirable side-effects
@@ -32284,6 +32306,9 @@ void CvPlayerAI::AI_updateBonusValue(BonusTypes eBonus)
 	{
 		m_aiBonusValue[eBonus] = AI_baseBonusVal(eBonus, false);
 		m_aiBonusValueTrade[eBonus] = AI_baseBonusVal(eBonus, true);
+		// <!-- custom: Preserve multiplayer eager refresh for the runtime remainder too; lazy recomputation must not bypass the inherited multiplayer cache policy. (GPT-6.1-Sol) -->
+		if (getNumCities() == 0)
+			m_aiStartingBonusValueWithoutHappyHealth[eBonus] = AI_baseBonusVal(eBonus, false, true);
 	} // </advc.036>
 }
 

@@ -1237,15 +1237,20 @@ int AIFoundValue::evaluate()
 			{
 				// <!-- custom: Replace the static BonusInfo AIObjective label with the player's cached dynamic bonus value.
 				// Units, buildings, projects, routes, obsolescence, current alternatives and civilization-specific XML can therefore make the same resource important to one civilization or era and unimportant to another; e.g. Renaissance Copper remains useful to a civilization whose unit accepts it instead of Iron. (GPT-5.6-Sol) -->
-				int const iDynamicBonusValue = GET_PLAYER(ePlayer).AI_baseBonusVal(eBonus);
+				// <!-- custom: SAS first-capital non-yield scoring already applies explicit long-term resource health/happiness, while practical 6577's dynamic bonus layer also includes AI_baseBonusVal's generic no-city health/happiness component.
+				// Exclude that overlap inside AI_baseBonusVal before rounding; subtracting an independently rounded diagnostic component can shift the remaining strategic score by one bonus-value unit.
+				// Normalization and later cities retain the full dynamic value. See KI#178.2. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+				bool const bExcludeStartingHappyHealthOverlap = (bStartPhase && kSet.isStartingLoc() && !kSet.isNormalizing());
+				int const iDynamicBonusValue = kPlayer.AI_baseBonusVal(eBonus, false, bExcludeStartingHappyHealthOverlap);
 				iBonusScoreDynamicValue = iExtraValueNotHomeDynamicBonusValueMultiplier * iDynamicBonusValue;
 				iValue += iBonusScoreDynamicValue;
-				// <!-- custom: Retain evidence of potential generic happiness/health overlap while applying the full original dynamic score; the rounded component is diagnostic only and is not deducted. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
-				if (gFoundLogLevel >= 3 && kSet.isStartingLoc() && !kSet.isNormalizing() && iCities == 0)
+				if (gFoundLogLevel >= 3 && bExcludeStartingHappyHealthOverlap)
 				{
-					int const iGenericHappyHealth = GET_PLAYER(ePlayer).AI_getStartingBonusHappyHealthDiagnostic(eBonus);
-					logBBAIFoundDetail("STARTING_BONUS_DYNAMIC_HAPPY_HEALTH_COMPARISON", "plot=%d,%d bonus=%S fullDynamicValue=%d genericHappyHealthComponentRounded=%d fullDynamicScoreApplied=%d separatelyAppliedNonYieldScore=%d scoreRemoved=0",
-						p.getX(), p.getY(), GC.getInfo(eBonus).getDescription(), iDynamicBonusValue, iGenericHappyHealth, iBonusScoreDynamicValue, iBonusScoreNonYield);
+					int const iFullDynamicBonusValue = kPlayer.AI_baseBonusVal(eBonus);
+					int const iGenericHappyHealth = kPlayer.AI_getStartingBonusHappyHealthDiagnostic(eBonus);
+					int const iFullDynamicScore = iExtraValueNotHomeDynamicBonusValueMultiplier * iFullDynamicBonusValue;
+					logBBAIFoundDetail("STARTING_BONUS_DYNAMIC_HAPPY_HEALTH_OVERLAP_EXCLUDED", "plot=%d,%d bonus=%S fullDynamicValue=%d genericHappyHealthComponentRounded=%d strategicDynamicValue=%d fullDynamicScore=%d strategicDynamicScoreApplied=%d separatelyAppliedNonYieldScore=%d scoreRemoved=%d",
+						p.getX(), p.getY(), GC.getInfo(eBonus).getDescription(), iFullDynamicBonusValue, iGenericHappyHealth, iDynamicBonusValue, iFullDynamicScore, iBonusScoreDynamicValue, iBonusScoreNonYield, iFullDynamicScore - iBonusScoreDynamicValue);
 				}
 
 				// <!-- custom: AdvCiv's aggregated special-yield formula applied hardcoded weights, nonlinear power, and a second food modifier after older SAS logic had already weighted Food x3 and Production x2.
@@ -3314,8 +3319,8 @@ void AIFoundValue::logBBAIFirstCityOuterRingResources(std::vector<int> const& ai
 		getBonusImprovement(eBonus, p, bCanTradeBonus, bCanSoonTradeBonus, aiBonusImprovementYield, bCanImproveBonus, bCanSoonImproveBonus, bImprovementRemovesFeature);
 		bool const bEasyAccess = ((p.isWater() && bCoastal) || p.sameArea(kPlot) || p.getArea().getCitiesPerPlayer(ePlayer) > 0);
 		int const iReferenceNonYieldValue = nonYieldBonusValue(p, eBonus, bBarbarian ? true : bCanTradeBonus, bEasyAccess, bCoastal, NULL, 100);
-		int const iFullDynamicValue = GET_PLAYER(ePlayer).AI_baseBonusVal(eBonus);
-		int const iGenericHappyHealth = GET_PLAYER(ePlayer).AI_getStartingBonusHappyHealthDiagnostic(eBonus);
+		int const iFullDynamicValue = kPlayer.AI_baseBonusVal(eBonus);
+		int const iGenericHappyHealth = kPlayer.AI_getStartingBonusHappyHealthDiagnostic(eBonus);
 		logBBAIFoundDetail("STARTING_OUTER_RING_BONUS_REFERENCE", "plot=%d,%d bonus=%S distance=%d owner=%d rivalOwned=0 knownRivalFutureBFC=0 typeAlreadyInBFC=0 repeatedOuterType=%d referenceNonYieldUnscaled=%d fullDynamicValue=%d genericHappyHealthComponentRounded=%d canTrade=%d canSoonTrade=%d canImprove=%d canSoonImprove=%d easyAccess=%d currentDirectResourceScore=0",
 			p.getX(), p.getY(), GC.getInfo(eBonus).getDescription(), iOuterRingDistance, eOwner, bRepeatedType, iReferenceNonYieldValue, iFullDynamicValue, iGenericHappyHealth, bCanTradeBonus, bCanSoonTradeBonus, bCanImproveBonus, bCanSoonImproveBonus, bEasyAccess);
 	}

@@ -267,9 +267,11 @@ public:
 	// advc.036: Whether baseBonusVal is computed for a resource trade
 	// <!-- custom: hoisted from multiline signature between `bAssumeEnabled` and `bTrade` by collapse_cpp_signatures.py. (GPT-5.5 (reviewed script output)) -->
 	int AI_bonusVal(BonusTypes eBonus, int iChange, bool bAssumeEnabled = false, bool bTrade = false) const;
-	int AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade = false) const;
-	// <!-- custom: Found-level-3-only observation of the no-city generic happiness/health component in AI_baseBonusVal(false); no scoring subtraction is applied.
-	// Call only before the first city exists; this replaces the experimental strategic-remainder scoring accessor with diagnostic-only evidence. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	// <!-- custom: Added bExcludeStartingHappyHealth for non-trade, no-city first-capital scoring; subtract the original scaled generic happiness/health component before rounding instead of subtracting independently rounded totals.
+	// The default preserves every existing caller; the excluded result uses a separate runtime cache with the same invalidation boundaries. See KI#178.2. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	int AI_baseBonusVal(BonusTypes eBonus, /* advc.036: */ bool bTrade = false, bool bExcludeStartingHappyHealth = false) const;
+	// <!-- custom: First-capital settlement scoring separately values long-term bonus health/happiness, while AI_baseBonusVal(false) also contains a generic no-city happiness/health component.
+	// This independently rounded accessor is logging-only; gameplay requests the exact pre-rounding remainder from AI_baseBonusVal instead of subtracting this observation. See KI#178.2. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	int AI_getStartingBonusHappyHealthDiagnostic(BonusTypes eBonus) const;
 	int AI_bonusTradeVal(BonusTypes eBonus, PlayerTypes eFromPlayer, int iChange, bool bExtraHappyOrHealth = false) const; // advc.036
 	DenialTypes AI_bonusTrade(BonusTypes eBonus, PlayerTypes eToPlayer, int iChange = 0) const; // advc.133
@@ -747,6 +749,8 @@ protected:
 	mutable UnitTypes m_eGreetingBragUnit;
 	int* m_aiBonusValue;
 	int* m_aiBonusValueTrade; // advc.036
+	// <!-- custom: Runtime-only KI#178.2 first-capital remainder, computed before rounding alongside the full value; reset/invalidate with the other bonus caches and recompute after loading without adding save fields. (GPT-6.1-Sol) -->
+	int* m_aiStartingBonusValueWithoutHappyHealth;
 	// <!-- custom: Transient, non-serialized guard for cross-resource bonus-value dependencies. See KI#820. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	bool m_bBonusValueCacheDirty;
 	int* m_aiUnitClassWeights;
