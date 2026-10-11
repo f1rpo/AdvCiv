@@ -867,10 +867,11 @@ void CvPlot::nukeExplosion(int iRange, CvUnit* pNukeUnit, bool bBomb)
 {
 	// <advc.opt>
 	static int const iNUKE_FALLOUT_PROB = GC.getDefineINT("NUKE_FALLOUT_PROB");
-	static int const iNUKE_UNIT_DAMAGE_BASE = GC.getDefineINT(CvGlobals::NUKE_UNIT_DAMAGE_BASE);
-	static int const iNUKE_UNIT_DAMAGE_RAND_1 = GC.getDefineINT(CvGlobals::NUKE_UNIT_DAMAGE_RAND_1);
-	static int const iNUKE_UNIT_DAMAGE_RAND_2 = GC.getDefineINT(CvGlobals::NUKE_UNIT_DAMAGE_RAND_2);
-	static int const iNUKE_BUILDING_DESTRUCTION_PROB = GC.getDefineINT(CvGlobals::NUKE_BUILDING_DESTRUCTION_PROB);
+	// <!-- custom: Read the four enum-backed damage/destruction values once per explosion from the existing CvGlobals integer cache; the former statics hid explicit runtime updates without saving string lookups. See KI#128.2. (GPT-6.1-Sol) -->
+	int const iNUKE_UNIT_DAMAGE_BASE = GC.getDefineINT(CvGlobals::NUKE_UNIT_DAMAGE_BASE);
+	int const iNUKE_UNIT_DAMAGE_RAND_1 = GC.getDefineINT(CvGlobals::NUKE_UNIT_DAMAGE_RAND_1);
+	int const iNUKE_UNIT_DAMAGE_RAND_2 = GC.getDefineINT(CvGlobals::NUKE_UNIT_DAMAGE_RAND_2);
+	int const iNUKE_BUILDING_DESTRUCTION_PROB = GC.getDefineINT(CvGlobals::NUKE_BUILDING_DESTRUCTION_PROB);
 	static int const iNUKE_POPULATION_DEATH_BASE = GC.getDefineINT("NUKE_POPULATION_DEATH_BASE");
 	static int const iNUKE_POPULATION_DEATH_RAND_1 = GC.getDefineINT("NUKE_POPULATION_DEATH_RAND_1");
 	static int const iNUKE_POPULATION_DEATH_RAND_2 = GC.getDefineINT("NUKE_POPULATION_DEATH_RAND_2");

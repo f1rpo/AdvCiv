@@ -652,8 +652,6 @@ class CvMainInterface:
 		self.iSAS_COMMERCE_MAP_X_OFFSET = None
 		self.iSAS_COMMERCE_MAP_Y_OFFSET = None
 		self.IS_SAS_COMMERCE_MAP_ANCHOR_RIGHT = None
-		# <!-- custom: cached vanilla engine defines used across city-screen update methods. (Claude code Sonnet 4.6) -->
-		self.iCOMMERCE_PERCENT_CHANGE_INCREMENTS = None
 		# <!-- custom: the optional second (Min/Max) pair now does a fast +/- step from a SAS define instead of snapping to 0/100; lazily cached. (Claude code Opus 4.7) -->
 		self.iSAS_COMMERCE_SLIDERS_FAST_INCREMENT_PERCENT = None
 		self.iSAS_SCOREBOARD_SCROLL_INCREMENT_FAST = None
@@ -2624,8 +2622,8 @@ class CvMainInterface:
 			return
 		if (CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_HIDE_ALL or CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_MINIMAP_ONLY or CyInterface().getShowInterface() == InterfaceVisibility.INTERFACE_ADVANCED_START):
 			return
-		if self.iCOMMERCE_PERCENT_CHANGE_INCREMENTS is None:
-			self.iCOMMERCE_PERCENT_CHANGE_INCREMENTS = gc.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS")
+		# <!-- custom: Replace the former screen-instance define cache with one read per commerce-control redraw so explicit runtime increment changes reach both +/- buttons; retain local reuse within this draw. See KI#128.2. (Claude code Sonnet 4.6 + GPT-6.1-Sol) -->
+		iCommercePercentChangeIncrements = gc.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS")
 		if self.iSAS_COMMERCE_SLIDERS_FAST_INCREMENT_PERCENT is None:
 			self.iSAS_COMMERCE_SLIDERS_FAST_INCREMENT_PERCENT = gc.getDefineINT("SAS_COMMERCE_SLIDERS_FAST_INCREMENT_PERCENT")
 		# <advc.092>
@@ -2656,12 +2654,12 @@ class CvMainInterface:
 				iCol = 1
 			szString = "IncreasePercent" + str(eCommerce)
 			gSetRectangle(szString, gRect("CommerceSliderBtns" + str(iCol)).next())
-			self.setStyledButton(szString, ButtonStyles.BUTTON_STYLE_CITY_PLUS, WidgetTypes.WIDGET_CHANGE_PERCENT, eCommerce, self.iCOMMERCE_PERCENT_CHANGE_INCREMENTS)
+			self.setStyledButton(szString, ButtonStyles.BUTTON_STYLE_CITY_PLUS, WidgetTypes.WIDGET_CHANGE_PERCENT, eCommerce, iCommercePercentChangeIncrements)
 			screen.show(szString)
 			screen.enable(szString, bEnable)
 			szString = "DecreasePercent" + str(eCommerce)
 			gSetRectangle(szString, gRect("CommerceSliderBtns" + str(iCol + 1)).next())
-			self.setStyledButton(szString, ButtonStyles.BUTTON_STYLE_CITY_MINUS, WidgetTypes.WIDGET_CHANGE_PERCENT, eCommerce, -self.iCOMMERCE_PERCENT_CHANGE_INCREMENTS)
+			self.setStyledButton(szString, ButtonStyles.BUTTON_STYLE_CITY_MINUS, WidgetTypes.WIDGET_CHANGE_PERCENT, eCommerce, -iCommercePercentChangeIncrements)
 			screen.show(szString)
 			screen.enable(szString, bEnable)
 			# moved enabling above

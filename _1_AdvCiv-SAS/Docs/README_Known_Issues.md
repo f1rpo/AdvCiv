@@ -189,6 +189,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#126 - (Fixed) Sevopedia footer navigation controls looked active even when they had no effect](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-126)\
 [KI#127 - (Worked around) DLL max players / Worldsize default players mismatch causing very sparse games, and players not being notified of it](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-127)\
 [KI#128 - (Seemingly fixed / worked around) Runtime UI define/style changes could produce crashy Python-like behavior](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-128)\
+[KI#128.2 - (Addressed inherited AdvCiv runtime-define cache risk) Nuclear effects retained first-read damage/destruction values](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-128.2)\
 [KI#129 - (Fixed) Military Advisor Map tab minimap disappeared after switching tabs](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-129)\
 [KI#130 - (Fixed) Base AdvCiv bug of unit rows showing build player name instead of improvement text (Military Advisor Map tab)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-130)\
 [KI#131 - (Fixed) Base AdvCiv bug of live unit build action text not being space-separated from its turn timer](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-131)\
@@ -10754,6 +10755,31 @@ Files changed:
 
 - [Assets/Python/Screens/CvMilitaryAdvisor.py](/Assets/Python/Screens/CvMilitaryAdvisor.py)
 - [Assets/Python/Contrib/Sevopedia/_sevopedia_helpers.py](/Assets/Python/Contrib/Sevopedia/_sevopedia_helpers.py)
+
+<a id="ki-128.2"></a>
+
+## KI#128.2 - (Addressed inherited AdvCiv runtime-define cache risk) Nuclear effects retained first-read damage/destruction values
+
+### Inherited cache risk and repair
+
+- Both local base AdvCiv 1.14 comparison trees contain function-local static caches for `NUKE_UNIT_DAMAGE_BASE`, `NUKE_UNIT_DAMAGE_RAND_1`, `NUKE_UNIT_DAMAGE_RAND_2` and `NUKE_BUILDING_DESTRUCTION_PROB` in `CvPlot::nukeExplosion`.
+- These enum-backed getters already read CvGlobals' shared integer cache. Their additional statics retain the first explosion's values even if a mod or modmod later explicitly changes the defines through the normal setter.
+- Read the four values into ordinary per-call locals instead. With unchanged defines, the damage/destruction formulas and RNG calls remain unchanged.
+- This is a source-verified runtime-update risk; no normal-gameplay failure or runtime nuclear test has been reproduced. It does not enable live XML-file editing or promise that unrelated nuclear defines support runtime changes.
+
+### Related AdvCiv-SAS cache cleanup
+
+- SAS's KI#186 city-retention rework added a similar static around the already enum-cached `MIN_WATER_SIZE_FOR_OCEAN`; it now reads once per evaluation.
+- SAS commit `6e6bca43e` introduced screen-instance caches during the May 11, 2026 Python define-caching pass. The Domestic Advisor now reads food consumption through the DLL's cached getter, and the Domestic Advisor, Foreign Advisor and Main Interface read the commerce increment once per control redraw.
+- These UI changes reflect explicit runtime define changes on the next relevant refresh; they do not trigger a redraw themselves. Session-fixed SAS tuning caches and expensive derived caches remain outside this repair.
+
+### Validation
+
+- Source-change provenance, custom-comment reflow and whitespace checks pass.
+- The three edited UI files pass a Python-2 grammar parse. Focused mocked checks confirm refreshed food totals and both +/- commerce-button increments use changed values without recreating the screen.
+- The user confirmed successful DLL compilation and an in-game smoke test with no obvious issue. Explicit runtime define-change and nuclear-effect tests remain pending.
+
+Investigated, repaired and documented with the help of GPT-6.1-Sol; the earlier Python caching work retains its Claude code Sonnet 4.6 credit.
 
 <a id="ki-129"></a>
 

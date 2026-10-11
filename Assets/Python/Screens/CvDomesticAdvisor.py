@@ -105,9 +105,6 @@ class CvDomesticAdvisor:
 		self.TEXT_TAB_OVERVIEW4 = "OVERVIEW 4"
 		self.aOverview4Specialists = []
 		self.aOverview4SpecialistHeaders = []
-		# <!-- custom: cached vanilla engine defines. (Claude code Sonnet 4.6) -->
-		self.iCOMMERCE_PERCENT_CHANGE_INCREMENTS = None
-		self.iFOOD_CONSUMPTION_PER_POPULATION = None
 
 	def initText(self):
 		# <!-- custom: cache Domestic Advisor header texts/icons once per language to avoid repeated translation/symbol lookups on redraw.
@@ -713,14 +710,14 @@ class CvDomesticAdvisor:
 		screen.setLabel(self.getNextFinanceWidgetName(), "Background", sasFontTagLabel + unicode(iCommerce) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_LEFT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, Z_CONTROLS + DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 		yLocation += 0.5 * Y_SPACING
-		if self.iCOMMERCE_PERCENT_CHANGE_INCREMENTS is None:
-			self.iCOMMERCE_PERCENT_CHANGE_INCREMENTS = gc.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS")
+		# <!-- custom: Replace the former screen-instance define cache with one read per commerce-control redraw so explicit runtime increment changes reach both +/- buttons; retain local reuse within this draw. See KI#128.2. (Claude code Sonnet 4.6 + GPT-6.1-Sol) -->
+		iCommercePercentChangeIncrements = gc.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS")
 		for iI in range(CommerceTypes.NUM_COMMERCE_TYPES):
 			eCommerce = (iI + 1) % CommerceTypes.NUM_COMMERCE_TYPES
 			if player.isCommerceFlexible(eCommerce):
 				yLocation += Y_SPACING
-				screen.setButtonGFC(self.getNextFinanceWidgetName(), u"", "", X_LEFT_PANEL + TEXT_MARGIN, int(yLocation) + TEXT_MARGIN, 20, 20, WidgetTypes.WIDGET_CHANGE_PERCENT, eCommerce, self.iCOMMERCE_PERCENT_CHANGE_INCREMENTS, ButtonStyles.BUTTON_STYLE_CITY_PLUS )
-				screen.setButtonGFC(self.getNextFinanceWidgetName(), u"", "", X_LEFT_PANEL + TEXT_MARGIN + 24, int(yLocation) + TEXT_MARGIN, 20, 20, WidgetTypes.WIDGET_CHANGE_PERCENT, eCommerce, -self.iCOMMERCE_PERCENT_CHANGE_INCREMENTS, ButtonStyles.BUTTON_STYLE_CITY_MINUS )
+				screen.setButtonGFC(self.getNextFinanceWidgetName(), u"", "", X_LEFT_PANEL + TEXT_MARGIN, int(yLocation) + TEXT_MARGIN, 20, 20, WidgetTypes.WIDGET_CHANGE_PERCENT, eCommerce, iCommercePercentChangeIncrements, ButtonStyles.BUTTON_STYLE_CITY_PLUS )
+				screen.setButtonGFC(self.getNextFinanceWidgetName(), u"", "", X_LEFT_PANEL + TEXT_MARGIN + 24, int(yLocation) + TEXT_MARGIN, 20, 20, WidgetTypes.WIDGET_CHANGE_PERCENT, eCommerce, -iCommercePercentChangeIncrements, ButtonStyles.BUTTON_STYLE_CITY_MINUS )
 				szText = sasFontTagLabel + gc.getCommerceInfo(eCommerce).getDescription() + u" (" + unicode(player.getCommercePercent(eCommerce)) + u"%)" + SAS_FONT_TAG_CLOSE
 				screen.setLabel(self.getNextFinanceWidgetName(), "Background",  szText, CvUtil.FONT_LEFT_JUSTIFY, X_LEFT_PANEL + TEXT_MARGIN + 50, yLocation + TEXT_MARGIN, Z_CONTROLS + DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 				szRate = sasFontTagLabel + unicode(player.getCommerceRate(CommerceTypes(eCommerce))) + SAS_FONT_TAG_CLOSE
@@ -1126,9 +1123,8 @@ class CvDomesticAdvisor:
 
 		iFoodRate = pLoopCity.getYieldRate(YieldTypes.YIELD_FOOD)
 		screen.setTableInt( self.TABLE_OVERVIEW2, 3, i, szFontTagOpen + unicode(iFoodRate) + szFontTagClose, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
-		if self.iFOOD_CONSUMPTION_PER_POPULATION is None:
-			self.iFOOD_CONSUMPTION_PER_POPULATION = gc.getDefineINT("FOOD_CONSUMPTION_PER_POPULATION")
-		iFoodConsumed = pLoopCity.getPopulation() * self.iFOOD_CONSUMPTION_PER_POPULATION
+		# <!-- custom: The former screen-instance cache retained the first food-consumption value across redraws; read the DLL's already cached integer getter so explicit runtime define changes are reflected without repeated string lookups. See KI#128.2. (GPT-6.1-Sol) -->
+		iFoodConsumed = pLoopCity.getPopulation() * gc.getFOOD_CONSUMPTION_PER_POPULATION()
 		screen.setTableInt( self.TABLE_OVERVIEW2, 4, i, szFontTagOpen + unicode(iFoodConsumed) + szFontTagClose, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 		iFoodNet = pLoopCity.foodDifference(true)
 		szFoodNet = self.getSignedText(iFoodNet, False)

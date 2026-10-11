@@ -362,7 +362,6 @@ class CvForeignAdvisor:
 		self.ESP_iActiveCityID = -1
 		self.ESP_iSelectedMission = -1
 		# <!-- custom: cached vanilla engine defines. (Claude code Sonnet 4.6) -->
-		self.iCOMMERCE_PERCENT_CHANGE_INCREMENTS = None
 		self.szLEADERHEAD_RANDOM = None
 
 	# <!-- custom: initialize text and icon caches once for performance, based on Info Screen and Victory Screen pattern (claude code sonnet 4.5) -->
@@ -3170,10 +3169,10 @@ class CvForeignAdvisor:
 		# Copied from EconomicsAdvisor.py
 		x = self.ESP_X_TOTAL_PANE
 		y = self.ESP_Y_TOTAL_PANE
-		if self.iCOMMERCE_PERCENT_CHANGE_INCREMENTS is None:
-			self.iCOMMERCE_PERCENT_CHANGE_INCREMENTS = gc.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS")
-		screen.setButtonGFC("plusButton", u"", "", x + self.ESP_TEXT_MARGIN, y + self.ESP_TEXT_MARGIN, 20, 20, WidgetTypes.WIDGET_CHANGE_PERCENT, eCommerce, self.iCOMMERCE_PERCENT_CHANGE_INCREMENTS, ButtonStyles.BUTTON_STYLE_CITY_PLUS )
-		screen.setButtonGFC("minusButton", u"", "", x + self.ESP_TEXT_MARGIN + 24, y + self.ESP_TEXT_MARGIN, 20, 20, WidgetTypes.WIDGET_CHANGE_PERCENT, eCommerce, -self.iCOMMERCE_PERCENT_CHANGE_INCREMENTS, ButtonStyles.BUTTON_STYLE_CITY_MINUS )
+		# <!-- custom: Replace the former screen-instance define cache with one read per commerce-control redraw so explicit runtime increment changes reach both +/- buttons; retain local reuse within this draw. See KI#128.2. (Claude code Sonnet 4.6 + GPT-6.1-Sol) -->
+		iCommercePercentChangeIncrements = gc.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS")
+		screen.setButtonGFC("plusButton", u"", "", x + self.ESP_TEXT_MARGIN, y + self.ESP_TEXT_MARGIN, 20, 20, WidgetTypes.WIDGET_CHANGE_PERCENT, eCommerce, iCommercePercentChangeIncrements, ButtonStyles.BUTTON_STYLE_CITY_PLUS )
+		screen.setButtonGFC("minusButton", u"", "", x + self.ESP_TEXT_MARGIN + 24, y + self.ESP_TEXT_MARGIN, 20, 20, WidgetTypes.WIDGET_CHANGE_PERCENT, eCommerce, -iCommercePercentChangeIncrements, ButtonStyles.BUTTON_STYLE_CITY_MINUS )
 		szText = sasFontTagLabel + gc.getCommerceInfo(eCommerce).getDescription() + u" (" + unicode(pActivePlayer.getCommercePercent(eCommerce)) + u"%)" + SAS_FONT_TAG_CLOSE
 		screen.setLabel("espRateLabel", "Background",  szText, CvUtil.FONT_LEFT_JUSTIFY, x + self.ESP_TEXT_MARGIN + 50, y + self.ESP_TEXT_MARGIN, self.ESP_Z_CONTROLS + self.ESP_DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 		szRate = sasFontTagLabel + unicode(pActivePlayer.getCommerceRate(CommerceTypes(eCommerce))) + SAS_FONT_TAG_CLOSE

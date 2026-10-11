@@ -50,6 +50,7 @@ Use these specialized records for inherited regressions, suspicious behavior cha
   - The published changelog copies are historical source material, not a replacement for current source/Git when exact implementation state matters.
 - The [C++ File Audit Album](/_1_AdvCiv-SAS/Docs/Source_Analysis/cpp_file_audit_album.txt) records the ongoing current-tree sweep, including clean files, false positives, stable `F###` findings and its continuation cursor.
   - Reconcile provisional KI numbers against current Known Issues before promotion.
+  - Reserve new sequential KI numbers for the C++ File Audit Album if it resumes (currently the next number would be KI#1071; check the latest cursor/history rather than treating this example as permanent). For other findings, use an unused `.x` suffix under a relevant existing KI. Start decimal follow-ups at `.2`, not `.1`, because `.1` is ambiguous with the original issue.
   - Future Python, XML or other file-oriented analyses belong beside it.
 - Current AdvCiv-SAS source and Git are authoritative.
   - Local comparison trees share the parent "C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods": use `AdvCiv` for AdvCiv 1.14, `K-Mod` for the downloaded K-Mod 1.46 master snapshot, `Taurus` for the latest downloaded Taurus source, and `Civ4CE-main/BtS/CvGameCoreDLL` for supporting vanilla/BtS tip-state comparison.

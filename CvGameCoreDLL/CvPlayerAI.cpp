@@ -32028,7 +32028,8 @@ bool CvPlayerAI::AI_isSASCityLikelyToBenefitUsLongTerm(CvCity const& kCity) cons
 	static int const iMaxLowFoodScore = GC.getDefineINT("SAS_AI_CITY_LONG_TERM_MAX_LOW_FOOD_SCORE");
 	static int const iMaxNearestOwnCityDistanceSameArea = GC.getDefineINT("SAS_AI_CITY_LONG_TERM_MAX_NEAREST_OWN_CITY_DISTANCE_SAME_AREA");
 	static bool const bDistanceOverrideActiveWorldWonder = GC.getDefineBOOL("SAS_AI_CITY_LONG_TERM_DISTANCE_OVERRIDE_ACTIVE_WORLD_WONDER_ENABLE");
-	static int const iMinWaterSizeForOcean = GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN);
+	// <!-- custom: This enum-backed getter already reads CvGlobals' integer cache; use a per-call local so explicit runtime changes are reflected without a string lookup. See KI#128.2. (GPT-6.1-Sol) -->
+	int const iMinWaterSizeForOcean = GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN);
 	bool const bOceanCoastal = kCity.plot()->isCoastalLand(iMinWaterSizeForOcean);
 	int const iAssumedSeaPlotFoodChange = (bOceanCoastal ? CvPlot::SAS_getWaterFoodBuildingSeaPlotFoodChange(getID()) : 0);
 	int iVeryBadPlots = 0;
