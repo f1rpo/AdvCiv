@@ -7,7 +7,7 @@
 #define SAS_GAME_RECORD_LOG_H
 
 #include "AIStrategies.h" // <!-- custom: Exact AI strategy/victory-stage transition bridges use the native bitfield types while keeping the recorder interface type-safe. (ChatGPT-5.6-Sol) -->
-#include <vector> // <!-- custom: Rare goody-result logging passes the actual created unit pointers to the recorder for compact canonical type/id/position formatting. (ChatGPT-5.6-Sol) -->
+#include <vector> // <!-- custom: Recorder-owned technology-choice candidates and rare goody-result unit lists use std::vector directly; include its defining header rather than relying on transitive core includes. (ChatGPT-5.6-Sol) -->
 #include <utility> // <!-- custom: Public religion-decision provenance uses std::pair for already-computed candidate religion/value scores; include its defining header directly instead of relying on transitive core includes. (ChatGPT-5.6-Sol) -->
 
 // <!-- custom: Structured game-record rows for autoplay comparison, game analysis, user-assistance summaries, and external LLM review.
@@ -28,7 +28,7 @@ int getSASGameRecordTurnInterval();
 // Standalone docs/example-log/package refreshes do not require a bump.
 // Keep the matching revision-history entry in the same commit.
 // An anonymous enum keeps this a C++03 compile-time integer without a separate storage/linkage definition. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-enum { SAS_GAME_RECORD_REVISION = 142 };
+enum { SAS_GAME_RECORD_REVISION = 143 };
 // <!-- custom: Finalize buffered observations in the old game state before a new game or loaded save resets/replaces it. See KI#382. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 void finalizeSASGameRecordLogSession();
 void startSASGameRecordLogForNewGame();
@@ -292,8 +292,58 @@ struct SASGreatGeneralChoiceContext
 // <!-- custom: Record one realized Great-General policy stage from AI_generalMove.
 // Optional helper context is filled by the live AI_join/AI_construct/AI_lead pass only when level 2+ is enabled; no target search, valuation, pathfinding or RNG is repeated for recording. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordAIGreatGeneralDecision(CvUnitAI const& kUnit, SASGreatGeneralChoiceContext const& kChoice);
-struct SASEspionageChoiceContext;
-struct SASTechChoiceContext;
+// <!-- custom: Recorder-owned optional output from the live espionage chooser.
+// Plain scalars preserve already-computed winning/runner-up values only when the caller enables level 2+ recording; no mission is reevaluated for logging. (ChatGPT-5.6-Sol) -->
+struct SASEspionageCandidateContext
+{
+	EspionageMissionTypes eMission;
+	int iData;
+	int iRawValue;
+	int iRandomPercent;
+	int iRandomizedValue;
+	int iOverhead;
+	int iCostPenalty;
+	int iCost;
+	int iFinalValue;
+};
+struct SASEspionageChoiceContext
+{
+	int iSpyValue;
+	int iEstimatedBaseInterceptPercent;
+	int iEscapeCost;
+	int iEspionagePoints;
+	int iEspionageRate;
+	SASEspionageCandidateContext kBest;
+	SASEspionageCandidateContext kRunnerUp;
+	bool bBigEspionage;
+	bool bEspionageEconomy;
+};
+// <!-- custom: Recorder-owned optional output from the live technology chooser.
+// AI_bestTech fills these path/candidate values only for its real research/free-tech caller when SASGameRecord requests them; no technology valuation or chooser RNG is repeated for logging. (ChatGPT-5.6-Sol) -->
+struct SASTechChoiceCandidate
+{
+	TechTypes eTech;
+	TechTypes eAimTech;
+	int iImmediateValue;
+	int iPathValue;
+};
+struct SASTechChoiceContext
+{
+	explicit SASTechChoiceContext(bool bCollect = false) : eAimTech(NO_TECH), eRunnerUpTech(NO_TECH), eRunnerUpAimTech(NO_TECH), iBestImmediateValue(-1), iBestPathValue(-1), iRunnerUpImmediateValue(-1), iRunnerUpPathValue(-1), iSelectedPathIndex(-1), iImmediateCandidateCount(0), iEvaluatedTechCount(0), iPathCount(0), bCollectCandidates(bCollect) {}
+	TechTypes eAimTech;
+	TechTypes eRunnerUpTech;
+	TechTypes eRunnerUpAimTech;
+	int iBestImmediateValue;
+	int iBestPathValue;
+	int iRunnerUpImmediateValue;
+	int iRunnerUpPathValue;
+	int iSelectedPathIndex;
+	int iImmediateCandidateCount;
+	int iEvaluatedTechCount;
+	int iPathCount;
+	bool bCollectCandidates;
+	std::vector<SASTechChoiceCandidate> aCandidates;
+};
 // <!-- custom: Exact level-3 plot-owner transitions use a small recorder-owned root/mechanism vocabulary instead of guessing causes from the final setter.
 // `tx` identifies the outer causal operation; this separate cause scope identifies the immediate owner-change mechanism/source. Nested cause scopes therefore override temporarily and restore on exit (e.g. tx=VASSALAGE with cause=WAR_BORDER or CULTURE_UPDATE).
 // Call sites gate before gathering logging-only state; disabled scopes perform only their cheap constructor branch. NONE reports UNKNOWN rather than borrowing the active transaction kind, keeping root operation (`tx`) and immediate mechanism (`cause`) semantically distinct. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
@@ -575,7 +625,9 @@ enum SASGameRecordAISettlerSiteDecisionSource
 	SAS_AI_SETTLER_SITE_DECISION_SHORTLIST = 0,
 	SAS_AI_SETTLER_SITE_DECISION_CURRENT_PLOT_RECHECK
 };
-void logSASGameRecordAISettlerSiteDecision(CvUnitAI const& kSettler, CvPlot const& kTargetPlot, bool bFoundNow, SASGameRecordAISettlerSiteDecisionSource eSource, int iDecisionRawFoundValue, int iDecisionSelectionFoundValue, int iPathTurns, int iPathAdjustedScore, bool bSafe, MissionAITypes ePreviousMissionAI, CvPlot const* pPreviousMissionTarget);
+// <!-- custom: Removed the previous-mission parameters after folding SAS_recordSettlerSiteDecisionIfChanged into this helper; it now reads prior mission state and suppresses unchanged destinations internally.
+// Call before mission dispatch because founding can consume the Settler; this records the choice, not successful movement/founding. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+void logSASGameRecordAISettlerSiteDecision(CvUnitAI const& kSettler, CvPlot const& kTargetPlot, bool bFoundNow, SASGameRecordAISettlerSiteDecisionSource eSource, int iDecisionRawFoundValue, int iDecisionSelectionFoundValue, int iPathTurns, int iPathAdjustedScore, bool bSafe);
 // <!-- custom: MISSIONAI_EXPLORE bypasses the ordinary Settler-site assignment row, so preserve only realized scouting actions rather than BBAI's rejected-candidate dump.
 // First-city rows retain the already-computed information/upside/delay terms that explain whether another scouting turn was worth postponing the capital; later promising-fog rows retain the selected-site versus scout-site evidence that caused the detour. (ChatGPT-5.6-Sol) -->
 enum SASGameRecordAISettlerScoutEndReason
@@ -645,6 +697,13 @@ void logSASGameRecordWarEnded(TeamTypes eTeam, TeamTypes eOtherTeam, int iTeamAW
 void logSASGameRecordTeamMerged(TeamTypes eSurvivingTeam, TeamTypes eAbsorbedTeam);
 void logSASGameRecordTeamMet(TeamTypes eTeam, TeamTypes eOtherTeam, bool bNewDiplo, int iX1, int iY1, int iX2, int iY2, CvPlot const* pTeamContactPlot, CvPlot const* pOtherContactPlot);
 void logSASGameRecordPlayerGoldTrade(PlayerTypes eFromPlayer, PlayerTypes eToPlayer, int iAmount);
+// <!-- custom: Recorder-owned raw deal/event serializers keep SASGameRecord schema text out of CvDeal/CvPlayer while their authoritative gameplay call sites retain the existing level gates and already-live values.
+// These helpers perform no chooser/validity work beyond formatting the passed deal/event state. (ChatGPT-5.6-Sol) -->
+void logSASGameRecordDealAction(CvDeal const& kDeal, CLinkList<TradeData> const& kFirstList, CLinkList<TradeData> const& kSecondList, bool bCheckAllowed, bool bMakingPeace, bool bAIRequest, TeamTypes ePeaceTradeTarget, TeamTypes eWarTradeTarget);
+void logSASGameRecordDealEndAction(CvDeal const& kDeal, bool bKillTeam, bool bUpdateAttitude, PlayerTypes eCancelPlayer);
+void logSASGameRecordTradeItemAction(char const* szActionType, int iDealId, TradeData const& kItem, PlayerTypes eFromPlayer, PlayerTypes eToPlayer, bool bFlagA, bool bFlagB, PlayerTypes eCancelPlayer = NO_PLAYER);
+bool isSASGameRecordLowValueDiploEvent(DiploEventTypes eDiploEvent);
+void logSASGameRecordDiploEventAction(PlayerTypes ePlayer, DiploEventTypes eDiploEvent, PlayerTypes eOtherPlayer, int iData1, int iData2);
 // <!-- custom: Capture only the compact relationship state needed to describe a resolved human diplomacy interaction before/after CvPlayer::handleDiploEvent; callers gate at SASGameRecord level 2+ before capture. (ChatGPT-5.6-Sol) -->
 struct SASGameRecordDiploRelationState
 {
@@ -753,6 +812,8 @@ struct SASGameRecordDealInvalidationContext
 	int iGold;
 	int iGoldRate;
 };
+// <!-- custom: Capture only a realized first-failure boundary from CvDeal::verify; callers invoke this only with the level-2 context active, and the helper performs no gameplay query itself. (ChatGPT-5.6-Sol) -->
+void setSASGameRecordDealInvalidationContext(SASGameRecordDealInvalidationContext* pContext, SASGameRecordDealInvalidationReason eReason, PlayerTypes eGiver, PlayerTypes eRecipient, TradeData const* pTriggerItem, int iTradeableBonusCount = -1, int iGoldPercent = -1, int iGold = -1, int iGoldRate = -1);
 void logSASGameRecordDealInvalidation(CvDeal const& kDeal, SASGameRecordDealInvalidationContext const& kContext);
 // <!-- custom: AI_proposeJointWar uses war-duration-adjusted contact cadence plus randomized target selection that the generic CONTACT_JOIN_WAR subject cannot reconstruct.
 // Preserve only the two irrecoverable live chooser values; the recorder derives selected-target counters/static context after the successful gates and before diplomacy begins. (ChatGPT-5.6-Sol) -->
@@ -822,6 +883,9 @@ void logSASGameRecordAICivicOutcome(PlayerTypes ePlayer, char const* szOutcome, 
 // This avoids adding recorder branches to hot AI_bonusTradeVal callers. (ChatGPT-5.6-Sol) -->
 struct SASGameRecordBonusTradeSide
 {
+	// <!-- custom: Replaces CvPlayerAI's initSASGameRecordBonusTradeSide/considerSASGameRecordBonusTradeCandidate helpers; reset only inside the logging gate, preserving uninitialized scalar storage when disabled. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	void reset();
+	void considerCandidate(BonusTypes eBonus, int iBuyerTradeValue, int iSellerKeepValue, int iBias, int iGatePermille, int iRandom, int iScore);
 	BonusTypes eBestBonus;
 	BonusTypes eRunnerUpBonus;
 	int iBestBuyerTradeValue;

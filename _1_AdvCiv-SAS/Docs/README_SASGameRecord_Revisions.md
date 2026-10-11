@@ -28,7 +28,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=142 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=143 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -71,10 +71,22 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
-### Revision 142 - SAS practical 6626
+### Revision 143 - SAS practical 6627
 
 - **Date:** 2026-10-11
 - **Git commit:** `pending`
+- **Change:** Centralize recorder-only chooser context, diplomacy/deal serialization, and resource-trade bookkeeping in `SASGameRecordLog.*` without changing emitted rows, AI choices, level gates, RNG, or gameplay behavior.
+
+- Move technology/espionage chooser contexts into the recorder header; AI headers retain forward declarations.
+- Centralize raw deal/trade-item/diplomacy-event formatting and deal-invalidation capture; existing gameplay call sites and pre-gates remain unchanged.
+- Move bonus-trade initialization and winner/runner-up tracking onto its recorder-owned context without adding initialization when logging is disabled.
+- Fold the Settler duplicate-destination wrapper into its recorder helper, retaining pre-dispatch timing because founding can consume the unit.
+- Keep shared gameplay/BBAI utilities and local decision-data gathering at their existing sites. No row/schema changes beyond the revision marker.
+
+### Revision 142 - SAS practical 6626
+
+- **Date:** 2026-10-11
+- **Git commit:** `93847322da1d5e9313f7e4e42d2f5ebfac715899`
 - **Change:** Preserve compact founded-site Food-support evidence and fresh quality for one cached alternative at level 2+, following the KI#144.3/KI#178.2/KI#144.4 Settler investigations.
 
 - `GAME_RECORD_CITY_SITE_FOOD_SUPPORT` records player-known 3/6/10/14 worked-plot budgets for the founded site and, when present, the first cached alternative: value-ranked potential/natural Food surplus, food-ranked selected-potential surplus, projected unsupported worked value, and the applied capital Food-support adjustment. City-center yields are free; consumption uses the current engine define.

@@ -6,7 +6,7 @@
 #include "CvPlayer.h"
 #include "UWAI.h" // advc.104
 #include "AIStrategies.h" // advc.enum
-#include <vector> // <!-- custom: Recorder-only technology-choice context below owns a candidate vector; include its defining header directly rather than relying on transitive core includes. (ChatGPT-5.6-Sol) -->
+#include <vector> // <!-- custom: Added for the recorder context, but retained after that context moved to SASGameRecordLog.h: existing AI state/signatures also use std::vector and should not depend on transitive includes. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 
 class CvDeal;
 class CvCityAI;
@@ -16,33 +16,8 @@ class UWAICity; // advc.104d
 struct SASGameRecordAIHelpRequestContext; // <!-- custom: Opaque optional SASGameRecord provenance from AI help-request selection; definition remains recorder-owned. (ChatGPT-5.6-Sol) -->
 struct SASGameRecordAITributeRequestContext; // <!-- custom: Opaque optional SASGameRecord provenance from AI tribute-request selection; definition remains recorder-owned. (ChatGPT-5.6-Sol) -->
 
-// <!-- custom: Optional recorder-only output from the existing technology chooser.
-// The live AI_bestTech pass fills these scalars/path candidates only when its real research/free-tech caller enables SASGameRecord; no technology valuation or chooser RNG is repeated for logging. (ChatGPT-5.6-Sol) -->
-struct SASTechChoiceCandidate
-{
-	TechTypes eTech;
-	TechTypes eAimTech;
-	int iImmediateValue;
-	int iPathValue;
-};
-
-struct SASTechChoiceContext
-{
-	explicit SASTechChoiceContext(bool bCollect = false) : eAimTech(NO_TECH), eRunnerUpTech(NO_TECH), eRunnerUpAimTech(NO_TECH), iBestImmediateValue(-1), iBestPathValue(-1), iRunnerUpImmediateValue(-1), iRunnerUpPathValue(-1), iSelectedPathIndex(-1), iImmediateCandidateCount(0), iEvaluatedTechCount(0), iPathCount(0), bCollectCandidates(bCollect) {}
-	TechTypes eAimTech;
-	TechTypes eRunnerUpTech;
-	TechTypes eRunnerUpAimTech;
-	int iBestImmediateValue;
-	int iBestPathValue;
-	int iRunnerUpImmediateValue;
-	int iRunnerUpPathValue;
-	int iSelectedPathIndex;
-	int iImmediateCandidateCount;
-	int iEvaluatedTechCount;
-	int iPathCount;
-	bool bCollectCandidates;
-	std::vector<SASTechChoiceCandidate> aCandidates;
-};
+// <!-- custom: Optional SASGameRecord output from the existing technology chooser; definition remains recorder-owned in SASGameRecordLog.h. (ChatGPT-5.6-Sol) -->
+struct SASTechChoiceContext;
 
 /*	<advc.003u> Overwrite definition in CvPlayer.h (should perhaps instead define a
 	new macro "PLAYERAI" - a lot of call locations to change though ...) */

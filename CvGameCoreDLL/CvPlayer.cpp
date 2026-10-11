@@ -15,7 +15,7 @@
 #include "CvDiploParameters.h"
 #include "CvPopupInfo.h"
 #include "CvGameTextMgr.h"
-#include "CvGameCoreUtils.h" // <!-- custom: Shared raw WarPlanTypes token text for game-record diplomacy rows. (GPT-5.5) -->
+#include "CvGameCoreUtils.h" // <!-- custom: Needed directly for shared gameplay utilities such as atWar and setListHelp; do not rely on transitive core includes. (GPT-5.5 + ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 #include "RiseFall.h"
 #include "AdvCiv4lerts.h"
 #include "CvBugOptions.h"
@@ -84,75 +84,6 @@ namespace
 		}
 	}
 
-
-	CvString getSASGameRecordDiploCityText(PlayerTypes ePlayer, int iCityId)
-	{
-		if (ePlayer == NO_PLAYER)
-			return CvString("-");
-		CvCity* pCity = GET_PLAYER(ePlayer).getCity(iCityId);
-		CvString szValue;
-		if (pCity != NULL)
-			szValue.Format("cityId=%d,city=%S", pCity->getID(), pCity->getName().GetCString());
-		else szValue.Format("cityId=%d", iCityId);
-		return szValue;
-	}
-
-	CvString getSASGameRecordDiploData1Text(PlayerTypes ePlayer, DiploEventTypes eDiploEvent, int iData1, int iData2)
-	{
-		switch (eDiploEvent)
-		{
-		case DIPLOEVENT_JOIN_WAR:
-		case DIPLOEVENT_NO_JOIN_WAR:
-		case DIPLOEVENT_STOP_TRADING:
-		case DIPLOEVENT_NO_STOP_TRADING:
-		case DIPLOEVENT_SET_WARPLAN:
-			return getSASTeamDiagnosticText((TeamTypes)iData1);
-		case DIPLOEVENT_RESEARCH_TECH:
-			if (iData1 >= 0 && iData1 < GC.getNumTechInfos())
-				return CvString(GC.getInfo((TechTypes)iData1).getType());
-			break;
-		case DIPLOEVENT_TARGET_CITY:
-			return getSASGameRecordDiploCityText((PlayerTypes)iData1, iData2);
-		case DIPLOEVENT_CONVERT:
-		case DIPLOEVENT_NO_CONVERT:
-			return GET_PLAYER(ePlayer).getStateReligion() == NO_RELIGION ? CvString("-") : CvString(GC.getInfo(GET_PLAYER(ePlayer).getStateReligion()).getType());
-		case DIPLOEVENT_REVOLUTION:
-		case DIPLOEVENT_NO_REVOLUTION:
-			return GET_PLAYER(ePlayer).getFavoriteCivic() == NO_CIVIC ? CvString("-") : CvString(GC.getInfo(GET_PLAYER(ePlayer).getFavoriteCivic()).getType());
-		case DIPLOEVENT_ASK_HELP:
-		case DIPLOEVENT_MADE_DEMAND:
-			return CvString(iData1 > 0 ? "granted" : "not_granted_or_unknown");
-		default:
-			return CvString("-");
-		}
-		return getSASDiagnosticIntText(iData1);
-	}
-
-	CvString getSASGameRecordDiploData2Text(DiploEventTypes eDiploEvent, int iData2)
-	{
-		switch (eDiploEvent)
-		{
-		case DIPLOEVENT_SET_WARPLAN:
-			return CvString(getSASWarPlanType((WarPlanTypes)iData2));
-		default:
-			return CvString("-");
-		}
-	}
-
-	bool isSASGameRecordLowValueDiploEvent(DiploEventTypes eDiploEvent)
-	{
-		return (eDiploEvent == DIPLOEVENT_CONTACT || eDiploEvent == DIPLOEVENT_AI_CONTACT || eDiploEvent == DIPLOEVENT_FAILED_CONTACT || eDiploEvent == DIPLOEVENT_TARGET_CITY || eDiploEvent == DIPLOEVENT_SET_WARPLAN);
-	}
-
-	void logSASGameRecordDiploEventAction(PlayerTypes ePlayer, DiploEventTypes eDiploEvent, PlayerTypes eOtherPlayer, int iData1, int iData2)
-	{
-		// <!-- custom: Preserve lower-value/raw EXE diplomacy events at level 3, and uncommon non-semantic events at level 2.
-		// Resolved help/demand/civic/religion/war-join/embargo interactions use the richer post-event row instead. (ChatGPT-5.6-Sol) -->
-		logSASGameRecord("GAME_RECORD_ACTION turn=%d type=DIPLO_EVENT player=%d other=%d event=%s data1=%d data1Text=%s data2=%d data2Text=%s",
-			GC.getGame().getGameTurn(), ePlayer, eOtherPlayer, getSASDiploEventType(eDiploEvent), iData1,
-			getSASGameRecordDiploData1Text(ePlayer, eDiploEvent, iData1, iData2).GetCString(), iData2,
-			getSASGameRecordDiploData2Text(eDiploEvent, iData2).GetCString());
-	}
 }
 
 // advc.003u: Statics moved from CvPlayerAI

@@ -488,21 +488,6 @@ static void SAS_logSettlerMissionDecision(char const* szAction, CvUnitAI const& 
 		(pTargetPlot == NULL ? -1 : kOwner.AI_getPlotDanger(*pTargetPlot)), (pGroup == NULL ? NO_MISSIONAI : pGroup->AI_getMissionAIType()));
 }
 
-// <!-- custom: Preserve only a newly assigned/retargeted ordinary founding destination in SASGameRecord.
-// Repeated AI_found calls while travelling toward the same MISSIONAI_FOUND plot stay silent; the row reuses values already computed by this decision and does no evaluation/pathfinding of its own. (ChatGPT-5.6-Sol) -->
-// <!-- custom: Record the chosen action before mission dispatch: founding can consume the Settler immediately, so logging afterward is unsafe.
-// This is decision evidence, not confirmation of successful movement or founding; the city-founding record supplies the actual outcome. (GPT-6.1-Sol) -->
-static void SAS_recordSettlerSiteDecisionIfChanged(CvUnitAI const& kSettler, CvPlot const& kTargetPlot, bool bFoundNow, SASGameRecordAISettlerSiteDecisionSource eSource, int iDecisionRawFoundValue, int iDecisionSelectionFoundValue, int iPathTurns, int iPathAdjustedScore, bool bSafe)
-{
-	FAssert(gGameRecordLogLevel >= 2);
-	CvSelectionGroupAI const* pGroup = kSettler.AI_getGroup();
-	MissionAITypes const ePreviousMissionAI = (pGroup == NULL ? NO_MISSIONAI : pGroup->AI_getMissionAIType());
-	CvPlot const* pPreviousMissionTarget = (pGroup == NULL ? NULL : pGroup->AI_getMissionAIPlot());
-	if (ePreviousMissionAI == MISSIONAI_FOUND && pPreviousMissionTarget == &kTargetPlot)
-		return;
-	logSASGameRecordAISettlerSiteDecision(kSettler, kTargetPlot, bFoundNow, eSource, iDecisionRawFoundValue, iDecisionSelectionFoundValue, iPathTurns, iPathAdjustedScore, bSafe, ePreviousMissionAI, pPreviousMissionTarget);
-}
-
 // <!-- custom: Record mission and movement context to diagnose units repeatedly returning to evacuating cities; no behavior change. (GPT-5.5) -->
 static void logSASEvacuationUnitDecision(char const* szMode, CvUnitAI const& kUnit, CvCityAI const& kCity, int iEvacProbPercent, bool bSelected)
 {
@@ -23004,10 +22989,11 @@ bool CvUnitAI::AI_found(MovementFlags eFlags)
 		return true;
 	}
 
+	// <!-- custom: Recorder-owned filtering replaces SAS_recordSettlerSiteDecisionIfChanged; both branches must log before dispatch because MISSION_FOUND can consume this Settler immediately. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	// <!-- custom: Normal found-at-target path after the current-site and promising-fog safeguards above had a chance to override stale or under-scouted targets. (GPT-5.5) -->
 	if (at(*pBestFoundPlot))
 	{
-		if (bLogSASSettlerDecision) SAS_recordSettlerSiteDecisionIfChanged(*this, *pBestFoundPlot, true, eBestDecisionSource, iBestDecisionRawFoundValue, iBestDecisionSelectionFoundValue, iBestPathTurns, iBestDecisionPathAdjustedScore, bSafe);
+		if (bLogSASSettlerDecision) logSASGameRecordAISettlerSiteDecision(*this, *pBestFoundPlot, true, eBestDecisionSource, iBestDecisionRawFoundValue, iBestDecisionSelectionFoundValue, iBestPathTurns, iBestDecisionPathAdjustedScore, bSafe);
 		if (gSettlerLogLevel >= 2) SAS_logSettlerMissionDecision("PUSH_FOUND", *this, pBestFoundPlot, pBestFoundPlot, pBestFoundPlot->getFoundValue(getOwner()), 0, "AI_FOUND_AT_SITE");
 		getGroup()->pushMission(MISSION_FOUND, -1, -1, NO_MOVEMENT_FLAGS,
 				false, false, MISSIONAI_FOUND, pBestFoundPlot);
@@ -23015,7 +23001,7 @@ bool CvUnitAI::AI_found(MovementFlags eFlags)
 	}
 	else
 	{
-		if (bLogSASSettlerDecision) SAS_recordSettlerSiteDecisionIfChanged(*this, *pBestFoundPlot, false, eBestDecisionSource, iBestDecisionRawFoundValue, iBestDecisionSelectionFoundValue, iBestPathTurns, iBestDecisionPathAdjustedScore, bSafe);
+		if (bLogSASSettlerDecision) logSASGameRecordAISettlerSiteDecision(*this, *pBestFoundPlot, false, eBestDecisionSource, iBestDecisionRawFoundValue, iBestDecisionSelectionFoundValue, iBestPathTurns, iBestDecisionPathAdjustedScore, bSafe);
 		if (gSettlerLogLevel >= 2) SAS_logSettlerMissionDecision("PUSH_MOVE_TO_FOUND", *this, pBestFoundPlot, pBestPlot, pBestFoundPlot->getFoundValue(getOwner()), iBestPathTurns, "AI_FOUND_MOVE");
 		pushGroupMoveTo(*pBestPlot, eFlags, false, false,
 				MISSIONAI_FOUND, pBestFoundPlot);

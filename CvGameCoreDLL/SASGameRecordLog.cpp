@@ -11867,14 +11867,22 @@ static char const* getSASGameRecordAISettlerSiteDecisionSource(SASGameRecordAISe
 
 // <!-- custom: Read only the maintained shortlist and selected plot cache; do not rescore the site for this row.
 // A current-plot recheck supplies its fresh score separately, with pathAdjustedScore=-1 because that decision compares raw found values rather than path-adjusted scores. (GPT-6.1-Sol) -->
-void logSASGameRecordAISettlerSiteDecision(CvUnitAI const& kSettler, CvPlot const& kTargetPlot, bool bFoundNow, SASGameRecordAISettlerSiteDecisionSource eSource, int iDecisionRawFoundValue, int iDecisionSelectionFoundValue, int iPathTurns, int iPathAdjustedScore, bool bSafe, MissionAITypes ePreviousMissionAI, CvPlot const* pPreviousMissionTarget)
+// <!-- custom: Folded CvUnitAI's SAS_recordSettlerSiteDecisionIfChanged wrapper into this formatter, including its prior-mission reads and unchanged-destination filter; callers retain their level-2 gates and pre-dispatch timing. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+void logSASGameRecordAISettlerSiteDecision(CvUnitAI const& kSettler, CvPlot const& kTargetPlot, bool bFoundNow, SASGameRecordAISettlerSiteDecisionSource eSource, int iDecisionRawFoundValue, int iDecisionSelectionFoundValue, int iPathTurns, int iPathAdjustedScore, bool bSafe)
 {
+	FAssert(gGameRecordLogLevel >= 2);
+	// <!-- custom: Folding the wrapper here initially left two pGroup declarations and failed compilation with C2374; share this one group read between filtering and row output. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	CvSelectionGroupAI const* pGroup = kSettler.AI_getGroup();
+	MissionAITypes const ePreviousMissionAI = (pGroup == NULL ? NO_MISSIONAI : pGroup->AI_getMissionAIType());
+	CvPlot const* pPreviousMissionTarget = (pGroup == NULL ? NULL : pGroup->AI_getMissionAIPlot());
+	// <!-- custom: Repeated AI_found calls while travelling toward the same MISSIONAI_FOUND plot stay silent; this filter is recorder row policy rather than Settler gameplay. (ChatGPT-5.6-Sol) -->
+	if (ePreviousMissionAI == MISSIONAI_FOUND && pPreviousMissionTarget == &kTargetPlot)
+		return;
 	CvPlayerAI const& kPlayer = GET_PLAYER(kSettler.getOwner());
 	int iTargetCachedFoundValue = -1;
 	int const iTargetSiteListRank = getSASGameRecordCitySiteRank(kPlayer, kTargetPlot, iTargetCachedFoundValue);
 	if (iTargetSiteListRank < 0)
 		iTargetCachedFoundValue = kTargetPlot.getFoundValue(kSettler.getOwner());
-	CvSelectionGroupAI const* pGroup = kSettler.AI_getGroup();
 	bool const bRetarget = (ePreviousMissionAI == MISSIONAI_FOUND && pPreviousMissionTarget != NULL);
 	logSASGameRecord("GAME_RECORD_AI_SETTLER_SITE_DECISION turn=%d player=%d unitId=%d groupId=%d fromX=%d fromY=%d action=%s source=%s targetX=%d targetY=%d targetArea=%d targetSiteListRank=%d targetCachedFoundValue=%d decisionRawFoundValue=%d decisionSelectionFoundValue=%d pathTurns=%d pathAdjustedScore=%d safe=%d previousMissionAI=%d retarget=%d previousTargetX=%d previousTargetY=%d",
 		GC.getGame().getGameTurn(), kSettler.getOwner(), kSettler.getID(), (pGroup == NULL ? -1 : pGroup->getID()),
@@ -12532,6 +12540,103 @@ void logSASGameRecordPlayerGoldTrade(PlayerTypes eFromPlayer, PlayerTypes eToPla
 	logSASGameRecord("GAME_RECORD_ACTION turn=%d type=GOLD_TRADE from=%d to=%d amount=%d", GC.getGame().getGameTurn(), eFromPlayer, eToPlayer, iAmount);
 }
 
+// <!-- custom: Canonical accepted/ended deal and per-item action formatting lives with the rest of SASGameRecord schema.
+// CvDeal keeps the authoritative call sites and level gates, so moving these serializers does not repeat trade validation or build strings while recording is disabled. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Accepted diplomacy bundles preserve open borders, resource/technology/map trades, war bribes, embargoes and tribute/help exchanges at their authoritative acceptance boundary. (ChatGPT-5.5 + GPT-6.1-Sol) -->
+void logSASGameRecordDealAction(CvDeal const& kDeal, CLinkList<TradeData> const& kFirstList, CLinkList<TradeData> const& kSecondList, bool bCheckAllowed, bool bMakingPeace, bool bAIRequest, TeamTypes ePeaceTradeTarget, TeamTypes eWarTradeTarget)
+{
+	logSASGameRecord("GAME_RECORD_ACTION turn=%d type=DIPLO_DEAL dealId=%d first=%d second=%d checkAllowed=%d makingPeace=%d aiRequest=%d peaceTarget=%s warTarget=%s firstGives=%s secondGives=%s",
+		GC.getGame().getGameTurn(), kDeal.getID(), kDeal.getFirstPlayer(), kDeal.getSecondPlayer(), bCheckAllowed ? 1 : 0,
+		bMakingPeace ? 1 : 0, bAIRequest ? 1 : 0, getSASTeamDiagnosticText(ePeaceTradeTarget).GetCString(),
+		getSASTeamDiagnosticText(eWarTradeTarget).GetCString(), getSASTradeListText(kFirstList, kDeal.getFirstPlayer()).GetCString(),
+		getSASTradeListText(kSecondList, kDeal.getSecondPlayer()).GetCString());
+}
+
+void logSASGameRecordDealEndAction(CvDeal const& kDeal, bool bKillTeam, bool bUpdateAttitude, PlayerTypes eCancelPlayer)
+{
+	logSASGameRecord("GAME_RECORD_ACTION turn=%d type=DIPLO_DEAL_ENDED dealId=%d first=%d second=%d cancelPlayer=%d killTeam=%d updateAttitude=%d firstGives=%s secondGives=%s",
+		GC.getGame().getGameTurn(), kDeal.getID(), kDeal.getFirstPlayer(), kDeal.getSecondPlayer(), eCancelPlayer, bKillTeam ? 1 : 0,
+		bUpdateAttitude ? 1 : 0, getSASTradeListText(kDeal.getFirstList(), kDeal.getFirstPlayer()).GetCString(),
+		getSASTradeListText(kDeal.getSecondList(), kDeal.getSecondPlayer()).GetCString());
+}
+
+void logSASGameRecordTradeItemAction(char const* szActionType, int iDealId, TradeData const& kItem, PlayerTypes eFromPlayer, PlayerTypes eToPlayer, bool bFlagA, bool bFlagB, PlayerTypes eCancelPlayer)
+{
+	logSASGameRecord("GAME_RECORD_ACTION turn=%d type=%s dealId=%d from=%d to=%d item=%s data=%s flagA=%d flagB=%d cancelPlayer=%d",
+		GC.getGame().getGameTurn(), szActionType, iDealId, eFromPlayer, eToPlayer, getSASTradeItemType(kItem.m_eItemType),
+		getSASTradeDataText(kItem, eFromPlayer).GetCString(), bFlagA ? 1 : 0, bFlagB ? 1 : 0, eCancelPlayer);
+}
+
+static CvString getSASGameRecordDiploCityText(PlayerTypes ePlayer, int iCityId)
+{
+	if (ePlayer == NO_PLAYER)
+		return CvString("-");
+	CvCity* pCity = GET_PLAYER(ePlayer).getCity(iCityId);
+	CvString szValue;
+	if (pCity != NULL)
+		szValue.Format("cityId=%d,city=%S", pCity->getID(), pCity->getName().GetCString());
+	else szValue.Format("cityId=%d", iCityId);
+	return szValue;
+}
+
+static CvString getSASGameRecordDiploData1Text(PlayerTypes ePlayer, DiploEventTypes eDiploEvent, int iData1, int iData2)
+{
+	switch (eDiploEvent)
+	{
+	case DIPLOEVENT_JOIN_WAR:
+	case DIPLOEVENT_NO_JOIN_WAR:
+	case DIPLOEVENT_STOP_TRADING:
+	case DIPLOEVENT_NO_STOP_TRADING:
+	case DIPLOEVENT_SET_WARPLAN:
+		return getSASTeamDiagnosticText((TeamTypes)iData1);
+	case DIPLOEVENT_RESEARCH_TECH:
+		if (iData1 >= 0 && iData1 < GC.getNumTechInfos())
+			return CvString(GC.getInfo((TechTypes)iData1).getType());
+		break;
+	case DIPLOEVENT_TARGET_CITY:
+		return getSASGameRecordDiploCityText((PlayerTypes)iData1, iData2);
+	case DIPLOEVENT_CONVERT:
+	case DIPLOEVENT_NO_CONVERT:
+		return GET_PLAYER(ePlayer).getStateReligion() == NO_RELIGION ? CvString("-") : CvString(GC.getInfo(GET_PLAYER(ePlayer).getStateReligion()).getType());
+	case DIPLOEVENT_REVOLUTION:
+	case DIPLOEVENT_NO_REVOLUTION:
+		return GET_PLAYER(ePlayer).getFavoriteCivic() == NO_CIVIC ? CvString("-") : CvString(GC.getInfo(GET_PLAYER(ePlayer).getFavoriteCivic()).getType());
+	case DIPLOEVENT_ASK_HELP:
+	case DIPLOEVENT_MADE_DEMAND:
+		return CvString(iData1 > 0 ? "granted" : "not_granted_or_unknown");
+	default:
+		return CvString("-");
+	}
+	return getSASDiagnosticIntText(iData1);
+}
+
+static CvString getSASGameRecordDiploData2Text(DiploEventTypes eDiploEvent, int iData2)
+{
+	switch (eDiploEvent)
+	{
+	case DIPLOEVENT_SET_WARPLAN:
+		return CvString(getSASWarPlanType((WarPlanTypes)iData2));
+	default:
+		return CvString("-");
+	}
+}
+
+// <!-- custom: Recorder policy, not diplomacy AI: low-value raw EXE event filtering belongs beside the row formatter rather than in CvPlayer gameplay code. (ChatGPT-5.6-Sol) -->
+bool isSASGameRecordLowValueDiploEvent(DiploEventTypes eDiploEvent)
+{
+	return (eDiploEvent == DIPLOEVENT_CONTACT || eDiploEvent == DIPLOEVENT_AI_CONTACT || eDiploEvent == DIPLOEVENT_FAILED_CONTACT || eDiploEvent == DIPLOEVENT_TARGET_CITY || eDiploEvent == DIPLOEVENT_SET_WARPLAN);
+}
+
+void logSASGameRecordDiploEventAction(PlayerTypes ePlayer, DiploEventTypes eDiploEvent, PlayerTypes eOtherPlayer, int iData1, int iData2)
+{
+	// <!-- custom: Preserve lower-value/raw EXE diplomacy events at level 3, and uncommon non-semantic events at level 2.
+	// Resolved help/demand/civic/religion/war-join/embargo interactions use the richer post-event row instead. (ChatGPT-5.6-Sol) -->
+	logSASGameRecord("GAME_RECORD_ACTION turn=%d type=DIPLO_EVENT player=%d other=%d event=%s data1=%d data1Text=%s data2=%d data2Text=%s",
+		GC.getGame().getGameTurn(), ePlayer, eOtherPlayer, getSASDiploEventType(eDiploEvent), iData1,
+		getSASGameRecordDiploData1Text(ePlayer, eDiploEvent, iData1, iData2).GetCString(), iData2,
+		getSASGameRecordDiploData2Text(eDiploEvent, iData2).GetCString());
+}
+
 // <!-- custom: Recorder policy, not diplomacy AI: identify the DiploEvent values whose generic pre-event row is replaced by a richer post-resolution state-delta row.
 // Keep the taxonomy with the recorder schema instead of teaching CvPlayer gameplay code how SASGameRecord groups events. (ChatGPT-5.6-Sol) -->
 bool isSASGameRecordResolvedDiploInteraction(DiploEventTypes eDiploEvent)
@@ -12915,6 +13020,20 @@ static char const* getSASGameRecordDealInvalidationReason(SASGameRecordDealInval
 	case SAS_DEAL_INVALID_PEACE_TREATY_EXPIRED: return "PEACE_TREATY_EXPIRED";
 	default: return "UNKNOWN";
 	}
+}
+
+// <!-- custom: Moved CvDeal's recorder-only first-failure setter here; it copies already-computed values without querying validity, and callers still gate on the optional context. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+void setSASGameRecordDealInvalidationContext(SASGameRecordDealInvalidationContext* pContext, SASGameRecordDealInvalidationReason eReason, PlayerTypes eGiver, PlayerTypes eRecipient, TradeData const* pTriggerItem, int iTradeableBonusCount, int iGoldPercent, int iGold, int iGoldRate)
+{
+	FAssert(pContext != NULL);
+	pContext->eReason = eReason;
+	pContext->eGiver = eGiver;
+	pContext->eRecipient = eRecipient;
+	pContext->pTriggerItem = pTriggerItem;
+	pContext->iTradeableBonusCount = iTradeableBonusCount;
+	pContext->iGoldPercent = iGoldPercent;
+	pContext->iGold = iGold;
+	pContext->iGoldRate = iGoldRate;
 }
 
 // <!-- custom: Preserve CvDeal::verify's realized first-failure cause immediately before native teardown.
@@ -13355,6 +13474,60 @@ static void getSASGameRecordBonusChoiceFacts(CvPlayerAI const& kBuyer, CvPlayerA
 	TeamTypes const eAnchor = (kBuyerTeam.isAVassal() ? kBuyerTeam.getMasterTeam() : kBuyer.getTeam());
 	TeamTypes const eSellerTeam = kSeller.getTeam();
 	kFacts.iMasterVassalCluster = (eSellerTeam == eAnchor || GET_TEAM(eSellerTeam).isVassal(eAnchor) ? 1 : 0);
+}
+
+// <!-- custom: Recorder-only resource chooser bookkeeping remains gated by the caller: default construction deliberately performs no writes, and reset/considerCandidate are called only when level 2+ collection is active.
+// Keeping this with the recorder-owned struct removes schema-support state manipulation from CvPlayerAI without changing its hot shared bonus valuation path. (ChatGPT-5.6-Sol) -->
+void SASGameRecordBonusTradeSide::reset()
+{
+	eBestBonus = NO_BONUS;
+	eRunnerUpBonus = NO_BONUS;
+	iBestBuyerTradeValue = -1;
+	iBestSellerKeepValue = -1;
+	iBestBias = 0;
+	iBestGatePermille = 0;
+	iBestRandom = -1;
+	iBestScore = 0;
+	iRunnerUpBuyerTradeValue = -1;
+	iRunnerUpSellerKeepValue = -1;
+	iRunnerUpBias = 0;
+	iRunnerUpGatePermille = 0;
+	iRunnerUpRandom = -1;
+	iRunnerUpScore = 0;
+	iEvaluated = 0;
+	iGatePassed = 0;
+	iNoDenial = 0;
+}
+
+void SASGameRecordBonusTradeSide::considerCandidate(BonusTypes eBonus, int iBuyerTradeValue, int iSellerKeepValue, int iBias, int iGatePermille, int iRandom, int iScore)
+{
+	if (iScore > iBestScore)
+	{
+		eRunnerUpBonus = eBestBonus;
+		iRunnerUpBuyerTradeValue = iBestBuyerTradeValue;
+		iRunnerUpSellerKeepValue = iBestSellerKeepValue;
+		iRunnerUpBias = iBestBias;
+		iRunnerUpGatePermille = iBestGatePermille;
+		iRunnerUpRandom = iBestRandom;
+		iRunnerUpScore = iBestScore;
+		eBestBonus = eBonus;
+		iBestBuyerTradeValue = iBuyerTradeValue;
+		iBestSellerKeepValue = iSellerKeepValue;
+		iBestBias = iBias;
+		iBestGatePermille = iGatePermille;
+		iBestRandom = iRandom;
+		iBestScore = iScore;
+	}
+	else if (iScore > iRunnerUpScore)
+	{
+		eRunnerUpBonus = eBonus;
+		iRunnerUpBuyerTradeValue = iBuyerTradeValue;
+		iRunnerUpSellerKeepValue = iSellerKeepValue;
+		iRunnerUpBias = iBias;
+		iRunnerUpGatePermille = iGatePermille;
+		iRunnerUpRandom = iRandom;
+		iRunnerUpScore = iScore;
+	}
 }
 
 // <!-- custom: Preserve the real proactive resource chooser's winning/runner-up receive and give candidates, including its existing gate/random score, then join those candidates to the final counterproposal terms.

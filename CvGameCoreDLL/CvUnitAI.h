@@ -10,33 +10,8 @@
 class CvCity;
 class CvSelectionGroupAI; // advc.003u
 
-// <!-- custom: Optional recorder-only output from the existing espionage chooser.
-// Plain scalars keep the real chooser values compact; this is filled only when the live caller enables GameRecord level 2+, never by reevaluating a mission. (ChatGPT-5.6-Sol) -->
-struct SASEspionageCandidateContext
-{
-	EspionageMissionTypes eMission;
-	int iData;
-	int iRawValue;
-	int iRandomPercent;
-	int iRandomizedValue;
-	int iOverhead;
-	int iCostPenalty;
-	int iCost;
-	int iFinalValue;
-};
-
-struct SASEspionageChoiceContext
-{
-	int iSpyValue;
-	int iEstimatedBaseInterceptPercent;
-	int iEscapeCost;
-	int iEspionagePoints;
-	int iEspionageRate;
-	SASEspionageCandidateContext kBest;
-	SASEspionageCandidateContext kRunnerUp;
-	bool bBigEspionage;
-	bool bEspionageEconomy;
-};
+// <!-- custom: Optional SASGameRecord output from the existing espionage chooser; definition remains recorder-owned in SASGameRecordLog.h. (ChatGPT-5.6-Sol) -->
+struct SASEspionageChoiceContext;
 
 // <!-- custom: Great-General helper signatures use an opaque optional SASGameRecord output context; the recorder owns its fields/schema.
 // AI_generalMove passes NULL unless level 2+ recording is active, so ordinary helper calls keep their legacy candidate/search work only. (ChatGPT-5.6-Sol) -->

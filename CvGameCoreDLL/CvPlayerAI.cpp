@@ -24880,60 +24880,6 @@ bool CvPlayerAI::AI_proposeEmbargo(PlayerTypes eHuman)
 	return true;
 }
 
-// <!-- custom: Recorder-only resource chooser state is plain scalar storage and is initialized/updated only when SASGameRecord level 2+ is active.
-// Keep AI_bonusTradeVal itself untouched because it is a much hotter shared valuation path. (ChatGPT-5.6-Sol) -->
-static void initSASGameRecordBonusTradeSide(SASGameRecordBonusTradeSide& kSide)
-{
-	kSide.eBestBonus = NO_BONUS;
-	kSide.eRunnerUpBonus = NO_BONUS;
-	kSide.iBestBuyerTradeValue = -1;
-	kSide.iBestSellerKeepValue = -1;
-	kSide.iBestBias = 0;
-	kSide.iBestGatePermille = 0;
-	kSide.iBestRandom = -1;
-	kSide.iBestScore = 0;
-	kSide.iRunnerUpBuyerTradeValue = -1;
-	kSide.iRunnerUpSellerKeepValue = -1;
-	kSide.iRunnerUpBias = 0;
-	kSide.iRunnerUpGatePermille = 0;
-	kSide.iRunnerUpRandom = -1;
-	kSide.iRunnerUpScore = 0;
-	kSide.iEvaluated = 0;
-	kSide.iGatePassed = 0;
-	kSide.iNoDenial = 0;
-}
-
-static void considerSASGameRecordBonusTradeCandidate(SASGameRecordBonusTradeSide& kSide, BonusTypes eBonus, int iBuyerTradeValue, int iSellerKeepValue, int iBias, int iGatePermille, int iRandom, int iScore)
-{
-	if (iScore > kSide.iBestScore)
-	{
-		kSide.eRunnerUpBonus = kSide.eBestBonus;
-		kSide.iRunnerUpBuyerTradeValue = kSide.iBestBuyerTradeValue;
-		kSide.iRunnerUpSellerKeepValue = kSide.iBestSellerKeepValue;
-		kSide.iRunnerUpBias = kSide.iBestBias;
-		kSide.iRunnerUpGatePermille = kSide.iBestGatePermille;
-		kSide.iRunnerUpRandom = kSide.iBestRandom;
-		kSide.iRunnerUpScore = kSide.iBestScore;
-		kSide.eBestBonus = eBonus;
-		kSide.iBestBuyerTradeValue = iBuyerTradeValue;
-		kSide.iBestSellerKeepValue = iSellerKeepValue;
-		kSide.iBestBias = iBias;
-		kSide.iBestGatePermille = iGatePermille;
-		kSide.iBestRandom = iRandom;
-		kSide.iBestScore = iScore;
-	}
-	else if (iScore > kSide.iRunnerUpScore)
-	{
-		kSide.eRunnerUpBonus = eBonus;
-		kSide.iRunnerUpBuyerTradeValue = iBuyerTradeValue;
-		kSide.iRunnerUpSellerKeepValue = iSellerKeepValue;
-		kSide.iRunnerUpBias = iBias;
-		kSide.iRunnerUpGatePermille = iGatePermille;
-		kSide.iRunnerUpRandom = iRandom;
-		kSide.iRunnerUpScore = iScore;
-	}
-}
-
 
 /*  Caller ensures canContactAndTalk, not at war, this->isMajorCiv(),
 	!this->isHuman. If eTo is human, !abContacted is ensured, but eTo may
@@ -24958,8 +24904,8 @@ bool CvPlayerAI::AI_proposeResourceTrade(PlayerTypes eTo)
 	SASGameRecordBonusTradeSide* pSASGive = NULL;
 	if (bLogSASBonusTrade)
 	{
-		initSASGameRecordBonusTradeSide(kSASReceive);
-		initSASGameRecordBonusTradeSide(kSASGive);
+		kSASReceive.reset();
+		kSASGive.reset();
 		pSASReceive = &kSASReceive;
 		pSASGive = &kSASGive;
 	}
@@ -25000,7 +24946,7 @@ bool CvPlayerAI::AI_proposeResourceTrade(PlayerTypes eTo)
 				// Was completely random before
 				int const iRandom = SyncRandNum(25);
 				int const iValue = iRandom + iBias; // </advc.036>
-				if (pSASReceive != NULL) considerSASGameRecordBonusTradeCandidate(*pSASReceive, eLoopBonus, iBuyerTradeValue, iSellerKeepValue, iBias, rGateChance.getPermille(), iRandom, iValue);
+				if (pSASReceive != NULL) pSASReceive->considerCandidate(eLoopBonus, iBuyerTradeValue, iSellerKeepValue, iBias, rGateChance.getPermille(), iRandom, iValue);
 				if (iValue > iBestValue)
 				{
 					iBestValue = iValue;
@@ -25046,7 +24992,7 @@ bool CvPlayerAI::AI_proposeResourceTrade(PlayerTypes eTo)
 				if (pSASGive != NULL) pSASGive->iNoDenial++;
 				int const iRandom = SyncRandNum(30);
 				int const iValue = iRandom + iBias; // </advc.036>
-				if (pSASGive != NULL) considerSASGameRecordBonusTradeCandidate(*pSASGive, eLoopBonus, iBuyerTradeValue, iSellerKeepValue, iBias, rGateChance.getPermille(), iRandom, iValue);
+				if (pSASGive != NULL) pSASGive->considerCandidate(eLoopBonus, iBuyerTradeValue, iSellerKeepValue, iBias, rGateChance.getPermille(), iRandom, iValue);
 				if (iValue > iBestValue)
 				{
 					iBestValue = iValue;

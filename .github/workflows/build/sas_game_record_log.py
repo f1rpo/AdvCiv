@@ -1501,7 +1501,7 @@ def check_ai_embargo_request_provenance(repo_root: Path) -> list[str]:
 	if not re.search(r"abContacted\[kPlayer\.getTeam\(\)\]\s*=\s*AI_proposeEmbargo\(ePlayer\);\s*if\s*\(gGameRecordLogLevel\s*>=\s*2\s*&&\s*abContacted\[kPlayer\.getTeam\(\)\]\)\s*logSASGameRecordAIEmbargoRequest\([^;]+SAS_AI_EMBARGO_DIRECT_CONTACT", player_text, flags=re.DOTALL):
 		failures.append(f"{PLAYER_AI_SOURCE}: direct embargo provenance must remain success-only and level-2 pre-gated")
 
-	m = re.search(r"bool\s+CvPlayerAI::AI_proposeEmbargo\([^)]*\)\s*\{(?P<body>.*?)^\}\s*\n\n// <!-- custom: Recorder-only resource chooser", player_text, flags=re.DOTALL | re.MULTILINE)
+	m = re.search(r"bool\s+CvPlayerAI::AI_proposeEmbargo\([^)]*\)\s*\{(?P<body>.*?)^\}", player_text, flags=re.DOTALL | re.MULTILINE)
 	if m is None:
 		failures.append(f"{PLAYER_AI_SOURCE}: could not locate AI_proposeEmbargo")
 	else:
@@ -2194,9 +2194,14 @@ def check_broad_settlement_vassal_battle_contracts(repo_root: Path) -> list[str]
 		if required not in record_text:
 			failures.append(f"{REVISION_SOURCE}: Settler site-decision contract missing {required}")
 	for required in (
-		"SAS_recordSettlerSiteDecisionIfChanged", "ePreviousMissionAI == MISSIONAI_FOUND && pPreviousMissionTarget == &kTargetPlot",
+		"MissionAITypes const ePreviousMissionAI =",
+		"ePreviousMissionAI == MISSIONAI_FOUND && pPreviousMissionTarget == &kTargetPlot",
+	):
+		if required not in record_text:
+			failures.append(f"{REVISION_SOURCE}: Settler site-decision recorder filter missing {required}")
+	for required in (
 		"bool const bLogSASSettlerDecision = (gGameRecordLogLevel >= 2);",
-		"if (bLogSASSettlerDecision) SAS_recordSettlerSiteDecisionIfChanged",
+		"if (bLogSASSettlerDecision) logSASGameRecordAISettlerSiteDecision",
 	):
 		if required not in unit_ai_text:
 			failures.append(f"{UNIT_AI_SOURCE}: Settler site-decision bridge missing {required}")

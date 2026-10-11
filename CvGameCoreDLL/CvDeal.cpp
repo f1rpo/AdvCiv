@@ -7,42 +7,15 @@
 #include "CvCity.h"
 #include "CvMap.h"
 #include "CvGameTextMgr.h"
-#include "CvGameCoreUtils.h" // <!-- custom: Shared raw TradeableItems token text for game-record diplomacy deal rows. (GPT-5.5) -->
+#include "CvGameCoreUtils.h" // <!-- custom: Needed directly for shared atWar and SAS/UWAI victory-denial helpers used by deal handling. (GPT-5.5 + ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 #include "CvInfo_Civics.h"
-#include "CvInfo_Tech.h" // <!-- custom: Needed for game-record diplomacy trade-item names. (ChatGPT-5.5) -->
-#include "CvInfo_Organization.h" // <!-- custom: Needed for game-record diplomacy religion trade-item names. (ChatGPT-5.5) -->
+#include "CvInfo_Tech.h" // <!-- custom: Needed directly for technology descriptions when applying accepted tech trades. (ChatGPT-5.5 + ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 #include "CvInfo_Terrain.h" // just for a logBBAI call :(
 #include "BBAILog.h" // BETTER_BTS_AI_MOD, AI logging, 10/02/09, jdog5000
 #include "SASGameRecordLog.h" // <!-- custom: Structured diplomacy rows are logged to SASGameRecord_*.log, separate from BBAI diagnostics. (GPT-5.5) -->
 
 namespace
 {
-	void logSASGameRecordDealAction(CvDeal const& kDeal, CLinkList<TradeData> const& kFirstList, CLinkList<TradeData> const& kSecondList, bool bCheckAllowed, bool bMakingPeace, bool bAIRequest, TeamTypes ePeaceTradeTarget, TeamTypes eWarTradeTarget)
-	{
-		// <!-- custom: Accepted diplomacy bundles are the safest high-level hook for open borders, resource trades, tech trades, war bribes, embargoes, map trades, and tribute/help exchanges.
-		// Callers gate this helper so logging-only trade-list text is not built when game-record logging is disabled. (ChatGPT-5.5) -->
-		logSASGameRecord("GAME_RECORD_ACTION turn=%d type=DIPLO_DEAL dealId=%d first=%d second=%d checkAllowed=%d makingPeace=%d aiRequest=%d peaceTarget=%s warTarget=%s firstGives=%s secondGives=%s",
-			GC.getGame().getGameTurn(), kDeal.getID(), kDeal.getFirstPlayer(), kDeal.getSecondPlayer(), bCheckAllowed ? 1 : 0,
-			bMakingPeace ? 1 : 0, bAIRequest ? 1 : 0, getSASTeamDiagnosticText(ePeaceTradeTarget).GetCString(),
-			getSASTeamDiagnosticText(eWarTradeTarget).GetCString(), getSASTradeListText(kFirstList, kDeal.getFirstPlayer()).GetCString(),
-			getSASTradeListText(kSecondList, kDeal.getSecondPlayer()).GetCString());
-	}
-
-	void logSASGameRecordDealEndAction(CvDeal const& kDeal, bool bKillTeam, bool bUpdateAttitude, PlayerTypes eCancelPlayer)
-	{
-		logSASGameRecord("GAME_RECORD_ACTION turn=%d type=DIPLO_DEAL_ENDED dealId=%d first=%d second=%d cancelPlayer=%d killTeam=%d updateAttitude=%d firstGives=%s secondGives=%s",
-			GC.getGame().getGameTurn(), kDeal.getID(), kDeal.getFirstPlayer(), kDeal.getSecondPlayer(), eCancelPlayer, bKillTeam ? 1 : 0,
-			bUpdateAttitude ? 1 : 0, getSASTradeListText(kDeal.getFirstList(), kDeal.getFirstPlayer()).GetCString(),
-			getSASTradeListText(kDeal.getSecondList(), kDeal.getSecondPlayer()).GetCString());
-	}
-
-	void logSASGameRecordTradeItemAction(const char* szActionType, int iDealId, TradeData const& kItem, PlayerTypes eFromPlayer, PlayerTypes eToPlayer, bool bFlagA, bool bFlagB, PlayerTypes eCancelPlayer = NO_PLAYER)
-	{
-		logSASGameRecord("GAME_RECORD_ACTION turn=%d type=%s dealId=%d from=%d to=%d item=%s data=%s flagA=%d flagB=%d cancelPlayer=%d",
-			GC.getGame().getGameTurn(), szActionType, iDealId, eFromPlayer, eToPlayer, getSASTradeItemType(kItem.m_eItemType),
-			getSASTradeDataText(kItem, eFromPlayer).GetCString(), bFlagA ? 1 : 0, bFlagB ? 1 : 0, eCancelPlayer);
-	}
-
 	bool isSASUWAIVictoryDenialPeaceDealBlocked(TeamTypes eFirstTeam, TeamTypes eSecondTeam)
 	{
 		int iFirstCountdown, iSecondCountdown, iFirstMaxVictoryStage, iSecondMaxVictoryStage;
@@ -64,19 +37,6 @@ namespace
 		return true;
 	}
 
-	// <!-- custom: Capture only a realized first-failure boundary from CvDeal::verify; callers invoke this only with the level-2 context active, and the helper performs no gameplay query itself. (ChatGPT-5.6-Sol) -->
-	void setSASGameRecordDealInvalidationContext(SASGameRecordDealInvalidationContext* pContext, SASGameRecordDealInvalidationReason eReason, PlayerTypes eGiver, PlayerTypes eRecipient, TradeData const* pTriggerItem, int iTradeableBonusCount = -1, int iGoldPercent = -1, int iGold = -1, int iGoldRate = -1)
-	{
-		FAssert(pContext != NULL);
-		pContext->eReason = eReason;
-		pContext->eGiver = eGiver;
-		pContext->eRecipient = eRecipient;
-		pContext->pTriggerItem = pTriggerItem;
-		pContext->iTradeableBonusCount = iTradeableBonusCount;
-		pContext->iGoldPercent = iGoldPercent;
-		pContext->iGold = iGold;
-		pContext->iGoldRate = iGoldRate;
-	}
 }
 
 
