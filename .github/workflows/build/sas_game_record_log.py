@@ -2139,6 +2139,30 @@ def check_ai_city_trade_intent_provenance(repo_root: Path) -> list[str]:
 	return failures
 
 
+# <!-- custom: Keep the new Food summaries cold and explicit about missing evidence; moving collection/search into ordinary evaluation would undermine the recorder's disabled-log cost contract. (GPT-6.1-Sol) -->
+def check_city_site_food_contract(repo_root: Path) -> list[str]:
+	failures = []
+	paths = (REVISION_SOURCE, CITY_SITE_EVALUATOR_HEADER, Path("CvGameCoreDLL/CitySiteEvaluator.cpp"), PLAYER_SOURCE)
+	for path in paths:
+		if not (repo_root / path).is_file():
+			failures.append(f"missing city-site Food contract file: {path}")
+	if failures:
+		return failures
+	record, header, evaluator, player = [(repo_root / path).read_text(encoding="utf-8", errors="replace") for path in paths]
+	for token in ("GAME_RECORD_CITY_SITE_FOOD_SUPPORT", "evaluationAvailable=%d", "coreAvailable=%d", "valueNaturalFoodSurplus=%d", "foodRankedSurplus=%d", "unsupportedProjectedScore=%d", "growthPathModeled=0", "GAME_RECORD_CITY_SITE_ALTERNATIVE_QUALITY", "cachedFoundValue=%d", "comparisonScope=IGNORE_PLANNED_SITES pathTested=0"):
+		if token not in record:
+			failures.append(f"{REVISION_SOURCE}: city-site Food evidence missing {token}")
+	if "SASGameRecordCitySiteFoodSupportResult* pFoodSummary = NULL" not in header:
+		failures.append("CitySiteEvaluator: Food-summary output must remain optional for ordinary callers")
+	if not re.search(r"if\s*\(m_pFoodSummary != NULL && iValue > 0\)\s*\{\s*getSASGameRecordCitySiteFoodSupportResult", evaluator):
+		failures.append("CitySiteEvaluator: numeric Food subset search must remain behind the explicit output/surviving-site gate")
+	if "bLogLaterCityFoodSupportAudit || m_pFoodSummary != NULL" not in evaluator:
+		failures.append("CitySiteEvaluator: capacity collection must remain explicitly requested")
+	if "if (bLogSASCityFounding) logSASGameRecordCityFoundingSite" not in player:
+		failures.append("CvPlayer: founding-quality work must remain caller-pre-gated")
+	return failures
+
+
 def check_broad_settlement_vassal_battle_contracts(repo_root: Path) -> list[str]:
 	"""Keep revision-126 broad settlement, vassal and exact-battle facts semantically unambiguous."""
 	failures = []
@@ -2260,6 +2284,7 @@ def main() -> int:
 	failures.extend(check_turn_completion_contract(args.repo_root))
 	failures.extend(check_city_delta_contracts(args.repo_root))
 	failures.extend(check_broad_settlement_vassal_battle_contracts(args.repo_root))
+	failures.extend(check_city_site_food_contract(args.repo_root))
 	failures.extend(check_ai_strategy_diagnostics(args.repo_root))
 	failures.extend(check_area_ai_diagnostics(args.repo_root))
 	failures.extend(check_ai_target_city_provenance(args.repo_root))

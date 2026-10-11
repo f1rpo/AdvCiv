@@ -362,6 +362,31 @@ class GeneratedDocsTests(unittest.TestCase):
         self.assertEqual(docs.changed_conversion_errors(self.repo, before), [])
 
 
+class CitySiteFoodContractTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temp.cleanup)
+        self.repo = Path(self.temp.name)
+        for relative in (recorder.REVISION_SOURCE, recorder.CITY_SITE_EVALUATOR_HEADER, Path("CvGameCoreDLL/CitySiteEvaluator.cpp"), recorder.PLAYER_SOURCE):
+            target = self.repo / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(ROOT / relative, target)
+
+    def test_current_cold_contract(self):
+        self.assertEqual(recorder.check_city_site_food_contract(self.repo), [])
+
+    def test_ungated_numeric_search_is_rejected(self):
+        path = self.repo / "CvGameCoreDLL/CitySiteEvaluator.cpp"
+        text = path.read_text("utf-8")
+        path.write_text(text.replace("if (m_pFoodSummary != NULL && iValue > 0)", "if (iValue > 0)"), "utf-8")
+        self.assertTrue(any("subset search" in error for error in recorder.check_city_site_food_contract(self.repo)))
+
+    def test_missing_availability_label_is_rejected(self):
+        path = self.repo / recorder.REVISION_SOURCE
+        path.write_text(path.read_text("utf-8").replace("coreAvailable=%d", "corePresent=%d"), "utf-8")
+        self.assertTrue(any("coreAvailable" in error for error in recorder.check_city_site_food_contract(self.repo)))
+
+
 class RevisionDocumentationTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()

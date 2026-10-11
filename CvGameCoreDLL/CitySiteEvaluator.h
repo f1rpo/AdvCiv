@@ -10,6 +10,9 @@ class CvPlot;
 class CvArea;
 class CvGame;
 
+// <!-- custom: Recorder-owned optional Food-support output; keep its fields in SASGameRecordLog.h and only declare the pointer type here. See KI#144.4. (GPT-6.1-Sol) -->
+struct SASGameRecordCitySiteFoodSupportResult;
+
 // advc: New classes extracted from CvPlayerAI::AI_foundValue
 
 // Corresponds to K-Mod's CvPlayerAI::CvFoundSettings
@@ -28,7 +31,8 @@ public:
 	int evaluateWithGrowthCorePlotValues(CvPlot const& kPlot, int& iBest6PlotValue, int& iBest10PlotValue, int& iSustainableProductivePlotValue) const;
 	// <!-- custom: SASGameRecord founding snapshots can reuse the same plot-value distribution already computed inside AIFoundValue without parsing BBAI text or rescanning the BFC afterward.
 	// Core sums use sizes 1/2/3/6/10/14; positive-plot count describes the same sorted potential-plot values; diagnostic only. (ChatGPT-5.6-Sol) -->
-	int evaluateWithPlotValueDistribution(CvPlot const& kPlot, int* aiCoreSums, int& iPositivePlots, int& iSustainableProductivePlotValue) const;
+	// <!-- custom: Added optional numeric Food-summary output to the existing distribution pass for rare founding-time recorder comparisons; ordinary callers pass NULL and skip its collection/search. See KI#144.4. (GPT-6.1-Sol) -->
+	int evaluateWithPlotValueDistribution(CvPlot const& kPlot, int* aiCoreSums, int& iPositivePlots, int& iSustainableProductivePlotValue, SASGameRecordCitySiteFoodSupportResult* pFoodSummary = NULL) const;
 	// <!-- custom: Share one XML-driven scale for heuristics expressed in found-value units.
 	// A sustainable productive reference plot supplies the current food consumption per citizen plus 1 Production and uses the same self-sustaining yield weights as ordinary site evaluation. (GPT-5.6-Sol) -->
 	static int getSustainableProductivePlotValue();
@@ -138,7 +142,8 @@ public:
 	// <!-- custom: A non-null breakdown output or Found level 2+ enables diagnostic accounting during the same evaluation; neither changes the returned score.
 	// Disabled logging with no output skips formatting. See KI#505.2. (GPT-5.5 + GPT-6.1-Sol) -->
 	// <!-- custom: Let SPI construct the shared workable-plot context without also running and discarding a complete city-site evaluation; optional output pointers expose decision components already computed during the same pass. See KI#492. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-	AIFoundValue(CvPlot const& kPlot, CitySiteEvaluator const& kSettings, CvString* pszBreakdown = NULL, bool bEvaluateSite = true, int* paiGrowthCorePlotValues = NULL, int* piSustainableProductivePlotValue = NULL, int* paiPlotCoreSums = NULL, int* paiPlotCoreCutoffs = NULL, int* piPositivePlots = NULL);
+	// <!-- custom: Added optional caller-owned Food summary; this enables diagnostic collection without requiring BBAI output and cannot supply a gameplay result. See KI#144.4. (GPT-6.1-Sol) -->
+	AIFoundValue(CvPlot const& kPlot, CitySiteEvaluator const& kSettings, CvString* pszBreakdown = NULL, bool bEvaluateSite = true, int* paiGrowthCorePlotValues = NULL, int* piSustainableProductivePlotValue = NULL, int* paiPlotCoreSums = NULL, int* paiPlotCoreCutoffs = NULL, int* piPositivePlots = NULL, SASGameRecordCitySiteFoodSupportResult* pFoodSummary = NULL);
 	int get() const { return m_iResult; }
 	scaled evaluateWorkablePlot(CvPlot const& p) const; // advc.027
 
@@ -158,6 +163,8 @@ private:
 	int* m_paiPlotCoreSums;
 	int* m_paiPlotCoreCutoffs;
 	int* m_piPositivePlots;
+	// <!-- custom: Non-owning output used only by explicit recorder evaluations; NULL keeps ordinary callers outside the additional Food-summary work. (GPT-6.1-Sol) -->
+	SASGameRecordCitySiteFoodSupportResult* m_pFoodSummary;
 	/*  The rest aren't prefixed with "m_"; too awkward. Note that the order of
 		the reference members needs to match their order in the ctor initalizer list. */
 	CvPlot const& kPlot;

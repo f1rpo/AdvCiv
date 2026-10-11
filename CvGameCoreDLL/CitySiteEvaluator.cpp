@@ -1,5 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CitySiteEvaluator.h"
+#include "SASGameRecordLog.h" // <!-- custom: Defines the optional recorder-owned Food-support result populated from evaluator-local plot data. See KI#144.4. (GPT-6.1-Sol) -->
 #include "CoreAI.h"
 #include "CvCityAI.h"
 #include "CvCivilization.h"
@@ -437,6 +438,42 @@ static CvString getSASFirstCityBFCFoodFeasibleFields(std::vector<SASFirstCityBFC
 	return szResult;
 }
 
+// <!-- custom: Return compact numeric Food evidence from the same accepted plots used by this evaluation; do not parse or replay BBAI text.
+// Value-ranked natural yields retain features, while food-ranked potential only reorders the already selected improvement outcomes and is not an absolute maximum-Food improvement search.
+// The optional recorder caller performs this once at founding, never in periodic snapshots or ordinary disabled-log evaluations. See KI#144.4. (GPT-6.1-Sol) -->
+static void getSASGameRecordCitySiteFoodSupportResult(std::vector<SASFirstCityBFCCapacityPlot> const& aPlots, int const* aiHomeYield, bool bCapitalWeights, SASGameRecordCitySiteFoodSupportResult& kSummary)
+{
+	std::vector<SASFirstCityBFCCapacityPlot> aValueCore = aPlots;
+	std::vector<SASFirstCityBFCCapacityPlot> aFoodCore = aPlots;
+	std::sort(aValueCore.begin(), aValueCore.end(), SASFirstCityBFCCapacityValueGreater());
+	std::sort(aFoodCore.begin(), aFoodCore.end(), SASFirstCityBFCCapacityFoodGreater());
+	int aiCoreSizes[SASGameRecordCitySiteFoodSupportResult::CORE_COUNT];
+	int const iFoodPerCitizen = GC.getFOOD_CONSUMPTION_PER_POPULATION();
+	for (int iCore = 0; iCore < SASGameRecordCitySiteFoodSupportResult::CORE_COUNT; ++iCore)
+	{
+		int const iCoreSize = SASGameRecordCitySiteFoodSupportResult::coreSize(iCore);
+		aiCoreSizes[iCore] = iCoreSize;
+		kSummary.abCoreAvailable[iCore] = ((int)aPlots.size() >= iCoreSize);
+		if (!kSummary.abCoreAvailable[iCore])
+			continue;
+		int iValueFood = aiHomeYield[YIELD_FOOD];
+		int iNaturalFood = aiHomeYield[YIELD_FOOD];
+		int iFoodRanked = aiHomeYield[YIELD_FOOD];
+		for (int iPlot = 0; iPlot < iCoreSize; ++iPlot)
+		{
+			iValueFood += aValueCore[iPlot].aiYield[YIELD_FOOD];
+			iNaturalFood += aValueCore[iPlot].aiNatureYield[YIELD_FOOD];
+			iFoodRanked += aFoodCore[iPlot].aiYield[YIELD_FOOD];
+		}
+		kSummary.aiValueFoodSurplus[iCore] = iValueFood - iCoreSize * iFoodPerCitizen;
+		kSummary.aiValueNaturalFoodSurplus[iCore] = iNaturalFood - iCoreSize * iFoodPerCitizen;
+		kSummary.aiFoodRankedSurplus[iCore] = iFoodRanked - iCoreSize * iFoodPerCitizen;
+	}
+	getSASCitySiteBFCFoodFeasibleScoreProjection(aPlots, aiHomeYield, aiCoreSizes, SASGameRecordCitySiteFoodSupportResult::CORE_COUNT, bCapitalWeights, NULL, kSummary.aiUnsupportedProjectedScore);
+	kSummary.iKnownUsablePlots = (int)aPlots.size();
+	kSummary.bAvailable = true;
+}
+
 static CvString getSASFirstCityBFCCapacityFields(std::vector<SASFirstCityBFCCapacityPlot> const& aPlots, int const* aiHomeYield)
 {
 	std::vector<SASFirstCityBFCCapacityPlot> aValueCore = aPlots;
@@ -733,15 +770,18 @@ int CitySiteEvaluator::evaluateWithGrowthCorePlotValues(CvPlot const& kPlot, int
 
 // <!-- custom: Expose the complete 1/2/3/6/10/14 plot-value distribution only to guarded diagnostics such as SASGameRecord city founding.
 // AIFoundValue already computes these values in the ordinary site pass; returning them here avoids a second BFC valuation or text parsing. (ChatGPT-5.6-Sol) -->
-int CitySiteEvaluator::evaluateWithPlotValueDistribution(CvPlot const& kPlot, int* aiCoreSums, int& iPositivePlots, int& iSustainableProductivePlotValue) const
+// <!-- custom: Added an optional Food summary to this existing recorder pass so score distribution and Food evidence share one perspective/evaluation; NULL preserves the prior cost for other callers. See KI#144.4. (GPT-6.1-Sol) -->
+int CitySiteEvaluator::evaluateWithPlotValueDistribution(CvPlot const& kPlot, int* aiCoreSums, int& iPositivePlots, int& iSustainableProductivePlotValue, SASGameRecordCitySiteFoodSupportResult* pFoodSummary) const
 {
 	FAssert(aiCoreSums != NULL);
+	if (pFoodSummary != NULL)
+		*pFoodSummary = SASGameRecordCitySiteFoodSupportResult();
 	int aiCoreCutoffs[6] = {0, 0, 0, 0, 0, 0};
 	for (int iCore = 0; iCore < 6; ++iCore)
 		aiCoreSums[iCore] = 0;
 	iPositivePlots = 0;
 	iSustainableProductivePlotValue = 0;
-	AIFoundValue foundVal(kPlot, *this, NULL, true, NULL, &iSustainableProductivePlotValue, aiCoreSums, aiCoreCutoffs, &iPositivePlots);
+	AIFoundValue foundVal(kPlot, *this, NULL, true, NULL, &iSustainableProductivePlotValue, aiCoreSums, aiCoreCutoffs, &iPositivePlots, pFoodSummary);
 	return foundVal.get();
 }
 
@@ -839,9 +879,10 @@ void CitySiteEvaluator::setDebug(bool b)
 
 // <!-- custom: Keep ordinary callers evaluating immediately, while allowing SPI's separate workable-plot precomputation to skip the unused full result.
 // Optional outputs expose best-6/10 sums, the shared productive-plot reference and defense adjustment already computed in the same pass without diagnostic string formatting or repeated site evaluations. See KI#492. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-AIFoundValue::AIFoundValue(CvPlot const& kPlot, CitySiteEvaluator const& kSettings, CvString* pszBreakdown, bool bEvaluateSite, int* paiGrowthCorePlotValues, int* piSustainableProductivePlotValue, int* paiPlotCoreSums, int* paiPlotCoreCutoffs, int* piPositivePlots) :
+// <!-- custom: Added the optional numeric Food-summary pointer; only explicit recorder evaluations request it, leaving gameplay scoring independent of diagnostic collection. See KI#144.4. (GPT-6.1-Sol) -->
+AIFoundValue::AIFoundValue(CvPlot const& kPlot, CitySiteEvaluator const& kSettings, CvString* pszBreakdown, bool bEvaluateSite, int* paiGrowthCorePlotValues, int* piSustainableProductivePlotValue, int* paiPlotCoreSums, int* paiPlotCoreCutoffs, int* piPositivePlots, SASGameRecordCitySiteFoodSupportResult* pFoodSummary) :
 	m_iResult(0), m_bSiteEvaluation(bEvaluateSite), m_pszBreakdown(pszBreakdown), m_paiGrowthCorePlotValues(paiGrowthCorePlotValues), m_piSustainableProductivePlotValue(piSustainableProductivePlotValue),
-	m_paiPlotCoreSums(paiPlotCoreSums), m_paiPlotCoreCutoffs(paiPlotCoreCutoffs), m_piPositivePlots(piPositivePlots), kPlot(kPlot),
+	m_paiPlotCoreSums(paiPlotCoreSums), m_paiPlotCoreCutoffs(paiPlotCoreCutoffs), m_piPositivePlots(piPositivePlots), m_pFoodSummary(pFoodSummary), kPlot(kPlot),
 	kArea(kPlot.getArea()), kSet(kSettings), kPlayer(kSet.getPlayer()), ePlayer(kPlayer.getID()),
 	eTeam(kPlayer.getTeam()), kTeam(GET_TEAM(eTeam)), kGame(GC.getGame()), iX(kPlot.getX()), iY(kPlot.getY())
 {
@@ -997,7 +1038,7 @@ int AIFoundValue::evaluate()
 	bool const bLogLaterCityFoodSupportAudit = (gFoundLogLevel >= 2 && bLaterCityFoodSupportAuditEnabled && !bStartPhase &&
 		!kSet.isStartingLoc() && !kSet.isNormalizing() && !kSet.isAdvancedStart() && !kSet.isDiagnosticOmniscience() && !bBarbarian);
 	bool const bCollectFirstCityBFCCapacity = (bEvaluateFirstCityFoodSupport || bLogFirstCityBFCCapacity);
-	bool const bCollectCitySiteFoodSupportCapacity = (bCollectFirstCityBFCCapacity || bLogLaterCityFoodSupportAudit);
+	bool const bCollectCitySiteFoodSupportCapacity = (bCollectFirstCityBFCCapacity || bLogLaterCityFoodSupportAudit || m_pFoodSummary != NULL);
 	std::vector<SASFirstCityBFCCapacityPlot> aCitySiteFoodSupportCapacityPlots;
 	if (bCollectCitySiteFoodSupportCapacity)
 		aCitySiteFoodSupportCapacityPlots.reserve(NUM_CITY_PLOTS - 1);
@@ -1501,7 +1542,7 @@ int AIFoundValue::evaluate()
 					kCapacityPlot.aiYield[eLoopYield] = iPotentialYield;
 					// <!-- custom: The scoring aiNatureYield can already omit removable features; reusing it here overstated pre-improvement Food on plots such as Jungle.
 					// Retain features for this diagnostic-only sample, using the same known-resource visibility as scoring; explicitly gate these extra calls because the enabled cure also collects capacity data with logging off. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
-					if (bLogFirstCityBFCCapacity) kCapacityPlot.aiNatureYield[eLoopYield] = p.calculateNatureYield(eLoopYield, eBonus == NO_BONUS ? NO_TEAM : eTeam, false);
+					if (bLogFirstCityBFCCapacity || (m_pFoodSummary != NULL && eLoopYield == YIELD_FOOD)) kCapacityPlot.aiNatureYield[eLoopYield] = p.calculateNatureYield(eLoopYield, eBonus == NO_BONUS ? NO_TEAM : eTeam, false);
 				}
 				aCitySiteFoodSupportCapacityPlots.push_back(kCapacityPlot);
 			}
@@ -2206,6 +2247,15 @@ int AIFoundValue::evaluate()
 			iBreakdownNavalHeavy = iNavalHeavyCoastalExtraValue;
 			if (gFoundLogLevel >= 3) logBBAIFoundDetail("NAVAL_HEAVY_COASTAL_SITE_VALUE", "+%d naval-heavy coastal site value", iNavalHeavyCoastalExtraValue);
 		}
+	}
+
+	// <!-- custom: Complete the optional recorder summary only for surviving candidates; rejected evaluations retain available=0 rather than plausible-looking zero Food budgets.
+	// This extra numeric search is confined to rare recorder comparisons, independent of BBAI levels and the opt-in broad candidate audit. See KI#144.4. (GPT-6.1-Sol) -->
+	if (m_pFoodSummary != NULL && iValue > 0)
+	{
+		getSASGameRecordCitySiteFoodSupportResult(aCitySiteFoodSupportCapacityPlots, aiCitySiteFoodSupportCapacityHomeYield, bFirstCityFoodSupportScope, *m_pFoodSummary);
+		m_pFoodSummary->iUnrevealedPlots = iUnrevealedTiles;
+		m_pFoodSummary->iAppliedFoodSupportPenalty = iBreakdownFoodSupport;
 	}
 
 	// advc: BtS code (iDifferentAreaTile) deleted

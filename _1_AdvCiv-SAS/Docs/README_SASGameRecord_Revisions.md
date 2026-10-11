@@ -28,7 +28,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=141 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=142 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -71,10 +71,25 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
+### Revision 142 - SAS practical 6626
+
+- **Date:** 2026-10-11
+- **Git commit:** `pending`
+- **Change:** Preserve compact founded-site Food-support evidence and fresh quality for one cached alternative at level 2+, following the KI#144.3/KI#178.2/KI#144.4 Settler investigations.
+
+- `GAME_RECORD_CITY_SITE_FOOD_SUPPORT` records player-known 3/6/10/14 worked-plot budgets for the founded site and, when present, the first cached alternative: value-ranked potential/natural Food surplus, food-ranked selected-potential surplus, projected unsupported worked value, and the applied capital Food-support adjustment. City-center yields are free; consumption uses the current engine define.
+  - `evaluationAvailable=0` marks a rejected/incomplete rescore; `coreAvailable=0` marks insufficient accepted non-home plots, whose zero surplus placeholders are unavailable. A measured surplus of `-1` is valid; `unsupportedProjectedScore=-1` means the comparison is unavailable/infeasible.
+  - Budgets measure sustain-only capacity, excluding growth paths, health/happiness, technology timing and empire-wide shared-plot allocation. Food ranking reorders selected improvements rather than finding the absolute maximum Food; projected gaps are explanatory scores, not additional penalties.
+- `GAME_RECORD_CITY_SITE_ALTERNATIVE_QUALITY` compares one alternative's cached value with its fresh score and 1/2/3/6/10/14 plot-value distribution under the same player-known, planned-site-ignoring settings. It is not a path-tested winner or the original decision score.
+- The Settler investigations showed that cached rankings and larger-core Food gaps need this context before implying a bad founding choice; numerical examples remain in the referenced KIs. Exhaustive candidate histories and detailed resource components remain BBAI diagnostics.
+- All added work remains behind the existing pre-founding level-2 gate: reuse the founded site's player-known pass and rescore at most one alternative; periodic snapshots do no additional evaluation. No new XML settings, serialized state, AI decisions or RNG draws are introduced.
+
+Developed with GPT-6.1-Sol, building on ChatGPT-5.6-Sol and GPT-6.1-Sol's Settler investigation.
+
 ### Revision 141 - SAS practical 6617
 
 - **Date:** 2026-10-10
-- **Git commit:** `pending`
+- **Git commit:** `dcf1bb459586b5a9a27dfaf5f158a1f9e6293a29`
 - **Change:** Persist and emit exact save-checkpoint identity without adding another autosave system or guessing native Civ4 filenames.
 
 Every `CvGame` serialization embeds a private checkpoint trailer only in the serialized copy of game script data; the trailer is stripped immediately when loading, so Python-visible `getScriptData()` remains unchanged. Checkpoint persistence is independent of SASGameRecord logging so archival saves created with logging disabled remain identifiable later.

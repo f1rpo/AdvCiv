@@ -11708,7 +11708,11 @@ Outer-BFC resource valuation remains a separate deferred hypothesis considered d
 - Reasons for deferring broader credit include potentially marginal benefit and uncertain access depending on culture expansion and rival borders. Later cities may gain culture slowly, delaying or preventing access to a nearby resource outside their BFC.
 - Speculative credit can disturb otherwise valid site comparisons; a useful replacement would need evidence that its benefit outweighs those distortions. These considerations do not establish that every outer-BFC approach would be harmful.
 
-SASGameRecord remains unchanged by this diagnostic follow-up. The next recorder review can consider compact fields describing the chosen/founded site and its Food support, using both first-capital and later-city evidence; candidate-by-candidate searches and hypothetical corrections belong in BBAI rather than the whole-game record.
+SASGameRecord revision 142 promotes compact player-known Food budgets for the founded site and one freshly rescored cached alternative, addressing the stale-cache ambiguity demonstrated by Nidaros and the sustain-only questions tested at Huamanga.
+
+- It reuses the chosen-site comparison pass and performs at most one additional alternative evaluation at the existing pre-founding level-2 boundary.
+- Candidate-by-candidate searches and detailed resource explanations remain BBAI diagnostics.
+- The completed revision-142 autoplay reached T250: 118 founded-site and 104 cached-alternative summaries each emitted all four horizons (888 Food-support rows), with no availability/sentinel inconsistencies in the checked rows.
 
 Implemented with the help of ChatGPT-5.6-Sol and GPT-6.1-Sol, thanks.
 

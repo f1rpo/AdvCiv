@@ -12000,8 +12000,27 @@ void logSASGameRecordNavalTransportDefenderSelection(CvUnit const& kAttacker, Cv
 		iAlternativeOdds, pBestAlternative->LFBgetRelativeValueRating(), pBestAlternative->LFGgetDefensiveValueAdjustment(), pBestAlternative->getSameTileHeal(), (pBestAlternative->maxHitPoints() <= kAttacker.combatLimit()), iAlternativeCargoPenalty, iAlternativeRank);
 }
 
+// <!-- custom: Emit one compact numeric row per requested worked-plot horizon, only at rare level-2+ city-founding boundaries.
+// Food surpluses include the free center; coreAvailable=0 makes their zero placeholders unavailable, while unsupportedProjectedScore=-1 means no feasible comparison and is never a penalty.
+// The food-ranked budget reorders selected potential improvements, not every legal improvement; none of these summaries proves an achievable growth/technology path or changes AI scores. See KI#144.4. (GPT-6.1-Sol) -->
+static void logSASGameRecordCitySiteFoodSupport(CvPlayer const& kPlayer, CvPlot const& kPlot, char const* szRole, SASGameRecordCitySiteFoodSupportResult const& kSummary)
+{
+	FAssert(gGameRecordLogLevel >= 2);
+	for (int iCore = 0; iCore < SASGameRecordCitySiteFoodSupportResult::CORE_COUNT; ++iCore)
+	{
+		logSASGameRecord("GAME_RECORD_CITY_SITE_FOOD_SUPPORT turn=%d player=%d x=%d y=%d role=%s perspective=PLAYER_KNOWN evaluationAvailable=%d knownUsableNonHome=%d unrevealed=%d foodPerCitizen=%d corePlots=%d coreAvailable=%d valueFoodSurplus=%d valueNaturalFoodSurplus=%d foodRankedSurplus=%d unsupportedProjectedScore=%d appliedCapitalFoodSupportPenalty=%d foodConstraint=SUSTAIN_ONLY growthPathModeled=0 healthHappinessIncluded=0 techTimingEnforced=0",
+			GC.getGame().getGameTurn(), kPlayer.getID(), kPlot.getX(), kPlot.getY(), szRole, kSummary.bAvailable,
+			kSummary.iKnownUsablePlots, kSummary.iUnrevealedPlots, GC.getFOOD_CONSUMPTION_PER_POPULATION(), SASGameRecordCitySiteFoodSupportResult::coreSize(iCore),
+			kSummary.abCoreAvailable[iCore], kSummary.aiValueFoodSurplus[iCore], kSummary.aiValueNaturalFoodSurplus[iCore], kSummary.aiFoodRankedSurplus[iCore],
+			kSummary.aiUnsupportedProjectedScore[iCore], kSummary.iAppliedFoodSupportPenalty);
+	}
+}
+
+// <!-- custom: Extend the existing cold founded-site comparison with player-known Food budgets and one current cached alternative; the caller still gates the entire operation at level 2 before founding mutates the map.
+// Keep the original cached decision evidence separate from fresh rescoring; no periodic rescans, pathfinding, RNG or gameplay results are introduced. See KI#144.4. (GPT-6.1-Sol) -->
 void logSASGameRecordCityFoundingSite(CvPlayer const& kPlayer, CvPlot const& kPlot)
 {
+	FAssert(gGameRecordLogLevel >= 2);
 	if (kPlayer.isBarbarian())
 		return;
 	CvPlayerAI const& kPlayerAI = kPlayer.AI();
@@ -12033,7 +12052,9 @@ void logSASGameRecordCityFoundingSite(CvPlayer const& kPlayer, CvPlot const& kPl
 	kKnownEvaluator.setLogContext(SAS_FOUND_LOG_RECORD_KNOWN_MAP_COMPARISON);
 	if (bFirstCity)
 		kKnownEvaluator.setAllSeeing(false);
-	int const iKnownRescoredFoundValue = kKnownEvaluator.evaluateWithPlotValueDistribution(kPlot, aiKnownCoreSums, iKnownPositivePlots, iKnownSustainableProductivePlotValue);
+	// <!-- custom: Request numeric Food evidence from the existing player-known pass; true-map quality remains the established score distribution, avoiding a second omniscient Food search that does not describe the AI's information. (GPT-6.1-Sol) -->
+	SASGameRecordCitySiteFoodSupportResult kKnownFood;
+	int const iKnownRescoredFoundValue = kKnownEvaluator.evaluateWithPlotValueDistribution(kPlot, aiKnownCoreSums, iKnownPositivePlots, iKnownSustainableProductivePlotValue, &kKnownFood);
 
 	int aiOmniscientCoreSums[6] = {0, 0, 0, 0, 0, 0};
 	int iOmniscientPositivePlots = 0;
@@ -12071,6 +12092,25 @@ void logSASGameRecordCityFoundingSite(CvPlayer const& kPlayer, CvPlot const& kPl
 		iKnownRescoredFoundValue, aiKnownCoreSums[0], aiKnownCoreSums[1], aiKnownCoreSums[2], aiKnownCoreSums[3], aiKnownCoreSums[4],
 		aiKnownCoreSums[5], iKnownPositivePlots, iOmniscientRescoredFoundValue, aiOmniscientCoreSums[0], aiOmniscientCoreSums[1],
 		aiOmniscientCoreSums[2], aiOmniscientCoreSums[3], aiOmniscientCoreSums[4], aiOmniscientCoreSums[5], iOmniscientPositivePlots);
+
+	logSASGameRecordCitySiteFoodSupport(kPlayer, kPlot, "FOUNDED", kKnownFood);
+
+	// <!-- custom: Nidaros exposed a stale/context-different cached alternative that looked superior until freshly rescored.
+	// Compare only the first cached alternative, excluding the founded plot, under the same player-known settings; cached rank does not promise that this site is still foundable, reachable or the best current alternative.
+	// Reuse this diagnostic evaluator's intrinsic plot cache, never a gameplay found-value update; a rejected rescore remains explicit zero with unavailable Food evidence. See KI#144.4. (GPT-6.1-Sol) -->
+	CvPlot const* pAlternative = (iAlt1Rank > 0 ? GC.getMap().plot(iAlt1X, iAlt1Y) : NULL);
+	if (pAlternative != NULL)
+	{
+		int aiAlternativeCoreSums[6];
+		int iAlternativePositivePlots;
+		int iAlternativeProductiveValue;
+		SASGameRecordCitySiteFoodSupportResult kAlternativeFood;
+		int const iAlternativeRescored = kKnownEvaluator.evaluateWithPlotValueDistribution(*pAlternative, aiAlternativeCoreSums, iAlternativePositivePlots, iAlternativeProductiveValue, &kAlternativeFood);
+		logSASGameRecord("GAME_RECORD_CITY_SITE_ALTERNATIVE_QUALITY turn=%d player=%d firstCity=%d foundedX=%d foundedY=%d alternativeIndex=1 siteListRank=%d x=%d y=%d cachedFoundValue=%d knownRescoredFoundValue=%d knownBest1Sum=%d knownBest2Sum=%d knownBest3Sum=%d knownBest6Sum=%d knownBest10Sum=%d knownBest14Sum=%d knownPositivePlots=%d comparisonScope=IGNORE_PLANNED_SITES pathTested=0",
+			GC.getGame().getGameTurn(), kPlayer.getID(), bFirstCity, kPlot.getX(), kPlot.getY(), iAlt1Rank, iAlt1X, iAlt1Y, iAlt1FoundValue, iAlternativeRescored,
+			aiAlternativeCoreSums[0], aiAlternativeCoreSums[1], aiAlternativeCoreSums[2], aiAlternativeCoreSums[3], aiAlternativeCoreSums[4], aiAlternativeCoreSums[5], iAlternativePositivePlots);
+		logSASGameRecordCitySiteFoodSupport(kPlayer, *pAlternative, "CACHED_ALTERNATIVE_1", kAlternativeFood);
+	}
 }
 
 void logSASGameRecordCityBuilt(CvCity const* pCity)

@@ -28,7 +28,7 @@ int getSASGameRecordTurnInterval();
 // Standalone docs/example-log/package refreshes do not require a bump.
 // Keep the matching revision-history entry in the same commit.
 // An anonymous enum keeps this a C++03 compile-time integer without a separate storage/linkage definition. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-enum { SAS_GAME_RECORD_REVISION = 141 };
+enum { SAS_GAME_RECORD_REVISION = 142 };
 // <!-- custom: Finalize buffered observations in the old game state before a new game or loaded save resets/replaces it. See KI#382. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 void finalizeSASGameRecordLogSession();
 void startSASGameRecordLogForNewGame();
@@ -592,8 +592,43 @@ void logSASGameRecordAISettlerFogScoutStep(CvUnitAI const& kSettler, CvPlot cons
 // The row is level-3-only and records the selected ship plus the best alternative under the same defender rules, including LFB odds/value/cargo protection context.
 // Keep it observational: transported cargo is not a defender candidate and inherited K-Mod LFB already contains loaded-transport protection, so an external report alone is not evidence for changing combat selection. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordNavalTransportDefenderSelection(CvUnit const& kAttacker, CvUnit const& kSelectedDefender, CvPlot const& kPlot);
+// <!-- custom: Recorder-owned numeric founding-time Food evidence; the evaluator fills this optional output from its internal plot data, and SASGameRecord formats it afterward.
+// Keep this recorder-only container here alongside the other choice contexts; no strings or persistent state are attached to normal AI evaluations.
+// Core sizes count worked non-home plots; the free city center contributes yields without consuming a slot.
+// bAvailable distinguishes rejected/incomplete evaluations, while core availability distinguishes insufficient accepted plots from a genuine negative surplus; unsupported score -1 means no measurable Food-feasible comparison. See KI#144.4. (GPT-6.1-Sol) -->
+struct SASGameRecordCitySiteFoodSupportResult
+{
+	enum { CORE_COUNT = 4 };
+	bool bAvailable;
+	int iKnownUsablePlots;
+	int iUnrevealedPlots;
+	int iAppliedFoodSupportPenalty;
+	bool abCoreAvailable[CORE_COUNT];
+	int aiValueFoodSurplus[CORE_COUNT];
+	int aiValueNaturalFoodSurplus[CORE_COUNT];
+	int aiFoodRankedSurplus[CORE_COUNT];
+	int aiUnsupportedProjectedScore[CORE_COUNT];
+	SASGameRecordCitySiteFoodSupportResult() : bAvailable(false), iKnownUsablePlots(0), iUnrevealedPlots(0), iAppliedFoodSupportPenalty(0)
+	{
+		for (int i = 0; i < CORE_COUNT; ++i)
+		{
+			abCoreAvailable[i] = false;
+			aiValueFoodSurplus[i] = aiValueNaturalFoodSurplus[i] = aiFoodRankedSurplus[i] = 0;
+			aiUnsupportedProjectedScore[i] = -1;
+		}
+	}
+	// <!-- custom: Share the recorder's four observation horizons between collection and output; these counts are diagnostic choices, not XML food-consumption constants. (GPT-6.1-Sol) -->
+	static int coreSize(int i)
+	{
+		FAssert(i >= 0 && i < CORE_COUNT);
+		int const aiCoreSizes[CORE_COUNT] = {3, 6, 10, 14};
+		return aiCoreSizes[i];
+	}
+};
+
 // <!-- custom: Preserve the strategic shortlist plus one cold quality summary for the site that is actually founded, immediately before normal founding mutates the plot/city state.
-// Level 2 deliberately rescans only that rare chosen BFC from player-known and diagnostic-omniscient perspectives; rejected-candidate reasons remain BBAI territory and periodic snapshots do no settlement rescoring. (ChatGPT-5.6-Sol) -->
+// Level 2 compares the chosen BFC from player-known and diagnostic-omniscient perspectives; rejected-candidate reasons remain BBAI territory and periodic snapshots do no settlement rescoring. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Added player-known Food-support summaries and a fresh comparison of one cached alternative at this same pre-founding boundary; no gameplay choice is recomputed for use by the AI. See KI#144.4. (GPT-6.1-Sol) -->
 void logSASGameRecordCityFoundingSite(CvPlayer const& kPlayer, CvPlot const& kPlot);
 void logSASGameRecordCityBuilt(CvCity const* pCity);
 // <!-- custom: City razing is rare but strategically consequential.

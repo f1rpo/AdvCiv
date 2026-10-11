@@ -547,6 +547,10 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 
 (Requires AdvCiv-SAS 6440+) Note: `SASGameRecord` log has its own revision system, see [`README_SASGameRecord_Revisions.md`](/_1_AdvCiv-SAS/Docs/README_SASGameRecord_Revisions.md) for details and miscellanous information.
 
+- (Requires AdvCiv-SAS 6626+) **SASGameRecord helps distinguish attractive city plots from sustainable worked-plot combinations:**
+  - At city founding, compact player-known Food budgets show how much surplus remains for small and larger worked-plot cores, both with potential improvements and with features retained before improvements.
+  - One cached alternative also receives a fresh quality comparison, so an old shortlist value is not mistaken for a current missed opportunity. These are explicitly diagnostic comparisons, not the original path-tested decision or a promise that the city can reach that population.
+  - Extra evaluations occur only at founding with level 2+ enabled; detailed candidate/resource investigations remain in BBAI.
 - (Requires AdvCiv-SAS 6343+) **SASGameRecord setup/provenance is more reproducible and explicit:**
   - setup rows now notably record every stored map-script custom option, including hidden options, its numeric value, the currently installed script's default, whether the selection equals that default, and readable selected/default descriptions when the script is available.
   - Advanced Start records both the configured points and the default recomputed from the current start-era/world-size XML.
