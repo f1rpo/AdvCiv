@@ -1413,6 +1413,18 @@ Enforced by the turn_define_gamespeed CI check. (GPT-5.6 Thinking) -->
 
 
 
+	<!-- custom: Percent of the score-projected worked-tile opportunity cost removed from actual first-capital value when the best 6- or 10-worker core cannot be sustained without replacing higher-value low-Food plots.
+	Uses the larger 6/10 gap, never their sum, and requires both growth cores to be measurable; the 14-worker core remains diagnostic-only.
+	Skipped when the established non-coastal low-food penalty already applies so the same Food scarcity is not double-charged.
+	Resource access/non-yield value is not constrained because it does not require working the tile.
+	Set to 0 to disable; later-city use is deliberately deferred to a separate follow-up. See KI#144.4. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	<Define>
+		<DefineName>SAS_EVALUATE_STARTING_FOOD_SUPPORT_PENALTY_PERCENT</DefineName>
+		<iDefineIntVal>100</iDefineIntVal>
+	</Define>
+
+
+
 	<!-- custom: Minimum number of good-enough non-home BFC slots required before accepting the first-city site.
 	"Good enough" is intentionally weaker than truly good: it includes usable land that is not very bad and reachable/already-improved visible water bonuses, but not ordinary coast/ocean. (ChatGPT-5.5) -->
 	<Define>

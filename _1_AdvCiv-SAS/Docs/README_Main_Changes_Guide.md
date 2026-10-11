@@ -1561,6 +1561,10 @@ The aim is that, in many cases, they also benefit vassals (or at least do not cl
 - **Low-food environments**: evaluate food scarcity from each non-home BFC plot's natural food and food added by bonus-specific improvements (e.g., tundra is low food, peak is very low food, but if there are bonuses that give food in the site it reduces the net food-scarcity score (e.g., high tundra high fish/deer may be better than grass/plain hybrid no food from bonuses so do not discard it)).
   - When an inland site has too much net food scarcity, **prefer coastal sites** so the city can grow instead of remaining at very low population.
   - See [KI#32](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-32).
+- (Requires AdvCiv-SAS 6624+) **Settler AI accounts for Food support when valuing the first capital:**
+  - attractive Gold Hills or productive Grassland Hills are worth less together if the city must give up some Production/Commerce to work enough Food-producing plots to feed their citizens. Low-Food plots remain valuable when the surrounding city can support them.
+  - This refines inherited AdvCiv and existing SAS scoring without adding another penalty where SAS's broad low-food penalty already applies. It concerns sustaining a useful workforce; it does not model the full growth path or penalize every low-surplus city.
+  - In the six-map validation, about 2% of sampled candidate evaluations received a correction and all 256 capital founding locations were preserved. Later cities remain a separate investigation; see [KI#144.4](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-144.4) for scope and evidence.
 - (Requires AdvCiv-SAS 6569+) **Separate home-plot opportunity value:**
   - the plot consumed by the city is compared with what that plot could have produced when worked after its best timing-adjusted XML-valid improvement.
   - Burying a strong workable plot receives the full opportunity cost, while replacing a weak plot receives a deliberately smaller reward because the city might never have worked that marginal tile.

@@ -19,8 +19,8 @@
 
 static int const iDEFAULT_BARB_DISCOURAGED_RANGE = 8; // advc.303
 
-// <!-- custom: Diagnostic-only first-capital capacity rows pair the existing scalar plot ranking with plausible improved F/P/C yields and natural/unimproved food capacity.
-// They expose the food budget of the preferred best-6/10/14 plots; no value from this structure feeds AI decisions.
+// <!-- custom: First-capital capacity data pairs the existing scalar plot ranking with plausible improved F/P/C yields and natural/unimproved food capacity.
+// The score-projection subset supports the 6/10-worker Food-support correction; Found level 3 additionally exposes best-6/10/14 capacity and comparison rows.
 // The food-ranked alternative reorders those same selected improvement outcomes by Food; it does not search each plot for a different, food-maximizing improvement and is not an absolute food ceiling.
 // The natural-food alternative separately ranks unimproved terrain/resource yields with existing features retained; the free city center still uses its settled yield, since founding removes its feature.
 // Natural yields do not assume improvements, buildings or worker feature removal, and do not promise immediate workability before required technologies. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
@@ -38,7 +38,7 @@ struct SASFirstCityBFCCapacityPlot
 	// <!-- custom: Diagnostic-only local value that requires a citizen to work the plot: ordinary plot value plus only bonus-improvement yield value.
 	// Resource health/happiness, strategic, diversity and trade value are intentionally excluded because they do not consume a worked-tile slot or Food support. (ChatGPT-5.6-Sol) -->
 	int iWorkableYieldValue;
-	// <!-- custom: Diagnostic-only worked resource-improvement yield contribution kept separate so score-unit projections can combine it with AdvCiv's rank-weighted ordinary plot contribution without constraining resource-access value. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Worked resource-improvement yield contribution kept separate so score-unit projections can combine it with AdvCiv's rank-weighted ordinary plot contribution without constraining resource-access value. (ChatGPT-5.6-Sol) -->
 	int iBonusImprovementYieldValue;
 	int iPlotIndex;
 	int aiYield[NUM_YIELD_TYPES];
@@ -159,9 +159,9 @@ static bool isSASFirstCityBFCScoreProjectionStateBetter(SASFirstCityBFCScoreProj
 	return kCandidate.aiYield[YIELD_COMMERCE] > kCurrent.aiYield[YIELD_COMMERCE];
 }
 
-// <!-- custom: Mirror sumUpPlotValues' first-capital rank transform for diagnostics without changing the production scorer.
-// This is intentionally local to the first-capital score projection; if the inherited weighting changes, update both formulas together before using this row for gameplay design.
-// Accept the precomputed rank multiplier so the diagnostic subset search does not repeat logarithms and powers for every plot/count pair. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+// <!-- custom: Mirror sumUpPlotValues' first-capital rank transform for the Food-support projection without changing the production scorer.
+// This is intentionally local to the first-capital projection; if the inherited weighting changes, update both formulas together.
+// Accept the precomputed rank multiplier so the gameplay and diagnostic subset searches do not repeat logarithms and powers for every plot/count pair. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 static int getSASFirstCityRankWeightedPlotValue(int iPlotValue, double dRankMultPercent)
 {
 	if (iPlotValue <= 0)
@@ -170,22 +170,26 @@ static int getSASFirstCityRankWeightedPlotValue(int iPlotValue, double dRankMult
 	return std::max(iPlotValue / 3, fmath::round(std::max(0.0, iPlotValue - dSubtr) * 0.01 * dRankMultPercent));
 }
 
-// <!-- custom: Diagnostic bridge from the raw workable-value capacity comparison to the actual scoring architecture.
-// For an exact 6/10/14-worker core, project AdvCiv's first-capital rank weighting onto the selected ordinary plot values and add only resource-improvement yield from resources actually assigned a worker.
+// <!-- custom: Bridge from the raw workable-value capacity comparison to the first-capital scoring architecture.
+// For exact 6/10-worker growth cores, project AdvCiv's first-capital rank weighting onto selected ordinary plot values and add only resource-improvement yield from resources actually assigned a worker; Found level 3 additionally reports the 14-worker mature-city diagnostic.
+// The returned gameplay correction is the larger unsupported score at 6 or 10 workers, never their sum, because the cores overlap; both growth cores must be measurable, while core 14 remains diagnostic-only because a capital need not sustain fourteen workers to be a strong opening city.
 // This still is not final found value: outskirts beyond the requested core, resource access/non-yield/dynamic/diversity value, health, river/site effects outside the stored plot value, and growth/technology timing remain outside the comparison.
-// Its purpose is only to measure the score-like sacrifice caused by enforcing the same sustain-only Food budget before a gameplay formula is chosen. (ChatGPT-5.6-Sol) -->
-static CvString getSASFirstCityBFCFoodFeasibleScoreProjectionFields(std::vector<SASFirstCityBFCCapacityPlot> const& aPlots, int const* aiHomeYield)
+// Callers can request formatted fields only for diagnostics; normal first-capital evaluation computes through core 10 without log formatting.
+// Later-city use is deliberately deferred to a separate follow-up. See KI#144.4. (ChatGPT-5.6-Sol) -->
+static int getSASFirstCityBFCFoodFeasibleScoreProjection(std::vector<SASFirstCityBFCCapacityPlot> const& aPlots, int const* aiHomeYield, CvString* pszFields, int* paiEarlyUnsupportedScore)
 {
 	int const aiCoreSizes[3] = {6, 10, 14};
-	int const iMaxCoreSize = 14;
+	bool const bFormatDiagnostics = (pszFields != NULL);
+	int const iCoreCount = (bFormatDiagnostics ? 3 : 2);
+	int const iMaxCoreSize = aiCoreSizes[iCoreCount - 1];
 	int const iFoodPerCitizen = GC.getFOOD_CONSUMPTION_PER_POPULATION();
-	FAssert(gFoundLogLevel >= 3);
-	// <!-- custom: These first-capital weights mirror sumUpPlotValues (153 - 8, 47 + 8); compute each rank once per diagnostic evaluation, entirely behind the caller's Found level-3 gate.
-	// Keep this cache local to the evaluation; no gameplay scorer or persistent state is changed. (GPT-6.1-Sol) -->
+	int aiEarlyUnsupportedScore[2] = {-1, -1};
+	// <!-- custom: These first-capital weights mirror sumUpPlotValues (153 - 8, 47 + 8); compute each needed rank once per evaluation instead of repeating logarithms and powers inside the subset search.
+	// Keep this cache local to the evaluation; no persistent state is added. (GPT-6.1-Sol + ChatGPT-5.6-Sol) -->
 	double const dMaxMultPercent = 145;
 	double const dMinMultPercent = 55;
 	double const dExp = std::log(dMaxMultPercent - dMinMultPercent) / std::log(NUM_CITY_PLOTS - 1.0);
-	double adRankMultPercent[iMaxCoreSize];
+	double adRankMultPercent[14];
 	for (int iRank = 0; iRank < iMaxCoreSize; ++iRank)
 		adRankMultPercent[iRank] = dMinMultPercent + std::pow((double)std::abs(NUM_CITY_PLOTS - 1 - iRank), dExp);
 	std::vector<SASFirstCityBFCCapacityPlot> aSortedPlots = aPlots;
@@ -230,7 +234,7 @@ static CvString getSASFirstCityBFCFoodFeasibleScoreProjectionFields(std::vector<
 	}
 
 	CvString szResult;
-	for (int iCore = 0; iCore < 3; ++iCore)
+	for (int iCore = 0; iCore < iCoreCount; ++iCore)
 	{
 		int const iCoreSize = aiCoreSizes[iCore];
 		bool const bEnoughKnownPlots = ((int)aSortedPlots.size() >= iCoreSize);
@@ -250,35 +254,52 @@ static CvString getSASFirstCityBFCFoodFeasibleScoreProjectionFields(std::vector<
 					kBestFeasible = kState;
 			}
 		}
-		int aiUnconstrainedYield[NUM_YIELD_TYPES] = {aiHomeYield[YIELD_FOOD], aiHomeYield[YIELD_PRODUCTION], aiHomeYield[YIELD_COMMERCE]};
-		int aiFeasibleYield[NUM_YIELD_TYPES] = {aiHomeYield[YIELD_FOOD], aiHomeYield[YIELD_PRODUCTION], aiHomeYield[YIELD_COMMERCE]};
-		if (kBestUnconstrained.bValid)
-		{
-			FOR_EACH_ENUM(Yield)
-				aiUnconstrainedYield[eLoopYield] += kBestUnconstrained.aiYield[eLoopYield];
-		}
-		if (kBestFeasible.bValid)
-		{
-			FOR_EACH_ENUM(Yield)
-				aiFeasibleYield[eLoopYield] += kBestFeasible.aiYield[eLoopYield];
-		}
-		int const iUnconstrainedSurplus = (kBestUnconstrained.bValid ? aiUnconstrainedYield[YIELD_FOOD] - iCoreSize * iFoodPerCitizen : 0);
-		int const iFeasibleSurplus = (kBestFeasible.bValid ? aiFeasibleYield[YIELD_FOOD] - iCoreSize * iFoodPerCitizen : 0);
 		int const iUnsupportedProjectedScore = (kBestUnconstrained.bValid && kBestFeasible.bValid ? std::max(0, kBestUnconstrained.iScoreValue - kBestFeasible.iScoreValue) : -1);
-		CvString szCore;
-		szCore.Format(" scoreCore%dAvailable=%d scoreCore%dUnconstrained=%d scoreCore%dUnconstrainedYields=%dF%dP%dC scoreCore%dUnconstrainedSurplus=%d scoreCore%dFoodFeasible=%d scoreCore%dFoodFeasibleScore=%d scoreCore%dFoodFeasibleYields=%dF%dP%dC scoreCore%dFoodFeasibleSurplus=%d scoreCore%dUnsupportedProjectedScore=%d",
-			iCoreSize, bEnoughKnownPlots,
-			iCoreSize, (kBestUnconstrained.bValid ? kBestUnconstrained.iScoreValue : -1),
-			iCoreSize, (kBestUnconstrained.bValid ? aiUnconstrainedYield[YIELD_FOOD] : 0), (kBestUnconstrained.bValid ? aiUnconstrainedYield[YIELD_PRODUCTION] : 0), (kBestUnconstrained.bValid ? aiUnconstrainedYield[YIELD_COMMERCE] : 0),
-			iCoreSize, (kBestUnconstrained.bValid ? iUnconstrainedSurplus : 0),
-			iCoreSize, kBestFeasible.bValid,
-			iCoreSize, (kBestFeasible.bValid ? kBestFeasible.iScoreValue : -1),
-			iCoreSize, (kBestFeasible.bValid ? aiFeasibleYield[YIELD_FOOD] : 0), (kBestFeasible.bValid ? aiFeasibleYield[YIELD_PRODUCTION] : 0), (kBestFeasible.bValid ? aiFeasibleYield[YIELD_COMMERCE] : 0),
-			iCoreSize, (kBestFeasible.bValid ? iFeasibleSurplus : 0),
-			iCoreSize, iUnsupportedProjectedScore);
-		szResult += szCore;
+		if (iCore < 2)
+			aiEarlyUnsupportedScore[iCore] = iUnsupportedProjectedScore;
+		if (bFormatDiagnostics)
+		{
+			// <!-- custom: Center-inclusive yield totals and surplus fields only describe the log row; the gameplay correction uses the projected score difference above.
+			// Keep this accounting behind the formatting gate so disabled logging does not compute it. (GPT-6.1-Sol) -->
+			int aiUnconstrainedYield[NUM_YIELD_TYPES] = {aiHomeYield[YIELD_FOOD], aiHomeYield[YIELD_PRODUCTION], aiHomeYield[YIELD_COMMERCE]};
+			int aiFeasibleYield[NUM_YIELD_TYPES] = {aiHomeYield[YIELD_FOOD], aiHomeYield[YIELD_PRODUCTION], aiHomeYield[YIELD_COMMERCE]};
+			if (kBestUnconstrained.bValid)
+			{
+				FOR_EACH_ENUM(Yield)
+					aiUnconstrainedYield[eLoopYield] += kBestUnconstrained.aiYield[eLoopYield];
+			}
+			if (kBestFeasible.bValid)
+			{
+				FOR_EACH_ENUM(Yield)
+					aiFeasibleYield[eLoopYield] += kBestFeasible.aiYield[eLoopYield];
+			}
+			int const iUnconstrainedSurplus = (kBestUnconstrained.bValid ? aiUnconstrainedYield[YIELD_FOOD] - iCoreSize * iFoodPerCitizen : 0);
+			int const iFeasibleSurplus = (kBestFeasible.bValid ? aiFeasibleYield[YIELD_FOOD] - iCoreSize * iFoodPerCitizen : 0);
+			CvString szCore;
+			szCore.Format(" scoreCore%dAvailable=%d scoreCore%dUnconstrained=%d scoreCore%dUnconstrainedYields=%dF%dP%dC scoreCore%dUnconstrainedSurplus=%d scoreCore%dFoodFeasible=%d scoreCore%dFoodFeasibleScore=%d scoreCore%dFoodFeasibleYields=%dF%dP%dC scoreCore%dFoodFeasibleSurplus=%d scoreCore%dUnsupportedProjectedScore=%d",
+				iCoreSize, bEnoughKnownPlots,
+				iCoreSize, (kBestUnconstrained.bValid ? kBestUnconstrained.iScoreValue : -1),
+				iCoreSize, (kBestUnconstrained.bValid ? aiUnconstrainedYield[YIELD_FOOD] : 0), (kBestUnconstrained.bValid ? aiUnconstrainedYield[YIELD_PRODUCTION] : 0), (kBestUnconstrained.bValid ? aiUnconstrainedYield[YIELD_COMMERCE] : 0),
+				iCoreSize, (kBestUnconstrained.bValid ? iUnconstrainedSurplus : 0),
+				iCoreSize, kBestFeasible.bValid,
+				iCoreSize, (kBestFeasible.bValid ? kBestFeasible.iScoreValue : -1),
+				iCoreSize, (kBestFeasible.bValid ? aiFeasibleYield[YIELD_FOOD] : 0), (kBestFeasible.bValid ? aiFeasibleYield[YIELD_PRODUCTION] : 0), (kBestFeasible.bValid ? aiFeasibleYield[YIELD_COMMERCE] : 0),
+				iCoreSize, (kBestFeasible.bValid ? iFeasibleSurplus : 0),
+				iCoreSize, iUnsupportedProjectedScore);
+			szResult += szCore;
+		}
 	}
-	return szResult;
+	if (pszFields != NULL)
+		*pszFields = szResult;
+	if (paiEarlyUnsupportedScore != NULL)
+	{
+		paiEarlyUnsupportedScore[0] = aiEarlyUnsupportedScore[0];
+		paiEarlyUnsupportedScore[1] = aiEarlyUnsupportedScore[1];
+	}
+	// <!-- custom: Require both practical growth cores to be measurable before gameplay applies a correction; partial/fogged or wholly unsustainable states remain observational rather than receiving a guessed penalty. (ChatGPT-5.6-Sol) -->
+	if (aiEarlyUnsupportedScore[0] < 0 || aiEarlyUnsupportedScore[1] < 0)
+		return 0;
+	return std::max(aiEarlyUnsupportedScore[0], aiEarlyUnsupportedScore[1]);
 }
 
 // <!-- custom: Diagnostic-only food-feasible core comparison for the specific question that the ordinary plot scorer can value several individually strong low-Food tiles even when the city cannot feed enough citizens to work them together.
@@ -927,6 +948,7 @@ int AIFoundValue::evaluate()
 	int iBreakdownFeatureProduction = 0;
 	int iBreakdownSea = 0;
 	int iBreakdownLowFood = 0;
+	int iBreakdownFoodSupport = 0;
 	int iBreakdownVeryBad = 0;
 	// <!-- custom: Diagnostic-only outputs are fully assigned by sumUpPlotValues when requested; leave them untouched on the normal hot path.
 	// Best-1/2/3 reveal whether an opening depends on one exceptional resource or several strong plots, while best-6/10/14 remain the broader growth stages used by first-city decisions. (GPT-5.6-Sol) -->
@@ -934,11 +956,18 @@ int AIFoundValue::evaluate()
 	int aiBreakdownPlotCoreCutoffs[6];
 	int iBreakdownPositivePlots;
 
-	// <!-- custom: Keep food-sustainability diagnostics entirely behind Found level 3; ordinary evaluation does not allocate, sort or retain per-plot yield-capacity data.
-	// The city center is free to work, so later surplus fields include its yields but subtract Food only for the 6/10/14 citizens working non-home plots. (ChatGPT-5.6-Sol) -->
-	bool const bLogFirstCityBFCCapacity = (gFoundLogLevel >= 3 && bStartPhase && kSet.isStartingLoc() && !kSet.isNormalizing());
+	// <!-- custom: Retain first-capital per-plot capacity data for the food-support correction; Found level 3 additionally emits the full 6/10/14 diagnostic rows.
+	// The city center is free to work, so surplus fields include its yields but subtract Food only for citizens working non-home plots.
+	// Later-city application is deliberately deferred to a separate follow-up. See KI#144.4. (ChatGPT-5.6-Sol) -->
+	bool const bFirstCityFoodSupportScope = (bStartPhase && kSet.isStartingLoc() && !kSet.isNormalizing());
+	// <!-- custom: Cache this process-fixed XML setting once, like the neighboring SAS scoring settings.
+	// Separate scope, gameplay and logging gates: zero percent skips capacity collection and the subset search unless Found level 3 independently requests diagnostics. (GPT-6.1-Sol) -->
+	static int const iFoodSupportPenaltyPercent = std::max(0, GC.getDefineINT("SAS_EVALUATE_STARTING_FOOD_SUPPORT_PENALTY_PERCENT"));
+	bool const bEvaluateFirstCityFoodSupport = (bFirstCityFoodSupportScope && iFoodSupportPenaltyPercent > 0);
+	bool const bLogFirstCityBFCCapacity = (gFoundLogLevel >= 3 && bFirstCityFoodSupportScope);
+	bool const bCollectFirstCityBFCCapacity = (bEvaluateFirstCityFoodSupport || bLogFirstCityBFCCapacity);
 	std::vector<SASFirstCityBFCCapacityPlot> aFirstCityBFCCapacityPlots;
-	if (bLogFirstCityBFCCapacity)
+	if (bCollectFirstCityBFCCapacity)
 		aFirstCityBFCCapacityPlots.reserve(NUM_CITY_PLOTS - 1);
 	int aiFirstCityBFCCapacityHomeYield[NUM_YIELD_TYPES] = {0, 0, 0};
 
@@ -1414,7 +1443,7 @@ int AIFoundValue::evaluate()
 			iPlotValue = applyCultureModifier(p, iPlotValue, iCultureModifier, bShare);
 			aiPlotValues[eLoopCityPlot] = iPlotValue; // Sum these up later
 		}
-		if (bLogFirstCityBFCCapacity)
+		if (bCollectFirstCityBFCCapacity)
 		{
 			if (bHome)
 			{
@@ -1426,7 +1455,7 @@ int AIFoundValue::evaluate()
 				SASFirstCityBFCCapacityPlot kCapacityPlot;
 				kCapacityPlot.iPlotValue = iPlotValue;
 				// <!-- custom: Keep the food-feasible comparison on the yield-derived value that actually requires working this plot; exclude fresh-water/site/culture effects that are not consumed through a citizen assignment. (ChatGPT-5.6-Sol) -->
-				kCapacityPlot.iWorkableYieldValue = (eBonus == NO_BONUS ? std::max(iNatureYieldValue, iBestPotentialYieldValue) : iNatureYieldValue);
+				if (bLogFirstCityBFCCapacity) kCapacityPlot.iWorkableYieldValue = (eBonus == NO_BONUS ? std::max(iNatureYieldValue, iBestPotentialYieldValue) : iNatureYieldValue);
 				kCapacityPlot.iPlotIndex = eLoopCityPlot;
 				int aiBuildingYield[NUM_YIELD_TYPES];
 				calculateBuildingYields(p, aiNatureYield, aiBuildingYield);
@@ -1439,8 +1468,8 @@ int AIFoundValue::evaluate()
 						iPotentialYield = aiBestPotentialYield[eLoopYield];
 					kCapacityPlot.aiYield[eLoopYield] = iPotentialYield;
 					// <!-- custom: The scoring aiNatureYield can already omit removable features; reusing it here overstated pre-improvement Food on plots such as Jungle.
-					// Retain features for this diagnostic-only sample, using the same known-resource visibility as scoring; all extra calls remain inside the capacity logging gate. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
-					kCapacityPlot.aiNatureYield[eLoopYield] = p.calculateNatureYield(eLoopYield, eBonus == NO_BONUS ? NO_TEAM : eTeam, false);
+					// Retain features for this diagnostic-only sample, using the same known-resource visibility as scoring; explicitly gate these extra calls because the enabled cure also collects capacity data with logging off. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+					if (bLogFirstCityBFCCapacity) kCapacityPlot.aiNatureYield[eLoopYield] = p.calculateNatureYield(eLoopYield, eBonus == NO_BONUS ? NO_TEAM : eTeam, false);
 				}
 				aFirstCityBFCCapacityPlots.push_back(kCapacityPlot);
 			}
@@ -1612,9 +1641,9 @@ int AIFoundValue::evaluate()
 
 			// <!-- custom: The food-feasible diagnostic constrains only value that requires a citizen to work this tile.
 			// Resource improvement yields belong to that local worked value; non-yield/dynamic/diversity resource value remains unconstrained because the empire receives it without working the tile. (ChatGPT-5.6-Sol) -->
-			if (bLogFirstCityBFCCapacity && !bHome && !aFirstCityBFCCapacityPlots.empty())
+			if (bCollectFirstCityBFCCapacity && !bHome && !aFirstCityBFCCapacityPlots.empty())
 			{
-				aFirstCityBFCCapacityPlots.back().iWorkableYieldValue += iBonusScoreYield;
+				if (bLogFirstCityBFCCapacity) aFirstCityBFCCapacityPlots.back().iWorkableYieldValue += iBonusScoreYield;
 				aFirstCityBFCCapacityPlots.back().iBonusImprovementYieldValue = iBonusScoreYield;
 			}
 
@@ -1623,22 +1652,29 @@ int AIFoundValue::evaluate()
 		}
 	}
 
-	if (bLogFirstCityBFCCapacity)
+	int aiFirstCityFoodSupportUnsupportedScore[2] = {-1, -1};
+	int iFirstCityFoodSupportProjectedPenalty = 0;
+	if (bCollectFirstCityBFCCapacity)
 	{
-		CvString const szCapacity = getSASFirstCityBFCCapacityFields(aFirstCityBFCCapacityPlots, aiFirstCityBFCCapacityHomeYield);
-		logBBAIFoundDetail("FIRST_CITY_BFC_POTENTIAL_CAPACITY", "center=%dF%dP%dC knownUsableNonHome=%d foodPerCitizen=%d%s",
-			aiFirstCityBFCCapacityHomeYield[YIELD_FOOD], aiFirstCityBFCCapacityHomeYield[YIELD_PRODUCTION], aiFirstCityBFCCapacityHomeYield[YIELD_COMMERCE],
-			(int)aFirstCityBFCCapacityPlots.size(), GC.getFOOD_CONSUMPTION_PER_POPULATION(), szCapacity.GetCString());
-		CvString const szFoodFeasible = getSASFirstCityBFCFoodFeasibleFields(aFirstCityBFCCapacityPlots, aiFirstCityBFCCapacityHomeYield);
-		logBBAIFoundDetail("FIRST_CITY_BFC_FOOD_FEASIBLE_CORE", "center=%dF%dP%dC knownUsableNonHome=%d foodPerCitizen=%d foodConstraint=SUSTAIN_ONLY yieldScope=SELECTED_POTENTIAL healthHappinessIncluded=0 techTimingEnforced=0 growthPathModeled=0%s",
-			aiFirstCityBFCCapacityHomeYield[YIELD_FOOD], aiFirstCityBFCCapacityHomeYield[YIELD_PRODUCTION], aiFirstCityBFCCapacityHomeYield[YIELD_COMMERCE],
-			(int)aFirstCityBFCCapacityPlots.size(), GC.getFOOD_CONSUMPTION_PER_POPULATION(), szFoodFeasible.GetCString());
-		// <!-- custom: Keep both comparisons: FOOD_FEASIBLE_CORE isolates yield-derived workable value, whereas SCORE_PROJECTION applies capital rank weighting to stored plot values and adds worked bonus-improvement yield.
-		// They can choose different subsets; the projection includes effects already embedded in plot values and remains a partial score, not final found value or a gameplay penalty. (GPT-6.1-Sol) -->
-		CvString const szFoodFeasibleScoreProjection = getSASFirstCityBFCFoodFeasibleScoreProjectionFields(aFirstCityBFCCapacityPlots, aiFirstCityBFCCapacityHomeYield);
-		logBBAIFoundDetail("FIRST_CITY_BFC_FOOD_FEASIBLE_SCORE_PROJECTION", "center=%dF%dP%dC knownUsableNonHome=%d foodPerCitizen=%d foodConstraint=SUSTAIN_ONLY scoreScope=FIRST_CAPITAL_RANK_WEIGHTED_PLOT_PLUS_WORKED_BONUS_YIELD outskirtsIncluded=0 nonYieldResourceIncluded=0 healthHappinessIncluded=0 techTimingEnforced=0 growthPathModeled=0 finalFoundValue=0%s",
-			aiFirstCityBFCCapacityHomeYield[YIELD_FOOD], aiFirstCityBFCCapacityHomeYield[YIELD_PRODUCTION], aiFirstCityBFCCapacityHomeYield[YIELD_COMMERCE],
-			(int)aFirstCityBFCCapacityPlots.size(), GC.getFOOD_CONSUMPTION_PER_POPULATION(), szFoodFeasibleScoreProjection.GetCString());
+		CvString szFoodFeasibleScoreProjection;
+		iFirstCityFoodSupportProjectedPenalty = getSASFirstCityBFCFoodFeasibleScoreProjection(aFirstCityBFCCapacityPlots, aiFirstCityBFCCapacityHomeYield,
+			(bLogFirstCityBFCCapacity ? &szFoodFeasibleScoreProjection : NULL), (bLogFirstCityBFCCapacity ? aiFirstCityFoodSupportUnsupportedScore : NULL));
+		if (bLogFirstCityBFCCapacity)
+		{
+			CvString const szCapacity = getSASFirstCityBFCCapacityFields(aFirstCityBFCCapacityPlots, aiFirstCityBFCCapacityHomeYield);
+			logBBAIFoundDetail("FIRST_CITY_BFC_POTENTIAL_CAPACITY", "center=%dF%dP%dC knownUsableNonHome=%d foodPerCitizen=%d%s",
+				aiFirstCityBFCCapacityHomeYield[YIELD_FOOD], aiFirstCityBFCCapacityHomeYield[YIELD_PRODUCTION], aiFirstCityBFCCapacityHomeYield[YIELD_COMMERCE],
+				(int)aFirstCityBFCCapacityPlots.size(), GC.getFOOD_CONSUMPTION_PER_POPULATION(), szCapacity.GetCString());
+			CvString const szFoodFeasible = getSASFirstCityBFCFoodFeasibleFields(aFirstCityBFCCapacityPlots, aiFirstCityBFCCapacityHomeYield);
+			logBBAIFoundDetail("FIRST_CITY_BFC_FOOD_FEASIBLE_CORE", "center=%dF%dP%dC knownUsableNonHome=%d foodPerCitizen=%d foodConstraint=SUSTAIN_ONLY yieldScope=SELECTED_POTENTIAL healthHappinessIncluded=0 techTimingEnforced=0 growthPathModeled=0%s",
+				aiFirstCityBFCCapacityHomeYield[YIELD_FOOD], aiFirstCityBFCCapacityHomeYield[YIELD_PRODUCTION], aiFirstCityBFCCapacityHomeYield[YIELD_COMMERCE],
+				(int)aFirstCityBFCCapacityPlots.size(), GC.getFOOD_CONSUMPTION_PER_POPULATION(), szFoodFeasible.GetCString());
+			// <!-- custom: Keep both comparisons: FOOD_FEASIBLE_CORE isolates yield-derived workable value, whereas SCORE_PROJECTION applies capital rank weighting to stored plot values and adds worked bonus-improvement yield.
+			// They can choose different subsets; the projection includes effects already embedded in plot values and remains a partial score, not final found value. (GPT-6.1-Sol + ChatGPT-5.6-Sol) -->
+			logBBAIFoundDetail("FIRST_CITY_BFC_FOOD_FEASIBLE_SCORE_PROJECTION", "center=%dF%dP%dC knownUsableNonHome=%d foodPerCitizen=%d foodConstraint=SUSTAIN_ONLY scoreScope=FIRST_CAPITAL_RANK_WEIGHTED_PLOT_PLUS_WORKED_BONUS_YIELD outskirtsIncluded=0 nonYieldResourceIncluded=0 healthHappinessIncluded=0 techTimingEnforced=0 growthPathModeled=0 finalFoundValue=0%s",
+				aiFirstCityBFCCapacityHomeYield[YIELD_FOOD], aiFirstCityBFCCapacityHomeYield[YIELD_PRODUCTION], aiFirstCityBFCCapacityHomeYield[YIELD_COMMERCE],
+				(int)aFirstCityBFCCapacityPlots.size(), GC.getFOOD_CONSUMPTION_PER_POPULATION(), szFoodFeasibleScoreProjection.GetCString());
+		}
 	}
 
 	if (gFoundLogLevel >= 3 && bStartPhase && kSet.isStartingLoc() && !kSet.isNormalizing() && iCities == 0) logBBAIFirstCityOuterRingResources(aiBonusCount);
@@ -1674,7 +1710,7 @@ int AIFoundValue::evaluate()
 	// int iNonYieldResourceVal = std::max(0, iResourceValue);
 	// <!-- custom: Replaced AdvCiv's opaque aggregated special-yield score with the linear XML-tunable per-bonus calculation above.
 	// Do not restore evaluateSpecialYields merely to make high-yield tiles depend on Food support: that old path mixed overlapping natural/resource yields with nonlinear value and Food modifiers and produced extreme duplicate value on resource-heavy sites.
-	// FIRST_CITY_BFC_FOOD_FEASIBLE_CORE now measures the narrower workability constraint directly for diagnostics, while calculateSpecialYields remains only for the established production/food context still consumed below. (GPT-5.5 + ChatGPT-5.6-Sol) -->
+	// FIRST_CITY_BFC_FOOD_FEASIBLE_CORE and the 6/10 score projection measure the narrower workability constraint directly, while calculateSpecialYields remains only for the established production/food context still consumed below. See KI#144.4. (GPT-5.5 + ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	// if (bNeedBreakdown)
 	// 	iBreakdownNonYieldResources = iResourceValue;
 	// if (iSpecialYieldTiles > 0) // advc.031
@@ -1738,6 +1774,23 @@ int AIFoundValue::evaluate()
 			iBreakdownLowFood = iBaseValueNotCoastalLowFood * iLowFoodLocationScore;
 			iValue += iBreakdownLowFood;
 		}
+	}
+
+	// <!-- custom: Actual first-capital food-support correction for high-value worked cores.
+	// Use the larger score-projected opportunity cost at 6 or 10 non-home workers, never their sum, and leave the mature 14-worker core diagnostic-only.
+	// Skip this correction when the established broad non-coastal low-food penalty already applies so the same Food scarcity is not charged through two overlapping heuristics; resource-access/non-yield value remains untouched.
+	// A zero percent disables the correction.
+	// Later-city application is deliberately deferred to a separate follow-up. See KI#144.4. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	if (bCollectFirstCityBFCCapacity)
+	{
+		bool const bExistingLowFoodPenalty = (iBreakdownLowFood != 0);
+		if (bEvaluateFirstCityFoodSupport && !bExistingLowFoodPenalty && iFirstCityFoodSupportProjectedPenalty > 0)
+		{
+			iBreakdownFoodSupport = -((iFirstCityFoodSupportProjectedPenalty * iFoodSupportPenaltyPercent) / 100);
+			iValue += iBreakdownFoodSupport;
+		}
+		if (gFoundLogLevel >= 3) logBBAIFoundDetail("FIRST_CITY_FOOD_SUPPORT_SCORE_ADJUSTMENT", "core6Unsupported=%d core10Unsupported=%d bothEarlyCoresMeasured=%d selectedMax6Or10=%d percent=%d existingLowFoodPenalty=%d applied=%d core14DiagnosticOnly=1 laterCitiesDeferred=1",
+			aiFirstCityFoodSupportUnsupportedScore[0], aiFirstCityFoodSupportUnsupportedScore[1], aiFirstCityFoodSupportUnsupportedScore[0] >= 0 && aiFirstCityFoodSupportUnsupportedScore[1] >= 0, iFirstCityFoodSupportProjectedPenalty, iFoodSupportPenaltyPercent, bExistingLowFoodPenalty, iBreakdownFoodSupport);
 	}
 
 	// <!-- custom: Penalize impassable or persistently low-yield BFC slots after a small allowance.
@@ -2134,12 +2187,12 @@ int AIFoundValue::evaluate()
 		// <!-- custom: A zero distance adjustment was ambiguous: it could mean no existing city or a candidate inside the neutral distance window.
 		// Eight independent turn-100/150 tests across SAS48 Pangaea/Continents and Huge Archipelago/Pangaea applied distance reductions to 148 of 731 selected sites that had an existing own city; distance also reversed the selected/next site's pre-distance ordering in 103 of 727 paired comparisons.
 		// Include the already-computed nearest-city coordinates, raw distance, neutral window, pre-distance value and applied percent so compact comparisons expose this material spacing decision without another map scan; diagnostic only. (GPT-5.6-Sol) -->
-		CvString const szBreakdown = CvString::format("base=%d directOther=%d homeWater=%d riverBFC=%d plots=%d(core1=%d/%d,core2=%d/%d,core3=%d/%d,core6=%d/%d,core10=%d/%d,core14=%d/%d,positive=%d) bonuses=%d(nonYield=%d,bonusImprovementYields=%d) health=%d featureProduction=%d sea=%d defense=%d lowFood=%d veryBad=%d preModifiers=%d modifiers=%d(nothingSpecial=%d,homeResource=%d,landBoundary=%d,startingSurroundings=%d,distance=%d(before=%d,nearest=%d,%d,raw=%d,neutral=%d..%d,percent=%d),culture=%d,citiesPerArea=%d,bonusCount=%d,badHealth=%d,goodies=%d,navalHeavy=%d) final=%d",
+		CvString const szBreakdown = CvString::format("base=%d directOther=%d homeWater=%d riverBFC=%d plots=%d(core1=%d/%d,core2=%d/%d,core3=%d/%d,core6=%d/%d,core10=%d/%d,core14=%d/%d,positive=%d) bonuses=%d(nonYield=%d,bonusImprovementYields=%d) health=%d featureProduction=%d sea=%d defense=%d lowFood=%d foodSupport=%d veryBad=%d preModifiers=%d modifiers=%d(nothingSpecial=%d,homeResource=%d,landBoundary=%d,startingSurroundings=%d,distance=%d(before=%d,nearest=%d,%d,raw=%d,neutral=%d..%d,percent=%d),culture=%d,citiesPerArea=%d,bonusCount=%d,badHealth=%d,goodies=%d,navalHeavy=%d) final=%d",
 			iBreakdownBase, iBreakdownDirectOther, iBreakdownHomeWater, iBreakdownRiverBFC, iBreakdownPlots,
 			aiBreakdownPlotCoreSums[0], aiBreakdownPlotCoreCutoffs[0], aiBreakdownPlotCoreSums[1], aiBreakdownPlotCoreCutoffs[1],
 			aiBreakdownPlotCoreSums[2], aiBreakdownPlotCoreCutoffs[2], aiBreakdownPlotCoreSums[3], aiBreakdownPlotCoreCutoffs[3],
 			aiBreakdownPlotCoreSums[4], aiBreakdownPlotCoreCutoffs[4], aiBreakdownPlotCoreSums[5], aiBreakdownPlotCoreCutoffs[5], iBreakdownPositivePlots,
-			iBreakdownResourcesAdded, iBreakdownNonYieldResources, iBreakdownBonusImprovementYields, iBreakdownHealth, iBreakdownFeatureProduction, iBreakdownSea, iBreakdownDefense, iBreakdownLowFood, iBreakdownVeryBad, iBreakdownPreModifiers, iBreakdownModifiers, iBreakdownNothingSpecial, iBreakdownHomeResource, iBreakdownLandBoundary, iBreakdownStartingSurroundings, iBreakdownDistance, iBeforeDistance,
+			iBreakdownResourcesAdded, iBreakdownNonYieldResources, iBreakdownBonusImprovementYields, iBreakdownHealth, iBreakdownFeatureProduction, iBreakdownSea, iBreakdownDefense, iBreakdownLowFood, iBreakdownFoodSupport, iBreakdownVeryBad, iBreakdownPreModifiers, iBreakdownModifiers, iBreakdownNothingSpecial, iBreakdownHomeResource, iBreakdownLandBoundary, iBreakdownStartingSurroundings, iBreakdownDistance, iBeforeDistance,
 			iBreakdownNearestOwnCityX, iBreakdownNearestOwnCityY, iBreakdownNearestOwnCityDistance, iBreakdownDistanceMinOk, iBreakdownDistanceMaxOk, iBreakdownDistancePercent,
 			iBreakdownCulture, iBreakdownCitiesPerArea, iBreakdownBonusCount, iBreakdownBadHealth, iBreakdownGoodies, iBreakdownNavalHeavy, iValue);
 		if (m_pszBreakdown != NULL)
