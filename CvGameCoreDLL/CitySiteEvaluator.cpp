@@ -1160,8 +1160,7 @@ int AIFoundValue::evaluate()
 			if (gFoundLogLevel >= 3 && kSet.isStartingLoc() && !kSet.isNormalizing())
 			{
 				bool const bLegacyStartingFoodBonus = (p.isWater() ? bCoastal && GC.getInfo(eBonus).getYieldChange(YIELD_FOOD) > 0 : aiBonusImprovementYield[YIELD_FOOD] > 0);
-				logBBAIFoundDetail("STARTING_BONUS_GROWTH_CLASSIFICATION",
-					"plot=%d,%d bonus=%S water=%d coastal=%d scoringNatureFood=%d improvementFoodGain=%d improvedFood=%d growthFoodThreshold=%d feedsSelfPlusOne=%d legacyStartingFoodBonus=%d startingFoodBonus=%d classificationChanged=%d",
+				logBBAIFoundDetail("STARTING_BONUS_GROWTH_CLASSIFICATION", "plot=%d,%d bonus=%S water=%d coastal=%d scoringNatureFood=%d improvementFoodGain=%d improvedFood=%d growthFoodThreshold=%d feedsSelfPlusOne=%d legacyStartingFoodBonus=%d startingFoodBonus=%d classificationChanged=%d",
 					p.getX(), p.getY(), GC.getInfo(eBonus).getDescription(), p.isWater(), bCoastal, aiNatureYield[YIELD_FOOD],
 					aiBonusImprovementYield[YIELD_FOOD], iImprovedFood, iGrowthFoodThreshold, iImprovedFood >= iGrowthFoodThreshold,
 					bLegacyStartingFoodBonus, bStartingFoodBonus, bLegacyStartingFoodBonus != bStartingFoodBonus);
@@ -4043,7 +4042,9 @@ int AIFoundValue::adjustToStartingSurroundings(int iValue) const
 					2 points for bad plots (ocean, tundra)
 					1 point for fixable bad plots (jungle) */
 				iGreaterBadTile++;
-				if (p.calculateBestNatureYield(YIELD_FOOD, eTeam) < 2)
+				// <!-- custom: The inherited K-Mod surroundings penalty used a fixed two-Food cutoff inside its weak-yield branch.
+				// Compare with current citizen consumption so this additional food-deficit badness follows the configured self-feeding threshold; retain the separate combined-yield score and badness weights. See KI#647.2. (GPT-6.1-Sol) -->
+				if (p.calculateBestNatureYield(YIELD_FOOD, eTeam) < GC.getFOOD_CONSUMPTION_PER_POPULATION())
 				{
 					iGreaterBadTile++;
 					if (iTempValue <= 0)

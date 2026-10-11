@@ -20055,7 +20055,8 @@ int CvPlayerAI::AI_civicValue(CivicTypes eCivic) const
 				pCity->getPopulation() - pCity->getWorkingPopulation() - pCity->angryPopulation());
 
 			// Tiny “food slack" bump: if city grows each turn, assume we can sustain 1 more spec.
-			const int iFoodSlackSpecs = (pCity->foodDifference() >= 2 ? 1 : 0);
+			// <!-- custom: SAS used a fixed two-Food surplus for its one-extra-specialist estimate; require the current consumption of one citizen while retaining the existing one-specialist cap. See KI#647.2. (GPT-6.1-Sol) -->
+			const int iFoodSlackSpecs = (pCity->foodDifference() >= GC.getFOOD_CONSUMPTION_PER_POPULATION() ? 1 : 0);
 
 			const int iSurplus = iSpecialistNow + iFoodSlackSpecs;
 
@@ -31407,7 +31408,9 @@ void CvPlayerAI::AI_doAdvancedStart(bool bNoExit)
 						iFoodYield += GC.getInfo(pAdj->getFeatureType()).
 								getYieldChange(YIELD_FOOD);
 					}
-					if ((iFoodYield >= 2 && !pAdj->isFreshWater()) ||
+					// <!-- custom: Inherited Advanced Start exploration used a fixed two-Food cutoff for fertile terrain; derive that cutoff from one citizen's consumption so it remains self-feeding when the engine define changes.
+					// Preserve the separate Hills, River and fresh-water predicates. See KI#647.2. (GPT-6.1-Sol) -->
+					if ((iFoodYield >= GC.getFOOD_CONSUMPTION_PER_POPULATION() && !pAdj->isFreshWater()) ||
 						pAdj->isHills() || pAdj->isRiver())
 					{
 						doAdvancedStartAction(ADVANCEDSTARTACTION_VISIBILITY,

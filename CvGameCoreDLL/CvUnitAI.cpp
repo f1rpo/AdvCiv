@@ -26740,23 +26740,19 @@ static void SAS_logCrowdedUpgradeCityAction(CvUnitAI const& kUnit, CvCity const&
 	bool const bPlotDanger = kOwner.AI_isAnyPlotDanger(kUnitPlot, 1, false);
 	bool const bTransportOrEscort = ((kUnit.cargoSpace() > 0 && kUnit.specialCargo() == NO_SPECIALUNIT) || kUnit.AI_getUnitAIType() == UNITAI_ESCORT_SEA);
 	bool const bNormalPassEnabled = (!kOwner.AI_isFinancialTrouble() || bFocusWar);
-	logBBAI("    UPGRADE_CITY_CONCENTRATION turn=%d player=%d %S action=%s unitId=%d unitType=%d unitAI=%d groupId=%d groupUnits=%d groupMissionAI=%d groupActivity=%d "
-		"from=(%d,%d) upgradeCity=%S upgradeCity=(%d,%d) pathTurns=%d unitCreatedTurn=%d unitAge=%d exp=%d level=%d damage=%d movesLeft=%d",
+	logBBAI("    UPGRADE_CITY_CONCENTRATION turn=%d player=%d %S action=%s unitId=%d unitType=%d unitAI=%d groupId=%d groupUnits=%d groupMissionAI=%d groupActivity=%d from=(%d,%d) upgradeCity=%S upgradeCity=(%d,%d) pathTurns=%d unitCreatedTurn=%d unitAge=%d exp=%d level=%d damage=%d movesLeft=%d",
 		GC.getGame().getGameTurn(), kUnit.getOwner(), kOwner.getCivilizationDescription(0), szAction, kUnit.getID(), kUnit.getUnitType(),
 		kUnit.AI_getUnitAIType(), kUnit.getGroup()->getID(), kUnit.getGroup()->getNumUnits(), kUnit.getGroup()->AI().AI_getMissionAIType(),
 		kUnit.getGroup()->getActivityType(), kUnit.getX(), kUnit.getY(), kUpgradeCity.getName().GetCString(), kUpgradeCity.getX(),
 		kUpgradeCity.getY(), iPathTurns, kUnit.getGameTurnCreated(), GC.getGame().getGameTurn() - kUnit.getGameTurnCreated(),
 		kUnit.getExperience(), kUnit.getLevel(), kUnit.getDamage(), kUnit.movesLeft());
-	logBBAI("    UPGRADE_CITY_CANDIDATE turn=%d player=%d unitId=%d fromType=%d upgradeType=%d currentValue=%d upgradeValue=%d upgradePrice=%d gold=%d hasEnoughGold=%d canUpgradeNow=%d upgradeTravelEligible=%d readyForUpgrade=%d "
-		"goldRate=%d upgradeGoldTarget=%d totalGoldTarget=%d estimatedUpgradeBudget=%d fitsEstimatedBudget=%d goldToUpgradeAll=%d focusWar=%d financialTrouble=%d "
-		"impassableUnit=%d bestCityDefender=%d plotDanger=%d transportOrEscort=%d normalPassEnabled=%d",
+	logBBAI("    UPGRADE_CITY_CANDIDATE turn=%d player=%d unitId=%d fromType=%d upgradeType=%d currentValue=%d upgradeValue=%d upgradePrice=%d gold=%d hasEnoughGold=%d canUpgradeNow=%d upgradeTravelEligible=%d readyForUpgrade=%d goldRate=%d upgradeGoldTarget=%d totalGoldTarget=%d estimatedUpgradeBudget=%d fitsEstimatedBudget=%d goldToUpgradeAll=%d focusWar=%d financialTrouble=%d impassableUnit=%d bestCityDefender=%d plotDanger=%d transportOrEscort=%d normalPassEnabled=%d",
 		GC.getGame().getGameTurn(), kUnit.getOwner(), kUnit.getID(), kUnit.getUnitType(), eBestUpgrade, iCurrentValue, iUpgradeValue,
 		iUpgradePrice, kOwner.getGold(), bHasUpgradeCandidate && kOwner.getGold() >= iUpgradePrice, bCanUpgradeNow, bUpgradeTravelEligible,
 		kUnit.isReadyForUpgrade(), kOwner.calculateGoldRate(), iUpgradeGoldTarget, kOwner.AI_goldTarget(false), iEstimatedUpgradeBudget,
 		bHasUpgradeCandidate && iUpgradePrice <= iEstimatedUpgradeBudget, kOwner.AI_getGoldToUpgradeAllUnits(), bFocusWar,
 		kOwner.AI_isFinancialTrouble(), bImpassableUnit, bBestCityDefender, bPlotDanger, bTransportOrEscort, bNormalPassEnabled);
-	logBBAI("    UPGRADE_CITY_CONTEXT turn=%d player=%d unitId=%d cityMilitary=%d totalMilitary=%d cityMilitaryPercent=%d cityGroups=%d cityUpgradeUnits=%d cityUpgradeGroups=%d "
-		"cityDefenders=%d capital=%d wars=%d anyWarPlan=%d areaAI=%d",
+	logBBAI("    UPGRADE_CITY_CONTEXT turn=%d player=%d unitId=%d cityMilitary=%d totalMilitary=%d cityMilitaryPercent=%d cityGroups=%d cityUpgradeUnits=%d cityUpgradeGroups=%d cityDefenders=%d capital=%d wars=%d anyWarPlan=%d areaAI=%d",
 		GC.getGame().getGameTurn(), kUnit.getOwner(), kUnit.getID(), iCityMilitary, kOwner.getNumMilitaryUnits(),
 		100 * iCityMilitary / std::max(1, kOwner.getNumMilitaryUnits()), iCityGroups, iUpgradeUnits, iUpgradeGroups,
 		kUpgradeCity.getPlot().getNumDefenders(kUnit.getOwner()), kUpgradeCity.isCapital(), kTeam.getNumWars(), kTeam.AI_isAnyWarPlan(),

@@ -328,6 +328,9 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 - (Requires AdvCiv-SAS 6621+) **Runtime engine-define updates:**
   - Selected nuclear-effect and AI reads use the existing shared define cache instead of retaining first-read values; food-consumption displays and commerce controls likewise refresh their values when redrawn.
   - This supports explicit runtime changes by mod/modmod code while preserving ordinary session-fixed tuning caches. See [KI#128.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-128.2).
+- (Requires AdvCiv-SAS 6622+) **Fix fixed two-Food-per-citizen assumptions:**
+  - Some inherited AdvCiv and SAS-added AI/map-generation checks assumed citizens always consumed two Food; they now respect the engine's configured consumption per citizen.
+  - Behavior at the default cost of two is preserved. See [KI#647.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-647.2) for scope and details.
 - **Fail-fast XML lookup hardening:**
   - replaced almost all `getInfoTypeForString(...)` calls (terrain/features/bonuses and similar tags) with `getInfoTypeOrFail(...)` (in [SASUtils.py](/Assets/Python/SASUtils.py)), so **missing/renamed XML tags raise explicit errors** instead of silently using invalid `-1` values.
   - Notably allowed to detect and fix incorrect `getInfoTypeOrFail("DIRECTION_NORTH")` instead of correct `DirectionTypes.DIRECTION_NORTH` (in Planet Generator map), or incorrect `getInfoTypeOrFail("PLOT_PEAK")` failing instead of correct `PlotTypes.PLOT_PEAK` (in Peirce map).

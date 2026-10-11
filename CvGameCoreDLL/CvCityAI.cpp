@@ -9855,7 +9855,9 @@ int CvCityAI::AI_buildingValue(BuildingTypes eBuilding, int iFocusFlags, int iTh
 			int iSpecialistsValue = 0;
 			//int iUnusedSpecialists = 0;
 
-			int iAvailableWorkers = iFoodDifference / 2;
+			// <!-- custom: Inherited AdvCiv divided surplus Food by a fixed two to estimate supportable specialists.
+			// Use the current per-citizen consumption instead; this preserves the estimate at the default cost and avoids overstating specialist support when consumption increases. See KI#647.2. (GPT-6.1-Sol) -->
+			int iAvailableWorkers = iFoodDifference / GC.getFOOD_CONSUMPTION_PER_POPULATION();
 			if (eDefaultSpecialist != NO_SPECIALIST)
 				iAvailableWorkers += getSpecialistCount(eDefaultSpecialist);
 			FOR_EACH_ENUM(Specialist)

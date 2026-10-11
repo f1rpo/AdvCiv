@@ -2206,9 +2206,11 @@ void CvGame::normalizeRemoveBadTerrain()
 					continue;
 				/*	I think the BtS code ends up replacing Desert with Desert when
 					there's a feature, but let's rather handle Desert features explicitly. */
+				// <!-- custom: Inherited starting-map normalization preserved a feature when terrain plus feature supplied at least two Food.
+				// Treat that as a self-feeding cutoff using current citizen consumption; keep the existing terrain-quality and random-removal rules unchanged. See KI#647.2. (GPT-6.1-Sol) -->
 				if (p.isFeature() &&
 					GC.getInfo(p.getFeatureType()).
-					getYieldChange(YIELD_FOOD) + iPlotFood >= 2)
+					getYieldChange(YIELD_FOOD) + iPlotFood >= GC.getFOOD_CONSUMPTION_PER_POPULATION())
 				{
 					continue;
 				}

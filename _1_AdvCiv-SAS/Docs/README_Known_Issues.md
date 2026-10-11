@@ -779,6 +779,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#645 - (Fixed SAS technology-gate defect) Require every building AND technology before pricing bonus synergy](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-645)\
 [KI#646 - (Fixed SAS civic-switch control regression) Preserve paid-anarchy safeguards after a final empty pass](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-646)\
 [KI#647 - (Pending Architectural SAS civic-value defect) Unlimited specialist types reuse the same finite citizens](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-647)\
+[KI#647.2 - (Addressed inherited AdvCiv and SAS assumptions) Selected AI Food checks assumed two Food per citizen](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-647.2)\
 [KI#648 - (Fixed SAS civic-value sign defect) Value anger prevented by an active pressure civic positively](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-648)\
 [KI#649 - (Fixed SAS civic-value formula regression) Restore ordinary commerce normalization without removing specialist tuning](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-649)\
 [KI#650 - (Fixed inherited K-Mod civic-value regression) Use the candidate's war-weariness modifier](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-650)\
@@ -28770,6 +28771,25 @@ The per-type slot subtraction does not make the shared population pools independ
 This SAS-local KI#76 block needs one finite per-city capacity allocated across unlocked specialist types, potentially with a separate bounded flexibility premium, rather than a full duplicate capacity for each type.
 
 Found and documented provisionally during ChatGPT-5.6-Sol's C031 `CvPlayerAI.cpp` deep re-audit; disposition indexed with the help of GPT-5.6-Sol, thanks.
+
+<a id="ki-647.2"></a>
+
+## KI#647.2 - (Addressed inherited AdvCiv and SAS assumptions) Selected AI Food checks assumed two Food per citizen
+
+- Base AdvCiv 1.14 divides Food surplus by two when estimating supportable specialists in `CvCityAI::AI_buildingValue`. SAS's unlimited-specialist civic valuation separately grants one additional specialist when surplus is at least two Food.
+  - Both now read `FOOD_CONSUMPTION_PER_POPULATION`; the civic estimate retains its one-specialist cap. At consumption three, a two-Food surplus no longer counts as support for another specialist.
+  - Related album F324 / [KI#647](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-647) concerns reuse of the same citizens across multiple specialist types in this civic estimator. That separate capacity double-counting defect remains pending; changing the Food threshold does not repair it.
+- Inherited Advanced Start exploration and starting-map normalization also used two-Food terrain/feature cutoffs.
+  - These cutoffs now represent a self-feeding tile using the same engine define. This is an explicit generalization of the inherited terrain heuristics, not a reproduced normal-gameplay failure.
+  - Advanced Start's Hills/River/fresh-water predicates and normalization's other terrain checks remain unchanged; non-default consumption can change normalization decisions and subsequent map RNG progression.
+- A second sweep found the inherited K-Mod surroundings assessment also adds badness to a weak-yield tile when its best natural Food is below two. That cutoff now uses current citizen consumption; its combined-yield score and badness weights remain unchanged.
+- All five replacements preserve their comparisons/calculations at the default consumption of two; they use ordinary shared-cache getter reads, not process-lifetime statics.
+- Scope exclusions: mixed Food/Production/Commerce weights, raw surplus targets for growth speed, and historical diagnostic mirrors are separate tuning or comparison rules, not direct per-citizen consumption calculations. They were not mechanically rescaled.
+  - The inherited four-Food weak-starting-resource cutoff explicitly targets Tundra Deer and dry Jungle Rice; `AI_isGoodPlot` explicitly describes its combined-yield cutoffs as arbitrary. These balance heuristics and PerfectMongoose's early-natural-yield encouragement thresholds remain unchanged pending a separate tuning review.
+- The separate experimental first-capital inland-water override was dropped: failing to self-feed does not by itself make a tile very bad when Production or Commerce compensates. Existing weighted classification and observation-only inland-water logging remain intact.
+- Validation: source comparison confirms the three inherited sites in local base AdvCiv; arithmetic checks cover default and non-default consumption. Compilation and in-game validation of this follow-up remain pending.
+
+Investigated and updated with the help of GPT-6.1-Sol.
 
 <a id="ki-648"></a>
 
