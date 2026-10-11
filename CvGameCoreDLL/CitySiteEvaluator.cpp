@@ -26,7 +26,7 @@ static int const iDEFAULT_BARB_DISCOURAGED_RANGE = 8; // advc.303
 // Natural yields do not assume improvements, buildings or worker feature removal, and do not promise immediate workability before required technologies. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 struct SASFirstCityBFCCapacityPlot
 {
-	SASFirstCityBFCCapacityPlot() : iPlotValue(0), iPlotIndex(-1)
+	SASFirstCityBFCCapacityPlot() : iPlotValue(0), iWorkableYieldValue(0), iBonusImprovementYieldValue(0), iPlotIndex(-1)
 	{
 		FOR_EACH_ENUM(Yield)
 		{
@@ -35,6 +35,11 @@ struct SASFirstCityBFCCapacityPlot
 		}
 	}
 	int iPlotValue;
+	// <!-- custom: Diagnostic-only local value that requires a citizen to work the plot: ordinary plot value plus only bonus-improvement yield value.
+	// Resource health/happiness, strategic, diversity and trade value are intentionally excluded because they do not consume a worked-tile slot or Food support. (ChatGPT-5.6-Sol) -->
+	int iWorkableYieldValue;
+	// <!-- custom: Diagnostic-only worked resource-improvement yield contribution kept separate so score-unit projections can combine it with AdvCiv's rank-weighted ordinary plot contribution without constraining resource-access value. (ChatGPT-5.6-Sol) -->
+	int iBonusImprovementYieldValue;
 	int iPlotIndex;
 	int aiYield[NUM_YIELD_TYPES];
 	int aiNatureYield[NUM_YIELD_TYPES];
@@ -87,6 +92,305 @@ struct SASFirstCityBFCCapacityNaturalFoodGreater
 		return a.iPlotIndex < b.iPlotIndex;
 	}
 };
+
+struct SASFirstCityBFCWorkableValueGreater
+{
+	bool operator()(SASFirstCityBFCCapacityPlot const& a, SASFirstCityBFCCapacityPlot const& b) const
+	{
+		if (a.iWorkableYieldValue != b.iWorkableYieldValue)
+			return a.iWorkableYieldValue > b.iWorkableYieldValue;
+		if (a.aiYield[YIELD_FOOD] != b.aiYield[YIELD_FOOD])
+			return a.aiYield[YIELD_FOOD] > b.aiYield[YIELD_FOOD];
+		if (a.aiYield[YIELD_PRODUCTION] != b.aiYield[YIELD_PRODUCTION])
+			return a.aiYield[YIELD_PRODUCTION] > b.aiYield[YIELD_PRODUCTION];
+		if (a.aiYield[YIELD_COMMERCE] != b.aiYield[YIELD_COMMERCE])
+			return a.aiYield[YIELD_COMMERCE] > b.aiYield[YIELD_COMMERCE];
+		return a.iPlotIndex < b.iPlotIndex;
+	}
+};
+
+struct SASFirstCityBFCFoodFeasibleState
+{
+	SASFirstCityBFCFoodFeasibleState() : bValid(false), iWorkableYieldValue(0)
+	{
+		FOR_EACH_ENUM(Yield)
+			aiYield[eLoopYield] = 0;
+	}
+	bool bValid;
+	int iWorkableYieldValue;
+	int aiYield[NUM_YIELD_TYPES];
+};
+
+static bool isSASFirstCityBFCFoodFeasibleStateBetter(SASFirstCityBFCFoodFeasibleState const& kCandidate, SASFirstCityBFCFoodFeasibleState const& kCurrent)
+{
+	if (!kCurrent.bValid)
+		return true;
+	if (kCandidate.iWorkableYieldValue != kCurrent.iWorkableYieldValue)
+		return kCandidate.iWorkableYieldValue > kCurrent.iWorkableYieldValue;
+	if (kCandidate.aiYield[YIELD_FOOD] != kCurrent.aiYield[YIELD_FOOD])
+		return kCandidate.aiYield[YIELD_FOOD] > kCurrent.aiYield[YIELD_FOOD];
+	if (kCandidate.aiYield[YIELD_PRODUCTION] != kCurrent.aiYield[YIELD_PRODUCTION])
+		return kCandidate.aiYield[YIELD_PRODUCTION] > kCurrent.aiYield[YIELD_PRODUCTION];
+	return kCandidate.aiYield[YIELD_COMMERCE] > kCurrent.aiYield[YIELD_COMMERCE];
+}
+
+struct SASFirstCityBFCScoreProjectionState
+{
+	SASFirstCityBFCScoreProjectionState() : bValid(false), iScoreValue(0)
+	{
+		FOR_EACH_ENUM(Yield)
+			aiYield[eLoopYield] = 0;
+	}
+	bool bValid;
+	int iScoreValue;
+	int aiYield[NUM_YIELD_TYPES];
+};
+
+static bool isSASFirstCityBFCScoreProjectionStateBetter(SASFirstCityBFCScoreProjectionState const& kCandidate, SASFirstCityBFCScoreProjectionState const& kCurrent)
+{
+	if (!kCurrent.bValid)
+		return true;
+	if (kCandidate.iScoreValue != kCurrent.iScoreValue)
+		return kCandidate.iScoreValue > kCurrent.iScoreValue;
+	if (kCandidate.aiYield[YIELD_FOOD] != kCurrent.aiYield[YIELD_FOOD])
+		return kCandidate.aiYield[YIELD_FOOD] > kCurrent.aiYield[YIELD_FOOD];
+	if (kCandidate.aiYield[YIELD_PRODUCTION] != kCurrent.aiYield[YIELD_PRODUCTION])
+		return kCandidate.aiYield[YIELD_PRODUCTION] > kCurrent.aiYield[YIELD_PRODUCTION];
+	return kCandidate.aiYield[YIELD_COMMERCE] > kCurrent.aiYield[YIELD_COMMERCE];
+}
+
+// <!-- custom: Mirror sumUpPlotValues' first-capital rank transform for diagnostics without changing the production scorer.
+// This is intentionally local to the first-capital score projection; if the inherited weighting changes, update both formulas together before using this row for gameplay design.
+// Accept the precomputed rank multiplier so the diagnostic subset search does not repeat logarithms and powers for every plot/count pair. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+static int getSASFirstCityRankWeightedPlotValue(int iPlotValue, double dRankMultPercent)
+{
+	if (iPlotValue <= 0)
+		return iPlotValue;
+	double const dSubtr = 29;
+	return std::max(iPlotValue / 3, fmath::round(std::max(0.0, iPlotValue - dSubtr) * 0.01 * dRankMultPercent));
+}
+
+// <!-- custom: Diagnostic bridge from the raw workable-value capacity comparison to the actual scoring architecture.
+// For an exact 6/10/14-worker core, project AdvCiv's first-capital rank weighting onto the selected ordinary plot values and add only resource-improvement yield from resources actually assigned a worker.
+// This still is not final found value: outskirts beyond the requested core, resource access/non-yield/dynamic/diversity value, health, river/site effects outside the stored plot value, and growth/technology timing remain outside the comparison.
+// Its purpose is only to measure the score-like sacrifice caused by enforcing the same sustain-only Food budget before a gameplay formula is chosen. (ChatGPT-5.6-Sol) -->
+static CvString getSASFirstCityBFCFoodFeasibleScoreProjectionFields(std::vector<SASFirstCityBFCCapacityPlot> const& aPlots, int const* aiHomeYield)
+{
+	int const aiCoreSizes[3] = {6, 10, 14};
+	int const iMaxCoreSize = 14;
+	int const iFoodPerCitizen = GC.getFOOD_CONSUMPTION_PER_POPULATION();
+	FAssert(gFoundLogLevel >= 3);
+	// <!-- custom: These first-capital weights mirror sumUpPlotValues (153 - 8, 47 + 8); compute each rank once per diagnostic evaluation, entirely behind the caller's Found level-3 gate.
+	// Keep this cache local to the evaluation; no gameplay scorer or persistent state is changed. (GPT-6.1-Sol) -->
+	double const dMaxMultPercent = 145;
+	double const dMinMultPercent = 55;
+	double const dExp = std::log(dMaxMultPercent - dMinMultPercent) / std::log(NUM_CITY_PLOTS - 1.0);
+	double adRankMultPercent[iMaxCoreSize];
+	for (int iRank = 0; iRank < iMaxCoreSize; ++iRank)
+		adRankMultPercent[iRank] = dMinMultPercent + std::pow((double)std::abs(NUM_CITY_PLOTS - 1 - iRank), dExp);
+	std::vector<SASFirstCityBFCCapacityPlot> aSortedPlots = aPlots;
+	std::sort(aSortedPlots.begin(), aSortedPlots.end(), SASFirstCityBFCCapacityValueGreater());
+	int iMinFood = 0;
+	int iMaxFood = 0;
+	for (size_t i = 0; i < aSortedPlots.size(); ++i)
+	{
+		iMinFood += std::min(0, aSortedPlots[i].aiYield[YIELD_FOOD]);
+		iMaxFood += std::max(0, aSortedPlots[i].aiYield[YIELD_FOOD]);
+	}
+	std::vector<std::vector<SASFirstCityBFCScoreProjectionState> > aaState(iMaxCoreSize + 1,
+		std::vector<SASFirstCityBFCScoreProjectionState>(iMaxFood - iMinFood + 1));
+	aaState[0][-iMinFood].bValid = true;
+	int iProcessedPlots = 0;
+	for (size_t i = 0; i < aSortedPlots.size(); ++i)
+	{
+		int const iPlotFood = aSortedPlots[i].aiYield[YIELD_FOOD];
+		int const iMaxCount = std::min(iMaxCoreSize, iProcessedPlots + 1);
+		for (int iCount = iMaxCount; iCount >= 1; --iCount)
+		{
+			int const iRank = iCount - 1;
+			int const iProjectedPlotScore = getSASFirstCityRankWeightedPlotValue(aSortedPlots[i].iPlotValue, adRankMultPercent[iRank]) + aSortedPlots[i].iBonusImprovementYieldValue;
+			for (int iFood = iMaxFood; iFood >= iMinFood; --iFood)
+			{
+				int const iPreviousFood = iFood - iPlotFood;
+				if (iPreviousFood < iMinFood || iPreviousFood > iMaxFood)
+					continue;
+				SASFirstCityBFCScoreProjectionState const& kPrevious = aaState[iCount - 1][iPreviousFood - iMinFood];
+				if (!kPrevious.bValid)
+					continue;
+				SASFirstCityBFCScoreProjectionState kCandidate = kPrevious;
+				kCandidate.bValid = true;
+				kCandidate.iScoreValue += iProjectedPlotScore;
+				FOR_EACH_ENUM(Yield)
+					kCandidate.aiYield[eLoopYield] += aSortedPlots[i].aiYield[eLoopYield];
+				if (isSASFirstCityBFCScoreProjectionStateBetter(kCandidate, aaState[iCount][iFood - iMinFood]))
+					aaState[iCount][iFood - iMinFood] = kCandidate;
+			}
+		}
+		++iProcessedPlots;
+	}
+
+	CvString szResult;
+	for (int iCore = 0; iCore < 3; ++iCore)
+	{
+		int const iCoreSize = aiCoreSizes[iCore];
+		bool const bEnoughKnownPlots = ((int)aSortedPlots.size() >= iCoreSize);
+		SASFirstCityBFCScoreProjectionState kBestUnconstrained;
+		SASFirstCityBFCScoreProjectionState kBestFeasible;
+		int const iRequiredPlotFood = std::max(iMinFood, iCoreSize * iFoodPerCitizen - aiHomeYield[YIELD_FOOD]);
+		if (bEnoughKnownPlots)
+		{
+			for (int iFood = iMinFood; iFood <= iMaxFood; ++iFood)
+			{
+				SASFirstCityBFCScoreProjectionState const& kState = aaState[iCoreSize][iFood - iMinFood];
+				if (!kState.bValid)
+					continue;
+				if (isSASFirstCityBFCScoreProjectionStateBetter(kState, kBestUnconstrained))
+					kBestUnconstrained = kState;
+				if (iFood >= iRequiredPlotFood && isSASFirstCityBFCScoreProjectionStateBetter(kState, kBestFeasible))
+					kBestFeasible = kState;
+			}
+		}
+		int aiUnconstrainedYield[NUM_YIELD_TYPES] = {aiHomeYield[YIELD_FOOD], aiHomeYield[YIELD_PRODUCTION], aiHomeYield[YIELD_COMMERCE]};
+		int aiFeasibleYield[NUM_YIELD_TYPES] = {aiHomeYield[YIELD_FOOD], aiHomeYield[YIELD_PRODUCTION], aiHomeYield[YIELD_COMMERCE]};
+		if (kBestUnconstrained.bValid)
+		{
+			FOR_EACH_ENUM(Yield)
+				aiUnconstrainedYield[eLoopYield] += kBestUnconstrained.aiYield[eLoopYield];
+		}
+		if (kBestFeasible.bValid)
+		{
+			FOR_EACH_ENUM(Yield)
+				aiFeasibleYield[eLoopYield] += kBestFeasible.aiYield[eLoopYield];
+		}
+		int const iUnconstrainedSurplus = (kBestUnconstrained.bValid ? aiUnconstrainedYield[YIELD_FOOD] - iCoreSize * iFoodPerCitizen : 0);
+		int const iFeasibleSurplus = (kBestFeasible.bValid ? aiFeasibleYield[YIELD_FOOD] - iCoreSize * iFoodPerCitizen : 0);
+		int const iUnsupportedProjectedScore = (kBestUnconstrained.bValid && kBestFeasible.bValid ? std::max(0, kBestUnconstrained.iScoreValue - kBestFeasible.iScoreValue) : -1);
+		CvString szCore;
+		szCore.Format(" scoreCore%dAvailable=%d scoreCore%dUnconstrained=%d scoreCore%dUnconstrainedYields=%dF%dP%dC scoreCore%dUnconstrainedSurplus=%d scoreCore%dFoodFeasible=%d scoreCore%dFoodFeasibleScore=%d scoreCore%dFoodFeasibleYields=%dF%dP%dC scoreCore%dFoodFeasibleSurplus=%d scoreCore%dUnsupportedProjectedScore=%d",
+			iCoreSize, bEnoughKnownPlots,
+			iCoreSize, (kBestUnconstrained.bValid ? kBestUnconstrained.iScoreValue : -1),
+			iCoreSize, (kBestUnconstrained.bValid ? aiUnconstrainedYield[YIELD_FOOD] : 0), (kBestUnconstrained.bValid ? aiUnconstrainedYield[YIELD_PRODUCTION] : 0), (kBestUnconstrained.bValid ? aiUnconstrainedYield[YIELD_COMMERCE] : 0),
+			iCoreSize, (kBestUnconstrained.bValid ? iUnconstrainedSurplus : 0),
+			iCoreSize, kBestFeasible.bValid,
+			iCoreSize, (kBestFeasible.bValid ? kBestFeasible.iScoreValue : -1),
+			iCoreSize, (kBestFeasible.bValid ? aiFeasibleYield[YIELD_FOOD] : 0), (kBestFeasible.bValid ? aiFeasibleYield[YIELD_PRODUCTION] : 0), (kBestFeasible.bValid ? aiFeasibleYield[YIELD_COMMERCE] : 0),
+			iCoreSize, (kBestFeasible.bValid ? iFeasibleSurplus : 0),
+			iCoreSize, iUnsupportedProjectedScore);
+		szResult += szCore;
+	}
+	return szResult;
+}
+
+// <!-- custom: Diagnostic-only food-feasible core comparison for the specific question that the ordinary plot scorer can value several individually strong low-Food tiles even when the city cannot feed enough citizens to work them together.
+// Do not revive AdvCiv's old evaluateSpecialYields/adjustToFood solution for this: that path aggregated overlapping natural/resource yields, applied nonlinear special-yield and Food modifiers, and was disabled after resource-heavy sites could receive extreme duplicate value.
+// Instead, preserve every existing local workable-yield value and ask the narrower combinatorial question: for 6/10/14 non-home workers, what is the highest-value set whose selected potential yields can be fed by those plots plus the free city center?
+// Ordinary-land yields blend immediate and final upgrade stages; resource/water yields retain the existing capacity model's improvement/building assumptions, and technology timing is not enforced here.
+// Only value that requires working the plot is constrained; resource health/happiness, strategic, diversity and trade value remain outside this diagnostic because they do not consume a citizen.
+// This checks sustenance only: zero surplus can maintain workers but cannot fund further growth; health, happiness and the development path needed to reach this population are not modeled.
+// No result here feeds AI decisions; the caller gates all allocation/search/formatting behind first-capital Found level 3. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+static CvString getSASFirstCityBFCFoodFeasibleFields(std::vector<SASFirstCityBFCCapacityPlot> const& aPlots, int const* aiHomeYield)
+{
+	int const aiCoreSizes[3] = {6, 10, 14};
+	int const iMaxCoreSize = 14;
+	int const iFoodPerCitizen = GC.getFOOD_CONSUMPTION_PER_POPULATION();
+	FAssert(gFoundLogLevel >= 3);
+	// <!-- custom: The first diagnostic indexed negative Food as zero while retaining signed yield totals; a synthetic -1F/+5F pair incorrectly passed a 5F requirement despite totaling only 4F.
+	// Offset exact signed Food totals by the sum of negative yields, so the feasibility index and reported yields describe the same budget. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	int iMinFood = 0;
+	int iMaxFood = 0;
+	for (size_t i = 0; i < aPlots.size(); ++i)
+	{
+		iMinFood += std::min(0, aPlots[i].aiYield[YIELD_FOOD]);
+		iMaxFood += std::max(0, aPlots[i].aiYield[YIELD_FOOD]);
+	}
+	std::vector<std::vector<SASFirstCityBFCFoodFeasibleState> > aaState(iMaxCoreSize + 1,
+		std::vector<SASFirstCityBFCFoodFeasibleState>(iMaxFood - iMinFood + 1));
+	aaState[0][-iMinFood].bValid = true;
+	int iProcessedPlots = 0;
+	for (size_t i = 0; i < aPlots.size(); ++i)
+	{
+		int const iPlotFood = aPlots[i].aiYield[YIELD_FOOD];
+		int const iMaxCount = std::min(iMaxCoreSize, iProcessedPlots + 1);
+		// <!-- custom: Descending worker counts read only the previous plot set; this prevents reusing the current plot even when its Food is zero or negative. (GPT-6.1-Sol) -->
+		for (int iCount = iMaxCount; iCount >= 1; --iCount)
+		{
+			for (int iFood = iMaxFood; iFood >= iMinFood; --iFood)
+			{
+				int const iPreviousFood = iFood - iPlotFood;
+				if (iPreviousFood < iMinFood || iPreviousFood > iMaxFood)
+					continue;
+				SASFirstCityBFCFoodFeasibleState const& kPrevious = aaState[iCount - 1][iPreviousFood - iMinFood];
+				if (!kPrevious.bValid)
+					continue;
+				SASFirstCityBFCFoodFeasibleState kCandidate = kPrevious;
+				kCandidate.bValid = true;
+				kCandidate.iWorkableYieldValue += aPlots[i].iWorkableYieldValue;
+				FOR_EACH_ENUM(Yield)
+					kCandidate.aiYield[eLoopYield] += aPlots[i].aiYield[eLoopYield];
+				if (isSASFirstCityBFCFoodFeasibleStateBetter(kCandidate, aaState[iCount][iFood - iMinFood]))
+					aaState[iCount][iFood - iMinFood] = kCandidate;
+			}
+		}
+		++iProcessedPlots;
+	}
+
+	std::vector<SASFirstCityBFCCapacityPlot> aWorkableValueCore = aPlots;
+	std::sort(aWorkableValueCore.begin(), aWorkableValueCore.end(), SASFirstCityBFCWorkableValueGreater());
+	CvString szResult;
+	for (int iCore = 0; iCore < 3; ++iCore)
+	{
+		int const iCoreSize = aiCoreSizes[iCore];
+		bool const bEnoughKnownPlots = ((int)aWorkableValueCore.size() >= iCoreSize);
+		int iUnconstrainedValue = 0;
+		int aiUnconstrainedYield[NUM_YIELD_TYPES] = {aiHomeYield[YIELD_FOOD], aiHomeYield[YIELD_PRODUCTION], aiHomeYield[YIELD_COMMERCE]};
+		if (bEnoughKnownPlots)
+		{
+			for (int iPlot = 0; iPlot < iCoreSize; ++iPlot)
+			{
+				iUnconstrainedValue += aWorkableValueCore[iPlot].iWorkableYieldValue;
+				FOR_EACH_ENUM(Yield)
+					aiUnconstrainedYield[eLoopYield] += aWorkableValueCore[iPlot].aiYield[eLoopYield];
+			}
+		}
+
+		// <!-- custom: A strong free city center can cover negative total worked-plot Food; do not clamp the remaining requirement to zero. (GPT-6.1-Sol) -->
+		int const iRequiredPlotFood = std::max(iMinFood, iCoreSize * iFoodPerCitizen - aiHomeYield[YIELD_FOOD]);
+		SASFirstCityBFCFoodFeasibleState kBestFeasible;
+		if (bEnoughKnownPlots)
+		{
+			for (int iFood = iRequiredPlotFood; iFood <= iMaxFood; ++iFood)
+			{
+				if (aaState[iCoreSize][iFood - iMinFood].bValid && isSASFirstCityBFCFoodFeasibleStateBetter(aaState[iCoreSize][iFood - iMinFood], kBestFeasible))
+					kBestFeasible = aaState[iCoreSize][iFood - iMinFood];
+			}
+		}
+		int const iUnconstrainedFoodSurplus = (bEnoughKnownPlots ? aiUnconstrainedYield[YIELD_FOOD] - iCoreSize * iFoodPerCitizen : 0);
+		int aiFeasibleYield[NUM_YIELD_TYPES] = {aiHomeYield[YIELD_FOOD], aiHomeYield[YIELD_PRODUCTION], aiHomeYield[YIELD_COMMERCE]};
+		if (kBestFeasible.bValid)
+		{
+			FOR_EACH_ENUM(Yield)
+				aiFeasibleYield[eLoopYield] += kBestFeasible.aiYield[eLoopYield];
+		}
+		int const iFeasibleFoodSurplus = (kBestFeasible.bValid ? aiFeasibleYield[YIELD_FOOD] - iCoreSize * iFoodPerCitizen : 0);
+		int const iUnsupportedWorkableValue = (bEnoughKnownPlots && kBestFeasible.bValid ? std::max(0, iUnconstrainedValue - kBestFeasible.iWorkableYieldValue) : -1);
+		CvString szCore;
+		// <!-- custom: Every field carries its worker count; repeated bare keys previously made the 6/10/14 results ambiguous to parsers.
+		// PositiveFoodSurplus refers only to this potential-yield budget, not a reachable growth path or a health/happiness guarantee. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+		szCore.Format(" workableCore%dAvailable=%d workableCore%dUnconstrainedValue=%d workableCore%dUnconstrained=%dF%dP%dC workableCore%dUnconstrainedSurplus=%d workableCore%dFoodFeasible=%d workableCore%dFoodFeasibleValue=%d workableCore%dFoodFeasibleYields=%dF%dP%dC workableCore%dFoodFeasibleSurplus=%d workableCore%dPositiveFoodSurplus=%d workableCore%dUnsupportedWorkableValue=%d",
+			iCoreSize, bEnoughKnownPlots,
+			iCoreSize, (bEnoughKnownPlots ? iUnconstrainedValue : -1),
+			iCoreSize, (bEnoughKnownPlots ? aiUnconstrainedYield[YIELD_FOOD] : 0), (bEnoughKnownPlots ? aiUnconstrainedYield[YIELD_PRODUCTION] : 0), (bEnoughKnownPlots ? aiUnconstrainedYield[YIELD_COMMERCE] : 0),
+			iCoreSize, (bEnoughKnownPlots ? iUnconstrainedFoodSurplus : 0),
+			iCoreSize, kBestFeasible.bValid,
+			iCoreSize, (kBestFeasible.bValid ? kBestFeasible.iWorkableYieldValue : -1),
+			iCoreSize, (kBestFeasible.bValid ? aiFeasibleYield[YIELD_FOOD] : 0), (kBestFeasible.bValid ? aiFeasibleYield[YIELD_PRODUCTION] : 0), (kBestFeasible.bValid ? aiFeasibleYield[YIELD_COMMERCE] : 0),
+			iCoreSize, (kBestFeasible.bValid ? iFeasibleFoodSurplus : 0),
+			iCoreSize, (kBestFeasible.bValid && iFeasibleFoodSurplus > 0),
+			iCoreSize, iUnsupportedWorkableValue);
+		szResult += szCore;
+	}
+	return szResult;
+}
 
 static CvString getSASFirstCityBFCCapacityFields(std::vector<SASFirstCityBFCCapacityPlot> const& aPlots, int const* aiHomeYield)
 {
@@ -675,6 +979,10 @@ int AIFoundValue::evaluate()
 	// Food from bonus-specific improvements offsets food-poor plots; an ocean-coastal candidate assumes its configured, civilization-specific Harbor-class water-food yield because that cheap city-wide improvement is the practical long-term water baseline.
 	// Very-bad plots are excluded because they are already handled as economically dead BFC capacity and will not normally consume a citizen. (GPT-5.5) -->
 	int iLowFoodLocationScore = 0;
+	// <!-- custom: Diagnostic-only comparison for whether the ordinary-land improvement outcome already selected by the main plot evaluator could relieve this separate natural-food heuristic.
+	// Keep the gameplay score unchanged until the logs establish whether and how timing-discounted improvement potential belongs here.
+	// This is an optimistic relief-only comparison: credit Food gains on currently food-poor ordinary land, but do not charge Food losses or replace the complete site-food model. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	int iLowFoodSelectedPotentialReliefTimes100 = 0;
 	bool const bOceanCoastal = kPlot.isCoastalLand(GC.getDefineINT(CvGlobals::MIN_WATER_SIZE_FOR_OCEAN));
 	int const iAssumedSeaPlotFoodChange = (bOceanCoastal ? CvPlot::SAS_getWaterFoodBuildingSeaPlotFoodChange(ePlayer) : 0);
 
@@ -738,6 +1046,7 @@ int AIFoundValue::evaluate()
 		}
 		CvPlot const& p = *pLoopPlot;
 		bool const bHome = isHome(p);
+		int iCurrentLowFoodPlotScore = 0;
 
 		// <!-- custom: Preliminary BFC quality counters previously ran before isUsablePlot and could affect first-city acceptance or later penalties through plots that the main evaluator then rejected as reserved or unavailable overlap.
 		// Classify only plots that passed the established usability contract; fog remains represented separately by iUnrevealedTiles. See KI#490. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
@@ -761,7 +1070,11 @@ int AIFoundValue::evaluate()
 					p.getX(), p.getY(), (p.isImpassable() ? "impassable" : "weak despite improvements"), iBestPotentialYieldScore,
 					iMinAcceptableVeryBadPlotPotentialYieldScore);
 			}
-			else iLowFoodLocationScore += p.SAS_getLowFoodEnvironmentScore(eBonusPlot, iAssumedSeaPlotFoodChange, bCanAssumeWaterBonusImprovement);
+			else
+			{
+				iCurrentLowFoodPlotScore = p.SAS_getLowFoodEnvironmentScore(eBonusPlot, iAssumedSeaPlotFoodChange, bCanAssumeWaterBonusImprovement);
+				iLowFoodLocationScore += iCurrentLowFoodPlotScore;
+			}
 			if (bStartPhase && p.SAS_isGoodEnoughFirstCityBFCPlot(eBonusPlot, ePlayer, kPlot, bVeryBadBFCPlot))
 				++iGoodEnoughFirstCityBFCTiles;
 		}
@@ -906,6 +1219,24 @@ int AIFoundValue::evaluate()
 		// <!-- custom: Ordinary water has no Build/Improvement outcome to enumerate, and its value depends on whether this candidate city is coastal.
 		// Retain the already computed contextual nature value instead of scanning XML or placing a candidate-specific water value in the plot-intrinsic land cache. (GPT-5.6-Sol) -->
 		int const iBestPotentialYieldValue = (eBonus == NO_BONUS && !p.isWater() ? evaluateBestPotentialPlotYield(p, bCanNeverImprove, eBestPotentialImprovement, aiBestPotentialYield, iPotentialTimingPercent, bPotentialCacheHit) : iNatureYieldValue);
+		// <!-- custom: Found level 3 compares the separate natural-food heuristic with the timing-discounted Food of the same ordinary-land improvement outcome already preferred by the main plot-value model.
+		// The shared bLogFirstCityBFCCapacity gate already requires Found level 3, no cities, actual starting-site evaluation and no map normalization.
+		// Selected yields blend immediate and final upgrade stages using the existing stage weights; apply the selected Build's technology timing discount to that blend, not to a final-maturity-only yield.
+		// This is diagnostic only: it does not assume that every low-Food tile should become a Farm, and it does not alter SAS_getLowFoodEnvironmentScore, first-city scouting, worker logic or city evaluation. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+		if (bLogFirstCityBFCCapacity && !bHome && eBonus == NO_BONUS && !p.isWater() && iCurrentLowFoodPlotScore > 0)
+		{
+			int const iFoodPerCitizen = GC.getFOOD_CONSUMPTION_PER_POPULATION();
+			int const iNaturalFood = p.calculateNatureYield(YIELD_FOOD, NO_TEAM);
+			int const iSelectedStageBlendedFood = aiBestPotentialYield[YIELD_FOOD];
+			int const iSelectedEffectiveFoodTimes100 = std::max(100 * iNaturalFood, 100 * iNaturalFood + (iSelectedStageBlendedFood - iNaturalFood) * iPotentialTimingPercent);
+			int const iSelectedPotentialLowFoodScoreTimes100 = std::min(100 * iCurrentLowFoodPlotScore, 100 * iFoodPerCitizen - iSelectedEffectiveFoodTimes100);
+			int const iReliefTimes100 = std::max(0, 100 * iCurrentLowFoodPlotScore - iSelectedPotentialLowFoodScoreTimes100);
+			iLowFoodSelectedPotentialReliefTimes100 += iReliefTimes100;
+			logBBAIFoundDetail("FIRST_CITY_LOW_FOOD_IMPROVEMENT_POTENTIAL", "plot=%d,%d currentLowFood=%d natural=%dF%dP%dC natureValue=%d bestImprovement=%S selectedStageBlended=%dF%dP%dC selectedTiming=%d%% selectedEffectiveFood100=%d selectedPotentialLowFood100=%d relief100=%d bestPotentialValue=%d cacheHit=%d",
+				p.getX(), p.getY(), iCurrentLowFoodPlotScore, p.calculateNatureYield(YIELD_FOOD, NO_TEAM), p.calculateNatureYield(YIELD_PRODUCTION, NO_TEAM), p.calculateNatureYield(YIELD_COMMERCE, NO_TEAM), iNatureYieldValue,
+				(eBestPotentialImprovement == NO_IMPROVEMENT ? L"-" : GC.getInfo(eBestPotentialImprovement).getDescription()), aiBestPotentialYield[YIELD_FOOD], aiBestPotentialYield[YIELD_PRODUCTION], aiBestPotentialYield[YIELD_COMMERCE],
+				iPotentialTimingPercent, iSelectedEffectiveFoodTimes100, iSelectedPotentialLowFoodScoreTimes100, iReliefTimes100, iBestPotentialYieldValue, bPotentialCacheHit);
+		}
 		// <!-- custom: Resource improvements retain their established strategic/non-yield and dedicated yield valuation for now.
 		// For ordinary plots, replace the named terrain/feature bonuses with the strongest XML-valid improvement outcome, including improvements that retain their feature and a discounted share of later-tech or upgrade-chain value.
 		// Old SAS added a separate terrain adjustment on top of the inherited yield score: e.g. Flood Plains +100, Grassland Hill +80, flat Grassland +65, Plains Hill +15, flat Plains -20 and Desert Hill -25.
@@ -1094,6 +1425,8 @@ int AIFoundValue::evaluate()
 			{
 				SASFirstCityBFCCapacityPlot kCapacityPlot;
 				kCapacityPlot.iPlotValue = iPlotValue;
+				// <!-- custom: Keep the food-feasible comparison on the yield-derived value that actually requires working this plot; exclude fresh-water/site/culture effects that are not consumed through a citizen assignment. (ChatGPT-5.6-Sol) -->
+				kCapacityPlot.iWorkableYieldValue = (eBonus == NO_BONUS ? std::max(iNatureYieldValue, iBestPotentialYieldValue) : iNatureYieldValue);
 				kCapacityPlot.iPlotIndex = eLoopCityPlot;
 				int aiBuildingYield[NUM_YIELD_TYPES];
 				calculateBuildingYields(p, aiNatureYield, aiBuildingYield);
@@ -1277,6 +1610,14 @@ int AIFoundValue::evaluate()
 				iBonusScoreAdjustPercent, iBonusScoreWaterPenalty, iBonusScoreNonYield, iBonusScoreDiversity, iBonusScoreDynamicValue,
 				iBonusScoreYield, iBonusScoreNonYield + iBonusScoreDiversity + iBonusScoreDynamicValue + iBonusScoreYield);
 
+			// <!-- custom: The food-feasible diagnostic constrains only value that requires a citizen to work this tile.
+			// Resource improvement yields belong to that local worked value; non-yield/dynamic/diversity resource value remains unconstrained because the empire receives it without working the tile. (ChatGPT-5.6-Sol) -->
+			if (bLogFirstCityBFCCapacity && !bHome && !aFirstCityBFCCapacityPlots.empty())
+			{
+				aFirstCityBFCCapacityPlots.back().iWorkableYieldValue += iBonusScoreYield;
+				aFirstCityBFCCapacityPlots.back().iBonusImprovementYieldValue = iBonusScoreYield;
+			}
+
 			int iSpecialYieldModifier = calculateSpecialYieldModifier(iCultureModifier, bEasyAccess, eBonus != NO_BONUS, bCanSoonImproveBonus, bCanImproveBonus);
 			calculateSpecialYields(p, eBonusImprovement == NO_IMPROVEMENT ? NULL : aiBonusImprovementYield, aiNatureYield, iSpecialYieldModifier, aiSpecialYield, iSpecialFoodPlus, iSpecialFoodMinus, iSpecialYieldTiles);
 		}
@@ -1288,6 +1629,16 @@ int AIFoundValue::evaluate()
 		logBBAIFoundDetail("FIRST_CITY_BFC_POTENTIAL_CAPACITY", "center=%dF%dP%dC knownUsableNonHome=%d foodPerCitizen=%d%s",
 			aiFirstCityBFCCapacityHomeYield[YIELD_FOOD], aiFirstCityBFCCapacityHomeYield[YIELD_PRODUCTION], aiFirstCityBFCCapacityHomeYield[YIELD_COMMERCE],
 			(int)aFirstCityBFCCapacityPlots.size(), GC.getFOOD_CONSUMPTION_PER_POPULATION(), szCapacity.GetCString());
+		CvString const szFoodFeasible = getSASFirstCityBFCFoodFeasibleFields(aFirstCityBFCCapacityPlots, aiFirstCityBFCCapacityHomeYield);
+		logBBAIFoundDetail("FIRST_CITY_BFC_FOOD_FEASIBLE_CORE", "center=%dF%dP%dC knownUsableNonHome=%d foodPerCitizen=%d foodConstraint=SUSTAIN_ONLY yieldScope=SELECTED_POTENTIAL healthHappinessIncluded=0 techTimingEnforced=0 growthPathModeled=0%s",
+			aiFirstCityBFCCapacityHomeYield[YIELD_FOOD], aiFirstCityBFCCapacityHomeYield[YIELD_PRODUCTION], aiFirstCityBFCCapacityHomeYield[YIELD_COMMERCE],
+			(int)aFirstCityBFCCapacityPlots.size(), GC.getFOOD_CONSUMPTION_PER_POPULATION(), szFoodFeasible.GetCString());
+		// <!-- custom: Keep both comparisons: FOOD_FEASIBLE_CORE isolates yield-derived workable value, whereas SCORE_PROJECTION applies capital rank weighting to stored plot values and adds worked bonus-improvement yield.
+		// They can choose different subsets; the projection includes effects already embedded in plot values and remains a partial score, not final found value or a gameplay penalty. (GPT-6.1-Sol) -->
+		CvString const szFoodFeasibleScoreProjection = getSASFirstCityBFCFoodFeasibleScoreProjectionFields(aFirstCityBFCCapacityPlots, aiFirstCityBFCCapacityHomeYield);
+		logBBAIFoundDetail("FIRST_CITY_BFC_FOOD_FEASIBLE_SCORE_PROJECTION", "center=%dF%dP%dC knownUsableNonHome=%d foodPerCitizen=%d foodConstraint=SUSTAIN_ONLY scoreScope=FIRST_CAPITAL_RANK_WEIGHTED_PLOT_PLUS_WORKED_BONUS_YIELD outskirtsIncluded=0 nonYieldResourceIncluded=0 healthHappinessIncluded=0 techTimingEnforced=0 growthPathModeled=0 finalFoundValue=0%s",
+			aiFirstCityBFCCapacityHomeYield[YIELD_FOOD], aiFirstCityBFCCapacityHomeYield[YIELD_PRODUCTION], aiFirstCityBFCCapacityHomeYield[YIELD_COMMERCE],
+			(int)aFirstCityBFCCapacityPlots.size(), GC.getFOOD_CONSUMPTION_PER_POPULATION(), szFoodFeasibleScoreProjection.GetCString());
 	}
 
 	if (gFoundLogLevel >= 3 && bStartPhase && kSet.isStartingLoc() && !kSet.isNormalizing() && iCities == 0) logBBAIFirstCityOuterRingResources(aiBonusCount);
@@ -1322,7 +1673,8 @@ int AIFoundValue::evaluate()
 	// advc.031: Preserve this for later
 	// int iNonYieldResourceVal = std::max(0, iResourceValue);
 	// <!-- custom: Replaced AdvCiv's opaque aggregated special-yield score with the linear XML-tunable per-bonus calculation above.
-	// Keep the old call commented for a visible reference while calculateSpecialYields still supplies food/production context used by other established logic below. (GPT-5.5) -->
+	// Do not restore evaluateSpecialYields merely to make high-yield tiles depend on Food support: that old path mixed overlapping natural/resource yields with nonlinear value and Food modifiers and produced extreme duplicate value on resource-heavy sites.
+	// FIRST_CITY_BFC_FOOD_FEASIBLE_CORE now measures the narrower workability constraint directly for diagnostics, while calculateSpecialYields remains only for the established production/food context still consumed below. (GPT-5.5 + ChatGPT-5.6-Sol) -->
 	// if (bNeedBreakdown)
 	// 	iBreakdownNonYieldResources = iResourceValue;
 	// if (iSpecialYieldTiles > 0) // advc.031
@@ -1368,6 +1720,15 @@ int AIFoundValue::evaluate()
 	{
 		static const int iMaxToleratedNotCoastalLowFoodScore = GC.getDefineINT("SAS_EVALUATE_MAX_TOLERATED_NOT_COASTAL_LOW_FOOD_SCORE");
 		static const int iBaseValueNotCoastalLowFood = GC.getDefineINT("SAS_EVALUATE_BASE_VALUE_NOT_COASTAL_LOW_FOOD");
+		// <!-- custom: This summary subtracts only the optimistic Food relief collected above; selected outcomes that reduce Food remain uncharged, so the hypothetical score is not a full recomputation of site capacity. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+		if (bLogFirstCityBFCCapacity && (iLowFoodLocationScore > iMaxToleratedNotCoastalLowFoodScore || iLowFoodSelectedPotentialReliefTimes100 > 0))
+		{
+			int const iSelectedPotentialScoreTimes100 = 100 * iLowFoodLocationScore - iLowFoodSelectedPotentialReliefTimes100;
+			logBBAIFoundDetail("FIRST_CITY_LOW_FOOD_IMPROVEMENT_POTENTIAL_SUMMARY", "currentScore=%d selectedPotentialScore100=%d relief100=%d threshold=%d currentTriggersPenalty=%d selectedPotentialTriggersPenalty=%d currentPenalty=%d",
+				iLowFoodLocationScore, iSelectedPotentialScoreTimes100, iLowFoodSelectedPotentialReliefTimes100, iMaxToleratedNotCoastalLowFoodScore,
+				iLowFoodLocationScore > iMaxToleratedNotCoastalLowFoodScore, iSelectedPotentialScoreTimes100 > 100 * iMaxToleratedNotCoastalLowFoodScore,
+				(iLowFoodLocationScore > iMaxToleratedNotCoastalLowFoodScore ? iBaseValueNotCoastalLowFood * iLowFoodLocationScore : 0));
+		}
 
 		if (iLowFoodLocationScore > iMaxToleratedNotCoastalLowFoodScore)
 		{
