@@ -11611,9 +11611,11 @@ This follow-up was exposed by the first-capital diagnostics committed in practic
 
 Base AdvCiv's `sumUpPlotValues` ranks and weights individual plot values without explicitly checking whether their combined Food can sustain the citizens assigned to them. AdvCiv did recognize the related problem: its special-Food bookkeeping says "So that we can tell whether the city will be able to work its high-yield tiles".
 
-AdvCiv also applied aggregate Food modifiers through `evaluateSpecialYields` and `adjustToFood`; ordinary starting-site evaluation skipped the latter unless evaluating a scenario. Those heuristics were not the explicit 6/10-worker subset comparison introduced here.
+AdvCiv also applied aggregate Food modifiers through `evaluateSpecialYields` and `adjustToFood`; ordinary starting-site evaluation skipped the latter unless evaluating a scenario. Those heuristics were not the explicit 6/10-plot worked-core subset comparison introduced here.
 
 SAS later replaced/disabled those paths after overlapping natural/resource yields and nonlinear modifiers produced excessive resource-heavy scores in SAS testing. SAS's remaining broad low-food penalty and modified plot valuation therefore provide the immediate context for this correction; disabling the old paths alone has not been established as the cause of the measured gaps.
+
+Core sizes count citizens assigned to non-home city plots, excluding specialists and Worker units; city-center yields are included without requiring another citizen.
 
 Observed problem:
 
@@ -11623,21 +11625,21 @@ Observed problem:
 - Sustaining a workforce and growing it are separate questions: zero surplus maintains that population under the diagnostic assumptions but leaves no Food for growth while using that assignment. A city can switch to Food-rich plots while growing, so this comparison does not prove it can never reach that population; growth paths, health/happiness limits and technology timing are not modeled.
 - For the same reason, an experimental blanket rule that classified every non-self-feeding inland-water tile as very bad was rejected. The existing mixed-yield/improvement-potential model should continue to let exceptional Production or Commerce compensate for low Food; the rejected water experiment remains noted in KI#647.2.
 - The established non-coastal low-food heuristic measures broad BFC Food scarcity, but it does not answer the narrower question: can the particular high-value plots being credited by the first-capital ranking actually be worked together by a sustainable workforce?
-- Practical 6623 therefore added diagnostic exact-subset comparisons for 6, 10 and 14 non-home workers. These showed genuine cases where the unconstrained highest-value worked core was Food-negative even though a lower-value sustainable combination existed.
-- The old Istanbul Gold/Grapes site `(87,33)` illustrates why the distinction matters but also why the mature 14-worker stage should not drive the opening correction.
-  - Its projected 6- and 10-worker cores were fully supportable, while its unconstrained 14-worker core was `27F 14P 39C` (Food surplus `-1`, projected score `2754`).
+- Practical 6623 therefore added diagnostic exact-subset comparisons for 6, 10 and 14 worked non-home plots. These showed genuine cases where the unconstrained highest-value worked core was Food-negative even though a lower-value sustainable combination existed.
+- The old Istanbul Gold/Grapes site `(87,33)` illustrates why the distinction matters but also why the mature 14-plot worked-core stage should not drive the opening correction.
+  - Its projected 6- and 10-plot worked cores were fully supportable, while its unconstrained 14-plot worked core was `27F 14P 39C` (Food surplus `-1`, projected score `2754`).
   - Replacing some juicy low-Food value produced a sustainable `28F 13P 34C` core at projected score `2394`, a 360-point opportunity cost.
-  - The healthier chosen river site `(86,32)` had no unsupported projected value at 6, 10 or 14 workers.
+  - The healthier chosen river site `(86,32)` had no unsupported projected value at 6, 10 or 14 worked non-home plots.
 
 Preceding Bibracte inland-water prototype and separate Nidaros checks:
 
 - The preceding rejected prototype concerned Bibracte's weak inland-water BFC slots and the proposed move east, not Nidaros's Pig comparison.
   - The original `(77,36)` Bibracte site retained three `1F2C` inland-water slots, versus one at eastern `(78,36)` and none at `(78,37)`; their Commerce kept them above the existing very-bad classification cutoff.
   - The blanket override would instead classify non-self-feeding ordinary inland water as very bad. It was dropped because low Food alone does not justify overriding the mixed-yield value of a tile; existing water penalties and observation-only logging remain.
-  - The later diagnostics did not establish a workforce-support failure behind Bibracte's choice: the selected site's preferred potential-yield cores had Food surpluses `+12 / +14 / +9` at 6/10/14 workers, and both it and the eastern/hill alternatives had zero unsupported worked value.
+  - The later diagnostics did not establish a Food-support failure behind Bibracte's choice: the selected site's preferred potential-yield cores had Food surpluses `+12 / +14 / +9` at 6/10/14 worked non-home plots, and both it and the eastern/hill alternatives had zero unsupported worked value.
   - Earlier resource-overlap and starting-growth-classification fixes reduced separate distortions without forcing an eastward move. The remaining BFC-boundary/resource-access question is separate from this Food-support correction; Bibracte staying at `(77,36)` is not evidence that this correction cured that policy question.
 - Nidaros is a separate Pig-versus-river comparison/control, not the rejected inland-water prototype. Its question was whether selecting the river/core-rich site without the nearby Pig left too little Food to support valuable plots, not whether the Pig tile itself was food-poor.
-  - The selected `(87,59)` site's preferred potential-yield cores had Food surpluses `+6 / +8 / +8` at 6/10/14 non-home workers; the nearby Pig candidate `(86,59)` had `+8 / +8 / +7`.
+  - The selected `(87,59)` site's preferred potential-yield cores had Food surpluses `+6 / +8 / +8` at 6/10/14 worked non-home plots; the nearby Pig candidate `(86,59)` had `+8 / +8 / +7`.
   - Nidaros's later Food-feasible comparisons also showed no unsupported value at those stages. The sample therefore rejected a Food-support explanation for that choice.
 - Fresh first-capital scores favored `(87,59)` at `4736` over Pig-oriented `(84,61)` at `4178` and `(86,59)` at `3879`.
   - In that earlier comparison the selected site's plot contribution was `1988` versus `1612` for `(86,59)`, with `+500` fresh-water value and `+85` health; the resource totals were close (`1641` versus `1685`).
@@ -11654,9 +11656,9 @@ Fix:
 - Reuse the evaluator's selected potential F/P/C for each usable non-home plot, including the free city-center Food budget.
 - Project the same first-capital rank weighting used by `sumUpPlotValues` onto the selected ordinary plot value and add only bonus-improvement yield that requires assigning a citizen to the resource tile.
 - Keep resource access, health/happiness, strategic, diversity and trade value outside the Food constraint because those benefits do not require working the tile.
-- For exact 6- and 10-worker cores, compare the best unconstrained projected score with the highest projected score whose combined Food can sustain those workers.
+- For exact 6- and 10-plot worked cores, compare the best unconstrained projected score with the highest projected score whose combined Food can feed the citizens assigned to those plots.
 - Require both early cores to be measurable. Partial/fogged or wholly unsustainable states do not receive a guessed correction.
-- Use the larger unsupported 6/10 score, never their sum, because the two growth stages overlap. Keep the 14-worker result diagnostic-only: a capital can be an excellent opening city without needing to sustain fourteen non-home workers.
+- Use the larger unsupported 6/10 score, never their sum, because the two growth stages overlap. Keep the 14-plot worked-core result diagnostic-only: a capital can be an excellent opening city without needing to feed fourteen citizens working non-home plots.
 - Skip the new correction when the established broad non-coastal low-food penalty already applies, avoiding an initial double charge for the same Food scarcity through two overlapping heuristics.
 - `SAS_EVALUATE_STARTING_FOOD_SUPPORT_PENALTY_PERCENT` controls the correction; the default `100` removes the measured projected opportunity cost, while `0` disables the gameplay path.
 - Found BBAI level 3 retains the detailed capacity, Food-feasible-core, score-projection and applied-adjustment rows. The ordinary score breakdown also exposes the final `foodSupport` contribution.
@@ -11665,14 +11667,14 @@ Why the old AdvCiv solution stays disabled:
 
 - This correction does not restore `evaluateSpecialYields` / `adjustToFood`.
 - The old path attempted a related high-yield/Food-support problem through aggregated special yields and nonlinear modifiers, but that made resource-heavy sites hard to reason about and had already produced extreme overlapping value in AdvCiv-SAS testing.
-- The replacement asks the narrower workability question directly: how much of the already-valued 6/10 worked core must actually be sacrificed to make that same worker count Food-sustainable?
+- The replacement asks the narrower workability question directly: how much of the already-valued 6/10 worked core must actually be sacrificed to make that same number of citizens assigned to non-home plots Food-sustainable?
 
 Performance:
 
 - Scope, gameplay and diagnostics are gated separately.
 - With `SAS_EVALUATE_STARTING_FOOD_SUPPORT_PENALTY_PERCENT=0` and Found level below 3, the extra per-plot capacity collection and subset search are skipped.
-- With the gameplay correction enabled but Found level below 3, only the gameplay-required 6/10 projection runs; 14-worker search, natural-yield diagnostic accounting and formatted diagnostic rows remain disabled.
-- Found level 3 enables the full diagnostic comparison, including the 14-worker observation.
+- With the gameplay correction enabled but Found level below 3, only the gameplay-required 6/10 projection runs; 14-plot worked-core search, natural-yield diagnostic accounting and formatted diagnostic rows remain disabled.
+- Found level 3 enables the full diagnostic comparison, including the 14-plot worked-core observation.
 - The correction is first-capital-only, so later-city performance and policy remain a separate follow-up before any generalization.
 
 Validation:
@@ -11684,11 +11686,29 @@ Validation:
 - Only two of the 256 founded-site rescored values changed: Aksum `(37,30)` fell from `3980` to `3952` (`-28`), and Persepolis `(168,18)` from `4255` to `4224` (`-31`). Both cities were still founded at the same locations.
 - This validation therefore shows that the correction is active and bounded without claiming that the six-map suite contains a founding location that visibly improves because of this layer alone.
 
-Later-city Food-support investigation is the preferred next policy follow-up, not an automatic extension of this fix. Ordinary cities have different growth horizons, overlapping worked plots and strategic reasons to accept specialized low-Food sites; collect comparable evidence and review cost before choosing their workforce sizes or copying the first-capital 6/10 rule.
+Later-city diagnostic follow-up (2026-10-11):
 
-Outer-BFC resource valuation remains a separate deferred hypothesis. The earlier 75% experiment gave `+106` for a nearby Pig and helped reverse Wang Kon's scouting direction; that is evidence to reject that prototype, not validation of a general outer-ring bonus. It is not required before investigating later-city Food support.
+- Added the default-off `SAS_BBAI_FOUND_LATER_CITY_FOOD_SUPPORT_AUDIT_ENABLE` control, requiring Found level 2 or higher. It compares 3/6/10/14 worked non-home plots using ordinary later-city rank weighting; the free city center supplies its yields without consuming a worked-plot slot.
+  - The shared subset projection preserves the first-capital 6/10 gameplay rule. Later-city results are observational only, including player-known-map comparison contexts; rejected sites skip the audit search, and disabled diagnostics skip its collection, search and formatting.
+  - This remains a sustain-only comparison of the evaluator's usable plots and selected potential yields, not a growth, health/happiness, technology-timing or empire-wide overlapping-plot allocation model. An unavailable/infeasible core is reported as `-1`, not a zero support gap.
+- In the Wang T11-151 sample, all 81 normal city foundings had a sustainable 3-plot core with no unsupported score. Only two had a positive 6-plot gap; six had a positive 10-plot gap. These are observations about founded sites, not proof that every rejected alternative was inferior.
+  - Corinth `(45,29)` at T62 had gaps of 23/125 for cores 6/10 and already received the established low-Food penalty. Huamanga `(21,43)` at T135 had gaps of 124/162 without that penalty, making it the useful focused follow-up.
+- In the focused T100-save continuation, the Inca Settler completed at T126, departed with a healthy Longbowman escort at T127 and founded Huamanga at T132 without target changes. Its score stayed `3343` against `2861` for nearby `(20,42)` and `2806` for the best maintained-shortlist alternative `(18,52)`.
+  - Subtracting the observed 6-plot gap gives `3219`; even subtracting the larger 10-plot gap gives `3181`. Both still exceed those alternatives and satisfy the existing absolute/percentage raw-score preference thresholds. The two gaps overlap and must not be summed.
+  - `(20,42)` was positively evaluated but absent from the maintained shortlist; it is not a demonstrated path-tested alternative. Its existing bad-health penalty explains much of the difference despite a stronger pre-modifier score.
+  - Huamanga's 3-plot core had positive Food surplus, and the city subsequently grew to population 2/3/4 at T144/155/161. The larger-core gap therefore does not establish that this city cannot grow or that the observed founding needs a new penalty.
+  - This is a fixed-state counterfactual, not a replay of an implemented later-city cure. The original and focused runs started from different saves and founded at different turns; they are not a controlled logging-on/off comparison or evidence of RNG divergence caused by diagnostics.
+- The evidence does not currently justify extending the first-capital correction to later cities. Ordinary cities have different growth horizons, overlapping worked plots and strategic reasons to accept specialized low-Food sites; retain the audit for focused questions rather than penalizing every measurable support gap.
+  - Brief Settler retargeting also had identifiable context: a rival founded the target, a fog-scouting detour returned to its original target, or resource/site values changed. The French value reversal and early escort waits remain possible focused investigations, not confirmed defects requiring a cure here.
+- Log-volume guidance: this audit contributed 319,865,515 bytes (about 4.51%) of the 7,092,705,839-byte Found-3/Settler-3 sample. Three detailed Found-level-3 plot/improvement families accounted for about 62.50%; reducing Found verbosity saves much more than disabling this audit alone. Use focused windows for forensic detail and full runs when validating gameplay changes.
 
-SASGameRecord also remains unchanged by this fix. Once the remaining Settler/site-valuation follow-ups are settled, the compact recorder can promote only the smallest durable first-city fields that proved repeatedly useful instead of duplicating Found level-3 forensic detail.
+Outer-BFC resource valuation remains a separate deferred hypothesis considered during this work; it is not required before investigating later-city Food support.
+
+- The earlier 75% experiment gave `+106` for a nearby Pig and helped reverse Wang Kon's scouting direction; that is evidence to reject that prototype, not validation of a general outer-ring bonus.
+- Reasons for deferring broader credit include potentially marginal benefit and uncertain access depending on culture expansion and rival borders. Later cities may gain culture slowly, delaying or preventing access to a nearby resource outside their BFC.
+- Speculative credit can disturb otherwise valid site comparisons; a useful replacement would need evidence that its benefit outweighs those distortions. These considerations do not establish that every outer-BFC approach would be harmful.
+
+SASGameRecord remains unchanged by this diagnostic follow-up. The next recorder review can consider compact fields describing the chosen/founded site and its Food support, using both first-capital and later-city evidence; candidate-by-candidate searches and hypothetical corrections belong in BBAI rather than the whole-game record.
 
 Implemented with the help of ChatGPT-5.6-Sol and GPT-6.1-Sol, thanks.
 

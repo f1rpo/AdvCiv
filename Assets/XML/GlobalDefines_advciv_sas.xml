@@ -1413,8 +1413,8 @@ Enforced by the turn_define_gamespeed CI check. (GPT-5.6 Thinking) -->
 
 
 
-	<!-- custom: Percent of the score-projected worked-tile opportunity cost removed from actual first-capital value when the best 6- or 10-worker core cannot be sustained without replacing higher-value low-Food plots.
-	Uses the larger 6/10 gap, never their sum, and requires both growth cores to be measurable; the 14-worker core remains diagnostic-only.
+	<!-- custom: Percent of the score-projected worked-tile opportunity cost removed from actual first-capital value when the best 6- or 10-plot worked core cannot be sustained without replacing higher-value low-Food plots.
+	Uses the larger 6/10 gap, never their sum, and requires both growth cores to be measurable; the 14-plot worked core remains diagnostic-only.
 	Skipped when the established non-coastal low-food penalty already applies so the same Food scarcity is not double-charged.
 	Resource access/non-yield value is not constrained because it does not require working the tile.
 	Set to 0 to disable; later-city use is deliberately deferred to a separate follow-up. See KI#144.4. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
@@ -1927,6 +1927,14 @@ Enforced by the turn_define_gamespeed CI check. (GPT-5.6 Thinking) -->
 	Base AdvCiv LOG_FOUND_VALUE default: when enabled: 1; when disabled: 0. See KI#505.2. (GPT-5.5 + GPT-5.6-Sol + ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	<Define>
 		<DefineName>SAS_BBAI_FOUND_LOG_LEVEL</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!-- custom: Opt-in Found-level-2+ forensic audit for ordinary post-capital city sites.
+	When enabled, compare unconstrained versus Food-feasible worked-value cores of 3/6/10/14 worked non-home plots using ordinary later-city rank weighting; this does not change AI scores.
+	Keep disabled outside focused tests because every surviving later-city candidate needs an additional subset search.
+	Requires SAS_BBAI_FOUND_LOG_LEVEL >= 2 to do any work. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	<Define>
+		<DefineName>SAS_BBAI_FOUND_LATER_CITY_FOOD_SUPPORT_AUDIT_ENABLE</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 	<!-- custom: Dedicated evacuation/retreat diagnostics, separated from CITY and UNIT so city-side evacuation decisions and affected units can be inspected together without broad logging.
