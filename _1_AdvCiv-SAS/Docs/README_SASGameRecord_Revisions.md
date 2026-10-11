@@ -28,7 +28,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=143 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=144 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -71,10 +71,25 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
-### Revision 143 - SAS practical 6627
+### Revision 144 - SAS practical 6628
 
 - **Date:** 2026-10-11
 - **Git commit:** `pending`
+- **Change:** Add compact empire-cost/city-management context for expansion analysis without inferring player neglect or logging UI behavior.
+
+- `GAME_RECORD_CITIES` now separates pre-city-modifier maintenance into distance, number-of-cities, colony and corporation components while retaining actual total maintenance, and counts zero-Food-surplus cities, cities with assigned specialists, their overlap, citizen/production automation, and cities whose maintenance is currently waived.
+- Level-3 `GAME_RECORD_CITY` exposes the same maintenance decomposition, maintenance-waiver state and the two automation flags; existing Food surplus and specialist fields remain the authoritative city-level state.
+- `GAME_RECORD_CITIES_DELTAS` adds actual total-maintenance change so periodic empire-cost movement is visible without comparing full aggregate rows manually.
+- `GAME_RECORD_ECONOMY` now exposes gold-commerce/deal income, exact inflated costs, native unit cost/supply, city maintenance, civic upkeep and inflation rate. `inflatedCosts` is reconstructed from the existing gold-rate identity while the economy row reuses the player snapshot's already-computed gold rate, removing the former duplicate Python extra-expenses callback.
+- Split the two longest recorder format strings into logical field groups using adjacent C++ literals; emitted rows remain byte-identical.
+- These are direct current-state calculations/getters only. No persistent gameplay state, AI choices, RNG, screen-inspection telemetry or inferred "neglected for N turns" state is added; existing happiness timers, production target history and periodic city snapshots remain the appropriate evidence for those questions.
+
+Developed with ChatGPT-5.6-Sol; reviewed and adjusted with GPT-6.1-Sol, from a Civ IV empire-management/administrative-burden telemetry audit.
+
+### Revision 143 - SAS practical 6627
+
+- **Date:** 2026-10-11
+- **Git commit:** `f2e68580627b2e6754f0f6663b045210823a0615`
 - **Change:** Centralize recorder-only chooser context, diplomacy/deal serialization, and resource-trade bookkeeping in `SASGameRecordLog.*` without changing emitted rows, AI choices, level gates, RNG, or gameplay behavior.
 
 - Move technology/espionage chooser contexts into the recorder header; AI headers retain forward declarations.
