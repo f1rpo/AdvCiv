@@ -1148,16 +1148,23 @@ int AIFoundValue::evaluate()
 		{
 			// <!-- custom: For the first city, food bonuses and rivers snowball earlier than non-food bonuses because growth unlocks more tiles, whipping/specialists, and faster worker/settler development.
 			// Apply capital-only bonus value percents and concrete river/fresh-water boosts so Karakorum/Beijing-like starts prefer nearby corn/fresh-water positions over slower commerce/hammer-bonus positions. (GPT-5.5) -->
-			// <!-- custom: Raw XML food is not enough to classify a starting bonus as food: AdvCiv-SAS Elephants have XML food but Camp adds no food, and seafood inside an inland BFC is not usable like coastal seafood.
-			// For capital-only food-bonus scaling, use normal improved food on land and XML food only for water bonuses when the candidate city is coastal.
-			// This keeps AI_foundValue from treating inland fish or low-food bonuses like Pig + Corn. (GPT-5.5) -->
-			const bool bStartingFoodBonus = (kSet.isStartingLoc() && (p.isWater() ? bCoastal && GC.getInfo(eBonus).getYieldChange(YIELD_FOOD) > 0 : aiBonusImprovementYield[YIELD_FOOD] > 0));
-			// <!-- custom: Record the actual starting-food classification beside its improved Food capacity; feeding two citizens is an observation, not a replacement classifier or scoring threshold. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+			// <!-- custom: Reserve the capital-only food-bonus multiplier for resources whose improvement actually creates a strong growth tile.
+			// The improvement must add Food, and the improved tile must feed the citizen working it plus one additional citizen; an incidental +1 Food from a luxury improvement is not sufficient by itself to receive the growth multiplier.
+			// Evaluate the actual plot rather than hardcoding bonus identities, so terrain-dependent resources such as Sheep/Banana can still qualify on a genuinely strong tile; water bonuses additionally require a coastal city.
+			// This classifies eventual improved Food capacity under the evaluator's existing yield assumptions, not immediate workability or current access to the required technology/improvement. See KI#144.3. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+			int const iImprovedFood = aiNatureYield[YIELD_FOOD] + aiBonusImprovementYield[YIELD_FOOD];
+			int const iGrowthFoodThreshold = 2 * GC.getFOOD_CONSUMPTION_PER_POPULATION();
+			bool const bUsableWaterBonus = (!p.isWater() || bCoastal);
+			bool const bStartingFoodBonus = (kSet.isStartingLoc() && bUsableWaterBonus && aiBonusImprovementYield[YIELD_FOOD] > 0 && iImprovedFood >= iGrowthFoodThreshold);
+			// <!-- custom: Keep the previous classifier beside the new plot-capacity rule so Found level 3 shows exactly which resources this layer reclassifies during validation. (ChatGPT-5.6-Sol) -->
 			if (gFoundLogLevel >= 3 && kSet.isStartingLoc() && !kSet.isNormalizing())
 			{
-				int const iImprovedFood = aiNatureYield[YIELD_FOOD] + aiBonusImprovementYield[YIELD_FOOD];
-				logBBAIFoundDetail("STARTING_BONUS_GROWTH_CLASSIFICATION", "plot=%d,%d bonus=%S water=%d coastal=%d scoringNatureFood=%d improvementFoodGain=%d improvedFood=%d foodForTwoCitizens=%d feedsTwoCitizens=%d currentStartingFoodBonus=%d",
-					p.getX(), p.getY(), GC.getInfo(eBonus).getDescription(), p.isWater(), bCoastal, aiNatureYield[YIELD_FOOD], aiBonusImprovementYield[YIELD_FOOD], iImprovedFood, 2 * GC.getFOOD_CONSUMPTION_PER_POPULATION(), iImprovedFood >= 2 * GC.getFOOD_CONSUMPTION_PER_POPULATION(), bStartingFoodBonus);
+				bool const bLegacyStartingFoodBonus = (p.isWater() ? bCoastal && GC.getInfo(eBonus).getYieldChange(YIELD_FOOD) > 0 : aiBonusImprovementYield[YIELD_FOOD] > 0);
+				logBBAIFoundDetail("STARTING_BONUS_GROWTH_CLASSIFICATION",
+					"plot=%d,%d bonus=%S water=%d coastal=%d scoringNatureFood=%d improvementFoodGain=%d improvedFood=%d growthFoodThreshold=%d feedsSelfPlusOne=%d legacyStartingFoodBonus=%d startingFoodBonus=%d classificationChanged=%d",
+					p.getX(), p.getY(), GC.getInfo(eBonus).getDescription(), p.isWater(), bCoastal, aiNatureYield[YIELD_FOOD],
+					aiBonusImprovementYield[YIELD_FOOD], iImprovedFood, iGrowthFoodThreshold, iImprovedFood >= iGrowthFoodThreshold,
+					bLegacyStartingFoodBonus, bStartingFoodBonus, bLegacyStartingFoodBonus != bStartingFoodBonus);
 			}
 
 			// <!-- custom: Base AdvCiv skipped barbarian non-yield bonus value because barbarians do not care about ordinary bonus trade.

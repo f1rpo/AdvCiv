@@ -206,6 +206,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#143 - (Fixed) BUG configobj comment writer used undefined `_a_to_u` instead of correct `self._a_to_u`; old BUG syntax had prevented Ruff from seeing the bug](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-143)\
 [KI#144 - (Fixed) Base AdvCiv issue and AdvCiv-SAS settler free window follow-up: AI settlers sometimes do not move away from a high bad plot count start (e.g., high non-bonus tundra and plains): they now scout and hunt for better not very bad sites, and no longer stop at first good-enough site, but instead now rerun evaluate city site again on newly visible plots if a better site (e.g., more food/rivers/fresh water) exists nearby (which we now value more too for first city as well)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-144)\
 [KI#144.2 - (Improved AdvCiv-SAS first-city scouting efficiency) Strong known capitals could spend late scouting turns on low expected upside](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-144.2)\
+[KI#144.3 - (Fixed AdvCiv-SAS KI#144 follow-up) First-capital food-bonus scaling treated any +Food improvement as a strong growth resource](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-144.3)\
 [KI#145 - (Implemented / needs in-game test) Military Advisor Map tab lost selected leaders after tab switch or close/reopen](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-145)\
 [KI#146 - (Fixed/Enhanced) Base AdvCiv issue of AI undervaluing coastal settling on naval-heavy maps](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-146)\
 [KI#147 - (Fixed/Enhanced) Base AdvCiv issue of AI settlers not adding extra valuation to unowned bonuses in city-site scoring](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-147)\
@@ -11390,7 +11391,7 @@ Result:
 - Beijing moved again now to a slightly stronger but mostly identical corn + river capital site.
 - The behavior remains first-city-only as of now; later settlers usually know more of the map and can sensibly found strategic/semi-decent resource cities.
 
-Follow-up fix after testing:
+### Follow-up fix after testing
 
 - The first version fixed bad-start roaming, but some already-decent starts could still waste turns roaming only to settle the same plot later. Example: London ultimately settled the same capital site, but much later (observed around 22 500 BC instead of 50 000 BC).
 - Added an anti-bounce/competitive-current-site guard: if the settler is already on a non-bad foundable first-city plot and the cached city-site target is only marginally better after the same small movement penalty, found instead of walking away and circling back.
@@ -11399,7 +11400,7 @@ Follow-up fix after testing:
   - ChatGPT 5.5 reviewed the logs and helped identify the final narrow anti-bounce/tie-breaker cleanup. Implementation and changes with the help of GPT-5.5 on codex too thanks.
 - Retesting preserved the good Karakorum result and fixed the London wasted-wandering case.
 
-Update 2: Fix AI Settler first-city gate and starting-site scoring treating low-food or unusable resources as food bonuses
+### Update 2: Fix AI Settler first-city gate and starting-site scoring treating low-food or unusable resources as food bonuses
 
 - The first-city stop-roaming gate and first-city resource scaling could count natural/XML food as a food bonus. In AdvCiv-SAS, Elephants have +1 natural food but their Camp improvement adds no food, so they were incorrectly treated like Pig/Corn-tier food resources; e.g., 3 Elephants could compete too strongly with a Pig + Corn site despite Pig + Corn giving much more food when improved.
   - Inland seafood could also be counted even when the candidate city was not coastal and therefore could not use it like a coastal seafood capital.
@@ -11415,7 +11416,7 @@ Files changed:
 - [CvGameCoreDLL/CitySiteEvaluator.cpp](/CvGameCoreDLL/CitySiteEvaluator.cpp)
 - [Assets/XML/GlobalDefines_advciv_sas.xml](/Assets/XML/GlobalDefines_advciv_sas.xml)
 
-Update following KI#173 changes:
+### Scouting efficiency update following KI#173
 
 First-city scouting efficiency follow-up:
 
@@ -11429,7 +11430,7 @@ First-city scouting efficiency follow-up:
   Karakorum committed on turn 5 to `(50,40)` two turns away in save file 360, and Cuzco committed on turn 5 to `(38,44)` two turns away instead of founding around turn 10 in save file 431.
   The same save file 431 test kept the Aztec capital at `(34,24)` and founded it on turn 6; no return/restart loops occurred.
 
-Later save-file-442 Berlin return regression:
+### Later save-file-442 Berlin return regression
 
 - In a later run, Berlin's settler wandered from its `(35,10)` start to `(39,19)`.
   At turn 6, the deadline check still saw strong `(33,13)` at raw found value `3961`, but because it was now five return turns away, the travel adjustment let nearby `(41,18)` win despite its lower raw value of `3640`; Berlin then founded there.
@@ -11440,7 +11441,7 @@ Later save-file-442 Berlin return regression:
 - Raw priority therefore protects a newly discovered best site, as in Berlin and Karakorum, but not the abandoned scout origin itself. When the raw winner is that origin, sites are compared after subtracting their return-path cost so nearby scouting can finish rather than being undone.
   - Final three-map BBAI retesting preserved Berlin at `(33,13)` in save file 442 and Karakorum at `(50,40)` in save file 360, and restored Cuzco to `(38,44)` in save file 431.
 
-Update during the XML-driven Settler site-valuation rework:
+### Local recheck update during the XML-driven Settler site-valuation rework
 
 - The heuristic-good-enough local recheck still subtracted a fixed `75` per path turn, even though this branch examines only sites reachable within two turns and the broader AdvCiv-SAS first-city policy deliberately tolerates nearby movement to obtain the strongest capital.
   - This made Aachen found immediately on Grassland at `(137,72)` instead of moving to the slightly stronger Oil Desert at `(136,72)`: the Desert led by 16 complete found-value points and 38 growth-core points, but lost after the redundant 75-point charge for its `pathTurns=1` route.
@@ -11454,6 +11455,18 @@ Update during the XML-driven Settler site-valuation rework:
   - New level-2 `FIRST_CITY_LOCAL_RECHECK_RESULT` and `FIRST_CITY_CACHED_SITE_COMPARISON` rows state the strongest local/cached alternative, both compared values, path turns and final action directly; level 3 now also identifies first-city site, local-recheck and scout-step rejection reasons, every eligible return candidate, and ordinary post-capital city-site eligibility/path scoring.
 - Detailed BFC dumps remain level 3, while level-2 `SETTLER_FOUND_RESULT` identifies an ordinary Settler for which no candidate survived and `SETTLER_FLOW_*` covers first-city fallback, financial suppression, overseas loading/coast movement and escort rendezvous that return outside the normal city-site mission path.
   - Transport-internal cargo decisions remain in their dedicated category. Implemented with the help of GPT-5.6-Sol, thanks.
+
+### Food-resource classifier follow-up after KI#144.2
+
+- [KI#144.3](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-144.3) later refines the food-resource classifier described in Update 2 above: an improvement adding any Food is not enough by itself to make the resulting tile a strong capital-growth resource.
+
+For reference, chronology of the updates above, checked against Git history YYYY-MM-JJ (GPT-6.1-Sol):
+
+- 2026-06-06: Update 2 corrected the food-resource classifier for Elephants and unusable inland seafood.
+- 2026-07-05: The scouting efficiency update bounded return timing as well as outbound exploration.
+- 2026-07-06: The Berlin return refinement protected stronger newly discovered sites without undoing useful exploration back to an abandoned origin.
+- 2026-09-25: The XML-driven site-valuation rework removed redundant local movement penalties and expanded Settler diagnostics.
+- 2026-10-11: KI#144.3 follows the KI#144.2 diagnostic investigation and KI#178.2 resource-overlap fix; it refines the original Update 2 classifier using improved Food capacity.
 
 <a id="ki-144.2"></a>
 
@@ -11513,7 +11526,53 @@ Performance follow-up (ChatGPT-5.6-Sol + GPT-6.1-Sol):
 - Keep core quality, remaining opportunity and delay calculations independent of logging because they determine gameplay. Maintain the logging-only expected-gain summaries and optional linear-opportunity output only when Settler BBAI level 2+ or SASGameRecord level 2+ consumes them.
 - The autoplay results above validate the original scouting change; this later optimization requires its own compilation and runtime validation.
 
-Follow-up: the later first-capital diagnostic pass prompted by this work exposed the separate [KI#178.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-178.2) AdvCiv-SAS resource-value overlap; that issue is documented with the city-site bonus valuation work rather than consuming a new sequential KI number.
+Follow-up:
+	- the later first-capital diagnostic pass prompted by this work exposed the separate [KI#178.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-178.2) AdvCiv-SAS resource-value overlap; that issue is documented with the city-site bonus valuation work rather than consuming a new sequential KI number.
+	- The same diagnostic pass also exposed [KI#144.3](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-144.3), a direct refinement of KI#144's capital food-resource classifier.
+
+<a id="ki-144.3"></a>
+
+## KI#144.3 - (Fixed AdvCiv-SAS KI#144 follow-up) First-capital food-bonus scaling treated any +Food improvement as a strong growth resource
+
+This is a SAS-specific follow-up to KI#144 Update 2, discovered during the later first-capital diagnostic work following KI#144.2 and KI#178.2. It is not an inherited BtS/K-Mod/AdvCiv issue: the special first-capital food-resource multiplier and its classifier were added by AdvCiv-SAS.
+
+Observed problem:
+
+- KI#144 Update 2 correctly stopped natural/XML Food alone from making Elephants or unusable inland seafood count as first-capital food bonuses.
+- For land resources, however, the remaining rule treated any normal bonus improvement that added Food as sufficient for the stronger capital-growth multiplier.
+- That still grouped weak 2-3 Food resource tiles with genuinely growth-driving resources such as Pig, Maize or Fish. A 3 Food Spices tile, for example, received the same first-capital food-resource percentage simply because Plantation added +1 Food.
+- The local improvement Food itself was already valued separately. The problem was only the extra binary growth-resource multiplier layered on top.
+
+Fix:
+
+- Keep the rule plot-sensitive rather than hardcoding resource identities.
+- Require the mapped resource improvement to add Food.
+- Require the resulting improved tile to produce at least `2 * FOOD_CONSUMPTION_PER_POPULATION`: enough Food to feed the citizen working the tile plus one additional citizen. With the normal 2 Food-per-citizen setting, this means at least 4 Food.
+- Continue requiring a coastal candidate city for water resources.
+- Interpret this as eventual improved Food capacity under the evaluator's existing assumptions, not as immediate access to the required technology or improvement.
+- Keep all ordinary local improvement-yield scoring unchanged; a demoted resource still receives its real Food/yield value, but no longer receives the stronger first-capital growth-resource multiplier unless the improved tile actually reaches the growth threshold.
+
+Why this remains terrain-sensitive:
+
+- The rule evaluates the actual plot rather than the bonus type.
+- Weak 2-3 Food instances of Spices, Sugar, Sheep, Banana or Camel can therefore lose the growth multiplier, while a stronger 4+ Food instance of the same terrain-dependent resource can still qualify.
+- Observed strong Cattle, Deer, Wheat, Rice, Maize, Pig, Crab, Molluscs and Fish cases remained classified as growth resources in the regression suite.
+
+Validation:
+
+- Bibracte's 3 Food Spices at `(75,37)` changed from the legacy food classification to non-food. Its capital-only non-yield contribution fell by exactly 90 points, from the 125% food-resource rate to the ordinary 95% rate.
+- After KI#178.2, Bibracte `(77,36)` led `(78,36)` by 451 points (`4841` vs `4390`). KI#144.3 reduced only the weak-Spices side of that comparison, producing `4751` vs `4390`; Bibracte still founded at `(77,36)`, so the fix did not force a preferred screenshot outcome.
+- Wang Kon still scouted west and founded Seoul at `(47,25)` on turn 5. At the critical scouting comparison, west remained ahead `3440` to `3354`.
+- Mehmed's KI#178.2 result remained unchanged: the healthier Istanbul river site `(86,32)` still beat the Gold/Grapes site `(87,33)`, `3876` to `3792`.
+- Ragnar/Nidaros and Cyrus/Persepolis remained unchanged. Charlemagne kept `(136,72)`; the competing `(137,72)` site's weak 3 Food Sugar lost the same 90-point growth premium, widening an already defensible choice.
+- Across the six-map diagnostic run, every changed logged classification was legacy food -> new non-food; no resource was newly promoted by this rule.
+
+Diagnostics:
+
+- Found BBAI level 3 records improved Food, the growth threshold, the legacy classifier, the new classifier and whether the classification changed.
+- The diagnostic deliberately remains resource/plot based and does not add a new SASGameRecord schema field; broader first-city diagnostics can later inform which compact values are worth promoting to SASGameRecord.
+
+Implemented with the help of ChatGPT-5.6-Sol and GPT-6.1-Sol, thanks.
 
 <a id="ki-145"></a>
 
