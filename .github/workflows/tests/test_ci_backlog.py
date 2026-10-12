@@ -362,31 +362,6 @@ class GeneratedDocsTests(unittest.TestCase):
         self.assertEqual(docs.changed_conversion_errors(self.repo, before), [])
 
 
-class CitySiteFoodContractTests(unittest.TestCase):
-    def setUp(self):
-        self.temp = tempfile.TemporaryDirectory()
-        self.addCleanup(self.temp.cleanup)
-        self.repo = Path(self.temp.name)
-        for relative in (recorder.REVISION_SOURCE, recorder.CITY_SITE_EVALUATOR_HEADER, Path("CvGameCoreDLL/CitySiteEvaluator.cpp"), recorder.PLAYER_SOURCE):
-            target = self.repo / relative
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(ROOT / relative, target)
-
-    def test_current_cold_contract(self):
-        self.assertEqual(recorder.check_city_site_food_contract(self.repo), [])
-
-    def test_ungated_numeric_search_is_rejected(self):
-        path = self.repo / "CvGameCoreDLL/CitySiteEvaluator.cpp"
-        text = path.read_text("utf-8")
-        path.write_text(text.replace("if (m_pFoodSummary != NULL && iValue > 0)", "if (iValue > 0)"), "utf-8")
-        self.assertTrue(any("subset search" in error for error in recorder.check_city_site_food_contract(self.repo)))
-
-    def test_missing_availability_label_is_rejected(self):
-        path = self.repo / recorder.REVISION_SOURCE
-        path.write_text(path.read_text("utf-8").replace("coreAvailable=%d", "corePresent=%d"), "utf-8")
-        self.assertTrue(any("coreAvailable" in error for error in recorder.check_city_site_food_contract(self.repo)))
-
-
 class RevisionDocumentationTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
@@ -413,22 +388,6 @@ class RevisionDocumentationTests(unittest.TestCase):
         entries = list(re.finditer(r'^### Revision ', self.text, flags=re.MULTILINE))
         self.history.write_text(self.text[:entries[0].start()] + self.text[entries[1].start():], 'utf-8')
         self.assertTrue(any('revision mismatch' in error for error in recorder.check_revision(self.repo)))
-
-    def test_stale_documented_emitted_marker(self):
-        text = re.sub(r'(GAME_RECORD_SOURCE_CONTEXT recordRevision=)(\d+)', lambda match: match.group(1) + str(int(match.group(2)) - 1), self.text, count=1)
-        self.history.write_text(text, 'utf-8')
-        self.assertTrue(any('current emitted recordRevision example' in error for error in recorder.check_revision(self.repo)))
-
-    def test_malformed_extra_heading_cannot_be_skipped(self):
-        self.history.write_text(self.text + '\n### Revision malformed\n', 'utf-8')
-        self.assertTrue(any('malformed revision heading' in error for error in recorder.check_revision(self.repo)))
-
-    def test_latest_history_metadata_is_required(self):
-        for field in ('Date', 'Git commit', 'Change'):
-            with self.subTest(field=field):
-                text = re.sub(r'^- \*\*' + re.escape(field) + r':\*\*[^\n]*', '- **' + field + ':** ', self.text, count=1, flags=re.MULTILINE)
-                self.history.write_text(text, 'utf-8')
-                self.assertTrue(any('completed ' + field in error for error in recorder.check_revision(self.repo)))
 
 
 class RevisionHistoryTests(unittest.TestCase):

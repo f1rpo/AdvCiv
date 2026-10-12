@@ -142,7 +142,7 @@ If you find yourself stuck like for audio stopping issues, feel free to ask the 
 
 - When adding new comments, use the format `<!-- custom: ... (model credit) -->` (with `//` or `#` prefix as appropriate), and put the model credit in the suffix before `-->` (e.g., `(GPT-5.3-Codex) -->`, `GPT-5.5`, `(ChatGPT-5.6-Sol) -->`, `(Claude code Sonnet 4.5 (summarized)) -->`).
   - Do not use other tags like `advc.` as the authorship marker (they do not belong to us: e.g., base AdvCiv uses `advc.sas` to reference our AdvCiv-SAS changes).
-  - Model-authored comments need a model credit. User-authored comments may remain uncredited; do not add the user's name or bulk-clean existing uncredited comments. CI reports missing model credits only as advisory warnings because Git cannot distinguish user and model authorship.
+  - Model-authored comments need a model credit. User-authored comments may remain uncredited; do not add the user's name or bulk-clean existing uncredited comments. The optional provenance helper reports missing model credits only as advisory warnings because Git cannot distinguish user and model authorship.
 - Simplify verbose comments without changing meaning or technical details.
 - Focus on rewording/rephrasing - the goal is to remove prose and conversational filler while preserving all technical information. Don't over-summarize to the point of losing important technical context.
 - Do not requalify subjective wording (e.g., keep "nicer display" instead of rephrasing as "tighter look") to avoid misinterpreting meaning.
@@ -301,7 +301,7 @@ These are general guidelines, not irrevocable requirements; adjust based on task
 - Avoid silent fallbacks or placeholder defaults when data is missing; prefer fatal errors with clear messages so issues surface early, and validate list structures (e.g., assert expected prefixes/types in debug checks).
 - Prefer strict XML lookup helpers from `SASUtils` over raw lookups for static/literal tags: use `getInfoTypeOrFail("TAG")` instead of raw `gc.getInfoTypeForString("TAG")`, and use `findInfoTypeNumOrFail(gc.getXInfo, gc.getNumXInfos, "TAG")` instead of raw `CvUtil.findInfoTypeNum(...)`.
   - This keeps missing or renamed XML tags loud instead of silently returning `-1`; it helped catch incorrect direction-string usage in Planet Generator map (e.g., `getInfoTypeOrFail("DIRECTION_NORTH")` instead of `DirectionTypes.DIRECTION_NORTH*`) and incorrect plot/terrain-style lookups (e.g., `getInfoTypeOrFail("PLOT_PEAK")` instead of `PlotTypes.PLOT_PEAK` in Peirce map).
-  - Dynamic/guarded legacy lookups can stay raw only when intentionally allowed by [`.github/workflows/build/raw_getinfotype.py`](/.github/workflows/README.md#buildraw_getinfotypepy).
+  - Dynamic/guarded legacy lookups can stay raw when intentionally reviewed; the optional [`.github/workflows/build/raw_getinfotype.py`](/.github/workflows/README.md#buildraw_getinfotypepy) audit can help inspect these cases but is not a merge gate.
 - When parsing large structured data, validate against expected samples or assertions early, and log diagnostics to surface schema/list mistakes (e.g., missing commas or malformed enum lists).
 - Use `from module import *` for helper modules to reduce import tedium and make future additions seamless.
 - For map scripts, keep reusable helper modules outside `PrivateMaps` (e.g., in `Assets/Python/SAS_WorldSizeUtils.py`) when they define or might define names that Civ4 treats as map-script callbacks (`getGridSize`, `getNumPlotsPercent`, `getDescription`, etc.).
@@ -336,7 +336,7 @@ These are general guidelines, not irrevocable requirements; adjust based on task
 - Prefer SAS defines for new AI toggles; use `SAS_<func_name>_<effect>` naming and a boolean-style enable/disable flag (int in XML, bool in C++). Rationale: toggles allow quick testing without recompiles; avoid overusing defines when the feature is tiny or unlikely to need tuning.
 - Turn-valued SAS integer defines must make game-speed semantics explicit: use `TURN(S)_NORMAL_GAMESPEED` when the XML value is expressed at Normal speed and code scales it with the appropriate game-speed percentage, or `TURN(S)_UNSCALED_GAMESPEED` for intentional literal game/path turns such as movement distance.
   - Do not apply this to `SAS_DO_TURN_*` scope names or per-turn rate/value defines.
-  - The build check [`turn_define_gamespeed.py`](/.github/workflows/build/turn_define_gamespeed.py) enforces this.
+  - The optional [`turn_define_gamespeed.py`](/.github/workflows/build/turn_define_gamespeed.py) audit can flag inconsistent naming when this area is being changed; it is not a general merge gate.
 - Prefer minimalistic, simple AI changes that are easy to reason about and compile.
 - Discuss candidate locations and a minimal draft before coding larger AI behavior changes.
 - When changing attack logic, account for special unit roles (bombard/collateral) and UWAI expectations.

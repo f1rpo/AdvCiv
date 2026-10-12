@@ -29,6 +29,7 @@ IGNORE_PREFIXES = (
     "_1_AdvCiv-SAS/Docs/changelogs_web/",
     "_1_AdvCiv-SAS/Docs/git_logs/",
     "LLM_Helpers/context/",
+    "LLM_Helpers/outputs/",
     "_SNAPSHOT_CONTEXT/",
 )
 IGNORE_FILES = {

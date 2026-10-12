@@ -234,7 +234,7 @@ def transform_text(text, newline, min_line_len):
     for line in source_lines:
         stripped = line.lstrip()
 
-        # <!-- custom: Changed-prose CI must not reflow prose-looking lines inside a multiline HTML comment; preserve these blocks verbatim, including mixed comment/visible lines that need manual review. (GPT-6.1-Sol) -->
+        # <!-- custom: Changed-prose review must not reflow prose-looking lines inside a multiline HTML comment; preserve these blocks verbatim, including mixed comment/visible lines that need manual review. (GPT-6.1-Sol) -->
         if not in_fence and (in_html_comment or "<!--" in line):
             if "<!--" in line:
                 in_html_comment = "-->" not in line[line.rfind("<!--") + 4:]
@@ -296,7 +296,7 @@ def main(argv):
     parser.add_argument(
         "--check",
         action="store_true",
-        help="return nonzero if any file needs reflow; CI uses markdown_prose_changes.py to restrict enforcement to edited lines",
+        help="return nonzero if any file needs reflow; the optional markdown_prose_changes.py helper can restrict audits to edited lines",
     )
     parser.add_argument("--min-line-len", type=int, default=DEFAULT_MIN_LINE_LEN)
     args = parser.parse_args(argv)

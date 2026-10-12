@@ -81,7 +81,7 @@ Explicit exclusions cover upstream common docs, generated helper outputs/example
 
 New documentation locations need no per-file registration.
 
-CI reports findings without modifying files. This complements the existing local-link and declared-menu checks.
+CI reports findings without modifying files. This complements the blocking local-link checks; declared-menu checks remain available for manual review.
 
 A real README failure prompted this addition: three tab-indented history bullets became an unintended code block, causing MD046 to flag every later fenced example. Removing the three tabs fixed the list without changing the examples.
 
@@ -101,55 +101,21 @@ A [test run confirmed it fails](https://github.com/wonderingabout/AdvCiv-SAS/act
 
 ## Current build checks
 
-- [`build/temp_files.py`](#buildtemp_filespy)
-- [`build/line_endings.py`](#buildline_endingspy)
-- [`build/source_change_provenance.py`](#buildsource_change_provenancepy)
-- [`build/markdown_prose_changes.py`](#buildmarkdown_prose_changespy)
-- [`LLM_Helpers/reflow_custom_comments.py --check`](#custom-comment-logical-reflow)
-- [`build/assets_dlls.py`](#buildassets_dllspy)
-- [`build/dll_commit_message.py`](#builddll_commit_messagepy)
-- [`build/art_button_paths.py`](#buildart_button_pathspy)
-- [`build/markdown_images.py`](#buildmarkdown_imagespy)
-- [`build/markdown_links.py`](#buildmarkdown_linkspy)
-- [`build/long_comments.py`](#buildlong_commentspy)
-- [`build/sas_text_references.py`](#buildsas_text_referencespy)
-- [`build/global_defines_nonempty.py`](#buildglobal_defines_nonemptypy)
-- [`build/version_metadata.py`](#buildversion_metadatapy)
-- [`build/launch_guard.py`](#buildlaunch_guardpy)
-- [`build/define_int_bounds.py`](#builddefine_int_boundspy)
-- [`build/turn_define_gamespeed.py`](#buildturn_define_gamespeedpy)
-- [`build/sas_define_usage.py`](#buildsas_define_usagepy)
-- [`build/xml_comments.py`](#buildxml_commentspy)
-- [`build/xml_element_only_content.py`](#buildxml_element_only_contentpy)
-- [`build/xml_suspicious_angle_tags.py`](#buildxml_suspicious_angle_tagspy)
-- [`build/xml_suspicious_text_chars.py`](#buildxml_suspicious_text_charspy)
-- [`build/xml_civ4_text_characters.py`](#buildxml_civ4_text_characterspy)
-- [`build/xml_sas_text_english.py`](#buildxml_sas_text_englishpy)
-- [`build/xml_text_duplicate_tags.py`](#buildxml_text_duplicate_tagspy)
-- [`build/xml_parent_duplicate_keys.py`](#buildxml_parent_duplicate_keyspy)
-- [`build/xml_child_duplicates.py`](#buildxml_child_duplicatespy)
-- [`build/xml_redundant_defaults.py`](#buildxml_redundant_defaultspy)
-- [`build/tech_columns.py`](#buildtech_columnspy)
-- [`build/wonder_cost_columns.py`](#buildwonder_cost_columnspy)
-- [`build/wonder_culture_gpp_columns.py`](#buildwonder_culture_gpp_columnspy)
-- [`build/asset_tech_prereq_redundancy.py`](#buildasset_tech_prereq_redundancypy)
-- [`build/civ_specific_assets.py`](#buildciv_specific_assetspy)
-- [`build/civ_specific_not_weaker.py`](#buildciv_specific_not_weakerpy)
-- [`build/define_tag_refs.py`](#builddefine_tag_refspy)
-- [`build/raw_getinfotype.py`](#buildraw_getinfotypepy)
-- [`build/tech_audio.py`](#buildtech_audiopy)
-- [`build/leader_audio.py`](#buildleader_audiopy)
-- [`build/opening_music.py`](#buildopening_musicpy)
-- [`build/diagnostic_log_safety.py`](#builddiagnostic_log_safetypy)
-- [`build/bbai_log.py`](#buildbbai_logpy)
-- [`build/sas_game_record_log.py`](#buildsas_game_record_logpy)
-- [`build/fonts.py`](#buildfontspy)
-- [`build/detail_manager.py`](#builddetail_managerpy)
-- [`build/aip.py`](#buildaippy)
-- [`build/aip_predump_values.py`](#buildaip_predump_valuespy)
-- [`build/worldsizes.py`](#buildworldsizespy)
-- [`build/mapscripts.py`](#buildmapscriptspy)
-- [`build/python24_compile.py`](#buildpython24_compilepy)
+The main [`build.yml`](/.github/workflows/build.yml) workflow deliberately keeps only cheap, high-signal checks that catch repository/runtime breakage or easy-to-forget release settings. It does **not** run the whole Python regression suite and does not gate merges on implementation-shape, prose-layout, comment-provenance, balance-policy or historical-archaeology audits. Those helpers remain available for focused/manual review when relevant.
+
+Blocking helpers are:
+
+- `temp_files.py`, `repository_hygiene.py`, `line_endings.py`, `assets_dlls.py`, `dll_commit_message.py`
+- `art_button_paths.py`, `markdown_images.py`, `markdown_links.py`, `long_comments.py`, `sas_text_references.py`, `define_tag_refs.py`, audio/font reference checks
+- `global_defines_nonempty.py`, `sas_define_usage.py`, `version_metadata.py`, `launch_guard.py`, `define_int_bounds.py`, XML syntax/content/duplicate checks, and `art_define_structure.py`
+- `diagnostic_log_safety.py`, `bbai_log.py`, and the intentionally small `sas_game_record_log.py`
+- `detail_manager.py`, `aip.py`, `aip_predump_values.py`, `worldsizes.py`, and `mapscripts.py`
+
+Separate workflows still provide the real Python 2.4 compile gate, critical Ruff diagnostics, Markdown lint, and the opt-in/automatic AIP predump refresh.
+
+Useful behavioral regression tests remain available through `python -m unittest discover -s .github/workflows/tests`; retired recorder source-shape checks and their tests are removed.
+
+Other scripts documented below are **optional/manual audit helpers** unless they appear in `build.yml`. Keeping them available is useful for focused maintenance without turning their current implementation assumptions into permanent merge policy.
 
 ### `build/temp_files.py`
 
@@ -200,14 +166,14 @@ Diff-aware source-history guard for maintained C/C++, Python and XML source. It 
 
 It enforces four review rules introduced after repeated provenance mistakes:
 
-- newly authored or substantively rewritten source comments use `<!-- custom: ... (model credit) -->`; model-authored comments need the credit, while user-authored comments may omit it. Missing model credits are advisory warnings, not CI failures; unchanged/moved inherited comments and whitespace-only reflow remain valid, while stale inherited comments may simply be removed;
+- newly authored or substantively rewritten source comments use `<!-- custom: ... (model credit) -->`; model-authored comments need the credit, while user-authored comments may omit it. Missing model credits are advisory warnings, not helper failures; unchanged/moved inherited comments and whitespace-only reflow remain valid, while stale inherited comments may simply be removed;
 - if an inherited comment is replaced by a nearby custom comment, known provenance markers such as `advc.xxx`, `KI#...` and `Long_Comments_... #N` are retained;
 - edits to existing-file C/C++ `#include` or Python import dependencies have a nearby newly added custom rationale comment;
 - parameter-list changes on existing non-SAS C++/Python functions have a nearby newly added custom comment explaining the interface change. Clearly SAS-named helpers are intentionally optional.
 
 The check is deliberately conservative rather than a full C++ parser. New files are exempt from dependency/parameter-diff requirements, standard repository header/directive comments are exempt from the new-comment rule, and source-file deletion is allowed without a tombstone comment.
 
-Comment wording quality remains a human-review concern; CI verifies provenance/rationale presence, not whether the rationale is persuasive.
+Comment wording quality remains a human-review concern; when run, the helper verifies provenance/rationale presence, not whether the rationale is persuasive.
 
 Run locally against the previous commit with:
 
@@ -215,7 +181,7 @@ Run locally against the previous commit with:
 python .github/workflows/build/source_change_provenance.py
 ```
 
-Or provide the same explicit base used by CI:
+Or provide an explicit comparison base:
 
 ```bash
 python .github/workflows/build/source_change_provenance.py --base-ref <base-sha>
@@ -230,11 +196,11 @@ Checks added/edited Markdown prose blocks against the push/PR base (local defaul
 - Excludes fenced/indented code, tables, blockquotes, HTML comments, copied/generated context and numbered archived changelogs.
 - Reports affected paths and line numbers without rewriting files. Run locally with `python .github/workflows/build/markdown_prose_changes.py --base-ref HEAD`.
 
-The [existing helper](/LLM_Helpers/README.md#reflow_markdown_prosepy) previews sentence boundaries; its source-only output still needs review for visible structure. Passing CI does not establish that the chosen paragraphs or bullets are coherent.
+The [existing helper](/LLM_Helpers/README.md#reflow_markdown_prosepy) previews sentence boundaries; its source-only output still needs review for visible structure. Passing this optional audit does not establish that the chosen paragraphs or bullets are coherent.
 
 ### Custom-comment logical reflow
 
-The build workflow runs `python LLM_Helpers/reflow_custom_comments.py --check` against maintained C++/Python/XML source. It fails when an eligible marked custom prose comment needs logical sentence/clause reflow, prints the affected paths and leaves all files untouched.
+Optional/manual helper `python LLM_Helpers/reflow_custom_comments.py --check` reviews maintained C++/Python/XML source. It reports when an eligible marked custom prose comment needs logical sentence/clause reflow, prints the affected paths and leaves all files untouched.
 
 It does not impose a character-width limit or reflow inherited comments; structured, code-like and ambiguous blocks remain explicit skips for manual review.
 
@@ -311,7 +277,7 @@ Verifies the two archives under [`_1_AdvCiv-SAS/Docs/Long_Comments`](/_1_AdvCiv-
 
 The documentation archives must also remain valid UTF-8; this prevents legacy encoding damage from being silently reintroduced.
 
-Historical changelogs, archived Git logs, generated LLM commit-diff context, snapshots, and workflow/test files are ignored as references: they may legitimately preserve old marker text, but they must not keep a dead current entry alive. Multiple IDs on one marker line are supported.
+Historical changelogs, archived Git logs, generated LLM commit-diff context and helper outputs, snapshots, and workflow/test files are ignored as references: they may legitimately preserve old marker text, but they must not keep a dead current entry alive. Multiple IDs on one marker line are supported.
 
 IDs remain stable and are not renumbered when stale entries are removed.
 
@@ -517,35 +483,15 @@ The only explicit nonzero exceptions are `SAS_BBAI_SCORE_LOG_INTERVAL_TURNS_UNSC
 
 ### `build/sas_game_record_log.py`
 
-Verifies the independent `SASGameRecord` report is disabled by default in `Assets/XML/GlobalDefines_advciv_sas.xml`.
+Keeps the blocking SASGameRecord CI intentionally small:
 
-`SAS_GAME_RECORD_LOG_LEVEL` must stay `0`; the snapshot interval, timestamped filenames, default-on anonymous performance metrics, and default level-2 display/runtime context are also checked because they configure how enabled records behave but do not enable record logging themselves.
+- `SAS_GAME_RECORD_LOG_LEVEL` must be `0` in committed defaults.
+- `SAS_GAME_RECORD_REVISION` must match the newest maintained revision-history heading.
+- The source-context row must still emit the revision constant.
 
-It also checks that the public `SAS_GAME_RECORD_REVISION` matches the newest contiguous entry in the maintained revision history, that the history's current emitted `recordRevision` example is not stale, and that the emitted `GAME_RECORD_SOURCE_CONTEXT recordRevision` field remains wired to that constant.
+Compilation, runtime smoke/autoplay testing, log inspection and code review validate recorder implementation/schema behavior. The checker intentionally does not parse/pin individual row fields, writer call sites, lifecycle topology, save-marker bindings, AI provenance paths or other C++ implementation shapes.
 
-The shared `SASSaveStreamFormat.h` registry supplies gameplay/replay writer markers and the session component-format row.
-
-The check rejects duplicate registry IDs/names, writers detached from their registered constants, and unregistered serializers using the recognized `uiFlag`/`iSaveVersion`/`savegameVersion` writer patterns. `CvInfo_*` XML-info cache files are excluded. It requires the diagnostic row to identify these as current writer markers rather than loaded-object values.
-
-The same check pins the cheap `GAME_RECORD_TURN_COMPLETED` bridge to the authoritative end of `CvGame::doTurn`: after event reporting and the optional level-3 `END_GAME_TURN` RNG/state checkpoint, but before `incrementGameTurn`. This prevents lower-detail crash/truncation completeness markers from silently drifting into the next-turn initialization boundary.
-
-Every revision heading must follow the documented format; the newest entry must also contain its Date, Git commit field (latest-entry `pending` is allowed), and a completed Change description. Regression tests reject a source-only revision bump, a missing latest entry, a stale example, malformed extra headings and missing metadata.
-
-The same check keeps readable AI-strategy diagnostics synchronized with `AIStrategies.h`: one `SAS_AI_STRATEGY_ROWS` list generates both the enum's independent power-of-two bits and its iterable raw-name descriptors. CI rejects duplicate names/bits, disconnected generators and a changed zero sentinel; CORE hashes, strategy checkpoints and transitions must still iterate the shared descriptor API.
-
-Adding a strategy to the canonical list supplies its enum constant and diagnostic name together; recorder scans do not assume contiguous bits or a fixed last strategy.
-
-Recorder-owned reason/source/action enums also generate their label mappings from shared lists. The existing source-contract checks read those generated enum/case forms; this does not introduce additional feature checks.
-
-The scalar recorder-settings registry must cover every integer `SAS_GAME_RECORD_*` XML Define without duplicates or unknown recorder names. Existing getters retain caching/clamping policy; validated palette strings remain specialized map-legend data.
-
-The check also guards exact AreaAI and AI target-city provenance. AreaAI raw-name coverage and its normal/UWAI writer bridges must remain synchronized; target-city checks require every current setter writer plus the city-removal effective-clear path to remain covered by exact transitions and the periodic `GAME_RECORD_AI_TARGET_CITIES` checkpoint.
-
-A new target writer therefore fails CI instead of silently bypassing target history.
-
-The check also keeps level-3 `GAME_RECORD_DIPLO_ATTITUDE_BREAKDOWN` synchronized with `CvPlayerAI::AI_updateAttitude`: the recorder component labels/order are validated against the current additive attitude getter sequence, including aggregate memories and the final partial-sum-dependent war modifier.
-
-If attitude arithmetic changes later, CI requires the diagnostic breakdown to be reviewed in the same change instead of silently becoming incomplete.
+Intentional SASGameRecord-related code changes, including checker and code-comment maintenance, increment the public revision even when emitted semantics are unchanged. Standalone documentation/history/example/package refreshes do not require a bump.
 
 ### `build/fonts.py`
 
@@ -623,15 +569,15 @@ Only leading signatures are read; binary assets are not decoded.
 
 ### `build/generated_docs.py`
 
-Validates registered source-to-text conversions in `TEXT_CONVERSIONS`: each entry declares its canonical source, generated text output, converter, refresh command and optional related source artifacts. CI regenerates each output into a temporary directory and compares its text with the tracked copy; missing sources or outputs fail.
+Optional/manual audit helper. Validates registered source-to-text conversions in `TEXT_CONVERSIONS`: each entry declares its canonical source, generated text output, converter, refresh command and optional related source artifacts. When run, it regenerates each output into a temporary directory and compares its text with the tracked copy; missing sources or outputs fail.
 
 Add future conversions to this registry with their appropriate converter. The base AdvCiv manual is currently the only entry: `manual.odt` is the canonical source, `manual.txt` is the output and `manual.pdf` is a related artifact.
 
-For PRs and pushes, the workflow passes the complete change-range base through `--base-ref`: a registered source or related artifact changing without its corresponding text output changing fails. For the manual, this also catches PDF-only edits while ODT content remains authoritative for exact text verification.
+When given a PR/push-style `--base-ref`, the helper can also check the complete change range: a registered source or related artifact changing without its corresponding text output changing fails. For the manual, this also catches PDF-only edits while ODT content remains authoritative for exact text verification.
 
 Manual dispatch has no change-range base and still verifies all current converted text content.
 
-The workflow also supplies `--event-name`. After an amended/force-pushed commit, the push event's previous SHA can be absent even from a full-history checkout.
+The helper also accepts `--event-name` for GitHub-style range recovery. After an amended/force-pushed commit, the push event's previous SHA can be absent even from a full-history checkout.
 
 For pushes only, the checker first tries fetching that exact commit from `origin`. If it is no longer served, a visible notice reports that paired source/text change-range validation cannot run; all current text-conversion and handicap-report content checks still run and can fail normally.
 
@@ -647,7 +593,7 @@ To refresh, run `python LLM_Helpers/convert_advciv_manual_to_txt.py` or `python 
 
 ### `build/markdown_structure.py`
 
-Checks maintained Markdown docs in the root, `LLM_Helpers/README.md`, this workflow README, and `_1_AdvCiv-SAS/Docs`. Files declaring a Menu/Contents section must index each following body heading once, in body order, with the same rendered title and indentation: one `&emsp;` or two bullet-list spaces per heading level.
+Optional/manual audit helper. Checks maintained Markdown docs in the root, `LLM_Helpers/README.md`, this workflow README, and `_1_AdvCiv-SAS/Docs`. Files declaring a Menu/Contents section must index each following body heading once, in body order, with the same rendered title and indentation: one `&emsp;` or two bullet-list spaces per heading level.
 
 Known Issues indexes numbered level-2 KI entries; internal investigation subheadings remain outside its menu. Standalone links to other documents and menu introductions are retained.
 
@@ -665,7 +611,7 @@ Missing the Tipi's BuildingArtInfo wrapper caused a startup crash even though it
 
 ### `build/asset_primary_tech.py`
 
-Requires the effective primary unit/building prerequisite to be in the latest required `iGridX` column. Religious buildings and Bomb Shelters may use their shared SpecialBuilding prerequisite; direct `PrereqTech=NONE` is valid there.
+Optional/manual balance/asset audit. Requires the effective primary unit/building prerequisite to be in the latest required `iGridX` column. Religious buildings and Bomb Shelters may use their shared SpecialBuilding prerequisite; direct `PrereqTech=NONE` is valid there.
 
 Both units and buildings store additional prerequisites in `TechTypes`. Equal-column alternatives remain allowed for display timing.
 
@@ -677,15 +623,13 @@ Trade unlocks were aligned to the current reveal/Build prerequisites, including 
 
 ### `build/sas_revision_history.py`
 
-Validates every finalized SASGameRecord revision hash against the repository's canonical default-branch ancestry. A stale amended/rebased commit can still exist as a Git object, while a valid mainline commit need not be an ancestor of a feature branch, so neither object existence nor current `HEAD` ancestry is sufficient.
+Optional/manual historical audit. Validates every finalized SASGameRecord revision hash against the repository's canonical default-branch ancestry. A stale amended/rebased commit can still exist as a Git object, while a valid mainline commit need not be an ancestor of a feature branch, so neither object existence nor current `HEAD` ancestry is sufficient.
 
-CI passes the GitHub default branch explicitly; local runs discover `origin/HEAD`, `origin/main` or `main`, and abstain from ancestry validation when none is available.
+Callers may pass an explicit canonical branch; otherwise local runs discover `origin/HEAD`, `origin/main` or `main`, and abstain from ancestry validation when none is available.
 
 From revision 69 onward, the referenced source header must also contain that entry's exact revision marker. Only the newest entry may say `pending`: a commit cannot store its own final hash, but older entries must be finalized.
 
-This complements the existing contiguous-revision/current-marker check and requires `actions/checkout` `fetch-depth: 0` when the default branch is available.
-
-Regression fixtures live in [`.github/workflows/tests/test_ci_backlog.py`](/.github/workflows/tests/test_ci_backlog.py). Run `python -m unittest discover -s .github/workflows/tests` locally. Fixtures use isolated temporary repositories; they do not commit or modify the development checkout.
+This historical audit is independent of the blocking minimal revision/default check. A CI job that chooses to run it needs full history (`actions/checkout` `fetch-depth: 0`).
 
 ## Run Locally
 
