@@ -549,6 +549,8 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 
 #### SASGameRecord log
 
+- (Requires AdvCiv-SAS 6630+) **Recorder settings are self-maintaining:** `GAME_RECORD_LOG_SETTINGS` is generated from one iterable scalar-setting table rather than a long positional format/argument list; CI requires every integer `SAS_GAME_RECORD_*` XML setting to appear there, while validated palette strings remain specialized map-legend data.
+  - Building-focus, AI-strategy and recorder reason/source/action constants share canonical lists with their diagnostic labels, reducing maintenance omissions without changing AI decisions.
 - (Requires AdvCiv-SAS 6629+) **Run diagnostics are easier to interpret and compare:**
   - Each new/load session records the configured and effective BBAI categories, DLL-readable CivilizationIV.ini logging switches, and finalized BUG/Autolog settings, helping explain differences in diagnostic coverage and performance without collecting those settings separately.
   - Shared DLL context identifies the compiler and compiled profiler/ReproTest switches alongside the existing build configuration, while DLL/EXE identity includes actual binary resource versions when available; optional system-context level 3 also records debugger presence and selected development-tool processes at session start, without treating an open IDE or lingering build process as proof of active compilation.
@@ -746,7 +748,7 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 - (Requires AdvCiv-SAS 6468+) **Runtime, executable, and installation provenance:**
   - `GAME_RECORD_EXE_CONTEXT` fingerprints the actual loaded `Civ4BeyondSword.exe` independently from the mod DLL through file size, timestamps and a cached FNV-1a fingerprint.
   - The default system-context level also records native Windows versus Wine/Proton, raw Windows build/update (`UBR`) identity, process/native architecture and WOW64 state, plus a coarse `STEAM` / `GOG` / `FIRAXIS_RETAIL` / `RETAIL_OR_OTHER` installation hint and available Steam AppID/build/beta metadata.
-  - (Requires AdvCiv-SAS 6468+) Level 3 explicitly opts into more identifying coarse CPU/GPU vendor families, logical processor count, physical RAM and exact Civ4 EXE/mod paths; CPU/GPU model names and device IDs remain unrecorded.
+  - (Requires AdvCiv-SAS 6468+) Level 3 explicitly opts into more identifying CPU/GPU context, logical processor count, physical RAM and exact Civ4 EXE/mod paths; (Requires AdvCiv-SAS 6630+) it also records the CPU brand/model and one new/load sample of Civ4's process priority class and process/system affinity masks for performance comparisons. GPU model names and device IDs remain unrecorded.
   - Display context is retried after loaded-save graphics initialization so short sessions still obtain resolution/options and, at level 3, GPU-vendor context.
   - The Steam path was runtime-tested at levels 2 and 3; GOG, Firaxis retail/other and Wine/Proton detection are source-reviewed but not yet runtime-tested.
 - (Requires AdvCiv-SAS 6343+) Successful game-level Debug-mode toggles are also recorded as compact `DEBUG_MODE_CHANGED` old/new actions.
@@ -766,8 +768,8 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
   - A separate three-request test also correctly distinguished two scheduled completions from a manual interruption: the interrupted 31-turn request stopped after 18 completed turns with 13 remaining and reported `endCause=USER_INTERRUPTED`.
   - See [KI#203](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-203).
 - Anonymous process-memory, system memory-load percentage, available 32-bit address space, and exact foreground/minimized samples can be disabled separately without disabling timing or gameplay records.
-  - A separate 0-3 system-context privacy/detail level defaults to level 2: level 1 records display presentation context, level 2 adds software/runtime compatibility and coarse installation provenance, and level 3 additionally opts into coarse CPU/GPU vendor families, processor/RAM capacity and exact Civ4 EXE/mod paths.
-  - The actual EXE binary fingerprint remains separate provenance, while CPU/GPU model names and device IDs are not recorded.
+  - A separate 0-3 system-context privacy/detail level defaults to level 2: level 1 records display presentation context, level 2 adds software/runtime compatibility and coarse installation provenance, and level 3 additionally opts into CPU/GPU context, processor/RAM capacity and exact Civ4 EXE/mod paths; (Requires AdvCiv-SAS 6630+) CPU brand/model and one new/load process-priority/affinity sample further contextualize performance comparisons.
+  - The actual EXE binary fingerprint remains separate provenance; GPU model names/device IDs remain unrecorded, and the scheduling fields are explicitly point-in-time samples because process priority/affinity can change later.
 - (Requires AdvCiv-SAS 6392+) **SASGameRecord now standardizes map crowding and rival-distance context instead of requiring repeated offline reconstruction:**
   - initial geography notably records global and per-civilization starting density, inhabited and uninhabited land reserves, habitable land per starting civilization, same-landmass occupancy, pairwise start spacing, and nearest-start distances.
   - Periodic expansion history additionally distinguishes true other-team territory from teammate-inclusive foreign land and records met versus actually located rivals, nearest revealed other-team/enemy territory, and nearest known foreign/enemy cities from the capital, including same-landmass context.

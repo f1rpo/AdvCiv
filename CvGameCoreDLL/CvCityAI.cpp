@@ -1792,29 +1792,35 @@ static int SAS_getMinimumSpaceshipComponentContinuityRank(CvCityAI const& kCity,
 	return iRank;
 }
 
-// <!-- custom: While adding exact SASGameRecord building-choice provenance, replace the inherited BUILDINGFOCUS_* preprocessor constants with an ordinary local enum, paralleling the earlier AI-strategy diagnostic cleanup that replaced log_strat macros with type-safe C++.
-// Preserve every inherited bit exactly, including K-Mod's composite WORLDWONDER request, while the distinct internal bit lets multi-focus formatting name WORLDWONDER without mislabeling an ordinary WONDEROK request.
-// Keep the type local because no subsystem outside CvCityAI owns or consumes this building-specific request mask. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
+// <!-- custom: Building-focus values and their recorder names are two representations of the same private request mask.
+// The earlier SAS enum replaced inherited BUILDINGFOCUS_* macros; generate that enum and its diagnostic table together while keeping the building-specific request mask local to CvCityAI.
+// Generate both from one local X-macro list so adding an independent bit cannot silently omit its diagnostic name; keep K-Mod's composite WORLDWONDER request explicit because it combines two generated bits rather than representing another independent flag.
+// Preserve every inherited bit value and the existing descriptor iteration order. (GPT-5.6-Sol + ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+#define SAS_BUILDING_FOCUS_ROWS(DO) \
+	DO(FOOD, 1, "FOOD") \
+	DO(PRODUCTION, 2, "PRODUCTION") \
+	DO(GOLD, 3, "GOLD") \
+	DO(RESEARCH, 4, "RESEARCH") \
+	DO(CULTURE, 5, "CULTURE") \
+	DO(DEFENSE, 6, "DEFENSE") \
+	DO(HAPPY, 7, "HAPPY") \
+	DO(HEALTHY, 8, "HEALTHY") \
+	DO(EXPERIENCE, 9, "EXPERIENCE") \
+	DO(MAINTENANCE, 10, "MAINTENANCE") \
+	DO(SPECIALIST, 11, "SPECIALIST") \
+	DO(ESPIONAGE, 12, "ESPIONAGE") \
+	DO(BIGCULTURE, 13, "BIGCULTURE") \
+	DO(WORLDWONDER_DISTINCT, 14, "WORLDWONDER") \
+	DO(DOMAINSEA, 15, "DOMAINSEA") \
+	DO(WONDEROK, 16, "WONDEROK") \
+	DO(CAPITAL, 17, "CAPITAL")
+
 enum BuildingFocusTypes
 {
-	BUILDINGFOCUS_FOOD = (1 << 1),
-	BUILDINGFOCUS_PRODUCTION = (1 << 2),
-	BUILDINGFOCUS_GOLD = (1 << 3),
-	BUILDINGFOCUS_RESEARCH = (1 << 4),
-	BUILDINGFOCUS_CULTURE = (1 << 5),
-	BUILDINGFOCUS_DEFENSE = (1 << 6),
-	BUILDINGFOCUS_HAPPY = (1 << 7),
-	BUILDINGFOCUS_HEALTHY = (1 << 8),
-	BUILDINGFOCUS_EXPERIENCE = (1 << 9),
-	BUILDINGFOCUS_MAINTENANCE = (1 << 10),
-	BUILDINGFOCUS_SPECIALIST = (1 << 11),
-	BUILDINGFOCUS_ESPIONAGE = (1 << 12),
-	BUILDINGFOCUS_BIGCULTURE = (1 << 13),
-	BUILDINGFOCUS_WORLDWONDER_DISTINCT = (1 << 14),
-	BUILDINGFOCUS_DOMAINSEA = (1 << 15),
-	BUILDINGFOCUS_WONDEROK = (1 << 16),
-	BUILDINGFOCUS_WORLDWONDER = (BUILDINGFOCUS_WORLDWONDER_DISTINCT | BUILDINGFOCUS_WONDEROK),
-	BUILDINGFOCUS_CAPITAL = (1 << 17)
+#define SAS_BUILDING_FOCUS_ENUM(NAME, BIT, LABEL) BUILDINGFOCUS_##NAME = (1 << BIT),
+	SAS_BUILDING_FOCUS_ROWS(SAS_BUILDING_FOCUS_ENUM)
+#undef SAS_BUILDING_FOCUS_ENUM
+	BUILDINGFOCUS_WORLDWONDER = (BUILDINGFOCUS_WORLDWONDER_DISTINCT | BUILDINGFOCUS_WONDEROK)
 };
 
 struct BuildingFocusDescriptor
@@ -1823,27 +1829,13 @@ struct BuildingFocusDescriptor
 	char const* szName;
 };
 
-// <!-- custom: C++ cannot reflect over this private bitmask; keep its diagnostic iteration order and canonical names in one table so a future focus requires one new row rather than synchronized switch and array edits. (GPT-5.6-Sol) -->
 static BuildingFocusDescriptor const aBuildingFocusDescriptors[] =
 {
-	{ BUILDINGFOCUS_FOOD, "FOOD" },
-	{ BUILDINGFOCUS_PRODUCTION, "PRODUCTION" },
-	{ BUILDINGFOCUS_GOLD, "GOLD" },
-	{ BUILDINGFOCUS_RESEARCH, "RESEARCH" },
-	{ BUILDINGFOCUS_CULTURE, "CULTURE" },
-	{ BUILDINGFOCUS_DEFENSE, "DEFENSE" },
-	{ BUILDINGFOCUS_HAPPY, "HAPPY" },
-	{ BUILDINGFOCUS_HEALTHY, "HEALTHY" },
-	{ BUILDINGFOCUS_EXPERIENCE, "EXPERIENCE" },
-	{ BUILDINGFOCUS_MAINTENANCE, "MAINTENANCE" },
-	{ BUILDINGFOCUS_SPECIALIST, "SPECIALIST" },
-	{ BUILDINGFOCUS_ESPIONAGE, "ESPIONAGE" },
-	{ BUILDINGFOCUS_BIGCULTURE, "BIGCULTURE" },
-	{ BUILDINGFOCUS_WORLDWONDER_DISTINCT, "WORLDWONDER" },
-	{ BUILDINGFOCUS_DOMAINSEA, "DOMAINSEA" },
-	{ BUILDINGFOCUS_WONDEROK, "WONDEROK" },
-	{ BUILDINGFOCUS_CAPITAL, "CAPITAL" }
+#define SAS_BUILDING_FOCUS_DESCRIPTOR(NAME, BIT, LABEL) { BUILDINGFOCUS_##NAME, LABEL },
+	SAS_BUILDING_FOCUS_ROWS(SAS_BUILDING_FOCUS_DESCRIPTOR)
+#undef SAS_BUILDING_FOCUS_DESCRIPTOR
 };
+#undef SAS_BUILDING_FOCUS_ROWS
 
 static char const* SAS_getBuildingFocusType(int iFocusFlag)
 {

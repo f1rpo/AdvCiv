@@ -28,7 +28,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=145 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=146 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -71,10 +71,27 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
+### Revision 146 - SAS practical 6630
+
+- **Date:** 2026-10-12
+- **Git commit:** `pending`
+- **Change:** Make recorder settings and diagnostic vocabularies self-maintaining, and add compact level-3 performance-machine scheduling context without per-turn monitoring or gameplay work.
+
+- Replace the positional `GAME_RECORD_LOG_SETTINGS` format/argument list with one iterable scalar-setting descriptor array that preserves existing getters, caching/clamping policy and field order while automatically formatting names/values.
+  - Include the previously omitted scalar `SAS_GAME_RECORD_MAP_ASCII_TERRAIN_UPPERCASE_MIN_NATURE_FOOD_SURPLUS`; validated text-map palette strings remain specialized and are still reported through their resolved legends.
+  - CI compares every integer `SAS_GAME_RECORD_*` XML Define against this registry, so a future scalar recorder setting cannot silently disappear from session provenance.
+- At system-context level 3, add the quoted CPU brand/model plus a one-shot Civ4 process priority-class and process/system affinity-mask sample. Query failure remains explicit (`-` / availability 0), and lower privacy levels retain the same uncollected sentinels.
+- Generate private `BuildingFocusTypes` independent bits and the recorder descriptor table from one local X-macro list while keeping composite `BUILDINGFOCUS_WORLDWONDER` explicit; all inherited bit values, names, iteration order and behavior remain unchanged.
+- Generate the existing shared AI-strategy descriptors and enum bits from one canonical list too, retaining the getter/iteration APIs, zero sentinel, bit values and ordering; CI checks both generators and the recorder consumers.
+- Give 25 recorder-owned reason/source/action vocabularies shared enum/label lists too, preserving numeric values, schema labels, sentinels and fallback behavior; existing switches/indexed arrays remain compile-time generated with no added runtime setup.
+  - Shared Found-log contexts, autoplay-end causes, war-declaration causes, tech-acquisition causes and research-target-change causes use the same approach; legitimate UNKNOWN enum entries retain their existing labels.
+
+Developed with ChatGPT-5.6-Sol; reviewed and adjusted with GPT-6.1-Sol.
+
 ### Revision 145 - SAS practical 6629
 
 - **Date:** 2026-10-11
-- **Git commit:** `pending`
+- **Git commit:** `225fc8b07664876a78b51f0bad9b86dea4b9d16c`
 - **Change:** Make each SASGameRecord session self-describing about diagnostic/logging overhead, build instrumentation and save-stream format without adding per-turn monitoring.
 
 - Add one finalized new/load `GAME_RECORD_DIAGNOSTIC_CONTEXT` row after Python lifecycle handlers finish, so Autolog running state reflects the current session.
@@ -89,7 +106,7 @@ Because this numbering is reconstructed after the fact, the descriptions are con
   - `GAME_RECORD_SAVE_COMPONENT_FORMATS` adds the current write markers for core/AI objects, statistics, UWAI, Rise & Fall and replay records, using one iterable `SASSaveStreamFormat.h` registry shared with their writers.
   - Existing values, encoded marker arithmetic and read/write layouts remain unchanged; CI rejects registered writers that revert to separate literals and recognizable gameplay serializers missing from the registry; XML-info cache writers remain outside its scope.
   - These are current writer markers, including optional inactive subsystems, not values captured from every loaded object or a complete save-schema compatibility certificate; exact source/DLL provenance still identifies the implementation as a whole.
-- Keep `GAME_RECORD_LOG_SETTINGS` explicit rather than forcing its heterogeneous booleans, dimensions, intervals and clamped settings into BBAI's homogeneous category-level registry.
+- Keep `GAME_RECORD_LOG_SETTINGS` explicit in revision 145 rather than forcing it into BBAI's homogeneous category-level registry; revision 146 later gives recorder scalars their own lightweight iterable descriptor array while retaining each getter's policy.
 
 Developed with ChatGPT-5.6-Sol; reviewed and adjusted with GPT-6.1-Sol, after the revision-144 Reddit/empire-management audit and the BBAI logging-performance investigation.
 

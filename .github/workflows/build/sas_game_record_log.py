@@ -37,6 +37,31 @@ CITY_SITE_EVALUATOR_HEADER = Path("CvGameCoreDLL/CitySiteEvaluator.h")
 
 
 
+# <!-- custom: Existing source-contract checks also accept recorder vocabulary lists that generate enums and label switches.
+# Expand only the two known declaration/case forms for inspection; this adds no new feature assertions and leaves ordinary source reads unchanged. (GPT-6.1-Sol) -->
+def _read_record_vocabulary(path: Path) -> str:
+	text = path.read_text(encoding="utf-8", errors="replace")
+	if path.name not in (REVISION_HEADER.name, REVISION_SOURCE.name):
+		return text
+	header_path = path.with_name(REVISION_HEADER.name)
+	if not header_path.is_file():
+		return text
+	header = text if path.name == REVISION_HEADER.name else header_path.read_text(encoding="utf-8", errors="replace")
+	registries = {}
+	for match in re.finditer(r"^#define (SAS_RECORD_\w+_ROWS)\(DO\) \\\n((?:\tDO\(\w+, \w+\)(?: \\)?\n)+)", header, flags=re.MULTILINE):
+		registries[match.group(1)] = re.findall(r"DO\((\w+), (\w+)\)", match.group(0))
+
+	def expand(match):
+		kind, registry = match.group(1), match.group(2)
+		if registry not in registries:
+			return match.group(0)
+		if kind == "ENUM":
+			return "\n".join("\t" + name + "," for name, _ in registries[registry])
+		return "\n".join(f'\tcase {name}: return "{label}";' for name, label in registries[registry])
+
+	return re.sub(r"^#define SAS_RECORD_(ENUM|LABEL)\(NAME, LABEL\)[^\n]*\n\t(SAS_RECORD_\w+_ROWS)\(SAS_RECORD_\1\)\n#undef SAS_RECORD_\1", expand, text, flags=re.MULTILINE)
+
+
 def check_revision(repo_root: Path) -> list[str]:
 	failures = []
 	for relative_path in (REVISION_HEADER, REVISION_SOURCE, REVISION_HISTORY):
@@ -45,7 +70,7 @@ def check_revision(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	revision_matches = re.findall(r"\bSAS_GAME_RECORD_REVISION\s*=\s*(\d+)\b", header_text)
 	if len(revision_matches) != 1:
 		return [f"{REVISION_HEADER}: expected exactly one SAS_GAME_RECORD_REVISION assignment, found {len(revision_matches)}"]
@@ -88,9 +113,37 @@ def check_revision(repo_root: Path) -> list[str]:
 	elif int(documented_revision_matches[0]) != revision:
 		failures.append(f"{REVISION_HISTORY}: current emitted recordRevision example={documented_revision_matches[0]}, source={revision}")
 
-	source_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	source_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	if 'GAME_RECORD_SOURCE_CONTEXT recordRevision=%d %s' not in source_text or 'SAS_GAME_RECORD_REVISION' not in source_text:
 		failures.append(f"{REVISION_SOURCE}: missing emitted recordRevision SOURCE_CONTEXT field tied to SAS_GAME_RECORD_REVISION")
+	return failures
+
+
+# <!-- custom: GAME_RECORD_LOG_SETTINGS is the session provenance inventory for scalar recorder Defines.
+# Compare the iterable descriptor rows against every integer SAS_GAME_RECORD_* XML Define so a new setting cannot silently miss the profile; text-valued palette Defines are intentionally outside read_global_define_ints and stay in map legends. (ChatGPT-5.6-Sol) -->
+def check_log_settings_registry(repo_root: Path, defines: dict[str, int]) -> list[str]:
+	failures = []
+	source_path = repo_root / REVISION_SOURCE
+	if not source_path.is_file():
+		return [f"missing SASGameRecord log-settings registry source: {REVISION_SOURCE}"]
+	source = _read_record_vocabulary(source_path)
+	start = source.find("static CvString getSASGameRecordLogSettingFields()")
+	end = source.find("static void logSASGameRecordLogSettings()", start + 1) if start >= 0 else -1
+	if start < 0 or end < 0:
+		return [f"{REVISION_SOURCE}: missing iterable GAME_RECORD_LOG_SETTINGS registry/consumer"]
+	registry_text = source[start:end]
+	registry = re.findall(r'\{\s*"(SAS_GAME_RECORD_[A-Z0-9_]+)"\s*,', registry_text)
+	if len(registry) != len(set(registry)):
+		failures.append(f"{REVISION_SOURCE}: duplicate SAS_GAME_RECORD_* entries in log-settings registry")
+	expected = {name for name in defines if name.startswith("SAS_GAME_RECORD_")}
+	actual = set(registry)
+	for name in sorted(expected - actual):
+		failures.append(f"{REVISION_SOURCE}: scalar recorder Define missing from GAME_RECORD_LOG_SETTINGS registry: {name}")
+	for name in sorted(actual - expected):
+		failures.append(f"{REVISION_SOURCE}: GAME_RECORD_LOG_SETTINGS registry names unknown/non-integer recorder Define: {name}")
+	consumer = source[end:source.find("// <!-- custom: One session-start profile", end)]
+	if 'logSASGameRecord("GAME_RECORD_LOG_SETTINGS %s", getSASGameRecordLogSettingFields().GetCString());' not in consumer:
+		failures.append(f"{REVISION_SOURCE}: GAME_RECORD_LOG_SETTINGS must consume the iterable registry formatter")
 	return failures
 
 
@@ -138,7 +191,7 @@ def check_save_component_formats(repo_root: Path) -> list[str]:
 			bound = marker in [value.strip() for value in marker_pattern.findall(writers.get(label, ""))]
 		if not bound:
 			failures.append(f"{label}: writer must use registered marker {key}")
-	record = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8")
+	record = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	if "SAS_SAVE_STREAM_FORMATS(SAS_SAVE_STREAM_MARKER_ROW)" not in record or "scope=CURRENT_WRITER_MARKERS markers=%s" not in record:
 		failures.append("save-component diagnostic row must use the shared registry and identify current-writer scope")
 	return failures
@@ -148,7 +201,7 @@ def check_context_consumer_contracts(repo_root: Path) -> list[str]:
 	failures = []
 	if not (repo_root / REVISION_SOURCE).is_file():
 		return [f"missing SASGameRecord context-contract file: {REVISION_SOURCE}"]
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 
 	# <!-- custom: Keep the compact support-context topology stable for downstream parsers without claiming that Windows' primary adapter proves the exact Direct3D device selected by Civ4. (ChatGPT-5.6-Sol) -->
 	display_fields = "gpuAdapterCount=%d gpuDesktopAdapterCount=%d gpuVendorFamilyCount=%d gpuPrimaryVendor=%s gpuVendors=%s"
@@ -195,8 +248,8 @@ def check_turn_completion_contract(repo_root: Path) -> list[str]:
 			failures.append(f"missing SASGameRecord turn-completion file: {relative_path}")
 	if failures:
 		return failures
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	game_text = (repo_root / GAME_SOURCE).read_text(encoding="utf-8", errors="replace")
 	if "void logSASGameRecordTurnCompleted(int iGameTurn);" not in header_text:
 		failures.append(f"{REVISION_HEADER}: missing public completed-turn marker bridge")
@@ -231,7 +284,7 @@ def check_city_delta_contracts(repo_root: Path) -> list[str]:
 			failures.append(f"missing SASGameRecord city-delta file: {relative_path}")
 	if failures:
 		return failures
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for required in (
 		"SAS_GAME_RECORD_CITY_FULL_SNAPSHOT_CADENCE = 10", "compactSASGameRecordCityDetailRow",
 		"previousTurn=%d fullBaseTurn=%d changed=%d", "g_mapSASGameRecordCityDeltaStates.clear()",
@@ -266,11 +319,19 @@ def check_ai_strategy_diagnostics(repo_root: Path) -> list[str]:
 	enum_match = re.search(r"enum\s+AIStrategy\b[^\{]*\{(?P<body>.*?)\};", enum_text, flags=re.DOTALL)
 	if enum_match is None:
 		return [f"{AI_STRATEGIES_HEADER}: could not locate enum AIStrategy"]
-	enum_entries = re.findall(
-		r"^\s*(NO_AI_STRATEGY|AI_DEFAULT_STRATEGY|AI_STRATEGY_[A-Z0-9_]+)\s*=\s*([^,]+),",
-		enum_match.group("body"), flags=re.MULTILINE)
-	if not enum_entries:
-		return [f"{AI_STRATEGIES_HEADER}: no explicitly assigned AIStrategy enumerators found"]
+	# <!-- custom: Validate the canonical strategy rows and both compile-time consumers; parsing only explicit enum/table entries would miss an X-macro list or silently accept a disconnected generator. (GPT-6.1-Sol) -->
+	rows_match = re.search(r"#define\s+SAS_AI_STRATEGY_ROWS\(DO\)\s*\\\n(?P<body>(?:[^\n]*\\\n)*[^\n]*)", enum_text)
+	if rows_match is None:
+		return [f"{AI_STRATEGIES_HEADER}: missing canonical SAS_AI_STRATEGY_ROWS list"]
+	strategy_rows = re.findall(r"DO\(\s*(AI_DEFAULT_STRATEGY|AI_STRATEGY_[A-Z0-9_]+)\s*,\s*(\d+)\s*\)", rows_match.group("body"))
+	if not strategy_rows:
+		return [f"{AI_STRATEGIES_HEADER}: no strategy rows found"]
+	if not re.search(r"#define\s+SAS_AI_STRATEGY_ENUM\(NAME,\s*BIT\)\s+NAME\s*=\s*\(1\s*<<\s*BIT\),", enum_match.group("body")) or "SAS_AI_STRATEGY_ROWS(SAS_AI_STRATEGY_ENUM)" not in enum_match.group("body"):
+		failures.append(f"{AI_STRATEGIES_HEADER}: AIStrategy must generate its bit constants from the canonical rows")
+	explicit_entries = re.findall(r"^\s*(NO_AI_STRATEGY|AI_DEFAULT_STRATEGY|AI_STRATEGY_[A-Z0-9_]+)\s*=\s*([^,]+),", enum_match.group("body"), flags=re.MULTILINE)
+	if [token for token, _ in explicit_entries] != ["NO_AI_STRATEGY"]:
+		failures.append(f"{AI_STRATEGIES_HEADER}: only NO_AI_STRATEGY may be defined outside the shared rows")
+	enum_entries = explicit_entries + [(token, f"(1 << {bit})") for token, bit in strategy_rows]
 	enum_tokens = [token for token, _ in enum_entries]
 	if len(enum_tokens) != len(set(enum_tokens)):
 		failures.append(f"{AI_STRATEGIES_HEADER}: duplicate AIStrategy enumerator names found")
@@ -302,24 +363,15 @@ def check_ai_strategy_diagnostics(repo_root: Path) -> list[str]:
 	if descriptor_match is None:
 		failures.append(f"{GAME_CORE_UTILS_SOURCE}: missing aSASAIStrategyDescriptors definition")
 	else:
-		descriptor_pairs = re.findall(r'\{\s*(AI_DEFAULT_STRATEGY|AI_STRATEGY_[A-Z0-9_]+)\s*,\s*"([^"]+)"\s*\}', descriptor_match.group("body"))
-		descriptor_tokens = [token for token, _ in descriptor_pairs]
-		if len(descriptor_tokens) != len(set(descriptor_tokens)):
-			failures.append(f"{GAME_CORE_UTILS_SOURCE}: duplicate AIStrategy descriptor(s) found")
-		expected_descriptors = [token for token in enum_tokens if token != "NO_AI_STRATEGY"]
-		missing = [token for token in expected_descriptors if token not in descriptor_tokens]
-		extra = [token for token in descriptor_tokens if token not in expected_descriptors]
-		if missing:
-			failures.append(f"{GAME_CORE_UTILS_SOURCE}: AIStrategy descriptors missing {', '.join(missing)}")
-		if extra:
-			failures.append(f"{GAME_CORE_UTILS_SOURCE}: AIStrategy descriptors contain non-enum values: {', '.join(extra)}")
-		for token, label in descriptor_pairs:
-			if token != label:
-				failures.append(f"{GAME_CORE_UTILS_SOURCE}: {token} maps to {label!r}, expected identical raw enum token")
+		body = descriptor_match.group("body")
+		if not re.search(r"#define\s+SAS_AI_STRATEGY_DESCRIPTOR\(NAME,\s*BIT\)\s*\{\s*NAME,\s*#NAME\s*\},", body) or "SAS_AI_STRATEGY_ROWS(SAS_AI_STRATEGY_DESCRIPTOR)" not in body:
+			failures.append(f"{GAME_CORE_UTILS_SOURCE}: descriptors must generate raw names from the canonical strategy rows")
+		if re.search(r'\{\s*AI_(?:DEFAULT_STRATEGY|STRATEGY_[A-Z0-9_]+)\s*,', body):
+			failures.append(f"{GAME_CORE_UTILS_SOURCE}: handwritten strategy descriptors must not duplicate generated rows")
 	if "getSASAIStrategyType(AIStrategy eStrategy)" not in utils_text or 'return "NO_AI_STRATEGY";' not in utils_text:
 		failures.append(f"{GAME_CORE_UTILS_SOURCE}: shared AIStrategy lookup must retain explicit NO_AI_STRATEGY support")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	if record_text.count("getSASAIStrategyDescriptorCount()") != 3 or record_text.count("getSASAIStrategyDescriptor(iI)") != 3:
 		failures.append(f"{REVISION_SOURCE}: CORE hash, strategy checkpoint and transition rows must all iterate the shared AIStrategy descriptors")
 	if record_text.count("if (eStrategy == AI_DEFAULT_STRATEGY)") != 2:
@@ -365,7 +417,7 @@ def check_area_ai_diagnostics(repo_root: Path) -> list[str]:
 
 	team_text = (repo_root / TEAM_AI_SOURCE).read_text(encoding="utf-8", errors="replace")
 	uwai_text = (repo_root / UWAI_AGENT_SOURCE).read_text(encoding="utf-8", errors="replace")
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	# AI_updateAreaStrategies deliberately duplicates the one-line setter between its disabled fast path and logged path so recorder-off gameplay pays no per-area diagnostic branch/read. UWAI has one setter in its alignment writer.
 	if team_text.count("setAreaAIType(") != 2 or uwai_text.count("setAreaAIType(") != 1:
 		failures.append(f"AreaAI writer shape changed: expected two guarded setter call sites in {TEAM_AI_SOURCE} and one in {UWAI_AGENT_SOURCE}")
@@ -391,7 +443,7 @@ def check_ai_target_city_provenance(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	expected_sources = [
 		"SAS_AI_TARGET_CITY_AREA_SEARCH",
 		"SAS_AI_TARGET_CITY_RANDOM_CLEAR",
@@ -411,7 +463,7 @@ def check_ai_target_city_provenance(repo_root: Path) -> list[str]:
 				f"{REVISION_HEADER}: AI target-city source vocabulary changed; "
 				f"expected {expected_sources}, found {source_tokens}")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	mapping_match = re.search(
 		r"getSASGameRecordAITargetCityChangeSource\s*\([^)]*\)\s*\{(?P<body>.*?)^\}",
 		record_text, flags=re.DOTALL | re.MULTILINE)
@@ -432,7 +484,7 @@ def check_ai_target_city_provenance(repo_root: Path) -> list[str]:
 	for source_path in (repo_root / "CvGameCoreDLL").glob("*.cpp"):
 		if source_path.name == "CvArea.cpp":
 			continue  # contains the setter definition, not a caller
-		source_text = source_path.read_text(encoding="utf-8", errors="replace")
+		source_text = _read_record_vocabulary(source_path)
 		count = source_text.count("AI_setTargetCity(")
 		if count:
 			writer_files[source_path.name] = count
@@ -518,7 +570,7 @@ def check_ai_attitude_breakdown(repo_root: Path) -> list[str]:
 			f"{PLAYER_AI_SOURCE}: AI_updateAttitude component sequence changed; "
 			f"expected {expected_getters}, found {getters}. Update GAME_RECORD_DIPLO_ATTITUDE_BREAKDOWN and this check together.")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	start = record_text.find("static void logSASGameRecordDiplomaticAttitudes(PlayerTypes ePlayer")
 	end = record_text.find("static void logSASGameRecordDiploStatus(PlayerTypes ePlayer", start)
 	if start < 0 or end < 0:
@@ -544,7 +596,7 @@ def check_strategic_trade_market(repo_root: Path) -> list[str]:
 	if not record_path.is_file():
 		return [f"missing strategic trade-market diagnostic file: {REVISION_SOURCE}"]
 
-	record_text = record_path.read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary(record_path)
 	start = record_text.find("static void logSASGameRecordStrategicTradeMarketPair")
 	end = record_text.find("static void logSASGameRecordTradeMarket", start)
 	if start < 0 or end < 0:
@@ -606,7 +658,7 @@ def check_uwai_war_plan_decisions(repo_root: Path) -> list[str]:
 	]
 	expected_tokens = [token for token, _ in expected]
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	enum_match = re.search(r"enum\s+SASGameRecordUWAIWarPlanDecisionReason\s*\{(?P<body>.*?)\};", header_text, flags=re.DOTALL)
 	if enum_match is None:
 		failures.append(f"{REVISION_HEADER}: missing SASGameRecordUWAIWarPlanDecisionReason")
@@ -615,7 +667,7 @@ def check_uwai_war_plan_decisions(repo_root: Path) -> list[str]:
 		if enum_tokens != expected_tokens:
 			failures.append(f"{REVISION_HEADER}: UWAI war-plan decision reasons changed; expected {expected_tokens}, found {enum_tokens}")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	mapping_match = re.search(r"getSASGameRecordUWAIWarPlanDecisionReason\s*\([^)]*\)\s*\{(?P<body>.*?)^\}", record_text, flags=re.DOTALL | re.MULTILINE)
 	if mapping_match is None:
 		failures.append(f"{REVISION_SOURCE}: missing UWAI war-plan reason stringifier")
@@ -673,7 +725,7 @@ def check_ai_diplo_vote_provenance(repo_root: Path) -> list[str]:
 	]
 	expected_tokens = [token for token, _ in expected]
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	enum_match = re.search(r"enum\s+SASGameRecordAIDiploVoteReason\s*\{(?P<body>.*?)\};", header_text, flags=re.DOTALL)
 	if enum_match is None:
 		failures.append(f"{REVISION_HEADER}: missing SASGameRecordAIDiploVoteReason")
@@ -682,7 +734,7 @@ def check_ai_diplo_vote_provenance(repo_root: Path) -> list[str]:
 		if enum_tokens != expected_tokens:
 			failures.append(f"{REVISION_HEADER}: AI diplomatic-vote reasons changed; expected {expected_tokens}, found {enum_tokens}")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	mapping_match = re.search(r"getSASGameRecordAIDiploVoteReason\s*\([^)]*\)\s*\{(?P<body>.*?)^\}", record_text, flags=re.DOTALL | re.MULTILINE)
 	if mapping_match is None:
 		failures.append(f"{REVISION_SOURCE}: missing AI diplomatic-vote reason stringifier")
@@ -734,7 +786,7 @@ def check_ai_conquer_city_provenance(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	expected_outcomes = [
 		"SAS_AI_CONQUER_CITY_KEEP", "SAS_AI_CONQUER_CITY_RAZE", "SAS_AI_CONQUER_CITY_LIBERATE",
 	]
@@ -754,7 +806,7 @@ def check_ai_conquer_city_provenance(repo_root: Path) -> list[str]:
 		if tokens != expected:
 			failures.append(f"{REVISION_HEADER}: {enum_name} changed; expected {expected}, found {tokens}")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for required in (
 		"GAME_RECORD_AI_CONQUER_CITY_DECISION", "outcome=%s", "reason=%s", "valueValid=%d",
 		"razeValueBeforeRandom=%d", "random=%d", "razeValue=%d", "componentsValid=%d",
@@ -788,7 +840,7 @@ def check_ai_great_person_provenance(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	expected_actions = [
 		"SAS_AI_GREAT_PERSON_DISCOVER_TECH", "SAS_AI_GREAT_PERSON_TRADE_MISSION", "SAS_AI_GREAT_PERSON_MOVE_TO_TRADE_MISSION",
 		"SAS_AI_GREAT_PERSON_GREAT_WORK", "SAS_AI_GREAT_PERSON_MOVE_TO_GREAT_WORK", "SAS_AI_GREAT_PERSON_GOLDEN_AGE",
@@ -805,7 +857,7 @@ def check_ai_great_person_provenance(repo_root: Path) -> list[str]:
 		if tokens != expected_actions:
 			failures.append(f"{REVISION_HEADER}: Great Person action vocabulary changed; expected {expected_actions}, found {tokens}")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for required in (
 		"GAME_RECORD_AI_GREAT_PERSON_DECISION", "action=%s", "choiceRank=%d", "selectedValue=%d", "threshold=%d",
 		"slow=%d", "slowBaseValue=%d", "slowPathTurns=%d", "slowMissionAI=%d", "slowCityId=%d",
@@ -892,7 +944,7 @@ def check_ai_great_general_provenance(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	expected_stages = [
 		"SAS_AI_GREAT_GENERAL_PREFERRED_INSTRUCTOR", "SAS_AI_GREAT_GENERAL_FIRST_ACADEMY", "SAS_AI_GREAT_GENERAL_FIRST_INSTRUCTOR",
 		"SAS_AI_GREAT_GENERAL_DANGER_LEAD",
@@ -915,7 +967,7 @@ def check_ai_great_general_provenance(repo_root: Path) -> list[str]:
 			if tokens != expected:
 				failures.append(f"{REVISION_HEADER}: {enum_name} vocabulary changed; expected {expected}, found {tokens}")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for required in (
 		"GAME_RECORD_AI_GREAT_GENERAL_DECISION", "unitAI=%s", "area=%d", "areaAI=%d", "action=%s", "stage=%s", "move=%d", "selectedValue=%d", "limit=%d",
 		"valueThreshold=%d", "minStrength=%d", "minHealing=%d", "preferInstructorFirst=%d", "preferThroughEra=%d",
@@ -1027,7 +1079,7 @@ def check_ai_diplo_contact_provenance(repo_root: Path) -> list[str]:
 			if token != label:
 				failures.append(f"{GAME_CORE_UTILS_SOURCE}: {token} maps to {label!r}, expected identical raw enum token")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for required in (
 		"GAME_RECORD_AI_DIPLO_CONTACT", "contact=%s", "delivery=%s", "attitudeValue=%d",
 		"subject=%s", "aiGives=%s", "aiReceives=%s", "getSASContactType",
@@ -1076,7 +1128,7 @@ def check_ai_help_tribute_request_provenance(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	expected_origins = ["SAS_AI_HUMAN_REQUEST_AI_DO_DIPLO", "SAS_AI_HUMAN_REQUEST_UWAI_AMEND_TENSIONS"]
 	m = re.search(r"enum\s+SASGameRecordAIHumanRequestOrigin\s*\{(?P<body>.*?)\};", header_text, flags=re.DOTALL)
 	if m is None:
@@ -1089,7 +1141,7 @@ def check_ai_help_tribute_request_provenance(repo_root: Path) -> list[str]:
 		if token not in header_text:
 			failures.append(f"{REVISION_HEADER}: missing help/tribute provenance declaration {token}")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for required in (
 		"GAME_RECORD_AI_HELP_REQUEST", "origin=%s", "humanAssets=%d", "aiTeamAssets=%d", "bestTech=%s",
 		"techValue=%d", "bestCityId=%d", "cityValue=%d", "bestCityLiberation=%d", "cityChoiceRoll=%d", "selected=%s:%s",
@@ -1176,7 +1228,7 @@ def check_ai_give_help_provenance(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	expected_origins = [
 		"SAS_AI_GIVE_HELP_RELATION_RESOURCE",
 		"SAS_AI_GIVE_HELP_RELATION_TECH",
@@ -1192,7 +1244,7 @@ def check_ai_give_help_provenance(repo_root: Path) -> list[str]:
 	if "logSASGameRecordAIGiveHelpDecision" not in header_text:
 		failures.append(f"{REVISION_HEADER}: missing give-help provenance logger declaration")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for required in (
 		"GAME_RECORD_AI_GIVE_HELP_DECISION", "origin=%s", "sameTeam=%d", "targetVassal=%d", "giverVassal=%d",
 		"attitudeValue=%d", "proactiveAttitude=%s", "proactiveAttitudeThreshold=%s", "giverAssets=%d", "targetAssets=%d", "selectedBonus=%s", "targetHadBonus=%d",
@@ -1253,7 +1305,7 @@ def check_ai_tech_trade_provenance(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	expected_origins = [
 		"SAS_AI_TECH_TRADE_RANDOM_DIRECT",
 		"SAS_AI_TECH_TRADE_RANDOM_COUNTERPROPOSE",
@@ -1269,7 +1321,7 @@ def check_ai_tech_trade_provenance(repo_root: Path) -> list[str]:
 	if "logSASGameRecordAITechTradeDecision" not in header_text:
 		failures.append(f"{REVISION_HEADER}: missing tech-trade provenance logger declaration")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for required in (
 		"GAME_RECORD_AI_TECH_TRADE_DECISION", "origin=%s", "contactProbMultX1000=%d", "bestKnownTechScorePercent=%d",
 		"randomReceiveTech=%s", "randomReceiveScore=%d", "randomReceiveLocusSuppressed=%d", "progressTech=%s",
@@ -1333,7 +1385,7 @@ def check_ai_deal_cancellation_provenance(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	expected_reasons = [
 		"SAS_AI_DEAL_CANCEL_OFFER_REJECTED_RENEGOTIATE",
 		"SAS_AI_DEAL_CANCEL_DUAL_DENIAL",
@@ -1349,7 +1401,7 @@ def check_ai_deal_cancellation_provenance(repo_root: Path) -> list[str]:
 		if tokens != expected_reasons:
 			failures.append(f"{REVISION_HEADER}: AI deal-cancellation reason vocabulary changed; expected {expected_reasons}, found {tokens}")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for required in (
 		"GAME_RECORD_AI_DEAL_CANCELLATION_DECISION", "reason=%s", "dealId=%d", "dealAge=%d", "vassalDeal=%d",
 		"triggerSide=%s", "triggerItem=%s", "denial=%s", "dualCancelChanceX1000=%d",
@@ -1411,7 +1463,7 @@ def check_deal_invalidation_provenance(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	expected_reasons = [
 		"SAS_DEAL_INVALID_RESOURCE_SUPPLY_DEFICIT",
 		"SAS_DEAL_INVALID_TRADE_NETWORK_LOST",
@@ -1428,7 +1480,7 @@ def check_deal_invalidation_provenance(repo_root: Path) -> list[str]:
 		if tokens != expected_reasons:
 			failures.append(f"{REVISION_HEADER}: deal-invalidation reason vocabulary changed; expected {expected_reasons}, found {tokens}")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for required in (
 		"GAME_RECORD_DEAL_INVALIDATION", "dealId=%d", "dealAge=%d", "reason=%s", "giver=%d", "recipient=%d",
 		"triggerItem=%s", "tradeableBonusCount=%d", "goldPercent=%d", "gold=%d", "gptDue=%d", "goldRate=%d",
@@ -1474,7 +1526,7 @@ def check_ai_joint_war_request_provenance(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for required in (
 		"GAME_RECORD_AI_JOINT_WAR_REQUEST", "human=%d", "humanTeam=%d", "attitudeValue=%d",
 		"meanAtWarTurnsX1000=%d", "contactRand=%d", "targetTeam=%d", "targetScore=%d",
@@ -1517,7 +1569,7 @@ def check_ai_embargo_request_provenance(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	expected_origins = [
 		"SAS_AI_EMBARGO_DIRECT_CONTACT",
 		"SAS_AI_EMBARGO_JOINT_WAR_ATTITUDE_REDIRECT",
@@ -1531,7 +1583,7 @@ def check_ai_embargo_request_provenance(repo_root: Path) -> list[str]:
 		if tokens != expected_origins:
 			failures.append(f"{REVISION_HEADER}: AI embargo origin vocabulary changed; expected {expected_origins}, found {tokens}")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for required in (
 		"GAME_RECORD_AI_EMBARGO_REQUEST", "origin=%s", "embargoTargetTeam=%d", "teamAttitudeHuman=%d",
 		"teamAttitudeTarget=%d", "attitudeGap=%d", "jointWarTargetTeam=%d", "jointWarTargetScore=%d",
@@ -1589,7 +1641,7 @@ def check_ai_vassalage_provenance(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	expected_origins = [
 		"SAS_AI_VASSALAGE_VOLUNTARY_CONTACT", "SAS_AI_VASSALAGE_UWAI_FIND_MASTER",
 		"SAS_AI_VASSALAGE_LEGACY_CAPITULATION", "SAS_AI_VASSALAGE_UWAI_CAPITULATION",
@@ -1602,7 +1654,7 @@ def check_ai_vassalage_provenance(repo_root: Path) -> list[str]:
 		if tokens != expected_origins:
 			failures.append(f"{REVISION_HEADER}: AI vassalage origin vocabulary changed; expected {expected_origins}, found {tokens}")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for required in (
 		"GAME_RECORD_AI_VASSALAGE_DECISION", "origin=%s", "enemyTeam=%d", "enemyAtWarCounter=%d",
 		"contactProbMultX1000=%d", "targetRank=%d", "aliveCivs=%d", "ourWars=%d", "counterProposal=%d",
@@ -1655,11 +1707,11 @@ def check_ai_colony_split_provenance(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	if "logSASGameRecordAIColonySplitDecision(" not in header_text:
 		failures.append(f"{REVISION_HEADER}: missing AI colony-split provenance declaration")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for required in (
 		"GAME_RECORD_AI_COLONY_SPLIT_DECISION", "origin=%s", "areaId=%d", "areaValue=%d",
 		"areaCities=%d", "areaPopulation=%d", "playerCitiesBefore=%d", "playerPopulationBefore=%d",
@@ -1706,11 +1758,11 @@ def check_ai_spaceship_launch_provenance(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	if "logSASGameRecordAISpaceshipLaunchDecision(" not in header_text:
 		failures.append(f"{REVISION_HEADER}: missing AI spaceship-launch provenance declaration")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for required in (
 		"GAME_RECORD_AI_SPACESHIP_LAUNCH_DECISION", "victory=%s", "reason=%s", "launchSuccessPercent=%d",
 		"nearestRivalTeam=%d", "nearestRivalCountdown=%d", "rivalAtOrBeforeOurArrival=%d",
@@ -1773,11 +1825,11 @@ def check_ai_religion_spread_target_provenance(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	if "logSASGameRecordAIReligionSpreadTarget(" not in header_text:
 		failures.append(f"{REVISION_HEADER}: missing AI religion-spread target provenance declaration")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for required in (
 		"GAME_RECORD_AI_RELIGION_SPREAD_TARGET", "religion=%s", "targetScope=%s", "targetPlayer=%d",
 		"playerMultiplierPercent=%d", "pathTurns=%d", "targetScore=%d", "action=%s",
@@ -1834,10 +1886,10 @@ def check_ai_map_trade_provenance(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	if "logSASGameRecordAIMapTradeDecision(" not in header_text:
 		failures.append(f"{REVISION_HEADER}: missing AI map-trade provenance declaration")
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	m_record = re.search(r"void logSASGameRecordAIMapTradeDecision\([^\)]*\)\s*\{(?P<body>.*?)^\}", record_text, flags=re.DOTALL | re.MULTILINE)
 	if m_record is None:
 		failures.append(f"{REVISION_SOURCE}: could not locate AI map-trade provenance definition")
@@ -1889,14 +1941,14 @@ def check_unit_completion_sources(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	for token in ("SASGameRecordUnitCompletionSource", "SAS_UNIT_COMPLETION_PRODUCTION", "SAS_UNIT_COMPLETION_CONSCRIPT", "SAS_UNIT_COMPLETION_COLONY_FREE_DEFENDER"):
 		if token not in header_text:
 			failures.append(f"{REVISION_HEADER}: missing explicit unit-completion source token {token}")
 	if "bool bConscripted" in header_text:
 		failures.append(f"{REVISION_HEADER}: unit-completion recorder must not collapse completion provenance back to a conscripted boolean")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for token in (
 		'"PRODUCTION"', '"CONSCRIPT"', '"COLONY_FREE_DEFENDER"',
 		"colonyFreeDefenders=%d", "colonyFreeDefenderProductionNeeded=%d", "colonyFreeDefenderUnitTypes=%s",
@@ -1937,11 +1989,11 @@ def check_ai_draft_provenance(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	for token in ("SASGameRecordAIDraftReason", "logSASGameRecordAIDraftDecision("):
 		if token not in header_text:
 			failures.append(f"{REVISION_HEADER}: missing AI draft provenance declaration token {token}")
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for required in (
 		"GAME_RECORD_AI_DRAFT_DECISION", "reason=%s", "unit=%s", "population=%d", "highestPopulation=%d",
 		"conscriptPopulation=%d", "conscriptAngerTimer=%d", "danger=%d", "landWar=%d", "goodValue=%d",
@@ -1990,11 +2042,11 @@ def check_ai_hurry_provenance(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	for token in ("SASGameRecordAIHurryReason", "logSASGameRecordAIHurryDecision("):
 		if token not in header_text:
 			failures.append(f"{REVISION_HEADER}: missing AI hurry provenance declaration token {token}")
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for required in (
 		"GAME_RECORD_AI_HURRY_DECISION", "reason=%s", "hurry=%s", "targetKind=%s", "target=%s",
 		"unitAI=%s", "happyBalance=%d", "happyDiff=%d", "foodDifference=%d",
@@ -2036,10 +2088,10 @@ def check_ai_vassal_resource_tribute_provenance(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	if "logSASGameRecordAIVassalResourceTributeDecision(" not in header_text:
 		failures.append(f"{REVISION_HEADER}: missing AI vassal-resource tribute provenance declaration")
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for required in (
 		"GAME_RECORD_AI_VASSAL_RESOURCE_TRIBUTE", "master=%d", "vassal=%d", "vassalHuman=%d",
 		"vassalCapitulated=%d", "delivery=%s", "selectedBonus=%s", "selectedValue=%d",
@@ -2094,7 +2146,7 @@ def check_ai_war_trade_intent_provenance(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	expected_paths = ["SAS_AI_WAR_TRADE_TECH_GOLD", "SAS_AI_WAR_TRADE_CITY_COUNTERPROPOSE"]
 	m = re.search(r"enum\s+SASGameRecordAIWarTradePaymentPath\s*\{(?P<body>.*?)\};", header_text, flags=re.DOTALL)
 	if m is None:
@@ -2104,7 +2156,7 @@ def check_ai_war_trade_intent_provenance(repo_root: Path) -> list[str]:
 		if tokens != expected_paths:
 			failures.append(f"{REVISION_HEADER}: AI war-trade payment vocabulary changed; expected {expected_paths}, found {tokens}")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for required in (
 		"GAME_RECORD_AI_WAR_TRADE_INTENT", "source=%s", "minAtWarCounter=%d", "offerDenominator=%d",
 		"targetTeam=%d", "uwaiTargetValue=%d", "legacyTargetScore=%d", "hirePrice=%d", "paymentPath=%s",
@@ -2151,7 +2203,7 @@ def check_ai_city_trade_intent_provenance(repo_root: Path) -> list[str]:
 	if failures:
 		return failures
 
-	header_text = (repo_root / REVISION_HEADER).read_text(encoding="utf-8", errors="replace")
+	header_text = _read_record_vocabulary((repo_root / REVISION_HEADER))
 	expected_formations = [
 		"SAS_AI_CITY_TRADE_FREE_LIBERATION", "SAS_AI_CITY_TRADE_FREE_CITY_TO_HUMAN",
 		"SAS_AI_CITY_TRADE_OUR_SIDE_COUNTERPROPOSE", "SAS_AI_CITY_TRADE_TARGET_SIDE_COUNTERPROPOSE",
@@ -2165,7 +2217,7 @@ def check_ai_city_trade_intent_provenance(repo_root: Path) -> list[str]:
 		if tokens != expected_formations:
 			failures.append(f"{REVISION_HEADER}: AI city-trade formation vocabulary changed; expected {expected_formations}, found {tokens}")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for required in (
 		"GAME_RECORD_AI_CITY_TRADE_INTENT", "delivery=%s", "attitudeValue=%d", "formation=%s", "candidateRank=%d",
 		"candidates=%d", "initialValueGap=%d", "inverseGapFallback=%d", "ourCityId=%d", "theirCityId=%d",
@@ -2237,7 +2289,7 @@ def check_broad_settlement_vassal_battle_contracts(repo_root: Path) -> list[str]
 			failures.append(f"missing SASGameRecord settlement/vassal contract file: {relative_path}")
 	if failures:
 		return failures
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	evaluator_text = (repo_root / CITY_SITE_EVALUATOR_HEADER).read_text(encoding="utf-8", errors="replace")
 	unit_ai_text = (repo_root / UNIT_AI_SOURCE).read_text(encoding="utf-8", errors="replace")
 	for required in (
@@ -2317,7 +2369,7 @@ def check_production_upgrade_preservation_contract(repo_root: Path) -> list[str]
 			if token not in body:
 				failures.append(f"{CITY_SOURCE}: production-upgrade transfer/recorder contract missing {token}")
 
-	record_text = (repo_root / REVISION_SOURCE).read_text(encoding="utf-8", errors="replace")
+	record_text = _read_record_vocabulary((repo_root / REVISION_SOURCE))
 	for token in (
 		"productionUpgradePreservedActions=%d", "productionUpgradePreserved=%d", "preservedDestinationProduction=%d",
 		"iDestinationProductionBefore + iProductionTransferred",
@@ -2351,6 +2403,7 @@ def main() -> int:
 	defines = read_global_define_ints(args.repo_root)
 	failures = require_int_values(defines, EXPECTED_GAME_RECORD_DEFAULTS)
 	failures.extend(check_revision(args.repo_root))
+	failures.extend(check_log_settings_registry(args.repo_root, defines))
 	failures.extend(check_save_component_formats(args.repo_root))
 	failures.extend(check_context_consumer_contracts(args.repo_root))
 	failures.extend(check_turn_completion_contract(args.repo_root))
@@ -2392,7 +2445,7 @@ def main() -> int:
 		for failure in failures:
 			print(f"  - {failure}")
 		return 1
-	print(f"PASS SASGameRecord report/revision checks: logging defaults={len(EXPECTED_GAME_RECORD_DEFAULTS)}, revision history/current marker/context-consumer-contracts/turn-completion/city-delta/settlement-vassal-battle/AI-strategy/AreaAI/AI-target-city/AI-attitude/strategic-trade/UWAI-war-plan/AI-vote/AI-contact/AI-help-tribute/AI-give-help/AI-tech-trade/AI-deal-cancel/deal-invalidation/AI-city-trade/AI-embargo/AI-joint-war/AI-vassalage/AI-colony-split/AI-spaceship-launch/AI-religion-spread-target/AI-map-trade/unit-completion-sources/production-upgrade-preservation/AI-vassal-resource-tribute/AI-draft/AI-hurry/AI-war-trade/AI-conquer-city/AI-Great-Person/AI-Great-General diagnostics synchronized")
+	print(f"PASS SASGameRecord report/revision checks: logging defaults={len(EXPECTED_GAME_RECORD_DEFAULTS)}, revision history/current marker/log-settings-registry/context-consumer-contracts/turn-completion/city-delta/settlement-vassal-battle/AI-strategy/AreaAI/AI-target-city/AI-attitude/strategic-trade/UWAI-war-plan/AI-vote/AI-contact/AI-help-tribute/AI-give-help/AI-tech-trade/AI-deal-cancel/deal-invalidation/AI-city-trade/AI-embargo/AI-joint-war/AI-vassalage/AI-colony-split/AI-spaceship-launch/AI-religion-spread-target/AI-map-trade/unit-completion-sources/production-upgrade-preservation/AI-vassal-resource-tribute/AI-draft/AI-hurry/AI-war-trade/AI-conquer-city/AI-Great-Person/AI-Great-General diagnostics synchronized")
 	return 0
 
 

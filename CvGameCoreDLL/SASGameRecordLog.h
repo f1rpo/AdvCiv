@@ -28,7 +28,7 @@ int getSASGameRecordTurnInterval();
 // Standalone docs/example-log/package refreshes do not require a bump.
 // Keep the matching revision-history entry in the same commit.
 // An anonymous enum keeps this a C++03 compile-time integer without a separate storage/linkage definition. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-enum { SAS_GAME_RECORD_REVISION = 145 };
+enum { SAS_GAME_RECORD_REVISION = 146 };
 // <!-- custom: Finalize buffered observations in the old game state before a new game or loaded save resets/replaces it. See KI#382. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 void finalizeSASGameRecordLogSession();
 void startSASGameRecordLogForNewGame();
@@ -46,18 +46,26 @@ class CvRandom;
 // Tracking state is recorder-local only and never serialized into CvRandom or savegames. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 extern bool g_bSASGameRecordRngTrackingActive;
 // <!-- custom: Keep this closed recorder-only checkpoint vocabulary beside its API; unlike gameplay-wide cause metadata in CvEnums.h, these values exist solely to make distant SASGameRecord lifecycle hooks typo-safe and do not belong in CvGameCoreUtils. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+// <!-- custom: Recorder-owned vocabulary lists now generate both enum entries and their existing schema labels instead of maintaining each name again in a separate switch.
+// NAME is the full C++ identifier; LABEL is the exact shorter log token stringified by the serializer, including deliberate exceptions such as SAS_EARLY_REMOTE_BARB.
+// Keep row order stable to preserve numeric values; NONE sentinels, fallback handling and semantic mappings remain explicit.
+// These macros generate declarations/cases only, with no runtime registry or string construction. (GPT-6.1-Sol) -->
+#define SAS_RECORD_RNG_CHECKPOINT_REASON_ROWS(DO) \
+	DO(SAS_RNG_CHECKPOINT_NEW_GAME_INITIALIZED, NEW_GAME_INITIALIZED) \
+	DO(SAS_RNG_CHECKPOINT_MAP_REGENERATION_BEGIN, MAP_REGENERATION_BEGIN) \
+	DO(SAS_RNG_CHECKPOINT_MAP_REGENERATION_END, MAP_REGENERATION_END) \
+	DO(SAS_RNG_CHECKPOINT_AUTOPLAY_BEGIN, AUTOPLAY_BEGIN) \
+	DO(SAS_RNG_CHECKPOINT_AUTOPLAY_END, AUTOPLAY_END) \
+	DO(SAS_RNG_CHECKPOINT_END_GAME_TURN, END_GAME_TURN) \
+	DO(SAS_RNG_CHECKPOINT_VICTORY, VICTORY) \
+	DO(SAS_RNG_CHECKPOINT_GAME_END, GAME_END) \
+	DO(SAS_RNG_CHECKPOINT_SAVE_LOADED, SAVE_LOADED) \
+	DO(SAS_RNG_CHECKPOINT_SESSION_FINALIZE, SESSION_FINALIZE)
 enum SASGameRecordRngCheckpointReason
 {
-	SAS_RNG_CHECKPOINT_NEW_GAME_INITIALIZED,
-	SAS_RNG_CHECKPOINT_MAP_REGENERATION_BEGIN,
-	SAS_RNG_CHECKPOINT_MAP_REGENERATION_END,
-	SAS_RNG_CHECKPOINT_AUTOPLAY_BEGIN,
-	SAS_RNG_CHECKPOINT_AUTOPLAY_END,
-	SAS_RNG_CHECKPOINT_END_GAME_TURN,
-	SAS_RNG_CHECKPOINT_VICTORY,
-	SAS_RNG_CHECKPOINT_GAME_END,
-	SAS_RNG_CHECKPOINT_SAVE_LOADED,
-	SAS_RNG_CHECKPOINT_SESSION_FINALIZE
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_RNG_CHECKPOINT_REASON_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
 void initializeSASGameRecordRngTracking();
 void noteSASGameRecordRandomCall(CvRandom const* pRandom, unsigned short usRange, TCHAR const* szLog, int iData1, int iData2);
@@ -87,54 +95,70 @@ void logSASGameRecordWorstEnemyChanged(CvTeamAI const& kTeam, TeamTypes eOldEnem
 void logSASGameRecordAreaAIChanged(CvTeamAI const& kTeam, CvArea const& kArea, AreaAITypes eOldType, AreaAITypes eNewType, char const* szSource);
 // <!-- custom: AI target-city state is player+area scoped and has several authoritative/effective change paths.
 // Keep the closed recorder-only source vocabulary typed so distant callers cannot silently drift in spelling; callers pre-gate at GameRecord level 2+. (ChatGPT-5.6-Sol) -->
+#define SAS_RECORD_AI_TARGET_CITY_CHANGE_SOURCE_ROWS(DO) \
+	DO(SAS_AI_TARGET_CITY_AREA_SEARCH, AREA_SEARCH) \
+	DO(SAS_AI_TARGET_CITY_RANDOM_CLEAR, RANDOM_CLEAR) \
+	DO(SAS_AI_TARGET_CITY_DIPLO_COORDINATION, DIPLO_COORDINATION) \
+	DO(SAS_AI_TARGET_CITY_AREA_REASSIGN_CLEAR, AREA_REASSIGN_CLEAR) \
+	DO(SAS_AI_TARGET_CITY_CITY_REMOVED, CITY_REMOVED)
 enum SASGameRecordAITargetCityChangeSource
 {
-	SAS_AI_TARGET_CITY_AREA_SEARCH,
-	SAS_AI_TARGET_CITY_RANDOM_CLEAR,
-	SAS_AI_TARGET_CITY_DIPLO_COORDINATION,
-	SAS_AI_TARGET_CITY_AREA_REASSIGN_CLEAR,
-	SAS_AI_TARGET_CITY_CITY_REMOVED
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_AI_TARGET_CITY_CHANGE_SOURCE_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
 void logSASGameRecordAITargetCityChanged(CvPlayerAI const& kPlayer, CvArea const& kArea, CvCity const* pOldCity, CvCity const* pNewCity, SASGameRecordAITargetCityChangeSource eSource, int iSelectionValue = -1);
 // <!-- custom: Closed recorder-only outcomes/reasons for AI captured-city disposition.
 // These describe realized KEEP/RAZE/LIBERATE decisions rather than gameplay-wide enums, so they remain with SASGameRecord. (ChatGPT-5.6-Sol) -->
+#define SAS_RECORD_AI_CONQUER_CITY_OUTCOME_ROWS(DO) \
+	DO(SAS_AI_CONQUER_CITY_KEEP, KEEP) \
+	DO(SAS_AI_CONQUER_CITY_RAZE, RAZE) \
+	DO(SAS_AI_CONQUER_CITY_LIBERATE, LIBERATE)
 enum SASGameRecordAIConquerCityOutcome
 {
-	SAS_AI_CONQUER_CITY_KEEP,
-	SAS_AI_CONQUER_CITY_RAZE,
-	SAS_AI_CONQUER_CITY_LIBERATE
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_AI_CONQUER_CITY_OUTCOME_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
+#define SAS_RECORD_AI_CONQUER_CITY_REASON_ROWS(DO) \
+	DO(SAS_AI_CONQUER_CITY_CANNOT_RAZE, CANNOT_RAZE) \
+	DO(SAS_AI_CONQUER_CITY_DOMINATION3_PRIMARY_AREA_KEEP, DOMINATION3_PRIMARY_AREA_KEEP) \
+	DO(SAS_AI_CONQUER_CITY_CULTURE_VICTORY, CULTURE_VICTORY) \
+	DO(SAS_AI_CONQUER_CITY_UNLIKELY_LONG_TERM_BENEFIT, SAS_UNLIKELY_LONG_TERM_BENEFIT) \
+	DO(SAS_AI_CONQUER_CITY_EARLY_REMOTE_BARB, SAS_EARLY_REMOTE_BARB) \
+	DO(SAS_AI_CONQUER_CITY_EARLY_REMOTE_NONBARB, SAS_EARLY_REMOTE_NONBARB) \
+	DO(SAS_AI_CONQUER_CITY_BARBARIAN_VALUE, BARBARIAN_VALUE) \
+	DO(SAS_AI_CONQUER_CITY_NORMAL_VALUE, NORMAL_VALUE) \
+	DO(SAS_AI_CONQUER_CITY_LIBERATION, LIBERATION) \
+	DO(SAS_AI_CONQUER_CITY_LIBERATION_WITHHELD_HOSTAGE, LIBERATION_WITHHELD_HOSTAGE)
 enum SASGameRecordAIConquerCityReason
 {
-	SAS_AI_CONQUER_CITY_CANNOT_RAZE,
-	SAS_AI_CONQUER_CITY_DOMINATION3_PRIMARY_AREA_KEEP,
-	SAS_AI_CONQUER_CITY_CULTURE_VICTORY,
-	SAS_AI_CONQUER_CITY_UNLIKELY_LONG_TERM_BENEFIT,
-	SAS_AI_CONQUER_CITY_EARLY_REMOTE_BARB,
-	SAS_AI_CONQUER_CITY_EARLY_REMOTE_NONBARB,
-	SAS_AI_CONQUER_CITY_BARBARIAN_VALUE,
-	SAS_AI_CONQUER_CITY_NORMAL_VALUE,
-	SAS_AI_CONQUER_CITY_LIBERATION,
-	SAS_AI_CONQUER_CITY_LIBERATION_WITHHELD_HOSTAGE
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_AI_CONQUER_CITY_REASON_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
 // <!-- custom: Record one realized AI disposition for every AI_conquerCity path.
 // Value/component fields are valid only when gameplay reached the corresponding raze valuation; callers pass already-computed values and pre-gate at GameRecord level 2+. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordAIConquerCityDecision(CvPlayerAI const& kPlayer, CvCity const& kCity, SASGameRecordAIConquerCityOutcome eOutcome, SASGameRecordAIConquerCityReason eReason, bool bEverOwned, int iCloseness = -1, bool bValueValid = false, int iRazeValueBeforeRandom = 0, int iRazeRandom = -1, int iRazeValue = 0, bool bComponentsValid = false, int iDistanceAndLocalPower = 0, int iMaintenanceDelta = 0, int iPopulationDelta = 0, int iPersonalityDominationDelta = 0, int iOtherDelta = 0, int iFinancialTrouble = -1, int iBarbarianRollPassed = -1, PlayerTypes eLiberationPlayer = NO_PLAYER);
 // <!-- custom: Closed recorder-only reasons for foreground-UWAI war-plan lifecycle mutations.
 // These describe why a real plan changed; they are not gameplay enums and therefore remain with SASGameRecord rather than CvGameCoreUtils. (ChatGPT-5.6-Sol) -->
+#define SAS_RECORD_UWAI_WAR_PLAN_DECISION_REASON_ROWS(DO) \
+	DO(SAS_UWAI_WAR_PLAN_ILLEGAL_TARGET, ILLEGAL_TARGET) \
+	DO(SAS_UWAI_WAR_PLAN_VICTORY_DENIAL_DIRECT, VICTORY_DENIAL_DIRECT) \
+	DO(SAS_UWAI_WAR_PLAN_IMMINENT_NEGATIVE_UTILITY, IMMINENT_NEGATIVE_UTILITY) \
+	DO(SAS_UWAI_WAR_PLAN_IMMINENT_TIMEOUT, IMMINENT_TIMEOUT) \
+	DO(SAS_UWAI_WAR_PLAN_PREPARATION_DEADLINE_REACHED, PREPARATION_DEADLINE_REACHED) \
+	DO(SAS_UWAI_WAR_PLAN_PREPARATION_DEADLINE_NEGATIVE_UTILITY, PREPARATION_DEADLINE_NEGATIVE_UTILITY) \
+	DO(SAS_UWAI_WAR_PLAN_SEVERE_NEGATIVE_UTILITY, SEVERE_NEGATIVE_UTILITY) \
+	DO(SAS_UWAI_WAR_PLAN_TARGET_SWITCH, TARGET_SWITCH) \
+	DO(SAS_UWAI_WAR_PLAN_ATTACKED_RECENT_MATURED, ATTACKED_RECENT_MATURED) \
+	DO(SAS_UWAI_WAR_PLAN_ACTIVE_TYPE_SWITCH, ACTIVE_TYPE_SWITCH) \
+	DO(SAS_UWAI_WAR_PLAN_DIRECT_UTILITY_THRESHOLD, DIRECT_UTILITY_THRESHOLD)
 enum SASGameRecordUWAIWarPlanDecisionReason
 {
-	SAS_UWAI_WAR_PLAN_ILLEGAL_TARGET,
-	SAS_UWAI_WAR_PLAN_VICTORY_DENIAL_DIRECT,
-	SAS_UWAI_WAR_PLAN_IMMINENT_NEGATIVE_UTILITY,
-	SAS_UWAI_WAR_PLAN_IMMINENT_TIMEOUT,
-	SAS_UWAI_WAR_PLAN_PREPARATION_DEADLINE_REACHED,
-	SAS_UWAI_WAR_PLAN_PREPARATION_DEADLINE_NEGATIVE_UTILITY,
-	SAS_UWAI_WAR_PLAN_SEVERE_NEGATIVE_UTILITY,
-	SAS_UWAI_WAR_PLAN_TARGET_SWITCH,
-	SAS_UWAI_WAR_PLAN_ATTACKED_RECENT_MATURED,
-	SAS_UWAI_WAR_PLAN_ACTIVE_TYPE_SWITCH,
-	SAS_UWAI_WAR_PLAN_DIRECT_UTILITY_THRESHOLD
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_UWAI_WAR_PLAN_DECISION_REASON_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
 // <!-- custom: Record only realized foreground-UWAI lifecycle decisions immediately before their authoritative plan/declaration mutation.
 // Comparison/decision fields reuse values already computed by UWAI; callers pre-gate level 2+ and never rerun war evaluation or RNG for logging. (ChatGPT-5.6-Sol) -->
@@ -145,26 +169,30 @@ class CvUnitAI;
 // <!-- custom: Closed recorder-only outcomes for ordinary AI Great Person action selection.
 // These describe AI_greatPersonMove's realized action/continuation/fallback rather than a gameplay-wide enum, so keep them with SASGameRecord.
 // Great Generals use the separate AI_generalMove path and are intentionally outside this schema. (ChatGPT-5.6-Sol) -->
+#define SAS_RECORD_AI_GREAT_PERSON_ACTION_ROWS(DO) \
+	DO(SAS_AI_GREAT_PERSON_DISCOVER_TECH, DISCOVER_TECH) \
+	DO(SAS_AI_GREAT_PERSON_TRADE_MISSION, TRADE_MISSION) \
+	DO(SAS_AI_GREAT_PERSON_MOVE_TO_TRADE_MISSION, MOVE_TO_TRADE_MISSION) \
+	DO(SAS_AI_GREAT_PERSON_GREAT_WORK, GREAT_WORK) \
+	DO(SAS_AI_GREAT_PERSON_MOVE_TO_GREAT_WORK, MOVE_TO_GREAT_WORK) \
+	DO(SAS_AI_GREAT_PERSON_GOLDEN_AGE, GOLDEN_AGE) \
+	DO(SAS_AI_GREAT_PERSON_JOIN_CITY, JOIN_CITY) \
+	DO(SAS_AI_GREAT_PERSON_MOVE_TO_JOIN_CITY, MOVE_TO_JOIN_CITY) \
+	DO(SAS_AI_GREAT_PERSON_CONSTRUCT_BUILDING, CONSTRUCT_BUILDING) \
+	DO(SAS_AI_GREAT_PERSON_MOVE_TO_CONSTRUCT_BUILDING, MOVE_TO_CONSTRUCT_BUILDING) \
+	DO(SAS_AI_GREAT_PERSON_HURRY_BUILDING, HURRY_BUILDING) \
+	DO(SAS_AI_GREAT_PERSON_MOVE_TO_HURRY_BUILDING, MOVE_TO_HURRY_BUILDING) \
+	DO(SAS_AI_GREAT_PERSON_DANGER_DISCOVER_TECH, DANGER_DISCOVER_TECH) \
+	DO(SAS_AI_GREAT_PERSON_RECON_SPY, RECON_SPY) \
+	DO(SAS_AI_GREAT_PERSON_RETREAT, RETREAT) \
+	DO(SAS_AI_GREAT_PERSON_STRANDED, STRANDED) \
+	DO(SAS_AI_GREAT_PERSON_SAFETY, SAFETY) \
+	DO(SAS_AI_GREAT_PERSON_SKIP, SKIP)
 enum SASGameRecordAIGreatPersonAction
 {
-	SAS_AI_GREAT_PERSON_DISCOVER_TECH,
-	SAS_AI_GREAT_PERSON_TRADE_MISSION,
-	SAS_AI_GREAT_PERSON_MOVE_TO_TRADE_MISSION,
-	SAS_AI_GREAT_PERSON_GREAT_WORK,
-	SAS_AI_GREAT_PERSON_MOVE_TO_GREAT_WORK,
-	SAS_AI_GREAT_PERSON_GOLDEN_AGE,
-	SAS_AI_GREAT_PERSON_JOIN_CITY,
-	SAS_AI_GREAT_PERSON_MOVE_TO_JOIN_CITY,
-	SAS_AI_GREAT_PERSON_CONSTRUCT_BUILDING,
-	SAS_AI_GREAT_PERSON_MOVE_TO_CONSTRUCT_BUILDING,
-	SAS_AI_GREAT_PERSON_HURRY_BUILDING,
-	SAS_AI_GREAT_PERSON_MOVE_TO_HURRY_BUILDING,
-	SAS_AI_GREAT_PERSON_DANGER_DISCOVER_TECH,
-	SAS_AI_GREAT_PERSON_RECON_SPY,
-	SAS_AI_GREAT_PERSON_RETREAT,
-	SAS_AI_GREAT_PERSON_STRANDED,
-	SAS_AI_GREAT_PERSON_SAFETY,
-	SAS_AI_GREAT_PERSON_SKIP
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_AI_GREAT_PERSON_ACTION_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
 // <!-- custom: Recorder-only output from the existing Great-Merchant trade-target scan.
 // AI_tradeMissionValue fills the final city, raw mission gold, full path length and this-turn waypoint only when level-2 provenance requests it; no second city scan, valuation or pathfinding is permitted for logging. (ChatGPT-5.6-Sol) -->
@@ -201,33 +229,41 @@ void logSASGameRecordAIGreatPersonDecision(CvUnitAI const& kUnit, CvPlot const* 
 
 // <!-- custom: Closed recorder-only policy stages for AI_generalMove.
 // The stage names preserve the actual ordered fallback chain rather than inventing a cross-action score that Great-General AI does not compute. (ChatGPT-5.6-Sol) -->
+#define SAS_RECORD_AI_GREAT_GENERAL_STAGE_ROWS(DO) \
+	DO(SAS_AI_GREAT_GENERAL_PREFERRED_INSTRUCTOR, PREFERRED_INSTRUCTOR) \
+	DO(SAS_AI_GREAT_GENERAL_FIRST_ACADEMY, FIRST_ACADEMY) \
+	DO(SAS_AI_GREAT_GENERAL_FIRST_INSTRUCTOR, FIRST_INSTRUCTOR) \
+	DO(SAS_AI_GREAT_GENERAL_DANGER_LEAD, DANGER_LEAD) \
+	DO(SAS_AI_GREAT_GENERAL_OFFENSE_LEAD_ATTACK_CITY, OFFENSE_LEAD_ATTACK_CITY) \
+	DO(SAS_AI_GREAT_GENERAL_OFFENSE_LEAD_ATTACK, OFFENSE_LEAD_ATTACK) \
+	DO(SAS_AI_GREAT_GENERAL_JOIN_LIMIT_2, JOIN_LIMIT_2) \
+	DO(SAS_AI_GREAT_GENERAL_ACADEMY_LIMIT_2, ACADEMY_LIMIT_2) \
+	DO(SAS_AI_GREAT_GENERAL_JOIN_LIMIT_4, JOIN_LIMIT_4) \
+	DO(SAS_AI_GREAT_GENERAL_RANDOM_CONSTRUCT, RANDOM_CONSTRUCT) \
+	DO(SAS_AI_GREAT_GENERAL_FINAL_JOIN, FINAL_JOIN) \
+	DO(SAS_AI_GREAT_GENERAL_RETREAT, RETREAT) \
+	DO(SAS_AI_GREAT_GENERAL_STRANDED, STRANDED) \
+	DO(SAS_AI_GREAT_GENERAL_SAFETY, SAFETY) \
+	DO(SAS_AI_GREAT_GENERAL_SKIP, SKIP)
 enum SASGameRecordAIGreatGeneralStage
 {
-	SAS_AI_GREAT_GENERAL_PREFERRED_INSTRUCTOR,
-	SAS_AI_GREAT_GENERAL_FIRST_ACADEMY,
-	SAS_AI_GREAT_GENERAL_FIRST_INSTRUCTOR,
-	SAS_AI_GREAT_GENERAL_DANGER_LEAD,
-	SAS_AI_GREAT_GENERAL_OFFENSE_LEAD_ATTACK_CITY,
-	SAS_AI_GREAT_GENERAL_OFFENSE_LEAD_ATTACK,
-	SAS_AI_GREAT_GENERAL_JOIN_LIMIT_2,
-	SAS_AI_GREAT_GENERAL_ACADEMY_LIMIT_2,
-	SAS_AI_GREAT_GENERAL_JOIN_LIMIT_4,
-	SAS_AI_GREAT_GENERAL_RANDOM_CONSTRUCT,
-	SAS_AI_GREAT_GENERAL_FINAL_JOIN,
-	SAS_AI_GREAT_GENERAL_RETREAT,
-	SAS_AI_GREAT_GENERAL_STRANDED,
-	SAS_AI_GREAT_GENERAL_SAFETY,
-	SAS_AI_GREAT_GENERAL_SKIP
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_AI_GREAT_GENERAL_STAGE_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
+#define SAS_RECORD_AI_GREAT_GENERAL_ACTION_ROWS(DO) \
+	DO(SAS_AI_GREAT_GENERAL_ACTION_JOIN, JOIN) \
+	DO(SAS_AI_GREAT_GENERAL_ACTION_CONSTRUCT, CONSTRUCT) \
+	DO(SAS_AI_GREAT_GENERAL_ACTION_LEAD, LEAD) \
+	DO(SAS_AI_GREAT_GENERAL_ACTION_RETREAT, RETREAT) \
+	DO(SAS_AI_GREAT_GENERAL_ACTION_STRANDED, STRANDED) \
+	DO(SAS_AI_GREAT_GENERAL_ACTION_SAFETY, SAFETY) \
+	DO(SAS_AI_GREAT_GENERAL_ACTION_SKIP, SKIP)
 enum SASGameRecordAIGreatGeneralAction
 {
-	SAS_AI_GREAT_GENERAL_ACTION_JOIN,
-	SAS_AI_GREAT_GENERAL_ACTION_CONSTRUCT,
-	SAS_AI_GREAT_GENERAL_ACTION_LEAD,
-	SAS_AI_GREAT_GENERAL_ACTION_RETREAT,
-	SAS_AI_GREAT_GENERAL_ACTION_STRANDED,
-	SAS_AI_GREAT_GENERAL_ACTION_SAFETY,
-	SAS_AI_GREAT_GENERAL_ACTION_SKIP
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_AI_GREAT_GENERAL_ACTION_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
 // <!-- custom: Recorder-owned optional output context for AI_generalMove's existing Great-General helper passes.
 // The object is initialized/prepared only at SASGameRecord level 2+; helpers fill only the candidate/value/path they already selected.
@@ -349,16 +385,20 @@ struct SASTechChoiceContext
 // <!-- custom: Exact level-3 plot-owner transitions use a small recorder-owned root/mechanism vocabulary instead of guessing causes from the final setter.
 // `tx` identifies the outer causal operation; this separate cause scope identifies the immediate owner-change mechanism/source. Nested cause scopes therefore override temporarily and restore on exit (e.g. tx=VASSALAGE with cause=WAR_BORDER or CULTURE_UPDATE).
 // Call sites gate before gathering logging-only state; disabled scopes perform only their cheap constructor branch. NONE reports UNKNOWN rather than borrowing the active transaction kind, keeping root operation (`tx`) and immediate mechanism (`cause`) semantically distinct. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+#define SAS_RECORD_PLOT_OWNER_CHANGE_CAUSE_ROWS(DO) \
+	DO(SAS_PLOT_OWNER_CAUSE_CITY_FOUNDING, CITY_FOUNDING) \
+	DO(SAS_PLOT_OWNER_CAUSE_CITY_ACQUISITION, CITY_ACQUISITION) \
+	DO(SAS_PLOT_OWNER_CAUSE_CULTURE_UPDATE, CULTURE_UPDATE) \
+	DO(SAS_PLOT_OWNER_CAUSE_WAR_BORDER, WAR_BORDER) \
+	DO(SAS_PLOT_OWNER_CAUSE_PEACE_BORDER, PEACE_BORDER) \
+	DO(SAS_PLOT_OWNER_CAUSE_WORLDBUILDER, WORLDBUILDER) \
+	DO(SAS_PLOT_OWNER_CAUSE_PYTHON_EXTERNAL, PYTHON_EXTERNAL)
 enum SASGameRecordPlotOwnerChangeCause
 {
 	SAS_PLOT_OWNER_CAUSE_NONE,
-	SAS_PLOT_OWNER_CAUSE_CITY_FOUNDING,
-	SAS_PLOT_OWNER_CAUSE_CITY_ACQUISITION,
-	SAS_PLOT_OWNER_CAUSE_CULTURE_UPDATE,
-	SAS_PLOT_OWNER_CAUSE_WAR_BORDER,
-	SAS_PLOT_OWNER_CAUSE_PEACE_BORDER,
-	SAS_PLOT_OWNER_CAUSE_WORLDBUILDER,
-	SAS_PLOT_OWNER_CAUSE_PYTHON_EXTERNAL
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_PLOT_OWNER_CHANGE_CAUSE_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
 class SASGameRecordPlotOwnerChangeCauseScope
 {
@@ -622,21 +662,29 @@ void logSASGameRecordResearchCompleted(TechTypes eTech, TeamTypes eTeam, PlayerT
 void logSASGameRecordTechAcquired(TechTypes eType, TeamTypes eTeam, PlayerTypes ePlayer, TechAcquisitionCause eCause);
 // <!-- custom: Preserve the exact ordinary Settler target assignment that precedes travel/founding without replaying site selection.
 // This compact level-2 event records already-computed shortlist/path scores only when the MISSIONAI_FOUND target is newly assigned or retargeted; repeated travel toward the same target emits nothing. (ChatGPT-5.6-Sol) -->
+#define SAS_RECORD_AI_SETTLER_SITE_DECISION_SOURCE_ROWS(DO) \
+	DO(SAS_AI_SETTLER_SITE_DECISION_SHORTLIST, SHORTLIST_PATH_SCORE) \
+	DO(SAS_AI_SETTLER_SITE_DECISION_CURRENT_PLOT_RECHECK, CURRENT_PLOT_RECHECK)
 enum SASGameRecordAISettlerSiteDecisionSource
 {
-	SAS_AI_SETTLER_SITE_DECISION_SHORTLIST = 0,
-	SAS_AI_SETTLER_SITE_DECISION_CURRENT_PLOT_RECHECK
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_AI_SETTLER_SITE_DECISION_SOURCE_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
 // <!-- custom: Removed the previous-mission parameters after folding SAS_recordSettlerSiteDecisionIfChanged into this helper; it now reads prior mission state and suppresses unchanged destinations internally.
 // Call before mission dispatch because founding can consume the Settler; this records the choice, not successful movement/founding. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 void logSASGameRecordAISettlerSiteDecision(CvUnitAI const& kSettler, CvPlot const& kTargetPlot, bool bFoundNow, SASGameRecordAISettlerSiteDecisionSource eSource, int iDecisionRawFoundValue, int iDecisionSelectionFoundValue, int iPathTurns, int iPathAdjustedScore, bool bSafe);
 // <!-- custom: MISSIONAI_EXPLORE bypasses the ordinary Settler-site assignment row, so preserve only realized scouting actions rather than BBAI's rejected-candidate dump.
 // First-city rows retain the already-computed information/upside/delay terms that explain whether another scouting turn was worth postponing the capital; later promising-fog rows retain the selected-site versus scout-site evidence that caused the detour. (ChatGPT-5.6-Sol) -->
+#define SAS_RECORD_AI_SETTLER_SCOUT_END_REASON_ROWS(DO) \
+	DO(SAS_AI_SETTLER_SCOUT_END_DEADLINE, DEADLINE) \
+	DO(SAS_AI_SETTLER_SCOUT_END_LOW_UPSIDE, LOW_UPSIDE) \
+	DO(SAS_AI_SETTLER_SCOUT_END_NO_SAFE_STEP, NO_SAFE_STEP)
 enum SASGameRecordAISettlerScoutEndReason
 {
-	SAS_AI_SETTLER_SCOUT_END_DEADLINE = 0,
-	SAS_AI_SETTLER_SCOUT_END_LOW_UPSIDE,
-	SAS_AI_SETTLER_SCOUT_END_NO_SAFE_STEP
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_AI_SETTLER_SCOUT_END_REASON_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
 void logSASGameRecordAIFirstCityCoreScoutStep(CvUnitAI const& kSettler, CvPlot const& kTargetPlot, CvPlot const* pEndTurnPlot, int iCurrentFoundValue, int iTargetFoundValue, int iCurrentBest6, int iCurrentBest10, int iTargetBest6, int iTargetBest10, int iCoreGrowthValue, int iAdjustedValue, int iPathTurns, int iElapsedTurns, int iMaxFirstCityTurns);
 void logSASGameRecordAIFirstCityScoutStep(CvUnitAI const& kSettler, CvPlot const& kEndTurnPlot, CvPlot const* pScoutOrigin, CvPlot const* pSettleNowPlot, int iSettleNowFoundValue, int iSettleNowBest6, int iSettleNowBest10, int iSettleNowCoreQualityPercent, int iInformationValue, int iDiscountedInformationValue, int iScoutOpportunityLinearPercent, int iScoutOpportunityPercent, int iEndTurnFoundValue, int iSettleNowFoundValueGain, int iScoutExpectedGain, int iScoutDelayBaseCost, int iScoutWindowProgressPercent, int iScoutTimePressurePercent, int iScoutDelayCost, int iDirectionScore, int iElapsedTurns, int iMaxFirstCityTurns);
@@ -730,10 +778,14 @@ void logSASGameRecordAIToHumanOfferRejected(PlayerTypes eProposer, PlayerTypes e
 void logSASGameRecordAIDiploContactIntent(CvPlayerAI const& kPlayer, PlayerTypes eTarget, ContactTypes eContact, TradeData const* pSubject, CLinkList<TradeData> const* pAIGives, CLinkList<TradeData> const* pAIReceives);
 // <!-- custom: AI help/tribute requests can originate in ordinary AI_doDiplo or UWAI's amendTensions pass; the generic revision-100 contact package cannot recover that caller or the live request chooser values.
 // Keep the origin and helper-specific output contexts recorder-owned and optional so logging-off gameplay performs no extra chooser bookkeeping. (ChatGPT-5.6-Sol) -->
+#define SAS_RECORD_AI_HUMAN_REQUEST_ORIGIN_ROWS(DO) \
+	DO(SAS_AI_HUMAN_REQUEST_AI_DO_DIPLO, AI_DO_DIPLO) \
+	DO(SAS_AI_HUMAN_REQUEST_UWAI_AMEND_TENSIONS, UWAI_AMEND_TENSIONS)
 enum SASGameRecordAIHumanRequestOrigin
 {
-	SAS_AI_HUMAN_REQUEST_AI_DO_DIPLO,
-	SAS_AI_HUMAN_REQUEST_UWAI_AMEND_TENSIONS
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_AI_HUMAN_REQUEST_ORIGIN_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
 struct SASGameRecordAIHelpRequestContext
 {
@@ -764,44 +816,60 @@ void logSASGameRecordAIHelpRequest(CvPlayerAI const& kPlayer, PlayerTypes eHuman
 void logSASGameRecordAITributeRequest(CvPlayerAI const& kPlayer, PlayerTypes eHuman, SASGameRecordAITributeRequestContext const& kContext);
 // <!-- custom: CONTACT_GIVE_HELP can be produced by three different chooser algorithms that revision 100's final package cannot distinguish: relation-based resource aid, relation-based technology aid, and ordinary proactive technology aid.
 // Keep the origin vocabulary recorder-local and pass only already-selected live chooser/gate values; callers pre-gate at level 2+ and never rerun trade valuation or synchronized RNG for recording. (ChatGPT-5.6-Sol) -->
+#define SAS_RECORD_AI_GIVE_HELP_ORIGIN_ROWS(DO) \
+	DO(SAS_AI_GIVE_HELP_RELATION_RESOURCE, RELATION_RESOURCE) \
+	DO(SAS_AI_GIVE_HELP_RELATION_TECH, RELATION_TECH) \
+	DO(SAS_AI_GIVE_HELP_PROACTIVE_TECH, PROACTIVE_TECH)
 enum SASGameRecordAIGiveHelpOrigin
 {
-	SAS_AI_GIVE_HELP_RELATION_RESOURCE,
-	SAS_AI_GIVE_HELP_RELATION_TECH,
-	SAS_AI_GIVE_HELP_PROACTIVE_TECH
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_AI_GIVE_HELP_ORIGIN_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
 void logSASGameRecordAIGiveHelpDecision(CvPlayerAI const& kPlayer, PlayerTypes eTarget, SASGameRecordAIGiveHelpOrigin eOrigin, BonusTypes eSelectedBonus, TechTypes eSelectedTech, int iSelectionScore, int iTechScoreRatioX1000 = -1, int iGiftProbX1000 = -1, int iContactProbMultX1000 = -1);
 // <!-- custom: CONTACT_TRADE_TECH can resolve through the ordinary randomized tech proposal (directly acceptable or balanced by AI_counterPropose) or AdvC's separate research-progress tech-for-gold purchase.
 // Revision 100 preserves the final package but cannot distinguish those live algorithms or recover their selected chooser values; callers log only realized contacts/deals and never repeat trade valuation or synchronized RNG. (ChatGPT-5.6-Sol) -->
+#define SAS_RECORD_AI_TECH_TRADE_ORIGIN_ROWS(DO) \
+	DO(SAS_AI_TECH_TRADE_RANDOM_DIRECT, RANDOM_TECH_DIRECT) \
+	DO(SAS_AI_TECH_TRADE_RANDOM_COUNTERPROPOSE, RANDOM_TECH_COUNTERPROPOSE) \
+	DO(SAS_AI_TECH_TRADE_PROGRESS_GOLD, PROGRESS_TECH_GOLD)
 enum SASGameRecordAITechTradeOrigin
 {
-	SAS_AI_TECH_TRADE_RANDOM_DIRECT,
-	SAS_AI_TECH_TRADE_RANDOM_COUNTERPROPOSE,
-	SAS_AI_TECH_TRADE_PROGRESS_GOLD
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_AI_TECH_TRADE_ORIGIN_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
 void logSASGameRecordAITechTradeDecision(CvPlayerAI const& kPlayer, PlayerTypes eTarget, SASGameRecordAITechTradeOrigin eOrigin, int iContactProbMultX1000, int iBestKnownTechScorePercent, TechTypes eRandomReceiveTech, int iRandomReceiveScore, bool bRandomReceiveLocusSuppressed, TechTypes eProgressTech, int iProgressResearchPoints, bool bProgressLocusSuppressed, TechTypes eGiveTech, int iOurReceiveTechValue, int iTargetReceiveTechValue, int iGiveMatchDeltaValue, int iProgressReceiveTechValue, int iProgressMaxGold);
 // <!-- custom: DIPLO_DEAL_ENDED preserves the final deal payload but not why AI_doDeals chose to end it; AI_checkCancel also discards its denial/resource trigger after returning.
 // Keep only realized cancellation causes and already-live trigger/overdraft context.
 // Callers gate each row after the existing decision succeeds, so no offer valuation, denial query or synchronized RNG is repeated solely for recording. (ChatGPT-5.6-Sol) -->
+#define SAS_RECORD_AI_DEAL_CANCELLATION_REASON_ROWS(DO) \
+	DO(SAS_AI_DEAL_CANCEL_OFFER_REJECTED_RENEGOTIATE, OFFER_REJECTED_RENEGOTIATE) \
+	DO(SAS_AI_DEAL_CANCEL_DUAL_DENIAL, DUAL_DENIAL) \
+	DO(SAS_AI_DEAL_CANCEL_AI_RESOURCE_DENIAL, AI_RESOURCE_DENIAL) \
+	DO(SAS_AI_DEAL_CANCEL_OTHER_RESOURCE_JOKING, OTHER_RESOURCE_JOKING) \
+	DO(SAS_AI_DEAL_CANCEL_GPT_LIMIT, GPT_LIMIT)
 enum SASGameRecordAIDealCancellationReason
 {
-	SAS_AI_DEAL_CANCEL_OFFER_REJECTED_RENEGOTIATE,
-	SAS_AI_DEAL_CANCEL_DUAL_DENIAL,
-	SAS_AI_DEAL_CANCEL_AI_RESOURCE_DENIAL,
-	SAS_AI_DEAL_CANCEL_OTHER_RESOURCE_JOKING,
-	SAS_AI_DEAL_CANCEL_GPT_LIMIT
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_AI_DEAL_CANCELLATION_REASON_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
 void logSASGameRecordAIDealCancellationDecision(CvPlayerAI const& kPlayer, PlayerTypes eOther, CvDeal const& kDeal, SASGameRecordAIDealCancellationReason eReason, TradeData const* pTriggerItem = NULL, bool bTriggerFromAI = true, DenialTypes eDenial = NO_DENIAL, int iGptOverdraftBefore = -1, int iDealGpt = -1, int iGptOverdraftAfter = -1);
 // <!-- custom: CvDeal::verify automatically tears down deals whose live validity has failed, but DIPLO_DEAL_ENDED cannot distinguish resource-supply/network/obsolescence failures, broke-GPT enforcement or normal peace-treaty expiry.
 // Preserve only the first live failure already encountered by verify; the deal-end action remains authoritative for the payload and no validity query is repeated solely for recording. (ChatGPT-5.6-Sol) -->
+#define SAS_RECORD_DEAL_INVALIDATION_REASON_ROWS(DO) \
+	DO(SAS_DEAL_INVALID_RESOURCE_SUPPLY_DEFICIT, RESOURCE_SUPPLY_DEFICIT) \
+	DO(SAS_DEAL_INVALID_TRADE_NETWORK_LOST, TRADE_NETWORK_LOST) \
+	DO(SAS_DEAL_INVALID_GIVER_BONUS_OBSOLETE, GIVER_BONUS_OBSOLETE) \
+	DO(SAS_DEAL_INVALID_RECIPIENT_BONUS_OBSOLETE, RECIPIENT_BONUS_OBSOLETE) \
+	DO(SAS_DEAL_INVALID_GPT_INSOLVENT, GPT_INSOLVENT) \
+	DO(SAS_DEAL_INVALID_PEACE_TREATY_EXPIRED, PEACE_TREATY_EXPIRED)
 enum SASGameRecordDealInvalidationReason
 {
-	SAS_DEAL_INVALID_RESOURCE_SUPPLY_DEFICIT,
-	SAS_DEAL_INVALID_TRADE_NETWORK_LOST,
-	SAS_DEAL_INVALID_GIVER_BONUS_OBSOLETE,
-	SAS_DEAL_INVALID_RECIPIENT_BONUS_OBSOLETE,
-	SAS_DEAL_INVALID_GPT_INSOLVENT,
-	SAS_DEAL_INVALID_PEACE_TREATY_EXPIRED
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_DEAL_INVALIDATION_REASON_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
 struct SASGameRecordDealInvalidationContext
 {
@@ -822,21 +890,29 @@ void logSASGameRecordDealInvalidation(CvDeal const& kDeal, SASGameRecordDealInva
 void logSASGameRecordAIJointWarRequest(CvPlayerAI const& kPlayer, PlayerTypes eHuman, TeamTypes eTarget, int iTargetScore, int iMeanAtWarTurnsX1000);
 // <!-- custom: A realized embargo can originate from the ordinary STOP_TRADING contact path or from two distinct AI_proposeJointWar redirects; revision 100 preserves the final embargo subject but cannot reconstruct that origin.
 // Keep the tiny origin vocabulary recorder-local and pair it with the already-selected joint-war target/denial context only when such a redirect actually succeeds. (ChatGPT-5.6-Sol) -->
+#define SAS_RECORD_AI_EMBARGO_REQUEST_ORIGIN_ROWS(DO) \
+	DO(SAS_AI_EMBARGO_DIRECT_CONTACT, DIRECT_CONTACT) \
+	DO(SAS_AI_EMBARGO_JOINT_WAR_ATTITUDE_REDIRECT, JOINT_WAR_ATTITUDE_REDIRECT) \
+	DO(SAS_AI_EMBARGO_JOINT_WAR_UWAI_REDIRECT, JOINT_WAR_UWAI_REDIRECT)
 enum SASGameRecordAIEmbargoRequestOrigin
 {
-	SAS_AI_EMBARGO_DIRECT_CONTACT,
-	SAS_AI_EMBARGO_JOINT_WAR_ATTITUDE_REDIRECT,
-	SAS_AI_EMBARGO_JOINT_WAR_UWAI_REDIRECT
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_AI_EMBARGO_REQUEST_ORIGIN_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
 void logSASGameRecordAIEmbargoRequest(CvPlayerAI const& kPlayer, PlayerTypes eHuman, SASGameRecordAIEmbargoRequestOrigin eOrigin, TeamTypes eJointWarTarget, int iJointWarTargetScore, DenialTypes eJointWarDenial);
 // <!-- custom: AI-originated vassalage can come from ordinary voluntary diplomacy, UWAI seeking a third-party protector, or legacy/UWAI capitulation to the current enemy.
 // The eventual TRADE_VASSAL/TRADE_SURRENDER action cannot reconstruct that decision origin; preserve only realized origin/cadence/package context while detailed UWAI capitulation/protector reasoning remains in BBAI. (ChatGPT-5.6-Sol) -->
+#define SAS_RECORD_AI_VASSALAGE_ORIGIN_ROWS(DO) \
+	DO(SAS_AI_VASSALAGE_VOLUNTARY_CONTACT, VOLUNTARY_CONTACT) \
+	DO(SAS_AI_VASSALAGE_UWAI_FIND_MASTER, UWAI_FIND_MASTER) \
+	DO(SAS_AI_VASSALAGE_LEGACY_CAPITULATION, LEGACY_CAPITULATION) \
+	DO(SAS_AI_VASSALAGE_UWAI_CAPITULATION, UWAI_CAPITULATION)
 enum SASGameRecordAIVassalageOrigin
 {
-	SAS_AI_VASSALAGE_VOLUNTARY_CONTACT,
-	SAS_AI_VASSALAGE_UWAI_FIND_MASTER,
-	SAS_AI_VASSALAGE_LEGACY_CAPITULATION,
-	SAS_AI_VASSALAGE_UWAI_CAPITULATION
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_AI_VASSALAGE_ORIGIN_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
 void logSASGameRecordAIVassalageDecision(CvPlayerAI const& kPlayer, PlayerTypes eTarget, SASGameRecordAIVassalageOrigin eOrigin, TeamTypes eEnemyTeam, int iContactProbMultX1000, int iTargetRank, int iAliveCivs, int iCounterProposal, CLinkList<TradeData> const& kAIGives, CLinkList<TradeData> const& kAIReceives);
 // <!-- custom: AI_doSplit commits one high-level colony decision whose pre-transfer aggregate area value is lost once splitEmpire moves the cities.
@@ -854,22 +930,30 @@ void logSASGameRecordAIMapTradeDecision(CvPlayerAI const& kPlayer, PlayerTypes e
 void logSASGameRecordAIVassalResourceTributeDecision(CvPlayerAI const& kMaster, PlayerTypes eVassal, bool bHumanPopup, BonusTypes eSelectedBonus, int iSelectedValue, BonusTypes eRunnerUpBonus, int iRunnerUpValue, int iCandidateCount);
 // <!-- custom: AI_proposeWarTrade has richer realized joint-war hiring provenance than the generic CONTACT_JOIN_WAR package can preserve.
 // Keep only the two execution paths recorder-local; the generic contact row remains authoritative for the final trade items. (ChatGPT-5.6-Sol) -->
+#define SAS_RECORD_AI_WAR_TRADE_PAYMENT_PATH_ROWS(DO) \
+	DO(SAS_AI_WAR_TRADE_TECH_GOLD, TECH_GOLD) \
+	DO(SAS_AI_WAR_TRADE_CITY_COUNTERPROPOSE, CITY_COUNTERPROPOSE)
 enum SASGameRecordAIWarTradePaymentPath
 {
-	SAS_AI_WAR_TRADE_TECH_GOLD,
-	SAS_AI_WAR_TRADE_CITY_COUNTERPROPOSE
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_AI_WAR_TRADE_PAYMENT_PATH_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
 void logSASGameRecordAIWarTradeIntent(CvPlayerAI const& kPlayer, PlayerTypes eHireling, SASGameRecordAIWarTradePaymentPath ePaymentPath, bool bUWAI, int iMinAtWarCounter, int iOfferDenominator, TeamTypes eTargetTeam, int iUWAITargetValue, int iLegacyTargetScore, int iHirePrice, TechTypes eCandidateTech1, TechTypes eCandidateTech2, int iWarSuccessRating, int iCityId, int iCityFitness, int iFinalWarSideValue, int iFinalPaymentSideValue);
 // <!-- custom: AI_proposeCityTrade does not map honestly onto ContactTypes: one realized proposal may be a free liberation, strategic gift, city swap or negotiated city-centered package.
 // Keep that compact formation vocabulary recorder-local and log only after the live candidate/counterproposal path has actually formed a contact/deal.
 // `initialValueGap` is our city's already-computed cede value minus theirs; callers pre-gate at level 2+. (ChatGPT-5.6-Sol) -->
+#define SAS_RECORD_AI_CITY_TRADE_FORMATION_ROWS(DO) \
+	DO(SAS_AI_CITY_TRADE_FREE_LIBERATION, FREE_LIBERATION) \
+	DO(SAS_AI_CITY_TRADE_FREE_CITY_TO_HUMAN, FREE_CITY_TO_HUMAN) \
+	DO(SAS_AI_CITY_TRADE_OUR_SIDE_COUNTERPROPOSE, OUR_SIDE_COUNTERPROPOSE) \
+	DO(SAS_AI_CITY_TRADE_TARGET_SIDE_COUNTERPROPOSE, TARGET_SIDE_COUNTERPROPOSE) \
+	DO(SAS_AI_CITY_TRADE_SAME_TEAM_OVERRIDE, SAME_TEAM_OVERRIDE)
 enum SASGameRecordAICityTradeFormation
 {
-	SAS_AI_CITY_TRADE_FREE_LIBERATION,
-	SAS_AI_CITY_TRADE_FREE_CITY_TO_HUMAN,
-	SAS_AI_CITY_TRADE_OUR_SIDE_COUNTERPROPOSE,
-	SAS_AI_CITY_TRADE_TARGET_SIDE_COUNTERPROPOSE,
-	SAS_AI_CITY_TRADE_SAME_TEAM_OVERRIDE
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_AI_CITY_TRADE_FORMATION_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
 void logSASGameRecordAICityTradeIntent(CvPlayerAI const& kPlayer, PlayerTypes eTarget, SASGameRecordAICityTradeFormation eFormation, int iCandidateRank, int iCandidateCount, int iInitialValueGap, bool bInverseGapFallback, int iOurCityId, int iTheirCityId, bool bLiberation, bool bEvacuating, bool bSameTeam, bool bNegotiable, CLinkList<TradeData> const& kAIGives, CLinkList<TradeData> const& kAIReceives);
 // <!-- custom: Preserve one resolved AI peace-negotiation boundary rather than copying the full UWAI/BBAI utility trace; callers pre-gate at level 2 so disabled/lower-detail runs do not build logging-only trade context. (ChatGPT-5.6-Sol) -->
@@ -938,28 +1022,32 @@ void logSASGameRecordAIReligionSpreadTarget(CvUnit const* pUnit, ReligionTypes e
 void logSASGameRecordAIReligionDecision(PlayerTypes ePlayer, ReligionTypes eCurrentReligion, ReligionTypes eEvaluatedBest, ReligionTypes eSelectedReligion, ReligionTypes eRunnerUp, int iBestValue, int iRunnerUpValue, int iCurrentScore, int iCurrentRawValue, int iSelectedRawValue, int iConvertProbabilityPercent, int iRollSuccess, char const* szOutcome, std::vector<std::pair<ReligionTypes, int> > const* paCandidateValues);
 // <!-- custom: Closed recorder-only causes for actual AI AP/UN ballots.
 // They classify the live AI_diploVote decision path rather than gameplay-wide vote enums, so keep them local to SASGameRecord. (ChatGPT-5.6-Sol) -->
+#define SAS_RECORD_AI_DIPLO_VOTE_REASON_ROWS(DO) \
+	DO(SAS_AI_DIPLO_VOTE_TEAM_SELF_ELIGIBLE, TEAM_SELF_ELIGIBLE) \
+	DO(SAS_AI_DIPLO_VOTE_TEAM_VASSAL_MASTER, TEAM_VASSAL_MASTER) \
+	DO(SAS_AI_DIPLO_VOTE_TEAM_OWN_DIPLO_VICTORY_ABSTAIN, TEAM_OWN_DIPLO_VICTORY_ABSTAIN) \
+	DO(SAS_AI_DIPLO_VOTE_TEAM_ATTITUDE_TIE_ABSTAIN, TEAM_ATTITUDE_TIE_ABSTAIN) \
+	DO(SAS_AI_DIPLO_VOTE_TEAM_BEST_ATTITUDE, TEAM_BEST_ATTITUDE) \
+	DO(SAS_AI_DIPLO_VOTE_SECRETARY_SELF_OR_MASTER, SECRETARY_SELF_OR_MASTER) \
+	DO(SAS_AI_DIPLO_VOTE_FRIENDLY_SECRETARY, FRIENDLY_SECRETARY) \
+	DO(SAS_AI_DIPLO_VOTE_FORCE_CIVIC, FORCE_CIVIC) \
+	DO(SAS_AI_DIPLO_VOTE_TRADE_ROUTES, TRADE_ROUTES) \
+	DO(SAS_AI_DIPLO_VOTE_NO_NUKES, NO_NUKES) \
+	DO(SAS_AI_DIPLO_VOTE_FREE_TRADE, FREE_TRADE) \
+	DO(SAS_AI_DIPLO_VOTE_OPEN_BORDERS, OPEN_BORDERS) \
+	DO(SAS_AI_DIPLO_VOTE_DEFENSIVE_PACT, DEFENSIVE_PACT) \
+	DO(SAS_AI_DIPLO_VOTE_FORCE_PEACE, FORCE_PEACE) \
+	DO(SAS_AI_DIPLO_VOTE_EMBARGO_RECENT_DEAL, EMBARGO_RECENT_DEAL) \
+	DO(SAS_AI_DIPLO_VOTE_EMBARGO_UNMET_ABSTAIN, EMBARGO_UNMET_ABSTAIN) \
+	DO(SAS_AI_DIPLO_VOTE_EMBARGO, EMBARGO) \
+	DO(SAS_AI_DIPLO_VOTE_FORCE_WAR, FORCE_WAR) \
+	DO(SAS_AI_DIPLO_VOTE_ASSIGN_CITY, ASSIGN_CITY) \
+	DO(SAS_AI_DIPLO_VOTE_DEFAULT, DEFAULT)
 enum SASGameRecordAIDiploVoteReason
 {
-	SAS_AI_DIPLO_VOTE_TEAM_SELF_ELIGIBLE,
-	SAS_AI_DIPLO_VOTE_TEAM_VASSAL_MASTER,
-	SAS_AI_DIPLO_VOTE_TEAM_OWN_DIPLO_VICTORY_ABSTAIN,
-	SAS_AI_DIPLO_VOTE_TEAM_ATTITUDE_TIE_ABSTAIN,
-	SAS_AI_DIPLO_VOTE_TEAM_BEST_ATTITUDE,
-	SAS_AI_DIPLO_VOTE_SECRETARY_SELF_OR_MASTER,
-	SAS_AI_DIPLO_VOTE_FRIENDLY_SECRETARY,
-	SAS_AI_DIPLO_VOTE_FORCE_CIVIC,
-	SAS_AI_DIPLO_VOTE_TRADE_ROUTES,
-	SAS_AI_DIPLO_VOTE_NO_NUKES,
-	SAS_AI_DIPLO_VOTE_FREE_TRADE,
-	SAS_AI_DIPLO_VOTE_OPEN_BORDERS,
-	SAS_AI_DIPLO_VOTE_DEFENSIVE_PACT,
-	SAS_AI_DIPLO_VOTE_FORCE_PEACE,
-	SAS_AI_DIPLO_VOTE_EMBARGO_RECENT_DEAL,
-	SAS_AI_DIPLO_VOTE_EMBARGO_UNMET_ABSTAIN,
-	SAS_AI_DIPLO_VOTE_EMBARGO,
-	SAS_AI_DIPLO_VOTE_FORCE_WAR,
-	SAS_AI_DIPLO_VOTE_ASSIGN_CITY,
-	SAS_AI_DIPLO_VOTE_DEFAULT
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_AI_DIPLO_VOTE_REASON_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
 // <!-- custom: Diplomatic vote-source elections and resolutions (the Apostolic Palace and United Nations in standard BtS) are rare, high-impact factual boundaries.
 // Preserve the AI secretary's selected proposal and each real AI ballot cause alongside the existing triggered-vote/result history; caller-gate at level 2 and reuse live decision values/RNG results rather than reevaluating. (ChatGPT-5.6-Sol) -->
@@ -972,56 +1060,72 @@ void logSASGameRecordReligionFounded(ReligionTypes eReligion, PlayerTypes ePlaye
 void logSASGameRecordCorporationFounded(CorporationTypes eCorporation, PlayerTypes ePlayer);
 // <!-- custom: Closed recorder-only triggers for a realized AI city draft.
 // NONE is an internal assignment sentinel; current ordinary AI_doDraft can realize TURTLE_STRATEGY, LOCAL_DANGER or NONCRITICAL_RANDOM_VALUE, while FORCED_CALLER preserves the existing bForce API exit without running the ordinary chooser. (ChatGPT-5.6-Sol) -->
+#define SAS_RECORD_AI_DRAFT_REASON_ROWS(DO) \
+	DO(SAS_AI_DRAFT_FORCED_CALLER, FORCED_CALLER) \
+	DO(SAS_AI_DRAFT_TURTLE_STRATEGY, TURTLE_STRATEGY) \
+	DO(SAS_AI_DRAFT_LOCAL_DANGER, LOCAL_DANGER) \
+	DO(SAS_AI_DRAFT_NONCRITICAL_RANDOM_VALUE, NONCRITICAL_RANDOM_VALUE)
 enum SASGameRecordAIDraftReason
 {
 	SAS_AI_DRAFT_NONE,
-	SAS_AI_DRAFT_FORCED_CALLER,
-	SAS_AI_DRAFT_TURTLE_STRATEGY,
-	SAS_AI_DRAFT_LOCAL_DANGER,
-	SAS_AI_DRAFT_NONCRITICAL_RANDOM_VALUE
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_AI_DRAFT_REASON_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
 // <!-- custom: Preserve only the realized AI_doDraft trigger and already-computed enabling context that the following conscription mutation cannot reconstruct; callers pre-gate at level 2 immediately before conscript(), so rejected/no-draft city turns add no recorder-only scans, valuations or RNG. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordAIDraftDecision(CvCity const& kCity, SASGameRecordAIDraftReason eReason, UnitTypes eConscriptUnit, int iConscriptPopulation, int iDanger, int iLandWar, int iGoodValue, int iTooMuchPop, int iPoorPlots, int iHappyDiff, int iUnitCostPerMil, int iLocalDefense, int iLocalEnemyOffense, int iBuildUnitProb);
 // <!-- custom: Closed recorder-only reasons for a realized AI/automated-governor city hurry.
 // Keep the choice vocabulary beside its serializer rather than exposing diagnostic-only causes through gameplay enums. (ChatGPT-5.6-Sol) -->
+#define SAS_RECORD_AI_HURRY_REASON_ROWS(DO) \
+	DO(SAS_AI_HURRY_FORCED_PANIC, FORCED_PANIC) \
+	DO(SAS_AI_HURRY_UNHAPPINESS_RELIEF, UNHAPPINESS_RELIEF) \
+	DO(SAS_AI_HURRY_FOOD_LOSS_RELIEF, FOOD_LOSS_RELIEF) \
+	DO(SAS_AI_HURRY_UNIT_VALUE, UNIT_VALUE) \
+	DO(SAS_AI_HURRY_BUILDING_VALUE, BUILDING_VALUE)
 enum SASGameRecordAIHurryReason
 {
-	SAS_AI_HURRY_FORCED_PANIC,
-	SAS_AI_HURRY_UNHAPPINESS_RELIEF,
-	SAS_AI_HURRY_FOOD_LOSS_RELIEF,
-	SAS_AI_HURRY_UNIT_VALUE,
-	SAS_AI_HURRY_BUILDING_VALUE
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_AI_HURRY_REASON_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 };
 // <!-- custom: Preserve only the live realized AI_doHurry comparison that the following CITY_HURRIED mutation cannot reconstruct; callers pre-gate at level 2 immediately before hurry(), so no logging-only hurry valuation or city-state lookup is paid on ordinary no-hurry turns. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordAIHurryDecision(CvCity const& kCity, HurryTypes eHurry, SASGameRecordAIHurryReason eReason, UnitAITypes eUnitAI, int iHappyBalance, int iHappyDiff, int iFoodDifference, int iPopCost, int iGoldCost, int iDecisionValue, int iOverflowValue, int iDecisionMargin);
 // <!-- custom: Closed recorder-only origins distinguish the inherited helper from the few realized AI building commitments that bypass it.
 // This keeps broad production evidence complete without copying rejected-candidate BBAI traces. (GPT-5.6-Sol) -->
+#define SAS_RECORD_AI_BUILDING_CHOICE_ORIGIN_ROWS(DO) \
+	DO(SAS_AI_BUILDING_CHOICE_HELPER, HELPER) \
+	DO(SAS_AI_BUILDING_CHOICE_BORDER_CULTURE_SWIFT, BORDER_CULTURE_SWIFT) \
+	DO(SAS_AI_BUILDING_CHOICE_BORDER_CULTURE_SLOW, BORDER_CULTURE_SLOW) \
+	DO(SAS_AI_BUILDING_CHOICE_PROACTIVE_FORTIFICATION, PROACTIVE_FORTIFICATION) \
+	DO(SAS_AI_BUILDING_CHOICE_OPPORTUNISTIC_WONDER, OPPORTUNISTIC_WONDER)
 enum SASGameRecordAIBuildingChoiceOrigin
 {
-	SAS_AI_BUILDING_CHOICE_HELPER,
-	SAS_AI_BUILDING_CHOICE_BORDER_CULTURE_SWIFT,
-	SAS_AI_BUILDING_CHOICE_BORDER_CULTURE_SLOW,
-	SAS_AI_BUILDING_CHOICE_PROACTIVE_FORTIFICATION,
-	SAS_AI_BUILDING_CHOICE_OPPORTUNISTIC_WONDER,
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_AI_BUILDING_CHOICE_ORIGIN_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 	NUM_SAS_AI_BUILDING_CHOICE_ORIGINS
 };
 // <!-- custom: Overlapping effect families summarize why realized building commitments matter without widening GAME_RECORD_PRODUCTION_FLOW by one scalar per future building mechanic; a single choice may increment several families. (ChatGPT-5.6-Sol) -->
+#define SAS_RECORD_AI_BUILDING_CHOICE_EFFECT_ROWS(DO) \
+	DO(SAS_AI_BUILDING_EFFECT_HEALTH_FOOD_RELIEF, HEALTH_FOOD_RELIEF) \
+	DO(SAS_AI_BUILDING_EFFECT_STARVATION_PREVENTED_BY_HEALTH, STARVATION_PREVENTED_BY_HEALTH) \
+	DO(SAS_AI_BUILDING_EFFECT_HAPPINESS_RELIEF, HAPPINESS_RELIEF) \
+	DO(SAS_AI_BUILDING_EFFECT_FOOD_KEPT, FOOD_KEPT) \
+	DO(SAS_AI_BUILDING_EFFECT_MAINTENANCE_REDUCTION, MAINTENANCE_REDUCTION) \
+	DO(SAS_AI_BUILDING_EFFECT_TRADE, TRADE) \
+	DO(SAS_AI_BUILDING_EFFECT_PRODUCTION, PRODUCTION) \
+	DO(SAS_AI_BUILDING_EFFECT_GOVERNMENT_CENTER, GOVERNMENT_CENTER) \
+	DO(SAS_AI_BUILDING_EFFECT_CAPITAL, CAPITAL) \
+	DO(SAS_AI_BUILDING_EFFECT_NATIONAL_PARK_STYLE, NATIONAL_PARK_STYLE) \
+	DO(SAS_AI_BUILDING_EFFECT_DEFENSE, DEFENSE) \
+	DO(SAS_AI_BUILDING_EFFECT_MILITARY_PRODUCTION, MILITARY_PRODUCTION) \
+	DO(SAS_AI_BUILDING_EFFECT_DOMAIN_PRODUCTION, DOMAIN_PRODUCTION) \
+	DO(SAS_AI_BUILDING_EFFECT_FREE_EXPERIENCE, FREE_EXPERIENCE)
 enum SASGameRecordAIBuildingChoiceEffect
 {
-	SAS_AI_BUILDING_EFFECT_HEALTH_FOOD_RELIEF,
-	SAS_AI_BUILDING_EFFECT_STARVATION_PREVENTED_BY_HEALTH,
-	SAS_AI_BUILDING_EFFECT_HAPPINESS_RELIEF,
-	SAS_AI_BUILDING_EFFECT_FOOD_KEPT,
-	SAS_AI_BUILDING_EFFECT_MAINTENANCE_REDUCTION,
-	SAS_AI_BUILDING_EFFECT_TRADE,
-	SAS_AI_BUILDING_EFFECT_PRODUCTION,
-	SAS_AI_BUILDING_EFFECT_GOVERNMENT_CENTER,
-	SAS_AI_BUILDING_EFFECT_CAPITAL,
-	SAS_AI_BUILDING_EFFECT_NATIONAL_PARK_STYLE,
-	SAS_AI_BUILDING_EFFECT_DEFENSE,
-	SAS_AI_BUILDING_EFFECT_MILITARY_PRODUCTION,
-	SAS_AI_BUILDING_EFFECT_DOMAIN_PRODUCTION,
-	SAS_AI_BUILDING_EFFECT_FREE_EXPERIENCE,
+#define SAS_RECORD_ENUM(NAME, LABEL) NAME,
+	SAS_RECORD_AI_BUILDING_CHOICE_EFFECT_ROWS(SAS_RECORD_ENUM)
+#undef SAS_RECORD_ENUM
 	NUM_SAS_AI_BUILDING_CHOICE_EFFECTS
 };
 // <!-- custom: Caller contract: pre-gate every realized choice at SASGameRecord level 2+, pass bDetailed only from a caller-side level-3 gate, and build szFocus only when bDetailed is true.

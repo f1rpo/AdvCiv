@@ -221,7 +221,7 @@ struct SASAIStrategyDescriptor
 };
 int getSASAIStrategyDescriptorCount();
 SASAIStrategyDescriptor const& getSASAIStrategyDescriptor(int iIndex);
-char const* getSASAIStrategyType(AIStrategy eStrategy); // <!-- custom: Shared raw enum-token text for AIStrategy because the static bitfield enum has no CvInfo type strings; BBAI and SASGameRecord use one diagnostic vocabulary without preprocessor stringification. (ChatGPT-5.6-Sol) -->
+char const* getSASAIStrategyType(AIStrategy eStrategy); // <!-- custom: Shared raw enum-token text for AIStrategy because the static bitfield enum has no CvInfo type strings; the getter still queries the shared descriptor table, now generated with compile-time token stringification from the enum source list. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 // <!-- custom: One shared conversion for typed Found diagnostic contexts; called only from enabled diagnostic output. See KI#505.2. (GPT-6.1-Sol) -->
 char const* getSASFoundLogContextType(SASFoundLogContextTypes eContext);
 char const* getSASAreaAIType(AreaAITypes eAreaAI); // <!-- custom: Shared raw enum-token text for AreaAITypes so SASGameRecord and detailed AI diagnostics can describe theater posture without opaque enum integers. (ChatGPT-5.6-Sol) -->

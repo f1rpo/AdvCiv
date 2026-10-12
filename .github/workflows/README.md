@@ -531,9 +531,13 @@ The same check pins the cheap `GAME_RECORD_TURN_COMPLETED` bridge to the authori
 
 Every revision heading must follow the documented format; the newest entry must also contain its Date, Git commit field (latest-entry `pending` is allowed), and a completed Change description. Regression tests reject a source-only revision bump, a missing latest entry, a stale example, malformed extra headings and missing metadata.
 
-The same check keeps readable AI-strategy diagnostics synchronized with `AIStrategies.h`: the enum must remain the contiguous power-of-two bitfield used by the recorder's shift scans, every `AIStrategy` value must map to its identical canonical raw token in `getSASAIStrategyType`, and the complete CORE/snapshot/transition scans must still reach the enum's current final strategy.
+The same check keeps readable AI-strategy diagnostics synchronized with `AIStrategies.h`: one `SAS_AI_STRATEGY_ROWS` list generates both the enum's independent power-of-two bits and its iterable raw-name descriptors. CI rejects duplicate names/bits, disconnected generators and a changed zero sentinel; CORE hashes, strategy checkpoints and transitions must still iterate the shared descriptor API.
 
-This makes a future `AI_STRATEGY_*` addition or incompatible bit-layout change fail CI instead of silently disappearing from `GAME_RECORD_AI_STRATEGIES` or transition history.
+Adding a strategy to the canonical list supplies its enum constant and diagnostic name together; recorder scans do not assume contiguous bits or a fixed last strategy.
+
+Recorder-owned reason/source/action enums also generate their label mappings from shared lists. The existing source-contract checks read those generated enum/case forms; this does not introduce additional feature checks.
+
+The scalar recorder-settings registry must cover every integer `SAS_GAME_RECORD_*` XML Define without duplicates or unknown recorder names. Existing getters retain caching/clamping policy; validated palette strings remain specialized map-legend data.
 
 The check also guards exact AreaAI and AI target-city provenance. AreaAI raw-name coverage and its normal/UWAI writer bridges must remain synchronized; target-city checks require every current setter writer plus the city-removal effective-clear path to remain covered by exact transitions and the periodic `GAME_RECORD_AI_TARGET_CITIES` checkpoint.
 

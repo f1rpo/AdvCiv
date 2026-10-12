@@ -1448,71 +1448,50 @@ char const* getSASCalendarType(CalendarTypes eCalendar)
 	}
 }
 
+// <!-- custom: Generate the previous cause-to-text mapping from SAS_WAR_DECLARATION_CAUSE_ROWS; retain VOTE -> DIPLOMATIC_VOTE and the UNKNOWN fallback. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 char const* getSASWarDeclarationCause(WarDeclarationCause eCause)
 {
 	switch (eCause)
 	{
-	case WAR_DECLARATION_DIRECT: return "DIRECT";
-	case WAR_DECLARATION_GAME_SETUP: return "GAME_SETUP";
-	case WAR_DECLARATION_ALWAYS_WAR: return "ALWAYS_WAR";
-	case WAR_DECLARATION_PERMANENT_ALLIANCE: return "PERMANENT_ALLIANCE";
-	case WAR_DECLARATION_DEFENSIVE_PACT: return "DEFENSIVE_PACT";
-	case WAR_DECLARATION_VASSAL_ALIGNMENT: return "VASSAL_ALIGNMENT";
-	case WAR_DECLARATION_DIPLOMACY: return "DIPLOMACY";
-	case WAR_DECLARATION_VOTE: return "DIPLOMATIC_VOTE";
-	case WAR_DECLARATION_NUCLEAR_ATTACK: return "NUCLEAR_ATTACK";
+#define SAS_DIAGNOSTIC_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_WAR_DECLARATION_CAUSE_ROWS(SAS_DIAGNOSTIC_LABEL)
+#undef SAS_DIAGNOSTIC_LABEL
 	default: return "UNKNOWN";
 	}
 }
 
+// <!-- custom: Generate the previous cause-to-text mapping from SAS_TECH_ACQUISITION_CAUSE_ROWS; legitimate UNKNOWN causes and invalid-value fallback still emit UNKNOWN. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 char const* getSASTechAcquisitionCause(TechAcquisitionCause eCause)
 {
 	switch (eCause)
 	{
-	case TECH_ACQUISITION_RESEARCH: return "RESEARCH";
-	case TECH_ACQUISITION_TRADE: return "TRADE";
-	case TECH_ACQUISITION_FREE_CHOICE: return "FREE_CHOICE";
-	case TECH_ACQUISITION_GOODY: return "GOODY";
-	case TECH_ACQUISITION_GREAT_PERSON: return "GREAT_PERSON";
-	case TECH_ACQUISITION_ESPIONAGE: return "ESPIONAGE";
-	case TECH_ACQUISITION_RANDOM_EVENT: return "RANDOM_EVENT";
-	case TECH_ACQUISITION_TECH_SHARE: return "TECH_SHARE";
-	case TECH_ACQUISITION_TEAM_MERGE: return "TEAM_MERGE";
-	case TECH_ACQUISITION_INHERITANCE: return "INHERITANCE";
-	case TECH_ACQUISITION_ADVANCED_START: return "ADVANCED_START";
-	case TECH_ACQUISITION_BARBARIAN_RESEARCH: return "BARBARIAN_RESEARCH";
-	case TECH_ACQUISITION_GAME_SETUP: return "GAME_SETUP";
-	case TECH_ACQUISITION_DEBUG: return "DEBUG";
+#define SAS_DIAGNOSTIC_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_TECH_ACQUISITION_CAUSE_ROWS(SAS_DIAGNOSTIC_LABEL)
+#undef SAS_DIAGNOSTIC_LABEL
 	default: return "UNKNOWN";
 	}
 }
 
+// <!-- custom: Generate the previous cause-to-text mapping from SAS_RESEARCH_TARGET_CHANGE_CAUSE_ROWS; legitimate UNKNOWN causes and invalid-value fallback still emit UNKNOWN. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 char const* getSASResearchTargetChangeCause(ResearchTargetChangeCause eCause)
 {
 	switch (eCause)
 	{
-	case RESEARCH_TARGET_CHANGE_GREAT_PERSON_REEVALUATION: return "GREAT_PERSON_REEVALUATION";
-	case RESEARCH_TARGET_CHANGE_FIRST_DISCOVERY_PERK_INVALIDATION: return "FIRST_DISCOVERY_PERK_INVALIDATION";
-	case RESEARCH_TARGET_CHANGE_DIPLO_RESEARCH_COORDINATION: return "DIPLO_RESEARCH_COORDINATION";
-	case RESEARCH_TARGET_CHANGE_PLAYER_RESEARCH_COMMAND: return "PLAYER_RESEARCH_COMMAND";
-	case RESEARCH_TARGET_CHANGE_FREE_TECH_REEVALUATION: return "FREE_TECH_REEVALUATION";
-	case RESEARCH_TARGET_CHANGE_UNKNOWN:
+#define SAS_DIAGNOSTIC_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RESEARCH_TARGET_CHANGE_CAUSE_ROWS(SAS_DIAGNOSTIC_LABEL)
+#undef SAS_DIAGNOSTIC_LABEL
 	default: return "UNKNOWN";
 	}
 }
 
+// <!-- custom: Stringify the labels registered beside SASAutoPlayEndCause instead of maintaining a second switch list; fallback behavior is unchanged. (GPT-6.1-Sol) -->
 char const* getSASAutoPlayEndCause(SASAutoPlayEndCause eCause)
 {
 	switch (eCause)
 	{
-	case SAS_AUTOPLAY_END_SCHEDULED: return "SCHEDULED";
-	case SAS_AUTOPLAY_END_USER_INTERRUPTED: return "USER_INTERRUPTED";
-	case SAS_AUTOPLAY_END_VICTORY: return "VICTORY";
-	case SAS_AUTOPLAY_END_ACTIVE_PLAYER_DEFEATED: return "ACTIVE_PLAYER_DEFEATED";
-	case SAS_AUTOPLAY_END_DESYNC: return "DESYNC";
-	case SAS_AUTOPLAY_END_ASSERTION: return "ASSERTION";
-	case SAS_AUTOPLAY_END_RISE_FALL: return "RISE_FALL";
-	case SAS_AUTOPLAY_END_OTHER: return "OTHER";
+#define SAS_DIAGNOSTIC_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_AUTOPLAY_END_CAUSE_ROWS(SAS_DIAGNOSTIC_LABEL)
+#undef SAS_DIAGNOSTIC_LABEL
 	default: return "-";
 	}
 }
@@ -1520,26 +1499,13 @@ char const* getSASAutoPlayEndCause(SASAutoPlayEndCause eCause)
 // <!-- custom: Keep one iterable source of truth for the static AIStrategy bitfield values and their machine-readable names.
 // SASGameRecord previously repeated a lowest/highest-bit shift range beside this translator; a descriptor table prevents a future strategy addition or gap from silently disappearing from hashes, checkpoints or transition rows.
 // Player-facing widget labels remain separate translated/prose presentation. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
+// <!-- custom: Reuse AIStrategies.h's enum source list and stringify each token for the existing descriptor API; repeated handwritten labels can no longer diverge from the enum.
+// NO_AI_STRATEGY still uses the explicit zero-sentinel branch in getSASAIStrategyType. (GPT-6.1-Sol) -->
 static SASAIStrategyDescriptor const aSASAIStrategyDescriptors[] =
 {
-	{ AI_DEFAULT_STRATEGY, "AI_DEFAULT_STRATEGY" },
-	{ AI_STRATEGY_DAGGER, "AI_STRATEGY_DAGGER" },
-	{ AI_STRATEGY_CRUSH, "AI_STRATEGY_CRUSH" },
-	{ AI_STRATEGY_ALERT1, "AI_STRATEGY_ALERT1" },
-	{ AI_STRATEGY_ALERT2, "AI_STRATEGY_ALERT2" },
-	{ AI_STRATEGY_TURTLE, "AI_STRATEGY_TURTLE" },
-	{ AI_STRATEGY_LAST_STAND, "AI_STRATEGY_LAST_STAND" },
-	{ AI_STRATEGY_FINAL_WAR, "AI_STRATEGY_FINAL_WAR" },
-	{ AI_STRATEGY_GET_BETTER_UNITS, "AI_STRATEGY_GET_BETTER_UNITS" },
-	{ AI_STRATEGY_FASTMOVERS, "AI_STRATEGY_FASTMOVERS" },
-	{ AI_STRATEGY_LAND_BLITZ, "AI_STRATEGY_LAND_BLITZ" },
-	{ AI_STRATEGY_AIR_BLITZ, "AI_STRATEGY_AIR_BLITZ" },
-	{ AI_STRATEGY_OWABWNW, "AI_STRATEGY_OWABWNW" },
-	{ AI_STRATEGY_PRODUCTION, "AI_STRATEGY_PRODUCTION" },
-	{ AI_STRATEGY_MISSIONARY, "AI_STRATEGY_MISSIONARY" },
-	{ AI_STRATEGY_BIG_ESPIONAGE, "AI_STRATEGY_BIG_ESPIONAGE" },
-	{ AI_STRATEGY_ECONOMY_FOCUS, "AI_STRATEGY_ECONOMY_FOCUS" },
-	{ AI_STRATEGY_ESPIONAGE_ECONOMY, "AI_STRATEGY_ESPIONAGE_ECONOMY" }
+#define SAS_AI_STRATEGY_DESCRIPTOR(NAME, BIT) { NAME, #NAME },
+	SAS_AI_STRATEGY_ROWS(SAS_AI_STRATEGY_DESCRIPTOR)
+#undef SAS_AI_STRATEGY_DESCRIPTOR
 };
 
 int getSASAIStrategyDescriptorCount()
@@ -1572,20 +1538,14 @@ char const* getSASAIStrategyType(AIStrategy eStrategy)
 // A file-local converter would also work, but this placement follows the shared diagnostic-enum convention without duplicating labels.
 // Preserve the existing labels; invalid values assert and print an explicit error marker.
 // This is diagnostic metadata, not a gameplay rule. See KI#505.2. (GPT-6.1-Sol) -->
+// <!-- custom: Stringify the labels registered beside SASFoundLogContextTypes instead of maintaining a second switch list; fallback behavior is unchanged. (GPT-6.1-Sol) -->
 char const* getSASFoundLogContextType(SASFoundLogContextTypes eContext)
 {
 	switch (eContext)
 	{
-	case SAS_FOUND_LOG_EVALUATION: return "EVALUATION";
-	case SAS_FOUND_LOG_AI_SITE_REFRESH: return "AI_SITE_REFRESH";
-	case SAS_FOUND_LOG_SETTLER_FIRST_CITY: return "SETTLER_FIRST_CITY";
-	case SAS_FOUND_LOG_SETTLER_FOG_SCOUT: return "SETTLER_FOG_SCOUT";
-	case SAS_FOUND_LOG_SETTLER_CURRENT_SITE: return "SETTLER_CURRENT_SITE";
-	case SAS_FOUND_LOG_UI_PREVIEW: return "UI_PREVIEW";
-	case SAS_FOUND_LOG_BARBARIAN_COMPARISON: return "BARBARIAN_COMPARISON";
-	case SAS_FOUND_LOG_SETTLER_TRUE_MAP_COMPARISON: return "SETTLER_TRUE_MAP_COMPARISON";
-	case SAS_FOUND_LOG_RECORD_KNOWN_MAP_COMPARISON: return "RECORD_KNOWN_MAP_COMPARISON";
-	case SAS_FOUND_LOG_RECORD_TRUE_MAP_COMPARISON: return "RECORD_TRUE_MAP_COMPARISON";
+#define SAS_DIAGNOSTIC_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_FOUND_LOG_CONTEXT_ROWS(SAS_DIAGNOSTIC_LABEL)
+#undef SAS_DIAGNOSTIC_LABEL
 	default:
 		FErrorMsg("Invalid Found diagnostic context");
 		return "INVALID_FOUND_LOG_CONTEXT";

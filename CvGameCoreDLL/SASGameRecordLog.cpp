@@ -1208,20 +1208,14 @@ void noteSASGameRecordRandomSeedSet(CvRandom const* pRandom, unsigned int uiOldS
 
 // <!-- custom: Fixed checkpoint boundaries are an enum rather than caller-written strings, preventing silent spelling drift in rows consumed by cross-run comparison tooling.
 // Convert that recorder-owned vocabulary to its stable schema text in one place. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+// <!-- custom: Generate the existing label cases from SAS_RECORD_RNG_CHECKPOINT_REASON_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordRngCheckpointReason(SASGameRecordRngCheckpointReason eReason)
 {
 	switch (eReason)
 	{
-	case SAS_RNG_CHECKPOINT_NEW_GAME_INITIALIZED: return "NEW_GAME_INITIALIZED";
-	case SAS_RNG_CHECKPOINT_MAP_REGENERATION_BEGIN: return "MAP_REGENERATION_BEGIN";
-	case SAS_RNG_CHECKPOINT_MAP_REGENERATION_END: return "MAP_REGENERATION_END";
-	case SAS_RNG_CHECKPOINT_AUTOPLAY_BEGIN: return "AUTOPLAY_BEGIN";
-	case SAS_RNG_CHECKPOINT_AUTOPLAY_END: return "AUTOPLAY_END";
-	case SAS_RNG_CHECKPOINT_END_GAME_TURN: return "END_GAME_TURN";
-	case SAS_RNG_CHECKPOINT_VICTORY: return "VICTORY";
-	case SAS_RNG_CHECKPOINT_GAME_END: return "GAME_END";
-	case SAS_RNG_CHECKPOINT_SAVE_LOADED: return "SAVE_LOADED";
-	case SAS_RNG_CHECKPOINT_SESSION_FINALIZE: return "SESSION_FINALIZE";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_RNG_CHECKPOINT_REASON_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	}
 	FAssertMsg(false, "Unknown SASGameRecord RNG checkpoint reason");
 	return "UNKNOWN";
@@ -1399,8 +1393,8 @@ static bool readSASGameRecordRegistryString(HKEY hKey, char const* szName, CvStr
 	return !szValue.empty();
 }
 
-// <!-- custom: Level-3 hardware context keeps only a coarse CPU vendor family, never the processor model/brand string.
-// Read Windows' VendorIdentifier once and discard the raw value after classification; nativeArch remains available at level 2 even when hardware identity is disabled. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Level-3 hardware context keeps the coarse CPU vendor family for compact grouping, while a separate opt-in brand field preserves the exact model string for performance comparisons.
+// Read Windows' VendorIdentifier once and discard the raw vendor value after classification; nativeArch remains available at level 2 even when hardware identity is disabled. (ChatGPT-5.6-Sol + ChatGPT-5.6-Sol) -->
 static char const* getSASGameRecordProcessorVendor()
 {
 	static CvString szVendorFamily;
@@ -1432,6 +1426,51 @@ static char const* getSASGameRecordProcessorVendor()
 	if (kRegistry.pClose != NULL)
 		kRegistry.pClose(hKey);
 	return szVendorFamily.GetCString();
+}
+
+// <!-- custom: Level-3 performance context may need the exact CPU model to explain otherwise-identical benchmark differences across machines.
+// Reuse the same read-only processor registry key as vendor classification, quote the user-visible model string, and retain '-' when Windows/Wine does not expose it. (ChatGPT-5.6-Sol) -->
+static CvString getSASGameRecordProcessorBrandField()
+{
+	static CvString szBrandField;
+	static bool bInitialized = false;
+	if (bInitialized)
+		return szBrandField;
+	bInitialized = true;
+	szBrandField = "-";
+	SASGameRecordRegistryFunctions const& kRegistry = getSASGameRecordRegistryFunctions();
+	if (kRegistry.pOpen == NULL)
+		return szBrandField;
+	HKEY hKey = NULL;
+	if (kRegistry.pOpen(HKEY_LOCAL_MACHINE, "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", 0, KEY_QUERY_VALUE, &hKey) != ERROR_SUCCESS)
+		return szBrandField;
+	CvString szBrand;
+	if (readSASGameRecordRegistryString(hKey, "ProcessorNameString", szBrand))
+		szBrandField = getSASDiagnosticQuoted(szBrand.GetCString());
+	if (kRegistry.pClose != NULL)
+		kRegistry.pClose(hKey);
+	return szBrandField;
+}
+
+// <!-- custom: Priority class and affinity can materially change autoplay wall-time comparisons but may change later in the process lifetime.
+// Record one level-3 new/load sample only; '-' / availability=0 means the corresponding Win32 query failed rather than implying a default scheduling state. (ChatGPT-5.6-Sol) -->
+static char const* getSASGameRecordPriorityClassName(DWORD uiPriorityClass)
+{
+	switch (uiPriorityClass)
+	{
+	case IDLE_PRIORITY_CLASS: return "IDLE";
+	case BELOW_NORMAL_PRIORITY_CLASS: return "BELOW_NORMAL";
+	case NORMAL_PRIORITY_CLASS: return "NORMAL";
+	case ABOVE_NORMAL_PRIORITY_CLASS: return "ABOVE_NORMAL";
+	case HIGH_PRIORITY_CLASS: return "HIGH";
+	case REALTIME_PRIORITY_CLASS: return "REALTIME";
+	}
+	return (uiPriorityClass == 0 ? "-" : "OTHER");
+}
+
+static CvString getSASGameRecordAffinityMaskField(DWORD_PTR uiMask)
+{
+	return CvString::format("0x%I64X", (unsigned __int64)uiMask);
 }
 
 static SASGameRecordWindowsVersion const& getSASGameRecordWindowsVersion()
@@ -2155,8 +2194,9 @@ static SASGameRecordDevelopmentProcessContext getSASGameRecordDevelopmentProcess
 struct SASGameRecordRuntimeContext
 {
 	SASGameRecordRuntimeContext() : szWin32Runtime("-"), szWineVersionField("-"), szWindowsDisplayVersionField("-"),
-		iPointerBits(-1), szProcessArch("-"), szNativeArch("-"), iWow64(-1), szCpuVendor("-"),
-		iLogicalProcessors(-1), iTotalPhysicalMemoryMB(-1), iDebuggerAttached(-1) {}
+		iPointerBits(-1), szProcessArch("-"), szNativeArch("-"), iWow64(-1), szCpuVendor("-"), szCpuBrandField("-"),
+		iLogicalProcessors(-1), iTotalPhysicalMemoryMB(-1), szProcessPriorityClass("-"), iProcessAffinityQueryAvailable(-1),
+		szProcessAffinityMask("-"), szSystemAffinityMask("-"), iDebuggerAttached(-1) {}
 	SASGameRecordWindowsVersion kWindowsVersion;
 	char const* szWin32Runtime;
 	CvString szWineVersionField;
@@ -2166,8 +2206,13 @@ struct SASGameRecordRuntimeContext
 	char const* szNativeArch;
 	int iWow64;
 	char const* szCpuVendor;
+	CvString szCpuBrandField;
 	int iLogicalProcessors;
 	int iTotalPhysicalMemoryMB;
+	char const* szProcessPriorityClass;
+	int iProcessAffinityQueryAvailable;
+	CvString szProcessAffinityMask;
+	CvString szSystemAffinityMask;
 	int iDebuggerAttached;
 	SASGameRecordDevelopmentProcessContext kDevelopmentProcesses;
 };
@@ -2262,7 +2307,7 @@ static void logSASGameRecordGameState(const char* szRowType)
 	logSASGameRecordDisplayContext();
 	// <!-- custom: A Civ4 custom DLL is a Win32 binary even when Wine/Proton runs it on another host OS.
 	// At the default privacy tier, retain raw Windows build/update identity and native architecture because OS/runtime changes can explain compatibility regressions while revealing far less than CPU/GPU models or absolute paths.
-	// Level 3 keeps the more identifying coarse CPU/GPU vendor families plus processor-count/RAM capacity fields.
+	// Level 3 opts into more identifying CPU/GPU context, including the CPU brand/model and one point-in-time process priority/affinity sample alongside processor-count/RAM capacity fields.
 	// Wine version is compatibility-layer identity only; do not guess its host OS. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
 	int const iSystemContextLevel = getSASGameRecordSystemContextLevel();
 	SASGameRecordRuntimeContext kRuntime;
@@ -2286,11 +2331,23 @@ static void logSASGameRecordGameState(const char* szRowType)
 		if (iSystemContextLevel >= 3)
 		{
 			kRuntime.szCpuVendor = getSASGameRecordProcessorVendor();
+			kRuntime.szCpuBrandField = getSASGameRecordProcessorBrandField();
 			kRuntime.iLogicalProcessors = (int)kNativeSystemInfo.dwNumberOfProcessors;
 			MEMORYSTATUSEX kSystemMemory;
 			ZeroMemory(&kSystemMemory, sizeof(kSystemMemory));
 			kSystemMemory.dwLength = sizeof(kSystemMemory);
 			if (GlobalMemoryStatusEx(&kSystemMemory)) kRuntime.iTotalPhysicalMemoryMB = (int)(kSystemMemory.ullTotalPhys / (1024 * 1024));
+			HANDLE const hProcess = GetCurrentProcess();
+			kRuntime.szProcessPriorityClass = getSASGameRecordPriorityClassName(GetPriorityClass(hProcess));
+			DWORD_PTR uiProcessAffinityMask = 0;
+			DWORD_PTR uiSystemAffinityMask = 0;
+			if (GetProcessAffinityMask(hProcess, &uiProcessAffinityMask, &uiSystemAffinityMask))
+			{
+				kRuntime.iProcessAffinityQueryAvailable = 1;
+				kRuntime.szProcessAffinityMask = getSASGameRecordAffinityMaskField(uiProcessAffinityMask);
+				kRuntime.szSystemAffinityMask = getSASGameRecordAffinityMaskField(uiSystemAffinityMask);
+			}
+			else kRuntime.iProcessAffinityQueryAvailable = 0;
 			kRuntime.iDebuggerAttached = (IsDebuggerPresent() ? 1 : 0);
 			kRuntime.kDevelopmentProcesses = getSASGameRecordDevelopmentProcessContext();
 		}
@@ -2298,11 +2355,13 @@ static void logSASGameRecordGameState(const char* szRowType)
 	// <!-- custom: Group these long runtime fields by OS, architecture/hardware and debugger/process context; adjacent literals concatenate at compile time and preserve the emitted row. (GPT-6.1-Sol) -->
 	logSASGameRecord("GAME_RECORD_RUNTIME_CONTEXT systemContextLevel=%d win32Runtime=%s wineVersion=%s"
 		" windowsMajor=%d windowsMinor=%d windowsBuild=%d windowsUpdateRevision=%d windowsServicePackMajor=%d windowsServicePackMinor=%d windowsDisplayVersion=%s"
-		" pointerBits=%d processArch=%s nativeArch=%s wow64=%d cpuVendor=%s logicalProcessors=%d totalPhysicalMemoryMB=%d"
+		" pointerBits=%d processArch=%s nativeArch=%s wow64=%d cpuVendor=%s cpuBrand=%s logicalProcessors=%d totalPhysicalMemoryMB=%d"
+		" processPriorityClass=%s processAffinityQueryAvailable=%d processAffinityMask=%s systemAffinityMask=%s"
 		" debuggerAttached=%d developmentProcessScanAvailable=%d vcExpressRunning=%d devenvRunning=%d msBuildRunning=%d nmakeRunning=%d clRunning=%d linkRunning=%d",
 		iSystemContextLevel, kRuntime.szWin32Runtime, kRuntime.szWineVersionField.GetCString(), kRuntime.kWindowsVersion.iMajor, kRuntime.kWindowsVersion.iMinor, kRuntime.kWindowsVersion.iBuild,
 		kRuntime.kWindowsVersion.iUpdateRevision, kRuntime.kWindowsVersion.iServicePackMajor, kRuntime.kWindowsVersion.iServicePackMinor, kRuntime.szWindowsDisplayVersionField.GetCString(),
-		kRuntime.iPointerBits, kRuntime.szProcessArch, kRuntime.szNativeArch, kRuntime.iWow64, kRuntime.szCpuVendor, kRuntime.iLogicalProcessors, kRuntime.iTotalPhysicalMemoryMB,
+		kRuntime.iPointerBits, kRuntime.szProcessArch, kRuntime.szNativeArch, kRuntime.iWow64, kRuntime.szCpuVendor, kRuntime.szCpuBrandField.GetCString(), kRuntime.iLogicalProcessors, kRuntime.iTotalPhysicalMemoryMB,
+		kRuntime.szProcessPriorityClass, kRuntime.iProcessAffinityQueryAvailable, kRuntime.szProcessAffinityMask.GetCString(), kRuntime.szSystemAffinityMask.GetCString(),
 		kRuntime.iDebuggerAttached, kRuntime.kDevelopmentProcesses.iScanAvailable, kRuntime.kDevelopmentProcesses.iVCExpressRunning, kRuntime.kDevelopmentProcesses.iDevenvRunning,
 		kRuntime.kDevelopmentProcesses.iMSBuildRunning, kRuntime.kDevelopmentProcesses.iNMakeRunning, kRuntime.kDevelopmentProcesses.iClRunning, kRuntime.kDevelopmentProcesses.iLinkRunning);
 	// <!-- custom: Keep the game's persisted initial seeds beside the current post-initialization/load RNG states.
@@ -2312,18 +2371,55 @@ static void logSASGameRecordGameState(const char* szRowType)
 		kGame.getMapRand().getSeed(), kGame.getSorenRand().getSeed(), kInitialRandSeed.first, kInitialRandSeed.second);
 }
 
+struct SASGameRecordLogSetting
+{
+	char const* szName;
+	int iValue;
+};
+
+// <!-- custom: Keep scalar recorder configuration iterable rather than synchronizing a long printf schema with a positional argument list.
+// Each row deliberately calls the existing getter when one owns clamping/caching policy; the one-shot autoplay convenience switch and uncached terrain-case threshold retain their existing direct Define reads.
+// Store resolved integers for this caller-gated session snapshot, not a new runtime cache or replacement enum-to-string system; existing semantic getters remain the authority for each value.
+// Text-map palette strings remain specialized validated data and are reported by their resolved map legends instead of being forced into this integer registry. (GPT-5.6-Sol + ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+static CvString getSASGameRecordLogSettingFields()
+{
+	SASGameRecordLogSetting const aSettings[] =
+	{
+		{ "SAS_GAME_RECORD_LOG_LEVEL", getSASGameRecordLogLevel() },
+		{ "SAS_GAME_RECORD_INTERVAL_TURNS_UNSCALED_GAMESPEED", getSASGameRecordTurnInterval() },
+		{ "SAS_GAME_RECORD_LOG_USE_TIMESTAMPED_FILENAME", isSASGameRecordTimestampedFilenameEnabled() },
+		{ "SAS_AIAUTOPLAY_AUTO_DISMISS_INFORMATIONAL_POPUPS_ENABLE", GC.getDefineINT("SAS_AIAUTOPLAY_AUTO_DISMISS_INFORMATIONAL_POPUPS_ENABLE") },
+		{ "SAS_GAME_RECORD_MAP_ASCII_MAX_WIDTH", getSASGameRecordMapAsciiMaxWidth() },
+		{ "SAS_GAME_RECORD_MAP_ASCII_MAX_HEIGHT", getSASGameRecordMapAsciiMaxHeight() },
+		{ "SAS_GAME_RECORD_MAP_ASCII_HORIZONTAL_CHARS_PER_CELL", getSASGameRecordMapAsciiHorizontalCharsPerCell() },
+		{ "SAS_GAME_RECORD_MAP_ASCII_OVERVIEW_1_SCALE_PERCENT", getSASGameRecordMapAsciiOverview1ScalePercent() },
+		{ "SAS_GAME_RECORD_MAP_ASCII_OVERVIEW_2_SCALE_PERCENT", getSASGameRecordMapAsciiOverview2ScalePercent() },
+		{ "SAS_GAME_RECORD_MAP_ASCII_NATIVE_GEOGRAPHY_ENABLE", isSASGameRecordMapAsciiNativeGeographyEnabled() },
+		{ "SAS_GAME_RECORD_MAP_ASCII_GEOGRAPHY_ENABLE", isSASGameRecordMapAsciiGeographyEnabled() },
+		{ "SAS_GAME_RECORD_MAP_ASCII_TERRAIN_ENABLE", isSASGameRecordMapAsciiTerrainEnabled() },
+		{ "SAS_GAME_RECORD_MAP_ASCII_TERRAIN_UPPERCASE_MIN_NATURE_FOOD_SURPLUS", GC.getDefineINT("SAS_GAME_RECORD_MAP_ASCII_TERRAIN_UPPERCASE_MIN_NATURE_FOOD_SURPLUS") },
+		{ "SAS_GAME_RECORD_MAP_ASCII_RIVER_ENABLE", isSASGameRecordMapAsciiRiversEnabled() },
+		{ "SAS_GAME_RECORD_MAP_ASCII_BONUS_ENABLE", isSASGameRecordMapAsciiBonusesEnabled() },
+		{ "SAS_GAME_RECORD_MAP_ASCII_FEATURE_ENABLE", isSASGameRecordMapAsciiFeaturesEnabled() },
+		{ "SAS_GAME_RECORD_MAP_ASCII_POLITICAL_ENABLE", isSASGameRecordMapAsciiPoliticalEnabled() },
+		{ "SAS_GAME_RECORD_TRADE_MARKET_ENABLE", isSASGameRecordTradeMarketEnabled() },
+		{ "SAS_GAME_RECORD_TRADE_MARKET_BONUS_GPT_QUOTES_ENABLE", isSASGameRecordTradeMarketBonusGPTQuotesEnabled() },
+		{ "SAS_GAME_RECORD_TRADE_MARKET_AI_TECH_VALUES_ENABLE", isSASGameRecordTradeMarketAITechValuesEnabled() },
+		{ "SAS_GAME_RECORD_PERFORMANCE_METRICS_ENABLE", isSASGameRecordPerformanceMetricsEnabled() },
+		{ "SAS_GAME_RECORD_SYSTEM_CONTEXT_LEVEL", getSASGameRecordSystemContextLevel() }
+	};
+	CvString szFields;
+	for (int iI = 0; iI < (int)(sizeof(aSettings) / sizeof(aSettings[0])); iI++)
+	{
+		CvString const szSetting = CvString::format("%s=%d", aSettings[iI].szName, aSettings[iI].iValue);
+		appendSASDiagnosticListValue(szFields, szSetting.GetCString(), " ");
+	}
+	return szFields;
+}
+
 static void logSASGameRecordLogSettings()
 {
-	// <!-- custom: Read the popup define directly because this settings row is emitted only once per log; unlike repeatedly queried map settings, caching it would add state without avoiding repeat work. (GPT-5.6-Sol) -->
-	logSASGameRecord("GAME_RECORD_LOG_SETTINGS SAS_GAME_RECORD_LOG_LEVEL=%d SAS_GAME_RECORD_INTERVAL_TURNS_UNSCALED_GAMESPEED=%d SAS_GAME_RECORD_LOG_USE_TIMESTAMPED_FILENAME=%d SAS_AIAUTOPLAY_AUTO_DISMISS_INFORMATIONAL_POPUPS_ENABLE=%d SAS_GAME_RECORD_MAP_ASCII_MAX_WIDTH=%d SAS_GAME_RECORD_MAP_ASCII_MAX_HEIGHT=%d SAS_GAME_RECORD_MAP_ASCII_HORIZONTAL_CHARS_PER_CELL=%d SAS_GAME_RECORD_MAP_ASCII_OVERVIEW_1_SCALE_PERCENT=%d SAS_GAME_RECORD_MAP_ASCII_OVERVIEW_2_SCALE_PERCENT=%d SAS_GAME_RECORD_MAP_ASCII_NATIVE_GEOGRAPHY_ENABLE=%d SAS_GAME_RECORD_MAP_ASCII_GEOGRAPHY_ENABLE=%d SAS_GAME_RECORD_MAP_ASCII_TERRAIN_ENABLE=%d SAS_GAME_RECORD_MAP_ASCII_RIVER_ENABLE=%d SAS_GAME_RECORD_MAP_ASCII_BONUS_ENABLE=%d SAS_GAME_RECORD_MAP_ASCII_FEATURE_ENABLE=%d SAS_GAME_RECORD_MAP_ASCII_POLITICAL_ENABLE=%d SAS_GAME_RECORD_TRADE_MARKET_ENABLE=%d SAS_GAME_RECORD_TRADE_MARKET_BONUS_GPT_QUOTES_ENABLE=%d SAS_GAME_RECORD_TRADE_MARKET_AI_TECH_VALUES_ENABLE=%d SAS_GAME_RECORD_PERFORMANCE_METRICS_ENABLE=%d SAS_GAME_RECORD_SYSTEM_CONTEXT_LEVEL=%d",
-		getSASGameRecordLogLevel(), getSASGameRecordTurnInterval(), isSASGameRecordTimestampedFilenameEnabled(),
-		GC.getDefineINT("SAS_AIAUTOPLAY_AUTO_DISMISS_INFORMATIONAL_POPUPS_ENABLE"), getSASGameRecordMapAsciiMaxWidth(),
-		getSASGameRecordMapAsciiMaxHeight(), getSASGameRecordMapAsciiHorizontalCharsPerCell(),
-		getSASGameRecordMapAsciiOverview1ScalePercent(), getSASGameRecordMapAsciiOverview2ScalePercent(),
-		isSASGameRecordMapAsciiNativeGeographyEnabled(), isSASGameRecordMapAsciiGeographyEnabled(), isSASGameRecordMapAsciiTerrainEnabled(),
-		isSASGameRecordMapAsciiRiversEnabled(), isSASGameRecordMapAsciiBonusesEnabled(), isSASGameRecordMapAsciiFeaturesEnabled(),
-		isSASGameRecordMapAsciiPoliticalEnabled(), isSASGameRecordTradeMarketEnabled(), isSASGameRecordTradeMarketBonusGPTQuotesEnabled(),
-		isSASGameRecordTradeMarketAITechValuesEnabled(), isSASGameRecordPerformanceMetricsEnabled(), getSASGameRecordSystemContextLevel());
+	logSASGameRecord("GAME_RECORD_LOG_SETTINGS %s", getSASGameRecordLogSettingFields().GetCString());
 }
 
 // <!-- custom: One session-start profile makes performance/diagnostic context self-contained in SASGameRecord rather than requiring the BBAI log, CivilizationIV.ini and BUG options to be inspected separately.
@@ -3750,17 +3846,14 @@ static const char* getSASGameRecordRouteType(RouteTypes eRoute)
 	return (eRoute == NO_ROUTE ? "-" : GC.getInfo(eRoute).getType());
 }
 
+// <!-- custom: Generate the existing label cases from SAS_RECORD_PLOT_OWNER_CHANGE_CAUSE_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordPlotOwnerChangeCause()
 {
 	switch (g_eSASGameRecordPlotOwnerChangeCause)
 	{
-	case SAS_PLOT_OWNER_CAUSE_CITY_FOUNDING: return "CITY_FOUNDING";
-	case SAS_PLOT_OWNER_CAUSE_CITY_ACQUISITION: return "CITY_ACQUISITION";
-	case SAS_PLOT_OWNER_CAUSE_CULTURE_UPDATE: return "CULTURE_UPDATE";
-	case SAS_PLOT_OWNER_CAUSE_WAR_BORDER: return "WAR_BORDER";
-	case SAS_PLOT_OWNER_CAUSE_PEACE_BORDER: return "PEACE_BORDER";
-	case SAS_PLOT_OWNER_CAUSE_WORLDBUILDER: return "WORLDBUILDER";
-	case SAS_PLOT_OWNER_CAUSE_PYTHON_EXTERNAL: return "PYTHON_EXTERNAL";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_PLOT_OWNER_CHANGE_CAUSE_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	case SAS_PLOT_OWNER_CAUSE_NONE: break;
 	}
 	// <!-- custom: Root transaction identity is deliberately not reused as immediate mechanism provenance.
@@ -6690,9 +6783,14 @@ static CvString getSASGameRecordAIProductionTransitions(SASGameRecordPlayerFlow 
 	return getSASDiagnosticOrDash(szTransitions);
 }
 
+// <!-- custom: Generate the existing indexed label array from SAS_RECORD_AI_BUILDING_CHOICE_ORIGIN_ROWS beside its enum; retain the count sentinel and bounds check. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordAIBuildingChoiceOrigin(SASGameRecordAIBuildingChoiceOrigin eOrigin)
 {
-	static char const* const aszOrigins[NUM_SAS_AI_BUILDING_CHOICE_ORIGINS] = {"HELPER", "BORDER_CULTURE_SWIFT", "BORDER_CULTURE_SLOW", "PROACTIVE_FORTIFICATION", "OPPORTUNISTIC_WONDER"};
+	static char const* const aszOrigins[NUM_SAS_AI_BUILDING_CHOICE_ORIGINS] = {
+#define SAS_RECORD_TEXT(NAME, LABEL) #LABEL,
+		SAS_RECORD_AI_BUILDING_CHOICE_ORIGIN_ROWS(SAS_RECORD_TEXT)
+#undef SAS_RECORD_TEXT
+	};
 	if (eOrigin < 0 || eOrigin >= NUM_SAS_AI_BUILDING_CHOICE_ORIGINS)
 		return "UNKNOWN";
 	return aszOrigins[eOrigin];
@@ -6708,12 +6806,14 @@ static CvString getSASGameRecordAIBuildingChoiceOrigins(SASGameRecordPlayerFlow 
 
 // <!-- custom: Keep overlapping realized-choice effects in one compact vocabulary so adding another building mechanic does not widen every GAME_RECORD_PRODUCTION_FLOW row.
 // These labels describe factual properties/context of buildings actually committed to; rejected-candidate/value-component reasoning remains in BBAI. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Generate the existing indexed label array from SAS_RECORD_AI_BUILDING_CHOICE_EFFECT_ROWS beside its enum; retain the count sentinel and bounds check. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordAIBuildingChoiceEffect(SASGameRecordAIBuildingChoiceEffect eEffect)
 {
 	static char const* const aszEffects[NUM_SAS_AI_BUILDING_CHOICE_EFFECTS] = {
-		"HEALTH_FOOD_RELIEF", "STARVATION_PREVENTED_BY_HEALTH", "HAPPINESS_RELIEF", "FOOD_KEPT",
-		"MAINTENANCE_REDUCTION", "TRADE", "PRODUCTION", "GOVERNMENT_CENTER", "CAPITAL", "NATIONAL_PARK_STYLE",
-		"DEFENSE", "MILITARY_PRODUCTION", "DOMAIN_PRODUCTION", "FREE_EXPERIENCE"};
+#define SAS_RECORD_TEXT(NAME, LABEL) #LABEL,
+		SAS_RECORD_AI_BUILDING_CHOICE_EFFECT_ROWS(SAS_RECORD_TEXT)
+#undef SAS_RECORD_TEXT
+	};
 	if (eEffect < 0 || eEffect >= NUM_SAS_AI_BUILDING_CHOICE_EFFECTS)
 		return "UNKNOWN";
 	return aszEffects[eEffect];
@@ -12086,12 +12186,14 @@ void logSASGameRecordBarbarianCitySiteChoice(bool bSkipCivAreas, int iProbModifi
 		iCandidateCount > 2 ? aiRandomPercents[2] : -1);
 }
 
+// <!-- custom: Generate the existing label cases from SAS_RECORD_AI_SETTLER_SITE_DECISION_SOURCE_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordAISettlerSiteDecisionSource(SASGameRecordAISettlerSiteDecisionSource eSource)
 {
 	switch (eSource)
 	{
-	case SAS_AI_SETTLER_SITE_DECISION_SHORTLIST: return "SHORTLIST_PATH_SCORE";
-	case SAS_AI_SETTLER_SITE_DECISION_CURRENT_PLOT_RECHECK: return "CURRENT_PLOT_RECHECK";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_AI_SETTLER_SITE_DECISION_SOURCE_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	}
 	FAssert(false);
 	return "UNKNOWN";
@@ -12124,13 +12226,14 @@ void logSASGameRecordAISettlerSiteDecision(CvUnitAI const& kSettler, CvPlot cons
 		(pPreviousMissionTarget == NULL ? -1 : pPreviousMissionTarget->getX()), (pPreviousMissionTarget == NULL ? -1 : pPreviousMissionTarget->getY()));
 }
 
+// <!-- custom: Generate the existing label cases from SAS_RECORD_AI_SETTLER_SCOUT_END_REASON_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordAISettlerScoutEndReason(SASGameRecordAISettlerScoutEndReason eReason)
 {
 	switch (eReason)
 	{
-	case SAS_AI_SETTLER_SCOUT_END_DEADLINE: return "DEADLINE";
-	case SAS_AI_SETTLER_SCOUT_END_LOW_UPSIDE: return "LOW_UPSIDE";
-	case SAS_AI_SETTLER_SCOUT_END_NO_SAFE_STEP: return "NO_SAFE_STEP";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_AI_SETTLER_SCOUT_END_REASON_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	}
 	FAssert(false);
 	return "UNKNOWN";
@@ -12671,21 +12774,14 @@ void logSASGameRecordWarEnded(TeamTypes eTeam, TeamTypes eOtherTeam, int iTeamAW
 	}
 }
 
+// <!-- custom: Generate the existing label cases from SAS_RECORD_UWAI_WAR_PLAN_DECISION_REASON_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordUWAIWarPlanDecisionReason(SASGameRecordUWAIWarPlanDecisionReason eReason)
 {
 	switch (eReason)
 	{
-	case SAS_UWAI_WAR_PLAN_ILLEGAL_TARGET: return "ILLEGAL_TARGET";
-	case SAS_UWAI_WAR_PLAN_VICTORY_DENIAL_DIRECT: return "VICTORY_DENIAL_DIRECT";
-	case SAS_UWAI_WAR_PLAN_IMMINENT_NEGATIVE_UTILITY: return "IMMINENT_NEGATIVE_UTILITY";
-	case SAS_UWAI_WAR_PLAN_IMMINENT_TIMEOUT: return "IMMINENT_TIMEOUT";
-	case SAS_UWAI_WAR_PLAN_PREPARATION_DEADLINE_REACHED: return "PREPARATION_DEADLINE_REACHED";
-	case SAS_UWAI_WAR_PLAN_PREPARATION_DEADLINE_NEGATIVE_UTILITY: return "PREPARATION_DEADLINE_NEGATIVE_UTILITY";
-	case SAS_UWAI_WAR_PLAN_SEVERE_NEGATIVE_UTILITY: return "SEVERE_NEGATIVE_UTILITY";
-	case SAS_UWAI_WAR_PLAN_TARGET_SWITCH: return "TARGET_SWITCH";
-	case SAS_UWAI_WAR_PLAN_ATTACKED_RECENT_MATURED: return "ATTACKED_RECENT_MATURED";
-	case SAS_UWAI_WAR_PLAN_ACTIVE_TYPE_SWITCH: return "ACTIVE_TYPE_SWITCH";
-	case SAS_UWAI_WAR_PLAN_DIRECT_UTILITY_THRESHOLD: return "DIRECT_UTILITY_THRESHOLD";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_UWAI_WAR_PLAN_DECISION_REASON_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	default: return "UNKNOWN";
 	}
 }
@@ -13085,12 +13181,14 @@ void logSASGameRecordAIDiploContactIntent(CvPlayerAI const& kPlayer, PlayerTypes
 }
 
 // <!-- custom: Help/tribute origin is caller state that disappears once the shared request helper succeeds; keep the vocabulary recorder-local and leave revision-100 contact rows authoritative for the final package. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Generate the existing label cases from SAS_RECORD_AI_HUMAN_REQUEST_ORIGIN_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordAIHumanRequestOrigin(SASGameRecordAIHumanRequestOrigin eOrigin)
 {
 	switch (eOrigin)
 	{
-	case SAS_AI_HUMAN_REQUEST_AI_DO_DIPLO: return "AI_DO_DIPLO";
-	case SAS_AI_HUMAN_REQUEST_UWAI_AMEND_TENSIONS: return "UWAI_AMEND_TENSIONS";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_AI_HUMAN_REQUEST_ORIGIN_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	default: return "UNKNOWN";
 	}
 }
@@ -13134,13 +13232,14 @@ void logSASGameRecordAITributeRequest(CvPlayerAI const& kPlayer, PlayerTypes eHu
 		kContext.iSelectedTechTradeValue, kContext.iMapTradeValue, kContext.bMapAdded ? 1 : 0);
 }
 
+// <!-- custom: Generate the existing label cases from SAS_RECORD_AI_GIVE_HELP_ORIGIN_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordAIGiveHelpOrigin(SASGameRecordAIGiveHelpOrigin eOrigin)
 {
 	switch (eOrigin)
 	{
-	case SAS_AI_GIVE_HELP_RELATION_RESOURCE: return "RELATION_RESOURCE";
-	case SAS_AI_GIVE_HELP_RELATION_TECH: return "RELATION_TECH";
-	case SAS_AI_GIVE_HELP_PROACTIVE_TECH: return "PROACTIVE_TECH";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_AI_GIVE_HELP_ORIGIN_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	default: return "UNKNOWN";
 	}
 }
@@ -13174,13 +13273,14 @@ void logSASGameRecordAIGiveHelpDecision(CvPlayerAI const& kPlayer, PlayerTypes e
 		iSelectedTechCost, iSelectionScore, iTechScoreRatioX1000, iGiftProbX1000, iContactProbMultX1000);
 }
 
+// <!-- custom: Generate the existing label cases from SAS_RECORD_AI_TECH_TRADE_ORIGIN_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordAITechTradeOrigin(SASGameRecordAITechTradeOrigin eOrigin)
 {
 	switch (eOrigin)
 	{
-	case SAS_AI_TECH_TRADE_RANDOM_DIRECT: return "RANDOM_TECH_DIRECT";
-	case SAS_AI_TECH_TRADE_RANDOM_COUNTERPROPOSE: return "RANDOM_TECH_COUNTERPROPOSE";
-	case SAS_AI_TECH_TRADE_PROGRESS_GOLD: return "PROGRESS_TECH_GOLD";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_AI_TECH_TRADE_ORIGIN_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	default: return "UNKNOWN";
 	}
 }
@@ -13199,15 +13299,14 @@ void logSASGameRecordAITechTradeDecision(CvPlayerAI const& kPlayer, PlayerTypes 
 		iOurReceiveTechValue, iTargetReceiveTechValue, iGiveMatchDeltaValue, iProgressReceiveTechValue, iProgressMaxGold);
 }
 
+// <!-- custom: Generate the existing label cases from SAS_RECORD_AI_DEAL_CANCELLATION_REASON_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordAIDealCancellationReason(SASGameRecordAIDealCancellationReason eReason)
 {
 	switch (eReason)
 	{
-	case SAS_AI_DEAL_CANCEL_OFFER_REJECTED_RENEGOTIATE: return "OFFER_REJECTED_RENEGOTIATE";
-	case SAS_AI_DEAL_CANCEL_DUAL_DENIAL: return "DUAL_DENIAL";
-	case SAS_AI_DEAL_CANCEL_AI_RESOURCE_DENIAL: return "AI_RESOURCE_DENIAL";
-	case SAS_AI_DEAL_CANCEL_OTHER_RESOURCE_JOKING: return "OTHER_RESOURCE_JOKING";
-	case SAS_AI_DEAL_CANCEL_GPT_LIMIT: return "GPT_LIMIT";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_AI_DEAL_CANCELLATION_REASON_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	default: return "UNKNOWN";
 	}
 }
@@ -13240,16 +13339,14 @@ void logSASGameRecordAIDealCancellationDecision(CvPlayerAI const& kPlayer, Playe
 		szTriggerSide, szTriggerItem.GetCString(), szDenial, iDualCancelChanceX1000, iGptOverdraftBefore, iDealGpt, iGptOverdraftAfter);
 }
 
+// <!-- custom: Generate the existing label cases from SAS_RECORD_DEAL_INVALIDATION_REASON_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordDealInvalidationReason(SASGameRecordDealInvalidationReason eReason)
 {
 	switch (eReason)
 	{
-	case SAS_DEAL_INVALID_RESOURCE_SUPPLY_DEFICIT: return "RESOURCE_SUPPLY_DEFICIT";
-	case SAS_DEAL_INVALID_TRADE_NETWORK_LOST: return "TRADE_NETWORK_LOST";
-	case SAS_DEAL_INVALID_GIVER_BONUS_OBSOLETE: return "GIVER_BONUS_OBSOLETE";
-	case SAS_DEAL_INVALID_RECIPIENT_BONUS_OBSOLETE: return "RECIPIENT_BONUS_OBSOLETE";
-	case SAS_DEAL_INVALID_GPT_INSOLVENT: return "GPT_INSOLVENT";
-	case SAS_DEAL_INVALID_PEACE_TREATY_EXPIRED: return "PEACE_TREATY_EXPIRED";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_DEAL_INVALIDATION_REASON_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	default: return "UNKNOWN";
 	}
 }
@@ -13307,13 +13404,14 @@ void logSASGameRecordAIJointWarRequest(CvPlayerAI const& kPlayer, PlayerTypes eH
 
 // <!-- custom: Preserve why a realized STOP_TRADING request exists; the generic revision-100 contact row remains authoritative for the actual embargo subject.
 // Redirect-only fields describe the already-selected joint-war target and cached UWAI denial; direct embargo contacts use explicit sentinel/NA values and no chooser/RNG work is repeated. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Generate the existing label cases from SAS_RECORD_AI_EMBARGO_REQUEST_ORIGIN_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordAIEmbargoRequestOrigin(SASGameRecordAIEmbargoRequestOrigin eOrigin)
 {
 	switch (eOrigin)
 	{
-	case SAS_AI_EMBARGO_DIRECT_CONTACT: return "DIRECT_CONTACT";
-	case SAS_AI_EMBARGO_JOINT_WAR_ATTITUDE_REDIRECT: return "JOINT_WAR_ATTITUDE_REDIRECT";
-	case SAS_AI_EMBARGO_JOINT_WAR_UWAI_REDIRECT: return "JOINT_WAR_UWAI_REDIRECT";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_AI_EMBARGO_REQUEST_ORIGIN_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	default: return "UNKNOWN";
 	}
 }
@@ -13339,14 +13437,14 @@ void logSASGameRecordAIEmbargoRequest(CvPlayerAI const& kPlayer, PlayerTypes eHu
 
 // <!-- custom: Preserve the realized origin of AI-driven vassalage/surrender before downstream deal/vassal actions erase whether this came from ordinary voluntary diplomacy, UWAI protector-seeking, or legacy/UWAI capitulation.
 // Final package serialization is necessary for capitulation-to-human counterproposals; detailed rejected-master/capitulation utility reasoning remains in BBAI. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Generate the existing label cases from SAS_RECORD_AI_VASSALAGE_ORIGIN_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordAIVassalageOrigin(SASGameRecordAIVassalageOrigin eOrigin)
 {
 	switch (eOrigin)
 	{
-	case SAS_AI_VASSALAGE_VOLUNTARY_CONTACT: return "VOLUNTARY_CONTACT";
-	case SAS_AI_VASSALAGE_UWAI_FIND_MASTER: return "UWAI_FIND_MASTER";
-	case SAS_AI_VASSALAGE_LEGACY_CAPITULATION: return "LEGACY_CAPITULATION";
-	case SAS_AI_VASSALAGE_UWAI_CAPITULATION: return "UWAI_CAPITULATION";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_AI_VASSALAGE_ORIGIN_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	default: return "UNKNOWN";
 	}
 }
@@ -13417,12 +13515,14 @@ void logSASGameRecordAIVassalResourceTributeDecision(CvPlayerAI const& kMaster, 
 		getSASGameRecordBonusType(eRunnerUpBonus), iRunnerUpValueLogged, eRunnerUpBonus == NO_BONUS ? -1 : iSelectedValue - iRunnerUpValue, iCandidateCount);
 }
 
+// <!-- custom: Generate the existing label cases from SAS_RECORD_AI_WAR_TRADE_PAYMENT_PATH_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordAIWarTradePaymentPath(SASGameRecordAIWarTradePaymentPath ePaymentPath)
 {
 	switch (ePaymentPath)
 	{
-	case SAS_AI_WAR_TRADE_TECH_GOLD: return "TECH_GOLD";
-	case SAS_AI_WAR_TRADE_CITY_COUNTERPROPOSE: return "CITY_COUNTERPROPOSE";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_AI_WAR_TRADE_PAYMENT_PATH_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	default: return "UNKNOWN";
 	}
 }
@@ -13440,15 +13540,14 @@ void logSASGameRecordAIWarTradeIntent(CvPlayerAI const& kPlayer, PlayerTypes eHi
 		iWarSuccessRating, iCityId, iCityFitness, iFinalWarSideValue, iFinalPaymentSideValue);
 }
 
+// <!-- custom: Generate the existing label cases from SAS_RECORD_AI_CITY_TRADE_FORMATION_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordAICityTradeFormation(SASGameRecordAICityTradeFormation eFormation)
 {
 	switch (eFormation)
 	{
-	case SAS_AI_CITY_TRADE_FREE_LIBERATION: return "FREE_LIBERATION";
-	case SAS_AI_CITY_TRADE_FREE_CITY_TO_HUMAN: return "FREE_CITY_TO_HUMAN";
-	case SAS_AI_CITY_TRADE_OUR_SIDE_COUNTERPROPOSE: return "OUR_SIDE_COUNTERPROPOSE";
-	case SAS_AI_CITY_TRADE_TARGET_SIDE_COUNTERPROPOSE: return "TARGET_SIDE_COUNTERPROPOSE";
-	case SAS_AI_CITY_TRADE_SAME_TEAM_OVERRIDE: return "SAME_TEAM_OVERRIDE";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_AI_CITY_TRADE_FORMATION_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	default: return "UNKNOWN";
 	}
 }
@@ -13879,15 +13978,14 @@ void logSASGameRecordAreaAIChanged(CvTeamAI const& kTeam, CvArea const& kArea, A
 		kTeam.countNumCitiesByArea(kArea), kArea.getNumCities(), kTeam.getNumWars(), kTeam.AI_isAnyWarPlan() ? 1 : 0);
 }
 
+// <!-- custom: Generate the existing label cases from SAS_RECORD_AI_TARGET_CITY_CHANGE_SOURCE_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordAITargetCityChangeSource(SASGameRecordAITargetCityChangeSource eSource)
 {
 	switch (eSource)
 	{
-	case SAS_AI_TARGET_CITY_AREA_SEARCH: return "AREA_SEARCH";
-	case SAS_AI_TARGET_CITY_RANDOM_CLEAR: return "RANDOM_CLEAR";
-	case SAS_AI_TARGET_CITY_DIPLO_COORDINATION: return "DIPLO_COORDINATION";
-	case SAS_AI_TARGET_CITY_AREA_REASSIGN_CLEAR: return "AREA_REASSIGN_CLEAR";
-	case SAS_AI_TARGET_CITY_CITY_REMOVED: return "CITY_REMOVED";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_AI_TARGET_CITY_CHANGE_SOURCE_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	default: return "UNKNOWN";
 	}
 }
@@ -13918,31 +14016,26 @@ void logSASGameRecordAITargetCityChanged(CvPlayerAI const& kPlayer, CvArea const
 		getSASAreaAIType(kArea.getAreaAIType(kPlayer.getTeam())), bAtWarWithNewTarget ? 1 : 0, getSASWarPlanType(eNewWarPlan));
 }
 
+// <!-- custom: Generate the existing label cases from SAS_RECORD_AI_CONQUER_CITY_OUTCOME_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordAIConquerCityOutcome(SASGameRecordAIConquerCityOutcome eOutcome)
 {
 	switch (eOutcome)
 	{
-	case SAS_AI_CONQUER_CITY_KEEP: return "KEEP";
-	case SAS_AI_CONQUER_CITY_RAZE: return "RAZE";
-	case SAS_AI_CONQUER_CITY_LIBERATE: return "LIBERATE";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_AI_CONQUER_CITY_OUTCOME_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	default: return "UNKNOWN";
 	}
 }
 
+// <!-- custom: Generate the existing label cases from SAS_RECORD_AI_CONQUER_CITY_REASON_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordAIConquerCityReason(SASGameRecordAIConquerCityReason eReason)
 {
 	switch (eReason)
 	{
-	case SAS_AI_CONQUER_CITY_CANNOT_RAZE: return "CANNOT_RAZE";
-	case SAS_AI_CONQUER_CITY_DOMINATION3_PRIMARY_AREA_KEEP: return "DOMINATION3_PRIMARY_AREA_KEEP";
-	case SAS_AI_CONQUER_CITY_CULTURE_VICTORY: return "CULTURE_VICTORY";
-	case SAS_AI_CONQUER_CITY_UNLIKELY_LONG_TERM_BENEFIT: return "SAS_UNLIKELY_LONG_TERM_BENEFIT";
-	case SAS_AI_CONQUER_CITY_EARLY_REMOTE_BARB: return "SAS_EARLY_REMOTE_BARB";
-	case SAS_AI_CONQUER_CITY_EARLY_REMOTE_NONBARB: return "SAS_EARLY_REMOTE_NONBARB";
-	case SAS_AI_CONQUER_CITY_BARBARIAN_VALUE: return "BARBARIAN_VALUE";
-	case SAS_AI_CONQUER_CITY_NORMAL_VALUE: return "NORMAL_VALUE";
-	case SAS_AI_CONQUER_CITY_LIBERATION: return "LIBERATION";
-	case SAS_AI_CONQUER_CITY_LIBERATION_WITHHELD_HOSTAGE: return "LIBERATION_WITHHELD_HOSTAGE";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_AI_CONQUER_CITY_REASON_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	default: return "UNKNOWN";
 	}
 }
@@ -13962,28 +14055,14 @@ void logSASGameRecordAIConquerCityDecision(CvPlayerAI const& kPlayer, CvCity con
 		eLiberationPlayer);
 }
 
+// <!-- custom: Generate the existing label cases from SAS_RECORD_AI_GREAT_PERSON_ACTION_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordAIGreatPersonAction(SASGameRecordAIGreatPersonAction eAction)
 {
 	switch (eAction)
 	{
-	case SAS_AI_GREAT_PERSON_DISCOVER_TECH: return "DISCOVER_TECH";
-	case SAS_AI_GREAT_PERSON_TRADE_MISSION: return "TRADE_MISSION";
-	case SAS_AI_GREAT_PERSON_MOVE_TO_TRADE_MISSION: return "MOVE_TO_TRADE_MISSION";
-	case SAS_AI_GREAT_PERSON_GREAT_WORK: return "GREAT_WORK";
-	case SAS_AI_GREAT_PERSON_MOVE_TO_GREAT_WORK: return "MOVE_TO_GREAT_WORK";
-	case SAS_AI_GREAT_PERSON_GOLDEN_AGE: return "GOLDEN_AGE";
-	case SAS_AI_GREAT_PERSON_JOIN_CITY: return "JOIN_CITY";
-	case SAS_AI_GREAT_PERSON_MOVE_TO_JOIN_CITY: return "MOVE_TO_JOIN_CITY";
-	case SAS_AI_GREAT_PERSON_CONSTRUCT_BUILDING: return "CONSTRUCT_BUILDING";
-	case SAS_AI_GREAT_PERSON_MOVE_TO_CONSTRUCT_BUILDING: return "MOVE_TO_CONSTRUCT_BUILDING";
-	case SAS_AI_GREAT_PERSON_HURRY_BUILDING: return "HURRY_BUILDING";
-	case SAS_AI_GREAT_PERSON_MOVE_TO_HURRY_BUILDING: return "MOVE_TO_HURRY_BUILDING";
-	case SAS_AI_GREAT_PERSON_DANGER_DISCOVER_TECH: return "DANGER_DISCOVER_TECH";
-	case SAS_AI_GREAT_PERSON_RECON_SPY: return "RECON_SPY";
-	case SAS_AI_GREAT_PERSON_RETREAT: return "RETREAT";
-	case SAS_AI_GREAT_PERSON_STRANDED: return "STRANDED";
-	case SAS_AI_GREAT_PERSON_SAFETY: return "SAFETY";
-	case SAS_AI_GREAT_PERSON_SKIP: return "SKIP";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_AI_GREAT_PERSON_ACTION_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	default: return "UNKNOWN";
 	}
 }
@@ -14019,40 +14098,26 @@ void logSASGameRecordAIGreatPersonDecision(CvUnitAI const& kUnit, CvPlot const* 
 		(pPreviousMissionPlot == NULL ? -1 : pPreviousMissionPlot->getX()), (pPreviousMissionPlot == NULL ? -1 : pPreviousMissionPlot->getY()));
 }
 
+// <!-- custom: Generate the existing label cases from SAS_RECORD_AI_GREAT_GENERAL_STAGE_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordAIGreatGeneralStage(SASGameRecordAIGreatGeneralStage eStage)
 {
 	switch (eStage)
 	{
-	case SAS_AI_GREAT_GENERAL_PREFERRED_INSTRUCTOR: return "PREFERRED_INSTRUCTOR";
-	case SAS_AI_GREAT_GENERAL_FIRST_ACADEMY: return "FIRST_ACADEMY";
-	case SAS_AI_GREAT_GENERAL_FIRST_INSTRUCTOR: return "FIRST_INSTRUCTOR";
-	case SAS_AI_GREAT_GENERAL_DANGER_LEAD: return "DANGER_LEAD";
-	case SAS_AI_GREAT_GENERAL_OFFENSE_LEAD_ATTACK_CITY: return "OFFENSE_LEAD_ATTACK_CITY";
-	case SAS_AI_GREAT_GENERAL_OFFENSE_LEAD_ATTACK: return "OFFENSE_LEAD_ATTACK";
-	case SAS_AI_GREAT_GENERAL_JOIN_LIMIT_2: return "JOIN_LIMIT_2";
-	case SAS_AI_GREAT_GENERAL_ACADEMY_LIMIT_2: return "ACADEMY_LIMIT_2";
-	case SAS_AI_GREAT_GENERAL_JOIN_LIMIT_4: return "JOIN_LIMIT_4";
-	case SAS_AI_GREAT_GENERAL_RANDOM_CONSTRUCT: return "RANDOM_CONSTRUCT";
-	case SAS_AI_GREAT_GENERAL_FINAL_JOIN: return "FINAL_JOIN";
-	case SAS_AI_GREAT_GENERAL_RETREAT: return "RETREAT";
-	case SAS_AI_GREAT_GENERAL_STRANDED: return "STRANDED";
-	case SAS_AI_GREAT_GENERAL_SAFETY: return "SAFETY";
-	case SAS_AI_GREAT_GENERAL_SKIP: return "SKIP";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_AI_GREAT_GENERAL_STAGE_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	default: return "UNKNOWN";
 	}
 }
 
+// <!-- custom: Generate the existing label cases from SAS_RECORD_AI_GREAT_GENERAL_ACTION_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordAIGreatGeneralAction(SASGameRecordAIGreatGeneralAction eAction)
 {
 	switch (eAction)
 	{
-	case SAS_AI_GREAT_GENERAL_ACTION_JOIN: return "JOIN";
-	case SAS_AI_GREAT_GENERAL_ACTION_CONSTRUCT: return "CONSTRUCT";
-	case SAS_AI_GREAT_GENERAL_ACTION_LEAD: return "LEAD";
-	case SAS_AI_GREAT_GENERAL_ACTION_RETREAT: return "RETREAT";
-	case SAS_AI_GREAT_GENERAL_ACTION_STRANDED: return "STRANDED";
-	case SAS_AI_GREAT_GENERAL_ACTION_SAFETY: return "SAFETY";
-	case SAS_AI_GREAT_GENERAL_ACTION_SKIP: return "SKIP";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_AI_GREAT_GENERAL_ACTION_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	default: return "UNKNOWN";
 	}
 }
@@ -14257,30 +14322,14 @@ static void getSASGameRecordVoteTarget(VoteSelectionSubData const& kVoteOption, 
 	eOtherTeam = (eOtherPlayer == NO_PLAYER ? NO_TEAM : GET_PLAYER(eOtherPlayer).getTeam());
 }
 
+// <!-- custom: Generate the existing label cases from SAS_RECORD_AI_DIPLO_VOTE_REASON_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordAIDiploVoteReason(SASGameRecordAIDiploVoteReason eReason)
 {
 	switch (eReason)
 	{
-	case SAS_AI_DIPLO_VOTE_TEAM_SELF_ELIGIBLE: return "TEAM_SELF_ELIGIBLE";
-	case SAS_AI_DIPLO_VOTE_TEAM_VASSAL_MASTER: return "TEAM_VASSAL_MASTER";
-	case SAS_AI_DIPLO_VOTE_TEAM_OWN_DIPLO_VICTORY_ABSTAIN: return "TEAM_OWN_DIPLO_VICTORY_ABSTAIN";
-	case SAS_AI_DIPLO_VOTE_TEAM_ATTITUDE_TIE_ABSTAIN: return "TEAM_ATTITUDE_TIE_ABSTAIN";
-	case SAS_AI_DIPLO_VOTE_TEAM_BEST_ATTITUDE: return "TEAM_BEST_ATTITUDE";
-	case SAS_AI_DIPLO_VOTE_SECRETARY_SELF_OR_MASTER: return "SECRETARY_SELF_OR_MASTER";
-	case SAS_AI_DIPLO_VOTE_FRIENDLY_SECRETARY: return "FRIENDLY_SECRETARY";
-	case SAS_AI_DIPLO_VOTE_FORCE_CIVIC: return "FORCE_CIVIC";
-	case SAS_AI_DIPLO_VOTE_TRADE_ROUTES: return "TRADE_ROUTES";
-	case SAS_AI_DIPLO_VOTE_NO_NUKES: return "NO_NUKES";
-	case SAS_AI_DIPLO_VOTE_FREE_TRADE: return "FREE_TRADE";
-	case SAS_AI_DIPLO_VOTE_OPEN_BORDERS: return "OPEN_BORDERS";
-	case SAS_AI_DIPLO_VOTE_DEFENSIVE_PACT: return "DEFENSIVE_PACT";
-	case SAS_AI_DIPLO_VOTE_FORCE_PEACE: return "FORCE_PEACE";
-	case SAS_AI_DIPLO_VOTE_EMBARGO_RECENT_DEAL: return "EMBARGO_RECENT_DEAL";
-	case SAS_AI_DIPLO_VOTE_EMBARGO_UNMET_ABSTAIN: return "EMBARGO_UNMET_ABSTAIN";
-	case SAS_AI_DIPLO_VOTE_EMBARGO: return "EMBARGO";
-	case SAS_AI_DIPLO_VOTE_FORCE_WAR: return "FORCE_WAR";
-	case SAS_AI_DIPLO_VOTE_ASSIGN_CITY: return "ASSIGN_CITY";
-	case SAS_AI_DIPLO_VOTE_DEFAULT: return "DEFAULT";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_AI_DIPLO_VOTE_REASON_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	default: return "UNKNOWN";
 	}
 }
@@ -14516,14 +14565,14 @@ void logSASGameRecordCityCultureExpanded(CvCity const* pCity)
 
 // <!-- custom: AI_doDraft's final conscription action preserves the unit but loses which live trigger released bWait and the enabling value/population context.
 // Keep this serializer factual about the already-resolved trigger; rejected city turns remain intentionally unlogged. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Generate the existing label cases from SAS_RECORD_AI_DRAFT_REASON_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordAIDraftReason(SASGameRecordAIDraftReason eReason)
 {
 	switch (eReason)
 	{
-	case SAS_AI_DRAFT_FORCED_CALLER: return "FORCED_CALLER";
-	case SAS_AI_DRAFT_TURTLE_STRATEGY: return "TURTLE_STRATEGY";
-	case SAS_AI_DRAFT_LOCAL_DANGER: return "LOCAL_DANGER";
-	case SAS_AI_DRAFT_NONCRITICAL_RANDOM_VALUE: return "NONCRITICAL_RANDOM_VALUE";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_AI_DRAFT_REASON_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	default: return "UNKNOWN";
 	}
 }
@@ -14538,15 +14587,14 @@ void logSASGameRecordAIDraftDecision(CvCity const& kCity, SASGameRecordAIDraftRe
 
 // <!-- custom: AI_doHurry has several mutually exclusive realized exits whose live value/cost comparison is lost as soon as hurry mutates production, population and treasury.
 // Keep this serializer factual about the already-resolved reason; rejected hurry types remain intentionally unlogged. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Generate the existing label cases from SAS_RECORD_AI_HURRY_REASON_ROWS beside its enum; preserve the previous fallback and any special handling below. (GPT-6.1-Sol) -->
 static char const* getSASGameRecordAIHurryReason(SASGameRecordAIHurryReason eReason)
 {
 	switch (eReason)
 	{
-	case SAS_AI_HURRY_FORCED_PANIC: return "FORCED_PANIC";
-	case SAS_AI_HURRY_UNHAPPINESS_RELIEF: return "UNHAPPINESS_RELIEF";
-	case SAS_AI_HURRY_FOOD_LOSS_RELIEF: return "FOOD_LOSS_RELIEF";
-	case SAS_AI_HURRY_UNIT_VALUE: return "UNIT_VALUE";
-	case SAS_AI_HURRY_BUILDING_VALUE: return "BUILDING_VALUE";
+#define SAS_RECORD_LABEL(NAME, LABEL) case NAME: return #LABEL;
+	SAS_RECORD_AI_HURRY_REASON_ROWS(SAS_RECORD_LABEL)
+#undef SAS_RECORD_LABEL
 	default: return "UNKNOWN";
 	}
 }
