@@ -24,7 +24,12 @@ void CvXMLLoadUtility::errorMessage(char const* szMessage, XMLErrorTypes eErrTyp
 void CvXMLLoadUtility::logMsg(char* format, ...)
 {
 	static char buf[kBufSize];
-	_vsnprintf(buf, kBufSize-4, format, (char*)(&format+1));
+	//_vsnprintf(buf, kBufSize-4, format, (char*)(&format+1));
+	// <advc.cppstd>
+	va_list args;
+	va_start(args, format);
+	_vsnprintf(buf, kBufSize-4, format, args);
+	va_end(args); // </advc.cppstd>
 	gDLL->logMsg("xml.log", buf);
 }
 

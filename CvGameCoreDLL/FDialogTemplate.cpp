@@ -188,7 +188,7 @@ void CDialogTemplate::AppendString(LPCSTR string)
 	free(wideString);
 }
 
-void CDialogTemplate::AppendData(void* data, int dataLength)
+void CDialogTemplate::AppendData(void const* data, int dataLength)
 {
 	EnsureSpace(dataLength);
 

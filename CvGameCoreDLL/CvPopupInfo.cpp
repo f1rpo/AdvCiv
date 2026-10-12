@@ -1,6 +1,6 @@
 #include "CvGameCoreDLL.h"
 //#include ".\cvpopupinfo.h"
-#include "CvPopupInfo.h" // advc
+#include "CvPopupInfo.h" // advc.cppstd
 
 /*	advc (note): There's a convention of checking for a NULL pointer
 	after allocating a CvPopupInfo. This might make it possible to

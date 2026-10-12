@@ -99,7 +99,10 @@ CyUnit* CyPlayer::initUnit(int /*UnitTypes*/ iIndex, int iX, int iY, UnitAITypes
 
 void CyPlayer::disbandUnit(bool bAnnounce)
 {
-	return m_pPlayer ? m_pPlayer->disbandUnit(bAnnounce) : NULL;
+	//return m_pPlayer ? m_pPlayer->disbandUnit(bAnnounce) : NULL;
+	// <advc.001>
+	if (m_pPlayer)
+		m_pPlayer->disbandUnit(bAnnounce); // </advc.001>
 }
 
 void CyPlayer::killUnits()
@@ -199,12 +202,16 @@ std::wstring CyPlayer::getStateReligionKey()
 
 std::wstring CyPlayer::getBestAttackUnitName(int iForm)
 {
-	return m_pPlayer ? m_pPlayer->getBestAttackUnitName((uint)iForm) : std::wstring();
+	if (m_pPlayer != NULL) // advc.cppstd: Replacing conditional operator
+		return m_pPlayer->getBestAttackUnitName((uint)iForm);
+	return std::wstring();
 }
 
 std::wstring CyPlayer::getWorstEnemyName()
 {
-	return m_pPlayer ? m_pPlayer->getWorstEnemyName() : std::wstring();
+	if (m_pPlayer != NULL) // advc.cppstd: Replacing conditional operator
+		return m_pPlayer->getWorstEnemyName();
+	return std::wstring();
 }
 
 std::wstring CyPlayer::getBestAttackUnitKey()

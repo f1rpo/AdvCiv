@@ -5773,196 +5773,77 @@ void CvDLLWidgetData::parseCloseScreenHelp(CvWStringBuffer& szBuffer)
 	szBuffer.assign(gDLL->getText("TXT_KEY_MISC_CLOSE_SCREEN"));
 }
 
+namespace // advc: for parseDescriptionHelp
+{
+	template <typename E>
+	void assignDescrHelp(int iVal, CvWStringBuffer& szBuffer, bool bHistorical = false)
+	{
+		E eVal = static_cast<E>(iVal);
+		if (eVal == enum_traits<E>::none)
+			return;
+		// advc.cppstd: if/else instead of conditional operator
+		if (bHistorical)
+			szBuffer.assign(gDLL->getText("TXT_KEY_MISC_HISTORICAL_INFO",
+					GC.getInfo(eVal).getTextKeyWide()));
+		else szBuffer.assign(GC.getInfo(eVal).getDescription());
+	}
+}
+
 void CvDLLWidgetData::parseDescriptionHelp(CvWidgetDataStruct& widgetDataStruct,
 	CvWStringBuffer& szBuffer, bool bMinimal)
 {
 	CivilopediaPageTypes eType = (CivilopediaPageTypes)widgetDataStruct.m_iData1;
-	switch (eType)
+	int const iData2 = widgetDataStruct.m_iData2; // abbreviate
+	switch (eType) // advc: Repetitive case handling moved into helper function
 	{
 	case CIVILOPEDIA_PAGE_TECH:
-		{
-			TechTypes eTech = (TechTypes)widgetDataStruct.m_iData2;
-			if (eTech != NO_TECH)
-			{
-				szBuffer.assign(bMinimal ?
-						GC.getInfo(eTech).getDescription() :
-						gDLL->getText("TXT_KEY_MISC_HISTORICAL_INFO",
-						GC.getInfo(eTech).getTextKeyWide()));
-			}
-		}
+		assignDescrHelp<TechTypes>(iData2, szBuffer, !bMinimal);
 		break;
 	case CIVILOPEDIA_PAGE_UNIT:
-		{
-			UnitTypes eUnit = (UnitTypes)widgetDataStruct.m_iData2;
-			if (eUnit != NO_UNIT)
-			{
-				szBuffer.assign(bMinimal ?
-						GC.getInfo(eUnit).getDescription() :
-						gDLL->getText("TXT_KEY_MISC_HISTORICAL_INFO",
-						GC.getInfo(eUnit).getTextKeyWide()));
-			}
-		}
+		assignDescrHelp<UnitTypes>(iData2, szBuffer, !bMinimal);
 		break;
 	case CIVILOPEDIA_PAGE_BUILDING:
 	case CIVILOPEDIA_PAGE_WONDER:
-		{
-			BuildingTypes eBuilding = (BuildingTypes)widgetDataStruct.m_iData2;
-			if (eBuilding != NO_BUILDING)
-			{
-				szBuffer.assign(bMinimal ?
-						GC.getInfo(eBuilding).getDescription() :
-						gDLL->getText("TXT_KEY_MISC_HISTORICAL_INFO",
-						GC.getInfo(eBuilding).getTextKeyWide()));
-			}
-		}
+		assignDescrHelp<BuildingTypes>(iData2, szBuffer, !bMinimal);
 		break;
 	case CIVILOPEDIA_PAGE_BONUS:
-		{
-			BonusTypes eBonus = (BonusTypes)widgetDataStruct.m_iData2;
-			if (eBonus != NO_BONUS)
-			{
-				szBuffer.assign(bMinimal ?
-						GC.getInfo(eBonus).getDescription() :
-						gDLL->getText("TXT_KEY_MISC_HISTORICAL_INFO",
-						GC.getInfo(eBonus).getTextKeyWide()));
-			}
-		}
+		assignDescrHelp<BonusTypes>(iData2, szBuffer, !bMinimal);
 		break;
 	case CIVILOPEDIA_PAGE_IMPROVEMENT:
-		{
-			ImprovementTypes eImprovement = (ImprovementTypes)widgetDataStruct.m_iData2;
-			if (eImprovement != NO_IMPROVEMENT)
-			{
-				szBuffer.assign(bMinimal ?
-						GC.getInfo(eImprovement).getDescription() :
-						gDLL->getText("TXT_KEY_MISC_HISTORICAL_INFO",
-						GC.getInfo(eImprovement).getTextKeyWide()));
-			}
-		}
+		assignDescrHelp<ImprovementTypes>(iData2, szBuffer, !bMinimal);
 		break;
 	case CIVILOPEDIA_PAGE_UNIT_GROUP:
-		{
-			UnitCombatTypes eGroup = (UnitCombatTypes)widgetDataStruct.m_iData2;
-			if (eGroup != NO_UNITCOMBAT)
-			{
-				szBuffer.assign(bMinimal ?
-						GC.getInfo(eGroup).getDescription() :
-						gDLL->getText("TXT_KEY_MISC_HISTORICAL_INFO",
-						GC.getInfo(eGroup).getTextKeyWide()));
-			}
-		}
+		assignDescrHelp<UnitCombatTypes>(iData2, szBuffer, !bMinimal);
 		break;
 	case CIVILOPEDIA_PAGE_PROMOTION:
-		{
-			PromotionTypes ePromo = (PromotionTypes)widgetDataStruct.m_iData2;
-			if (ePromo != NO_PROMOTION)
-			{
-				szBuffer.assign(bMinimal ?
-						GC.getInfo(ePromo).getDescription() :
-						gDLL->getText("TXT_KEY_MISC_HISTORICAL_INFO",
-						GC.getInfo(ePromo).getTextKeyWide()));
-			}
-		}
+		assignDescrHelp<PromotionTypes>(iData2, szBuffer, !bMinimal);
 		break;
 	case CIVILOPEDIA_PAGE_CIV:
-		{
-			CivilizationTypes eCiv = (CivilizationTypes)widgetDataStruct.m_iData2;
-			if (eCiv != NO_CIVILIZATION)
-			{
-				szBuffer.assign(bMinimal ?
-						GC.getInfo(eCiv).getDescription() :
-						gDLL->getText("TXT_KEY_MISC_HISTORICAL_INFO",
-						GC.getInfo(eCiv).getTextKeyWide()));
-			}
-		}
+		assignDescrHelp<CivilizationTypes>(iData2, szBuffer, !bMinimal);
 		break;
 	case CIVILOPEDIA_PAGE_LEADER:
-		{
-			LeaderHeadTypes eLeader = (LeaderHeadTypes)widgetDataStruct.m_iData2;
-			if (eLeader != NO_LEADER)
-			{
-				szBuffer.assign(bMinimal ?
-						GC.getInfo(eLeader).getDescription() :
-						gDLL->getText("TXT_KEY_MISC_HISTORICAL_INFO",
-						GC.getInfo(eLeader).getTextKeyWide()));
-			}
-		}
+		assignDescrHelp<LeaderHeadTypes>(iData2, szBuffer, !bMinimal);
 		break;
 	case CIVILOPEDIA_PAGE_RELIGION:
-		{
-			ReligionTypes eReligion = (ReligionTypes)widgetDataStruct.m_iData2;
-			if (eReligion != NO_RELIGION)
-			{
-				szBuffer.assign(bMinimal ?
-						GC.getInfo(eReligion).getDescription() :
-						gDLL->getText("TXT_KEY_MISC_HISTORICAL_INFO",
-						GC.getInfo(eReligion).getTextKeyWide()));
-			}
-		}
+		assignDescrHelp<ReligionTypes>(iData2, szBuffer, !bMinimal);
 		break;
 	case CIVILOPEDIA_PAGE_CORPORATION:
-		{
-			CorporationTypes eCorporation = (CorporationTypes)widgetDataStruct.m_iData2;
-			if (eCorporation != NO_CORPORATION)
-			{
-				szBuffer.assign(bMinimal ?
-						GC.getInfo(eCorporation).getDescription() :
-						gDLL->getText("TXT_KEY_MISC_HISTORICAL_INFO",
-						GC.getInfo(eCorporation).getTextKeyWide()));
-			}
-		}
+		assignDescrHelp<CorporationTypes>(iData2, szBuffer, !bMinimal);
 		break;
 	case CIVILOPEDIA_PAGE_CIVIC:
-		{
-			CivicTypes eCivic = (CivicTypes)widgetDataStruct.m_iData2;
-			if (eCivic != NO_CIVIC)
-			{
-				szBuffer.assign(bMinimal ?
-						GC.getInfo(eCivic).getDescription() :
-						gDLL->getText("TXT_KEY_MISC_HISTORICAL_INFO",
-						GC.getInfo(eCivic).getTextKeyWide()));
-			}
-		}
+		assignDescrHelp<CivicTypes>(iData2, szBuffer, !bMinimal);
 		break;
 	case CIVILOPEDIA_PAGE_PROJECT:
-		{
-			ProjectTypes eProject = (ProjectTypes)widgetDataStruct.m_iData2;
-			if (eProject != NO_PROJECT)
-			{
-				szBuffer.assign(bMinimal ?
-						GC.getInfo(eProject).getDescription() :
-						gDLL->getText("TXT_KEY_MISC_HISTORICAL_INFO",
-						GC.getInfo(eProject).getTextKeyWide()));
-			}
-		}
-		break;
-	case CIVILOPEDIA_PAGE_CONCEPT:
-		{
-			ConceptTypes eConcept = (ConceptTypes)widgetDataStruct.m_iData2;
-			if (eConcept != NO_CONCEPT)
-				szBuffer.assign(GC.getInfo(eConcept).getDescription());
-		}
-		break;
-	case CIVILOPEDIA_PAGE_CONCEPT_NEW:
-		{
-			NewConceptTypes eConcept = (NewConceptTypes)widgetDataStruct.m_iData2;
-			if (eConcept != NO_NEW_CONCEPT) // kmodx: was NO_CONCEPT
-				szBuffer.assign(GC.getInfo(eConcept).getDescription());
-		}
+		assignDescrHelp<ProjectTypes>(iData2, szBuffer, !bMinimal);
 		break;
 	case CIVILOPEDIA_PAGE_SPECIALIST:
-		{
-			SpecialistTypes eSpecialist = (SpecialistTypes)widgetDataStruct.m_iData2;
-			if (eSpecialist != NO_SPECIALIST)
-			{
-				szBuffer.assign(bMinimal ?
-						GC.getInfo(eSpecialist).getDescription() :
-						gDLL->getText("TXT_KEY_MISC_HISTORICAL_INFO",
-						GC.getInfo(eSpecialist).getTextKeyWide()));
-			}
-		}
+		assignDescrHelp<SpecialistTypes>(iData2, szBuffer, !bMinimal);
 		break;
-	default:
+	case CIVILOPEDIA_PAGE_CONCEPT:
+		assignDescrHelp<ConceptTypes>(iData2, szBuffer);
+		break;
+	case CIVILOPEDIA_PAGE_CONCEPT_NEW:
+		assignDescrHelp<NewConceptTypes>(iData2, szBuffer);
 		break;
 	}
 }
