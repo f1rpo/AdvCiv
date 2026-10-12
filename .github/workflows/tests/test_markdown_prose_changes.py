@@ -9,7 +9,8 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(ROOT / ".github/workflows/build"))
+# <!-- custom: Restore blocking checks in the automated subject folders; regression fixtures import those same helpers. (GPT-6.1-Sol) -->
+sys.path.insert(0, str(ROOT / ".github/workflows/build/documentation"))
 import markdown_prose_changes as checker
 
 LONG = "First sentence explains the source documentation contract in substantial detail " + "carefully " * 30 + ". Another independent sentence describes the next part in enough detail to justify its own paragraph and make the intended responsibility clear."

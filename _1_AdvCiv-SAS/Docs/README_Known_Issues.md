@@ -1964,7 +1964,7 @@ A flavor audit found two harmless but misleading inherited/stale XML forms: `TEC
 
 These entries did not create a gameplay bug, but they make reviews noisier and can make a reader wonder whether the explicit default has special semantics when it does not.
 
-AdvCiv-SAS now removes those redundant entries and checks the two proven-safe patterns with `.github/workflows/build/xml_redundant_defaults.py`: explicit zero-valued `Flavor` entries, and non-empty `TechTypes` lists whose prerequisites are all `NONE`/`NO_TECH`.
+AdvCiv-SAS now removes those redundant entries and checks the two proven-safe patterns with `.github/workflows/build/xml/xml_redundant_defaults.py`: explicit zero-valued `Flavor` entries, and non-empty `TechTypes` lists whose prerequisites are all `NONE`/`NO_TECH`.
 
 The check is intentionally narrow.
 
@@ -3106,7 +3106,7 @@ Added this extra clarification as part of reading claude ai's answer or the begi
 
 So adding this info for reference if helps.
 
-Update: added a GitHub workflow sanity check for `CvGameCoreDLL/Project/temp_files/` (see [`build/temp_files.py`](/.github/workflows/README.md#buildtemp_filespy)).
+Update: added a GitHub workflow sanity check for `CvGameCoreDLL/Project/temp_files/` (see [`build/repository/temp_files.py`](/.github/workflows/README.md#buildrepositorytemp_filespy)).
 
 Git cannot track an empty folder directly, so the folder is kept visible with a zero-byte tracked placeholder file inside it.
 
@@ -10503,7 +10503,7 @@ Safety rule used:
 
 Preventive CI:
 
-- [`.github/workflows/build/art_button_paths.py`](/.github/workflows/build/art_button_paths.py) rejects whitespace in local `.dds` button/image paths under `Assets/Art`, while excluding paths inside `nif` folders according to the safety rule above.
+- [`.github/workflows/build/assets/art_button_paths.py`](/.github/workflows/build/assets/art_button_paths.py) rejects whitespace in local `.dds` button/image paths under `Assets/Art`, while excluding paths inside `nif` folders according to the safety rule above.
   This prevents future imports from recreating the inline `<img>` failure while leaving model-embedded texture paths untouched.
 
 So among them we as of now only renamed `indian sreni.dds` to `indian_sreni.dds`.
@@ -11817,14 +11817,14 @@ Observed Pangaea Large save 360 example: the change produced different settling 
 
 Screenshots/files for this issue: [google drive folder link](https://drive.google.com/drive/folders/1L5ubYioq_8I4hejIZbdV0uRhSKj3FS38?usp=sharing).
 
-While adding [`build/xml_parent_duplicate_keys.py`](/.github/workflows/README.md#buildxml_parent_duplicate_keyspy) to the GitHub workflow checks, [the first CI run](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27258698041/job/80498936912) correctly failed and exposed several duplicate parent XML identifiers.
+While adding [`build/xml/xml_parent_duplicate_keys.py`](/.github/workflows/README.md#buildxmlxml_parent_duplicate_keyspy) to the GitHub workflow checks, [the first CI run](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27258698041/job/80498936912) correctly failed and exposed several duplicate parent XML identifiers.
 
 This was a useful validation that the check works, because it caught both old inherited XML duplicates and one AdvCiv-SAS art duplicate.
 
 GitHub Actions output:
 
 ```text
-Run python .github/workflows/build/xml_parent_duplicate_keys.py
+Run python .github/workflows/build/xml/xml_parent_duplicate_keys.py
   
 FAIL XML duplicate parent keys
   - Assets/XML/Audio/Audio2DScripts.xml: duplicate parent key <ScriptID> AS2D_SONG_DIP_AS_EARLY_PEACE for <Script2DSound> (2 entries)
@@ -11861,14 +11861,14 @@ Note: the workflow intentionally checks only parent-style XML identifiers, such 
 
 Screenshots/files for this issue: [google drive folder link](https://drive.google.com/drive/folders/1IVfRbgHLfXdELtT5a6W20fFegfC1O1DG?usp=sharing).
 
-While adding [`build/xml_text_duplicate_tags.py`](/.github/workflows/README.md#buildxml_text_duplicate_tagspy) to the GitHub workflow checks, the [first failing](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27332010214/job/80746523894) run found duplicate `<TEXT>/<Tag>` entries across the XML text files.
+While adding [`build/xml/xml_text_duplicate_tags.py`](/.github/workflows/README.md#buildxmlxml_text_duplicate_tagspy) to the GitHub workflow checks, the [first failing](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27332010214/job/80746523894) run found duplicate `<TEXT>/<Tag>` entries across the XML text files.
 
 This was useful because duplicate text keys can silently make one entry shadow another, and the active value can depend on XML load order rather than intent.
 
 GitHub Actions output included these duplicate text tags:
 
 ```text
-Run python .github/workflows/build/xml_text_duplicate_tags.py
+Run python .github/workflows/build/xml/xml_text_duplicate_tags.py
 FAIL XML text duplicate tags
   - duplicate <TEXT>/<Tag> AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_MOCTEZUMA_1 (2 entries): Assets/XML/Text/ActualQuotesText.xml: line 1872; Assets/XML/Text/ActualQuotesText.xml: line 1913
   - duplicate <TEXT>/<Tag> AI_DIPLO_GREETINGS_ATT_FR_LEADER_DE_GAULLE_2 (2 entries): Assets/XML/Text/ActualQuotesText_BtS.xml: line 272; Assets/XML/Text/ActualQuotesText_BtS.xml: line 280
@@ -11891,7 +11891,7 @@ Fix notes:
 - `TXT_KEY_HINT_16` and `TXT_KEY_HINT_56`: both duplicated useful text. The older AdvCiv/UWAI replacements were moved to active empty hint slots (`TXT_KEY_HINT_65` and `TXT_KEY_HINT_68`) so the later existing `TXT_KEY_HINT_16` and `TXT_KEY_HINT_56` entries remain unique.
 - `TXT_KEY_HINT_61`: the two English fighter-aircraft hints were very close. The later block has the refined "take damage" wording, and `CIV4GameText_advc_hints.xml` intentionally supports English only, so there were no non-English translations to preserve in that file. The older duplicate was removed.
 
-After these changes, `python .github/workflows/build/xml_text_duplicate_tags.py` passed.
+After these changes, `python .github/workflows/build/xml/xml_text_duplicate_tags.py` passed.
 
 Note: for the hint ones it's only in AdvCiv-SAS that we don't want them duplicated, but it seems some still had issues to some extent although i didn't check in detail because super tedious xd but seemed as such from quick look (more precisely iirc fighter thing was almost similar but not entirely so quite weird but minor maybe idk for sure would need to check to be sure).
 
@@ -11899,14 +11899,14 @@ Note: for the hint ones it's only in AdvCiv-SAS that we don't want them duplicat
 
 ## KI#150 - (Fixed) Base AdvCiv issue (and some AdvCiv-SAS): Priority duplicate XML child/list entries found by new GitHub workflow check
 
-After the text duplicate check was fixed, [`build/xml_child_duplicates.py`](/.github/workflows/README.md#buildxml_child_duplicatespy) [exposed](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27336768909/job/80762873956) priority duplicate child/list entries.
+After the text duplicate check was fixed, [`build/xml/xml_child_duplicates.py`](/.github/workflows/README.md#buildxmlxml_child_duplicatespy) [exposed](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27336768909/job/80762873956) priority duplicate child/list entries.
 
 These are not parent XML keys like KI#148; they are repeated child values inside one parent object where duplication is very likely accidental and semantically harmful or useless.
 
 GitHub Actions output:
 
 ```text
-Run python .github/workflows/build/xml_child_duplicates.py
+Run python .github/workflows/build/xml/xml_child_duplicates.py
   
 FAIL XML priority child duplicates
 Priority duplicate child/list entries are treated as build errors.
@@ -11925,7 +11925,7 @@ Fix notes:
 - Removed the later duplicate `TXT_KEY_CITY_NAME_MARMARIS` from the Ottoman city list.
 - Removed the duplicate `TECH_MONARCHY` `FLAVOR_CULTURE` child (AdvCiv-SAS-specific issue) old existing `FLAVOR_CULTURE` value `9`, keeping the `iFlavor` value `4`.
 
-After these changes, `python .github/workflows/build/xml_child_duplicates.py` passed, and the full local `.github/workflows/build/*.py` check set passed too.
+After these changes, `python .github/workflows/build/xml/xml_child_duplicates.py` passed, and the full local `.github/workflows/build/*.py` check set passed too.
 
 <a id="ki-151"></a>
 
@@ -11933,14 +11933,14 @@ After these changes, `python .github/workflows/build/xml_child_duplicates.py` pa
 
 Screenshots/files for this issue: [google drive folder link](https://drive.google.com/drive/folders/1u_l6UkCpRFe0oGhf4Z_43FK-fP7pcEuW?usp=sharing).
 
-While adding [`build/xml_suspicious_angle_tags.py`](/.github/workflows/README.md#buildxml_suspicious_angle_tagspy) to the GitHub workflow checks, the [first failing run](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27342682844/job/80783239087) found XML text entries with extra `>` characters near language tags.
+While adding [`build/xml/xml_suspicious_angle_tags.py`](/.github/workflows/README.md#buildxmlxml_suspicious_angle_tagspy) to the GitHub workflow checks, the [first failing run](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27342682844/job/80783239087) found XML text entries with extra `>` characters near language tags.
 
 These are valid enough for a normal XML parser because the extra angle can be interpreted as text, but they are still almost certainly malformed text data and can show an unintended leading or trailing `>` in-game.
 
 GitHub Actions output:
 
 ```text
-Run python .github/workflows/build/xml_suspicious_angle_tags.py
+Run python .github/workflows/build/xml/xml_suspicious_angle_tags.py
 FAIL XML suspicious angle tags
   - Assets/XML/Text/ActualQuotesText_BtS.xml: line 241: extra closing angle after tag: <French>>Moi, [OUR_NAME], détenteur du plus grand nez de l'histoire humaine, je vous souhaite la bienvenue chez les [OUR_CIV_SHORT:3] !</French>
   - Assets/XML/Text/ActualQuotesText_BtS.xml: line 249: extra closing angle after tag: <French>>Moi, [OUR_NAME], détenteur du plus grand nez de l'histoire humaine, je vous souhaite la bienvenue chez les [OUR_CIV_SHORT:3] !</French>
@@ -11960,13 +11960,13 @@ Fix notes:
 - Removed the extra leading `>` from the force-war vote French text in `CIV4GameText_advc.xml`.
 - Removed the extra trailing `>` after the German war-status text in `CIV4GameText_advc_rf.xml`.
 
-After these changes, `python .github/workflows/build/xml_suspicious_angle_tags.py` passed.
+After these changes, `python .github/workflows/build/xml/xml_suspicious_angle_tags.py` passed.
 
 <a id="ki-152"></a>
 
 ## KI#152 - (Fixed) Suspicious replacement question marks in lengthy Sevopedia XML found by new GitHub workflow check
 
-While adding [`build/xml_suspicious_text_chars.py`](/.github/workflows/README.md#buildxml_suspicious_text_charspy) to the GitHub workflow checks, the [first failing](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27400470104/job/80977135402) run found suspicious `?` characters inside word-like tokens in `AdvCiv-SAS_Sevopedia_Lengthy.xml`.
+While adding [`build/xml/xml_suspicious_text_chars.py`](/.github/workflows/README.md#buildxmlxml_suspicious_text_charspy) to the GitHub workflow checks, the [first failing](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27400470104/job/80977135402) run found suspicious `?` characters inside word-like tokens in `AdvCiv-SAS_Sevopedia_Lengthy.xml`.
 
 This was an AdvCiv-SAS lengthy text issue, not a base AdvCiv inheritance issue.
 
@@ -11975,7 +11975,7 @@ The check also reported 182 inherited non-English replacement-character findings
 GitHub Actions output:
 
 ```text
-Run python .github/workflows/build/xml_suspicious_text_chars.py
+Run python .github/workflows/build/xml/xml_suspicious_text_chars.py
   
 FAIL XML suspicious text chars
   - Assets/XML/Text/AdvCiv-SAS_Sevopedia_Lengthy.xml: line 181: suspicious question mark inside token: ...n his will, King Æthelstan leaves his cniht, Aelfmar, eight hides of land.[PARAGRAPH:1]A r?dcniht, "riding-servant", was a servant on horseback.[PARAGRAPH:1]A narrowing of the gener...
@@ -11997,7 +11997,7 @@ Fix notes:
 - `Stanis?aw` was changed to plain ASCII `Stanislaw`.
 - `Metsehaf Bet?a` was changed to `Metsehaf Bet - a`, treating the `?` as lost punctuation rather than a lost letter.
 
-After these changes, `python .github/workflows/build/xml_suspicious_text_chars.py` passed.
+After these changes, `python .github/workflows/build/xml/xml_suspicious_text_chars.py` passed.
 
 <a id="ki-153"></a>
 

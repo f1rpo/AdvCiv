@@ -30,6 +30,10 @@ The checks are fairly straightforward as of now and notably include launch-guard
 
 On your end you generally don't need to update them unless our infrastructure changes, but for details if needed see: [the corresponding README](/.github/workflows/README.md).
 
+- Keep automated-helper folders and workflow categories aligned: every helper in a subject folder belongs to that category's workflow, with matching names so browsing the folder tells us what that workflow runs.
+- Specialized automation belongs to an explicitly named category too; shared helper reuse is fine, but do not mix unrelated checks into a catch-all workflow. Keep shared code in `lib/`, automated helper tests in `tests/`, and manual-only tooling outside the blocking `build/`/`checks-*.yml` structure.
+- GitHub workflow YAML files must remain directly under `.github/workflows/`; mirror the helper hierarchy through workflow filenames and display names. Give each check a descriptive named step so GitHub shows its progress and result separately.
+
 Release preparation: when preparing a stable release or substantial release update, use the living [AdvCiv-SAS Release Preparation and Release Checklist](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_Release_Process.md). It is intended for both the user and AI/LLM helpers; do not create/push tags or publish release pages unless the user explicitly asks.
 
 ## Commit message writing
@@ -142,7 +146,7 @@ If you find yourself stuck like for audio stopping issues, feel free to ask the 
 
 - When adding new comments, use the format `<!-- custom: ... (model credit) -->` (with `//` or `#` prefix as appropriate), and put the model credit in the suffix before `-->` (e.g., `(GPT-5.3-Codex) -->`, `GPT-5.5`, `(ChatGPT-5.6-Sol) -->`, `(Claude code Sonnet 4.5 (summarized)) -->`).
   - Do not use other tags like `advc.` as the authorship marker (they do not belong to us: e.g., base AdvCiv uses `advc.sas` to reference our AdvCiv-SAS changes).
-  - Model-authored comments need a model credit. User-authored comments may remain uncredited; do not add the user's name or bulk-clean existing uncredited comments. The optional provenance helper reports missing model credits only as advisory warnings because Git cannot distinguish user and model authorship.
+  - Model-authored comments need a model credit. User-authored comments may remain uncredited; do not add the user's name or bulk-clean existing uncredited comments. The automated source-provenance check reports missing model credits only as advisory warnings because Git cannot distinguish user and model authorship.
 - Simplify verbose comments without changing meaning or technical details.
 - Focus on rewording/rephrasing - the goal is to remove prose and conversational filler while preserving all technical information. Don't over-summarize to the point of losing important technical context.
 - Do not requalify subjective wording (e.g., keep "nicer display" instead of rephrasing as "tighter look") to avoid misinterpreting meaning.
@@ -255,11 +259,11 @@ These are general guidelines, not irrevocable requirements; adjust based on task
 - Encoding exception: preserve the inherited UTF-8 BOMs in Visual Studio `.sln` and `.vcxproj` files, including [AdvCiv.sln](/CvGameCoreDLL/Project/AdvCiv.sln) and [AdvCiv.vcxproj](/CvGameCoreDLL/Project/AdvCiv.vcxproj).
   - Removing these BOMs stopped the SAS desktop project shortcut from opening through the installed VSLauncher; restoring them resolved the reported problem.
   - Both files also have UTF-8 BOMs in the unmodified `AdvCiv_base_1.14_renamed` snapshot.
-  - Do not apply Civ4 XML/source BOM cleanup indiscriminately to development-tool formats; [repository_hygiene.py](/.github/workflows/build/repository_hygiene.py) allows UTF-8 BOMs for these two Visual Studio formats while rejecting other BOMs.
+  - Do not apply Civ4 XML/source BOM cleanup indiscriminately to development-tool formats; [repository_hygiene.py](/.github/workflows/build/hygiene/repository_hygiene.py) allows UTF-8 BOMs for these two Visual Studio formats while rejecting other BOMs.
 - Note: sometimes our files have a mix of CRLF/LF in them causing next commit to have a massive git diff (e.g., 240 insertions(+), 240 deletions(-) when there is in fact no change) when VS Code or maybe the LLM tries to next modify it, and this is a problem because it pollutes diff and makes it hard to read.
   - But it is not a major concern worth getting distracted over; it seems the game runs fine either way.
   - As for the cause, this is likely caused by codex's apply patching tool (git bash shows `warning: in the working copy of 'AGENTS.md', LF will be replaced by CRLF the next time Git touches it` after codex's one line modification) (likely because Civ4 was mostly written for Windows/CRLF, and Codex patch tools may favour Linux LF-style patching causing mixed lines (files usually have almost entirely CRLF, with some minor LF lines matching the files we changed)).
-- Note (appendix): As for the cure, the GitHub workflow now checks this with [`build/line_endings.py`](/.github/workflows/README.md#buildline_endingspy) (e.g., `PrivateMaps/Pangaea.py: has mixed line endings: CRLF=614, LF=21, lone_CR=0`), and local reviewed cleanup can use [`fix_line_endings.py`](/LLM_Helpers/fix_line_endings.py), which preserves each file's dominant line-ending style by default.
+- Note (appendix): As for the cure, the GitHub workflow now checks this with [`build/hygiene/line_endings.py`](/.github/workflows/README.md#buildhygieneline_endingspy) (e.g., `PrivateMaps/Pangaea.py: has mixed line endings: CRLF=614, LF=21, lone_CR=0`), and local reviewed cleanup can use [`fix_line_endings.py`](/LLM_Helpers/fix_line_endings.py), which preserves each file's dominant line-ending style by default.
   - On your end, if you notice warnings such as `LF will be replaced by CRLF`, use commands like `git diff --ignore-space-at-eol` and focus on your task first rather than getting distracted or going down a rabbit hole needlessly.
   - If needed, you can use the abovementioned resources to diagnose and fix them (because this is always nice and cleaner, but not high-priority; better make code work first, and at worst we'll just amend the commit and fix the test later).
 - Before confirming an apparent enum/type mismatch through an accessor macro or helper, trace the active definition and overloads in the caller's include context.
@@ -301,7 +305,7 @@ These are general guidelines, not irrevocable requirements; adjust based on task
 - Avoid silent fallbacks or placeholder defaults when data is missing; prefer fatal errors with clear messages so issues surface early, and validate list structures (e.g., assert expected prefixes/types in debug checks).
 - Prefer strict XML lookup helpers from `SASUtils` over raw lookups for static/literal tags: use `getInfoTypeOrFail("TAG")` instead of raw `gc.getInfoTypeForString("TAG")`, and use `findInfoTypeNumOrFail(gc.getXInfo, gc.getNumXInfos, "TAG")` instead of raw `CvUtil.findInfoTypeNum(...)`.
   - This keeps missing or renamed XML tags loud instead of silently returning `-1`; it helped catch incorrect direction-string usage in Planet Generator map (e.g., `getInfoTypeOrFail("DIRECTION_NORTH")` instead of `DirectionTypes.DIRECTION_NORTH*`) and incorrect plot/terrain-style lookups (e.g., `getInfoTypeOrFail("PLOT_PEAK")` instead of `PlotTypes.PLOT_PEAK` in Peirce map).
-  - Dynamic/guarded legacy lookups can stay raw when intentionally reviewed; the optional [`.github/workflows/build/raw_getinfotype.py`](/.github/workflows/README.md#buildraw_getinfotypepy) audit can help inspect these cases but is not a merge gate.
+  - Dynamic/guarded legacy lookups can stay raw when intentionally reviewed; the automated [`.github/workflows/build/source/raw_getinfotype.py`](/.github/workflows/README.md#buildsourceraw_getinfotypepy) check flags literal/static runtime lookups that should use the fail-fast policy.
 - When parsing large structured data, validate against expected samples or assertions early, and log diagnostics to surface schema/list mistakes (e.g., missing commas or malformed enum lists).
 - Use `from module import *` for helper modules to reduce import tedium and make future additions seamless.
 - For map scripts, keep reusable helper modules outside `PrivateMaps` (e.g., in `Assets/Python/SAS_WorldSizeUtils.py`) when they define or might define names that Civ4 treats as map-script callbacks (`getGridSize`, `getNumPlotsPercent`, `getDescription`, etc.).
@@ -336,7 +340,7 @@ These are general guidelines, not irrevocable requirements; adjust based on task
 - Prefer SAS defines for new AI toggles; use `SAS_<func_name>_<effect>` naming and a boolean-style enable/disable flag (int in XML, bool in C++). Rationale: toggles allow quick testing without recompiles; avoid overusing defines when the feature is tiny or unlikely to need tuning.
 - Turn-valued SAS integer defines must make game-speed semantics explicit: use `TURN(S)_NORMAL_GAMESPEED` when the XML value is expressed at Normal speed and code scales it with the appropriate game-speed percentage, or `TURN(S)_UNSCALED_GAMESPEED` for intentional literal game/path turns such as movement distance.
   - Do not apply this to `SAS_DO_TURN_*` scope names or per-turn rate/value defines.
-  - The optional [`turn_define_gamespeed.py`](/.github/workflows/build/turn_define_gamespeed.py) audit can flag inconsistent naming when this area is being changed; it is not a general merge gate.
+  - The automated [`turn_define_gamespeed.py`](/.github/workflows/build/xml/turn_define_gamespeed.py) check flags inconsistent turn-unit naming/semantics.
 - Prefer minimalistic, simple AI changes that are easy to reason about and compile.
 - Discuss candidate locations and a minimal draft before coding larger AI behavior changes.
 - When changing attack logic, account for special unit roles (bombard/collateral) and UWAI expectations.

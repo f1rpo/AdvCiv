@@ -1,4 +1,4 @@
-name: Python 2.4 Compile (Docker)
+name: Python - 2.4 Compile (Docker)
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - "Assets/Python/**.py"
       - "PrivateMaps/**.py"
       - ".github/workflows/python24-compile.yml"
-      - ".github/workflows/build/python24_compile.py"
+      - ".github/workflows/build/python/python24_compile.py"
   pull_request:
     # <!-- custom: Ignore the long-lived reference compare from main to the mirrored base AdvCiv 1.14 branch.
     # Keep it open so GitHub tracks the diff, but do not run duplicate PR checks for it. (ChatGPT-5.5 + GPT-5.5) -->
@@ -16,7 +16,7 @@ on:
       - "Assets/Python/**.py"
       - "PrivateMaps/**.py"
       - ".github/workflows/python24-compile.yml"
-      - ".github/workflows/build/python24_compile.py"
+      - ".github/workflows/build/python/python24_compile.py"
   workflow_dispatch:
 
 permissions:
@@ -34,4 +34,4 @@ jobs:
         shell: bash
         run: |
           # <!-- custom: Run the real CPython 2.4 parser from our small GHCR image, but keep checkout/actions on the normal runner so the old image only needs Python. This catches Python 2.4 syntax/compile errors without trying to run Civ4 or import engine-only modules. (ChatGPT-5.5 + GPT-5.5) -->
-          docker run --rm -v "$GITHUB_WORKSPACE:/work:ro" -w /work ghcr.io/wonderingabout/python-2.4:2.4.6 python .github/workflows/build/python24_compile.py --repo-root /work
+          docker run --rm -v "$GITHUB_WORKSPACE:/work:ro" -w /work ghcr.io/wonderingabout/python-2.4:2.4.6 python .github/workflows/build/python/python24_compile.py --repo-root /work

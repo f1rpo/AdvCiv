@@ -1,0 +1,35 @@
+name: Checks - Source
+
+on:
+  push:
+  pull_request:
+    # <!-- custom: Ignore the long-lived reference compare from main to the mirrored base AdvCiv 1.14 branch.
+    # Keep it open so GitHub tracks the diff, but do not run duplicate PR checks for it. (ChatGPT-5.5) -->
+    branches-ignore:
+      - "1.14"
+  workflow_dispatch:
+
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    env:
+      EVENT_NAME: ${{ github.event_name }}
+      BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # <!-- custom: Restored range/history checks need complete commit metadata; blob filtering avoids eagerly downloading historical DLLs and assets. (GPT-6.1-Sol) -->
+          fetch-depth: 0
+          filter: blob:none
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Source change provenance
+        run: python .github/workflows/build/source/source_change_provenance.py --base-ref "$BASE_REF" --event-name "$EVENT_NAME"
+
+      - name: Fail-fast XML identity lookups
+        run: python .github/workflows/build/source/raw_getinfotype.py
+
+      - name: Custom-comment logical reflow
+        run: python LLM_Helpers/reflow_custom_comments.py --check

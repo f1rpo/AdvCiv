@@ -884,7 +884,7 @@ python LLM_Helpers\expand_sasgamerecord_city_deltas.py SASGameRecord.log SASGame
 - Repeated XML collections such as `Goodies`, `FreeTechs`, and `AIFreeTechs` are compared as compact counted lists instead of noisy index-by-index rows.
 - Writes timestamped output to `LLM_Helpers\outputs\handicap_compare_<UTC-ISO>.md` by default; this folder is git-ignored.
 - `--example-output` writes to `LLM_Helpers\examples\handicap_infos_compared.md` instead, useful when publishing a stable hosted example URL.
-- The optional `generated_docs.py` audit can reproduce the published example using the pinned [`handicap_infos_baseline.xml`](/LLM_Helpers/examples/handicap_infos_baseline.xml); use `python .github/workflows/build/generated_docs.py --refresh-handicap` after changing current handicap XML when you want that extra verification. This needs no sibling AdvCiv installation.
+- The automated `generated_docs.py` check reproduces the published example using the pinned [`handicap_infos_baseline.xml`](/LLM_Helpers/examples/handicap_infos_baseline.xml); use `python .github/workflows/build/documentation/generated_docs.py --refresh-handicap` after intentionally changing current handicap XML. This needs no sibling AdvCiv installation.
 - The report includes its UTC run time, output path, and full input paths because XML assets can change between analysis runs.
 - The same Markdown file includes a tab-separated spreadsheet matrix: one row per field, and grouped file 1/file 2/delta columns for each compared row.
   - For changed-field reports, unchanged cells are still filled when they belong to a shown field, so a row such as `iFreeUnits` shows the full handicap curve.
@@ -1103,7 +1103,7 @@ Conservative source-rewrite helper for active Markdown documentation.
 - Do not use trailing `\` hard breaks as a substitute for paragraph structure: if prose is a separate thought, use a blank-line paragraph; if it is still one paragraph, leave it as such.
 - Skips fenced/indented code, headings, blockquotes, tables, HTML-like lines, raw logs/data rows, hard-break lines, URLs, link destinations, inline code spans, decimal/version punctuation, and common abbreviations where automatic sentence detection would be risky.
 - Default threshold is 400 physical characters. The threshold only decides which long lines are candidates; split positions are still semantic sentence boundaries rather than character-count boundaries.
-- `--check` checks source-line reflow locally. The optional `.github/workflows/build/markdown_prose_changes.py` helper can flag added/edited prose blocks of at least 400 characters with safe sentence boundaries; it is no longer a general CI gate. A split needs at least 100 characters on each side so short headings/follow-ups stay attached.
+- `--check` checks source-line reflow locally. The automated `.github/workflows/build/documentation/markdown_prose_changes.py` check flags added/edited prose blocks of at least 400 characters with safe sentence boundaries. A split needs at least 100 characters on each side so short headings/follow-ups stay attached.
   - Soft newlines do not satisfy the block check: use a few coherent blank-line paragraphs or child bullets, keeping related short sentences together.
   - The earlier broad cleanup over-split ordinary prose. Review candidate boundaries rather than automatically making every sentence a paragraph.
 - Semantic visible restructuring remains a human/LLM review task. In particular, convert evidence/validation/update/part-2 material into nested sub-bullets only when it genuinely belongs to the same change; distinct changes remain peer bullets.
@@ -1155,7 +1155,7 @@ git diff -- "_0_Common_Docs/AdvCiv_Base_Doc/manual.txt"
 ```
 
 - When base AdvCiv updates `manual.odt`, refresh `manual.txt` in the same merge/release-preparation batch so the searchable copy does not lag behind the binary manual.
-- The optional [generated_docs.py](/.github/workflows/build/generated_docs.py) audit can validate this conversion through its reusable `TEXT_CONVERSIONS` registry.
+- The automated [generated_docs.py](/.github/workflows/build/documentation/generated_docs.py) check validates this conversion through its reusable `TEXT_CONVERSIONS` registry.
   - Future source-to-text conversions can register their own source, output and converter there; the AdvCiv manual is currently the only entry.
   - Related `manual.pdf` edits also require a paired text refresh in the complete PR/push range.
 - Added with help of ChatGPT-5.6-Sol.

@@ -1,0 +1,37 @@
+name: Checks - Assets
+
+on:
+  push:
+  pull_request:
+    # <!-- custom: Ignore the long-lived reference compare from main to the mirrored base AdvCiv 1.14 branch.
+    # Keep it open so GitHub tracks the diff, but do not run duplicate PR checks for it. (ChatGPT-5.5) -->
+    branches-ignore:
+      - "1.14"
+  workflow_dispatch:
+
+jobs:
+  assets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Art button paths
+        run: python .github/workflows/build/assets/art_button_paths.py
+
+      - name: Technology audio
+        run: python .github/workflows/build/assets/tech_audio.py
+
+      - name: Leader audio
+        run: python .github/workflows/build/assets/leader_audio.py
+
+      - name: Opening music
+        run: python .github/workflows/build/assets/opening_music.py
+
+      - name: Shared font defaults
+        run: python .github/workflows/build/assets/fonts.py
+
+      - name: ArtDefine structure
+        run: python .github/workflows/build/assets/art_define_structure.py

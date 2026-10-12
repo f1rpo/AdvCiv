@@ -8,7 +8,7 @@ import tempfile
 import unittest
 
 ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(ROOT / ".github/workflows/build"))
+sys.path.insert(0, str(ROOT / ".github/workflows/build/xml"))
 import sas_define_usage as usage
 
 

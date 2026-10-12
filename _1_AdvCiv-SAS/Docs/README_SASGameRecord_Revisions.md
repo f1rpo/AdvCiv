@@ -28,7 +28,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=147 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=148 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -71,10 +71,21 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
+### Revision 148 - SAS practical 6632
+
+- **Date:** 2026-10-12
+- **Git commit:** pending
+- **Change:** Group recorder checks and behavioral tests by subject, restoring blocking revision-history validation alongside the other retained CI rules and automated helper tests.
+
+- Preserve recorder behavior, emitted fields and the existing revision-update policy; this revision identifies recorder-related checker/test reorganization and restored automation.
+- Resolve the history checker's canonical branch once, sharing that result with its unavailable-ancestry notice.
+
+Developed with ChatGPT-5.6-Sol; reviewed and adjusted with GPT-6.1-Sol.
+
 ### Revision 147 - SAS practical 6631
 
 - **Date:** 2026-10-12
-- **Git commit:** pending (this commit)
+- **Git commit:** `25cd76ef56f04cce25b06d4c7ab5467d38656d62`
 - **Change:** Simplify SASGameRecord CI to disabled logging defaults and revision/history/output synchronization, leaving detailed implementation checks to compilation, runtime testing and review.
 
 - Remove retired recorder source-shape checks and their dependent tests while preserving useful behavioral regression tests for manual runs.

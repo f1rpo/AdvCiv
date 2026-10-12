@@ -1,0 +1,39 @@
+name: Checks - Repository
+
+on:
+  push:
+  pull_request:
+    # <!-- custom: Ignore the long-lived reference compare from main to the mirrored base AdvCiv 1.14 branch.
+    # Keep it open so GitHub tracks the diff, but do not run duplicate PR checks for it. (ChatGPT-5.5) -->
+    branches-ignore:
+      - "1.14"
+  workflow_dispatch:
+
+jobs:
+  repository:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # <!-- custom: Full checkout took 5m06s in the first category-split run; the repository checks themselves finished almost immediately.
+          # Keep complete commit/tree metadata for push/PR/force-push coverage, but omit historical file contents, including old DLLs.
+          # The intent guard reads paths/messages with rename detection disabled, so it needs no old binary contents; checkout still materializes the selected revision's files. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+          fetch-depth: 0
+          filter: blob:none
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Temporary files
+        run: python .github/workflows/build/repository/temp_files.py
+
+      - name: Shipped DLL layout
+        run: python .github/workflows/build/repository/assets_dlls.py
+
+      - name: DLL update intent
+        run: python .github/workflows/build/repository/dll_commit_message.py --event-name "$EVENT_NAME" --event-path "$GITHUB_EVENT_PATH"
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+
+      - name: Version metadata
+        run: python .github/workflows/build/repository/version_metadata.py

@@ -10,7 +10,7 @@ import unittest
 from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(ROOT / ".github/workflows/build"))
+sys.path.insert(0, str(ROOT / ".github/workflows/build/repository"))
 import dll_commit_message as checker
 
 
@@ -163,6 +163,47 @@ class DLLCommitMessageTests(unittest.TestCase):
         amended = self.git('rev-parse', 'HEAD')
         self.assertNotEqual(original, amended)
         self.assertTrue(checker.check(self.repo, [amended])[0])
+
+
+    def test_blobless_checkout_preserves_ranges_without_fetching_old_binaries(self):
+        # <!-- custom: Full commit/tree history must still catch an unmarked earlier DLL and an unmarked merge without hydrating historical blobs.
+        # Exercise a real filtered file-transport clone, including checkout, rather than mocking Git's filtering behavior. (GPT-6.1-Sol) -->
+        parent = self.git('branch', '--show-current')
+        bad = self.dll_commit('Accidental binary', b'old unmarked binary')
+        old_blob = self.git('rev-parse', bad + ':Assets/CvGameCoreDLL.dll')
+        marked = self.dll_commit('Update DLL', b'intentional intermediate binary')
+        self.git('checkout', '-qb', 'feature')
+        feature = self.dll_commit('Update DLL', b'current binary')
+        self.git('checkout', parent)
+        self.git('merge', '--no-ff', '-m', 'Unmarked merge', 'feature')
+        merge = self.git('rev-parse', 'HEAD')
+        self.git('config', 'uploadpack.allowFilter', 'true')
+        self.git('config', 'uploadpack.allowAnySHA1InWant', 'true')
+        clone = self.repo / 'filtered-checkout'
+        subprocess.check_call(['git', 'clone', '-q', '--no-local', '--filter=blob:none', '--no-checkout', self.repo.as_uri(), str(clone)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.check_call(['git', 'checkout', '-q', 'HEAD'], cwd=clone, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        self.assertEqual((clone / 'Assets/CvGameCoreDLL.dll').read_bytes(), b'current binary')
+        missing_before = checker.git(clone, 'rev-list', '--objects', '--all', '--missing=print')
+        self.assertIn(('?' + old_blob).encode(), missing_before)
+        expected = [bad, marked, feature, merge]
+        commits = checker.commits_in_range(clone, self.base, merge)
+        self.assertEqual(set(commits), set(expected))
+        errors, count = checker.check(clone, commits)
+        self.assertEqual(count, 4)
+        self.assertEqual(len(errors), 2)
+        self.assertTrue(any(bad[:12] in error for error in errors))
+        self.assertTrue(any(merge[:12] in error for error in errors))
+        pr = {'pull_request': {'base': {'sha': self.base}, 'head': {'sha': merge}}}
+        self.assertEqual(checker.event_commits(clone, 'pull_request', pr), commits)
+        push = {'before': 'f' * 40, 'after': merge, 'commits': [{'id': commit} for commit in expected]}
+        self.assertEqual(checker.event_commits(clone, 'push', push), expected)
+        new_branch = dict(push, before='0' * 40)
+        self.assertEqual(checker.event_commits(clone, 'push', new_branch), expected)
+        truncated = dict(push, before=self.base)
+        with patch.object(checker, 'PUSH_PAYLOAD_LIMIT', 1):
+            self.assertEqual(checker.event_commits(clone, 'push', truncated), commits)
+        missing_after = checker.git(clone, 'rev-list', '--objects', '--all', '--missing=print')
+        self.assertEqual(missing_after, missing_before)
 
 
 if __name__ == '__main__':

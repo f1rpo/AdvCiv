@@ -1,0 +1,44 @@
+name: Checks - Documentation
+
+on:
+  push:
+  pull_request:
+    # <!-- custom: Ignore the long-lived reference compare from main to the mirrored base AdvCiv 1.14 branch.
+    # Keep it open so GitHub tracks the diff, but do not run duplicate PR checks for it. (ChatGPT-5.5) -->
+    branches-ignore:
+      - "1.14"
+  workflow_dispatch:
+
+jobs:
+  documentation:
+    runs-on: ubuntu-latest
+    env:
+      EVENT_NAME: ${{ github.event_name }}
+      BASE_REF: ${{ github.event.pull_request.base.sha || github.event.before }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # <!-- custom: Restored range/history checks need complete commit metadata; blob filtering avoids eagerly downloading historical DLLs and assets. (GPT-6.1-Sol) -->
+          fetch-depth: 0
+          filter: blob:none
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Markdown images
+        run: python .github/workflows/build/documentation/markdown_images.py
+
+      - name: Markdown links and anchors
+        run: python .github/workflows/build/documentation/markdown_links.py
+
+      - name: Long-comment archive references
+        run: python .github/workflows/build/documentation/long_comments.py
+
+      - name: Markdown menus and structure
+        run: python .github/workflows/build/documentation/markdown_structure.py
+
+      - name: Edited Markdown prose
+        run: python .github/workflows/build/documentation/markdown_prose_changes.py --base-ref "$BASE_REF" --event-name "$EVENT_NAME"
+
+      - name: Generated documentation freshness
+        run: python .github/workflows/build/documentation/generated_docs.py --base-ref "$BASE_REF" --event-name "$EVENT_NAME"

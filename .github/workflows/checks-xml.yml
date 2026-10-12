@@ -1,0 +1,91 @@
+name: Checks - XML
+
+on:
+  push:
+  pull_request:
+    # <!-- custom: Ignore the long-lived reference compare from main to the mirrored base AdvCiv 1.14 branch.
+    # Keep it open so GitHub tracks the diff, but do not run duplicate PR checks for it. (ChatGPT-5.5) -->
+    branches-ignore:
+      - "1.14"
+  workflow_dispatch:
+
+jobs:
+  xml:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: SAS text references
+        run: python .github/workflows/build/xml/sas_text_references.py
+
+      - name: XML tags referenced by defines
+        run: python .github/workflows/build/xml/define_tag_refs.py
+
+      - name: Nonempty global defines
+        run: python .github/workflows/build/xml/global_defines_nonempty.py
+
+      - name: SAS define declarations and use
+        run: python .github/workflows/build/xml/sas_define_usage.py
+
+      - name: Launch-guard sentinels
+        run: python .github/workflows/build/xml/launch_guard.py
+
+      - name: Integer define bounds
+        run: python .github/workflows/build/xml/define_int_bounds.py
+
+      - name: XML comments
+        run: python .github/workflows/build/xml/xml_comments.py
+
+      - name: XML element-only content
+        run: python .github/workflows/build/xml/xml_element_only_content.py
+
+      - name: Suspicious XML tag punctuation
+        run: python .github/workflows/build/xml/xml_suspicious_angle_tags.py
+
+      - name: Suspicious XML text characters
+        run: python .github/workflows/build/xml/xml_suspicious_text_chars.py
+
+      - name: Civ4 text character support
+        run: python .github/workflows/build/xml/xml_civ4_text_characters.py
+
+      - name: Duplicate XML text tags
+        run: python .github/workflows/build/xml/xml_text_duplicate_tags.py
+
+      - name: Duplicate XML parent keys
+        run: python .github/workflows/build/xml/xml_parent_duplicate_keys.py
+
+      - name: Duplicate XML children
+        run: python .github/workflows/build/xml/xml_child_duplicates.py
+
+      - name: Turn define game-speed semantics
+        run: python .github/workflows/build/xml/turn_define_gamespeed.py
+
+      - name: SAS English text policy
+        run: python .github/workflows/build/xml/xml_sas_text_english.py
+
+      - name: Redundant XML defaults
+        run: python .github/workflows/build/xml/xml_redundant_defaults.py
+
+      - name: Technology column values
+        run: python .github/workflows/build/xml/tech_columns.py
+
+      - name: Wonder costs by technology tier
+        run: python .github/workflows/build/xml/wonder_cost_columns.py
+
+      - name: Wonder culture and Great Person points
+        run: python .github/workflows/build/xml/wonder_culture_gpp_columns.py
+
+      - name: Asset primary technologies and resource trade unlocks
+        run: python .github/workflows/build/xml/asset_primary_tech.py
+
+      - name: Redundant asset technology prerequisites
+        run: python .github/workflows/build/xml/asset_tech_prereq_redundancy.py
+
+      - name: Civilization asset references and timing
+        run: python .github/workflows/build/xml/civ_specific_assets.py
+
+      - name: Civilization replacement baseline strengths
+        run: python .github/workflows/build/xml/civ_specific_not_weaker.py

@@ -1,0 +1,34 @@
+name: Checks - Runtime
+
+on:
+  push:
+  pull_request:
+    # <!-- custom: Ignore the long-lived reference compare from main to the mirrored base AdvCiv 1.14 branch.
+    # Keep it open so GitHub tracks the diff, but do not run duplicate PR checks for it. (ChatGPT-5.5) -->
+    branches-ignore:
+      - "1.14"
+  workflow_dispatch:
+
+jobs:
+  runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Detail-manager configuration
+        run: python .github/workflows/build/runtime/detail_manager.py
+
+      - name: AIP defaults
+        run: python .github/workflows/build/runtime/aip.py
+
+      - name: AIP predump freshness
+        run: python .github/workflows/build/runtime/aip_predump_values.py
+
+      - name: World-size alignment
+        run: python .github/workflows/build/runtime/worldsizes.py
+
+      - name: Map-script classification
+        run: python .github/workflows/build/runtime/mapscripts.py

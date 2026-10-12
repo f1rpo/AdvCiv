@@ -1,0 +1,37 @@
+name: Checks - Diagnostics
+
+on:
+  push:
+  pull_request:
+    # <!-- custom: Ignore the long-lived reference compare from main to the mirrored base AdvCiv 1.14 branch.
+    # Keep it open so GitHub tracks the diff, but do not run duplicate PR checks for it. (ChatGPT-5.5) -->
+    branches-ignore:
+      - "1.14"
+  workflow_dispatch:
+
+jobs:
+  diagnostics:
+    runs-on: ubuntu-latest
+    env:
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # <!-- custom: Restored range/history checks need complete commit metadata; blob filtering avoids eagerly downloading historical DLLs and assets. (GPT-6.1-Sol) -->
+          fetch-depth: 0
+          filter: blob:none
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+
+      - name: Literal-safe diagnostic log sinks
+        run: python .github/workflows/build/diagnostics/diagnostic_log_safety.py
+
+      - name: BBAI disabled logging defaults
+        run: python .github/workflows/build/diagnostics/bbai_log.py
+
+      - name: SASGameRecord defaults and revision
+        run: python .github/workflows/build/diagnostics/sas_game_record_log.py
+
+      - name: SASGameRecord revision commit history
+        run: python .github/workflows/build/diagnostics/sas_revision_history.py --default-branch-ref "refs/remotes/origin/$DEFAULT_BRANCH"

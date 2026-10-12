@@ -167,14 +167,14 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
   - These limits include the installation root and mod-folder name; the separate filename cap below complements them.
   - Visual Studio project/solution UTF-8 BOMs are preserved for launcher compatibility: [`AdvCiv.sln`](/CvGameCoreDLL/Project/AdvCiv.sln) and [`AdvCiv.vcxproj`](/CvGameCoreDLL/Project/AdvCiv.vcxproj) are examples inherited from the unmodified AdvCiv 1.14 comparison snapshot, rather than SAS-added BOMs. Removing them was followed by the SAS project shortcut no longer opening; the original BOMs were restored.
   - Civ4 source/data BOMs remain rejected.
-  - See [repository hygiene CI](/.github/workflows/README.md#buildrepository_hygienepy).
+  - See [repository hygiene CI](/.github/workflows/README.md#buildhygienerepository_hygienepy).
 - (Requires AdvCiv-SAS 6595+) **Shorter filenames and filename-length CI:**
   - limit tracked filenames, including extensions, to 56 UTF-16 units alongside the existing full installation-path checks.
   - Shortened eight music filenames and one example shortcut, updating the music XML references without changing file contents or original download links and credits.
   - The existing 52-unit `Gilgamesh__gilgamesh_parent_action_02_affirmative.kf` provided the baseline for choosing 56, adding four units of leeway while keeping descriptive names and installation-path headroom.
   - Its exact name is embedded in `Gilgamesh.kfm`, so renaming only the animation file would break that reference.
   - CI collects all filename/path violations before failing.
-  - See [repository hygiene CI](/.github/workflows/README.md#buildrepository_hygienepy).
+  - See [repository hygiene CI](/.github/workflows/README.md#buildhygienerepository_hygienepy).
 - **Light source archive helper:**
   - (Requires AdvCiv-SAS 6605+) Separate cumulative patches show committed branch work and the complete working snapshot, including staged/unstaged edits, against the same shared ancestor with the detected default branch. Both filter CRLF/LF and trailing-whitespace noise so reviewers can focus on meaningful changes.
   - added [`make_light_source_zip.py`](/LLM_Helpers/README.md#make_light_source_zippy), which creates a timestamped compressed AdvCiv-SAS source/data/docs archive under the mod root or a chosen output folder.
@@ -192,21 +192,24 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
   - Current reference/archive files remain available under the normal light-source snapshot rules; maintained README indexes, source files and ordinary development documentation keep their detailed history.
   - The cache policy changes automatically so older cached renderings are not reused under the new filtering.
   - See [light-source history filtering](/LLM_Helpers/README.md#make_light_source_zippy).
-- (Requires AdvCiv-SAS 6581+) **Generated documentation CI:**
+- (Requires AdvCiv-SAS 6581+) **Generated documentation checks:**
   - regenerates registered source-to-text conversions and the published handicap XML comparison to detect stale tracked outputs.
   - The AdvCiv manual is the first registered conversion; future conversions can supply their own source, output and converter.
   - Complete PR/push ranges also require paired text updates when a registered source or related artifact changes.
-  - See [generated documentation CI](/.github/workflows/README.md#buildgenerated_docspy).
-- (Requires AdvCiv-SAS 6584+) **Broader XML, Markdown, diagnostics and revision-history CI:**
-  - checks ArtDefine collection/entry structure, unit/building primary technology ordering, all resource trade prerequisites, Markdown menu coverage/order and bold formatting, SAS define declaration/runtime-use coverage and integer bounds, diagnostic format-string safety, shared AI-strategy descriptor coverage, and SASGameRecord revision/history synchronization and committed-history provenance.
+  - See [generated documentation checks](/.github/workflows/README.md#builddocumentationgenerated_docspy).
+- (Requires AdvCiv-SAS 6584+) **Broader repository sanity checks:**
+  - Automated checks cover repository/shipping hygiene, maintained documentation, XML/rules consistency, assets, diagnostics/revision history, runtime configuration, source-change conventions and workflow-helper regression tests.
+  - Nine `checks-*.yml` workflows match the repository, hygiene, documentation, XML, assets, diagnostics, runtime, source and tests areas; four specialized workflows cover Markdown lint, Ruff, real Python 2.4 compilation and AIP predump refresh.
+  - Active Python check helpers are grouped under `build/<subject>/`, shared workflow code under `lib/`, and behavioral checker tests under `tests/`.
+  - Detailed gameplay/AI correctness still relies on code review, compilation and Civ4 runtime/autoplay validation rather than static workflow checks alone.
   - Refreshed existing document menus to match their body headings.
-  - See [current build checks](/.github/workflows/README.md#current-build-checks).
+  - See [current automated checks](/.github/workflows/README.md#current-automated-checks).
 - **Markdown links/images CI:**
   - added GitHub workflow checks for repository-local Markdown images and links, including `#heading` anchors.
   - They catch missing/moved local targets and stale renamed section/KI links automatically; external web links are intentionally not checked.
-  - See [build/markdown_images (Readme)](/.github/workflows/README.md#buildmarkdown_imagespy) and [build/markdown_links (Readme)](/.github/workflows/README.md#buildmarkdown_linkspy).
+  - See [build/markdown_images (Readme)](/.github/workflows/README.md#builddocumentationmarkdown_imagespy) and [build/markdown_links (Readme)](/.github/workflows/README.md#builddocumentationmarkdown_linkspy).
 - **AIP predump refresh bot:**
-  - added [`aip-predump-refresh.yml`](/.github/workflows/aip-predump-refresh.yml), a tested GitHub Actions bot workflow for the Sevopedia Leader AI Personality predump cache.
+  - added [`runtime-aip-predump-refresh.yml`](/.github/workflows/runtime-aip-predump-refresh.yml), a tested GitHub Actions bot workflow for the Sevopedia Leader AI Personality predump cache.
   - The existing checker still fails when the committed predump is stale, but the refresh workflow can now run `aip_predump_values.py --write` outside Civ4 and open/update a bot PR containing only `SevoPediaLeaderCachePredumped.py` when real generated AIP data or display-label drift is detected.
   - It runs automatically after pushes to known AIP predump dependency files.
   - Tested in [PR #31](https://github.com/wonderingabout/AdvCiv-SAS/pull/31) with no-op, XML comment-only, numeric Leader XML, and Python label/display drift cases, so harmless comments do not refresh the cache while real generated predump changes do.
@@ -214,7 +217,7 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
   - added [`python-ruff.yml`](/.github/workflows/python-ruff.yml), which prints a full Ruff report and fails on a practical critical gate for syntax/parse errors and Pyflakes bug checks.
   - This helped spot shadowed duplicate callbacks in base Civ4 `Oasis.py` (see [KI#164](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-164)) and a Base AdvCiv bug of dormant undefined `Point` (instead of using `PointLayout`) helper in `RectLayout.py` (see [KI#165](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-165)).
 - (Requires AdvCiv-SAS 6593+) **Markdownlint GitHub workflow:**
-  - added [`markdownlint.yml`](/.github/workflows/markdownlint.yml), which checks non-ignored Markdown throughout the repository using the same rule settings as the editor.
+  - added [`documentation-markdownlint.yml`](/.github/workflows/documentation-markdownlint.yml), which checks non-ignored Markdown throughout the repository using the same rule settings as the editor.
   - New documents are covered automatically; explicit exclusions preserve upstream/reference material, generated helper content and version-named changelog archives while their maintained README indexes remain checked.
   - This complements the existing menu and local-link checks and reports failures without rewriting files.
   - For example, three tab-indented history bullets in the root README were parsed as a code block and caused MD046 warnings on every later fenced example; removing the leading tabs fixed the list and all twelve warnings.
@@ -226,7 +229,7 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
   - See [`.github/workflows/README.md`](/.github/workflows/README.md#python-24-compile-workflow), and [README.md (Python Scripts)](/README.md#python-scripts) for screenshots.
 - **Dependabot for GitHub Actions:**
   - added Dependabot tracking for GitHub Actions versions to help address Node.js runtime deprecation warnings such as `actions/checkout@v4` and `actions/setup-python@v5` still using Node.js 20 (see [dependabot@PR#24](https://github.com/wonderingabout/AdvCiv-SAS/pull/24)). This should reduce manual maintenance and make future action-version updates easier to notice and apply.
-  - See [`.github/workflows/README.md` current build checks](/.github/workflows/README.md#current-build-checks).
+  - See [`.github/workflows/README.md` current automated checks](/.github/workflows/README.md#current-automated-checks).
 - **Handicap XML comparison helper:** added [`compare_handicap_infos.py`](/LLM_Helpers/compare_handicap_infos.py), a report-only, mod-agnostic helper that compares two explicit `CIV4HandicapInfo.xml` file paths, inside or outside this mod folder, by handicap index; shows missing fields as blanks, includes absolute/percentage numeric deltas, and embeds a spreadsheet-friendly TSV matrix.
 - **External File Opening**: Access from Civ4 ingame local files in the system on Windows. See [KI#87](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-87).
 - Make **paths absolute** in **.gitignore** when relevant to fix folders with an identical name being incorrectly ignored; add **.gitattributes** for more precise archiving.
@@ -316,7 +319,7 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
   - Checks also verify every playable `PrivateMaps/*.py` is listed exactly once across the SAS map-script heaviness/coverage defines while every listed map script exists in `PrivateMaps/`.
   - For example, this helped spot [map scripts that were previously unclassified in SAS map-script heaviness defines](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27198308080/job/80295526028); they are now listed explicitly for exhaustiveness (more robust; no gameplay change).
 - Other examples: This notably also **helped spot and fix duplicate text, parent, and child XML keys** found by new GitHub workflow check [text](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27332010214/job/80746523894), [parent](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27258698041/job/80498936912), and [child](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27336768909/job/80762873956) (See [KI#148](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-148), [KI#149](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-149), [KI#150](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-150)), and [suspicious malformed-looking XML tag punctuation](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27342682844/job/80783239087) (e.g., `<French>>`, `</English>>`) (see [KI#151](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-151)) and [XML suspicious text chars](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27400470104/job/80977135402) (see [KI#152](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-152)).
-  - The checks also run locally with Python 3; see [`.github/workflows/README.md` current build checks](/.github/workflows/README.md#current-build-checks).
+  - The checks also run locally with Python 3; see [`.github/workflows/README.md` current automated checks](/.github/workflows/README.md#current-automated-checks).
 - **Launch guard for SAS defines (startup/load/Sevopedia):**
   - Added a strict define-integrity check using one **int sentinel** and one **string sentinel**, validated at pre-game start, game start, save load, Sevopedia creation, and Sevopedia show.
   - If a value is missing or mismatched, Python raises a **fatal error** with `actual` vs `expected` values and guidance to launch from a Windows shortcut.
@@ -3101,7 +3104,7 @@ Note: The shipped stable example [`handicap_infos_compared.md`](/LLM_Helpers/exa
 - **Palace-likes** (Forbidden Palace, Versailles, etc.) mostly reworked as **world** wonders with tech prereqs so they appear in the tech tree and AIs don’t build them too early. (Barbarian Palace unchanged; used as a balance lever.)
 - Many world-wonder effects and timings simplified/retuned; overall costs adjusted (often slightly lower).
   - Flat culture and Great Person points now progress consistently with tech timing; late wonders receive culture only when it fits their role, and a culture percentage modifier no longer stacks with flat wonder culture.
-  - See also [wonder_culture_gpp_columns.py (.github workflows README)](/.github/workflows/README.md#buildwonder_culture_gpp_columnspy).
+  - See also [wonder_culture_gpp_columns.py (.github workflows README)](/.github/workflows/README.md#buildxmlwonder_culture_gpp_columnspy).
 - Most `BonusProductionModifiers` (e.g., +100% with Marble) are greatly reduced. Example: Parthenon is now +25% with Marble (was +100%). Wonder costs were also adjusted to fit this change.
 - Removed buildings that didn’t carry their weight or distorted pacing (e.g., **Space Elevator**, **West Point**).
 - **Iron Works:** now requires **both Coal and Iron empire-wide**; city requirement count lowered; cost up moderately (e.g., 700 -> 800).

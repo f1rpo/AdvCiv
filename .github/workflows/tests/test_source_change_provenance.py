@@ -7,9 +7,11 @@ import subprocess
 import sys
 import tempfile
 import unittest
+# <!-- custom: Remove duplicate subprocess/tempfile imports; the single imports above remain necessary for the real Git fixtures. (GPT-6.1-Sol) -->
 
 ROOT = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(ROOT / ".github/workflows/build"))
+# <!-- custom: Restore blocking checks in the automated subject folders; regression fixtures import those same helpers. (GPT-6.1-Sol) -->
+sys.path.insert(0, str(ROOT / ".github/workflows/build/source"))
 import source_change_provenance as checker
 
 
@@ -152,6 +154,31 @@ class SourceChangeProvenanceTests(unittest.TestCase):
             "value = call()  # noqa\n"
         )
         self.assertEqual(self.errors("LLM_Helpers/new_helper.py", old, new), [])
+
+
+    # <!-- custom: Use a real Git fixture to verify that restoring checks under new paths preserves comment provenance across renames. (GPT-6.1-Sol) -->
+    def test_rename_preserves_inherited_comments_but_checks_new_comments(self):
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            def git(*args):
+                return subprocess.check_output(["git", *args], cwd=repo, stderr=subprocess.DEVNULL).decode().strip()
+            git("init", "-q")
+            git("config", "user.name", "CI fixture")
+            git("config", "user.email", "fixture@example.invalid")
+            git("config", "commit.gpgsign", "false")
+            original = repo / "LLM_Helpers/old_helper.py"
+            original.parent.mkdir()
+            original.write_text("# Inherited explanation.\n" + "".join("value_%d = %d\n" % (i, i) for i in range(20)), encoding="utf-8")
+            git("add", ".")
+            git("commit", "-qm", "fixture base")
+            base = git("rev-parse", "HEAD")
+            moved = original.with_name("new_helper.py")
+            original.rename(moved)
+            git("add", "-A")
+            self.assertEqual(checker.check(repo, base)[0], [])
+            moved.write_text(moved.read_text(encoding="utf-8") + "# Newly authored untagged explanation.\n", encoding="utf-8")
+            git("add", "-A")
+            self.assertTrue(any("new/rewritten non-custom comment" in error for error in checker.check(repo, base)[0]))
 
 
 if __name__ == "__main__":
