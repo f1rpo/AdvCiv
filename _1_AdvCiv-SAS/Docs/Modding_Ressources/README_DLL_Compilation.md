@@ -44,11 +44,64 @@ The command writes `CvGameCoreDLL\Project\Release\CvGameCoreDLL.dll`. Verify suc
 
 Visual Studio/MSBuild builds also write `CvGameCoreDLL\Project\Release\AdvCiv.log`, where success is shown by `Build succeeded.`, but do not assume that direct `nmake` refreshes the IDE build log.
 
+## Persistent build reports
+
+Visual C++ 2010 Express Build, Rebuild and Clean commands automatically call [`build_with_report.ps1`](/CvGameCoreDLL/Project/build_with_report.ps1). Continue using the IDE normally.
+
+Each configuration keeps one current pair beside its DLL, under `CvGameCoreDLL/Project/<target>/`:
+
+| File | Contents |
+| --- | --- |
+| `AdvCiv.log` | Full command output, including uncoded messages; MSBuild writes it during IDE builds, while the wrapper writes it for terminal builds. |
+| `CvGameCoreDLL.dll.build.json` | Full Git/build/debug context, timestamps, result/duration, diagnostics, temporary-artifact state and before/after DLL hashes. |
+
+- Both files describe the current attempt and are replaced on the next attempt, including a failure or Clean. There is no automatic timestamped archive or separate reduced JSON format.
+  - We rarely revisit ordinary local builds; retaining every attempt added cleanup and multiple overlapping artifacts. Git preserves deliberately shipped JSON reports, and a dated copy can be saved manually for a particular investigation.
+- The JSON records branch/full commit SHA and dirty-file status at start/end, configuration/request, UTC timestamps to milliseconds, elapsed milliseconds, native step exit codes, object/PCH/PDB/incomplete-marker state and DLL size/timestamp/SHA-256.
+  - Git status identifies dirty paths, not their contents or proof that source stayed unchanged during compilation. `??` means untracked, `M ` means staged modification, ` M` means unstaged modification, and `MM` means both.
+  - Distinct recognized warning/error lines and counts describe captured coded diagnostics; repeated identical lines count once. The log preserves all emitted output.
+- A failed command stops the sequence and returns its exit code to Visual Studio. The full JSON reports failure even if an older DLL remains; it never labels that old binary as a successful new build.
+  - A forcibly interrupted process can leave an initial `RUNNING` report without final fields. Neither that report nor a Clean report qualifies as successful shipping evidence.
+- For an intentional tracked Release DLL update, copy `CvGameCoreDLL.dll.build.json` with that DLL into `Assets/`, then stage both and include the exact phrase `Update DLL` in the commit message.
+  - CI checks the full report in that same commit, requiring a successful Release-family Build/Rebuild and a size/SHA-256 match with its DLL. Recognized errors must be zero; warnings are recorded rather than automatically forbidden.
+  - The current committed tree must retain the shipped DLL and matching JSON even on source-only commits. Ordinary source changes need no refresh; C++-used XML define name additions/removals/renames require a rebuilt Release DLL at default-branch integration. General commit approval still does not authorize including a compiled binary.
+- Build folders stay Git-ignored; only deliberately copied shipped artifacts and selected documentation examples are tracked. Reports retain Git/debug context rather than discarding it for a compact shipping format; full compiler logs remain local unless deliberately included as documentation examples.
+- These external files have no in-game effect or runtime cost. Embedded pre-build provenance is separate DLL metadata available to enabled SASGameRecord diagnostics; full compiler output and post-build results are not embedded.
+
+The wrapper preserves the serial/fast build sequences and does not clean temporary folders automatically. Follow the clean-target rule above; local test installation still needs only the DLL.
+
+For the same reporting from a terminal, initialize `vcvars32.bat` as above, then run from `CvGameCoreDLL/Project`:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\build_with_report.ps1 -Configuration Release -Request BUILD
+```
+
+Use `-Request REBUILD` or `-Request CLEAN` for the corresponding NMake operations. Direct `nmake` bypasses the report wrapper. The project's `-IdeBuild` switch leaves log writing to MSBuild; omit it for terminal use.
+
+### Example build output
+
+The examples retain completed VC2010 Express builds from 2026-10-12:
+
+| Configuration | Full compiler output | Full build JSON |
+| --- | --- | --- |
+| Release | [IDE log](/_1_AdvCiv-SAS/Docs/examples/build_reports/AdvCiv_Release_example.log) | [Build report](/_1_AdvCiv-SAS/Docs/examples/build_reports/AdvCiv_Release_example.build.json) |
+| Debug-opt | [IDE log](/_1_AdvCiv-SAS/Docs/examples/build_reports/AdvCiv_Debug-opt_example.log) | [Build report](/_1_AdvCiv-SAS/Docs/examples/build_reports/AdvCiv_Debug-opt_example.build.json) |
+
+These complete examples retain Git/build context; local absolute repository paths are replaced with `<MOD_ROOT>`, source commit identifiers are mapped to rewritten Git history, and unavailable identifiers use `-`. Introductory copyright/purpose metadata is included in the JSON, while retaining recorded binary identities and build results.
+
+Each JSON hash identifies its corresponding build's DLL, including any recorded uncommitted source changes. The Debug-opt example is not eligible as a shipped Release DLL; the full logs are maintained documentation examples, not required files beside the shipped binary.
+
+```text
+Ended UTC: 2026-10-12T21:25:52.293Z; result: SUCCEEDED; exit code: 0; duration milliseconds: 105657
+Distinct coded diagnostic lines: warnings=0; errors=0
+```
+
 ## Install, test, and clean
 
 A successful project build does not by itself install or test the DLL used by the mod.
 
 1. Copy `CvGameCoreDLL\Project\Release\CvGameCoreDLL.dll` to [`Assets/CvGameCoreDLL.dll`](/Assets/CvGameCoreDLL.dll) if the new build should be installed.
+   - Pre-build request/artifact evidence is embedded in the DLL automatically; no separate provenance file needs copying. The generated header stays in that configuration's temporary build folder.
 2. Verify the copied file (for example, compare source/destination SHA-256 hashes).
 3. Launch and test Civ4 as appropriate for the change.
 4. After verifying the generated DLL and, when installing it, copying/verifying the installed DLL, the cleanup command below may remove the generated Release target. Keeping another target such as Debug-opt does not affect Release.

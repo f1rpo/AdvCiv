@@ -169,6 +169,9 @@ FD=$(FASTDEP_FULL_PATH)
 #### Target Files ####
 Target_BIN=$(TARGET)\CvGameCoreDLL.dll
 Target_BIN_TEMP=$(TEMP_TARGET_FILES)\CvGameCoreDLL.dll
+# <!-- custom: Begin SASGameRecord embedded build evidence; keep the generated header configuration-local and out of distributed files. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+Target_BUILD_PROVENANCE=$(TEMP_TARGET_FILES)\SASBuildProvenance.generated.h
+# <!-- custom: End SASGameRecord embedded build-evidence path. (GPT-6.1-Sol) -->
 
 !IF [IF NOT EXIST CvGameCoreDLL.rc EXIT 1] == 0
 !IF "$(TARGET)" == "Final_Release"
@@ -211,7 +214,9 @@ Final_Release_LDFLAGS=/LTCG /INCREMENTAL:NO /OPT:REF /OPT:ICF $(GLOBAL_LDFLAGS)
 Final_Profile_LDFLAGS=/LTCG /DEBUG /IMPLIB:"$(Target_STATICLIB)" $(GLOBAL_LDFLAGS)
 
 #### INCLUDES ####
-GLOBAL_INCS=/I"$(TOOLKIT)/include" /I"$(PSDK)/Include" /I"$(PSDK)/Include/mfc"
+# <!-- custom: Begin SASGameRecord generated-header include path; compiler lookup must use this target's own temp directory rather than a shared source-tree header. (GPT-6.1-Sol) -->
+GLOBAL_INCS=/I"$(TEMP_TARGET_FILES)" /I"$(TOOLKIT)/include" /I"$(PSDK)/Include" /I"$(PSDK)/Include/mfc"
+# <!-- custom: End SASGameRecord generated-header include path. (GPT-6.1-Sol) -->
 
 #### boost and python ####
 
@@ -280,7 +285,8 @@ LDFLAGS = $(Final_Release_LDFLAGS)
 #### Targets ####
 #################
 
-.PHONY: all clean build precompile Make_Dir fastdep source_list
+# <!-- custom: Add build_provenance to the existing non-file target list; its recipe refreshes embedded pre-build evidence on each invocation rather than producing a target named build_provenance. (GPT-6.1-Sol) -->
+.PHONY: all clean build precompile Make_Dir fastdep source_list build_provenance
 
 all: Precompile build
 
@@ -307,7 +313,21 @@ build: $(Target_BIN)
 !ENDIF
 
 
-precompile: Make_Dir Target_unfinished $(Target_PCH)
+# <!-- custom: Begin SASGameRecord build snapshot before PCH/object compilation in both serial dll and precompile-then-jom workflows.
+# Regenerate per invocation and remove only CvGameCoreUtils.obj so its embedded evidence cannot remain stale after a no-op build or coarse filesystem timestamp.
+# Existing build configuration/compiler identity already lives in the DLL; record only the request and preexisting artifact counts here, without claiming object reuse or successful-link certification.
+# Redirect before ECHO: the first draft lost numeric values because cmd.exe parsed adjacent digits as redirection descriptors. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+precompile: build_provenance Target_unfinished $(Target_PCH)
+
+build_provenance: Make_Dir
+	@> "$(Target_BUILD_PROVENANCE)" ECHO #define SAS_BUILD_REQUEST "UNKNOWN"
+	@IF DEFINED SAS_BUILD_REQUEST >> "$(Target_BUILD_PROVENANCE)" ECHO #undef SAS_BUILD_REQUEST
+	@IF DEFINED SAS_BUILD_REQUEST >> "$(Target_BUILD_PROVENANCE)" ECHO #define SAS_BUILD_REQUEST "%SAS_BUILD_REQUEST%"
+	@FOR /F %i IN ('DIR /S /B "$(TEMP_TARGET_FILES)\*.obj" 2^>NUL ^| FIND /C /V ""') DO @>> "$(Target_BUILD_PROVENANCE)" ECHO #define SAS_BUILD_PREEXISTING_OBJECT_COUNT %i
+	@FOR /F %i IN ('DIR /S /B "$(TEMP_TARGET_FILES)\*.@" 2^>NUL ^| FIND /C /V ""') DO @>> "$(Target_BUILD_PROVENANCE)" ECHO #define SAS_BUILD_PREEXISTING_INCOMPLETE_MARKER_COUNT %i
+	@IF EXIST "$(Target_PCH)" (>> "$(Target_BUILD_PROVENANCE)" ECHO #define SAS_BUILD_PREEXISTING_PCH 1) ELSE (>> "$(Target_BUILD_PROVENANCE)" ECHO #define SAS_BUILD_PREEXISTING_PCH 0)
+	@IF EXIST "$(TEMP_TARGET_FILES)\CvGameCoreUtils.obj" DEL "$(TEMP_TARGET_FILES)\CvGameCoreUtils.obj"
+# <!-- custom: End SASGameRecord embedded build snapshot. (GPT-6.1-Sol) -->
 
 source_list: Make_Dir
 	@ECHO Building source list
@@ -336,7 +356,13 @@ Target_unfinished:
 
 $(Target_BIN_TEMP): $(OBJS) $(Target_RESOURCE)
 	@ECHO.Linking DLL
+# <!-- custom: Begin SASGameRecord pre-link marker; a failed link retains it as observable unfinished-build residue. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	@ECHO.>"$(Target_BIN_TEMP).@"
+# <!-- custom: End SASGameRecord pre-link marker. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	@$(LD) /out:$(Target_BIN_TEMP) $(LDFLAGS) $(LIBS) $(OBJS) $(Target_RESOURCE)
+# <!-- custom: Begin SASGameRecord successful-link marker cleanup; no sidecar is written or installed. (GPT-6.1-Sol) -->
+	@DEL "$(Target_BIN_TEMP).@"
+# <!-- custom: End SASGameRecord successful-link marker cleanup. (GPT-6.1-Sol) -->
 
 {$(SOURCE_DIR)\.}.cpp{$(TEMP_TARGET_FILES)\.}.obj:
 	@ECHO.>"$*.obj.@"

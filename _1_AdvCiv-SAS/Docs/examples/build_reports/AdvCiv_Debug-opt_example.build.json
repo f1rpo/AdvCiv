@@ -1,0 +1,64 @@
+{
+    "copyright": "AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy); (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS root README.md)",
+    "purpose": "Informational build report only: not read or required by Civilization IV or normal gameplay. Supports CI checks for committed DLL updates and investigation of build, runtime or AI issues alongside game logs. Git commit identifiers are mapped to the rewritten history; unavailable identifiers are represented by -; DLL byte fingerprints are unchanged.",
+    "configuration":  "Debug-opt",
+    "target":  "Debug-opt",
+    "request":  "BUILD",
+    "startedUtc":  "2026-10-12T17:58:47.632Z",
+    "branch":  "main",
+    "commit":  "9c6c31341fe24736c109520a747e686a0ca60865",
+    "workingTreeStatus":  " M .github/workflows/README.md\n M .github/workflows/build/repository/dll_commit_message.py\n M .github/workflows/checks-repository.yml\n M .github/workflows/tests/test_dll_commit_message.py\nM  .github/workflows/tests/test_sasgamerecord_diagnostic_context.py\n M .gitignore\n M AGENTS.md\n M Assets/CvGameCoreDLL.dll\nM  Assets/Python/EntryPoints/CvEventInterface.py\nMM Assets/XML/GlobalDefines_advciv_sas.xml\nM  CvGameCoreDLL/CvGameCoreUtils.cpp\nM  CvGameCoreDLL/CvGameCoreUtils.h\nM  CvGameCoreDLL/CyGame.cpp\nM  CvGameCoreDLL/CyGame.h\nM  CvGameCoreDLL/CyGameInterface.cpp\nMM CvGameCoreDLL/Project/AdvCiv.vcxproj\nM  CvGameCoreDLL/Project/Makefile\nM  CvGameCoreDLL/SASGameRecordLog.cpp\nM  CvGameCoreDLL/SASGameRecordLog.h\n M README.md\nMM _1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md\nMM _1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md\nMM _1_AdvCiv-SAS/Docs/README_SASGameRecord_Revisions.md\n?? CvGameCoreDLL/Project/build_with_report.ps1\n?? _1_AdvCiv-SAS/Docs/examples/",
+    "tempBefore":  {
+                       "directoryPresent":  false,
+                       "objectCount":  0,
+                       "incompleteMarkerCount":  0,
+                       "pchPresent":  false,
+                       "pdbPresent":  false
+                   },
+    "dllBefore":  {
+                      "sizeBytes":  13893632,
+                      "modifiedUtc":  "2026-10-12T15:30:14.082Z",
+                      "sha256":  "72BF4280CB7FF2453E601F842364DCBA3F0A5AC12793E4B601511BA9EFD0ABD6"
+                  },
+    "status":  "SUCCEEDED",
+    "logFile":  "AdvCiv.log",
+    "steps":  [
+                  {
+                      "command":  "nmake source_list /NOLOGO",
+                      "exitCode":  0
+                  },
+                  {
+                      "command":  "nmake fastdep /NOLOGO",
+                      "exitCode":  0
+                  },
+                  {
+                      "command":  "nmake dll /NOLOGO",
+                      "exitCode":  0
+                  }
+              ],
+    "endedUtc":  "2026-10-12T18:00:45.459Z",
+    "durationMilliseconds":  117819,
+    "exitCode":  0,
+    "warningCount":  0,
+    "errorCount":  0,
+    "recognizedWarningLines":  [
+
+                               ],
+    "recognizedErrorLines":  [
+
+                             ],
+    "commitAfter":  "9c6c31341fe24736c109520a747e686a0ca60865",
+    "workingTreeStatusAfter":  " M .github/workflows/README.md\n M .github/workflows/build/repository/dll_commit_message.py\n M .github/workflows/checks-repository.yml\n M .github/workflows/tests/test_dll_commit_message.py\nM  .github/workflows/tests/test_sasgamerecord_diagnostic_context.py\n M .gitignore\n M AGENTS.md\n M Assets/CvGameCoreDLL.dll\nM  Assets/Python/EntryPoints/CvEventInterface.py\nMM Assets/XML/GlobalDefines_advciv_sas.xml\nM  CvGameCoreDLL/CvGameCoreUtils.cpp\nM  CvGameCoreDLL/CvGameCoreUtils.h\nM  CvGameCoreDLL/CyGame.cpp\nM  CvGameCoreDLL/CyGame.h\nM  CvGameCoreDLL/CyGameInterface.cpp\nMM CvGameCoreDLL/Project/AdvCiv.vcxproj\nM  CvGameCoreDLL/Project/Makefile\nM  CvGameCoreDLL/SASGameRecordLog.cpp\nM  CvGameCoreDLL/SASGameRecordLog.h\n M README.md\nMM _1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md\nMM _1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md\nMM _1_AdvCiv-SAS/Docs/README_SASGameRecord_Revisions.md\n?? CvGameCoreDLL/Project/build_with_report.ps1\n?? _1_AdvCiv-SAS/Docs/examples/",
+    "tempAfter":  {
+                      "directoryPresent":  true,
+                      "objectCount":  168,
+                      "incompleteMarkerCount":  0,
+                      "pchPresent":  true,
+                      "pdbPresent":  true
+                  },
+    "dllAfter":  {
+                     "sizeBytes":  13893632,
+                     "modifiedUtc":  "2026-10-12T18:00:45.322Z",
+                     "sha256":  "D877DF40314501A58C1C9AE6BB055D1ECFCD174AEBD1A49AA6AF6437339323B4"
+                 }
+}

@@ -28,13 +28,14 @@ int getSASGameRecordTurnInterval();
 // Standalone docs/example-log/package refreshes do not require a bump.
 // Keep the matching revision-history entry in the same commit.
 // An anonymous enum keeps this a C++03 compile-time integer without a separate storage/linkage definition. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-enum { SAS_GAME_RECORD_REVISION = 148 };
+enum { SAS_GAME_RECORD_REVISION = 149 };
 // <!-- custom: Finalize buffered observations in the old game state before a new game or loaded save resets/replaces it. See KI#382. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 void finalizeSASGameRecordLogSession();
 void startSASGameRecordLogForNewGame();
 void logSASGameRecordNewGameStarted();
 // <!-- custom: Python calls this once after GameStart/OnLoad dispatch completes so BUG/Autolog state reflects the current session, not its pre-handler value; callers must pre-gate logging. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
-void logSASGameRecordDiagnosticContext();
+// <!-- custom: Python supplies graphics-profile dropdown values that are not exposed by the native DLL API; this remains a one-shot post-handler session diagnostic, not per-turn polling. (ChatGPT-5.6-Sol) -->
+void logSASGameRecordDiagnosticContext(int iRenderQualityLevel, int iAntiAliasingIndex, int iAntiAliasingSamples, int iGlobeViewRenderLevel, int iMovieQualityLevel);
 void startSASGameRecordLogForLoadedSave();
 // <!-- custom: Record the exact checkpoint metadata embedded in a real CvGame serialization; checkpoint persistence is unconditional save provenance, while the caller pre-gates only this diagnostic row at level 1+. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 void logSASGameRecordSaveCheckpointSerialized(char const* szKind, int iTurn, int iElapsedTurn, char const* szUtc, uint uiMapRandState, uint uiSyncRandState, char const* szReason, char const* szOriginalBasename);

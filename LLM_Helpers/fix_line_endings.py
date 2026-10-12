@@ -31,7 +31,10 @@ SCAN_RELATIVE_PATHS = (
 
 IGNORED_RELATIVE_DIRS = {
 	Path(".git"),
-	Path("LLM_Helpers/examples"),
+	# <!-- custom: Preserve reference-example exclusions at their centralized documentation locations. (GPT-6.1-Sol) -->
+	Path("_1_AdvCiv-SAS/Docs/examples/handicap"),
+	Path("_1_AdvCiv-SAS/Docs/examples/source_comparison"),
+	Path("_1_AdvCiv-SAS/Docs/examples/sasgamerecord"),
 	Path("LLM_Helpers/outputs"),
 	Path("LLM_Helpers/context/mapscript_refs"),
 	Path("_0_Common_Docs"),

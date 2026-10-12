@@ -20,8 +20,8 @@ sys.path.insert(0, str(ROOT / "LLM_Helpers"))
 import compare_handicap_infos as handicap
 import convert_advciv_manual_to_txt as manual
 
-BASELINE = Path("LLM_Helpers/examples/handicap_infos_baseline.xml")
-REPORT = Path("LLM_Helpers/examples/handicap_infos_compared.md")
+BASELINE = Path("_1_AdvCiv-SAS/Docs/examples/handicap/handicap_infos_baseline.xml")
+REPORT = Path("_1_AdvCiv-SAS/Docs/examples/handicap/handicap_infos_compared.md")
 HANDICAP = Path("Assets/XML/GameInfo/CIV4HandicapInfo.xml")
 MANUAL = Path("_0_Common_Docs/AdvCiv_Base_Doc")
 

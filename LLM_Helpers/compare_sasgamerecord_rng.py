@@ -16,7 +16,8 @@ SOURCE_ROW_PREFIX = "GAME_RECORD_SOURCE_CONTEXT "
 GAME_SETTINGS_ROW_PREFIX = "GAME_RECORD_GAME_SETTINGS "
 FIELD_RE = re.compile(r"([A-Za-z][A-Za-z0-9]*)=([^ ]+)")
 STREAMS = ("map", "sync")
-DEFAULT_EXAMPLE_OUTPUT = os.path.join(os.path.dirname(__file__), "examples", "sasgamerecord_rng_compared.txt")
+# <!-- custom: Resolve the centralized documentation example from this helper location so invocation from another folder still works. (GPT-6.1-Sol) -->
+DEFAULT_EXAMPLE_OUTPUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "_1_AdvCiv-SAS", "Docs", "examples", "sasgamerecord", "sasgamerecord_rng_compared.txt")
 COUNTERS = (
     "Calls",
     "NullMessageCalls",
@@ -350,7 +351,7 @@ def main(argv=None):
     parser.add_argument("record_b")
     output_group = parser.add_mutually_exclusive_group()
     output_group.add_argument("--output", help="also write the report to this path")
-    output_group.add_argument("--example-output", action="store_true", help="also refresh LLM_Helpers/examples/sasgamerecord_rng_compared.txt")
+    output_group.add_argument("--example-output", action="store_true", help="also refresh _1_AdvCiv-SAS/Docs/examples/sasgamerecord/sasgamerecord_rng_compared.txt")
     args = parser.parse_args(argv)
     output_path = DEFAULT_EXAMPLE_OUTPUT if args.example_output else args.output
 

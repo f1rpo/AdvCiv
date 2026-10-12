@@ -102,12 +102,17 @@ CvString getSASSourceContextFields();
 CvWString getSASCompactSourceVersion(char const* szVersion, char const* szCommitHash, int iDirtyState);
 // <!-- custom: Combine the configured mod display name with the current cached runtime source identity for replay/UI surfaces. (ChatGPT-5.6-Sol) -->
 CvWString getSASRuntimeDisplayNameAndVersion();
-// <!-- custom: Serialize exact loaded-DLL build/binary provenance shared by diagnostic log headers, including numeric file/product resource versions when present; missing resources remain "-" rather than assuming the source .rc was linked. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+// <!-- custom: Serialize exact loaded-DLL build/binary provenance shared by diagnostic log headers, including numeric file/product resource versions when present plus embedded pre-build facts and independent current build-tree observations; copying only the DLL preserves its build evidence. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 CvString getSASDllContextFields();
 // <!-- custom: Serialize exact Civ4 executable binary provenance independently from source/mod identity, through the same fingerprint/time/resource-version schema as the DLL. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 CvString getSASExeContextFields();
+// <!-- custom: Serialize the Direct3D 9 module that Civ4 actually loaded after graphics initialization.
+// Binary identity/location can distinguish stock system D3D9 from EXE-directory wrappers such as GraphicsUpgrade/ReShade/DXVK without guessing from installed files; exact paths require the caller's explicit permission. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Replace the detail-level parameter with explicit path permission; the recorder owns the combined level/opt-in gate. (GPT-6.1-Sol) -->
+CvString getSASD3D9ContextFields(bool bIncludeExactPath);
 // <!-- custom: Serialize privacy-tiered installation provenance: low-detail distribution hints at level 2 and exact EXE/mod paths only at explicitly selected level 3. (ChatGPT-5.6-Sol) -->
-CvString getSASInstallContextFields(int iSystemContextLevel);
+// <!-- custom: Add independent exact-path permission so coarse distribution context remains available without absolute paths. (GPT-6.1-Sol) -->
+CvString getSASInstallContextFields(int iSystemContextLevel, bool bIncludeExactPaths);
 // <!-- custom: Quote/escape narrow diagnostic free text; NULL becomes the unquoted missing token "-". (ChatGPT-5.6-Sol) -->
 CvString getSASDiagnosticQuoted(char const* szValue);
 // <!-- custom: Wide-string counterpart of getSASDiagnosticQuoted with identical escaping and missing-value semantics. (ChatGPT-5.6-Sol) -->

@@ -4,7 +4,7 @@
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
 # <!-- custom: note: for comparison with Base AdvCiv purposes, if needed, as of now we also store a single-line version of Base AdvCiv's CvMainInterface.py.
-# See: /LLM_Helpers/examples/CvMainInterface_1_12_singleline.py and [the corresponding readme section] (/LLM_Helpers/README.md#comparison-with-base-advciv-112s-main-interface-processed-similarly) -->
+# See: /_1_AdvCiv-SAS/Docs/examples/source_comparison/CvMainInterface_1_12_singleline.py and [the corresponding readme section] (/LLM_Helpers/README.md#comparison-with-base-advciv-112s-main-interface-processed-similarly) -->
 from CvPythonExtensions import *
 # <advc.092>
 from RectLayout import *

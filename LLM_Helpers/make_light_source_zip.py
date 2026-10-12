@@ -45,9 +45,9 @@ ROOT_SUBDIRS = (
     ".vscode",
 )
 
+# <!-- custom: Docs now also contains the full SASGameRecord sample under examples/sasgamerecord; include that parent once instead of retaining a separate legacy sample folder. (GPT-6.1-Sol) -->
 EXTRA_SUBDIRS = (
     "_1_AdvCiv-SAS/Docs",
-    "_1_AdvCiv-SAS/SASGameRecord_log",
 )
 
 # Optional screenshot-folder whitelist for visual LLM/code-agent context, e.g. advisors, main menu, Sevopedia, rendered SASGameRecord map text, and common UI.

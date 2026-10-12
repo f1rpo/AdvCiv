@@ -4,6 +4,8 @@ Primary audience: coding agents (Claude Code, Codex, etc.) invoking these script
 
 This folder contains external helper scripts, mostly Python 3, for tasks outside Civ4's embedded Python runtime. These scripts are meant for LLM-assisted workflows, balancing workflows, code review, refactoring support, report generation, and other tooling.
 
+Maintained examples live centrally under [`Docs/examples`](/_1_AdvCiv-SAS/Docs/examples/); executable helpers stay here. The `sasgamerecord/` subfolder groups the raw game-record sample with the RNG-comparison report, while `handicap/` holds the comparison report and its pinned XML baseline, and `source_comparison/` retains the processed AdvCiv 1.12 reference.
+
 Important distinction:
 
 - Helper scripts may use modern Python 3.
@@ -347,7 +349,7 @@ External cleanup helper for line-ending hygiene.
 
 - Reports or fixes mixed CRLF/LF line endings and missing final newlines.
 - Does not run automatically in GitHub Actions; the workflow check only reports/fails.
-- Defaults to active repo text-like files and excludes generated/reference helper folders such as `LLM_Helpers/outputs`, `LLM_Helpers/examples` and the verbatim `LLM_Helpers/context/mapscript_refs` corpus.
+- Defaults to active repo text-like files and excludes generated/reference folders such as `LLM_Helpers/outputs`, `_1_AdvCiv-SAS/Docs/examples` and the verbatim `LLM_Helpers/context/mapscript_refs` corpus.
 - Preserves each file's dominant existing line-ending style by default, so it does not force the whole repo to LF or CRLF.
 - Adds a final newline to non-empty text files by default; use `--no-final-newline` only when deliberately preserving a missing final newline.
 - Use `--eol lf` or `--eol crlf` only for deliberate normalization passes.
@@ -702,7 +704,7 @@ The generated scripts were staged working scripts, not polished repo utilities:
 
 For comparison purposes, we also applied the same scripts to Base AdvCiv 1.12's main interface (as of 2026-06-10), with the help of ChatGPT-5.5.
 
-The resulting file is stored in [CvMainInterface_1_12_singleline.py](/LLM_Helpers/examples/CvMainInterface_1_12_singleline.py). Before as of now adding our copyright a few heading comments, the diff was: Line count: 7279 -> 6021, so 1258 physical lines removed.
+The resulting file is stored in [CvMainInterface_1_12_singleline.py](/_1_AdvCiv-SAS/Docs/examples/source_comparison/CvMainInterface_1_12_singleline.py). Before as of now adding our copyright a few heading comments, the diff was: Line count: 7279 -> 6021, so 1258 physical lines removed.
 
 We store an example of this as of now because this file has significantly deviated due to formatting change, because it is easier to read for agents or perhaps users too, because the file is large, and because some user seemingly mentioned the comparison is harder.
 
@@ -833,7 +835,7 @@ python LLM_Helpers\autotune_speed_from_xml.py --speed slow --autoloop --iteratio
 - Emits recipe-sensitive combined RNG/state ordering interpretations only when both records expose the same explicit `recordRevision`. Missing or differing revision metadata leaves raw checkpoint validation/comparison available but suppresses conclusions that assume identical state-fingerprint recipes.
 - Exit status is 0 when all comparable checkpoints match (including a lone trailing `SESSION_FINALIZE`), 1 for a valid gameplay/checkpoint divergence, and 2 for invalid input or failed internal invariants.
 - Does not modify either record and adds no game/runtime overhead.
-- [`examples/sasgamerecord_rng_compared.txt`](/LLM_Helpers/examples/sasgamerecord_rng_compared.txt) shows two valid repeated-load runs whose RNG and semantic state match through every comparable checkpoint, including measured fingerprint cost.
+- [`sasgamerecord_rng_compared.txt`](/_1_AdvCiv-SAS/Docs/examples/sasgamerecord/sasgamerecord_rng_compared.txt) shows two valid repeated-load runs whose RNG and semantic state match through every comparable checkpoint, including measured fingerprint cost.
   - Refresh it with `--example-output`; use `--output <path>` for another retained report.
 
 Interpretation:
@@ -883,8 +885,8 @@ python LLM_Helpers\expand_sasgamerecord_city_deltas.py SASGameRecord.log SASGame
 - Flattens handicap XML by field path and writes an LLM-friendly Markdown table with flat numeric deltas and percentage deltas, computed as `(file 2 - file 1) / file 1` when both values are numeric and file 1 is nonzero.
 - Repeated XML collections such as `Goodies`, `FreeTechs`, and `AIFreeTechs` are compared as compact counted lists instead of noisy index-by-index rows.
 - Writes timestamped output to `LLM_Helpers\outputs\handicap_compare_<UTC-ISO>.md` by default; this folder is git-ignored.
-- `--example-output` writes to `LLM_Helpers\examples\handicap_infos_compared.md` instead, useful when publishing a stable hosted example URL.
-- The automated `generated_docs.py` check reproduces the published example using the pinned [`handicap_infos_baseline.xml`](/LLM_Helpers/examples/handicap_infos_baseline.xml); use `python .github/workflows/build/documentation/generated_docs.py --refresh-handicap` after intentionally changing current handicap XML. This needs no sibling AdvCiv installation.
+- `--example-output` writes to `_1_AdvCiv-SAS\Docs\examples\handicap\handicap_infos_compared.md` instead, useful when publishing a stable hosted example URL.
+- The automated `generated_docs.py` check reproduces the published example using the pinned [`handicap_infos_baseline.xml`](/_1_AdvCiv-SAS/Docs/examples/handicap/handicap_infos_baseline.xml); use `python .github/workflows/build/documentation/generated_docs.py --refresh-handicap` after intentionally changing current handicap XML. This needs no sibling AdvCiv installation.
 - The report includes its UTC run time, output path, and full input paths because XML assets can change between analysis runs.
 - The same Markdown file includes a tab-separated spreadsheet matrix: one row per field, and grouped file 1/file 2/delta columns for each compared row.
   - For changed-field reports, unchanged cells are still filled when they belong to a shown field, so a row such as `iFreeUnits` shows the full handicap curve.
@@ -1286,7 +1288,7 @@ git diff -- "_0_Common_Docs/AdvCiv_Base_Doc/manual.txt"
 - Default output directory is the mod root. Use `--output-dir` for Downloads or another handoff folder.
 - Output filename defaults to `<detected-mod-folder-name>_light_source_<timestamp>.zip`, with `UnspecifiedModName` as a fallback. Use `--mod-name` or `--prefix` only for unusual/manual labels.
 - Includes small source/data/docs folders useful for review: root lone files, selected [Assets](/Assets/) folders, root helper/doc/config folders including [LLM_Helpers](/LLM_Helpers/) itself, top-level [CvGameCoreDLL](/CvGameCoreDLL/) files, top-level [CvGameCoreDLL/Project](/CvGameCoreDLL/Project/) files under 1 MB, and the tracked `CvGameCoreDLL/Project/temp_files/.gitkeep` workflow marker while excluding retained Debug-opt compiler intermediates/private symbols.
-  - It also includes [_1_AdvCiv-SAS/Docs](/_1_AdvCiv-SAS/Docs/) (including the published web changelog archive and tracked AdvCiv-SAS Git log), [_1_AdvCiv-SAS/SASGameRecord_log](/_1_AdvCiv-SAS/SASGameRecord_log/) full `SASGameRecord` examples, and selected screenshot folders useful for LLM/UI/rendered-map-text review: [_1_AdvCiv-SAS/Images/advisors](/_1_AdvCiv-SAS/Images/advisors/), [_1_AdvCiv-SAS/Images/main_menu](/_1_AdvCiv-SAS/Images/main_menu/), [_1_AdvCiv-SAS/Images/SASGameRecord_map_text](/_1_AdvCiv-SAS/Images/SASGameRecord_map_text/), [_1_AdvCiv-SAS/Images/sevopedia](/_1_AdvCiv-SAS/Images/sevopedia/), and [_1_AdvCiv-SAS/Images/ui_other](/_1_AdvCiv-SAS/Images/ui_other/).
+  - It also includes [_1_AdvCiv-SAS/Docs](/_1_AdvCiv-SAS/Docs/) (including the published web changelog archive and tracked AdvCiv-SAS Git log), [_1_AdvCiv-SAS/Docs/examples/sasgamerecord](/_1_AdvCiv-SAS/Docs/examples/sasgamerecord/) full `SASGameRecord` examples, and selected screenshot folders useful for LLM/UI/rendered-map-text review: [_1_AdvCiv-SAS/Images/advisors](/_1_AdvCiv-SAS/Images/advisors/), [_1_AdvCiv-SAS/Images/main_menu](/_1_AdvCiv-SAS/Images/main_menu/), [_1_AdvCiv-SAS/Images/SASGameRecord_map_text](/_1_AdvCiv-SAS/Images/SASGameRecord_map_text/), [_1_AdvCiv-SAS/Images/sevopedia](/_1_AdvCiv-SAS/Images/sevopedia/), and [_1_AdvCiv-SAS/Images/ui_other](/_1_AdvCiv-SAS/Images/ui_other/).
 - The included `SASGameRecord` sample is an unchanged full-game log rather than a selected excerpt, which makes it reusable for external LLM analysis/review and development reference.
   - Although a level-3 record can occupy tens of megabytes raw, it compresses substantially in the light-source ZIP.
   - The selected screenshot folders similarly provide practical visual reference for understanding/reviewing the mod and for developing or modding UI changes, by showing what the mod actually looks like in advisors, Sevopedia, the main menu, common UI, and rendered `SASGameRecord` map text.

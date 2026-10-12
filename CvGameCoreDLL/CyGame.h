@@ -92,7 +92,7 @@ public:
 
 	int getElapsedGameTurns();
 	// <!-- custom: New lifecycle bridge records diagnostic settings after Python GameStart/OnLoad handlers finalize Autolog; it gathers no data when SASGameRecord is disabled. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
-	void logSASGameRecordDiagnosticContext();
+	void logSASGameRecordDiagnosticContext(int iRenderQualityLevel, int iAntiAliasingIndex, int iAntiAliasingSamples, int iGlobeViewRenderLevel, int iMovieQualityLevel);
 	// <!-- custom: Python diplomacy bridge for the exact package of AI ordinary offers rejected by a human.
 	// Raw item/data pairs are converted and logged only at SASGameRecord level 2+. (ChatGPT-5.6-Sol) -->
 	void logSASGameRecordRejectedAIOffer(int iProposer, int iResponder, boost::python::list& kProposerGives, boost::python::list& kResponderGives);

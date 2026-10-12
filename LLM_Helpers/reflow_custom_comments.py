@@ -21,7 +21,7 @@ DEFAULT_EXTENSIONS = {".cpp", ".h", ".inl", ".py", ".xml"}
 SKIP_DIR_NAMES = {".git", "__pycache__", "_0_Common_Docs", "_SNAPSHOT_CONTEXT", "outputs"}
 SKIP_PATH_PARTS = {
     ("LLM_Helpers", "context"),
-    ("LLM_Helpers", "examples"),
+    ("_1_AdvCiv-SAS", "Docs", "examples"),
 }
 
 CODE_OPEN_RE = re.compile(r"^(?P<indent>[ \t]*)(?P<prefix>//|#)[ \t]*<!-- custom:[ \t]*(?P<body>.*)$")

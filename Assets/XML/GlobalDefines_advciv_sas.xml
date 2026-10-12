@@ -2164,13 +2164,35 @@ Enforced by the turn_define_gamespeed CI check. (GPT-5.6 Thinking) -->
 		<DefineName>SAS_GAME_RECORD_PERFORMANCE_METRICS_ENABLE</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
-	<!-- custom: Optional static system context that can materially affect autoplay/support results, ordered as a privacy/detail ladder: 0 records none and leaves stable placeholders; 1 adds resolution, fullscreen/windowed state, and enabled Civ4 graphics options; 2 (default) also adds native Windows versus Wine/Proton, raw Windows build/update identity, process/native architecture/WOW64 state, and a coarse install-distribution hint plus Steam AppID/build/beta-branch metadata when available; 3 additionally opts into more identifying CPU brand/model plus coarse CPU/GPU vendor families, display-adapter/desktop-attached-adapter counts and Windows-primary GPU vendor, logical processor count, total physical RAM, exact Civ4 EXE/mod absolute paths, and one new/load sample of the Civ4 process priority class/affinity masks.
-	GPU model names and device IDs remain unrecorded; process scheduling fields are a point-in-time diagnostic sample rather than a claim that priority/affinity cannot change later, and Windows-primary adapter identity is support context rather than a claim about the exact Direct3D adapter used by Civ4.
-	Clamped to 0..3 in SASGameRecordLog.cpp.
-	This remains independent from anonymous dynamic performance metrics above and has no effect while SAS_GAME_RECORD_LOG_LEVEL is 0. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
+	<!-- custom: Optional system-context scope: 0 collects none; 1 adds display/options, graphics-profile settings and loaded D3D9 identity; 2 (default) also adds OS/runtime, architecture and coarse distribution context; 3 adds logical processor count and total RAM capacity.
+	Hardware identity, exact paths and process inspection additionally require their separate opt-ins below, so richer diagnostics do not implicitly disclose device models or personal folder names.
+	Profile values are sampled after GameStart/OnLoad; display context waits for graphics initialization.
+	No per-turn hardware polling is added.
+	Clamped to 0..3; independent from dynamic performance metrics and inactive while SAS_GAME_RECORD_LOG_LEVEL is 0. (GPT-5.6-Sol + ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	<Define>
 		<DefineName>SAS_GAME_RECORD_SYSTEM_CONTEXT_LEVEL</DefineName>
 		<iDefineIntVal>2</iDefineIntVal>
+	</Define>
+	<!-- custom: At system-context level 3, opt into CPU vendor/model and Windows-enumerated display-adapter vendors/models/counts.
+	Enumerated adapters do not prove which Direct3D adapter Civ4 uses.
+	Serial numbers, hardware UUIDs and device IDs are never emitted; RAM capacity is separate from identity and RAM model collection is not implemented.
+	PCI device IDs identify shared hardware types/variants, not individual-card serial numbers; they do not reliably distinguish every VRAM capacity or core-count variant, so those differences need explicit specifications rather than ID inference.
+	0 skips CPU identity queries and display-adapter enumeration entirely. (GPT-6.1-Sol) -->
+	<Define>
+		<DefineName>SAS_GAME_RECORD_HARDWARE_IDENTITY_ENABLE</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!-- custom: At system-context level 3, opt into absolute EXE/mod/loaded-D3D9 paths, which can contain usernames or personal folders.
+	0 suppresses path disclosure and skips path-only collection/formatting; internal binary lookup still needs file paths. (GPT-6.1-Sol) -->
+	<Define>
+		<DefineName>SAS_GAME_RECORD_EXACT_PATHS_ENABLE</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!-- custom: At system-context level 3, opt into one session sample of process priority, affinity, debugger presence and development-process context.
+	These values can change after sampling; 0 skips all corresponding queries independently of hardware/path choices. (GPT-6.1-Sol) -->
+	<Define>
+		<DefineName>SAS_GAME_RECORD_PROCESS_CONTEXT_ENABLE</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 
 

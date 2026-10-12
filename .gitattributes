@@ -77,5 +77,4 @@
 /Assets/Res/Fonts/other_mods/                             export-ignore
 
 # <!-- custom: Keep a full raw SASGameRecord sample in git for LLM/dev review, but exclude it from GitHub Download ZIP / release archives because the log is large and diagnostic-only. (GPT-5.6) -->
-/_1_AdvCiv-SAS/SASGameRecord_log/     export-ignore
-/_1_AdvCiv-SAS/SASGameRecord_log/**   export-ignore
+/_1_AdvCiv-SAS/Docs/examples/sasgamerecord/SASGameRecord_example.log export-ignore

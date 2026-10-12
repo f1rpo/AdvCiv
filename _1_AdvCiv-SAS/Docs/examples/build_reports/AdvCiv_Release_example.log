@@ -1,0 +1,212 @@
+Example source commit identifiers are mapped to the rewritten Git history; unavailable identifiers use -; recorded build output is otherwise retained.
+Build started 12/10/2026 23:24:05.
+     1>Project "<MOD_ROOT>\CvGameCoreDLL\Project\AdvCiv.vcxproj" on node 2 (build target(s)).
+     1>Build:
+         powershell.exe -NoProfile -ExecutionPolicy Bypass -File "<MOD_ROOT>\CvGameCoreDLL\Project\build_with_report.ps1" -Configuration "Release" -Request BUILD -IdeBuild
+         Build report: <MOD_ROOT>\CvGameCoreDLL\Project\Release\CvGameCoreDLL.dll.build.json
+         Started UTC: 2026-10-12T21:24:06.628Z
+         Configuration: Release; request: BUILD; branch: main; commit: -
+         Temporary artifacts before request: {"directoryPresent":false,"objectCount":0,"incompleteMarkerCount":0,"pchPresent":false,"pdbPresent":false}
+         Working-tree status:  M .github/workflows/README.md
+          M .github/workflows/build/repository/dll_commit_message.py
+          M .github/workflows/build/repository/dll_define_changes.py
+          M .github/workflows/checks-repository.yml
+          M .github/workflows/tests/test_dll_commit_message.py
+          M .github/workflows/tests/test_dll_define_changes.py
+          M .gitignore
+          M AGENTS.md
+          M Assets/CvGameCoreDLL.dll.build.json
+          M Assets/XML/GlobalDefines_advciv_sas.xml
+          M CvGameCoreDLL/Project/build_with_report.ps1
+          M README.md
+          M _1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md
+          M _1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md
+          M _1_AdvCiv-SAS/Docs/examples/build_reports/AdvCiv_Debug-opt_example.build.json
+         ?? _1_AdvCiv-SAS/Docs/examples/build_reports/AdvCiv_Release_example.build.json
+         ?? _1_AdvCiv-SAS/Docs/examples/build_reports/AdvCiv_Release_example.log
+         Command: nmake source_list /NOLOGO
+         Building source list
+         Command: nmake fastdep /NOLOGO
+         Running fastdep
+         Command: nmake dll /NOLOGO
+         _precompile.cpp
+         ACOText.cpp
+         AdvCiv4lerts.cpp
+         AgentIterator.cpp
+         AgentIteratorTest.cpp
+         AIStrengthMemoryMap.cpp
+         ArithmeticTraits.cpp
+         ArmamentForecast.cpp
+         BarbarianWeightMap.cpp
+         BBAILog.cpp
+         CitySiteEvaluator.cpp
+         CombatOdds.cpp
+         CvAgents.cpp
+         CvArea.cpp
+         CvArtFileMgr.cpp
+         CvBugOptions.cpp
+         CvCity.cpp
+         CvCityAI.cpp
+         CvCivilization.cpp
+         CvDeal.cpp
+         CvDiploParameters.cpp
+         CvDLLButtonPopup.cpp
+         CvDLLEntity.cpp
+         CvDLLInterfaceIFaceBase.cpp
+         CvDLLLogger.cpp
+         CvDLLPython.cpp
+         CvDllPythonEvents.cpp
+         CvDllTranslator.cpp
+         CvDLLWidgetData.cpp
+         CvEventReporter.cpp
+         CvFractal.cpp
+         CvGame.cpp
+         CvGameAI.cpp
+         CvGameCoreDLL.cpp
+         CvGameCoreUtils.cpp
+         CvGameInterface.cpp
+         CvGameTextMgr.cpp
+         CvGlobals.cpp
+         CvHallOfFameInfo.cpp
+         CvInfo_Asset.cpp
+         CvInfo_Base.cpp
+         CvInfo_Build.cpp
+         CvInfo_Building.cpp
+         CvInfo_City.cpp
+         CvInfo_Civics.cpp
+         CvInfo_Civilization.cpp
+         CvInfo_Command.cpp
+         CvInfo_GameOption.cpp
+         CvInfo_Misc.cpp
+         CvInfo_Organization.cpp
+         CvInfo_RandomEvent.cpp
+         CvInfo_Symbol.cpp
+         CvInfo_Tech.cpp
+         CvInfo_Terrain.cpp
+         CvInfo_TrueStarts.cpp
+         CvInfo_Unit.cpp
+         CvInfo_Water.cpp
+         CvInitCore.cpp
+         CvMap.cpp
+         CvMapGenerator.cpp
+         CvMemoryManager.cpp
+         CvMessageControl.cpp
+         CvMessageData.cpp
+         CvPlayer.cpp
+         CvPlayerAI.cpp
+         CvPlot.cpp
+         CvPlotGroup.cpp
+         CvPopupInfo.cpp
+         CvPopupReturn.cpp
+         CvPythonCaller.cpp
+         CvRandom.cpp
+         CvReplayInfo.cpp
+         CvReplayMessage.cpp
+         CvSelectionGroup.cpp
+         CvSelectionGroupAI.cpp
+         CvStatistics.cpp
+         CvString.cpp
+         CvStructs.cpp
+         CvTalkingHeadMessage.cpp
+         CvTeam.cpp
+         CvTeamAI.cpp
+         CvUnit.cpp
+         CvUnitAI.cpp
+         CvVirtualWrappers.cpp
+         CvXMLLoadUtility.cpp
+         CvXMLLoadUtilityGet.cpp
+         CvXMLLoadUtilityInit.cpp
+         CvXMLLoadUtilitySet.cpp
+         CyArea.cpp
+         CyAreaInterface.cpp
+         CyArgsList.cpp
+         CyArtFileMgr.cpp
+         CyArtFileMgrInterface.cpp
+         CyCity.cpp
+         CyCityInterface1.cpp
+         CyCityInterface2.cpp
+         CyDeal.cpp
+         CyEnumsInterface.cpp
+         CyGame.cpp
+         CyGameCoreUtils.cpp
+         CyGameCoreUtilsInterface.cpp
+         CyGameInterface.cpp
+         CyGameTextMgr.cpp
+         CyGameTextMgrInterface.cpp
+         CyGlobalContext.cpp
+         CyGlobalContextInterface1.cpp
+         CyGlobalContextInterface2.cpp
+         CyGlobalContextInterface3.cpp
+         CyGlobalContextInterface4.cpp
+         CyHallOfFameInfo.cpp
+         CyHallOfFameInterface.cpp
+         CyInfoInterface1.cpp
+         CyInfoInterface2.cpp
+         CyInfoInterface3.cpp
+         CyMap.cpp
+         CyMapGenerator.cpp
+         CyMapGeneratorInterface.cpp
+         CyMapInterface.cpp
+         CyMessageControl.cpp
+         CyMessageControlInterface.cpp
+         CyPlayer.cpp
+         CyPlayerInterface1.cpp
+         CyPlayerInterface2.cpp
+         CyPlot.cpp
+         CyPlotInterface1.cpp
+         CyRandomInterface.cpp
+         CyReplayInfo.cpp
+         CySelectionGroup.cpp
+         CySelectionGroupInterface.cpp
+         CyStructsInterface1.cpp
+         CyTeam.cpp
+         CyTeamInterface.cpp
+         CyUnit.cpp
+         CyUnitInterface1.cpp
+         EnumMapTest.cpp
+         FAssert.cpp
+         FAStarFunc.cpp
+         FDialogTemplate.cpp
+         FFreeListTrashArray.cpp
+         FProfiler.cpp
+         GroupPathFinder.cpp
+         InvasionGraph.cpp
+         KmodPathFinderLegacy.cpp
+         MilitaryAnalyst.cpp
+         MilitaryBranch.cpp
+         ModName.cpp
+         PlayerHistory.cpp
+         PlotRadiusIterator.cpp
+         ReproTest.cpp
+         RFChapter.cpp
+         RFChapterScore.cpp
+         RFTotalScore.cpp
+         RiseFall.cpp
+         SASGameRecordLog.cpp
+         ScaledNumTest.cpp
+         SelfMod.cpp
+         Shelf.cpp
+         StartingPositionIteration.cpp
+         StartPointsAsHandicap.cpp
+         TeamPathFinder.cpp
+         TrueStarts.cpp
+         TSCProfiler.cpp
+         UWAI.cpp
+         UWAIAgent.cpp
+         UWAICache.cpp
+         WarEvalParameters.cpp
+         WarEvaluator.cpp
+         WarUtilityAspect.cpp
+         Linking DLL
+            Creating library temp_files\Release\CvGameCoreDLL.lib and object temp_files\Release\CvGameCoreDLL.exp
+         	COPY "temp_files\Release\CvGameCoreDLL.dll" "Release\CvGameCoreDLL.dll"
+                 1 fichier(s) copié(s).
+         Ended UTC: 2026-10-12T21:25:52.293Z; result: SUCCEEDED; exit code: 0; duration milliseconds: 105657
+         Distinct coded diagnostic lines: warnings=0; errors=0
+         Build output log: <MOD_ROOT>\CvGameCoreDLL\Project\Release\AdvCiv.log
+         Build details (JSON): <MOD_ROOT>\CvGameCoreDLL\Project\Release\CvGameCoreDLL.dll.build.json
+     1>Done Building Project "<MOD_ROOT>\CvGameCoreDLL\Project\AdvCiv.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:01:46.49

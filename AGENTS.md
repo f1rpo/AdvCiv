@@ -42,7 +42,7 @@ Release preparation: when preparing a stable release or substantial release upda
 - Do not include practical commit numbers in commit messages: they can change across branches, rebases, merges and squashes.
 - When an explicitly authorized commit changes a tracked `.dll`, include the exact phrase `Update DLL` in its title or body (e.g. `- Update DLL`); the DLL commit-message CI check requires it.
   - This catches accidental inclusion of local test/Debug-opt binaries when the shipped Release DLL is updated less frequently than source commits.
-  - The marker does not authorize a binary update by itself.
+  - The marker does not authorize a binary update by itself. Intentionally shipped DLL updates also need the generated full `<DLL filename>.build.json` staged beside the Release DLL; the full `AdvCiv.log` remains a local diagnostic file. Ordinary build outputs remain local/Git-ignored.
 
 ## Source analysis
 
@@ -91,9 +91,9 @@ In particular but not only, these are usually helpful:
   - This is separate from BBAI logging: use it for compact autoplay / AI-benchmark context such as initial map/landmass geography and bonus/yield context, economy, expansion, city and battle history, worked plots, unit composition, city-defense/bombard history, tactical air use, and high-level game state; use BBAI for detailed AI-decision diagnostics.
   - It can also be useful alongside BBAI logs to give an LLM the broader "what happened" context before drilling into decision traces.
   - It is an all-player diagnostic record and can contain spoilers; do not treat it as a spoiler-free player-advice log.
-- A full raw example is kept at [_1_AdvCiv-SAS/SASGameRecord_log/SASGameRecord_example.log](/_1_AdvCiv-SAS/SASGameRecord_log/SASGameRecord_example.log) for development/LLM review.
+- A full raw example is kept at [_1_AdvCiv-SAS/Docs/examples/sasgamerecord/SASGameRecord_example.log](/_1_AdvCiv-SAS/Docs/examples/sasgamerecord/SASGameRecord_example.log) for development/LLM review.
 - When comparing two level-3 records, run [`LLM_Helpers/compare_sasgamerecord_rng.py`](/LLM_Helpers/compare_sasgamerecord_rng.py) before manually inspecting RNG rows.
-  - It validates each record's checkpoint arithmetic/state progression and reports the first authoritative-RNG or call-provenance divergence; its [maintained example](/LLM_Helpers/examples/sasgamerecord_rng_compared.txt) shows how to interpret the result.
+  - It validates each record's checkpoint arithmetic/state progression and reports the first authoritative-RNG or call-provenance divergence; its [maintained example](/_1_AdvCiv-SAS/Docs/examples/sasgamerecord/sasgamerecord_rng_compared.txt) shows how to interpret the result.
 - SASGameRecord revision maintenance: every intentional SASGameRecord-related code change, including implementation/checker/bridge/configuration code comments or header-only edits, increments `SAS_GAME_RECORD_REVISION` and adds the matching latest-first entry to [`README_SASGameRecord_Revisions.md`](/_1_AdvCiv-SAS/Docs/README_SASGameRecord_Revisions.md) in the same commit.
   - Do not debate compatibility; the revision is only a downstream-update signal.
   - Standalone docs/history/example-log/package refreshes do not require a bump.
@@ -124,7 +124,7 @@ Compile errors (e.g., for a "Debug-opt" build) at:
 
 ## Comparison with Base AdvCiv 1.12's CvMainInterface.py processed to single-line
 
-For comparison purposes, as of 2026-06-10 we have also processed with the help of ChatGPT-5.5 thanks Base AdvCiv 1.12's `CvMainInterface.py` to single-line: [CvMainInterface_1_12_singleline.py](/LLM_Helpers/examples/CvMainInterface_1_12_singleline.py). If you need to, you may find looking at this file much easier than the old multi-line/unprocessed file.
+For comparison purposes, as of 2026-06-10 we have also processed with the help of ChatGPT-5.5 thanks Base AdvCiv 1.12's `CvMainInterface.py` to single-line: [CvMainInterface_1_12_singleline.py](/_1_AdvCiv-SAS/Docs/examples/source_comparison/CvMainInterface_1_12_singleline.py). If you need to, you may find looking at this file much easier than the old multi-line/unprocessed file.
 
 See also if needed [the corresponding readme section](/LLM_Helpers/README.md#comparison-with-base-advciv-112s-main-interface-processed-similarly).
 
@@ -399,12 +399,21 @@ int WarEvaluator::evaluateScenario(bool bDiagnosticOnly, WarPlanTypes eWarPlan, 
 
 - By default, let the user compile the DLL; the local legacy Civ4 SDK toolchain is configured, and the user generally prefers to handle compilation to save agent time/tokens. Do not compile merely for routine verification when the user has said they will do it.
 - If compilation is needed or the user is fine with the agent doing it, follow the tested [AdvCiv-SAS DLL Compilation Guide](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md).
-- The user currently compiles the DLL only through Microsoft Visual C++ 2010 Express, not VS Code. For user-started builds, check `Get-Process -Name VCExpress -ErrorAction SilentlyContinue`.
-  - If `VCExpress` is closed and the agent has not started a build, do not treat a lingering `MSBuild.exe` process alone as an active compile or ask the user to confirm again; MSBuild has remained open after completed builds and during autoplay.
-  - An open `VCExpress` window does not prove compilation is active; if build status is uncertain, leave DLL build files untouched until the user confirms completion. An existing completion confirmation remains valid unless a new build starts or the user says otherwise.
-  - For agent-started builds, track the actual command/session and its completion; inspect `MSBuild`, `nmake`, `cl` or `link` processes as relevant rather than relying on the IDE check.
+- Check current build reports first: `CvGameCoreDLL/Project/<target>/CvGameCoreDLL.dll.build.json` covers both Visual C++ 2010 Express and wrapper-driven terminal builds. The user compiles through VC2010 Express, not VS Code.
+  - Scan every configuration together with the wildcard below; do not open target folders individually. Inspect each report's `status`, `startedUtc`, `endedUtc` and configuration rather than only the newest report, since another target can be building.
+  - `RUNNING` means no completion was recorded; it can remain after a forcibly interrupted build. `SUCCEEDED`/`FAILED` with final fields confirms that recorded attempt ended, not that no later/direct build started.
+  - If a report is missing, unreadable, still `RUNNING`, or a new build is suspected, inspect the actual build session/workers (`nmake`, `jom`, `cl`, `link`) and their project context. For agent-started builds, track the command/session directly; raw `nmake` bypasses reporting.
+  - An open `VCExpress` window or lingering `MSBuild.exe` alone does not prove compilation is active; both have remained open after builds. Do not ask repeatedly when completion is already established; if status genuinely remains uncertain, leave build-sensitive files untouched until clarified.
   - While compilation is running, do not modify C++ source/headers, project/build files, intermediates or DLL/PDB outputs. Documentation edits are safe.
-  - Light-source ZIP creation currently seems to fail with `PermissionError` while reading `CvGameCoreDLL/Project/AdvCiv.opensdf` with Visual C++ 2010 Express open, even without compilation running. This IDE database can remain locked while the IDE is open; close the IDE before retrying this packaging failure.
+
+```powershell
+Get-ChildItem -Path 'CvGameCoreDLL/Project/*/CvGameCoreDLL.dll.build.json' -File | ForEach-Object {
+    $taskBuildReport = Get-Content -LiteralPath $_.FullName -Raw | ConvertFrom-Json
+    [PSCustomObject]@{Configuration=$taskBuildReport.configuration; Status=$taskBuildReport.status; StartedUtc=$taskBuildReport.startedUtc; EndedUtc=$taskBuildReport.endedUtc}
+}
+```
+
+- Light-source ZIP creation currently seems to fail with `PermissionError` while reading `CvGameCoreDLL/Project/AdvCiv.opensdf` with Visual C++ 2010 Express open, even without compilation running. This IDE database can remain locked while the IDE is open; close the IDE before retrying this packaging failure.
 - Core safety rule: before every full compile attempt or retry, delete that configuration's exact `CvGameCoreDLL/Project/temp_files/<target>` folder so the accepted DLL never resumes from stale or partial intermediates.
   - Target folders are isolated, so a retained Debug-opt folder does not affect a clean Release build.
   - After a successful Debug-opt build, retain its ignored folder while its installed DLL is relevant so WinDbg can find the exact matching PDB path embedded in that DLL; delete it before the next Debug-opt build.

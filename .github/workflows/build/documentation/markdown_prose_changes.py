@@ -26,7 +26,7 @@ def maintained(path):
     path = path.replace("\\", "/")
     if not path.lower().endswith(".md"):
         return False
-    excluded = ("_0_Common_Docs/", "_SNAPSHOT_CONTEXT/", "LLM_Helpers/outputs/", "LLM_Helpers/examples/", "LLM_Helpers/context/")
+    excluded = ("_0_Common_Docs/", "_SNAPSHOT_CONTEXT/", "LLM_Helpers/outputs/", "_1_AdvCiv-SAS/Docs/examples/", "LLM_Helpers/context/")
     if path.startswith(excluded) or "node_modules" in Path(path).parts:
         return False
     return not ("changelogs_web" in Path(path).parts and re.match(r"_?\d", Path(path).name))

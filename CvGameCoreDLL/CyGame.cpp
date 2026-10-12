@@ -320,10 +320,11 @@ int CyGame::getElapsedGameTurns()
 	return m_kGame.getElapsedGameTurns();
 }
 
-// <!-- custom: Bridge only the post-Python lifecycle observation; the cached native gate also protects direct Python callers before any option reads or formatting. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
-void CyGame::logSASGameRecordDiagnosticContext()
+// <!-- custom: Bridge only the post-Python lifecycle observation; the cached native gate also protects direct Python callers before any option reads or formatting.
+// Python contributes only graphics-profile values unavailable through the DLL API; native code owns canonical formatting and all other diagnostics. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+void CyGame::logSASGameRecordDiagnosticContext(int iRenderQualityLevel, int iAntiAliasingIndex, int iAntiAliasingSamples, int iGlobeViewRenderLevel, int iMovieQualityLevel)
 {
-	if (isSASGameRecordLogEnabled()) ::logSASGameRecordDiagnosticContext();
+	if (isSASGameRecordLogEnabled()) ::logSASGameRecordDiagnosticContext(iRenderQualityLevel, iAntiAliasingIndex, iAntiAliasingSamples, iGlobeViewRenderLevel, iMovieQualityLevel);
 }
 
 // <!-- custom: BUG DiplomacyUtil can see the exact package when a human rejects an AI ordinary trade offer, while the EXE does not expose that rejected package through a clean DLL callback.

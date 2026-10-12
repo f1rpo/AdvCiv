@@ -36,6 +36,8 @@ This is an all-player diagnostic record and can contain spoilers, so it is not a
 
 Other system/tooling convenience enhancements are added to help reduce tedium, notably include SASFastSave (e.g. `ALEXANDER_T0000_HUGE_CUSTOM_CONTINENTS_NORMAL_41500016_41500016_20260909T171232Z_START` or `ALEXANDER_T0459_HUGE_CUSTOM_CONTINENTS_SPACE_ZARA_YAQOB_NORMAL_41500016_41500016_20260910T184208Z`), make save info clearer, and avoid identical filename handling issues, AIAutoPlay runs not being interrupted when the active player dies or other notices so they can continue and complete unattended, or the default number of turns being adjusted to max depending on game speed or tunable (e.g., 501 turns at Normal Gamespeed, 1001 turns at Marathon).
 
+AdvCiv-SAS also more broadly modernizes the inherited DLL build reporting with richer compiler logs, a structured JSON report and embedded build provenance, making build results and the origin of an installed DLL easier to investigate.
+
 Another significant part of the project is [LLM-assisted source analysis](/README.md#llm-assisted-source-analysis): completed historical archaeology follows BtS, K-Mod, AdvCiv and AdvCiv-SAS changes through their actual diffs and lineage, while current-tree audit albums review final files and cross-file contracts from complementary angles.
 
 The completed archaeology records 130+ confirmed candidate bug/issue findings; fixes and newer audits proceed incrementally rather than delaying normal releases.
@@ -135,6 +137,7 @@ For license and reuse terms, including project-specific restrictions and express
 &emsp;[Helpers](/README.md#helpers)\
 &emsp;[CI](/README.md#ci)\
 &emsp;[Light-source ZIP](/README.md#light-source-zip)\
+[DLL build reports](/README.md#dll-build-reports)\
 [DLL Logging](/README.md#dll-logging)\
 &emsp;[Versioning](/README.md#versioning)\
 &emsp;[If .git does exist (dev)](#if-git-does-exist-dev)\
@@ -1020,7 +1023,7 @@ This possibly theoretically could be used to open other external files in Civ4 m
 
 For modders: i have made several scripts with AI assistance. We don't use them anymore in AdvCiv-SAS, but they can be found on the [python-scripts](https://github.com/wonderingabout/AdvCiv-SAS/tree/python-scripts) branch.
 
-Active helper scripts for LLM-assisted review and tuning live in [LLM_Helpers](/LLM_Helpers/). For example, [`compare_handicap_infos.py`](/LLM_Helpers/compare_handicap_infos.py) compares two explicit `CIV4HandicapInfo.xml` file paths, inside or outside this mod folder, and can generate a stable Markdown example such as [`handicap_infos_compared.md`](/LLM_Helpers/examples/handicap_infos_compared.md) with changed fields, numeric deltas, percentage deltas, and an embedded TSV matrix.
+Active helper scripts for LLM-assisted review and tuning live in [LLM_Helpers](/LLM_Helpers/). For example, [`compare_handicap_infos.py`](/LLM_Helpers/compare_handicap_infos.py) compares two explicit `CIV4HandicapInfo.xml` file paths, inside or outside this mod folder, and can generate a stable Markdown example such as [`handicap_infos_compared.md`](/_1_AdvCiv-SAS/Docs/examples/handicap/handicap_infos_compared.md) with changed fields, numeric deltas, percentage deltas, and an embedded TSV matrix.
 
 ### CI
 
@@ -1089,6 +1092,18 @@ A separate `pending_upstream/` snapshot section exposes fetched but not-yet-merg
 Use `--fetch-upstream` when ZIP generation should first run `git fetch upstream --prune`; normal generation remains network-free. This makes upstream-change and merge-conflict review possible from the ZIP alone without misrepresenting pending commits as current source ancestry.
 
 Very large/generated/binary/redundant historical payloads are summarized instead of embedded; see [`LLM_Helpers/README.md`](/LLM_Helpers/README.md) for details.
+
+## DLL build reports
+
+Building through the Visual C++ 2010 Express project keeps the usual `AdvCiv.log` and generates supporting reports beside the DLL in `CvGameCoreDLL/Project/<target>/`, such as `Release/` or `Debug-opt/`.
+
+- Each configuration keeps one current pair: `AdvCiv.log` for full output, and `CvGameCoreDLL.dll.build.json` for full Git/build/debug context, timing/result, diagnostics, temporary-artifact state and DLL hashes.
+  - The JSON starts as `RUNNING` and finishes as `SUCCEEDED` or `FAILED`. An interrupted build can leave `RUNNING` behind, so it means no completion was recorded rather than proof that compilation is still active.
+- For an intentional shipped Release DLL update, copy/stage the DLL and matching full JSON together; keep `AdvCiv.log` locally for detailed investigations. CI requires the `Update DLL` message marker and a successful Release build report matching the DLL.
+- Normal build outputs stay local and Git-ignored. We omit automatic timestamped archives and a separate compact JSON to avoid duplicate formats and routine cleanup; save a dated pair manually when needed.
+- These external development files have no in-game effect or runtime cost; local test installation still needs only the DLL.
+
+See the [DLL Compilation Guide](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md#persistent-build-reports), its [complete build-output and JSON examples](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md#example-build-output), and the [Main Changes Guide tooling overview](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#tooling).
 
 ## DLL Logging
 
@@ -1279,7 +1294,7 @@ Initial context includes small and medium geography overviews before the full mu
 <img src="./_1_AdvCiv-SAS/Images/SASGameRecord_map_text/text_art_map (6).PNG" alt="text_art_map (6)" width="250"></img>
 <img src="./_1_AdvCiv-SAS/Images/SASGameRecord_map_text/text_art_map (7).PNG" alt="text_art_map (7)" width="250"></img>
 
-See also the full raw [SASGameRecord example log](/_1_AdvCiv-SAS/SASGameRecord_log/SASGameRecord_example.log). It can be given to an external to the repo LLM (e.g. ChatGPT instead of Codex) to get an as of now token-cheap or free review of the `SASGameRecord` example sample.
+See also the full raw [SASGameRecord example log](/_1_AdvCiv-SAS/Docs/examples/sasgamerecord/SASGameRecord_example.log). It can be given to an external to the repo LLM (e.g. ChatGPT instead of Codex) to get an as of now token-cheap or free review of the `SASGameRecord` example sample.
 
 For example, `SASGameRecord_*.log` starts with lifecycle, provenance and run-setup rows before adding RNG/state checkpoints and compact turn snapshots. These selected revision-137 rows come from the same October 9, 2026 development test as the BBAI header above; gaps in `seq` mean unrelated intervening rows are omitted:
 

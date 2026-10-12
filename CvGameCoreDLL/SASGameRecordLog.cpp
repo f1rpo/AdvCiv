@@ -2,7 +2,7 @@
 // (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 
 // <!-- custom: To validate or compare level-3 authoritative-RNG checkpoints, use /LLM_Helpers/compare_sasgamerecord_rng.py.
-// /LLM_Helpers/examples/sasgamerecord_rng_compared.txt shows a maintained provenance-only divergence report. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+// /_1_AdvCiv-SAS/Docs/examples/sasgamerecord/sasgamerecord_rng_compared.txt shows a maintained provenance-only divergence report. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 
 #include "CvGameCoreDLL.h"
 #include "SASGameRecordLog.h"
@@ -111,6 +111,26 @@ static int getSASGameRecordSystemContextLevel()
 {
 	static const int iLevel = std::min(3, std::max(0, GC.getDefineINT("SAS_GAME_RECORD_SYSTEM_CONTEXT_LEVEL")));
 	return iLevel;
+}
+
+// <!-- custom: System detail no longer implicitly authorizes hardware identity, absolute paths or process inspection.
+// Cache independent opt-ins once; callers combine them with the context level before collection, and disabled recorder paths never call these helpers. (GPT-6.1-Sol) -->
+static bool isSASGameRecordHardwareIdentityEnabled()
+{
+	static const bool bEnabled = GC.getDefineBOOL("SAS_GAME_RECORD_HARDWARE_IDENTITY_ENABLE");
+	return bEnabled;
+}
+
+static bool isSASGameRecordExactPathsEnabled()
+{
+	static const bool bEnabled = GC.getDefineBOOL("SAS_GAME_RECORD_EXACT_PATHS_ENABLE");
+	return bEnabled;
+}
+
+static bool isSASGameRecordProcessContextEnabled()
+{
+	static const bool bEnabled = GC.getDefineBOOL("SAS_GAME_RECORD_PROCESS_CONTEXT_ENABLE");
+	return bEnabled;
 }
 
 int getSASGameRecordTurnInterval()
@@ -1573,8 +1593,11 @@ struct SASGameRecordDisplayAdapterContext
 	int iVendorFamilies;
 	CvString szPrimaryVendor;
 	CvString szVendors;
+	// <!-- custom: Opt-in Windows-enumerated adapter descriptions, not proof of Civ4's rendering-device selection; never collect device IDs or serial numbers. (GPT-6.1-Sol) -->
+	CvString szModels;
 };
 
+// <!-- custom: The hardware-identity opt-in now gates this entire enumeration; retain quoted adapter models alongside vendors to distinguish integrated and discrete hardware without claiming which adapter Civ4 uses. (GPT-6.1-Sol) -->
 static SASGameRecordDisplayAdapterContext getSASGameRecordDisplayAdapterContext()
 {
 	SASGameRecordDisplayAdapterContext kContext;
@@ -1590,6 +1613,7 @@ static SASGameRecordDisplayAdapterContext getSASGameRecordDisplayAdapterContext(
 		// Multiple adapters/vendors can help explain graphics/performance anomalies from driver or device selection (e.g. a less-suitable GPU being used), while this topology remains support context and does not prove which Direct3D adapter Civ4 selected. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
 		if ((kDevice.StateFlags & DISPLAY_DEVICE_MIRRORING_DRIVER) != 0)
 			continue;
+		appendSASDiagnosticListValue(kContext.szModels, getSASDiagnosticQuoted(kDevice.DeviceString).GetCString());
 		kContext.iAdapters++;
 		if ((kDevice.StateFlags & DISPLAY_DEVICE_ATTACHED_TO_DESKTOP) != 0)
 			kContext.iDesktopAdapters++;
@@ -1605,6 +1629,8 @@ static SASGameRecordDisplayAdapterContext getSASGameRecordDisplayAdapterContext(
 	}
 	if (kContext.szVendors.empty())
 		kContext.szVendors = "UNKNOWN";
+	if (kContext.szModels.empty())
+		kContext.szModels = "-";
 	return kContext;
 }
 
@@ -2051,6 +2077,8 @@ static void logSASGameRecordDisplayContext()
 	int iGraphicsInitialized = -1;
 	int iFullscreen = -1;
 	CvString szGraphicOptions = "-";
+	// <!-- custom: Detail level alone must not enumerate identifying adapters; the independent hardware switch also gates collection. (GPT-6.1-Sol) -->
+	bool const bHardwareIdentity = (iSystemContextLevel >= 3 && isSASGameRecordHardwareIdentityEnabled());
 	SASGameRecordDisplayAdapterContext kDisplayAdapters;
 	if (iSystemContextLevel >= 1)
 	{
@@ -2069,15 +2097,20 @@ static void logSASGameRecordDisplayContext()
 		}
 		if (szGraphicOptions.empty())
 			szGraphicOptions = "-";
-		if (iSystemContextLevel >= 3)
+		if (bHardwareIdentity)
 			kDisplayAdapters = getSASGameRecordDisplayAdapterContext();
 	}
-	logSASGameRecord("GAME_RECORD_DISPLAY_CONTEXT systemContextLevel=%d resolution=%dx%d graphicsInitialized=%d fullscreen=%d graphicOptions=%s gpuAdapterCount=%d gpuDesktopAdapterCount=%d gpuVendorFamilyCount=%d gpuPrimaryVendor=%s gpuVendors=%s",
+	logSASGameRecord("GAME_RECORD_DISPLAY_CONTEXT systemContextLevel=%d resolution=%dx%d graphicsInitialized=%d fullscreen=%d graphicOptions=%s gpuAdapterCount=%d gpuDesktopAdapterCount=%d gpuVendorFamilyCount=%d gpuPrimaryVendor=%s gpuVendors=%s gpuEnumeratedAdapterModels=%s",
 		iSystemContextLevel, iScreenWidth, iScreenHeight, iGraphicsInitialized, iFullscreen, szGraphicOptions.GetCString(),
-		iSystemContextLevel >= 3 ? kDisplayAdapters.iAdapters : -1, iSystemContextLevel >= 3 ? kDisplayAdapters.iDesktopAdapters : -1,
-		iSystemContextLevel >= 3 ? kDisplayAdapters.iVendorFamilies : -1,
-		iSystemContextLevel >= 3 ? kDisplayAdapters.szPrimaryVendor.GetCString() : "-",
-		iSystemContextLevel >= 3 ? kDisplayAdapters.szVendors.GetCString() : "-");
+		bHardwareIdentity ? kDisplayAdapters.iAdapters : -1, bHardwareIdentity ? kDisplayAdapters.iDesktopAdapters : -1,
+		bHardwareIdentity ? kDisplayAdapters.iVendorFamilies : -1,
+		bHardwareIdentity ? kDisplayAdapters.szPrimaryVendor.GetCString() : "-",
+		bHardwareIdentity ? kDisplayAdapters.szVendors.GetCString() : "-",
+		bHardwareIdentity ? kDisplayAdapters.szModels.GetCString() : "-");
+	// <!-- custom: A loaded EXE-directory d3d9.dll can materially change graphics behavior while leaving Civ4/mod files and GPU identity untouched.
+	// Record the binary actually loaded by the process only after graphics initialization; level 3 plus the independent exact-path opt-in exposes its absolute path. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	if (iSystemContextLevel >= 1)
+		logSASGameRecord("GAME_RECORD_D3D9_CONTEXT systemContextLevel=%d %s", iSystemContextLevel, getSASD3D9ContextFields(iSystemContextLevel >= 3 && isSASGameRecordExactPathsEnabled()).GetCString());
 	g_bSASGameRecordDisplayContextLogged = true;
 }
 
@@ -2307,8 +2340,8 @@ static void logSASGameRecordGameState(const char* szRowType)
 	logSASGameRecordDisplayContext();
 	// <!-- custom: A Civ4 custom DLL is a Win32 binary even when Wine/Proton runs it on another host OS.
 	// At the default privacy tier, retain raw Windows build/update identity and native architecture because OS/runtime changes can explain compatibility regressions while revealing far less than CPU/GPU models or absolute paths.
-	// Level 3 opts into more identifying CPU/GPU context, including the CPU brand/model and one point-in-time process priority/affinity sample alongside processor-count/RAM capacity fields.
-	// Wine version is compatibility-layer identity only; do not guess its host OS. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->
+	// Level 3 adds capacity fields; separate hardware/path/process opt-ins control identifying data and additional process queries.
+	// Wine version is compatibility-layer identity only; do not guess its host OS. (GPT-5.6-Sol + ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	int const iSystemContextLevel = getSASGameRecordSystemContextLevel();
 	SASGameRecordRuntimeContext kRuntime;
 	if (iSystemContextLevel >= 2)
@@ -2330,26 +2363,34 @@ static void logSASGameRecordGameState(const char* szRowType)
 		kRuntime.szWindowsDisplayVersionField = (kRuntime.kWindowsVersion.szDisplayVersion == "-" ? CvString("-") : getSASDiagnosticQuoted(kRuntime.kWindowsVersion.szDisplayVersion.GetCString()));
 		if (iSystemContextLevel >= 3)
 		{
-			kRuntime.szCpuVendor = getSASGameRecordProcessorVendor();
-			kRuntime.szCpuBrandField = getSASGameRecordProcessorBrandField();
+			// <!-- custom: Keep capacity available at high detail without collecting CPU identity unless independently enabled. (GPT-6.1-Sol) -->
+			if (isSASGameRecordHardwareIdentityEnabled())
+			{
+				kRuntime.szCpuVendor = getSASGameRecordProcessorVendor();
+				kRuntime.szCpuBrandField = getSASGameRecordProcessorBrandField();
+			}
 			kRuntime.iLogicalProcessors = (int)kNativeSystemInfo.dwNumberOfProcessors;
 			MEMORYSTATUSEX kSystemMemory;
 			ZeroMemory(&kSystemMemory, sizeof(kSystemMemory));
 			kSystemMemory.dwLength = sizeof(kSystemMemory);
 			if (GlobalMemoryStatusEx(&kSystemMemory)) kRuntime.iTotalPhysicalMemoryMB = (int)(kSystemMemory.ullTotalPhys / (1024 * 1024));
-			HANDLE const hProcess = GetCurrentProcess();
-			kRuntime.szProcessPriorityClass = getSASGameRecordPriorityClassName(GetPriorityClass(hProcess));
-			DWORD_PTR uiProcessAffinityMask = 0;
-			DWORD_PTR uiSystemAffinityMask = 0;
-			if (GetProcessAffinityMask(hProcess, &uiProcessAffinityMask, &uiSystemAffinityMask))
+			// <!-- custom: Priority, affinity, debugger and development-process queries are a separate opt-in; high system detail alone skips all of them. (GPT-6.1-Sol) -->
+			if (isSASGameRecordProcessContextEnabled())
 			{
-				kRuntime.iProcessAffinityQueryAvailable = 1;
-				kRuntime.szProcessAffinityMask = getSASGameRecordAffinityMaskField(uiProcessAffinityMask);
-				kRuntime.szSystemAffinityMask = getSASGameRecordAffinityMaskField(uiSystemAffinityMask);
+				HANDLE const hProcess = GetCurrentProcess();
+				kRuntime.szProcessPriorityClass = getSASGameRecordPriorityClassName(GetPriorityClass(hProcess));
+				DWORD_PTR uiProcessAffinityMask = 0;
+				DWORD_PTR uiSystemAffinityMask = 0;
+				if (GetProcessAffinityMask(hProcess, &uiProcessAffinityMask, &uiSystemAffinityMask))
+				{
+					kRuntime.iProcessAffinityQueryAvailable = 1;
+					kRuntime.szProcessAffinityMask = getSASGameRecordAffinityMaskField(uiProcessAffinityMask);
+					kRuntime.szSystemAffinityMask = getSASGameRecordAffinityMaskField(uiSystemAffinityMask);
+				}
+				else kRuntime.iProcessAffinityQueryAvailable = 0;
+				kRuntime.iDebuggerAttached = (IsDebuggerPresent() ? 1 : 0);
+				kRuntime.kDevelopmentProcesses = getSASGameRecordDevelopmentProcessContext();
 			}
-			else kRuntime.iProcessAffinityQueryAvailable = 0;
-			kRuntime.iDebuggerAttached = (IsDebuggerPresent() ? 1 : 0);
-			kRuntime.kDevelopmentProcesses = getSASGameRecordDevelopmentProcessContext();
 		}
 	}
 	// <!-- custom: Group these long runtime fields by OS, architecture/hardware and debugger/process context; adjacent literals concatenate at compile time and preserve the emitted row. (GPT-6.1-Sol) -->
@@ -2406,7 +2447,10 @@ static CvString getSASGameRecordLogSettingFields()
 		{ "SAS_GAME_RECORD_TRADE_MARKET_BONUS_GPT_QUOTES_ENABLE", isSASGameRecordTradeMarketBonusGPTQuotesEnabled() },
 		{ "SAS_GAME_RECORD_TRADE_MARKET_AI_TECH_VALUES_ENABLE", isSASGameRecordTradeMarketAITechValuesEnabled() },
 		{ "SAS_GAME_RECORD_PERFORMANCE_METRICS_ENABLE", isSASGameRecordPerformanceMetricsEnabled() },
-		{ "SAS_GAME_RECORD_SYSTEM_CONTEXT_LEVEL", getSASGameRecordSystemContextLevel() }
+		{ "SAS_GAME_RECORD_SYSTEM_CONTEXT_LEVEL", getSASGameRecordSystemContextLevel() },
+		{ "SAS_GAME_RECORD_HARDWARE_IDENTITY_ENABLE", isSASGameRecordHardwareIdentityEnabled() },
+		{ "SAS_GAME_RECORD_EXACT_PATHS_ENABLE", isSASGameRecordExactPathsEnabled() },
+		{ "SAS_GAME_RECORD_PROCESS_CONTEXT_ENABLE", isSASGameRecordProcessContextEnabled() }
 	};
 	CvString szFields;
 	for (int iI = 0; iI < (int)(sizeof(aSettings) / sizeof(aSettings[0])); iI++)
@@ -2426,7 +2470,18 @@ static void logSASGameRecordLogSettings()
 // Civ4's DLL exposes MessageLog/RandLog/SynchLog/OverwriteLogs but not the top-level LoggingEnabled INI key; report that limitation explicitly instead of guessing.
 // The initial candidate read Autolog before Python GameStart/OnLoad handlers reset LoggingOn, which could report the previous session's state.
 // CvEventInterface now calls this only after those handlers return, behind the logging gate; no per-turn polling is added. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
-void logSASGameRecordDiagnosticContext()
+static char const* getSASGameRecordGraphicsQualityName(int iLevel)
+{
+	switch (iLevel)
+	{
+	case 0: return "HIGH";
+	case 1: return "MEDIUM";
+	case 2: return "LOW";
+	default: return "UNKNOWN";
+	}
+}
+
+void logSASGameRecordDiagnosticContext(int iRenderQualityLevel, int iAntiAliasingIndex, int iAntiAliasingSamples, int iGlobeViewRenderLevel, int iMovieQualityLevel)
 {
 	CvGame const& kGame = GC.getGame();
 	bool const bPerPlayerMessageControlConfigured = GC.getDefineBOOL(CvGlobals::PER_PLAYER_MESSAGE_CONTROL_LOG);
@@ -2437,10 +2492,12 @@ void logSASGameRecordDiagnosticContext()
 	int const iAutologEnabled = BUGOption::getValue("Autolog__Enabled", -1, false);
 	int const iAutologLoggingOn = BUGOption::getValue("Autolog__LoggingOn", -1, false);
 	bool const bBugOptionsReadable = (iBugScreenLogLevel >= 0 && iBugFileLogLevel >= 0 && iBugLogTime >= 0 && iAutologEnabled >= 0 && iAutologLoggingOn >= 0);
-	logSASGameRecord("GAME_RECORD_DIAGNOSTIC_CONTEXT %s iniLoggingEnabledReadableFromDll=0 iniMessageLog=%d iniRandLog=%d iniSynchLog=%d iniOverwriteLogs=%d perPlayerMessageControlLogConfigured=%d perPlayerRandLogRoutingActive=%d logMapStatsConfigured=%d logMapStatsEffective=%d bugOptionsReadable=%d bugScreenLogLevel=%d bugFileLogLevel=%d bugLogTime=%d autologEnabled=%d autologLoggingOn=%d",
+	logSASGameRecord("GAME_RECORD_DIAGNOSTIC_CONTEXT %s iniLoggingEnabledReadableFromDll=0 iniMessageLog=%d iniRandLog=%d iniSynchLog=%d iniOverwriteLogs=%d perPlayerMessageControlLogConfigured=%d perPlayerRandLogRoutingActive=%d logMapStatsConfigured=%d logMapStatsEffective=%d bugOptionsReadable=%d bugScreenLogLevel=%d bugFileLogLevel=%d bugLogTime=%d autologEnabled=%d autologLoggingOn=%d renderQualityLevel=%d renderQuality=%s antiAliasingIndex=%d antiAliasingSamples=%d globeViewRenderLevel=%d globeViewRenderQuality=%s movieQualityLevel=%d movieQuality=%s",
 		getSASBBAILogProfileFields().GetCString(), GC.isLogging(), GC.isRandLogging(), GC.isSynchLogging(), GC.isOverwriteLogs(),
 		bPerPlayerMessageControlConfigured, (bPerPlayerMessageControlConfigured && GC.isRandLogging() && kGame.isNetworkMultiPlayer()),
-		bMapStatsConfigured, (bMapStatsConfigured && GC.isLogging()), bBugOptionsReadable, iBugScreenLogLevel, iBugFileLogLevel, iBugLogTime, iAutologEnabled, iAutologLoggingOn);
+		bMapStatsConfigured, (bMapStatsConfigured && GC.isLogging()), bBugOptionsReadable, iBugScreenLogLevel, iBugFileLogLevel, iBugLogTime, iAutologEnabled, iAutologLoggingOn,
+		iRenderQualityLevel, getSASGameRecordGraphicsQualityName(iRenderQualityLevel), iAntiAliasingIndex, iAntiAliasingSamples,
+		iGlobeViewRenderLevel, getSASGameRecordGraphicsQualityName(iGlobeViewRenderLevel), iMovieQualityLevel, getSASGameRecordGraphicsQualityName(iMovieQualityLevel));
 }
 
 // <!-- custom: This cold-path descriptor table is generated from the same marker list as the writers; adding a registered subsystem automatically includes its name/value here.
@@ -2529,9 +2586,9 @@ static void logSASGameRecordProvenanceContext()
 	// <!-- custom: Fingerprint the actual Civ4 executable separately from install-location labeling: exact bytes remain the durable build/branch identity even when storefront branches share one directory. (ChatGPT-5.6-Sol) -->
 	logSASGameRecord("GAME_RECORD_EXE_CONTEXT %s", getSASExeContextFields().GetCString());
 	// <!-- custom: Keep install provenance privacy-tiered.
-	// Level 2 records only a coarse storefront/distribution hint and numeric Steam AppID when available; level 3 explicitly opts into exact EXE/mod paths, which can contain a Windows username or custom folder names. (ChatGPT-5.6-Sol) -->
+	// Level 2 records only a coarse storefront/distribution hint and numeric Steam AppID when available; level 3 additionally requires the exact-path opt-in before emitting EXE/mod paths, which can contain a Windows username or custom folder names. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	int const iSystemContextLevel = getSASGameRecordSystemContextLevel();
-	logSASGameRecord("GAME_RECORD_INSTALL_CONTEXT systemContextLevel=%d %s", iSystemContextLevel, getSASInstallContextFields(iSystemContextLevel).GetCString());
+	logSASGameRecord("GAME_RECORD_INSTALL_CONTEXT systemContextLevel=%d %s", iSystemContextLevel, getSASInstallContextFields(iSystemContextLevel, isSASGameRecordExactPathsEnabled()).GetCString());
 }
 
 // <!-- custom: Save checkpoints identify one exact serialized game state without pretending Civ4 exposed its native filename.

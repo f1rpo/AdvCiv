@@ -11,7 +11,8 @@ import re
 import xml.etree.ElementTree as ET
 
 DEFAULT_OUTPUT_DIR = os.path.join("LLM_Helpers", "outputs")
-DEFAULT_EXAMPLE_DIR = os.path.join("LLM_Helpers", "examples")
+# <!-- custom: Keep the maintained report with centralized documentation examples; helper code remains in LLM_Helpers. (GPT-6.1-Sol) -->
+DEFAULT_EXAMPLE_DIR = os.path.join("_1_AdvCiv-SAS", "Docs", "examples", "handicap")
 DEFAULT_LEFT_LABEL = "File 1"
 DEFAULT_RIGHT_LABEL = "File 2"
 

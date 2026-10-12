@@ -165,17 +165,43 @@ On PRs, inspect commits reachable from the PR head but not its base, using the a
 
 The repository workflow keeps complete commit/tree history with `fetch-depth: 0` and `filter: blob:none`, while checkout materializes the selected revision's files.
 
-Historical file contents, including old DLLs, are omitted: the guard needs commit messages and tree paths, with rename detection disabled, rather than binary contents. This preserves push/PR/force-push coverage without downloading every historical asset version; it does not check old commits outside the selected range retroactively.
+Historical blobs are omitted initially. Intent checking needs only messages/tree paths; build-report checking fetches the reports and changed DLL bytes needed for the selected commits, rather than downloading every historical asset version.
+
+For commits containing the automatic `CvGameCoreDLL/Project/build_with_report.ps1` wrapper, each added/modified DLL must also have its full `<DLL filename>.build.json` in that same committed tree. Earlier commits predate this prospective requirement; they retain the existing intent check.
+
+- The wrapper keeps one current full JSON report beside the DLL and its full `AdvCiv.log`; there is no separate compact format or automatic timestamped archive. Normal build outputs stay Git-ignored.
+- Copy/stage the full JSON with an intentionally shipped Release DLL; keep the full log locally. The report retains Git/debug context, timings, diagnostics, temporary-artifact state and DLL hashes; the local log preserves all emitted compiler output, including uncoded messages.
+- The guard requires a successful Release-family Build/Rebuild, zero exit/error status, ordered UTC timestamps, nonnegative duration/diagnostic counts, size/SHA-256 matching the committed binary. Warning counts may be nonzero.
+- Every current push/PR/manual head must retain the shipped `Assets/CvGameCoreDLL.dll` and its matching successful Release JSON, even if only source/docs changed. Missing, stale or deleted evidence fails; local uncommitted copies do not count.
+- Historical DLL deletions need no per-commit build evidence. A later report or an uncommitted local file cannot satisfy an earlier binary-changing commit; the current shipped-DLL requirement is checked separately at the head.
+- This is a consistency guard against accidental staging, not authenticated proof of compilation or source reproducibility. The recorded Git SHA is pre-build context, not necessarily the final shipping commit when source was uncommitted.
 
 GitHub documents its [push payload and commit-array limit](https://docs.github.com/en/webhooks/webhook-events-and-payloads#push).
 
 This is an explicit-intent marker, not proof that a DLL was compiled in Release mode, corresponds to the current source or was authorized by the user. Preserve the existing rule that compiled binaries require explicit user approval.
 
-When a squash or merge introduces a DLL, its resulting commit message must also contain `Update DLL`; CI checks that committed message on push. This check does not rebuild DLLs, require binaries for source changes, or install a local hook.
+When a squash or merge introduces a DLL, its resulting commit message must also contain `Update DLL`; CI checks that committed message on push. This intent check does not rebuild DLLs or install a local hook; the structural define check below separately covers DLL-consumed XML define name changes.
 
 ```sh
 python .github/workflows/build/repository/dll_commit_message.py
 python .github/workflows/build/repository/dll_commit_message.py --base-ref HEAD~3 --head-ref HEAD
+```
+
+#### `build/repository/dll_define_changes.py`
+
+Adding, removing or renaming an XML define consumed by C++ requires an updated shipped Release DLL when integrating into the repository's default branch. The default branch comes from GitHub metadata, so renaming it does not require changing this rule.
+
+- Discover `DefineName` declarations throughout `Assets/XML/**/*.xml`, regardless of filename or name prefix, and compare their combined name sets against each selected commit's first parent; inspect both C++ source trees for those names, ignoring comments.
+- Moving an unchanged name between XML files, value/comment edits and Python-only define names require no rebuild. This is a conservative static reference check; dynamically constructed names and preprocessor reachability are not resolved.
+- Feature-branch pushes defer enforcement. PRs targeting the default branch and default-branch pushes require the integration head's DLL to differ from the binary before each affected change, with matching successful Release JSON evidence.
+- Intermediate source commits can share a later Release build at the integration head; each binary-changing commit still needs its own `Update DLL` marker and build evidence under the existing intent check.
+- Local/manual runs check the selected head commit; `--base-ref` checks a complete range. Amended pushes inspect the new commit identities without relying on a discarded push-before object.
+
+This catches an unchanged shipped DLL after structural define changes. It does not compile source or prove that a changed binary contains every source edit; review and a current Release build remain necessary.
+
+```sh
+python .github/workflows/build/repository/dll_define_changes.py
+python .github/workflows/build/repository/dll_define_changes.py --base-ref HEAD~3 --head-ref HEAD
 ```
 
 #### `build/repository/version_metadata.py`
@@ -300,7 +326,9 @@ For pushes only, the checker first tries fetching that exact commit from `origin
 
 Missing PR or ordinary local bases fail with a clear diagnostic instead of a Git traceback. Available bases always retain the complete-range check.
 
-Rebuilds the published handicap comparison from current `CIV4HandicapInfo.xml` and the pinned [`handicap_infos_baseline.xml`](/LLM_Helpers/examples/handicap_infos_baseline.xml). The baseline was copied from the local base AdvCiv comparison tree only after verifying every published left-side TSV cell; reproducing the entire existing report also confirmed its unchanged fields and totals.
+Rebuilds the published handicap comparison from current `CIV4HandicapInfo.xml` and the pinned [`handicap_infos_baseline.xml`](/_1_AdvCiv-SAS/Docs/examples/handicap/handicap_infos_baseline.xml).
+
+The baseline was copied from the local base AdvCiv comparison tree only after verifying every published left-side TSV cell; reproducing the entire existing report also confirmed its unchanged fields and totals.
 
 The historical "Base AdvCiv 1.12" report label is retained. No sibling mod checkout is needed in CI.
 

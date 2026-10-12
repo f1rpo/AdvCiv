@@ -162,6 +162,14 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 
 ### Tooling
 
+- (Requires AdvCiv-SAS 6633+) **Persistent DLL build reports:** normal Visual Studio build commands retain each attempt's compiler output and detailed context with source identity, result, duration, warnings/errors and temporary-artifact state.
+  - One current `AdvCiv.log` and full build JSON sit beside the corresponding Release, Debug-opt or other target DLL; Git/debug context remains available without a separate compact format or automatic archive cleanup.
+  - Intentionally committed Release DLL updates include the full JSON; CI checks the successful build result and matching DLL hash alongside the existing `Update DLL` intent marker. The matching JSON remains required on source-only commits too; full compiler logs stay local, and ordinary build outputs remain Git-ignored.
+  - CI also catches an unchanged shipped DLL when C++-used XML define names are added, removed or renamed across `Assets/XML`: integration into the repository's default branch requires updated Release build evidence, while intermediate feature-branch source commits remain possible.
+  - Define value/comment edits and Python-only names are excluded; see the [structural define check](/.github/workflows/README.md#buildrepositorydll_define_changespy) for scope and limitations.
+  - Build reports are development tooling: Civ4 does not read them, so they add no gameplay changes or in-game cost. The separately embedded build provenance described under SASGameRecord remains available to enabled diagnostics.
+  - See the [DLL Compilation Guide](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md#persistent-build-reports) and its [real build-output example](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md#example-build-output).
+
 - (Requires AdvCiv-SAS 6581+) **Repository encoding and Windows-path CI:**
   - checks tracked files for unsupported BOMs and paths too long for the standard Steam installation: full installed file paths may use at most 259 UTF-16 units, and parent directory paths at most 247.
   - These limits include the installation root and mod-folder name; the separate filename cap below complements them.
@@ -556,7 +564,7 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
   - Building-focus, AI-strategy and recorder reason/source/action constants share canonical lists with their diagnostic labels, reducing maintenance omissions without changing AI decisions.
 - (Requires AdvCiv-SAS 6629+) **Run diagnostics are easier to interpret and compare:**
   - Each new/load session records the configured and effective BBAI categories, DLL-readable CivilizationIV.ini logging switches, and finalized BUG/Autolog settings, helping explain differences in diagnostic coverage and performance without collecting those settings separately.
-  - Shared DLL context identifies the compiler and compiled profiler/ReproTest switches alongside the existing build configuration, while DLL/EXE identity includes actual binary resource versions when available; optional system-context level 3 also records debugger presence and selected development-tool processes at session start, without treating an open IDE or lingering build process as proof of active compilation.
+  - Shared DLL context identifies the compiler and compiled profiler/ReproTest switches alongside the existing build configuration, while DLL/EXE identity includes actual binary resource versions when available; system-context level 3 with the process-context opt-in also records debugger presence and selected development-tool processes at session start, without treating an open IDE or lingering build process as proof of active compilation.
   - Save-format context distinguishes mod/replay identity and the loaded save's game-stream flag from the current writer markers for core/AI objects and supporting subsystems; the shared writer registry supplies that component context without changing serialized bytes.
 
 (Requires AdvCiv-SAS 6440+) Note: `SASGameRecord` log has its own revision system, see [`README_SASGameRecord_Revisions.md`](/_1_AdvCiv-SAS/Docs/README_SASGameRecord_Revisions.md) for details and miscellanous information.
@@ -573,7 +581,7 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
   - It notably records high-level run context such as initial map/landmass geography and bonus/yield context, economy, expansion, city and battle history, worked plots, diplomacy, unit composition, game state, and in-game bonus appearances/disappearances, complementing BBAI logs by recording what happened before or alongside detailed AI-decision traces.
   - It also logs autoplay start/end/change rows, explicit player appearance/revival/elimination rows, and compact run-status rows with alive/eliminated players, current winner/victory if any, and top score/power players, so stopped autoplay logs no longer require inferring these from missing snapshots.
 - (Requires AdvCiv-SAS 6551+) **Consumer/reproducibility context is clearer without bloating every run:**
-  - opt-in level-3 display context now distinguishes multi-adapter/multi-vendor Windows systems so hybrid-GPU or driver/device-selection issues are easier to recognize, while structured text-map legend/layer rows repeat their turn for self-locating parser/grep slices.
+  - level-3 display context with the hardware-identity opt-in distinguishes multi-adapter/multi-vendor Windows systems so hybrid-GPU or driver/device-selection issues are easier to recognize, while structured text-map legend/layer rows repeat their turn for self-locating parser/grep slices.
   - The runtime log intentionally does not emit an exhaustive static manifest of every row type the build could produce; exact source/revision/settings identify the producer, while schema/parser guidance stays in source/docs/checkers.
   - See [`README_SASGameRecord_Revisions.md`](/_1_AdvCiv-SAS/Docs/README_SASGameRecord_Revisions.md#consumerparser-notes).
 - (Requires AdvCiv-SAS 6552+) **Level-3 periodic city detail now uses bounded checkpoint-plus-delta encoding:**
@@ -751,8 +759,12 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 - (Requires AdvCiv-SAS 6468+) **Runtime, executable, and installation provenance:**
   - `GAME_RECORD_EXE_CONTEXT` fingerprints the actual loaded `Civ4BeyondSword.exe` independently from the mod DLL through file size, timestamps and a cached FNV-1a fingerprint.
   - The default system-context level also records native Windows versus Wine/Proton, raw Windows build/update (`UBR`) identity, process/native architecture and WOW64 state, plus a coarse `STEAM` / `GOG` / `FIRAXIS_RETAIL` / `RETAIL_OR_OTHER` installation hint and available Steam AppID/build/beta metadata.
-  - (Requires AdvCiv-SAS 6468+) Level 3 explicitly opts into more identifying CPU/GPU context, logical processor count, physical RAM and exact Civ4 EXE/mod paths; (Requires AdvCiv-SAS 6630+) it also records the CPU brand/model and one new/load sample of Civ4's process priority class and process/system affinity masks for performance comparisons. GPU model names and device IDs remain unrecorded.
-  - Display context is retried after loaded-save graphics initialization so short sessions still obtain resolution/options and, at level 3, GPU-vendor context.
+  - (Requires AdvCiv-SAS 6633+) System-context level 3 provides logical processor count and physical RAM capacity; separate default-off settings control hardware identity, exact paths and process inspection.
+    - Hardware identity adds CPU vendor/model and Windows-enumerated GPU vendors/models, helping distinguish integrated and discrete adapters without claiming which GPU Civ4 uses; device IDs and serial numbers are not recorded.
+    - Exact paths and process priority/affinity/debugger/development-tool context can each be enabled independently, so richer support records do not require disclosing personal folder names or hardware models.
+  - (Requires AdvCiv-SAS 6633+) Build-time evidence is embedded in the DLL, so installing it needs no extra provenance-file copy. Current build-tree observations help distinguish the installed DLL from local outputs and retained or deleted temporary artifacts; fingerprints provide practical identity evidence rather than cryptographic authentication.
+  - (Requires AdvCiv-SAS 6633+) Graphics context includes active quality/anti-aliasing settings and the loaded Direct3D 9 library's identity/location, helping diagnose wrapper or rendering differences alongside existing resolution/options data.
+  - Display context is retried after loaded-save graphics initialization so short sessions still obtain their enabled display information.
   - The Steam path was runtime-tested at levels 2 and 3; GOG, Firaxis retail/other and Wine/Proton detection are source-reviewed but not yet runtime-tested.
 - (Requires AdvCiv-SAS 6343+) Successful game-level Debug-mode toggles are also recorded as compact `DEBUG_MODE_CHANGED` old/new actions.
   - Free-text fields such as city, player, leader, civ, map-script, and log-file names are quoted/escaped, so names with spaces are easier to parse robustly.
@@ -803,7 +815,7 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 - Note: it currently contains spoilers: a spoiler-free implementation was considered, so the human/active player can give to an LLM or such their play summary and get LLM or such suggestions or feedback/analysis, but it would require an extensive rework, so currently this is not supported; therefore, `SASGameRecord` log should as of now not be treated as a spoiler-free player-advice export.
   - Note 2: detailed/full snapshots still follow `SAS_GAME_RECORD_INTERVAL_TURNS_UNSCALED_GAMESPEED`, so a run ending on T200 can have its last full snapshot at T190; (Requires AdvCiv-SAS 6587+) one tiny `GAME_RECORD_TURN_COMPLETED` row is nevertheless emitted for every fully processed turn at every enabled level, so a truncated/crashed record exposes its last completed turn without forcing another large snapshot.
   - For stronger LLM analysis, also provide compact source context when possible; for example, the AdvCiv-SAS light source ZIP from [`make_light_source_zip.py`](/LLM_Helpers/README.md#make_light_source_zippy) includes useful source/XML/docs/helper context and full `SASGameRecord` examples while staying compact enough to upload and share.
-  - See also the full raw [SASGameRecord example log](/_1_AdvCiv-SAS/SASGameRecord_log/SASGameRecord_example.log), and [README.md (DLL Logging)](/README.md#dll-logging).
+  - See also the full raw [SASGameRecord example log](/_1_AdvCiv-SAS/Docs/examples/sasgamerecord/SASGameRecord_example.log), and [README.md (DLL Logging)](/README.md#dll-logging).
 - (Requires AdvCiv-SAS 6379+) **Additional factual SASGameRecord setup and gameplay boundaries:**
   - player setup now notably also records whether civilization/leader choice provenance is known and, when known, whether each was random or manually selected; unavailable legacy/imported provenance remains explicit instead of being mislabeled as manual, exact team merges before the absorbed team membership disappears, and nuclear use at the real launch/interception boundary.
   - Successful detonations add one compact consequence row from the already-computed explosion results, including newly created fallout, destroyed improvements/features/buildings, damaged/killed units, affected cities, and population killed; intercepted nukes correctly have no detonation-effects row.
@@ -2805,7 +2817,7 @@ Make some of the data-dense advisors use using a **higher constrast background t
 
 ## Handicaps
 
-Note: The shipped stable example [`handicap_infos_compared.md`](/LLM_Helpers/examples/handicap_infos_compared.md) compares base AdvCiv 1.12 vs AdvCiv-SAS. See also [LLM_Helpers (README.md)](/LLM_Helpers/README.md#compare_handicap_infospy).
+Note: The shipped stable example [`handicap_infos_compared.md`](/_1_AdvCiv-SAS/Docs/examples/handicap/handicap_infos_compared.md) compares base AdvCiv 1.12 vs AdvCiv-SAS. See also [LLM_Helpers (README.md)](/LLM_Helpers/README.md#compare_handicap_infospy).
 
 - **Expanded handicap difficulty ladder:**
   - added **Rookie** below Settler and **Deity+** above Deity.

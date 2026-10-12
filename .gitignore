@@ -30,6 +30,8 @@ __pycache__
 /Assets/CvGameCoreDLL_d.dll
 /Assets/CvGameCoreDLL_do.dll
 /Assets/CvGameCoreDLL_r.dll
+# <!-- custom: Shipping CI needs the matching build JSON, not a second full compiler-log copy; retain full logs in local build folders or selected documentation examples. (GPT-6.1-Sol) -->
+/Assets/AdvCiv.log
 /LLM_Helpers/outputs/
 # <!-- custom: Commit-diff archaeology context is generated locally from Git ancestry and injected into light-source ZIPs; do not duplicate Git history by tracking the generated corpus itself. The permanent 6164-6402 rewrite map remains tracked separately under LLM_Helpers/context/. (GPT-5.6-Sol) -->
 # <!-- custom: also Codex has them locally, while ChatGPT or such also has them in the bundled light-source ZIP, so no need to pollute git history with heavy and change prone git diff files; keep locally ignored instead only. -->

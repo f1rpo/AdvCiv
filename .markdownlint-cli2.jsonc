@@ -7,7 +7,7 @@
   "ignores": [
     "_0_Common_Docs/**",
     "LLM_Helpers/outputs/**",
-    "LLM_Helpers/examples/**",
+    "_1_AdvCiv-SAS/Docs/examples/**",
     "LLM_Helpers/context/commit_diffs/**",
     "LLM_Helpers/context/mapscript_refs/*/**",
     "**/node_modules/**",

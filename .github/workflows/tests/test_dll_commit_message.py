@@ -3,6 +3,10 @@
 # <!-- custom: Use real Git commits and binary mutations so the intent marker is required on each offending commit, including roots, merges, multi-commit pushes and amended-history events. (GPT-6.1-Sol) -->
 
 from pathlib import Path
+# <!-- custom: Construct matching full build reports for real Git fixtures, including stale hashes and rejected Debug-opt evidence. (GPT-6.1-Sol) -->
+import hashlib
+import importlib
+import json
 import subprocess
 import sys
 import tempfile
@@ -11,7 +15,8 @@ from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / ".github/workflows/build/repository"))
-import dll_commit_message as checker
+# <!-- custom: Load the subject-folder checker after adding its path, without placing an import statement below executable setup. (GPT-6.1-Sol) -->
+checker = importlib.import_module("dll_commit_message")
 
 
 class DLLCommitMessageTests(unittest.TestCase):
@@ -43,6 +48,74 @@ class DLLCommitMessageTests(unittest.TestCase):
     def dll_commit(self, message, data=b'\0binary fixture'):
         self.write('Assets/CvGameCoreDLL.dll', data)
         return self.commit(message)
+
+    def summary_commit(self, summary_changes=None, include_summary=True, data=b'shipped DLL'):
+        self.write('CvGameCoreDLL/Project/build_with_report.ps1', b'# fixture wrapper')
+        self.write('Assets/CvGameCoreDLL.dll', data)
+        if include_summary:
+            summary = dict(configuration='Release', status='SUCCEEDED', request='BUILD',
+                           startedUtc='2026-10-12T10:00:00.000Z', endedUtc='2026-10-12T10:01:00.000Z',
+                           durationMilliseconds=60000, warningCount=2, errorCount=0, exitCode=0, logFile='AdvCiv.log',
+                           dllAfter=dict(sha256=hashlib.sha256(data).hexdigest(), sizeBytes=len(data)),
+                           branch='fixture-branch', commit=self.git('rev-parse', 'HEAD'))
+            summary.update(summary_changes or {})
+            self.write('Assets/CvGameCoreDLL.dll.build.json', json.dumps(summary).encode())
+        return self.commit('Update DLL')
+
+    def test_current_shipped_evidence_required_without_binary_changes(self):
+        self.summary_commit()
+        (self.repo / 'Assets/CvGameCoreDLL.dll.build.json').unlink()
+        head = self.commit('Remove JSON without changing DLL')
+        self.assertEqual(checker.dll_paths(self.repo, head), [])
+        self.assertTrue(checker.shipped_build_errors(self.repo, head))
+
+    def test_source_only_commit_with_matching_evidence_passes(self):
+        self.summary_commit()
+        self.write('source.cpp', b'int changed;')
+        head = self.commit('Source only')
+        self.assertEqual(checker.shipped_build_errors(self.repo, head), [])
+
+    def test_local_report_cannot_repair_committed_missing_evidence(self):
+        head = self.summary_commit(include_summary=False)
+        self.write('Assets/CvGameCoreDLL.dll.build.json', b'{}')
+        self.write('Assets/AdvCiv.log', b'local output')
+        self.assertTrue(checker.shipped_build_errors(self.repo, head))
+
+    def test_matching_release_summary_passes(self):
+        commit = self.summary_commit()
+        self.assertEqual(checker.check(self.repo, [commit]), ([], 1))
+
+    def test_missing_summary_fails(self):
+        commit = self.summary_commit(include_summary=False)
+        self.assertTrue(checker.check(self.repo, [commit])[0])
+
+    def test_stale_summary_fails_and_working_tree_cannot_repair_it(self):
+        self.summary_commit()
+        commit = self.dll_commit('Update DLL', b'different DLL')
+        self.write('Assets/CvGameCoreDLL.dll', b'shipped DLL')
+        self.assertIn('does not match', checker.check(self.repo, [commit])[0][0])
+
+    def test_debug_failed_bad_time_and_invalid_counts_fail(self):
+        for fields in ({'configuration': 'Debug-opt'}, {'status': 'FAILED'}, {'errorCount': 1},
+                       {'durationMilliseconds': True}, {'startedUtc': 'invalid'},
+                       {'endedUtc': '2026-10-12T09:00:00Z'}, {'startedUtc': '2026-10-12T10:00:00'}):
+            with self.subTest(fields=fields):
+                # <!-- custom: Vary DLL bytes too; changing only JSON correctly does not trigger the DLL-update guard. (GPT-6.1-Sol) -->
+                commit = self.summary_commit(fields, data=json.dumps(fields).encode())
+                self.assertTrue(checker.check(self.repo, [commit])[0])
+
+    def test_json_without_committed_full_log_passes(self):
+        head = self.summary_commit()
+        self.assertFalse((self.repo / 'Assets/AdvCiv.log').exists())
+        self.assertEqual(checker.check(self.repo, [head]), ([], 1))
+        self.assertEqual(checker.shipped_build_errors(self.repo, head), [])
+
+    def test_deletion_needs_no_summary(self):
+        self.summary_commit()
+        (self.repo / 'Assets/CvGameCoreDLL.dll').unlink()
+        (self.repo / 'Assets/CvGameCoreDLL.dll.build.json').unlink()
+        commit = self.commit('Update DLL: remove binary')
+        self.assertEqual(checker.check(self.repo, [commit]), ([], 1))
 
     def test_dll_addition_without_marker_fails(self):
         commit = self.dll_commit('Source improvements')

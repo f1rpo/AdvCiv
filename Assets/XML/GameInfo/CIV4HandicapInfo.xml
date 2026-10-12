@@ -3,7 +3,7 @@
 <!-- Sid Meier's Civilization 4 -->
 <!-- Copyright Firaxis Games 2005 -->
 <!-- custom: GPT-5.2-Codex: comments about iAIPerEraModifier in Long_Comments_XML.txt #20 -->
-<!-- custom: note: a comparison and synthetic view vs Base AdvCiv 1.12 at each handicap is as of now provided at /LLM_Helpers/examples/handicap_infos_compared.md -->
+<!-- custom: note: a comparison and synthetic view vs Base AdvCiv 1.12 at each handicap is as of now provided at /_1_AdvCiv-SAS/Docs/examples/handicap/handicap_infos_compared.md -->
 <!-- Handicap Infos -->
 <Civ4HandicapInfo xmlns="x-schema:CIV4GameInfoSchema.xml">
 	<HandicapInfos>

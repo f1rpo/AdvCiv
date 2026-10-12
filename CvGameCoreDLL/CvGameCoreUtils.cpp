@@ -1,5 +1,6 @@
 #include "CvGameCoreDLL.h"
 #include "CvGameCoreUtils.h"
+#include "SASBuildProvenance.generated.h" // <!-- custom: Generated in the active target's temp directory before precompilation; embeds pre-build evidence so copying the DLL alone preserves it, with no sidecar dependency. (GPT-6.1-Sol) -->
 #include <winver.h> // <!-- custom: VS_FIXEDFILEINFO describes the binary resource version; version.dll APIs are resolved dynamically for optional diagnostics without a linker dependency. (GPT-6.1-Sol) -->
 #include "ReproTest.h" // <!-- custom: Read ENABLE_REPRO_TEST from its owning header so DLL diagnostics report the actual serialization instrumentation switch, including a source-enabled build. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 #include "CoreAI.h"
@@ -390,6 +391,24 @@ static SASBinaryDiagnosticContext const& getSASExeDiagnosticContext()
 	return kContext;
 }
 
+// <!-- custom: Query only the already-loaded Direct3D 9 module; never LoadLibrary a graphics wrapper merely for diagnostics.
+// The display logger calls this after Civ4 reports graphics initialized, so the cached module identity corresponds to the live D3D9 path used by this process. (ChatGPT-5.6-Sol) -->
+static SASBinaryDiagnosticContext const& getSASD3D9DiagnosticContext()
+{
+	static SASBinaryDiagnosticContext kContext;
+	static bool bInitialized = false;
+	if (!bInitialized)
+	{
+		HMODULE const hD3D9 = GetModuleHandleA("d3d9.dll");
+		if (hD3D9 != NULL)
+		{
+			bInitialized = true;
+			resolveSASBinaryDiagnosticContext(hD3D9, kContext);
+		}
+	}
+	return kContext;
+}
+
 static CvString getSASPETimestampUtc(DWORD uiTimestamp)
 {
 	if (uiTimestamp == 0)
@@ -416,6 +435,157 @@ static CvString getSASBinaryContextFields(SASBinaryDiagnosticContext const& kCon
 		szKind, getSASBinaryFingerprint(kContext).GetCString(), szKind, kContext.szLastWriteUtc.GetCString(),
 		kContext.uiPETimestamp, getSASPETimestampUtc(kContext.uiPETimestamp).GetCString(), kContext.szFileVersion.GetCString(), kContext.szProductVersion.GetCString());
 	return szContext;
+}
+
+// <!-- custom: Observe current build outputs independently of the pre-build facts embedded in the running DLL.
+// Size/FNV equality is practical identity evidence, not byte-by-byte comparison or cryptographic authentication. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+struct SASFileFingerprintContext
+{
+	SASFileFingerprintContext() : bExists(false), bReadable(false), iFileSize(-1), uiFingerprint(0) {}
+	bool bExists;
+	bool bReadable;
+	__int64 iFileSize;
+	unsigned __int64 uiFingerprint;
+};
+
+static SASFileFingerprintContext getSASFileFingerprintContext(CvString const& szPath)
+{
+	SASFileFingerprintContext kContext;
+	if (szPath.empty() || szPath == "-")
+		return kContext;
+	DWORD const uiAttributes = GetFileAttributesA(szPath.GetCString());
+	if (uiAttributes == INVALID_FILE_ATTRIBUTES || (uiAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+		return kContext;
+	kContext.bExists = true;
+	HANDLE const hFile = CreateFileA(szPath.GetCString(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (hFile == INVALID_HANDLE_VALUE)
+		return kContext;
+	DWORD uiSizeHigh = 0;
+	SetLastError(NO_ERROR);
+	DWORD const uiSizeLow = GetFileSize(hFile, &uiSizeHigh);
+	if (uiSizeLow != INVALID_FILE_SIZE || GetLastError() == NO_ERROR)
+		kContext.iFileSize = (__int64)(((unsigned __int64)uiSizeHigh << 32) | uiSizeLow);
+	unsigned __int64 uiHash = ((unsigned __int64)0xCBF29CE4 << 32) | 0x84222325;
+	unsigned __int64 const uiPrime = ((unsigned __int64)0x00000100 << 32) | 0x000001B3;
+	BYTE aucBuffer[64 * 1024];
+	DWORD uiRead = 0;
+	bool bReadOk = true;
+	for (;;)
+	{
+		if (!ReadFile(hFile, aucBuffer, sizeof(aucBuffer), &uiRead, NULL))
+		{
+			bReadOk = false;
+			break;
+		}
+		if (uiRead == 0)
+			break;
+		for (DWORD iI = 0; iI < uiRead; iI++)
+		{
+			uiHash ^= aucBuffer[iI];
+			uiHash *= uiPrime;
+		}
+	}
+	CloseHandle(hFile);
+	if (bReadOk)
+	{
+		kContext.bReadable = true;
+		kContext.uiFingerprint = uiHash;
+	}
+	return kContext;
+}
+
+static bool isSASDirectory(CvString const& szPath)
+{
+	DWORD const uiAttributes = GetFileAttributesA(szPath.GetCString());
+	return (uiAttributes != INVALID_FILE_ATTRIBUTES && (uiAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0);
+}
+
+static int countSASFilesWithSuffixRecursive(CvString const& szDirectory, char const* szSuffix)
+{
+	CvString szSearch = szDirectory + "\\*";
+	WIN32_FIND_DATAA kFindData;
+	HANDLE const hFind = FindFirstFileA(szSearch.GetCString(), &kFindData);
+	if (hFind == INVALID_HANDLE_VALUE)
+		return 0;
+	int iCount = 0;
+	do
+	{
+		if (strcmp(kFindData.cFileName, ".") == 0 || strcmp(kFindData.cFileName, "..") == 0)
+			continue;
+		CvString const szChild = szDirectory + "\\" + kFindData.cFileName;
+		if ((kFindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
+		{
+			if ((kFindData.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) == 0)
+				iCount += countSASFilesWithSuffixRecursive(szChild, szSuffix);
+		}
+		else
+		{
+			size_t const iLength = strlen(kFindData.cFileName);
+			size_t const iSuffixLength = strlen(szSuffix);
+			if (iLength >= iSuffixLength && stricmp(kFindData.cFileName + iLength - iSuffixLength, szSuffix) == 0)
+				iCount++;
+		}
+	} while (FindNextFileA(hFind, &kFindData));
+	FindClose(hFind);
+	return iCount;
+}
+
+static CvString getSASBuildProjectRoot()
+{
+	CvString szDllPath = getSASDllDiagnosticContext().szPath;
+	size_t const iDllSlash = szDllPath.find_last_of("\\/");
+	if (iDllSlash == CvString::npos)
+		return CvString("-");
+	CvString const szDllDirectory = szDllPath.substr(0, iDllSlash);
+	size_t const iAssetsSlash = szDllDirectory.find_last_of("\\/");
+	if (iAssetsSlash == CvString::npos)
+		return CvString("-");
+	CvString const szAssetsName = szDllDirectory.substr(iAssetsSlash + 1);
+	if (stricmp(szAssetsName.GetCString(), "Assets") != 0)
+		return CvString("-");
+	return CvString(szDllDirectory.substr(0, iAssetsSlash) + "\\CvGameCoreDLL\\Project");
+}
+
+static char const* getSASDllCandidateState(SASFileFingerprintContext const& kCandidate, SASBinaryDiagnosticContext const& kLoaded)
+{
+	if (!kCandidate.bExists)
+		return "MISSING";
+	if (!kCandidate.bReadable)
+		return "UNREADABLE";
+	if (!kLoaded.bFileReadable)
+		return "UNVERIFIABLE";
+	return (kCandidate.iFileSize == kLoaded.iFileSize && kCandidate.uiFingerprint == kLoaded.uiFingerprint ? "FINGERPRINT_MATCH" : "DIFFERENT_DLL");
+}
+
+static CvString getSASDllBuildProvenanceFields(SASBinaryDiagnosticContext const& kLoaded)
+{
+	// <!-- custom: The first candidate required manually copying/authenticating a text sidecar; embed only pre-build facts instead, using the existing DLL build configuration/compiler identity for the rest.
+	// These values survive deleting build artifacts; current tree observations below remain independent and cannot retroactively certify compiler reuse or a successful build invocation. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	int const iObjects = SAS_BUILD_PREEXISTING_OBJECT_COUNT;
+	int const iIncomplete = SAS_BUILD_PREEXISTING_INCOMPLETE_MARKER_COUNT;
+	int const iPch = SAS_BUILD_PREEXISTING_PCH;
+	char const* const szBaseline = (iObjects == 0 && iPch == 0 ? "CLEAN" : "REUSABLE_ARTIFACTS_PRESENT");
+
+	CvString const szProjectRoot = getSASBuildProjectRoot();
+	bool const bProjectTreePresent = (szProjectRoot != "-" && isSASDirectory(szProjectRoot));
+	CvString const szTargetDirectory = (bProjectTreePresent ? CvString(szProjectRoot + "\\" + getSASDllBuildConfiguration()) : CvString("-"));
+	CvString const szTempDirectory = (bProjectTreePresent ? CvString(szProjectRoot + "\\temp_files\\" + getSASDllBuildConfiguration()) : CvString("-"));
+	bool const bTempDirPresent = (bProjectTreePresent && isSASDirectory(szTempDirectory));
+	SASFileFingerprintContext const kBuildOutput = getSASFileFingerprintContext(bProjectTreePresent ? CvString(szTargetDirectory + "\\CvGameCoreDLL.dll") : CvString("-"));
+	SASFileFingerprintContext const kTempDll = getSASFileFingerprintContext(bTempDirPresent ? CvString(szTempDirectory + "\\CvGameCoreDLL.dll") : CvString("-"));
+	char const* const szBuildOutputState = (bProjectTreePresent ? getSASDllCandidateState(kBuildOutput, kLoaded) : "UNAVAILABLE");
+	char const* const szTempDllState = (bProjectTreePresent ? (bTempDirPresent ? getSASDllCandidateState(kTempDll, kLoaded) : "MISSING") : "UNAVAILABLE");
+
+	int const iTempObjectCount = (bTempDirPresent ? countSASFilesWithSuffixRecursive(szTempDirectory, ".obj") : -1);
+	int const iTempIncompleteMarkerCount = (bTempDirPresent ? countSASFilesWithSuffixRecursive(szTempDirectory, ".@") : -1);
+	// <!-- custom: MSVC 7.1 failed with C2039 because CvString + a string literal returns std::string, which has no GetCString(); use standard c_str() on these concatenated paths. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	int const iTempPchPresent = (bTempDirPresent ? (GetFileAttributesA((szTempDirectory + "\\CvGameCoreDLL.pch").c_str()) != INVALID_FILE_ATTRIBUTES ? 1 : 0) : -1);
+	int const iTempPdbPresent = (bTempDirPresent ? (GetFileAttributesA((szTempDirectory + "\\CvGameCoreDLL.pdb").c_str()) != INVALID_FILE_ATTRIBUTES ? 1 : 0) : -1);
+	CvString szFields;
+	szFields.Format("buildEvidence=EMBEDDED buildRequest=%s preexistingObjectCount=%d preexistingIncompleteMarkerCount=%d preexistingPch=%d reusableArtifactBaseline=%s projectTreePresent=%d buildOutputDllState=%s tempDirPresent=%d tempDllState=%s tempObjectCount=%d tempIncompleteMarkerCount=%d tempPchPresent=%d tempPdbPresent=%d",
+		SAS_BUILD_REQUEST, iObjects, iIncomplete, iPch, szBaseline,
+		bProjectTreePresent, szBuildOutputState, bProjectTreePresent ? (bTempDirPresent ? 1 : 0) : -1, szTempDllState, iTempObjectCount, iTempIncompleteMarkerCount, iTempPchPresent, iTempPdbPresent);
+	return szFields;
 }
 
 CvString getSASDllContextFields()
@@ -469,8 +639,8 @@ CvString getSASDllContextFields()
 	CvString szContext;
 	// <!-- custom: Build configuration already distinguishes Debug-opt/Release/Profile.
 	// Add the actual compiler identity and profiler/ReproTest compile switches because they can materially affect performance comparisons even when runtime logging settings match. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
-	szContext.Format("build=%s %s fassertEnabled=%d debugDefine=%d ndebugDefine=%d msvcVersion=%d msvcFullVersion=%d internalProfilerCompiled=%d tscProfilerCompiled=%d profileAIAutoPlayCompiled=%d reproTestCompiled=%d",
-			getSASDllBuildConfiguration(), getSASBinaryContextFields(kContext, "dll").GetCString(), iFAssertEnabled, iDebugDefine, iNDebugDefine,
+	szContext.Format("build=%s %s %s fassertEnabled=%d debugDefine=%d ndebugDefine=%d msvcVersion=%d msvcFullVersion=%d internalProfilerCompiled=%d tscProfilerCompiled=%d profileAIAutoPlayCompiled=%d reproTestCompiled=%d",
+			getSASDllBuildConfiguration(), getSASBinaryContextFields(kContext, "dll").GetCString(), getSASDllBuildProvenanceFields(kContext).GetCString(), iFAssertEnabled, iDebugDefine, iNDebugDefine,
 			iMsvcVersion, iMsvcFullVersion, iInternalProfilerCompiled, iTscProfilerCompiled, iProfileAIAutoPlayCompiled, iReproTestCompiled);
 	return szContext;
 }
@@ -491,6 +661,59 @@ static CvString getSASLowerAscii(CvString const& szValue)
 	for (int i = 0; i < (int)szLower.length(); i++)
 		szLower[i] = getSASLowerAscii(szLower[i]);
 	return szLower;
+}
+
+// <!-- custom: Classify the loaded D3D9 path without exposing an absolute path unless the caller explicitly permits it.
+// EXE_DIRECTORY is especially useful for identifying proxy/wrapper installs; WINDOWS_SYSTEM is the ordinary system Direct3D location, while OTHER avoids guessing at a product name. (ChatGPT-5.6-Sol) -->
+static CvString getSASParentDirectoryLower(CvString const& szPath)
+{
+	size_t const iSlash = szPath.find_last_of("\\/");
+	if (iSlash == CvString::npos)
+		return CvString("-");
+	CvString szDirectory = getSASLowerAscii(szPath.substr(0, iSlash));
+	for (int i = 0; i < (int)szDirectory.length(); i++)
+	{
+		if (szDirectory[i] == '/')
+			szDirectory[i] = '\\';
+	}
+	return szDirectory;
+}
+
+// <!-- custom: Replace the detail-level parameter with explicit path permission; the recorder owns the combined level/opt-in gate. (GPT-6.1-Sol) -->
+CvString getSASD3D9ContextFields(bool bIncludeExactPath)
+{
+	SASBinaryDiagnosticContext const& kContext = getSASD3D9DiagnosticContext();
+	CvString szLocation = "UNKNOWN";
+	if (kContext.bModuleFound && kContext.szPath != "-")
+	{
+		CvString const szD3DDirectory = getSASParentDirectoryLower(kContext.szPath);
+		CvString const szExeDirectory = getSASParentDirectoryLower(getSASExeDiagnosticContext().szPath);
+		char szSystemDirectory[MAX_PATH];
+		UINT const uiSystemLength = GetSystemDirectoryA(szSystemDirectory, MAX_PATH);
+		CvString szSystem = "-";
+		if (uiSystemLength > 0 && uiSystemLength < MAX_PATH)
+			szSystem = getSASLowerAscii(CvString(szSystemDirectory));
+		char szWindowsDirectory[MAX_PATH];
+		UINT const uiWindowsLength = GetWindowsDirectoryA(szWindowsDirectory, MAX_PATH);
+		CvString szSystem32 = "-";
+		CvString szSysWow64 = "-";
+		if (uiWindowsLength > 0 && uiWindowsLength < MAX_PATH)
+		{
+			CvString const szWindows = getSASLowerAscii(CvString(szWindowsDirectory));
+			szSystem32 = szWindows + "\\system32";
+			szSysWow64 = szWindows + "\\syswow64";
+		}
+		if (szD3DDirectory == szExeDirectory && szExeDirectory != "-")
+			szLocation = "EXE_DIRECTORY";
+		else if ((szD3DDirectory == szSystem && szSystem != "-") || szD3DDirectory == szSystem32 || szD3DDirectory == szSysWow64)
+			szLocation = "WINDOWS_SYSTEM";
+		else
+			szLocation = "OTHER";
+	}
+	CvString const szExactPath = (bIncludeExactPath && kContext.szPath != "-" ? getSASDiagnosticQuoted(kContext.szPath.GetCString()) : CvString("-"));
+	CvString szFields;
+	szFields.Format("%s location=%s exactPath=%s", getSASBinaryContextFields(kContext, "d3d9").GetCString(), szLocation.GetCString(), szExactPath.GetCString());
+	return szFields;
 }
 
 static bool isSASAbsoluteWindowsPath(CvString const& szPath)
@@ -630,7 +853,8 @@ static void getSASSteamManifestContext(CvString const& szExePath, CvString const
 		szBetaKey = getSASDiagnosticQuoted(szRawBetaKey.GetCString());
 }
 
-CvString getSASInstallContextFields(int iSystemContextLevel)
+// <!-- custom: Add independent exact-path permission so coarse distribution context remains available without absolute paths. (GPT-6.1-Sol) -->
+CvString getSASInstallContextFields(int iSystemContextLevel, bool bIncludeExactPaths)
 {
 	CvString szDistribution = "-";
 	CvString szSteamAppId = "-";
@@ -657,7 +881,7 @@ CvString getSASInstallContextFields(int iSystemContextLevel)
 		else if (szLowerExePath.find("\\firaxis games\\") != CvString::npos || szLowerExePath.find("/firaxis games/") != CvString::npos)
 			szDistribution = "FIRAXIS_RETAIL";
 		else szDistribution = "RETAIL_OR_OTHER";
-		if (iSystemContextLevel >= 3)
+		if (iSystemContextLevel >= 3 && bIncludeExactPaths)
 		{
 			if (kExeContext.szPath != "-")
 				szExePath = getSASDiagnosticQuoted(kExeContext.szPath.GetCString());

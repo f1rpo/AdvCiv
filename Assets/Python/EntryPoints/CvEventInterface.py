@@ -15,7 +15,7 @@
 
 import BugEventManager
 import SASDefineGuard
-from CvPythonExtensions import CyGlobalContext, CyGame # <!-- custom: Gate and dispatch the session diagnostic observation only after Python lifecycle handlers finalize BUG/Autolog state. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+from CvPythonExtensions import CyGlobalContext, CyGame, CyUserProfile # <!-- custom: Gate/dispatch the finalized session diagnostic and sample the active graphics-profile dropdowns that have no native DLL getter. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 
 eventManager = BugEventManager.BugEventManager()
 
@@ -36,9 +36,27 @@ def onEvent(argsList):
 		SASDefineGuard.verify_or_raise("CvEventInterface.onEvent[%s]" % tag)
 	result = getEventManager().handleEvent(argsList)
 	# <!-- custom: Autolog resets LoggingOn inside GameStart/OnLoad handlers; recording it from the earlier native session header reported pre-handler state.
-	# Emit once after all handlers return, with a caller gate before entering the DLL logger. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
-	if bSessionEvent and CyGlobalContext().getDefineINT("SAS_GAME_RECORD_LOG_LEVEL") > 0:
-		CyGame().logSASGameRecordDiagnosticContext()
+	# Emit once after all handlers return, with a caller gate before entering the DLL logger.
+	# UserProfile owns several active graphics dropdowns that the DLL cannot query; pass their raw values plus the derived AA sample count so reports can distinguish High/Medium/Low render behavior without per-turn polling. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	if bSessionEvent:
+		gc = CyGlobalContext()
+		if gc.getDefineINT("SAS_GAME_RECORD_LOG_LEVEL") > 0:
+			iRenderQuality = -1
+			iAntiAliasing = -1
+			iAntiAliasingSamples = -1
+			iGlobeViewRenderQuality = -1
+			iMovieQuality = -1
+			if gc.getDefineINT("SAS_GAME_RECORD_SYSTEM_CONTEXT_LEVEL") > 0:
+				profile = CyUserProfile()
+				iRenderQuality = profile.getRenderQualityLevel()
+				iAntiAliasing = profile.getAntiAliasing()
+				if iAntiAliasing == 0:
+					iAntiAliasingSamples = 0
+				elif iAntiAliasing > 0 and iAntiAliasing < 31:
+					iAntiAliasingSamples = 1 << iAntiAliasing
+				iGlobeViewRenderQuality = profile.getGlobeViewRenderLevel()
+				iMovieQuality = profile.getMovieQualityLevel()
+			CyGame().logSASGameRecordDiagnosticContext(iRenderQuality, iAntiAliasing, iAntiAliasingSamples, iGlobeViewRenderQuality, iMovieQuality)
 	return result
 
 def applyEvent(argsList):

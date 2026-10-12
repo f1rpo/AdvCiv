@@ -28,7 +28,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=148 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=149 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -71,10 +71,36 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
-### Revision 148 - SAS practical 6632
+### Revision 149 - SAS practical 6633
 
 - **Date:** 2026-10-12
 - **Git commit:** pending
+- **Change:** Add build-side DLL provenance and targeted graphics/runtime support context motivated by issue-reporting gaps, while reusing the recorder's existing source, binary, install, system and logging diagnostics.
+
+- A configuration-local generated header embeds `BUILD`/`REBUILD`/`UNKNOWN`, pre-build object/PCH state and unfinished `*.@` marker counts directly in the DLL, alongside its existing build-configuration/compiler identity.
+  - Generation precedes precompilation and invalidates the one embedding object so even a no-op build refreshes its evidence; artifact presence does not prove reuse.
+  - This replaces the initial sidecar design, which required an extra manual copy when installing a DLL; no sidecar parsing, authentication, installation or `linkCompleted` claim remains.
+  - IDE builds additionally keep a current full log/JSON pair, including Git identity, result/duration, recognized diagnostics, temporary artifacts and DLL hashes; post-build success/failure evidence stays outside the DLL and recorder.
+- Independent runtime project/temp observations report directory presence, output/temp DLL size/FNV-fingerprint states, object/PCH residue, PDB presence and unfinished-marker counts.
+  - Fingerprints provide practical identity evidence, not byte comparison or cryptographic authentication. Deleting/replacing build artifacts changes current observations without erasing embedded pre-build facts.
+  - Compiler-warning text is not scraped because localization, parallel output and stale logs make it unreliable; failed compile/link operations can leave unfinished markers instead.
+- `GAME_RECORD_D3D9_CONTEXT` records the loaded graphics-library identity and coarse origin (`EXE_DIRECTORY`, `WINDOWS_SYSTEM`, `OTHER`, or `UNKNOWN`) after graphics initialization; origin does not identify a particular wrapper product.
+- At system-context level 1+, the post-Python lifecycle diagnostic records Render Quality, AA index/sample count, Globe View quality and Movie Quality after GameStart/OnLoad.
+  - Level 0 skips profile access. The disabled AdvCiv Graphics Level preset and redundant resolution-profile index remain omitted.
+- System-context level 3 retains processor-count/RAM-capacity information; hardware identity, exact paths and process inspection additionally require separate supporting defines, all defaulting off and gating collection itself.
+  - Hardware opt-in records CPU vendor/model and Windows-enumerated GPU vendors/models/counts, without claiming which adapter Civ4 uses. Device IDs, serial numbers and hardware UUIDs are not emitted; RAM model collection is not implemented.
+  - Path opt-in permits absolute EXE/mod/D3D9 paths. Process opt-in permits priority, affinity, debugger and development-process observations, which describe sampling time rather than permanent state.
+- No per-turn hardware polling is added; D3D9 binary identity is cached, while existing source/binary/install/logging/save diagnostics remain complementary context.
+  - Wrapper-specific logs/settings and shader-pack fingerprints remain outside the recorder to avoid coupling it to one graphics add-on.
+
+- Centralize maintained samples under `Docs/examples/`: the unchanged raw SASGameRecord log and RNG-comparison report now share `sasgamerecord/`; helper output paths, documentation links and CI references follow the moves. Helper code remains in `LLM_Helpers/`.
+
+Developed with ChatGPT-5.6-Sol and GPT-6.1-Sol.
+
+### Revision 148 - SAS practical 6632
+
+- **Date:** 2026-10-12
+- **Git commit:** `9c6c31341fe24736c109520a747e686a0ca60865`
 - **Change:** Group recorder checks and behavioral tests by subject, restoring blocking revision-history validation alongside the other retained CI rules and automated helper tests.
 
 - Preserve recorder behavior, emitted fields and the existing revision-update policy; this revision identifies recorder-related checker/test reorganization and restored automation.
