@@ -4,7 +4,7 @@ import sys
 import unittest
 
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+REPO_ROOT = Path(__file__).resolve().parents[4]
 HELPER = REPO_ROOT / "LLM_Helpers" / "collapse_cpp_log_guards.py"
 HELPER_DIR = str(HELPER.parent)
 if HELPER_DIR not in sys.path:

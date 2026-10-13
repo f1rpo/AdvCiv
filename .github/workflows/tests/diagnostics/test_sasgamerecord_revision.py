@@ -7,7 +7,7 @@ import sys
 import tempfile
 import unittest
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT / ".github/workflows/build/diagnostics"))
 import sas_game_record_log as recorder
 

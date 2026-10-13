@@ -31,7 +31,7 @@ The checks are fairly straightforward as of now and notably include launch-guard
 On your end you generally don't need to update them unless our infrastructure changes, but for details if needed see: [the corresponding README](/.github/workflows/README.md).
 
 - Keep automated-helper folders and workflow categories aligned: every helper in a subject folder belongs to that category's workflow, with matching names so browsing the folder tells us what that workflow runs.
-- Specialized automation belongs to an explicitly named category too; shared helper reuse is fine, but do not mix unrelated checks into a catch-all workflow. Keep shared code in `lib/`, automated helper tests in `tests/`, and manual-only tooling outside the blocking `build/`/`checks-*.yml` structure.
+- Specialized automation belongs to an explicitly named category too; shared helper reuse is fine, but do not mix unrelated checks into a catch-all workflow. Keep shared code in `lib/`, automated helper tests in matching `tests/<subject>/` folders, and manual-only tooling outside the blocking `build/`/`checks-*.yml` structure.
 - GitHub workflow YAML files must remain directly under `.github/workflows/`; mirror the helper hierarchy through workflow filenames and display names. Give each check a descriptive named step so GitHub shows its progress and result separately.
 
 Release preparation: when preparing a stable release or substantial release update, use the living [AdvCiv-SAS Release Preparation and Release Checklist](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_Release_Process.md). It is intended for both the user and AI/LLM helpers; do not create/push tags or publish release pages unless the user explicitly asks.
@@ -42,7 +42,7 @@ Release preparation: when preparing a stable release or substantial release upda
 - Do not include practical commit numbers in commit messages: they can change across branches, rebases, merges and squashes.
 - When an explicitly authorized commit changes a tracked `.dll`, include the exact phrase `Update DLL` in its title or body (e.g. `- Update DLL`); the DLL commit-message CI check requires it.
   - This catches accidental inclusion of local test/Debug-opt binaries when the shipped Release DLL is updated less frequently than source commits.
-  - The marker does not authorize a binary update by itself. Intentionally shipped DLL updates also need the generated full `<DLL filename>.build.json` staged beside the Release DLL; the full `AdvCiv.log` remains a local diagnostic file. Ordinary build outputs remain local/Git-ignored.
+  - The marker does not authorize a binary update by itself. Intentionally shipped DLL updates also need the generated full `<DLL filename>.build.json` staged beside the DLL from configuration exactly `Release`; both paths must change in the same commit, and `Update DLL` without a changed pair fails; the full `AdvCiv.log` remains a local diagnostic file. Ordinary build outputs remain local/Git-ignored.
 
 ## Source analysis
 

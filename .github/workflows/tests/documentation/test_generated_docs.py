@@ -11,7 +11,7 @@ import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 # <!-- custom: Restore blocking checks in the automated subject folders; regression fixtures import those same helpers. (GPT-6.1-Sol) -->
 sys.path.insert(0, str(ROOT / ".github/workflows/build/documentation"))
 # <!-- custom: This fixture also uses the XML namespace helper; the XML and documentation tools now have separate subject folders. (GPT-6.1-Sol) -->

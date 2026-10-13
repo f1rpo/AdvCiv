@@ -329,7 +329,7 @@ We added in AdvCiv-SAS a new Timeline Tab in the Info Screen:
 - added optional caching (default as of now enabled, recommended) so it is more efficient and less computationally costly. Performance cost of this new tab measured to be none (2.33 seconds for 110 late game turns vs 2.35 seconds: within margin of error)
 - Done with the help of GPT-5.2-Codex, Claude code Sonnet 4.5, and Claude code Opus 4.5, thanks a lot!
 
-Note: a hybrid DLL compute + Python caching version was tried in [timeline-tab-dll-implementation branch](https://github.com/wonderingabout/AdvCiv-SAS/tree/timeline-tab-dll-implementation) but load times of the Timeline Tab were not much faster if at all so preferred the Python version for its simplicity.
+Note: a hybrid DLL compute + Python caching version was tried but load times of the Timeline Tab were not much faster at a glance if at all so preferred the Python version for simplicity.
 
 A full DLL caching + compute was tried but load times were noticeably slower than the full Python version, so dropped as well.
 
@@ -1021,8 +1021,6 @@ This possibly theoretically could be used to open other external files in Civ4 m
 
 ### Helpers
 
-For modders: i have made several scripts with AI assistance. We don't use them anymore in AdvCiv-SAS, but they can be found on the [python-scripts](https://github.com/wonderingabout/AdvCiv-SAS/tree/python-scripts) branch.
-
 Active helper scripts for LLM-assisted review and tuning live in [LLM_Helpers](/LLM_Helpers/). For example, [`compare_handicap_infos.py`](/LLM_Helpers/compare_handicap_infos.py) compares two explicit `CIV4HandicapInfo.xml` file paths, inside or outside this mod folder, and can generate a stable Markdown example such as [`handicap_infos_compared.md`](/_1_AdvCiv-SAS/Docs/examples/handicap/handicap_infos_compared.md) with changed fields, numeric deltas, percentage deltas, and an embedded TSV matrix.
 
 ### CI
@@ -1099,7 +1097,7 @@ Building through the Visual C++ 2010 Express project keeps the usual `AdvCiv.log
 
 - Each configuration keeps one current pair: `AdvCiv.log` for full output, and `CvGameCoreDLL.dll.build.json` for full Git/build/debug context, timing/result, diagnostics, temporary-artifact state and DLL hashes.
   - The JSON starts as `RUNNING` and finishes as `SUCCEEDED` or `FAILED`. An interrupted build can leave `RUNNING` behind, so it means no completion was recorded rather than proof that compilation is still active.
-- For an intentional shipped Release DLL update, copy/stage the DLL and matching full JSON together; keep `AdvCiv.log` locally for detailed investigations. CI requires the `Update DLL` message marker and a successful Release build report matching the DLL.
+- For an intentional shipped Release DLL update, copy/stage the DLL and matching full JSON together; keep `AdvCiv.log` locally for detailed investigations. CI requires both files to change together, the `Update DLL` message marker, and a matching successful build report with configuration exactly `Release`. A marker without a changed pair also fails.
 - Normal build outputs stay local and Git-ignored. We omit automatic timestamped archives and a separate compact JSON to avoid duplicate formats and routine cleanup; save a dated pair manually when needed.
 - These external development files have no in-game effect or runtime cost; local test installation still needs only the DLL.
 
@@ -1323,13 +1321,12 @@ Note 2: when sending this file or other logs to external/web LLMs such as ChatGP
 
 ## CuCuGS
 
-Recently, i've successfully replicated f1rpo's original CuCuGS-PoC approach that adds a custom custom game screen that we can customize despite it being seemingly otherwise unaccessible via DLL or python modding.[Claude code (VS Code extension)](/_1_AdvCiv-SAS/Docs/README_Authors.md#claude-code-vs-code-extension) heavily helped achieving that.
+I've successfully replicated f1rpo's original CuCuGS-PoC approach that adds a custom custom game screen that we can customize despite it being seemingly otherwise unaccessible via DLL or python modding.[Claude code (VS Code extension)](/_1_AdvCiv-SAS/Docs/README_Authors.md#claude-code-vs-code-extension) heavily helped achieving that.
 
-Note: currently not implemented in the main branch of AdvCiv-SAS but in a [separate branch](https://github.com/wonderingabout/AdvCiv-SAS/tree/CuCuGS-PoC-claude-code-test).
+Note: currently not implemented in the main branch of AdvCiv-SAS but in a formerly public separate branch.
 
 See:
 
-- [AdvCiv-SAS - CuCuGS: PR compare](https://github.com/wonderingabout/AdvCiv-SAS/pull/19)
 - [CFC forum CuCuGS topic](https://forums.civfanatics.com/threads/replacing-the-custom-game-screen-proof-of-concept.670307/post-16903059)
 
 <img src="./_1_AdvCiv-SAS/Images/LLM/claude_code_CuCuGS (1).PNG" alt="claude_code_CuCuGS (1).PNG" width="250"></img>

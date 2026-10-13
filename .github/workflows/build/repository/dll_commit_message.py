@@ -68,7 +68,8 @@ def event_commits(repo, event_name, event, head="HEAD"):
     return [commit_id(repo, head)]
 
 
-def dll_paths(repo, commit):
+# <!-- custom: Share the first-parent path diff with report validation so JSON-only changes cannot bypass the DLL pair/intent rule. (GPT-6.1-Sol) -->
+def changed_paths(repo, commit):
     lineage = git(repo, "rev-list", "--parents", "-n", "1", commit).decode().split()
     # <!-- custom: Compare merge commits to their first parent, just as the branch's new committed tree is compared to its prior tip.
 	# This catches an unmarked binary introduced by a merge as well as by an ordinary commit.
@@ -77,11 +78,16 @@ def dll_paths(repo, commit):
     options = ["diff-tree", "--no-commit-id", "--name-only", "--no-renames", "-r", "-z"]
     revisions = [lineage[1], commit] if len(lineage) > 1 else ["--root", commit]
     changed = git(repo, *options, *revisions).decode("utf-8", errors="surrogateescape").split("\0")
-    return sorted(path for path in changed if path.lower().endswith(".dll"))
+    return sorted(path for path in changed if path)
+
+
+# <!-- custom: Retain the DLL-only query for existing callers; pair validation uses the complete changed-path set above. (GPT-6.1-Sol) -->
+def dll_paths(repo, commit):
+    return [path for path in changed_paths(repo, commit) if path.lower().endswith(".dll")]
 
 
 # <!-- custom: Start build-report enforcement with trees containing the automatic report wrapper; historical DLL commits predate this requirement.
-# Read full reports, logs and DLLs from each checked commit, never the working tree or a later repairing commit.
+# Read reports and DLLs from each checked commit, never the working tree or a later repairing commit.
 # Deletions need intent but no build evidence. (GPT-6.1-Sol) -->
 def build_report_errors(repo, commit, paths):
     wrapper = "CvGameCoreDLL/Project/build_with_report.ps1"
@@ -97,9 +103,9 @@ def build_report_errors(repo, commit, paths):
             summary = json.loads(git(repo, "show", f"{commit}:{summary_path}").decode("utf-8-sig"))
             if not isinstance(summary, dict):
                 raise ValueError("expected a JSON object")
-            # <!-- custom: The distributed binary must be a Release-family build; the explicit intent marker alone also allowed accidental Debug-opt binaries. (GPT-6.1-Sol) -->
-            if summary.get("configuration") not in {"Release", "_Release-fast", "Final_Release-fast"}:
-                raise ValueError("requires a Release-family configuration")
+            # <!-- custom: The distributed binary must use exactly Release; the explicit intent marker alone also allowed accidental Debug-opt binaries. (GPT-6.1-Sol) -->
+            if summary.get("configuration") != "Release":
+                raise ValueError("requires configuration Release (fast, Debug and Profile builds are not accepted)")
             if summary.get("status") != "SUCCEEDED" or summary.get("request") not in {"BUILD", "REBUILD"}:
                 raise ValueError("requires a successful build/rebuild")
             for field in ("durationMilliseconds", "warningCount", "errorCount"):
@@ -131,19 +137,33 @@ def shipped_build_errors(repo, head):
     return build_report_errors(repo, head, ["Assets/CvGameCoreDLL.dll"])
 
 
+# <!-- custom: With build reporting available, a DLL and its JSON must change together and carry Update DLL; that marker without a pair also fails.
+# Apply pair enforcement prospectively from the reporting wrapper, while older binary commits retain their original intent check. (GPT-6.1-Sol) -->
 def check(repo, commits):
     errors = []
     updated = 0
     for ref in dict.fromkeys(commits):
         commit = commit_id(repo, ref)
-        paths = dll_paths(repo, commit)
-        if not paths:
-            continue
-        updated += 1
+        changed = set(changed_paths(repo, commit))
+        paths = sorted(path for path in changed if path.lower().endswith(".dll"))
+        reports = sorted(path for path in changed if path.lower().endswith(".dll.build.json"))
         message = git(repo, "show", "-s", "--format=%B", commit).decode("utf-8", errors="replace")
-        errors.extend(build_report_errors(repo, commit, paths))
-        if not MARKER.search(message):
-            errors.append(f"{commit[:12]}: changes {', '.join(paths)} but its commit title/body lacks the exact phrase 'Update DLL'")
+        marked = bool(MARKER.search(message))
+        paired_policy = bool(git(repo, "ls-tree", commit, "--", "CvGameCoreDLL/Project/build_with_report.ps1").strip())
+        if not paths and not (paired_policy and reports):
+            if paired_policy and marked:
+                errors.append(f"{commit[:12]}: contains 'Update DLL' but no DLL/build-JSON pair changed")
+            continue
+        updated += bool(paths)
+        affected = sorted(set(paths) | {path[:-len(".build.json")] for path in reports}) if paired_policy else paths
+        errors.extend(build_report_errors(repo, commit, affected))
+        if paired_policy:
+            for dll in affected:
+                report = dll + ".build.json"
+                if dll not in changed or report not in changed:
+                    errors.append(f"{commit[:12]}: {dll} and {report} must both change in this commit (including paired additions, removals or renames)")
+        if not marked:
+            errors.append(f"{commit[:12]}: changes {', '.join(affected)} but its commit title/body lacks the exact phrase 'Update DLL'")
     return errors, updated
 
 

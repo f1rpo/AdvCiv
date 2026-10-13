@@ -12,7 +12,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT / ".github/workflows/build/repository"))
 checker = importlib.import_module("dll_define_changes")
 
@@ -128,7 +128,7 @@ class DLLDefineChangesTests(unittest.TestCase):
     def test_debug_build_is_rejected(self):
         source = self.add_cpp_define()
         head = self.release("Debug-opt")
-        self.assertIn("Release-family", checker.check(self.repo, [source, head], head)[0][0])
+        self.assertIn("requires configuration Release", checker.check(self.repo, [source, head], head)[0][0])
 
     def test_renamed_define_requires_release(self):
         self.defines(["SAS_RENAMED"])

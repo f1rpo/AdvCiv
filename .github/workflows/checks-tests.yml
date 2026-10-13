@@ -18,5 +18,18 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Workflow and tooling behavioral regression tests
-        run: python -m unittest discover -s .github/workflows/tests -v
+      # <!-- custom: Match test folders to build subjects; explicit top-level discovery prevents tests/xml from shadowing the standard-library xml package. (GPT-6.1-Sol) -->
+      - name: Assets helper tests
+        run: python -m unittest discover -s .github/workflows/tests/assets -t .github/workflows -v
+      - name: Diagnostics helper tests
+        run: python -m unittest discover -s .github/workflows/tests/diagnostics -t .github/workflows -v
+      - name: Documentation helper tests
+        run: python -m unittest discover -s .github/workflows/tests/documentation -t .github/workflows -v
+      - name: Hygiene helper tests
+        run: python -m unittest discover -s .github/workflows/tests/hygiene -t .github/workflows -v
+      - name: Repository helper tests
+        run: python -m unittest discover -s .github/workflows/tests/repository -t .github/workflows -v
+      - name: Source helper tests
+        run: python -m unittest discover -s .github/workflows/tests/source -t .github/workflows -v
+      - name: XML helper tests
+        run: python -m unittest discover -s .github/workflows/tests/xml -t .github/workflows -v

@@ -1122,7 +1122,7 @@ python LLM_Helpers\reflow_markdown_prose.py _1_AdvCiv-SAS\Docs\README_Main_Chang
 
 ## Legacy XML duplicate discovery scanner (``scan_xml_duplicates-3.3.py``)
 
-`scan_xml_duplicates-3.3.py` is an older broad XML duplicate scanner kept here for reference and discovery work, on [AdvCiv-SAS@python-scripts branch's GitHub repository](https://github.com/wonderingabout/AdvCiv-SAS/blob/python-scripts/scan_xml_duplicates-3.3.py).
+`scan_xml_duplicates-3.3.py` is an older broad XML duplicate scanner kept here for reference and discovery work, on the formerly public AdvCiv-SAS `python-scripts` branch.
 
 This script scans `Assets/XML` recursively and reports repeated sibling XML entries based on a broad heuristic: if sibling tags repeat, it compares either their first child field/value or their direct text value.
 

@@ -7,7 +7,7 @@ These files are developer/repository automation, not Civ4 runtime files.
 - `checks-*.yml` splits blocking checks by subject so failures are independent and easy to locate.
 - `runtime-aip-predump-refresh.yml` refreshes the committed Sevopedia Leader AI Personality predump and opens/updates a PR only when the predump file changes. It can be run manually and also runs automatically after pushes that touch known AIP predump dependency files.
 - `build/` contains active automated check helpers grouped by subject.
-- `tests/` contains behavioral regression tests for the workflow/tooling helpers; `checks-tests.yml` runs the full suite automatically, and the same suite can be run locally.
+- `tests/<subject>/` mirrors the `build/<subject>/` hierarchy for workflow/tooling helper tests; `checks-tests.yml` runs the full suite automatically, and the same suite can be run locally.
 - `lib/` contains shared Python 3 helpers used by workflow scripts.
 - Future `release.yml` and `release/` checks can be added for release-only checks such as documentation marker cleanup and archive contents.
 
@@ -18,7 +18,7 @@ These scripts run outside Civ4, so they may use modern Python 3. They do not nee
 According to ChatGPT-5.5:
 
 - GitHub workflow checks live under [`.github/workflows`](/.github/workflows/).
-- Workflow YAML files stay directly in this folder. Active Python 3 check helpers live under `build/<subject>/`, helper regression tests under `tests/`, and shared helpers under `lib/`.
+- Workflow YAML files stay directly in this folder. Active Python 3 check helpers live under `build/<subject>/`, helper regression tests under matching `tests/<subject>/` folders, and shared helpers under `lib/`.
 - `checks-*.yml` files are the authoritative lists of blocking category checks.
 - The `.github/` workflow folder is development infrastructure and should stay excluded from player release archives through `.gitattributes`.
 
@@ -102,7 +102,7 @@ A [test run confirmed it fails](https://github.com/wonderingabout/AdvCiv-SAS/act
 
 ## Current automated checks
 
-The automated layout has two matching layers: workflow categories at `.github/workflows/checks-<subject>.yml`, and their Python helpers under `.github/workflows/build/<subject>/`. Helper regression tests are grouped separately under `tests/`.
+The automated layout has two matching layers: workflow categories at `.github/workflows/checks-<subject>.yml`, and their Python helpers under `.github/workflows/build/<subject>/`. Helper regression tests mirror those subjects under `tests/<subject>/`; `checks-tests.yml` runs each populated subject in its own named step. Categories without tests need no empty folder.
 
 | Helper/test area | Workflow |
 | --- | --- |
@@ -124,8 +124,16 @@ The category checks cover repository/shipping safety, text hygiene, maintained d
 All helper regression tests also run locally with:
 
 ```bash
-python -m unittest discover -s .github/workflows/tests -v
+python -m unittest discover -s .github/workflows/tests -t .github/workflows -v
 ```
+
+To run one subject locally, use the same top-level directory:
+
+```bash
+python -m unittest discover -s .github/workflows/tests/repository -t .github/workflows -v
+```
+
+The `-t` argument keeps test package names distinct from standard-library modules such as `xml`. Source-tool tests also cover related manual helpers in `LLM_Helpers`; the commit-diff packaging tests live with repository tooling.
 
 ## Helper reference
 
@@ -153,7 +161,7 @@ The commit-message marker makes that decision explicit and catches accidental bi
 
 Requires the exact, case-sensitive phrase `Update DLL` in the title or body of every checked commit that adds, modifies, deletes or renames a tracked `.dll` file anywhere in the repository. The extension is case-insensitive.
 
-For example, use `- Update DLL: install the tested Release build` in the commit body. Source-only commits need no marker.
+For example, use `- Update DLL: install the tested Release build` in the commit body. Source-only commits need no marker. With the reporting wrapper present, changing either a DLL or its `<DLL filename>.build.json` requires both paths to change in that same commit; `Update DLL` without a changed pair also fails.
 
 A later marked commit cannot excuse an earlier unmarked DLL update; each message is checked separately. Merge commits are compared against their first parent, and root commits include additions.
 
@@ -171,8 +179,9 @@ For commits containing the automatic `CvGameCoreDLL/Project/build_with_report.ps
 
 - The wrapper keeps one current full JSON report beside the DLL and its full `AdvCiv.log`; there is no separate compact format or automatic timestamped archive. Normal build outputs stay Git-ignored.
 - Copy/stage the full JSON with an intentionally shipped Release DLL; keep the full log locally. The report retains Git/debug context, timings, diagnostics, temporary-artifact state and DLL hashes; the local log preserves all emitted compiler output, including uncoded messages.
-- The guard requires a successful Release-family Build/Rebuild, zero exit/error status, ordered UTC timestamps, nonnegative duration/diagnostic counts, size/SHA-256 matching the committed binary. Warning counts may be nonzero.
+- The guard requires a successful Build/Rebuild with configuration exactly `Release`, zero exit/error status, ordered UTC timestamps, nonnegative duration/diagnostic counts, size/SHA-256 matching the committed binary. Warning counts may be nonzero.
 - Every current push/PR/manual head must retain the shipped `Assets/CvGameCoreDLL.dll` and its matching successful Release JSON, even if only source/docs changed. Missing, stale or deleted evidence fails; local uncommitted copies do not count.
+- Pair enforcement includes additions, removals and renames. Git compares file bytes: a byte-identical rebuilt DLL is unchanged, so its refreshed JSON cannot be committed alone.
 - Historical DLL deletions need no per-commit build evidence. A later report or an uncommitted local file cannot satisfy an earlier binary-changing commit; the current shipped-DLL requirement is checked separately at the head.
 - This is a consistency guard against accidental staging, not authenticated proof of compilation or source reproducibility. The recorded Git SHA is pre-build context, not necessarily the final shipping commit when source was uncommitted.
 

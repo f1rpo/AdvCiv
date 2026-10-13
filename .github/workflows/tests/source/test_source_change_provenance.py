@@ -9,7 +9,7 @@ import tempfile
 import unittest
 # <!-- custom: Remove duplicate subprocess/tempfile imports; the single imports above remain necessary for the real Git fixtures. (GPT-6.1-Sol) -->
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 # <!-- custom: Restore blocking checks in the automated subject folders; regression fixtures import those same helpers. (GPT-6.1-Sol) -->
 sys.path.insert(0, str(ROOT / ".github/workflows/build/source"))
 import source_change_provenance as checker

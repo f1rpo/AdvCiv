@@ -11,7 +11,7 @@ import tempfile
 import unittest
 
 
-HELPER = Path(__file__).resolve().parents[3] / "LLM_Helpers" / "reflow_custom_comments.py"
+HELPER = Path(__file__).resolve().parents[4] / "LLM_Helpers" / "reflow_custom_comments.py"
 spec = importlib.util.spec_from_file_location("reflow_custom_comments", HELPER)
 module = importlib.util.module_from_spec(spec)
 assert spec.loader is not None

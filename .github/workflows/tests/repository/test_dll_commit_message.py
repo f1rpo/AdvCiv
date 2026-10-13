@@ -13,7 +13,7 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT / ".github/workflows/build/repository"))
 # <!-- custom: Load the subject-folder checker after adding its path, without placing an import statement below executable setup. (GPT-6.1-Sol) -->
 checker = importlib.import_module("dll_commit_message")
@@ -96,11 +96,11 @@ class DLLCommitMessageTests(unittest.TestCase):
         self.assertIn('does not match', checker.check(self.repo, [commit])[0][0])
 
     def test_debug_failed_bad_time_and_invalid_counts_fail(self):
-        for fields in ({'configuration': 'Debug-opt'}, {'status': 'FAILED'}, {'errorCount': 1},
+        for fields in ({'configuration': 'Debug-opt'}, {'configuration': '_Release-fast'}, {'configuration': 'Final_Release-fast'}, {'status': 'FAILED'}, {'errorCount': 1},
                        {'durationMilliseconds': True}, {'startedUtc': 'invalid'},
                        {'endedUtc': '2026-10-12T09:00:00Z'}, {'startedUtc': '2026-10-12T10:00:00'}):
             with self.subTest(fields=fields):
-                # <!-- custom: Vary DLL bytes too; changing only JSON correctly does not trigger the DLL-update guard. (GPT-6.1-Sol) -->
+                # <!-- custom: Vary both artifacts so these cases isolate invalid build evidence rather than the separate pair-change requirement. (GPT-6.1-Sol) -->
                 commit = self.summary_commit(fields, data=json.dumps(fields).encode())
                 self.assertTrue(checker.check(self.repo, [commit])[0])
 

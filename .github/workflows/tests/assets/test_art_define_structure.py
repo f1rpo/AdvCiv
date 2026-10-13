@@ -5,7 +5,7 @@ import sys
 import unittest
 import xml.etree.ElementTree as ET
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(ROOT / ".github/workflows/build/assets"))
 import art_define_structure as art
 
