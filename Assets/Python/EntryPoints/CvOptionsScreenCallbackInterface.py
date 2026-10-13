@@ -1,4 +1,5 @@
 from CvPythonExtensions import *
+import SASGameRecordConfig # <!-- custom: Share lazy None-initialized level caches across recorder callbacks; disabled runs still avoid importing the settings collectors. (GPT-6.1-Sol) -->
 import CvScreensInterface
 import Popup as PyPopup
 import CvUtil
@@ -524,6 +525,11 @@ def handleExitButtonInput ( argsList ):
 	szName = argsList
 
 	saveProfile()
+	# <!-- custom: Civ4 profile/options changes are rare and may require reload/restart before every consumer adopts them.
+	# Resample configured profile values once when gameplay can resume; effective player-option transitions are logged natively at CvPlayer::setOption, avoiding false attribution of delayed startup synchronization to this screen. (ChatGPT-5.6-Sol) -->
+	if SASGameRecordConfig.getLogLevel() > 0:
+		import SASGameRecordSettings
+		SASGameRecordSettings.checkCiv4ProfileSettingsChanges("CIV4_OPTIONS_SCREEN_EXIT")
 	getTabControl().destroy()
 
 	return 1

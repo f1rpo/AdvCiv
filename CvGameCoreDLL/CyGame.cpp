@@ -327,6 +327,23 @@ void CyGame::logSASGameRecordDiagnosticContext(int iRenderQualityLevel, int iAnt
 	if (isSASGameRecordLogEnabled()) ::logSASGameRecordDiagnosticContext(iRenderQualityLevel, iAntiAliasingIndex, iAntiAliasingSamples, iGlobeViewRenderLevel, iMovieQualityLevel);
 }
 
+// <!-- custom: Keep Python's generic settings serialization behind the recorder master gate even though normal callers pre-gate collection; this also protects direct Python calls. The ini= accessor intentionally returns the path only to internal Python and never writes it. (ChatGPT-5.6-Sol) -->
+void CyGame::logSASGameRecordSessionSettings(std::string szEvent, std::string szReason, std::string szSource, std::string szGroup, int iCount, std::string szValues)
+{
+	if (isSASGameRecordLogEnabled()) ::logSASGameRecordSessionSettings(szEvent.c_str(), szReason.c_str(), szSource.c_str(), szGroup.c_str(), iCount, szValues.c_str());
+}
+
+// <!-- custom: Runtime map-view state must come from the native engine/interface rather than configured profile values; expose one level-2+ gated snapshot for GameStart/OnLoad/Python-reload baselines. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+void CyGame::logSASGameRecordRuntimeViewStateSnapshot(std::string szReason)
+{
+	if (gGameRecordLogLevel >= 2) ::logSASGameRecordRuntimeViewStateSnapshot(szReason.c_str());
+}
+
+std::string CyGame::getSASGameRecordIniFileArgument() const
+{
+	return ::getSASGameRecordIniFileArgument();
+}
+
 // <!-- custom: BUG DiplomacyUtil can see the exact package when a human rejects an AI ordinary trade offer, while the EXE does not expose that rejected package through a clean DLL callback.
 // Caller contract: Python must pre-gate level 2+ before constructing the raw lists and entering this bridge.
 // Do not add an internal recorder-level gate here: it would be too late to save Python list construction and would duplicate the caller's responsibility.

@@ -50,6 +50,7 @@
 #include <psapi.h> // <!-- custom: Reuse AdvCiv's existing Windows process-memory API for compact game-record performance context. (GPT-5.6-Sol) -->
 #include <tlhelp32.h> // <!-- custom: Level-3 runtime context samples only named Civ4 development/build processes at session start; no general process list or window titles are logged. (ChatGPT-5.6-Sol) -->
 #include <wchar.h> // <!-- custom: Declare _wcsicmp directly for the SDK-compatible wide-character process-name comparisons. (GPT-6.1-Sol) -->
+#include <string.h> // <!-- custom: Declare strnicmp/strcmp directly for the alternate ini= command-line token check and existing recorder string comparisons instead of relying on transitive SDK headers. (ChatGPT-5.6-Sol) -->
 #include <algorithm> // <!-- custom: Needed to deduplicate buffered plot-change/map-revelation coordinates within each turn. (GPT-5.6-Sol) -->
 #include <map> // <!-- custom: Level-3 city snapshot delta compression keeps small session-local previous-row state keyed by city identity/row family; disabled lower record levels never populate it. (ChatGPT-5.6-Sol) -->
 #include <utility> // <!-- custom: Needed for Great Person odds pairs in game-record city rows. (ChatGPT-5.5) -->
@@ -2479,6 +2480,106 @@ static char const* getSASGameRecordGraphicsQualityName(int iLevel)
 	case 2: return "LOW";
 	default: return "UNKNOWN";
 	}
+}
+
+// <!-- custom: Session-setting values are already percent-encoded in Python; keep the native bridge deliberately dumb and stable so a configuration string cannot alter row tokenization.
+// Snapshot/change rows carry turn + elapsed-turn context because settings may change between normal game checkpoints. (ChatGPT-5.6-Sol) -->
+void logSASGameRecordSessionSettings(char const* szEvent, char const* szReason, char const* szSource, char const* szGroup, int iCount, char const* szValues)
+{
+	CvGame const& kGame = GC.getGame();
+	logSASGameRecord("GAME_RECORD_SESSION_SETTINGS schema=1 turn=%d elapsed=%d event=%s reason=%s source=%s group=%s count=%d values=%s",
+		kGame.getGameTurn(), kGame.getElapsedGameTurns(), (szEvent == NULL ? "-" : szEvent), (szReason == NULL ? "-" : szReason),
+		(szSource == NULL ? "-" : szSource), (szGroup == NULL ? "-" : szGroup), std::max(0, iCount),
+		(szValues == NULL || szValues[0] == '\0' ? "-" : szValues));
+}
+
+// <!-- custom: GlobeLayerTypes is already defined by native CvEnums.h; this single formatter maps it to short log labels, including NONE/UNKNOWN.
+// A separate enum-generating registry would duplicate that existing definition; unlike building-focus/strategy descriptors, these labels have no shared iteration requirement. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+static char const* getSASGameRecordGlobeLayerName(GlobeLayerTypes eLayer)
+{
+	switch (eLayer)
+	{
+	case GLOBE_LAYER_STRATEGY: return "STRATEGY";
+	case GLOBE_LAYER_TRADE: return "TRADE";
+	case GLOBE_LAYER_UNIT: return "UNIT";
+	case GLOBE_LAYER_RESOURCE: return "RESOURCE";
+	case GLOBE_LAYER_RELIGION: return "RELIGION";
+	case GLOBE_LAYER_CULTURE: return "CULTURE";
+	case NO_GLOBE_LAYER: return "NONE";
+	case GLOBE_LAYER_UNKNOWN: return "UNKNOWN";
+	default: return "UNKNOWN";
+	}
+}
+
+// <!-- custom: The profile stores desired Grid/Bare Map/Yields/Scores choices, but the engine/interface own what is actually visible now.
+// Callers pre-gate live-view collection at level 2+; exact control/layer hooks emit later changes without turn-based polling.
+// The snapshot and native change helpers reject pre-final-initialization calls so they cannot create a stray pre-session record file.
+// Initialization is live game/load state, not an immutable XML setting; retain the inexpensive helper checks as well as caller pre-gates rather than caching a stale true value across sessions. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+void logSASGameRecordRuntimeViewStateSnapshot(char const* szReason)
+{
+	CvGame const& kGame = GC.getGame();
+	if (!kGame.isFinalInitialized())
+		return;
+	CvDLLEngineIFaceBase& kEngine = *gDLL->getEngineIFace();
+	CvDLLInterfaceIFaceBase& kUI = gDLL->UI();
+	CvString const szValues = CvString::format(
+		"bareMap=%d;globeLayer=%s;globeView=%d;grid=%d;scores=%d;yields=%d",
+		kUI.isBareMapMode(), getSASGameRecordGlobeLayerName(kGame.getCurrentLayer()),
+		kEngine.isGlobeviewUp(), kEngine.GetGridMode(), kUI.isScoresVisible(), kUI.isShowYields());
+	logSASGameRecordSessionSettings("SNAPSHOT", szReason, "NATIVE_RUNTIME_STATE", "CIV4_RUNTIME_VIEW_STATE", 6, szValues.GetCString());
+}
+
+void logSASGameRecordRuntimeViewBoolChange(char const* szReason, char const* szKey, bool bOldValue, bool bNewValue)
+{
+	if (!GC.getGame().isFinalInitialized() || bOldValue == bNewValue || szKey == NULL || szKey[0] == '\0')
+		return;
+	CvString const szValues = CvString::format("%s=%d>%d", szKey, bOldValue, bNewValue);
+	logSASGameRecordSessionSettings("CHANGE", szReason, "NATIVE_RUNTIME_STATE", "CIV4_RUNTIME_VIEW_STATE", 1, szValues.GetCString());
+}
+
+void logSASGameRecordRuntimeViewLayerChange(char const* szReason, GlobeLayerTypes eOldLayer, GlobeLayerTypes eNewLayer)
+{
+	if (!GC.getGame().isFinalInitialized() || eOldLayer == eNewLayer)
+		return;
+	CvString const szValues = CvString::format("globeLayer=%s>%s", getSASGameRecordGlobeLayerName(eOldLayer), getSASGameRecordGlobeLayerName(eNewLayer));
+	logSASGameRecordSessionSettings("CHANGE", szReason, "NATIVE_RUNTIME_STATE", "CIV4_RUNTIME_VIEW_STATE", 1, szValues.GetCString());
+}
+
+void logSASGameRecordPlayerOptionChange(PlayerTypes ePlayer, PlayerOptionTypes eOption, bool bOldValue, bool bNewValue)
+{
+	if (!GC.getGame().isFinalInitialized() || bOldValue == bNewValue || ePlayer != GC.getGame().getActivePlayer() || !checkEnumBounds(eOption))
+		return;
+	CvString const szValues = CvString::format("%s=%d>%d", GC.getPlayerOptionInfo(eOption).getType(), bOldValue, bNewValue);
+	logSASGameRecordSessionSettings("CHANGE", "PLAYER_OPTION_APPLIED", "ACTIVE_PLAYER_EFFECTIVE", "CIV4_PLAYER_OPTIONS_EFFECTIVE", 1, szValues.GetCString());
+}
+
+// <!-- custom: Civ4 documents command arguments such as ini=AdvCivDebug.ini and also accepts quoted paths. Parse only top-level whitespace/quotes and only the ini= token; this is intentionally not a general Windows command-line parser because the returned path is used internally for configured-file discovery and is never logged. (ChatGPT-5.6-Sol) -->
+std::string getSASGameRecordIniFileArgument()
+{
+	char const* szCommandLine = GetCommandLineA();
+	if (szCommandLine == NULL)
+		return std::string();
+	char const* p = szCommandLine;
+	while (*p != '\0')
+	{
+		while (*p == ' ' || *p == '\t')
+			p++;
+		if (*p == '\0')
+			break;
+		std::string szToken;
+		bool bQuoted = false;
+		while (*p != '\0' && (bQuoted || (*p != ' ' && *p != '\t')))
+		{
+			if (*p == '"')
+				bQuoted = !bQuoted;
+			else
+				szToken += *p;
+			p++;
+		}
+		if (szToken.length() >= 4 && strnicmp(szToken.c_str(), "ini=", 4) == 0)
+			return szToken.substr(4);
+	}
+	return std::string();
 }
 
 void logSASGameRecordDiagnosticContext(int iRenderQualityLevel, int iAntiAliasingIndex, int iAntiAliasingSamples, int iGlobeViewRenderLevel, int iMovieQualityLevel)

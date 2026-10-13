@@ -15,7 +15,8 @@
 
 import BugEventManager
 import SASDefineGuard
-from CvPythonExtensions import CyGlobalContext, CyGame, CyUserProfile # <!-- custom: Gate/dispatch the finalized session diagnostic and sample the active graphics-profile dropdowns that have no native DLL getter. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+from CvPythonExtensions import CyGame, CyUserProfile # <!-- custom: Shared lazy caches replace the former CyGlobalContext define reads; retain the finalized diagnostic bridge and raw graphics-profile sampling. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+import SASGameRecordConfig # <!-- custom: Share lazy None-initialized level caches across recorder callbacks; disabled runs still avoid importing the settings collectors. (GPT-6.1-Sol) -->
 
 eventManager = BugEventManager.BugEventManager()
 
@@ -39,14 +40,13 @@ def onEvent(argsList):
 	# Emit once after all handlers return, with a caller gate before entering the DLL logger.
 	# UserProfile owns several active graphics dropdowns that the DLL cannot query; pass their raw values plus the derived AA sample count so reports can distinguish High/Medium/Low render behavior without per-turn polling. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	if bSessionEvent:
-		gc = CyGlobalContext()
-		if gc.getDefineINT("SAS_GAME_RECORD_LOG_LEVEL") > 0:
+		if SASGameRecordConfig.getLogLevel() > 0:
 			iRenderQuality = -1
 			iAntiAliasing = -1
 			iAntiAliasingSamples = -1
 			iGlobeViewRenderQuality = -1
 			iMovieQuality = -1
-			if gc.getDefineINT("SAS_GAME_RECORD_SYSTEM_CONTEXT_LEVEL") > 0:
+			if SASGameRecordConfig.getSystemContextLevel() > 0:
 				profile = CyUserProfile()
 				iRenderQuality = profile.getRenderQualityLevel()
 				iAntiAliasing = profile.getAntiAliasing()
@@ -57,6 +57,13 @@ def onEvent(argsList):
 				iGlobeViewRenderQuality = profile.getGlobeViewRenderLevel()
 				iMovieQuality = profile.getMovieQualityLevel()
 			CyGame().logSASGameRecordDiagnosticContext(iRenderQuality, iAntiAliasing, iAntiAliasingSamples, iGlobeViewRenderQuality, iMovieQuality)
+			# <!-- custom: Build the broader user/configuration baseline only after session handlers settle BUG/Autolog state.
+			# Lazy import plus the master caller gate means disabled runs pay no settings-module import/collection cost. (ChatGPT-5.6-Sol) -->
+			import SASGameRecordSettings
+			szSettingsReason = "ON_LOAD"
+			if tag == "GameStart":
+				szSettingsReason = "GAME_START"
+			SASGameRecordSettings.logSessionSettings(szSettingsReason)
 	return result
 
 def applyEvent(argsList):
@@ -81,5 +88,10 @@ def initAfterReload():
 			import BugUtil
 			BugUtil.error("BugInit - failure rebuilding main interface after reloading Python modules")
 		getEventManager().fireEvent("PythonReloaded")
+		# <!-- custom: Python reload resets/replaces module state while a game may remain active.
+		# Re-establish one explicit configuration baseline so later change-only callbacks do not compare against stale/pre-reload caches. (ChatGPT-5.6-Sol) -->
+		if SASGameRecordConfig.getLogLevel() > 0 and CyGame().isFinalInitialized():
+			import SASGameRecordSettings
+			SASGameRecordSettings.logSessionSettings("PYTHON_RELOAD")
 
 initAfterReload()

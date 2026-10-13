@@ -28,7 +28,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=149 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=150 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -71,10 +71,24 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
+### Revision 150 - SAS practical 6634
+
+- **Date:** 2026-10-13
+- **Git commit:** pending
+- **Change:** Add a compact session-configuration baseline and change-only timeline, complementing existing canonical game/map-option rows without per-turn polling.
+  - Schema-1 `GAME_RECORD_SESSION_SETTINGS` rows use sorted, percent-encoded values and `old>new` changes for persistent BUG settings, selected Civ4/mod-INI startup keys, and configured Civ4 player/graphics/audio/view profile values.
+  - Separate configured player options from the active player's instantaneous effective state. Because the EXE can apply profile options after the GameStart baseline, effective transitions are recorded at `CvPlayer::setOption` instead of being misattributed to a later options-screen exit.
+  - At recorder level 2+, add a native live-view baseline and change-only rows for grid, Bare Map, yields, scoreboard visibility, globe view, and the resolved strategy/trade/unit/resource/religion/culture layer; configured profile preferences remain separately labeled. No UI polling or shortcut inference is added.
+  - BUG callbacks and Civ4 options-screen exit emit only relevant configured changes; Python reload establishes a fresh baseline. INI files are sampled only at the baseline.
+  - Lazy-cache Python recorder levels after first runtime use; native hooks reuse cached integers and pre-gate logging-only state reads/formatting. Initialization checks remain live across new/load sessions.
+  - Exclude free-form strings and paths, retaining numeric Field of View; preserve float precision, separate collector success from individual file readability, retain prior callback state after collection failures, and explicitly propagate shutdown/interrupt signals under Python 2.4.
+
+  - Runtime checks confirmed audio/BUG changes, correctly timed initial player-option application, grid/Bare Map/yields/scoreboard toggles, and all six named globe layers across new/load sessions; PythonErr.log remained empty. Globe-view on/off transitions and live camera zoom/scroll tracking were not verified by these samples.
+
 ### Revision 149 - SAS practical 6633
 
 - **Date:** 2026-10-12
-- **Git commit:** pending
+- **Git commit:** `7238c4c5ed9e5f9c6bc78be847d612c9b8114e90`
 - **Change:** Add build-side DLL provenance and targeted graphics/runtime support context motivated by issue-reporting gaps, while reusing the recorder's existing source, binary, install, system and logging diagnostics.
 
 - A configuration-local generated header embeds `BUILD`/`REBUILD`/`UNKNOWN`, pre-build object/PCH state and unfinished `*.@` marker counts directly in the DLL, alongside its existing build-configuration/compiler identity.

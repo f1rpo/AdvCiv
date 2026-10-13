@@ -16,6 +16,7 @@
 #include "CvGameTextMgr.h"
 #include "CvMessageControl.h"
 #include "CvBugOptions.h"
+#include "SASGameRecordLog.h" // <!-- custom: Native view-control transitions are recorded at their actual application point; avoid inferring live UI state from configured profile values. (ChatGPT-5.6-Sol) -->
 #include "SelfMod.h" // advc.092b
 #include <fstream> // advc.003d
 
@@ -1402,6 +1403,8 @@ void CvGame::doControl(ControlTypes eControl)
 	// <advc>
 	CvDLLInterfaceIFaceBase& kUI = gDLL->UI();
 	CvDLLEngineIFaceBase& kEngine = *gDLL->getEngineIFace();
+	// <!-- custom: Check the cached level before the live initialization state so disabled controls do no logging-only lifecycle queries; individual state getters below are sampled only at level 2+ after initialization, except Grid whose old value is already needed to toggle it. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	bool const bLogSASRuntimeView = (gGameRecordLogLevel >= 2 && isFinalInitialized());
 	CvUnit* pHeadSelectedUnit = kUI.getHeadSelectedUnit();
 	CvPlot* pSelectionPlot = kUI.getSelectionPlot();
 	// </advc>
@@ -1546,17 +1549,33 @@ void CvGame::doControl(ControlTypes eControl)
 		kUI.setInterfaceMode(INTERFACEMODE_SIGN);
 		break;
 
+	// <!-- custom: These controls have cheap authoritative getters immediately after the native toggle.
+	// Record only real state changes at level 2+; resource/unit layers are resolved separately by CvGame::reportCurrentLayer. (ChatGPT-5.6-Sol) -->
 	case CONTROL_GRID:
-		kEngine.SetGridMode(!kEngine.GetGridMode());
+	{
+		bool const bOldValue = kEngine.GetGridMode();
+		kEngine.SetGridMode(!bOldValue);
+		if (bLogSASRuntimeView) logSASGameRecordRuntimeViewBoolChange("CONTROL_GRID", "grid", bOldValue, kEngine.GetGridMode());
 		break;
+	}
 
 	case CONTROL_BARE_MAP:
+	{
+		bool bOldValue = false;
+		if (bLogSASRuntimeView) bOldValue = kUI.isBareMapMode();
 		kUI.toggleBareMapMode();
+		if (bLogSASRuntimeView) logSASGameRecordRuntimeViewBoolChange("CONTROL_BARE_MAP", "bareMap", bOldValue, kUI.isBareMapMode());
 		break;
+	}
 
 	case CONTROL_YIELDS:
+	{
+		bool bOldValue = false;
+		if (bLogSASRuntimeView) bOldValue = kUI.isShowYields();
 		kUI.toggleYieldVisibleMode();
+		if (bLogSASRuntimeView) logSASGameRecordRuntimeViewBoolChange("CONTROL_YIELDS", "yields", bOldValue, kUI.isShowYields());
 		break;
+	}
 
 	case CONTROL_RESOURCE_ALL:
 		kEngine.toggleResourceLayer();
@@ -1567,12 +1586,22 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_GLOBELAYER:
+	{
+		bool bOldValue = false;
+		if (bLogSASRuntimeView) bOldValue = kEngine.isGlobeviewUp();
 		kEngine.toggleGlobeview();
+		if (bLogSASRuntimeView) logSASGameRecordRuntimeViewBoolChange("CONTROL_GLOBELAYER", "globeView", bOldValue, kEngine.isGlobeviewUp());
 		break;
+	}
 
 	case CONTROL_SCORES:
+	{
+		bool bOldValue = false;
+		if (bLogSASRuntimeView) bOldValue = kUI.isScoresVisible();
 		kUI.toggleScoresVisible();
+		if (bLogSASRuntimeView) logSASGameRecordRuntimeViewBoolChange("CONTROL_SCORES", "scores", bOldValue, kUI.isScoresVisible());
 		break;
+	}
 
 	case CONTROL_LOAD_GAME:
 		gDLL->LoadGame();
@@ -1735,8 +1764,13 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_GLOBE_VIEW:
+	{
+		bool bOldValue = false;
+		if (bLogSASRuntimeView) bOldValue = kEngine.isGlobeviewUp();
 		kEngine.toggleGlobeview();
+		if (bLogSASRuntimeView) logSASGameRecordRuntimeViewBoolChange("CONTROL_GLOBE_VIEW", "globeView", bOldValue, kEngine.isGlobeviewUp());
 		break;
+	}
 
 	case CONTROL_DETAILS:
 		kUI.showDetails();
@@ -1866,8 +1900,13 @@ void CvGame::exitToMenu()
 // advc:
 void CvGame::setGlobeView(bool b)
 {
-	if (gDLL->getEngineIFace()->isGlobeviewUp() != b)
+	bool const bOldValue = gDLL->getEngineIFace()->isGlobeviewUp();
+	if (bOldValue != b)
+	{
 		gDLL->getEngineIFace()->toggleGlobeview();
+		// <!-- custom: Rise & Fall can change globe state through this wrapper rather than a ControlTypes command; sample the actual post-toggle value only behind the level/initialization gate so this path is tracked without polling. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+		if (gGameRecordLogLevel >= 2 && isFinalInitialized()) logSASGameRecordRuntimeViewBoolChange("SET_GLOBE_VIEW", "globeView", bOldValue, gDLL->getEngineIFace()->isGlobeviewUp());
+	}
 }
 
 

@@ -11220,6 +11220,9 @@ GlobeLayerTypes CvGame::getCurrentLayer() const
 // Used by CvMainInterface.py to tell the DLL which layer is active
 void CvGame::reportCurrentLayer(GlobeLayerTypes eLayer)
 {
+	// <!-- custom: Only capture logging-only previous state after the cached level/lifecycle gate; disabled runs retain the inherited layer operation without an extra state snapshot. (GPT-6.1-Sol) -->
+	bool const bLogSASRuntimeView = (gGameRecordLogLevel >= 2 && isFinalInitialized());
+	GlobeLayerTypes const eOldLayer = (bLogSASRuntimeView ? m_eCurrentLayer : NO_GLOBE_LAYER);
 	if (m_bLayerFromSavegame && eLayer != m_eCurrentLayer)
 	{
 		m_bLayerFromSavegame = false;
@@ -11234,6 +11237,9 @@ void CvGame::reportCurrentLayer(GlobeLayerTypes eLayer)
 			gDLL->getEngineIFace()->toggleUnitLayer(); // No setter available
 	}
 	else m_eCurrentLayer = eLayer;
+	// <!-- custom: Python resolves resource/unit/globe layers to the stable GlobeLayerTypes enum here.
+	// Log that resolved state rather than guessing from whichever shortcut/button initiated the UI update; preserve the savegame-restoration branch above unchanged. (ChatGPT-5.6-Sol) -->
+	if (bLogSASRuntimeView && eOldLayer != m_eCurrentLayer) logSASGameRecordRuntimeViewLayerChange("CURRENT_LAYER_RESOLVED", eOldLayer, m_eCurrentLayer);
 } // </advc.004m>
 
 // <advc.127b>

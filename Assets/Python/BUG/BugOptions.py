@@ -104,6 +104,7 @@
 #
 
 from CvPythonExtensions import *
+import SASGameRecordConfig # <!-- custom: Share lazy None-initialized level caches across recorder callbacks; disabled runs still avoid importing the settings collectors. (GPT-6.1-Sol) -->
 import BugConfig
 import BugDll
 import BugInit
@@ -781,6 +782,11 @@ class BaseOption(AbstractOption):
 	def onChanged(self, *args):
 		if not BugInit.g_initRunning:
 			self.doDirties(*args)
+			# <!-- custom: BUG already centralizes option changes here, so SASGameRecord can resample its safe option subset only when a user/config value actually changes.
+			# The settings module ignores pre-session callbacks; lazy import and the Define gate keep disabled runs cold. (ChatGPT-5.6-Sol) -->
+			if SASGameRecordConfig.getLogLevel() > 0:
+				import SASGameRecordSettings
+				SASGameRecordSettings.checkBugSettingsChanges("BUG_OPTION_CALLBACK")
 
 	def addDirty(self, obj):
 		if isinstance(obj, types.FunctionType):

@@ -9,6 +9,7 @@
 #include "AIStrategies.h" // <!-- custom: Exact AI strategy/victory-stage transition bridges use the native bitfield types while keeping the recorder interface type-safe. (ChatGPT-5.6-Sol) -->
 #include <vector> // <!-- custom: Recorder-owned technology-choice candidates and rare goody-result unit lists use std::vector directly; include its defining header rather than relying on transitive core includes. (ChatGPT-5.6-Sol) -->
 #include <utility> // <!-- custom: Public religion-decision provenance uses std::pair for already-computed candidate religion/value scores; include its defining header directly instead of relying on transitive core includes. (ChatGPT-5.6-Sol) -->
+#include <string> // <!-- custom: The SASGameRecord session-settings bridge exposes only the active ini= argument as std::string; include the defining header directly instead of relying on transitive core includes. (ChatGPT-5.6-Sol) -->
 
 // <!-- custom: Structured game-record rows for autoplay comparison, game analysis, user-assistance summaries, and external LLM review.
 // This is not a classic BBAI diagnostic category: it has its own XML defines, its own SASGameRecord_*.log files, and its own lightweight public header.
@@ -28,7 +29,7 @@ int getSASGameRecordTurnInterval();
 // Standalone docs/example-log/package refreshes do not require a bump.
 // Keep the matching revision-history entry in the same commit.
 // An anonymous enum keeps this a C++03 compile-time integer without a separate storage/linkage definition. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-enum { SAS_GAME_RECORD_REVISION = 149 };
+enum { SAS_GAME_RECORD_REVISION = 150 };
 // <!-- custom: Finalize buffered observations in the old game state before a new game or loaded save resets/replaces it. See KI#382. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 void finalizeSASGameRecordLogSession();
 void startSASGameRecordLogForNewGame();
@@ -36,6 +37,19 @@ void logSASGameRecordNewGameStarted();
 // <!-- custom: Python calls this once after GameStart/OnLoad dispatch completes so BUG/Autolog state reflects the current session, not its pre-handler value; callers must pre-gate logging. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 // <!-- custom: Python supplies graphics-profile dropdown values that are not exposed by the native DLL API; this remains a one-shot post-handler session diagnostic, not per-turn polling. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordDiagnosticContext(int iRenderQualityLevel, int iAntiAliasingIndex, int iAntiAliasingSamples, int iGlobeViewRenderLevel, int iMovieQualityLevel);
+// <!-- custom: Python-owned configuration sources use one compact row family for the post-handler baseline and rare change callbacks.
+// Values are percent-encoded before crossing the bridge, so the native writer never parses or guesses arbitrary configuration text. (ChatGPT-5.6-Sol) -->
+void logSASGameRecordSessionSettings(char const* szEvent, char const* szReason, char const* szSource, char const* szGroup, int iCount, char const* szValues);
+// <!-- custom: Runtime map-view state has authoritative native getters and exact application points, unlike configured profile preferences.
+// Keep one compact baseline plus change-only rows so support screenshots/view differences are reconstructible without UI polling. (ChatGPT-5.6-Sol) -->
+void logSASGameRecordRuntimeViewStateSnapshot(char const* szReason);
+void logSASGameRecordRuntimeViewBoolChange(char const* szReason, char const* szKey, bool bOldValue, bool bNewValue);
+void logSASGameRecordRuntimeViewLayerChange(char const* szReason, GlobeLayerTypes eOldLayer, GlobeLayerTypes eNewLayer);
+// <!-- custom: Effective player options are applied asynchronously after the post-GameStart Python baseline.
+// Log the native CvPlayer application point so startup synchronization and real user changes are not misattributed to an unrelated options-screen exit. (ChatGPT-5.6-Sol) -->
+void logSASGameRecordPlayerOptionChange(PlayerTypes ePlayer, PlayerOptionTypes eOption, bool bOldValue, bool bNewValue);
+// <!-- custom: The EXE can select an alternate CivilizationIV.ini through an ini= command-line argument. Expose only that raw argument internally to Python so the recorder can read the configured startup file; the path itself is never written to SASGameRecord. (ChatGPT-5.6-Sol) -->
+std::string getSASGameRecordIniFileArgument();
 void startSASGameRecordLogForLoadedSave();
 // <!-- custom: Record the exact checkpoint metadata embedded in a real CvGame serialization; checkpoint persistence is unconditional save provenance, while the caller pre-gates only this diagnostic row at level 1+. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 void logSASGameRecordSaveCheckpointSerialized(char const* szKind, int iTurn, int iElapsedTurn, char const* szUtc, uint uiMapRandState, uint uiSyncRandState, char const* szReason, char const* szOriginalBasename);

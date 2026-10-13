@@ -11,6 +11,7 @@
 #include "CvPopupInfo.h"
 #include "CvReplayInfo.h"
 #include "CvPlot.h"
+#include "SASGameRecordLog.h" // <!-- custom: Rise & Fall can force Bare Map outside CvGame controls; log that native view-state transition at its actual application point. (ChatGPT-5.6-Sol) -->
 
 using std::wstringstream;
 using std::vector;
@@ -529,8 +530,13 @@ void RiseFall::setPlayerControl(PlayerTypes civId, bool b) {
 
 void RiseFall::setUIHidden(bool b) {
 
-	if(gDLL->UI().isBareMapMode() != b)
+	bool const bOldBareMap = gDLL->UI().isBareMapMode();
+	if(bOldBareMap != b)
+	{
 		gDLL->UI().toggleBareMapMode();
+		// <!-- custom: This programmatic interlude transition bypasses CONTROL_BARE_MAP; sample its result only behind the level/initialization gate, without recurring UI sampling. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+		if (gGameRecordLogLevel >= 2 && GC.getGame().isFinalInitialized()) logSASGameRecordRuntimeViewBoolChange("RISE_FALL_UI_HIDDEN", "bareMap", bOldBareMap, gDLL->UI().isBareMapMode());
+	}
 	/*  toggleScoresVisible(): Isn't actually hidden b/c CvMainInterface.py doesn't
 		update itself during interlude.
 		toggleTurnLog(): Can't check if it's open. */

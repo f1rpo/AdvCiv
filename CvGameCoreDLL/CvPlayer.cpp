@@ -10640,7 +10640,14 @@ void CvPlayer::setFeatAccomplished(FeatTypes eFeat, bool bNewValue)
 
 void CvPlayer::setOption(PlayerOptionTypes eOption, bool bNewValue)
 {
+	// <!-- custom: The initial rev150 audio-only test reported nine gameplay-option changes on closing Options: its GameStart baseline had read zeros before the EXE applied the profile options through CvGame::sendPlayerOptions.
+	// Log the authoritative CvPlayer transition here so startup synchronization and later changes are recorded when applied; configured preferences remain separate, and an options-screen exit no longer claims those effective changes.
+	// Pre-gate the old-value read so disabled SASGameRecord adds only one cached integer comparison to this rare option-application path. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	bool const bLogSASOption = (gGameRecordLogLevel > 0 && GC.getGame().isFinalInitialized() && getID() == GC.getGame().getActivePlayer());
+	bool bOldValue = false;
+	if (bLogSASOption) bOldValue = m_abOptions.get(eOption);
 	m_abOptions.set(eOption, bNewValue);
+	if (bLogSASOption && bOldValue != bNewValue) logSASGameRecordPlayerOptionChange(getID(), eOption, bOldValue, bNewValue);
 	/*	<advc.004z>, advc.001: At game start, colors and plot indicators get
 		updated before player options are set. Need to do another update after
 		the recommendations option has been set. And, actually, should always

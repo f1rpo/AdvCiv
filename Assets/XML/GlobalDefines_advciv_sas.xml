@@ -2164,7 +2164,7 @@ Enforced by the turn_define_gamespeed CI check. (GPT-5.6 Thinking) -->
 		<DefineName>SAS_GAME_RECORD_PERFORMANCE_METRICS_ENABLE</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
-	<!-- custom: Optional system-context scope: 0 collects none; 1 adds display/options, graphics-profile settings and loaded D3D9 identity; 2 (default) also adds OS/runtime, architecture and coarse distribution context; 3 adds logical processor count and total RAM capacity.
+	<!-- custom: Optional system-context scope: 0 collects none; 1 adds display/options, configured graphics/audio/profile settings and loaded D3D9 identity; 2 (default) also adds OS/runtime, architecture and coarse distribution context; 3 adds logical processor count and total RAM capacity.
 	Hardware identity, exact paths and process inspection additionally require their separate opt-ins below, so richer diagnostics do not implicitly disclose device models or personal folder names.
 	Profile values are sampled after GameStart/OnLoad; display context waits for graphics initialization.
 	No per-turn hardware polling is added.
