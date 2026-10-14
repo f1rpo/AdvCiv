@@ -56,6 +56,8 @@ import PLE # PLE Code
 import MinimapOptions # advc.002a
 import RawYields # BUG - Raw Yields
 import WidgetUtil
+# <!-- custom: Revision-151 scoreboard/annotation runtime state lives only in CvMainInterface Python; route rare actual changes to SASGameRecord without polling redraw state. (ChatGPT-5.6-Sol) -->
+import SASGameRecordActions
 # <!-- custom: Register custom widget types once at module load so scoreboard-control and City Breakdown hover text works. (Claude code Sonnet 4.6 + GPT-5.6-Sol) -->
 WIDGET_SCORE_SCROLL_UP = WidgetUtil.createWidget("WIDGET_SCORE_SCROLL_UP")
 WIDGET_SCORE_SCROLL_DOWN = WidgetUtil.createWidget("WIDGET_SCORE_SCROLL_DOWN")
@@ -682,6 +684,8 @@ class CvMainInterface:
 		# <!-- custom: main-map annotation visibility toggle; signs/landmarks have no Python visibility flag, so hide caches them and removes engine billboards until restored. (GPT-5.5) -->
 		self.bAnnotationsVisible = True
 		self.aHiddenAnnotationSigns = []
+		# <!-- custom: Emit the local scoreboard baseline only after its lazy defaults have been resolved by the first real draw. (ChatGPT-5.6-Sol) -->
+		self.iSASScoreboardLoggedSession = 0
 
 ############## Basic operational functions ###################
 
@@ -6406,6 +6410,11 @@ class CvMainInterface:
 				screen.show("ScoreScrollDown")
 				screen.show("ScoreScrollDownFast")
 
+		# <!-- custom: The first draft sampled before autocenter/draw clamped the scroll offset and marked success even when native logging rejected an early call.
+		# Snapshot the final displayed state once per explicit session; failed/pre-initialization attempts remain pending. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+		if self.iSASScoreboardLoggedSession != SASGameRecordActions.g_sessionSerial and SASGameRecordActions.logScoreboardSnapshot(self.iScoreScrollOffset, self.iScoreBgStyleLevel, self.bScoreAlwaysExpand, self.bScoreScrollAutocenterActivePlayer):
+			self.iSASScoreboardLoggedSession = SASGameRecordActions.g_sessionSerial
+
 	# <advc> Body cut from updateScoreStrings in order to reduce indentation
 	def playerScoreString(self, ePlayer, scores, bAlignIcons):
 		pPlayer = gc.getPlayer(ePlayer)
@@ -7180,52 +7189,79 @@ class CvMainInterface:
 				# <!-- custom: score scroll buttons; + scrolls down to more lower-ranked players, - scrolls back up toward rank 1.
 				# updateScoreStrings clamps the offset to [0, total - rows]. (Claude code Sonnet 4.6 + ChatGPT-5.5 + GPT-5.5) -->
 				elif fn == "ScoreScrollUp":
+					SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_SCOREBOARD, SASGameRecordActions.SCROLL_UP)
+					sasBefore = SASGameRecordActions.captureScoreboardState(self.iScoreScrollOffset, self.iScoreBgStyleLevel, self.bScoreAlwaysExpand, self.bScoreScrollAutocenterActivePlayer)
 					self.bScoreScrollAutocenterActivePlayer = False
 					self.iScoreScrollOffset += 1
 					self.updateScoreStrings()
+					SASGameRecordActions.logScoreboardChange(SASGameRecordActions.SCROLL_UP, sasBefore, self.iScoreScrollOffset, self.iScoreBgStyleLevel, self.bScoreAlwaysExpand, self.bScoreScrollAutocenterActivePlayer)
 					return 1
 				elif fn == "ScoreScrollDown":
+					SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_SCOREBOARD, SASGameRecordActions.SCROLL_DOWN)
+					sasBefore = SASGameRecordActions.captureScoreboardState(self.iScoreScrollOffset, self.iScoreBgStyleLevel, self.bScoreAlwaysExpand, self.bScoreScrollAutocenterActivePlayer)
 					self.bScoreScrollAutocenterActivePlayer = False
 					self.iScoreScrollOffset = max(0, self.iScoreScrollOffset - 1)
 					self.updateScoreStrings()
+					SASGameRecordActions.logScoreboardChange(SASGameRecordActions.SCROLL_DOWN, sasBefore, self.iScoreScrollOffset, self.iScoreBgStyleLevel, self.bScoreAlwaysExpand, self.bScoreScrollAutocenterActivePlayer)
 					return 1
 				# <!-- custom: fast scoreboard scroll keeps the useful medium jump but drops the too-niche fastest tier.
 				# Manual scroll disables autocenter before redraw; updateScoreStrings clamps overshoot to [0, total - rows]. (Claude code Opus 4.7 + ChatGPT-5.5 + GPT-5.5) -->
 				elif fn == "ScoreScrollUpFast":
+					SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_SCOREBOARD, SASGameRecordActions.SCROLL_UP_FAST)
+					sasBefore = SASGameRecordActions.captureScoreboardState(self.iScoreScrollOffset, self.iScoreBgStyleLevel, self.bScoreAlwaysExpand, self.bScoreScrollAutocenterActivePlayer)
 					self.bScoreScrollAutocenterActivePlayer = False
 					self.iScoreScrollOffset += self._scoreboardFastScrollStep()
 					self.updateScoreStrings()
+					SASGameRecordActions.logScoreboardChange(SASGameRecordActions.SCROLL_UP_FAST, sasBefore, self.iScoreScrollOffset, self.iScoreBgStyleLevel, self.bScoreAlwaysExpand, self.bScoreScrollAutocenterActivePlayer)
 					return 1
 				elif fn == "ScoreScrollDownFast":
+					SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_SCOREBOARD, SASGameRecordActions.SCROLL_DOWN_FAST)
+					sasBefore = SASGameRecordActions.captureScoreboardState(self.iScoreScrollOffset, self.iScoreBgStyleLevel, self.bScoreAlwaysExpand, self.bScoreScrollAutocenterActivePlayer)
 					self.bScoreScrollAutocenterActivePlayer = False
 					self.iScoreScrollOffset = max(0, self.iScoreScrollOffset - self._scoreboardFastScrollStep())
 					self.updateScoreStrings()
+					SASGameRecordActions.logScoreboardChange(SASGameRecordActions.SCROLL_DOWN_FAST, sasBefore, self.iScoreScrollOffset, self.iScoreBgStyleLevel, self.bScoreAlwaysExpand, self.bScoreScrollAutocenterActivePlayer)
 					return 1
 				# <!-- custom: one-click centering around the active player; unlike the persistent autocenter toggle, it does not change later manual scroll behavior. (ChatGPT-5.5) -->
 				elif fn == "ScoreScrollCenterActivePlayer":
+					SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_SCOREBOARD, SASGameRecordActions.CENTER_ACTIVE_PLAYER)
+					sasBefore = SASGameRecordActions.captureScoreboardState(self.iScoreScrollOffset, self.iScoreBgStyleLevel, self.bScoreAlwaysExpand, self.bScoreScrollAutocenterActivePlayer)
 					self._centerScoreboardScrollOnActivePlayer()
 					self.updateScoreStrings()
+					SASGameRecordActions.logScoreboardChange(SASGameRecordActions.CENTER_ACTIVE_PLAYER, sasBefore, self.iScoreScrollOffset, self.iScoreBgStyleLevel, self.bScoreAlwaysExpand, self.bScoreScrollAutocenterActivePlayer)
 					return 1
 				# <!-- custom: persistent scoreboard scroll autocenter toggle.
 				# When turned on, center immediately and keep centering on later score redraws until a manual scroll button turns it off. (ChatGPT-5.5) -->
 				elif fn == "ScoreScrollAutocenterActivePlayerToggle":
+					SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_SCOREBOARD, SASGameRecordActions.AUTOCENTER_TOGGLE)
+					sasBefore = SASGameRecordActions.captureScoreboardState(self.iScoreScrollOffset, self.iScoreBgStyleLevel, self.bScoreAlwaysExpand, self.bScoreScrollAutocenterActivePlayer)
 					self.bScoreScrollAutocenterActivePlayer = not self.bScoreScrollAutocenterActivePlayer
 					if self.bScoreScrollAutocenterActivePlayer:
 						self._centerScoreboardScrollOnActivePlayer()
 					self.updateScoreStrings()
+					SASGameRecordActions.logScoreboardChange(SASGameRecordActions.AUTOCENTER_TOGGLE, sasBefore, self.iScoreScrollOffset, self.iScoreBgStyleLevel, self.bScoreAlwaysExpand, self.bScoreScrollAutocenterActivePlayer)
 					return 1
 				# <!-- custom: scoreboard bg style cycle; advances PanelStyle level (lazily seeded from SAS_SCOREBOARD_BG_DEFAULT_STYLE on first use), redraw recreates the panel. (Claude code Opus 4.7) -->
 				elif fn == "ScoreBgStyle":
+					SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_SCOREBOARD, SASGameRecordActions.BACKGROUND_STYLE_CYCLE)
+					sasBefore = SASGameRecordActions.captureScoreboardState(self.iScoreScrollOffset, self.iScoreBgStyleLevel, self.bScoreAlwaysExpand, self.bScoreScrollAutocenterActivePlayer)
 					self.iScoreBgStyleLevel = (self.iScoreBgStyleLevel + 1) % len(self.aScoreBgStyleLevels)
 					self.updateScoreStrings()
+					SASGameRecordActions.logScoreboardChange(SASGameRecordActions.BACKGROUND_STYLE_CYCLE, sasBefore, self.iScoreScrollOffset, self.iScoreBgStyleLevel, self.bScoreAlwaysExpand, self.bScoreScrollAutocenterActivePlayer)
 					return 1
 				# <!-- custom: always-expand toggle; flips bScoreAlwaysExpand so expanded columns are shown permanently. (Claude code Sonnet 4.6) -->
 				elif fn == "ScoreExpandToggle":
+					SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_SCOREBOARD, SASGameRecordActions.EXPAND_LOCK_TOGGLE)
+					sasBefore = SASGameRecordActions.captureScoreboardState(self.iScoreScrollOffset, self.iScoreBgStyleLevel, self.bScoreAlwaysExpand, self.bScoreScrollAutocenterActivePlayer)
 					self.bScoreAlwaysExpand = not self.bScoreAlwaysExpand
 					self.updateScoreStrings()
+					SASGameRecordActions.logScoreboardChange(SASGameRecordActions.EXPAND_LOCK_TOGGLE, sasBefore, self.iScoreScrollOffset, self.iScoreBgStyleLevel, self.bScoreAlwaysExpand, self.bScoreScrollAutocenterActivePlayer)
 					return 1
 				elif fn == "AnnotationsVisible":
+					SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_MAP_ANNOTATIONS, SASGameRecordActions.VISIBILITY_TOGGLE)
+					bSASOldAnnotationsVisible = self.bAnnotationsVisible
 					self.toggleMapAnnotations()
+					SASGameRecordActions.logBooleanInterfaceChange(SASGameRecordActions.SCREEN_MAP_ANNOTATIONS, SASGameRecordActions.VISIBILITY_TOGGLE, "visible", bSASOldAnnotationsVisible, self.bAnnotationsVisible)
 					return 1
 				elif fn.startswith("BuildFilter"):
 					iNewFilter = inputClass.getData1()

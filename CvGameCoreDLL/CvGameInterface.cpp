@@ -1398,13 +1398,21 @@ bool CvGame::canDoControl(ControlTypes eControl) const
 
 void CvGame::doControl(ControlTypes eControl)
 {
+	// <!-- custom: Share one level/initialization snapshot within this control invocation; revision-150 runtime-view state stays available even when the revision-151+ action trace is independently disabled.
+	// The action switch is read only after the level-2 gate succeeds, while level 0 avoids both the lifecycle query and supporting-switch read. (GPT-6.1-Sol + ChatGPT-5.6-Sol) -->
+	bool const bLogSASRuntimeView = (gGameRecordLogLevel >= 2 && isFinalInitialized());
+	bool const bLogSASControl = (bLogSASRuntimeView && isSASGameRecordActionTraceEnabled());
 	if (!canDoControl(eControl))
+	{
+		// <!-- custom: The first draft lost requests rejected before the switch; the initial fix covered only turn controls.
+		// Use the same recorder-owned vocabulary for every traced rejected/accepted control, so save/load/camera rejections cannot silently disappear. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+		if (bLogSASControl) logSASGameRecordControlRequest(eControl, false);
 		return;
+	}
 	// <advc>
 	CvDLLInterfaceIFaceBase& kUI = gDLL->UI();
 	CvDLLEngineIFaceBase& kEngine = *gDLL->getEngineIFace();
 	// <!-- custom: Check the cached level before the live initialization state so disabled controls do no logging-only lifecycle queries; individual state getters below are sampled only at level 2+ after initialization, except Grid whose old value is already needed to toggle it. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
-	bool const bLogSASRuntimeView = (gGameRecordLogLevel >= 2 && isFinalInitialized());
 	CvUnit* pHeadSelectedUnit = kUI.getHeadSelectedUnit();
 	CvPlot* pSelectionPlot = kUI.getSelectionPlot();
 	// </advc>
@@ -1527,17 +1535,25 @@ void CvGame::doControl(ControlTypes eControl)
 		kUI.setLastSelectedUnit(NULL);
 		break;
 	}
+	// <!-- custom: Revision 151 logs a small causal control vocabulary before its consequence; `accepted` means this handler passed its immediate gate, not that a later save/load/turn operation necessarily completed.
+	// Keep these hooks level-2 pre-gated and separate from existing resulting-state rows. (ChatGPT-5.6-Sol) -->
 	case CONTROL_ENDTURN:
 	case CONTROL_ENDTURN_ALT:
-		if (kUI.isEndTurnMessage())
+	{
+		bool const bAccepted = kUI.isEndTurnMessage();
+		if (bLogSASControl) logSASGameRecordControlRequest(eControl, bAccepted);
+		if (bAccepted)
 			CvMessageControl::getInstance().sendTurnComplete();
 		break;
+	}
 
 	case CONTROL_FORCEENDTURN:
+		if (bLogSASControl) logSASGameRecordControlRequest(eControl, true);
 		CvMessageControl::getInstance().sendTurnComplete();
 		break;
 
 	case CONTROL_AUTOMOVES:
+		if (bLogSASControl) logSASGameRecordControlRequest(eControl, true);
 		CvMessageControl::getInstance().sendAutoMoves();
 		break;
 
@@ -1604,6 +1620,7 @@ void CvGame::doControl(ControlTypes eControl)
 	}
 
 	case CONTROL_LOAD_GAME:
+		if (bLogSASControl) logSASGameRecordControlRequest(eControl, true);
 		gDLL->LoadGame();
 		break;
 
@@ -1631,22 +1648,29 @@ void CvGame::doControl(ControlTypes eControl)
 		break;
 
 	case CONTROL_SAVE_GROUP:
+		if (bLogSASControl) logSASGameRecordControlRequest(eControl, true);
 		gDLL->SaveGame(SAVEGAME_GROUP);
 		break;
 
 	case CONTROL_SAVE_NORMAL:
+		if (bLogSASControl) logSASGameRecordControlRequest(eControl, true);
 		gDLL->SaveGame(SAVEGAME_NORMAL);
 		break;
 
 	case CONTROL_QUICK_SAVE:
-		if (!isNetworkMultiPlayer()) // SP only!
+	{
+		bool const bAccepted = !isNetworkMultiPlayer(); // SP only!
+		if (bLogSASControl) logSASGameRecordControlRequest(eControl, bAccepted);
+		if (bAccepted)
 		{
 			CvEventReporter::getInstance().preQuickSave(); // advc.106l
 			gDLL->QuickSave();
 		}
 		break;
+	}
 
 	case CONTROL_QUICK_LOAD:
+		if (bLogSASControl) logSASGameRecordControlRequest(eControl, !isNetworkMultiPlayer());
 		if (isNetworkMultiPlayer()) // SP only!
 			break;
 		// <advc.003d>
@@ -1674,33 +1698,61 @@ void CvGame::doControl(ControlTypes eControl)
 		gDLL->QuickLoad();
 		break;
 
+	// <!-- custom: Revision 151 pairs the existing camera control requests with authoritative Boolean result changes for modes that expose cheap getters.
+	// Cycle-flying-mode and camera rotation remain request-only because they have no equivalent Boolean result contract. (ChatGPT-5.6-Sol) -->
 	case CONTROL_ORTHO_CAMERA:
-		kEngine.SetOrthoCamera(!kEngine.GetOrthoCamera());
+	{
+		bool const bOldValue = kEngine.GetOrthoCamera();
+		if (bLogSASControl) logSASGameRecordControlRequest(eControl, true);
+		kEngine.SetOrthoCamera(!bOldValue);
+		if (bLogSASControl) logSASGameRecordCameraBoolChange(eControl, bOldValue, kEngine.GetOrthoCamera());
 		break;
+	}
 
 	case CONTROL_CYCLE_CAMERA_FLYING_MODES:
+		if (bLogSASControl) logSASGameRecordControlRequest(eControl, true);
 		kEngine.CycleFlyingMode(1);
 		break;
 
 	case CONTROL_ISOMETRIC_CAMERA_LEFT:
+		if (bLogSASControl) logSASGameRecordControlRequest(eControl, true);
 		kEngine.MoveBaseTurnLeft();
 		break;
 
 	case CONTROL_ISOMETRIC_CAMERA_RIGHT:
+		if (bLogSASControl) logSASGameRecordControlRequest(eControl, true);
 		kEngine.MoveBaseTurnRight();
 		break;
 
 	case CONTROL_FLYING_CAMERA:
-		kEngine.SetFlying(!kEngine.GetFlying());
+	{
+		// <!-- custom: With CivilizationIV.ini allowflying=0, Ctrl+Alt+F reached this handler and logged accepted requests but GetFlying reported no change.
+		// Setting allowflying=1 and restarting Civ4 produced flying=0>1 and 1>0; request acceptance alone does not prove the EXE applied a camera mode.
+		// Users who do not use Flying Camera can leave allowflying=0; that recorded preference does not mean the enabled-mode transition hook was untested. (GPT-6.1-Sol) -->
+		bool const bOldValue = kEngine.GetFlying();
+		if (bLogSASControl) logSASGameRecordControlRequest(eControl, true);
+		kEngine.SetFlying(!bOldValue);
+		if (bLogSASControl) logSASGameRecordCameraBoolChange(eControl, bOldValue, kEngine.GetFlying());
 		break;
+	}
 
 	case CONTROL_MOUSE_FLYING_CAMERA:
-		kEngine.SetMouseFlying(!kEngine.GetMouseFlying());
+	{
+		bool const bOldValue = kEngine.GetMouseFlying();
+		if (bLogSASControl) logSASGameRecordControlRequest(eControl, true);
+		kEngine.SetMouseFlying(!bOldValue);
+		if (bLogSASControl) logSASGameRecordCameraBoolChange(eControl, bOldValue, kEngine.GetMouseFlying());
 		break;
+	}
 
 	case CONTROL_TOP_DOWN_CAMERA:
-		kEngine.SetSatelliteMode(!kEngine.GetSatelliteMode());
+	{
+		bool const bOldValue = kEngine.GetSatelliteMode();
+		if (bLogSASControl) logSASGameRecordControlRequest(eControl, true);
+		kEngine.SetSatelliteMode(!bOldValue);
+		if (bLogSASControl) logSASGameRecordCameraBoolChange(eControl, bOldValue, kEngine.GetSatelliteMode());
 		break;
+	}
 
 	case CONTROL_CIVILOPEDIA:
 		GC.getPythonCaller()->callScreenFunction("pediaShow");
@@ -1763,6 +1815,8 @@ void CvGame::doControl(ControlTypes eControl)
 		GC.getPythonCaller()->showInfoScreen(0, getGameState() != GAMESTATE_ON);
 		break;
 
+	// <!-- custom: The action-filtering draft left this second globe-view path behind the action switch, suppressing its revision-150 runtime-state row when actions were disabled.
+	// Use the independent runtime-view gate for both old-state capture and output, matching CONTROL_GLOBELAYER/Grid/Yields. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	case CONTROL_GLOBE_VIEW:
 	{
 		bool bOldValue = false;
@@ -2968,6 +3022,13 @@ int CvGame::getScreenHeight() const
 // advc.004n:
 void CvGame::onCityScreenChange()
 {
+	// <!-- custom: The EXE state-change detector above is the authoritative city-screen transition point; record it here so unexpected autoplay/UI entries can be reconstructed without Python polling. (ChatGPT-5.6-Sol) -->
+	if (gGameRecordLogLevel >= 2 && isSASGameRecordActionTraceEnabled() && isFinalInitialized())
+	{
+		CvCity const* pSASCity = gDLL->UI().getHeadSelectedCity();
+		logSASGameRecordScreenAction("CITY_SCREEN", (m_bCityScreenUp ? "SHOW" : "HIDE"),
+			(pSASCity == NULL ? -1 : pSASCity->getOwner()), (pSASCity == NULL ? -1 : pSASCity->getID()));
+	}
 	changePlotListShift(-getPlotListShift());
 	/*	To fix a BtS issue with the bottom rows of the plot list
 		being empty after having shifted the plot list on the city screen.

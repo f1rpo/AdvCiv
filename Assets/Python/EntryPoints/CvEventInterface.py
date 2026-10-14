@@ -35,6 +35,11 @@ def onEvent(argsList):
 	bSessionEvent = (tag == "OnLoad" or tag == "GameStart")
 	if bSessionEvent:
 		SASDefineGuard.verify_or_raise("CvEventInterface.onEvent[%s]" % tag)
+	# <!-- custom: Reset action-baseline identity before session handlers can draw persistent UI objects; revision 151 also checks the cached action subject before importing its helper.
+	# Initialization checks still delay actual emission until the native session is ready. (GPT-6.1-Sol + ChatGPT-5.6-Sol) -->
+	if bSessionEvent and SASGameRecordConfig.getLogLevel() >= 2 and SASGameRecordConfig.getActionTraceEnabled():
+		import SASGameRecordActions
+		SASGameRecordActions.resetSession()
 	result = getEventManager().handleEvent(argsList)
 	# <!-- custom: Autolog resets LoggingOn inside GameStart/OnLoad handlers; recording it from the earlier native session header reported pre-handler state.
 	# Emit once after all handlers return, with a caller gate before entering the DLL logger.
@@ -81,6 +86,10 @@ def initAfterReload():
 	import BugInit
 	import BugPath
 	if not BugPath.isMac() and BugInit.init():
+		# <!-- custom: A Python reload replaces the main interface within the same native session; request a fresh resolved scoreboard baseline only when the action subject is enabled, as well as the independent settings baseline below. (GPT-6.1-Sol + ChatGPT-5.6-Sol) -->
+		if SASGameRecordConfig.getLogLevel() >= 2 and SASGameRecordConfig.getActionTraceEnabled():
+			import SASGameRecordActions
+			SASGameRecordActions.resetSession()
 		try:
 			import CvScreensInterface
 			CvScreensInterface.reinitMainInterface()

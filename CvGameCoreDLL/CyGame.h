@@ -96,6 +96,10 @@ public:
 	// <!-- custom: Session-configuration timeline bridge plus level-2+ native runtime-view snapshot and internal active-INI resolver; caller-side gates avoid Python collection work when SASGameRecord is disabled. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	void logSASGameRecordSessionSettings(std::string szEvent, std::string szReason, std::string szSource, std::string szGroup, int iCount, std::string szValues);
 	void logSASGameRecordRuntimeViewStateSnapshot(std::string szReason);
+	// <!-- custom: Revision 151 bridges Python-owned screen/navigation and local interface state into the native recorder without exposing a generic arbitrary-log-string API.
+	// Callers still pre-gate level 2+. (ChatGPT-5.6-Sol) -->
+	void logSASGameRecordScreenAction(std::string szScreen, std::string szAction, int iPrimary, int iSecondary);
+	void logSASGameRecordInterfaceState(std::string szComponent, std::string szEvent, std::string szReason, int iCount, std::string szValues);
 	std::string getSASGameRecordIniFileArgument() const;
 	// <!-- custom: Python diplomacy bridge for the exact package of AI ordinary offers rejected by a human.
 	// Raw item/data pairs are converted and logged only at SASGameRecord level 2+. (ChatGPT-5.6-Sol) -->

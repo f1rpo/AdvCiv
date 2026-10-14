@@ -11,6 +11,10 @@
 #include <utility> // <!-- custom: Public religion-decision provenance uses std::pair for already-computed candidate religion/value scores; include its defining header directly instead of relying on transitive core includes. (ChatGPT-5.6-Sol) -->
 #include <string> // <!-- custom: The SASGameRecord session-settings bridge exposes only the active ini= argument as std::string; include the defining header directly instead of relying on transitive core includes. (ChatGPT-5.6-Sol) -->
 
+// <!-- custom: Revision 151 added a commerce-logging CvPlayer reference above the previous forward-declaration block; CitySiteEvaluator.cpp then failed with C2065/C2143 because CvPlayer was not declared yet.
+// Declare it before the first signature rather than relying on caller include order or adding the full player header. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+class CvPlayer;
+
 // <!-- custom: Structured game-record rows for autoplay comparison, game analysis, user-assistance summaries, and external LLM review.
 // This is not a classic BBAI diagnostic category: it has its own XML defines, its own SASGameRecord_*.log files, and its own lightweight public header.
 // Call sites should still gate before invoking helpers so disabled logging does not compute logging-only arguments.
@@ -21,15 +25,20 @@
 // Callers must treat the cache as read-only and continue using gGameRecordLogLevel/getSASGameRecordLogLevel; only cacheSASGameRecordLogLevel writes it during GlobalDefines setup. (ChatGPT-5.6-Sol) -->
 extern int g_iSASGameRecordLogLevel;
 void cacheSASGameRecordLogLevel();
+// <!-- custom: Revision 151 keeps the causal action/interface subject independently suppressible without making every hot caller query XML.
+// Cache it beside the log level after all GlobalDefines/module overrides load; level-0 callers still short-circuit before consulting this switch. (ChatGPT-5.6-Sol) -->
+extern bool g_bSASGameRecordActionTraceEnabled;
+void cacheSASGameRecordActionTraceEnabled();
 __forceinline bool isSASGameRecordLogEnabled() { return g_iSASGameRecordLogLevel > 0; }
 __forceinline int getSASGameRecordLogLevel() { return g_iSASGameRecordLogLevel; }
+__forceinline bool isSASGameRecordActionTraceEnabled() { return g_bSASGameRecordActionTraceEnabled; }
 int getSASGameRecordTurnInterval();
 // <!-- custom: Monotonic official SASGameRecord downstream-update revision.
 // This is deliberately not a compatibility/schema promise: increment it for every intentional change to SASGameRecord implementation code, relevant bridges/call sites/configuration/checkers, or their code comments, even when emitted semantics are unchanged.
 // Standalone docs/example-log/package refreshes do not require a bump.
 // Keep the matching revision-history entry in the same commit.
 // An anonymous enum keeps this a C++03 compile-time integer without a separate storage/linkage definition. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-enum { SAS_GAME_RECORD_REVISION = 150 };
+enum { SAS_GAME_RECORD_REVISION = 151 };
 // <!-- custom: Finalize buffered observations in the old game state before a new game or loaded save resets/replaces it. See KI#382. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 void finalizeSASGameRecordLogSession();
 void startSASGameRecordLogForNewGame();
@@ -48,6 +57,20 @@ void logSASGameRecordRuntimeViewLayerChange(char const* szReason, GlobeLayerType
 // <!-- custom: Effective player options are applied asynchronously after the post-GameStart Python baseline.
 // Log the native CvPlayer application point so startup synchronization and real user changes are not misattributed to an unrelated options-screen exit. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordPlayerOptionChange(PlayerTypes ePlayer, PlayerOptionTypes eOption, bool bOldValue, bool bNewValue);
+// <!-- custom: Revision 151 adds a compact causal interface/action layer distinct from state snapshots: native controls report requests, Python screens report open/navigation events, and scoreboard local state reports only real changes.
+// Screen/interface strings are fixed machine-readable tokens assembled by SAS-owned call sites; never pass user-entered/free-form text through these bridges.
+// Callers pre-gate at level 2+ and, from revision 151 onward, the independent action-trace subject switch. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Accept the native control enum instead of separate action/source strings so accepted and rejected paths share one curated mapping. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+void logSASGameRecordControlRequest(ControlTypes eControl, bool bAccepted);
+void logSASGameRecordScreenAction(char const* szScreen, char const* szAction, int iPrimary = -1, int iSecondary = -1);
+void logSASGameRecordInterfaceState(char const* szComponent, char const* szEvent, char const* szReason, int iCount, char const* szValues);
+// <!-- custom: Four camera toggles have authoritative pre/post Boolean getters.
+// Keep their resulting state in the same compact interface family as scoreboard/annotation state, while rotation/flying-mode-cycle controls remain request-only because no equivalent Boolean result exists.
+// Replace the draft string triple with ControlTypes; one recorder-owned label list serves both request and camera-result serialization. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+void logSASGameRecordCameraBoolChange(ControlTypes eControl, bool bOldValue, bool bNewValue);
+// <!-- custom: Commerce setters can rebalance several percentages in one application.
+// Record the authoritative active-human result as one compact row instead of inferring slider intent from button presses. (ChatGPT-5.6-Sol) -->
+void logSASGameRecordCommercePercentChange(CvPlayer const& kPlayer, CommerceTypes eRequestedCommerce, bool bForced, int const* aiOldPercent);
 // <!-- custom: The EXE can select an alternate CivilizationIV.ini through an ini= command-line argument. Expose only that raw argument internally to Python so the recorder can read the configured startup file; the path itself is never written to SASGameRecord. (ChatGPT-5.6-Sol) -->
 std::string getSASGameRecordIniFileArgument();
 void startSASGameRecordLogForLoadedSave();
@@ -95,7 +118,6 @@ void logSASGameRecordTurnCompleted(int iGameTurn);
 class CvCity;
 class CvCityAI; // <!-- custom: Realized AI building-choice hooks accept a CvCityAI reference; forward-declare it so this lightweight recorder header does not pull CvCityAI.h into every caller. (GPT-5.6-Sol) -->
 // <!-- custom: Required by random-event APIs using CvPlayer references; this lightweight declaration fixed the resulting AgentIterator/CvPlayer compile errors. (GPT-5.6-Sol) -->
-class CvPlayer;
 class CvPlayerAI;
 class CvTeamAI;
 class CvArea;

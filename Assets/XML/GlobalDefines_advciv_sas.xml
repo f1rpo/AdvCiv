@@ -1993,11 +1993,18 @@ Enforced by the turn_define_gamespeed CI check. (GPT-5.6 Thinking) -->
 
 	<!-- custom: Dedicated structured SASGameRecord report, notably for autoplay comparison, general game analysis, user-assistance summaries, and external LLM review.
 	This is independent from the classic SAS_BBAI_LOG_ENABLE diagnostic master switch and writes to SASGameRecord_*.log, so it can produce compact GAME_RECORD_* rows without broad AI-decision spam.
-	Unlike BBAI diagnostics, this currently has no separate master switch because the record has only one log-level define: 0 disables it, higher values enable more detail.
+	The record has one overall log-level define: 0 disables it, while higher values enable more detail; subject-specific supporting switches can suppress selected expensive/noisy families without becoming separate recorder masters.
 	The level is cached once after all GlobalDefines/module overrides load so widespread disabled hooks are direct integer checks; change it before launching/reloading the DLL rather than expecting a runtime Define mutation to retune the recorder (the prior implementation also cached its first resolved value). (ChatGPT-5.5 + GPT-5.5 + ChatGPT-5.6-Sol) -->
 	<Define>
 		<DefineName>SAS_GAME_RECORD_LOG_LEVEL</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!-- custom: Keep revision-151+ causal user/action/interface rows independently suppressible at recorder level 2+.
+	Default: 1; preserves End Turn/save-load/control requests, active-human commerce changes, Python screen/Sevopedia events, city-screen transitions, scoreboard/annotation state, and camera results; 0 skips that whole action trace while retaining revision-150 session settings/runtime-view state and all unrelated recorder families.
+	The DLL and Python callers cache this fixed startup setting after XML is ready, so restart/reload the mod after changing it. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	<Define>
+		<DefineName>SAS_GAME_RECORD_ACTION_TRACE_ENABLE</DefineName>
+		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
 	<!-- custom: Level-3 periodic snapshots can also mirror the active player's resolved Foreign Advisor trade market: target-specific bonus/technology offerability, exact denial reasons, current pair GPT balance and maximum additional gold/GPT, plus compact strategic willingness for treaties/vassalage, city ceding and Glance-style war-for-hire targets.
 	1 enables this detailed active-viewer market scan; 0 skips all corresponding pair/item enumeration while preserving accepted/rejected deal history, ordinary economy/bonus rows, and every other SASGameRecord feature. (ChatGPT-5.6-Sol) -->

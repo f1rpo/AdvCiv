@@ -89,6 +89,9 @@ void CyGamePythonInterface()
 		// <!-- custom: Compact configuration baseline/change rows, native runtime-view baseline and internal alternate-INI discovery for SASGameRecord; the INI path itself is not logged. (ChatGPT-5.6-Sol) -->
 		.def("logSASGameRecordSessionSettings", &CyGame::logSASGameRecordSessionSettings)
 		.def("logSASGameRecordRuntimeViewStateSnapshot", &CyGame::logSASGameRecordRuntimeViewStateSnapshot)
+		// <!-- custom: Narrow revision-151 UI bridges accept only controlled screen/action labels or pre-serialized scalar interface state; no arbitrary user text crosses into the recorder. (ChatGPT-5.6-Sol) -->
+		.def("logSASGameRecordScreenAction", &CyGame::logSASGameRecordScreenAction)
+		.def("logSASGameRecordInterfaceState", &CyGame::logSASGameRecordInterfaceState)
 		.def("getSASGameRecordIniFileArgument", &CyGame::getSASGameRecordIniFileArgument)
 		// <!-- custom: Internal BUG diplomacy bridge; captures only resolved AI->human ordinary offers rejected at the UI boundary. (ChatGPT-5.6-Sol) -->
 		.def("logSASGameRecordRejectedAIOffer", &CyGame::logSASGameRecordRejectedAIOffer)

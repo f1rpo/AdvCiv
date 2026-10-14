@@ -48,9 +48,14 @@ import ScreenInput as PyScreenInput
 from CvScreenEnums import *
 from CvPythonExtensions import *
 import SASDefineGuard
+# <!-- custom: Major advisor/screen entry points are Python-owned, so revision 151 records their fixed screen IDs here rather than guessing from DLL widgets.
+# Emit SHOW_REQUEST before drawing: a drawing failure otherwise loses its causal row, and interfaceScreen may return without actually opening.
+# This is intent, not visibility confirmation. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+import SASGameRecordActions
 # K-Mod
 import BugOptionsScreen
 def showBugOptionsScreen(argsList=None):
+	SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_BUG_OPTIONS, SASGameRecordActions.SHOW_REQUEST)
 	BugOptionsScreen.showOptionsScreen()
 # K-Mod end
 
@@ -93,6 +98,7 @@ def numPlotListButtons():
 techChooser = CvTechChooser.CvTechChooser()
 def showTechChooser():
 	if (-1 != CyGame().getActivePlayer()):
+		SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_TECH_CHOOSER, SASGameRecordActions.SHOW_REQUEST)
 		techChooser.interfaceScreen()
 
 hallOfFameScreen = CvHallOfFameScreen.CvHallOfFameScreen(HALL_OF_FAME)
@@ -104,20 +110,24 @@ policyAdvisorScreen = CvPolicyAdvisorScreen.CvPolicyAdvisorScreen()
 def showPolicyAdvisorScreen():
 	if (-1 != CyGame().getActivePlayer()):
 		# <!-- custom: preserve last visited Policy tab on reopen, matching tabbed-advisor behavior used elsewhere. (GPT-5.3-Codex) -->
+		SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_POLICY_ADVISOR, SASGameRecordActions.SHOW_REQUEST)
 		policyAdvisorScreen.interfaceScreen()
 
 # <!-- custom: Religion advisor is integrated as a native Policy advisor tab; open Policy tab index for Religion instead of standalone CvReligionScreen. (GPT-5.3-Codex) -->
 def showReligionScreen():
 	if (-1 != CyGame().getActivePlayer()):
+		SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_POLICY_ADVISOR, SASGameRecordActions.SHOW_REQUEST, policyAdvisorScreen.PAGE_RELIGION)
 		policyAdvisorScreen.interfaceScreen([policyAdvisorScreen.PAGE_RELIGION])
 
 # <!-- custom: Corporation advisor is integrated as a native Policy advisor tab; open Policy tab index for Corporation instead of standalone CvCorporationScreen. (GPT-5.3-Codex) -->
 def showCorporationScreen():
 	if (-1 != CyGame().getActivePlayer()):
+		SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_POLICY_ADVISOR, SASGameRecordActions.SHOW_REQUEST, policyAdvisorScreen.PAGE_CORPORATION)
 		policyAdvisorScreen.interfaceScreen([policyAdvisorScreen.PAGE_CORPORATION])
 
 optionsScreen = CvOptionsScreen.CvOptionsScreen()
 def showOptionsScreen():
+	SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_OPTIONS, SASGameRecordActions.SHOW_REQUEST)
 	optionsScreen.interfaceScreen()
 
 # <!-- custom: split Foreign advisors: canonical Foreign (F4) is the trade cluster, while diplomacy/intel is the derivative F3 slot shell. (GPT-5.3-Codex) -->
@@ -135,13 +145,16 @@ def showForeignAdvisorScreen(argsList):
 		# <!-- custom: tab clicks from both Foreign shells are routed by the DLL through showForeignAdvisorScreen(iTab) using WIDGET_FOREIGN_ADVISOR.
 		# Keep canonical Foreign defaulting to trade (F4); only diplomacy/intel tab ids route to the F3 shell. (GPT-5.3-Codex) -->
 		if iScreen in FOREIGN_DIPLOMACY_TABS:
+			SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_FOREIGN_DIPLOMACY_ADVISOR, SASGameRecordActions.SHOW_REQUEST, iScreen)
 			foreignDiplomacyAdvisor.interfaceScreen(iScreen)
 		else:
+			SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_FOREIGN_ADVISOR, SASGameRecordActions.SHOW_REQUEST, iScreen)
 			foreignAdvisor.interfaceScreen(iScreen)
 
 def showForeignDiplomacyAdvisor():
 	if (-1 != CyGame().getActivePlayer()):
 		# <!-- custom: open F3 with the advisor's persisted tab state (same behavior as F4): -1 reuses last visited tab, and falls back to default only on first open. (GPT-5.4) -->
+		SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_FOREIGN_DIPLOMACY_ADVISOR, SASGameRecordActions.SHOW_REQUEST, -1)
 		foreignDiplomacyAdvisor.interfaceScreen(-1)
 
 # BUG - CustDomAdv - start
@@ -172,6 +185,7 @@ def createDomesticAdvisor():
 def showDomesticAdvisor(argsList=None):
 	if (-1 != CyGame().getActivePlayer()):
 		createDomesticAdvisor()
+		SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_DOMESTIC_ADVISOR, SASGameRecordActions.SHOW_REQUEST)
 		domesticAdvisor.interfaceScreen()
 
 # BUG - Military Advisor - start
@@ -198,13 +212,16 @@ def showMilitaryAdvisor():
 		if (AdvisorOpt.isBUG_MA()):
 			# TODO: move to CvBUGMilitaryAdvisor.interfaceScreen()
 			militaryAdvisor.IconGridActive = False
+		SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_MILITARY_ADVISOR, SASGameRecordActions.SHOW_REQUEST)
 		militaryAdvisor.interfaceScreen()
 # BUG - Military Advisor - end
 
 def showEspionageAdvisor():
 	if (-1 != CyGame().getActivePlayer()):
 		# <!-- custom: Espionage screen is integrated into CvForeignAdvisor; open its Espionage tab instead of a separate advisor instance. (GPT-5.3-Codex) -->
-		foreignDiplomacyAdvisor.interfaceScreen(foreignDiplomacyAdvisor.SCREEN_DICT["ESPIONAGE"])
+		iTab = foreignDiplomacyAdvisor.SCREEN_DICT["ESPIONAGE"]
+		SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_FOREIGN_DIPLOMACY_ADVISOR, SASGameRecordActions.SHOW_REQUEST, iTab)
+		foreignDiplomacyAdvisor.interfaceScreen(iTab)
 
 dawnOfMan = CvDawnOfMan.CvDawnOfMan(DAWN_OF_MAN)
 def showDawnOfMan(argsList):
@@ -254,6 +271,7 @@ def showInfoScreen(argsList):
 	if (-1 != CyGame().getActivePlayer()):
 		iTabID = argsList[0]
 		iEndGame = argsList[1]
+		SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_INFO_SCREEN, SASGameRecordActions.SHOW_REQUEST, iTabID, iEndGame)
 		infoScreen.showScreen(-1, iTabID, iEndGame)
 
 # <!-- custom: F7 is available after Religion/Corporation were integrated into Policy Advisor. (GPT-5.5) -->
@@ -261,6 +279,7 @@ worldAdvisorScreen = CvWorldAdvisorScreen.CvWorldAdvisorScreen(WORLD_ADVISOR)
 # <!-- custom: argsList=None because the engine invokes this both bare (keyboard hotkey) and with an argsList (e.g. on screen close/reopen); without the default, the latter raises "takes no arguments (1 given)". (Claude code Opus 4.7) -->
 def showWorldAdvisorScreen(argsList=None):
 	if (-1 != CyGame().getActivePlayer()):
+		SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_WORLD_ADVISOR, SASGameRecordActions.SHOW_REQUEST)
 		worldAdvisorScreen.showScreen()
 
 debugInfoScreen = CvDebugInfoScreen.CvDebugInfoScreen()
@@ -300,6 +319,7 @@ def showTechSplash(argsList):
 victoryScreen = CvVictoryScreen.CvVictoryScreen(VICTORY_SCREEN)
 def showVictoryScreen():
 	if (-1 != CyGame().getActivePlayer()):
+		SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_VICTORY_SCREEN, SASGameRecordActions.SHOW_REQUEST)
 		victoryScreen.interfaceScreen()
 
 # BUG - Sevopedia - start
@@ -571,10 +591,12 @@ def getWorldBuilderScreen():
 	return worldBuilderScreen
 
 def showWorldBuilderScreen():
+	SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_WORLD_BUILDER, SASGameRecordActions.SHOW_REQUEST)
 	worldBuilderScreen.interfaceScreen()
 
 def hideWorldBuilderScreen():
 	worldBuilderScreen.killScreen()
+	SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_WORLD_BUILDER, SASGameRecordActions.HIDE)
 
 def WorldBuilderToggleUnitEditCB():
 	worldBuilderScreen.toggleUnitEditCB()
@@ -882,10 +904,12 @@ def WorldBuilderHandleDiploPlayerDropdownCB( argsList ):
 
 worldBuilderDiplomacyScreen = CvWorldBuilderDiplomacyScreen.CvWorldBuilderDiplomacyScreen()
 def showWorldBuilderDiplomacyScreen():
+	SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_WORLD_BUILDER_DIPLOMACY, SASGameRecordActions.SHOW_REQUEST)
 	worldBuilderDiplomacyScreen.interfaceScreen()
 
 def hideWorldBuilderDiplomacyScreen():
 	worldBuilderDiplomacyScreen.killScreen()
+	SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_WORLD_BUILDER_DIPLOMACY, SASGameRecordActions.HIDE)
 
 def handleWorldBuilderDiplomacyPlayerPullDownCB(argsList):
 	worldBuilderDiplomacyScreen.handlePlayerPullDownCB(int(argsList[0]))
@@ -974,6 +998,10 @@ def update (argsList):
 		screen.update(argsList[1])
 
 def onClose (argsList):
+	# <!-- custom: Record the engine's close callback even when a screen has no custom onClose handler.
+	# Numeric registered screen IDs avoid a duplicate screen-name registry; this records the callback, not a guarantee that an override closed the screen. (GPT-6.1-Sol) -->
+	if argsList[0] in HandleInputMap:
+		SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_PYTHON_SCREEN, SASGameRecordActions.CLOSE_CALLBACK, argsList[0])
 	# allows overides for mods
 	if (CvScreenUtilsInterface.getScreenUtils().onClose(argsList)):
 		return

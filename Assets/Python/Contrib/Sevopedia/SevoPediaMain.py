@@ -60,6 +60,8 @@ from SASMagicNumbers import *
 from _sevopedia_helpers import *
 import _sevopedia_main_groupings as SAS_MainGroupings
 import SASDefineGuard
+# <!-- custom: Sevopedia owns its final normalized category/item navigation in Python; log only numeric destinations and fixed action labels, never search text. (ChatGPT-5.6-Sol) -->
+import SASGameRecordActions
 
 gc = CyGlobalContext()
 ArtFileMgr = CyArtFileMgr()
@@ -738,9 +740,10 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 			current = (SevoScreenEnums.PEDIA_MAIN, self.SAS_CATEGORY_DEFS[0][0])
 		# <!-- custom: keep Back/Next history across closing and reopening Sevopedia during the same game session.
 		# This lets players inspect several entries (e.g. Leader AIP pages), exit to the map, reopen Sevopedia, and still use Back/Next instead of rebuilding the same navigation chain. See KI#125. (GPT-5.5) -->
-		self.pediaJump(current[0], current[1], False, True)
+		self.pediaJump(current[0], current[1], False, True, SASGameRecordActions.SHOW)
 
-	def pediaJump(self, iCategory, iItem, bRemoveFwdList, bIsLink):
+	# <!-- custom: Optional action label lets Back/Forward preserve their cause while ordinary callers keep NAVIGATE; final normalized category/item values remain the authoritative destination. (ChatGPT-5.6-Sol) -->
+	def pediaJump(self, iCategory, iItem, bRemoveFwdList, bIsLink, szSASAction=SASGameRecordActions.NAVIGATE):
 		# <!-- custom: note: fixed a (seemingly base advciv) bug in in CvDLLWidgetData.cpp where iItem was -1 for obsolete bonuses redirecting from tech advisor, unlike obsolete buildings which didn't have the issue weirdly/strangely, with chatgpt's help and thanks to my prompt too and observation of the issue and or such but also chatgpt's help in guiding me bit too; i had put a workaround here to use a placeholder for iItem but no needed anymore now that this is fixed so reverted everything as base advciv code was minus this extra code comment, see also code comment at WIDGET_HELP_BONUS_REVEAL in CvDLLWidgetData.cpp or known issue number 22 as of now in known issues of advciv-sas readme for details as well. -->
 		bAddToHistory = False
 		if (not self.pediaHistory):
@@ -776,7 +779,8 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 					# Keep category history when no redirect occurs (e.g., no-item category). See KI#119. (GPT-5.3-Codex) -->
 					if self.pediaHistory and self.pediaHistory[-1] == (SevoScreenEnums.PEDIA_MAIN, iItem):
 						self.pediaHistory.pop()
-					return self.pediaJump(iItem, iFirstItem, bRemoveFwdList, False)
+					return self.pediaJump(iItem, iFirstItem, bRemoveFwdList, False, szSASAction)
+			SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_SEVOPEDIA, szSASAction, iCategory, iItem)
 			return
 
 		if (iCategory == SevoScreenEnums.PEDIA_BUILDINGS):
@@ -839,6 +843,7 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		# Tested: first Specialists open now has working UP/DOWN.
 		# Additional sanity checks, not confirmed original failures: first direct open to expanded panels works, and first direct open to the Leaders category animation panel works. (GPT-5.5) -->
 		self.SAS_refocusItemListForKeyboardNavigation()
+		SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_SEVOPEDIA, szSASAction, iCategory, iItem)
 
 	def determineNewConceptSubCategory(self, iItem):
 		info = gc.getNewConceptInfo(iItem)
@@ -2366,13 +2371,13 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		if (len(self.pediaHistory) > 1):
 			self.pediaFuture.append(self.pediaHistory.pop())
 			current = self.pediaHistory.pop()
-			self.pediaJump(current[0], current[1], False, True)
+			self.pediaJump(current[0], current[1], False, True, SASGameRecordActions.BACK)
 		return 1
 
 	def forward(self):
 		if (self.pediaFuture):
 			current = self.pediaFuture.pop()
-			self.pediaJump(current[0], current[1], False, True)
+			self.pediaJump(current[0], current[1], False, True, SASGameRecordActions.FORWARD)
 		return 1
 
 	def SAS_clearNavigation(self):

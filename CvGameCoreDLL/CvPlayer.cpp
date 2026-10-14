@@ -10362,6 +10362,16 @@ bool CvPlayer::setCommercePercent(CommerceTypes eCommerce, int iNewValue, bool b
 	if (iOldValue == iNewValue)
 		return false;
 
+	// <!-- custom: Revision 151 records the active human's authoritative commerce allocation only when detailed GameRecord diagnostics are enabled.
+	// Capture the before vector here because this setter can rebalance several flexible commerce types; disabled/AI paths and action-trace-off diagnostics avoid the extra loop entirely. (ChatGPT-5.6-Sol) -->
+	bool const bLogSASCommerceChange = (gGameRecordLogLevel >= 2 && isSASGameRecordActionTraceEnabled() && GC.getGame().isFinalInitialized() && isHuman() && isActive());
+	int aiSASOldCommercePercent[NUM_COMMERCE_TYPES];
+	if (bLogSASCommerceChange)
+	{
+		FOR_EACH_ENUM2(Commerce, eLoopCommerce)
+			aiSASOldCommercePercent[eLoopCommerce] = getCommercePercent(eLoopCommerce);
+	}
+
 	m_aiCommercePercent.set(eCommerce, iNewValue);
 
 	int iTotalCommercePercent = 0;
@@ -10439,6 +10449,7 @@ bool CvPlayer::setCommercePercent(CommerceTypes eCommerce, int iNewValue, bool b
 	}
 	// K-Mod end
 
+	if (bLogSASCommerceChange) logSASGameRecordCommercePercentChange(*this, eCommerce, bForce, aiSASOldCommercePercent);
 	return true;
 }
 

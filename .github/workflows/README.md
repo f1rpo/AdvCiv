@@ -582,6 +582,8 @@ The only explicit nonzero exceptions are `SAS_BBAI_SCORE_LOG_INTERVAL_TURNS_UNSC
 Keeps the blocking SASGameRecord CI intentionally small:
 
 - `SAS_GAME_RECORD_LOG_LEVEL` must be `0` in committed defaults.
+- `SAS_GAME_RECORD_ACTION_TRACE_ENABLE` must be `1`, and `SAS_GAME_RECORD_SYSTEM_CONTEXT_LEVEL` must be `2`.
+- Hardware identity, exact paths and process-context opt-ins must each be `0`; these checks catch accidentally committed diagnostic test overrides.
 - `SAS_GAME_RECORD_REVISION` must match the newest maintained revision-history heading.
 - The source-context row must still emit the revision constant.
 

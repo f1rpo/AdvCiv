@@ -28,7 +28,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=150 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=151 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -71,10 +71,28 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
+### Revision 151 - SAS practical 6636
+
+- **Date:** 2026-10-14
+- **Git commit:** pending
+- **Change:** Add a compact level-2+ action/interface trace alongside the independent settings/runtime-view record, distinguishing requests from their results without high-volume input.
+  - `SAS_GAME_RECORD_ACTION_TRACE_ENABLE` defaults to 1; setting it to 0 suppresses control/screen/interface/commerce action rows while retaining settings/runtime-view state and unrelated recorder detail. Record the configured switch in GAME_RECORD_LOG_SETTINGS.
+  - Native controls record End Turn/forced End Turn/automoves, save/load and selected camera requests; accepted describes the immediate handler gate, not asynchronous completion. All traced controls delivered to doControl also record rejection at its initial gate.
+  - Capture active-human commerce rebalancing at the authoritative setter, including every percentage changed by one request.
+  - Python advisor/options/WorldBuilder entry points emit SHOW_REQUEST before drawing; registered close callbacks and Sevopedia show/navigation/Back/Forward retain numeric IDs. Native city-screen SHOW/HIDE transitions include owner/city IDs when available.
+  - Snapshot final scoreboard state once per new/load/reload session after scroll clamping; record actual scroll/background/expand/autocenter and annotation changes separately from button actions.
+  - Pair Ortho, Flying, Mouse Flying and Top-down requests with change-only CAMERA results. One native ControlTypes label list serves requests and camera keys; rotation/flying-mode cycling remain request-only, with no live zoom/map-position polling.
+  - Cache levels and the subject switch, pre-gate logging-only reads/formatting, reuse Python wrappers and centralize named Python labels. Preserve Python 2.4 compatibility and declare CvPlayer before its first recorder signature.
+  - The existing CI checker enforces shipped defaults: recorder 0, action trace 1, system context 2, and hardware identity/exact paths/process-context opt-ins 0, catching accidentally staged test settings.
+  - Runtime checks confirmed turn/automove and save/load requests, commerce changes, scoreboard/annotation controls, advisor callbacks, Sevopedia Back/Forward, city transitions and one scoreboard baseline per tested session; Debug-opt compiled without warnings/errors and PythonErr.log stayed empty.
+  - All four camera modes produced both state transitions. Flying required allowflying=1 in CivilizationIV.ini and a restart; with 0, requests were accepted without an immediate state change. Capture AllowFlying in the startup settings baseline; later records may legitimately show 0 when the user does not use Flying Camera.
+  - With action recording off at level 3, action-family rows disappeared while Grid/Yields/globe-layer state remained. Rejected requests and no-op scoreboard actions were not specifically exercised; the final rename/folding compiled as Release without warnings/errors, and a post-rename sanity run confirmed revision 151, ACTION_TRACE_ENABLE=1 and emitted action/state rows.
+  - Some camera/filtering test logs identify the provisional revision as 152; this work was folded into revision 151 before finalizing the amendment. Buffered final rows can still be lost on a crash; no physical flushing guarantee is provided.
+
 ### Revision 150 - SAS practical 6634
 
 - **Date:** 2026-10-13
-- **Git commit:** pending
+- **Git commit:** `5248293cd375b2e789e75f493ffa5b1c357959f8`
 - **Change:** Add a compact session-configuration baseline and change-only timeline, complementing existing canonical game/map-option rows without per-turn polling.
   - Schema-1 `GAME_RECORD_SESSION_SETTINGS` rows use sorted, percent-encoded values and `old>new` changes for persistent BUG settings, selected Civ4/mod-INI startup keys, and configured Civ4 player/graphics/audio/view profile values.
   - Separate configured player options from the active player's instantaneous effective state. Because the EXE can apply profile options after the GameStart baseline, effective transitions are recorded at `CvPlayer::setOption` instead of being misattributed to a later options-screen exit.

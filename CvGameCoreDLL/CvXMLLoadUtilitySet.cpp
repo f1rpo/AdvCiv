@@ -236,6 +236,8 @@ bool CvXMLLoadUtility::SetGlobalDefines()
 	// <!-- custom: Do this only after every base/SAS/modular define file has had its final say.
 	// Before this point the zero-initialized recorder cache safely means disabled; afterwards no gameplay hook needs an out-of-line XML-backed level getter. (ChatGPT-5.6-Sol) -->
 	cacheSASGameRecordLogLevel();
+	// <!-- custom: Cache the independently switchable action trace only after every GlobalDefines/module override has loaded; ordinary level-0 hooks short-circuit before reading it. (ChatGPT-5.6-Sol) -->
+	cacheSASGameRecordActionTraceEnabled();
 	return true;
 }
 

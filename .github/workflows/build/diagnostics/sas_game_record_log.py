@@ -21,6 +21,13 @@ REVISION_SOURCE = Path("CvGameCoreDLL/SASGameRecordLog.cpp")
 REVISION_HISTORY = Path("_1_AdvCiv-SAS/Docs/README_SASGameRecord_Revisions.md")
 EXPECTED_GAME_RECORD_DEFAULTS = {
     "SAS_GAME_RECORD_LOG_LEVEL": 0,
+    # <!-- custom: Ship action tracing ready for deliberately enabled records while the recorder master stays off; catch accidental staging of an actions-off test override. (GPT-6.1-Sol) -->
+    "SAS_GAME_RECORD_ACTION_TRACE_ENABLE": 1,
+    # <!-- custom: Keep richer support context opt-in; catch hardware/path/process test settings accidentally staged for shipping. (GPT-6.1-Sol) -->
+    "SAS_GAME_RECORD_SYSTEM_CONTEXT_LEVEL": 2,
+    "SAS_GAME_RECORD_HARDWARE_IDENTITY_ENABLE": 0,
+    "SAS_GAME_RECORD_EXACT_PATHS_ENABLE": 0,
+    "SAS_GAME_RECORD_PROCESS_CONTEXT_ENABLE": 0,
 }
 
 

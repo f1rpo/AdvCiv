@@ -339,6 +339,17 @@ void CyGame::logSASGameRecordRuntimeViewStateSnapshot(std::string szReason)
 	if (gGameRecordLogLevel >= 2) ::logSASGameRecordRuntimeViewStateSnapshot(szReason.c_str());
 }
 
+// <!-- custom: Python action helpers pre-gate before constructing this bridge, but enforce the revision-151 subject switch here too so direct Python calls cannot bypass the configured suppression policy. (ChatGPT-5.6-Sol) -->
+void CyGame::logSASGameRecordScreenAction(std::string szScreen, std::string szAction, int iPrimary, int iSecondary)
+{
+	if (gGameRecordLogLevel >= 2 && isSASGameRecordActionTraceEnabled()) ::logSASGameRecordScreenAction(szScreen.c_str(), szAction.c_str(), iPrimary, iSecondary);
+}
+
+void CyGame::logSASGameRecordInterfaceState(std::string szComponent, std::string szEvent, std::string szReason, int iCount, std::string szValues)
+{
+	if (gGameRecordLogLevel >= 2 && isSASGameRecordActionTraceEnabled()) ::logSASGameRecordInterfaceState(szComponent.c_str(), szEvent.c_str(), szReason.c_str(), iCount, szValues.c_str());
+}
+
 std::string CyGame::getSASGameRecordIniFileArgument() const
 {
 	return ::getSASGameRecordIniFileArgument();

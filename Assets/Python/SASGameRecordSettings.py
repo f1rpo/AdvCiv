@@ -33,6 +33,8 @@ _SAS_CIV4_INI_KEYS = (
 	"DisableCaching",
 	"MinimapTrilinearFilter",
 	"MouseScrolling",
+	# <!-- custom: Ctrl+Alt+F requests were accepted without a Flying-state change while allowflying=0; enabling it and restarting produced both transitions. Preserve this startup setting beside the camera evidence. (GPT-6.1-Sol) -->
+	"AllowFlying",
 	"HidePythonExceptions",
 	"MaxAutoSaves",
 	"AutoSaveInterval",

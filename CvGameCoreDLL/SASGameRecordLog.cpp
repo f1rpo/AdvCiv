@@ -76,10 +76,17 @@ static int getClampedSASGameRecordLogLevel(char const* szDefineName)
 // CvXMLLoadUtility::SetGlobalDefines calls cacheSASGameRecordLogLevel only after base, SAS and modular GlobalDefines have all loaded, after which the widespread gGameRecordLogLevel gates are direct reads for the rest of the process.
 // The old out-of-line static-local getter made every disabled hook potentially pay a function call in ordinary /O2 Release builds without /GL + /LTCG. (ChatGPT-5.6-Sol) -->
 int g_iSASGameRecordLogLevel = 0;
+bool g_bSASGameRecordActionTraceEnabled = false;
 
 void cacheSASGameRecordLogLevel()
 {
 	g_iSASGameRecordLogLevel = getClampedSASGameRecordLogLevel("SAS_GAME_RECORD_LOG_LEVEL");
+}
+
+// <!-- custom: Resolve the revision-151+ action subject once after XML loading; hot control/player/UI call sites then use the cached Boolean without repeated define lookups. (ChatGPT-5.6-Sol) -->
+void cacheSASGameRecordActionTraceEnabled()
+{
+	g_bSASGameRecordActionTraceEnabled = GC.getDefineBOOL("SAS_GAME_RECORD_ACTION_TRACE_ENABLE");
 }
 
 static bool isSASGameRecordPerformanceMetricsEnabled()
@@ -2447,6 +2454,7 @@ static CvString getSASGameRecordLogSettingFields()
 		{ "SAS_GAME_RECORD_TRADE_MARKET_ENABLE", isSASGameRecordTradeMarketEnabled() },
 		{ "SAS_GAME_RECORD_TRADE_MARKET_BONUS_GPT_QUOTES_ENABLE", isSASGameRecordTradeMarketBonusGPTQuotesEnabled() },
 		{ "SAS_GAME_RECORD_TRADE_MARKET_AI_TECH_VALUES_ENABLE", isSASGameRecordTradeMarketAITechValuesEnabled() },
+		{ "SAS_GAME_RECORD_ACTION_TRACE_ENABLE", isSASGameRecordActionTraceEnabled() },
 		{ "SAS_GAME_RECORD_PERFORMANCE_METRICS_ENABLE", isSASGameRecordPerformanceMetricsEnabled() },
 		{ "SAS_GAME_RECORD_SYSTEM_CONTEXT_LEVEL", getSASGameRecordSystemContextLevel() },
 		{ "SAS_GAME_RECORD_HARDWARE_IDENTITY_ENABLE", isSASGameRecordHardwareIdentityEnabled() },
@@ -2551,6 +2559,129 @@ void logSASGameRecordPlayerOptionChange(PlayerTypes ePlayer, PlayerOptionTypes e
 		return;
 	CvString const szValues = CvString::format("%s=%d>%d", GC.getPlayerOptionInfo(eOption).getType(), bOldValue, bNewValue);
 	logSASGameRecordSessionSettings("CHANGE", "PLAYER_OPTION_APPLIED", "ACTIVE_PLAYER_EFFECTIVE", "CIV4_PLAYER_OPTIONS_EFFECTIVE", 1, szValues.GetCString());
+}
+
+// <!-- custom: Reuse Civ4's existing ControlTypes instead of inventing recorder control IDs.
+// One private row list supplies both request labels and optional camera-state keys; stringify control/action tokens so separate handwritten source names cannot drift.
+// Camera keys retain their existing log spelling; an empty key means this control has no Boolean camera result.
+// No runtime registry, allocation or XML lookup is generated. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+#define SAS_RECORD_CONTROL_LABEL_ROWS(DO) \
+	DO(CONTROL_ENDTURN, END_TURN, "") \
+	DO(CONTROL_ENDTURN_ALT, END_TURN, "") \
+	DO(CONTROL_FORCEENDTURN, FORCE_END_TURN, "") \
+	DO(CONTROL_AUTOMOVES, AUTO_MOVES, "") \
+	DO(CONTROL_LOAD_GAME, LOAD_GAME, "") \
+	DO(CONTROL_SAVE_GROUP, SAVE_GROUP, "") \
+	DO(CONTROL_SAVE_NORMAL, SAVE_GAME, "") \
+	DO(CONTROL_QUICK_SAVE, QUICK_SAVE, "") \
+	DO(CONTROL_QUICK_LOAD, QUICK_LOAD, "") \
+	DO(CONTROL_ORTHO_CAMERA, CAMERA_ORTHO_TOGGLE, "ortho") \
+	DO(CONTROL_CYCLE_CAMERA_FLYING_MODES, CAMERA_FLYING_MODE_CYCLE, "") \
+	DO(CONTROL_ISOMETRIC_CAMERA_LEFT, CAMERA_ROTATE_LEFT, "") \
+	DO(CONTROL_ISOMETRIC_CAMERA_RIGHT, CAMERA_ROTATE_RIGHT, "") \
+	DO(CONTROL_FLYING_CAMERA, CAMERA_FLYING_TOGGLE, "flying") \
+	DO(CONTROL_MOUSE_FLYING_CAMERA, CAMERA_MOUSE_FLYING_TOGGLE, "mouseFlying") \
+	DO(CONTROL_TOP_DOWN_CAMERA, CAMERA_TOP_DOWN_TOGGLE, "satellite")
+
+struct SASGameRecordControlLabels
+{
+	char const* szAction;
+	char const* szSource;
+	char const* szCameraKey;
+};
+
+// <!-- custom: Accepted/rejected requests and camera results share this enum-backed getter; untracked controls produce no row, and callers enter only behind their logging gates. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+static bool getSASGameRecordControlLabels(ControlTypes eControl, SASGameRecordControlLabels& kLabels)
+{
+	switch (eControl)
+	{
+#define SAS_CONTROL_LABEL_CASE(CONTROL, ACTION, CAMERA_KEY) case CONTROL: kLabels.szAction = #ACTION; kLabels.szSource = #CONTROL; kLabels.szCameraKey = CAMERA_KEY; return true;
+	SAS_RECORD_CONTROL_LABEL_ROWS(SAS_CONTROL_LABEL_CASE)
+#undef SAS_CONTROL_LABEL_CASE
+	default: return false;
+	}
+}
+#undef SAS_RECORD_CONTROL_LABEL_ROWS
+
+// <!-- custom: User/control causality is intentionally a separate family from resulting state rows.
+// Keep only meaningful discrete requests and a monotonic session time so a crash between request and consequence remains diagnosable; callers pre-gate at level 2+. (ChatGPT-5.6-Sol) -->
+void logSASGameRecordControlRequest(ControlTypes eControl, bool bAccepted)
+{
+	CvGame const& kGame = GC.getGame();
+	if (!kGame.isFinalInitialized())
+		return;
+	SASGameRecordControlLabels kLabels;
+	if (!getSASGameRecordControlLabels(eControl, kLabels))
+		return;
+	logSASGameRecord("GAME_RECORD_CONTROL_REQUEST turn=%d elapsed=%d player=%d sessionWallMilliseconds=%u action=%s source=%s accepted=%d",
+		kGame.getGameTurn(), kGame.getElapsedGameTurns(), kGame.getActivePlayer(), getSASGameRecordSessionWallMilliseconds(),
+		kLabels.szAction, kLabels.szSource, bAccepted);
+}
+
+// <!-- custom: Python owns several advisor/Sevopedia entry points that have no equally authoritative DLL callback.
+// Record only SAS-controlled screen/action labels and numeric navigation IDs; never route search strings, names, paths, or other user-entered text through this bridge. (ChatGPT-5.6-Sol) -->
+void logSASGameRecordScreenAction(char const* szScreen, char const* szAction, int iPrimary, int iSecondary)
+{
+	CvGame const& kGame = GC.getGame();
+	if (!kGame.isFinalInitialized() || szScreen == NULL || szScreen[0] == '\0' || szAction == NULL || szAction[0] == '\0')
+		return;
+	logSASGameRecord("GAME_RECORD_SCREEN_ACTION turn=%d elapsed=%d player=%d sessionWallMilliseconds=%u screen=%s action=%s primary=%d secondary=%d",
+		kGame.getGameTurn(), kGame.getElapsedGameTurns(), kGame.getActivePlayer(), getSASGameRecordSessionWallMilliseconds(),
+		szScreen, szAction, iPrimary, iSecondary);
+}
+
+// <!-- custom: Local interface widgets such as the SAS scoreboard keep state only in Python and bypass persistent BUG-option callbacks.
+// Python serializes only fixed scalar keys and change tokens; this native sink preserves one chronology/sequence with the rest of SASGameRecord. (ChatGPT-5.6-Sol) -->
+void logSASGameRecordInterfaceState(char const* szComponent, char const* szEvent, char const* szReason, int iCount, char const* szValues)
+{
+	CvGame const& kGame = GC.getGame();
+	if (!kGame.isFinalInitialized() || szComponent == NULL || szComponent[0] == '\0')
+		return;
+	logSASGameRecord("GAME_RECORD_INTERFACE_STATE turn=%d elapsed=%d player=%d sessionWallMilliseconds=%u component=%s event=%s reason=%s count=%d values=%s",
+		kGame.getGameTurn(), kGame.getElapsedGameTurns(), kGame.getActivePlayer(), getSASGameRecordSessionWallMilliseconds(),
+		szComponent, (szEvent == NULL || szEvent[0] == '\0' ? "-" : szEvent),
+		(szReason == NULL || szReason[0] == '\0' ? "-" : szReason), std::max(0, iCount),
+		(szValues == NULL || szValues[0] == '\0' ? "-" : szValues));
+}
+
+// <!-- custom: Serialize a pre/post Boolean only when the authoritative getter reports a real change; callers capture state around the native operation and pre-gate the action subject before requesting the second getter.
+// Replace the draft's component/reason/key string arguments with the existing control enum; derive CAMERA and its source/key here so call sites cannot accidentally pair the wrong labels. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+void logSASGameRecordCameraBoolChange(ControlTypes eControl, bool bOldValue, bool bNewValue)
+{
+	if (bOldValue == bNewValue)
+		return;
+	SASGameRecordControlLabels kLabels;
+	if (!getSASGameRecordControlLabels(eControl, kLabels) || kLabels.szCameraKey[0] == '\0')
+		return;
+	CvString const szValues = CvString::format("%s=%d>%d", kLabels.szCameraKey, bOldValue, bNewValue);
+	logSASGameRecordInterfaceState("CAMERA", "CHANGE", kLabels.szSource, 1, szValues.GetCString());
+}
+
+// <!-- custom: setCommercePercent can rebalance other flexible commerce types after changing the requested one.
+// Compare the already-captured before vector with the authoritative final allocation and emit one active-human row, avoiding button/shortcut inference and duplicate per-commerce rows. (ChatGPT-5.6-Sol) -->
+void logSASGameRecordCommercePercentChange(CvPlayer const& kPlayer, CommerceTypes eRequestedCommerce, bool bForced, int const* aiOldPercent)
+{
+	CvGame const& kGame = GC.getGame();
+	if (!kGame.isFinalInitialized() || aiOldPercent == NULL || kPlayer.getID() != kGame.getActivePlayer() || !kPlayer.isHuman() || !checkEnumBounds(eRequestedCommerce))
+		return;
+	CvString szChanges;
+	int iChanged = 0;
+	FOR_EACH_ENUM2(Commerce, eCommerce)
+	{
+		int const iOld = aiOldPercent[eCommerce];
+		int const iNew = kPlayer.getCommercePercent(eCommerce);
+		if (iOld == iNew)
+			continue;
+		if (!szChanges.empty())
+			szChanges += ",";
+		szChanges += CvString::format("%s:%d>%d", GC.getInfo(eCommerce).getType(), iOld, iNew);
+		iChanged++;
+	}
+	if (iChanged <= 0)
+		return;
+	logSASGameRecord("GAME_RECORD_COMMERCE_PERCENT_CHANGED turn=%d elapsed=%d player=%d sessionWallMilliseconds=%u requestedCommerce=%s forced=%d changed=%d changes=%s",
+		kGame.getGameTurn(), kGame.getElapsedGameTurns(), kPlayer.getID(), getSASGameRecordSessionWallMilliseconds(),
+		GC.getInfo(eRequestedCommerce).getType(), bForced, iChanged, szChanges.GetCString());
 }
 
 // <!-- custom: Civ4 documents command arguments such as ini=AdvCivDebug.ini and also accepts quoted paths. Parse only top-level whitespace/quotes and only the ini= token; this is intentionally not a general Windows command-line parser because the returned path is used internally for configured-file discovery and is never logged. (ChatGPT-5.6-Sol) -->
