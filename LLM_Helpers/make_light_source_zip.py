@@ -193,6 +193,8 @@ SKIP_FILE_NAMES = {"manual.pdf", "manual.odt"}
 # <!-- custom: Keep this one binary office document in the light ZIP because convert_advciv_manual_to_txt.py consumes it directly; do not broaden this into general ODT inclusion. (ChatGPT-5.6-Sol) -->
 LIGHT_SOURCE_EXACT_FILE_EXCEPTIONS = (
     "_0_Common_Docs/AdvCiv_Base_Doc/manual.odt",
+    # <!-- custom: Include the shipped DLL build evidence even though Assets root and local build-output folders are outside ordinary source selection; DLL binaries remain excluded. (GPT-6.1-Sol) -->
+    "Assets/CvGameCoreDLL.dll.build.json",
 )
 
 # Do not exclude common readable image files globally.

@@ -133,7 +133,8 @@ For license and reuse terms, including project-specific restrictions and express
 [Change from short to int the Found value pipeline](/README.md#change-from-short-to-int-the-found-value-pipeline)\
 [Long Comments Archive](/README.md#long-comments-archive)\
 [External file access in Civ4 ingame (on Windows)](/README.md#external-file-access-in-civ4-ingame-on-windows)\
-[Python scripts](/README.md#python-scripts)\
+[Python 2.4 compatibility for modding](/README.md#python-24-compatibility-for-modding)\
+[External Python tooling](/README.md#external-python-tooling)\
 &emsp;[Helpers](/README.md#helpers)\
 &emsp;[CI](/README.md#ci)\
 &emsp;[Light-source ZIP](/README.md#light-source-zip)\
@@ -1017,11 +1018,23 @@ os.path.join(cwd, "Mods", "AdvCiv-SAS", "_0_Common_Docs", "BUG_Doc", name)
 
 This possibly theoretically could be used to open other external files in Civ4 maybe (check if accurate, as i don't know too much about these). See also [KI#87](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-87).
 
-## Python scripts
+## Python 2.4 compatibility for modding
+
+Note: this section is for modders; players may read it out of curiosity, but nothing here is required to install or play AdvCiv-SAS. Civ4 already includes its own Python 2.4 runtime.
+
+For modders, a separate local Python 2.4 installation lets you check changes in `Assets/Python` and `PrivateMaps` before testing in-game.
+
+See [Modding Resources: local Python 2.4 setup and checks](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#python-24-compatibility-for-modding) for the installer, command and a real syntax-error example.
+
+Note 2: As of now, GitHub also automatically runs our Python 2.4 compile check when relevant commits are pushed or pull requests updated.
+
+## External Python tooling
 
 ### Helpers
 
-Active helper scripts for LLM-assisted review and tuning live in [LLM_Helpers](/LLM_Helpers/). For example, [`compare_handicap_infos.py`](/LLM_Helpers/compare_handicap_infos.py) compares two explicit `CIV4HandicapInfo.xml` file paths, inside or outside this mod folder, and can generate a stable Markdown example such as [`handicap_infos_compared.md`](/_1_AdvCiv-SAS/Docs/examples/handicap/handicap_infos_compared.md) with changed fields, numeric deltas, percentage deltas, and an embedded TSV matrix.
+Active helper scripts for LLM-assisted review and tuning live in [LLM_Helpers](/LLM_Helpers/).
+
+For example, [`compare_handicap_infos.py`](/LLM_Helpers/compare_handicap_infos.py) compares two explicit `CIV4HandicapInfo.xml` file paths, inside or outside this mod folder, and can generate a stable Markdown example such as [`handicap_infos_compared.md`](/_1_AdvCiv-SAS/Docs/examples/handicap/handicap_infos_compared.md) with changed fields, numeric deltas, percentage deltas, and an embedded TSV matrix.
 
 ### CI
 
@@ -1097,6 +1110,7 @@ Building through the Visual C++ 2010 Express project keeps the usual `AdvCiv.log
 
 - Each configuration keeps one current pair: `AdvCiv.log` for full output, and `CvGameCoreDLL.dll.build.json` for full Git/build/debug context, timing/result, diagnostics, temporary-artifact state and DLL hashes.
   - The JSON starts as `RUNNING` and finishes as `SUCCEEDED` or `FAILED`. An interrupted build can leave `RUNNING` behind, so it means no completion was recorded rather than proof that compilation is still active.
+  - The JSON keeps one initial source/project file manifest and final details only for changed files, distinguishing content edits from timestamp-only changes. Separate comparisons show changes since the preceding completed build and changes during this attempt. `AdvCiv.log` records summary counts; see the compilation guide below for scope and limitations.
 - For an intentional shipped Release DLL update, copy/stage the DLL and matching full JSON together; keep `AdvCiv.log` locally for detailed investigations. CI requires both files to change together, the `Update DLL` message marker, and a matching successful build report with configuration exactly `Release`. A marker without a changed pair also fails.
 - Normal build outputs stay local and Git-ignored. We omit automatic timestamped archives and a separate compact JSON to avoid duplicate formats and routine cleanup; save a dated pair manually when needed.
 - These external development files have no in-game effect or runtime cost; local test installation still needs only the DLL.

@@ -58,8 +58,8 @@ function Get-TempState {
     }
 }
 
-function Get-DllState {
-    $path = Join-Path $PSScriptRoot ($target + '/CvGameCoreDLL.dll')
+# <!-- custom: Reuse the former DLL-only size/time/hash reader for source snapshots too, keeping byte-identity reporting consistent. (GPT-6.1-Sol) -->
+function Get-BuildFileState([string]$Path) {
     if (-not (Test-Path -LiteralPath $path)) { return $null }
     $file = Get-Item -LiteralPath $path
     # <!-- custom: The local legacy PowerShell has no Get-FileHash; use .NET SHA-256 so the VC2010 workflow needs no PowerShell upgrade. (GPT-6.1-Sol) -->
@@ -72,6 +72,86 @@ function Get-DllState {
         modifiedUtc = $file.LastWriteTimeUtc.ToString('yyyy-MM-ddTHH:mm:ss.fffZ')
         sha256 = $hash
     }
+}
+
+function Get-DllState {
+    return Get-BuildFileState (Join-Path $PSScriptRoot ($target + '/CvGameCoreDLL.dll'))
+}
+
+# <!-- custom: Git status names changed paths but does not identify their bytes; sample local DLL sources and project/build configuration before and after each attempt.
+# Exclude output trees and external toolchains/SDKs; this is a scoped filesystem snapshot, not proof of exactly which inputs each compiler invocation read. (GPT-6.1-Sol) -->
+function Get-BuildInputSnapshot {
+    $sourceRoot = Split-Path -Parent $PSScriptRoot
+    $files = New-Object 'Collections.Generic.List[IO.FileInfo]'
+    $directories = New-Object 'Collections.Generic.Queue[string]'
+    $directories.Enqueue($sourceRoot)
+    while ($directories.Count -gt 0) {
+        $directory = $directories.Dequeue()
+        foreach ($item in Get-ChildItem -LiteralPath $directory) {
+            if ($item.PSIsContainer) {
+                if ($item.FullName -ne $PSScriptRoot) { $directories.Enqueue($item.FullName) }
+            }
+            elseif ($item.Extension -in @('.cpp', '.h', '.inl')) { $files.Add($item) }
+        }
+    }
+    foreach ($item in Get-ChildItem -LiteralPath $PSScriptRoot -File) {
+        if ($item.Name -like 'Makefile*' -or $item.Extension -in @('.ps1', '.sln', '.vcxproj', '.props', '.targets', '.rc', '.def', '.h')) {
+            $files.Add($item)
+        }
+    }
+    $snapshot = @{}
+    foreach ($file in $files) {
+        $relativePath = 'CvGameCoreDLL/' + $file.FullName.Substring($sourceRoot.Length + 1).Replace('\', '/')
+        $snapshot[$relativePath] = Get-BuildFileState $file.FullName
+    }
+    return $snapshot
+}
+
+# <!-- custom: A changed timestamp alone does not mean changed content; SHA-256 identifies exact bytes, including whitespace/line-ending edits.
+# The initial manifest already holds the old measurements; emit final measurements only for changed/added/removed files to avoid repeating every unchanged file. (GPT-6.1-Sol) -->
+function Get-BuildInputReport($Before, $After, [switch]$IncludeBefore) {
+    $paths = @(@($Before.Keys) + @($After.Keys) | Sort-Object -Unique)
+    foreach ($path in $paths) {
+        $old = $Before[$path]
+        $new = $After[$path]
+        $change = 'UNCHANGED'
+        if ($null -eq $old) { $change = 'ADDED' }
+        elseif ($null -eq $new) { $change = 'REMOVED' }
+        elseif ($old.sha256 -ne $new.sha256) { $change = 'CONTENT_CHANGED' }
+        elseif ($old.modifiedUtc -ne $new.modifiedUtc) { $change = 'TIMESTAMP_ONLY' }
+        if ($change -ne 'UNCHANGED') {
+            $entry = [ordered]@{ path = $path; change = $change; after = $new }
+            if ($IncludeBefore) { $entry['before'] = $old }
+            $entry
+        }
+    }
+}
+
+# <!-- custom: Read the preceding report before replacing it; comparing its final source snapshot with this attempt's start exposes edits between builds even when HEAD did not change.
+# Use only a completed Build/Rebuild with final measurements; an interrupted/Clean/older report without a manifest is explicitly unavailable, never an empty baseline that makes every file look added. (GPT-6.1-Sol) -->
+function Get-PreviousBuildInputs([string]$Path) {
+    $result = @{ available = $false; reason = 'NO_PREVIOUS_REPORT' }
+    if (-not (Test-Path -LiteralPath $Path)) { return $result }
+    try {
+        $previous = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
+        if ($previous.request -eq 'CLEAN' -or $previous.status -notin @('SUCCEEDED', 'FAILED') -or
+            $null -eq $previous.buildInputsBefore -or $null -eq $previous.buildInputSummary -or $previous.buildInputsAfterError) {
+            $result.reason = 'NO_COMPLETED_BUILD_SOURCE_SNAPSHOT'
+            return $result
+        }
+        $snapshot = @{}
+        foreach ($entry in $previous.buildInputsBefore) {
+            $snapshot[$entry.path] = [ordered]@{ sizeBytes = $entry.sizeBytes; modifiedUtc = $entry.modifiedUtc; sha256 = $entry.sha256 }
+        }
+        foreach ($entry in $previous.buildInputChanges) {
+            if ($entry.change -eq 'REMOVED') { $snapshot.Remove($entry.path) }
+            else { $snapshot[$entry.path] = $entry.after }
+        }
+        if ($snapshot.Count -ne $previous.buildInputSummary.afterCount) { throw 'Previous source snapshot count mismatch.' }
+        return @{ available = $true; snapshot = $snapshot; startedUtc = $previous.startedUtc; endedUtc = $previous.endedUtc;
+            configuration = $previous.configuration; request = $previous.request; status = $previous.status; commit = $previous.commitAfter }
+    }
+    catch { $result.reason = 'UNREADABLE_PREVIOUS_REPORT'; return $result }
 }
 
 # <!-- custom: JSON has no comment syntax; retain introductory copyright/purpose as ordinary metadata so reports remain valid JSON for CI. (GPT-6.1-Sol) -->
@@ -91,14 +171,37 @@ $report = [ordered]@{
     logFile = [IO.Path]::GetFileName($logPath)
     steps = @()
 }
+$previousBuild = Get-PreviousBuildInputs $reportPath
+$inputsBefore = @{}
 $exitCode = 1
 try {
     $report | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $reportPath -Encoding UTF8
+    $inputsBefore = Get-BuildInputSnapshot
+    $report['buildInputsBefore'] = @($inputsBefore.Keys | Sort-Object | ForEach-Object {
+        $state = $inputsBefore[$_]
+        [ordered]@{ path = $_; sizeBytes = $state.sizeBytes; modifiedUtc = $state.modifiedUtc; sha256 = $state.sha256 }
+    })
+    if ($previousBuild.available) {
+        $sincePrevious = @(Get-BuildInputReport $previousBuild.snapshot $inputsBefore -IncludeBefore)
+        $report['sincePreviousBuild'] = [ordered]@{
+            available = $true; scope = 'PREVIOUS_BUILD_END_TO_CURRENT_BUILD_START'; previousStartedUtc = $previousBuild.startedUtc;
+            previousEndedUtc = $previousBuild.endedUtc; previousConfiguration = $previousBuild.configuration;
+            previousRequest = $previousBuild.request; previousStatus = $previousBuild.status; previousCommit = $previousBuild.commit;
+            previousFileCount = $previousBuild.snapshot.Count; currentFileCount = $inputsBefore.Count; changedCount = $sincePrevious.Count; changes = $sincePrevious
+        }
+        Write-BuildLine ('Since previous completed build attempt ({0}, {1}): {2} source/project file changes (including timestamp-only changes).' -f $previousBuild.endedUtc, $previousBuild.status, $sincePrevious.Count)
+    }
+    else {
+        $report['sincePreviousBuild'] = [ordered]@{ available = $false; reason = $previousBuild.reason }
+        Write-BuildLine ('Since previous completed build attempt: unavailable ({0}).' -f $previousBuild.reason)
+    }
+    $report | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $reportPath -Encoding UTF8
+    Write-BuildLine ('Build input snapshot: {0} local source/project files; external toolchain/SDK inputs excluded.' -f $inputsBefore.Count)
     Write-BuildLine ('Build report: ' + $reportPath)
     Write-BuildLine ('Started UTC: ' + $report.startedUtc)
     Write-BuildLine ('Configuration: {0}; request: {1}; branch: {2}; commit: {3}' -f $Configuration, $Request, $report.branch, $report.commit)
     Write-BuildLine ('Temporary artifacts before request: ' + ($report.tempBefore | ConvertTo-Json -Compress))
-    Write-BuildLine ('Working-tree status: ' + $report.workingTreeStatus)
+    Write-BuildLine ('Working-tree status relative to HEAD (staged + unstaged + untracked): ' + $report.workingTreeStatus)
     if ($Request -eq 'BUILD' -and ($report.tempBefore.objectCount -gt 0 -or $report.tempBefore.pchPresent -or $report.tempBefore.incompleteMarkerCount -gt 0)) {
         Write-BuildLine 'Existing intermediates detected; this wrapper does not clean them. Follow the compilation guide clean-target rule for accepted full builds.'
     }
@@ -149,6 +252,18 @@ finally {
     $report['workingTreeStatusAfter'] = Get-GitText -Arguments @('status', '--porcelain=v1', '--untracked-files=normal')
     $report['tempAfter'] = Get-TempState
     $report['dllAfter'] = Get-DllState
+    try {
+        $inputsAfter = Get-BuildInputSnapshot
+        $changedInputs = @(Get-BuildInputReport $inputsBefore $inputsAfter)
+        $report['buildInputChanges'] = $changedInputs
+        $unchangedCount = $inputsBefore.Count - @($changedInputs | Where-Object { $_.change -ne 'ADDED' }).Count
+        $report['buildInputSummary'] = [ordered]@{ scope = 'CURRENT_BUILD_START_TO_END'; beforeCount = $inputsBefore.Count; afterCount = $inputsAfter.Count; unchangedCount = $unchangedCount; changedCount = $changedInputs.Count }
+        Write-BuildLine ('During this build attempt: {0} files before, {1} after; {2} unchanged; {3} changes (including timestamp-only changes).' -f $inputsBefore.Count, $inputsAfter.Count, $unchangedCount, $changedInputs.Count)
+    }
+    catch {
+        # <!-- custom: A failed final snapshot must not suppress the compiler result/report; mark it explicitly rather than presenting the initial snapshot as final evidence. (GPT-6.1-Sol) -->
+        $report['buildInputsAfterError'] = $_.Exception.Message
+    }
     Write-BuildLine ('Ended UTC: {0}; result: {1}; exit code: {2}; duration milliseconds: {3}' -f $report.endedUtc, $report.status, $exitCode, $report.durationMilliseconds)
     Write-BuildLine ('Distinct coded diagnostic lines: warnings={0}; errors={1}' -f $warnings.Count, $errors.Count)
     Write-BuildLine ('Build output log: ' + $logPath)

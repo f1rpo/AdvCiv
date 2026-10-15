@@ -2459,7 +2459,9 @@ static CvString getSASGameRecordLogSettingFields()
 		{ "SAS_GAME_RECORD_SYSTEM_CONTEXT_LEVEL", getSASGameRecordSystemContextLevel() },
 		{ "SAS_GAME_RECORD_HARDWARE_IDENTITY_ENABLE", isSASGameRecordHardwareIdentityEnabled() },
 		{ "SAS_GAME_RECORD_EXACT_PATHS_ENABLE", isSASGameRecordExactPathsEnabled() },
-		{ "SAS_GAME_RECORD_PROCESS_CONTEXT_ENABLE", isSASGameRecordProcessContextEnabled() }
+		{ "SAS_GAME_RECORD_PROCESS_CONTEXT_ENABLE", isSASGameRecordProcessContextEnabled() },
+		{ "SAS_GAME_RECORD_INI_PRIVATE_VALUES_ENABLE", GC.getDefineBOOL("SAS_GAME_RECORD_INI_PRIVATE_VALUES_ENABLE") },
+		{ "SAS_GAME_RECORD_INI_NETWORK_VALUES_ENABLE", GC.getDefineBOOL("SAS_GAME_RECORD_INI_NETWORK_VALUES_ENABLE") }
 	};
 	CvString szFields;
 	for (int iI = 0; iI < (int)(sizeof(aSettings) / sizeof(aSettings[0])); iI++)

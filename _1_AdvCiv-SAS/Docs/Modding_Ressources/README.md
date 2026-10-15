@@ -33,6 +33,7 @@ This is a non-exhaustive page containing some ressources i found helpful and gen
 &emsp;[Map types](#map-types)\
 &emsp;[old info](#old-info)\
 [Where to find Python errors or debug (so no need to copy them either if you need to ask chatgpt or such or a forum)](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#where-to-find-python-errors-or-debug-so-no-need-to-copy-them-either-if-you-need-to-ask-chatgpt-or-such-or-a-forum)\
+[Python 2.4 compatibility for modding](#python-24-compatibility-for-modding)\
 [How to check with ruff installed locally a folder for py linter errors candidates to fix with text report](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#how-to-check-with-ruff-installed-locally-a-folder-for-py-linter-errors-candidates-to-fix-with-text-report)\
 [How to enable .dmp files so for some crashes that don't immediately exit you get a "splash screen" (whatever it is called) and can dmp and see turn at crash](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#how-to-enable-dmp-files-so-for-some-crashes-that-dont-immediately-exit-you-get-a-splash-screen-whatever-it-is-called-and-can-dmp-and-see-turn-at-crash)\
 [Another example of how to use VS Code global search (also shows an example of how to also browse the CIV4 BUG_Doc (copy included in our mod))](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#another-example-of-how-to-use-vs-code-global-search-also-shows-an-example-of-how-to-also-browse-the-civ4-bug_doc-copy-included-in-our-mod)\
@@ -348,6 +349,7 @@ You can read these docs if you want to know more about AI attributes:
 
 ## A few useful other links
 
+- [Local Python 2.4 compatibility checks and setup](#python-24-compatibility-for-modding), including the official Windows installer link and an example of syntax that modern Python accepts but Civ4 cannot parse.
 - many links in the main README.md first for example maybe indeed in the [main README.md 's page link](/README.md)
 - todo: tutorial on how to compile the DLL or files for Advciv (but should not be needed if you only modify XML files)
 - [Python Class Reference (civ4bug.sourceforge.net)](https://civ4bug.sourceforge.net/PythonAPI/) List of all or many(?) python class detailed info, can be useful for example it helped me implement the Sevopedia religion's (working and finalized at least as of now) right panel version of leaders panel, telling [Authors for details (Claude AI's section) in the main README.md](/_1_AdvCiv-SAS/Docs/README_Authors.md#claude-web-chat) to adjust its code for the `screen.addMultiListControlGFC` to display leaders in a multi line button panel, see Sevopedia religion's code and code comments for details.
@@ -496,6 +498,32 @@ ERR: Python function pediaJumpToImprovement failed, module CvScreensInterface
 ```
 
 Which would help you solve them, in my case by doing a global search, finding the correct makesvalid method or such (much easier with the [civ4bug_pythonAPI_AllClasses_html.txt](/_0_Common_Docs/CIV4BUG_Sourceforge_net_All_Classes_Doc/civ4bug_pythonAPI_AllClasses_html.txt) file we added in advciv-sas mod doc files (that i found on the internet i mean i didn't write it myself but it helps a lot, see below how to use vs code global search for example for details)
+
+## Python 2.4 compatibility for modding
+
+Note: Players do not need to do anything regarding this section. This is information for modders only.
+
+As of now, it seems that Civ4 runtime Python must remain compatible with Python 2.4.
+
+For modders, it is therefore recommended to install a local interpreter, so syntax errors can be caught before pushing or starting Civ4; modern Python and Ruff do not replace this check.
+
+As of now, for example, the [official Python 2.4.4 release page](https://www.python.org/downloads/release/python-244/) provides the Windows x86 `python-2.4.4.msi` installer. Choose this for ordinary Intel/AMD Windows PCs, including 64-bit Windows; the `ia64` installer is for the different Itanium processor architecture, not ordinary 64-bit PCs.
+
+Keep it separate from modern Python and preserve your existing file associations. This old interpreter is for local Civ4 compatibility checks, not general-purpose modern tooling.
+
+After installing Python 2.4, open PowerShell in your AdvCiv-SAS folder and run this command. If you installed Python somewhere other than `C:\Python24`, change that part of the command:
+
+```powershell
+& 'C:\Python24\python.exe' .github/workflows/build/python/python24_compile.py --repo-root .
+```
+
+This checks every `.py` file in this mod's `Assets/Python` and `PrivateMaps` folders using the real Python 2.4 interpreter. A PASS means those files use syntax Python 2.4 accepts. It does not build the DLL or start Civ4, and it leaves the source files unchanged; temporary compiled files are cleaned up afterward.
+
+On 2026-10-15, all 240 Python files in those two folders passed this local check. We also confirmed that it rejects a deliberately broken temporary copy: `",".join(missing) if missing else "-"` works in modern Python but causes `SyntaxError` in Python 2.4. Replacing that expression with an ordinary `if/else` fixed it.
+
+Use this check after editing the mod's Python files, then test the affected feature in Civ4: valid syntax alone does not prove the code behaves correctly or uses functions available in the game.
+
+GitHub also runs the check automatically for relevant pushes and pull-request updates through our [Python 2.4 compile workflow](/.github/workflows/python24-compile.yml), using Python 2.4.6 from [our Docker image project](https://github.com/wonderingabout/python-2.4-docker).
 
 ## How to check with ruff installed locally a folder for py linter errors candidates to fix with text report
 

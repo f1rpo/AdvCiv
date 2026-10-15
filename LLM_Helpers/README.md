@@ -1169,6 +1169,7 @@ git diff -- "_0_Common_Docs/AdvCiv_Base_Doc/manual.txt"
 #### General
 
 - Creates a timestamped light source ZIP for a Civ4 mod, mainly for compact local/LLM/code-agent review handoffs.
+- Includes the current working copy of `Assets/CvGameCoreDLL.dll.build.json` as shipped-build context; local configuration build folders and DLL binaries remain excluded. A locally replaced report may describe an uncommitted test build, so compare its DLL hash against the omitted-DLL context before treating it as shipped evidence.
 - Uses repo-relative archive paths and `ZIP_DEFLATED` compression by default.
   - ZIP is intentionally used instead of 7z because 7z uploads caused errors before, while ZIP is currently an as of now seemingly easily compatible format for ChatGPT/code-agent review.
   - Use `--compression-level 0` for the old `ZIP_STORED` / no-compression behavior.

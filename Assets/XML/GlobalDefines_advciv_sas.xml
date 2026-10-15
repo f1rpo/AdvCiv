@@ -2201,6 +2201,18 @@ Enforced by the turn_define_gamespeed CI check. (GPT-5.6 Thinking) -->
 		<DefineName>SAS_GAME_RECORD_PROCESS_CONTEXT_ENABLE</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
+	<!-- custom: Opt into raw configured values for reviewed INI identity/free-text/path-like keys such as GameName, Nickname, UserProfile, Map/mod overrides and mod-INI filenames/descriptions.
+	0 keeps the key/section visible but records <WITHHELD_PRIVATE>; this is independent from exact runtime-path collection because it governs user-configured INI text. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	<Define>
+		<DefineName>SAS_GAME_RECORD_INI_PRIVATE_VALUES_ENABLE</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!-- custom: Separately opt into reviewed CivilizationIV.ini contact/network/account identifiers such as Email, DirectIP and Pitboss SMTP fields.
+	0 keeps their key/section visible but records <WITHHELD_NETWORK>; unknown keys remain unclassified without copying their raw values. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	<Define>
+		<DefineName>SAS_GAME_RECORD_INI_NETWORK_VALUES_ENABLE</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
 
 
 

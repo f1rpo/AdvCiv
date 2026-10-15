@@ -28,7 +28,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=151 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=152 ...
 ```
 
 After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
@@ -71,10 +71,19 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
+### Revision 152 - SAS practical 6637
+
+- **Date:** 2026-10-15
+- **Git commit:** pending
+- **Change:** Broaden the per-session configured INI context for reproducibility and troubleshooting, retaining configured evidence separately from effective runtime state.
+  - Read all sections of `CivilizationIV.ini` and the mod INI, fixing the former `[CONFIG]`-only omission of `[DEBUG]` settings; preserve section/key identity, unusual configured values and explicit missing-key information.
+  - Cover reviewed support, graphics/audio, startup and developer settings. Default-off `SAS_GAME_RECORD_INI_PRIVATE_VALUES_ENABLE` and `SAS_GAME_RECORD_INI_NETWORK_VALUES_ENABLE` independently control private/path/free-text and network/account values; withheld keys remain visible, `CheatCode` is recorded directly as a public debug/autoplay setting, and unknown values are not exposed.
+  - Collect only at session initialization behind the existing recorder gate, with no recurring INI polling. Disable parser interpolation/list expansion to avoid reinterpreting configured values; recording a value does not imply the EXE accepted it or supports changing it live.
+
 ### Revision 151 - SAS practical 6636
 
 - **Date:** 2026-10-14
-- **Git commit:** pending
+- **Git commit:** `760f7b2da50b2086722f64b666cbac2d1f26ffaf`
 - **Change:** Add a compact level-2+ action/interface trace alongside the independent settings/runtime-view record, distinguishing requests from their results without high-volume input.
   - `SAS_GAME_RECORD_ACTION_TRACE_ENABLE` defaults to 1; setting it to 0 suppresses control/screen/interface/commerce action rows while retaining settings/runtime-view state and unrelated recorder detail. Record the configured switch in GAME_RECORD_LOG_SETTINGS.
   - Native controls record End Turn/forced End Turn/automoves, save/load and selected camera requests; accepted describes the immediate handler gate, not asynchronous completion. All traced controls delivered to doControl also record rejection at its initial gate.

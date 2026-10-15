@@ -30,6 +30,8 @@ The checks are fairly straightforward as of now and notably include launch-guard
 
 On your end you generally don't need to update them unless our infrastructure changes, but for details if needed see: [the corresponding README](/.github/workflows/README.md).
 
+- CI mainly helps us catch silly, tedious, or recurrent pitfalls and regressions and reduce maintenance work and mental load, especially with substantial agent contributions; it is not intended to exhaustively test every field in every way.
+- So if considering a new check or maintained test, first assess whether it is necessary or practically useful for us and worth maintaining; use our existing sanity checks as examples of the intended scope.
 - Keep automated-helper folders and workflow categories aligned: every helper in a subject folder belongs to that category's workflow, with matching names so browsing the folder tells us what that workflow runs.
 - Specialized automation belongs to an explicitly named category too; shared helper reuse is fine, but do not mix unrelated checks into a catch-all workflow. Keep shared code in `lib/`, automated helper tests in matching `tests/<subject>/` folders, and manual-only tooling outside the blocking `build/`/`checks-*.yml` structure.
 - GitHub workflow YAML files must remain directly under `.github/workflows/`; mirror the helper hierarchy through workflow filenames and display names. Give each check a descriptive named step so GitHub shows its progress and result separately.
@@ -65,10 +67,15 @@ Use these specialized records for inherited regressions, suspicious behavior cha
 
 ## Information Fetching from other known helpful mods
 
+Generally develop and try our own solution from AdvCiv-SAS requirements before consulting other implementations: we may arrive at a new, different or preferable approach, and looking first can steer us toward assumptions that do not suit our mod.
+
+Afterward, if needed, compare other mods to review our solution and find useful omissions or alternatives. Earlier reference is still useful when stuck or resolving a specific uncertainty.
+
 If you don't know how to do something, generally mostly for UI stuff as we like to have and invent our own AI logic, generally (not a strict requirement but generally so), if you find yourself stuck or in doubt to double-check how other mods implement things, consider looking at what these mods do, as they usually have high-tech stuff that has oftentimes proven handy for the AdvCiv-SAS mod, in particular and mostly for UI:
 
 - The Middle-earth mod (in particular but not only their Platypedia) at "C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\Middle-earth"
 - The C2C (Cavemen2Cosmos) mod (in particular but not only for UI/EXE stuff) at "C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\Caveman2Cosmos"
+- Realism Invictus: the SVN working copy is at "C:\Users\PC\Downloads\old\Realism"; the installed "Realism Invictus" mod folder is a separate copy. Update the SVN working copy when a current reference is needed; do not assume the installed copy follows it.
 
 While doing so and comparing with our approach and what our mod does, in the end we'd adjust for our AdvCiv-based mod and not strictly copy paste it, unless it is fine for our needs. We should properly credit them as such in code comments or docs when we do so.
 
@@ -245,9 +252,10 @@ These are general guidelines, not irrevocable requirements; adjust based on task
   - Or appending `.` or `)` or ` ` or `,`, or ` `, etc., to what we want to simplify.
   - E.g., `GET_TEAM(getTeam()).` or `GET_TEAM(getTeam()))`, or `GET_TEAM(getTeam()) ` (with a space), or `GET_TEAM(getTeam()),`, etc. Basically any charcter other than `;`, for example `GET_TEAM(getTeam());`, most likely indicates this is not a cached variable and so most likely an optimize candidate.
 - When doing performance optimizations, using local variables only is enough and best if we don't use this variable elsewhere. E.g. `eYellow = gc.getInfoTypeForString("COLOR_YELLOW")` at init in SevoPediaMain.py.
-- In some rare cases, it is better not to cache rather than cache, because we will not read the define again, so caching is costlier and needless.
-  - For example, `start_year = gc.getDefineINT("START_YEAR")` when `start_year` is only used once to build a (sevopedia game speed) chart that we cache and then the variable is discarded.
-  - Mark these with a comment like `not cached: read once only`.
+- In some rare cases, it is better not to cache rather than cache, because we will not read the define again, so caching is costlier or needless.
+  - For example, `start_year = gc.getDefineINT("START_YEAR")` reads the value into a local variable when building the Sevopedia chart. We then cache and reuse the finished chart, so separately retaining `START_YEAR` in a persistent cache would be needless.
+  - Check the globals accessor too: [KI#243](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-243) uses `CvGlobals::getInstance()` in `CvMapGenerator::addRivers()` because `GC` is const and restoring river defines requires mutable access. Its local `kGlobals` reference is intentional; the separate caching bug was retaining first-generation define values.
+  - If convenient, also comment non-obvious exceptions near the read, e.g. `not cached: read once only`, or explain which runtime/map-generation boundary changes the value.
 - Use specific asset names whenever possibly to avoid likely reuse of an unknown BTS one that may not be listed in our mod's files. Example: `TXT_KEY_PEDIA_STATISTICS` to `TXT_KEY_PEDIA_SAS_STATISTICS`.
 - For machine-readable diagnostics/provenance of static C++ enums that have no `CvInfo` type string, prefer one shared `getSAS*Type(...)` helper in `CvGameCoreUtils` over duplicated switches or preprocessor stringification.
   - Keep translated/friendly UI labels separate when they serve presentation rather than canonical raw identity.
@@ -276,6 +284,10 @@ These are general guidelines, not irrevocable requirements; adjust based on task
 - For UI text, do not hardcode font tags like `<font=2/3/4>`; use `SASFontUtils` (`sasFontTag*`/ `sasFontTag*.bold` / `SAS_FONT_TAG_CLOSE` / `getSASUIFont*`) so XML defines control scaling globally.
   - Example good: `sasFontTagLabel + szText + SAS_FONT_TAG_CLOSE` or `sasFontTagTitle.bold + szText + SAS_FONT_TAG_CLOSE`; avoid: `u"<font=3>%s</font>" % szText` or `u"<font=4b>%s</font>" % szText`.
 - Some rare exceptions exist where hard coded font size is necessary (e.g., as of now Foreign Advisor's Glance tab's diplomacy icons (else the cell's text clips horizontally)), some places where font size was not necessary to increase empirically to achieve the wanted result, or some places where upscaling was not implemented yet due to it being not possible (EXE-controlled or such) or not supported in AdvCiv-SAS (e.g., as of now Chat log, etc.).
+- Local CPython 2.4.4 is installed at `C:\Python24\python.exe`; use it explicitly for runtime-Python syntax checks without replacing modern Python tooling.
+  - From the repo root in PowerShell: `& 'C:\Python24\python.exe' .github/workflows/build/python/python24_compile.py --repo-root .`.
+  - For example, it caught the SASGameRecord revision 152 candidate's `",".join(missing) if missing else "-"` with `SyntaxError`; the explicit `if/else` fix passed, as did all 240 runtime Python files checked on 2026-10-15. Python 3 accepting a file does not prove Python 2.4 compatibility.
+  - The checker writes bytecode into a temporary directory and does not import Civ4 engine modules; syntax success still needs appropriate in-game testing.
 - Treat Ruff/lint output as hints only; Civ4 runs Python 2.4 and engine imports can look unused to modern linters.
   - For actual parser compatibility, GitHub Actions now runs [`python24-compile.yml`](/.github/workflows/python24-compile.yml), which uses the Docker image from [`wonderingabout/python-2.4-docker`](https://github.com/wonderingabout/python-2.4-docker) to compile-check `Assets/Python` and `PrivateMaps` with real CPython 2.4 syntax/bytecode rules.
 - We don't always need to use linters as part of our tasks, but if we do, among them, VS Code Ruff extension is useful for open-file Problems feedback; locally installed Ruff (`py -m ruff`) is better for broad audits, saved reports, and narrow rule-by-rule autofixes.
@@ -296,11 +308,12 @@ These are general guidelines, not irrevocable requirements; adjust based on task
   - In the Sevopedia search bar, raw `<`/`>` corrupted the label with `/font`-like fragments, and raw `&` could be invisible and make following characters unclear, so they can be considered illegal for our needs too.
 - In fragile Civ4 Python, wrap risky calls in try/except and trust UI state when engine state can drift.
 - When adding guidance, include at least one simple code example so other agents can copy the pattern.
-- When caching defines or XML variables, we need to init to `None` and cache explictly later when the variable is used or somewhere at call time.
-  - This is because empirically aggressive initialization at init is fragile and can cause crashes.
-  - For helper files, we use the `global` and if `None` pattern.
-  - Since this new pattern is a recent addition, we are not changing them all right now but rather as we go or implement new stuff.
-  - See [KI#128](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-128).
+- In Civ4 runtime Python, generally cache repeated define/XML reads for performance.
+  - Prefer lazy `None` initialization: capture the current value on first use after engine/XML setup, then reuse it to avoid needless repeated lookups. Typical patterns are module-level `global` with `if cachedValue is None`, or instance-level `self.cachedValue = None` resolved at use time.
+  - [KI#128](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-128) recorded instability after live SAS XML UI-define edits; lazy initialization helped in that case. This is an additional reason to prefer the pattern over premature reads, alongside the performance benefit of caching.
+  - SAS define XML edits currently require restarting Civ4, so retaining resolved settings for the session should currently be appropriate.
+  - Before choosing this pattern, consider whether caching is safe for the value and its uses; for example, it may not yet be available or may be changed/refreshed during the game. Adjust the approach when needed rather than applying the pattern mechanically.
+    - Example: C++ [KI#243](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-243) retained the first map's river defines, altering later generations; `CvMapGenerator::addRivers()` now reads/restores overrides per generation.
 - It seems definebool does not exist in python, so use boolean comparison on int rather; e.g., `IS_SAS_CV_INFO_SCREEN_HISTORY_LOG_BUTTON_ENABLE = (gc.getDefineINT("SAS_CV_INFO_SCREEN_HISTORY_LOG_BUTTON_ENABLE") > 0)`. Does not apply to C++ though that has defineBOOL.
 - Avoid silent fallbacks or placeholder defaults when data is missing; prefer fatal errors with clear messages so issues surface early, and validate list structures (e.g., assert expected prefixes/types in debug checks).
 - Prefer strict XML lookup helpers from `SASUtils` over raw lookups for static/literal tags: use `getInfoTypeOrFail("TAG")` instead of raw `gc.getInfoTypeForString("TAG")`, and use `findInfoTypeNumOrFail(gc.getXInfo, gc.getNumXInfos, "TAG")` instead of raw `CvUtil.findInfoTypeNum(...)`.

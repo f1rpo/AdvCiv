@@ -21,11 +21,20 @@ _SAS_NUMERIC_STRING_BUG_OPTIONS = {
 	"MainInterface__FieldOfView_Value": True,
 }
 
-_SAS_CIV4_INI_KEYS = (
+# <!-- custom: CivilizationIV.ini is sampled once per session as configured-file evidence, never as proof that the EXE accepted or currently applies a value.
+# Privacy is decided by reviewed key identity rather than by whether a value looks numeric; direct keys preserve the parsed configured text, including unusual/invalid values. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+_SAS_CIV4_INI_DIRECT_KEYS = (
+	# <!-- custom: CheatCode is a documented public debug/autoplay switch (normally chipotle), not an account secret; retain its configured text so invalid values remain diagnosable. (GPT-6.1-Sol) -->
+	"CheatCode",
 	"FullScreen",
 	"ScreenWidth",
 	"ScreenHeight",
 	"SetMaxFrameRate",
+	"MapRandSeed",
+	"SyncRandSeed",
+	"QuickStart",
+	"GenerateCrashDumps",
+	"EnableVoice",
 	"D3D9Query",
 	"DynamicAnimPaging",
 	"MemSaver",
@@ -49,9 +58,71 @@ _SAS_CIV4_INI_KEYS = (
 	"NoSound",
 	"MaxFileHandles",
 	"SyncInput",
+	"hapdebugger",
+	"ModularLoading",
+	"disablepakmemorymapping",
+	"guimanagedtextures",
+	"dynamicunitpaging",
+	"field_of_view",
+	"gameupdatetime",
+	"mainmenumods",
+	"nointromovie",
+	"audioenable",
+	"bink16bit",
+	"forcenumlock",
+	"binkinterlace",
+	"noeventmessages",
+	"playmusic",
+	"hidemoviebackground",
+	"notechsplash",
+	"cuttrees",
+	"endslides",
+	"binkcopyall",
+	"QuickHandicap",
+	"gametype",
+	"GameOptions",
+	"VictoryConditions",
+	"SeaLevel",
+	"Climate",
+	"WorldSize",
+	"GameSpeed",
+	"Era",
+	"maxturns",
+	"Language",
+	"autorunturnlimit",
+	"breakonalloc",
+	"autorun",
+	"port",
+	"PitbossTurnTime",
+	"pitbosssleep",
+	"Bandwidth",
+	"selectip",
+	"screenshot format",
 )
 
-_SAS_MOD_INI_KEYS = (
+# <!-- custom: These free-text/identity/path-like values can disclose personal/local context.
+# Keep their key presence visible but gate raw values behind a default-off INI-specific opt-in. (ChatGPT-5.6-Sol) -->
+_SAS_CIV4_INI_PRIVATE_KEYS = (
+	"GameName",
+	"filename",
+	"Nickname",
+	"Alias",
+	"UserProfile",
+	"Map",
+	"mod",
+)
+
+# <!-- custom: Network/contact/account identifiers get a separate default-off opt-in because they are more sensitive than ordinary local preferences.
+# No password/secret value is approved here. (ChatGPT-5.6-Sol) -->
+_SAS_CIV4_INI_NETWORK_KEYS = (
+	"Email",
+	"DirectIP",
+	"PitbossSMTPHost",
+	"PitbossSMTPLogin",
+	"PitbossEmail",
+)
+
+_SAS_MOD_INI_DIRECT_KEYS = (
 	"ModularLoading",
 	"SkipMainMenu",
 	"NoCustomArt",
@@ -60,9 +131,16 @@ _SAS_MOD_INI_KEYS = (
 	"NoTeams",
 	"ForceGameOptions",
 	"ForceStandardEra",
-	"ForceScenario",
 	"SinglePlayerOnly",
 	"AllowPublicMaps",
+)
+
+# <!-- custom: AdvCiv-SAS.ini can carry filenames/free text as well as Boolean-style switches; reuse the private-value opt-in instead of assuming a nonnumeric value is harmless. (ChatGPT-5.6-Sol) -->
+_SAS_MOD_INI_PRIVATE_KEYS = (
+	"ForceScenario",
+	"ImageFile",
+	"Name",
+	"Description",
 )
 
 _g_profileGroups = {}
@@ -83,28 +161,6 @@ def _plain(value):
 	if isinstance(value, unicode):
 		return value.encode("utf-8")
 	return str(value)
-
-
-def _safeConfiguredScalar(value):
-	value = _plain(value)
-	try:
-		text = value.decode("utf-8")
-	# <!-- custom: Python 2.4 includes these shutdown/interrupt signals under Exception; explicitly re-raise them before handling ordinary diagnostic errors. (GPT-6.1-Sol + ChatGPT-5.6-Sol) -->
-	except (KeyboardInterrupt, SystemExit):
-		raise
-	except Exception:
-		text = value
-	if len(text) > 32:
-		return "<NONSCALAR>"
-	lower = text.lower()
-	if lower in ("true", "false", "yes", "no", "on", "off"):
-		return value
-	if text == "":
-		return value
-	for char in text:
-		if char not in "0123456789-+.":
-			return "<NONSCALAR>"
-	return value
 
 
 def _safeColorValue(value):
@@ -378,27 +434,112 @@ def _caseInsensitiveGet(mapping, key):
 	return None
 
 
-def _readIniValues(path, keys):
+def _keyPolicy(keys):
+	result = {}
+	for key in keys:
+		result[str(key).lower()] = key
+	return result
+
+
+def _walkIniScalars(section, path, entries):
+	for key in getattr(section, "scalars", []):
+		entries.append((path, key, section[key]))
+	for sectionName in getattr(section, "sections", []):
+		_walkIniScalars(section[sectionName], path + (str(sectionName),), entries)
+
+
+def _iniFieldName(path, key):
+	if path:
+		return ".".join(path) + "." + str(key)
+	return "ROOT." + str(key)
+
+
+def _configuredFlag(values, falseValues):
+	for value in values:
+		text = _plain(value)
+		try:
+			lower = text.decode("utf-8").strip().lower()
+		except (KeyboardInterrupt, SystemExit):
+			raise
+		except Exception:
+			lower = str(text).strip().lower()
+		if lower not in falseValues:
+			return "1"
+	return "0"
+
+
+# <!-- custom: Replace the former single selected-key list with separate direct/private/network policies and their opt-ins; return both report fields and parsed occurrences so presence flags reuse the same section-aware read. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+def _readIniValues(path, directKeys, privateKeys=(), networkKeys=(),
+		bPrivateValuesEnabled=False, bNetworkValuesEnabled=False, bReportUnknown=False):
 	values = {"readable": "0"}
+	bPolicySummary = bool(privateKeys or networkKeys or bReportUnknown)
+	if privateKeys:
+		values["privateValuesEnabled"] = _plain(bPrivateValuesEnabled)
+	if networkKeys:
+		values["networkValuesEnabled"] = _plain(bNetworkValuesEnabled)
+	found = {}
 	if not path or not os.path.isfile(path):
-		return values
+		return values, found
 	try:
 		from configobj import ConfigObj
-		config = ConfigObj(path)
-		section = _caseInsensitiveGet(config, "CONFIG")
-		if section is None:
-			section = config
+		# <!-- custom: Preserve configured scalar text instead of ConfigObj's list/interpolation semantics; section identity is retained in emitted field names so [CONFIG]/[DEBUG]/other keys cannot silently shadow one another. (ChatGPT-5.6-Sol) -->
+		config = ConfigObj(path, list_values=False, interpolation=False)
+		entries = []
+		_walkIniScalars(config, (), entries)
+		direct = _keyPolicy(directKeys)
+		private = _keyPolicy(privateKeys)
+		network = _keyPolicy(networkKeys)
+		iDirect = 0
+		iPrivate = 0
+		iNetwork = 0
+		iUnknown = 0
+		for sectionPath, key, value in entries:
+			lower = str(key).lower()
+			found.setdefault(lower, []).append(value)
+			field = _iniFieldName(sectionPath, key)
+			if lower in direct:
+				values[field] = _plain(value)
+				iDirect += 1
+			elif lower in private:
+				if bPrivateValuesEnabled:
+					values[field] = _plain(value)
+				else:
+					values[field] = "<WITHHELD_PRIVATE>"
+				iPrivate += 1
+			elif lower in network:
+				if bNetworkValuesEnabled:
+					values[field] = _plain(value)
+				else:
+					values[field] = "<WITHHELD_NETWORK>"
+				iNetwork += 1
+			elif bReportUnknown:
+				# <!-- custom: Preserve unknown key identity for diagnostics without copying an unreviewed raw value that could contain personal data or secrets. (ChatGPT-5.6-Sol) -->
+				values[field] = "<UNCLASSIFIED>"
+				iUnknown += 1
 		values["readable"] = "1"
-		for key in keys:
-			value = _caseInsensitiveGet(section, key)
-			if value is not None:
-				values[key] = _safeConfiguredScalar(value)
+		if bPolicySummary:
+			known = {}
+			for policy in (direct, private, network):
+				known.update(policy)
+			missing = [known[key] for key in known.keys() if key not in found]
+			missing.sort(key=lambda value: str(value).lower())
+			values["entryCount"] = _plain(len(entries))
+			values["directValueCount"] = _plain(iDirect)
+			values["privateValueCount"] = _plain(iPrivate)
+			values["networkValueCount"] = _plain(iNetwork)
+			values["unclassifiedValueCount"] = _plain(iUnknown)
+			values["missingKnownCount"] = _plain(len(missing))
+			# <!-- custom: Civ4 uses Python 2.4, which cannot parse conditional expressions; use an explicit branch even for this logging-only summary. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+			if missing:
+				values["missingKnownKeys"] = ",".join(missing)
+			else:
+				values["missingKnownKeys"] = "-"
 	# <!-- custom: Python 2.4 includes these shutdown/interrupt signals under Exception; explicitly re-raise them before handling ordinary diagnostic errors. (GPT-6.1-Sol + ChatGPT-5.6-Sol) -->
 	except (KeyboardInterrupt, SystemExit):
 		raise
 	except Exception:
 		values["readable"] = "0"
-	return values
+	return values, found
 
 
 def _findCiv4Ini():
@@ -421,25 +562,24 @@ def _findCiv4Ini():
 
 def _collectConfiguredFiles():
 	groups = {}
+	gc = CyGlobalContext()
+	bPrivateValuesEnabled = gc.getDefineINT("SAS_GAME_RECORD_INI_PRIVATE_VALUES_ENABLE") != 0
+	bNetworkValuesEnabled = gc.getDefineINT("SAS_GAME_RECORD_INI_NETWORK_VALUES_ENABLE") != 0
+
 	civ4Path, civ4Source = _findCiv4Ini()
-	civ4Values = _readIniValues(civ4Path, _SAS_CIV4_INI_KEYS)
+	civ4Values, civ4Found = _readIniValues(
+		civ4Path,
+		_SAS_CIV4_INI_DIRECT_KEYS,
+		_SAS_CIV4_INI_PRIVATE_KEYS,
+		_SAS_CIV4_INI_NETWORK_KEYS,
+		bPrivateValuesEnabled,
+		bNetworkValuesEnabled,
+		True)
 	civ4Values["activeIniSource"] = civ4Source
+	# <!-- custom: Remove the second ConfigObj import/read formerly used only for CheatCode and Mod presence; reuse civ4Found from the reader above to avoid reparsing and the former CONFIG-only omission. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	if civ4Values.get("readable") == "1":
-		try:
-			from configobj import ConfigObj
-			config = ConfigObj(civ4Path)
-			section = _caseInsensitiveGet(config, "CONFIG")
-			if section is None:
-				section = config
-			cheat = _caseInsensitiveGet(section, "CheatCode")
-			mod = _caseInsensitiveGet(section, "Mod")
-			civ4Values["cheatCodeConfigured"] = _plain(cheat not in (None, "", "0", "false", "False"))
-			civ4Values["modOverrideConfigured"] = _plain(mod not in (None, "", "0"))
-		# <!-- custom: Python 2.4 includes these shutdown/interrupt signals under Exception; explicitly re-raise them before handling ordinary diagnostic errors. (GPT-6.1-Sol + ChatGPT-5.6-Sol) -->
-		except (KeyboardInterrupt, SystemExit):
-			raise
-		except Exception:
-			pass
+		civ4Values["cheatCodeConfigured"] = _configuredFlag(civ4Found.get("cheatcode", []), ("", "0", "false", "no", "off"))
+		civ4Values["modOverrideConfigured"] = _configuredFlag(civ4Found.get("mod", []), ("", "0"))
 	groups["CIV4_INI_CONFIGURED"] = ("CONFIGURED_STARTUP_FILE", civ4Values)
 
 	try:
@@ -449,7 +589,14 @@ def _collectConfiguredFiles():
 		raise
 	except Exception:
 		modPath = None
-	modValues = _readIniValues(modPath, _SAS_MOD_INI_KEYS)
+	modValues, unused = _readIniValues(
+		modPath,
+		_SAS_MOD_INI_DIRECT_KEYS,
+		_SAS_MOD_INI_PRIVATE_KEYS,
+		(),
+		bPrivateValuesEnabled,
+		False,
+		True)
 	groups["MOD_INI_CONFIGURED"] = ("CONFIGURED_STARTUP_FILE", modValues)
 	return groups
 
