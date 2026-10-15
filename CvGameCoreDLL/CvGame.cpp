@@ -9181,7 +9181,8 @@ void CvGame::write(FDataStreamBase* pStream)
 	//uiFlag = 24;
 	//uiFlag = 25; // advc.130n (bugfix)
 	//uiFlag = 26; // advc.130w: Cache for expansionist hate
-	uiFlag = 27; // advc.130w: RivalVassalAttitude tweak
+	//uiFlag = 27; // advc.130w: RivalVassalAttitude tweak
+	uiFlag = 28; // advc: Overflow bugfix for religion, corp count.
 	pStream->Write(uiFlag);
 	REPRO_TEST_BEGIN_WRITE("Game pt1");
 	pStream->Write(m_iElapsedGameTurns);
@@ -9450,6 +9451,44 @@ void CvGame::onAllGameDataRead()
 				pCity->updateReligionCommerce();
 		}
 	} // </advc.172>
+	if (m_uiSaveFlag < 28)
+	{	/*	Assertions may fail upon calling changeHas... because multiple
+			counts may have wrapped into negative numbers, and CvPlayer performs
+			a global update upon every change. */
+		for (PlayerIter<ALIVE> itPlayer; itPlayer.hasNext(); ++itPlayer)
+		{
+			FOR_EACH_ENUM(Religion)
+			{
+				int const iLegacyCount = itPlayer->getHasReligionCount(eLoopReligion);
+				if (iLegacyCount < 0)
+				{
+					int iFreshCount = 0;
+					FOR_EACH_CITY(pCity, *itPlayer)
+					{
+						if (pCity->isHasReligion(eLoopReligion))
+							iFreshCount++;
+					}
+					itPlayer->changeHasReligionCount(eLoopReligion,
+							iFreshCount - iLegacyCount);
+				}
+			}
+			FOR_EACH_ENUM(Corporation) // Copy-paste-based on the above
+			{
+				int const iLegacyCount = itPlayer->getHasCorporationCount(eLoopCorporation);
+				if (iLegacyCount < 0)
+				{
+					int iFreshCount = 0;
+					FOR_EACH_CITY(pCity, *itPlayer)
+					{
+						if (pCity->isHasCorporation(eLoopCorporation))
+							iFreshCount++;
+					}
+					itPlayer->changeHasCorporationCount(eLoopCorporation,
+							iFreshCount - iLegacyCount);
+				}
+			}
+		}
+	}
 	// <advc.134a>
 	for (PlayerIter<HUMAN> itActive; itActive.hasNext(); ++itActive)
 	{
