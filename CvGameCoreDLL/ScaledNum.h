@@ -245,7 +245,7 @@ public:
 	int ceil() const
 	{
 		int iR = floor();
-		return iR + ((m_i >= 0 && m_i - iR * SCALE > 0) ? 1 : 0);
+		return iR + ((m_i >= 0 && m_i % SCALE != 0) ? 1 : 0);
 	}
 	int uceil() const;
 	bool isInt() const
