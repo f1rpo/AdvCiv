@@ -584,8 +584,10 @@ Keeps the blocking SASGameRecord CI intentionally small:
 - `SAS_GAME_RECORD_LOG_LEVEL` must be `0` in committed defaults.
 - `SAS_GAME_RECORD_ACTION_TRACE_ENABLE` must be `1`, and `SAS_GAME_RECORD_SYSTEM_CONTEXT_LEVEL` must be `2`.
 - Hardware identity, exact paths and process-context opt-ins must each be `0`; these checks catch accidentally committed diagnostic test overrides.
-- `SAS_GAME_RECORD_REVISION` must match the newest maintained revision-history heading.
-- The source-context row must still emit the revision constant.
+- `SAS_GAME_RECORD_BUG_STRING_VALUES_ENABLE` must be `0`, keeping reviewed BUG strings redacted by default.
+- `SAS_GAME_RECORD_REVISION` in `GlobalDefines_advciv_sas.xml` is the single monotonically increasing implementation-update label; it must match the newest maintained revision-history heading.
+- The source-context row must still read and emit that Define directly. The revision is not a compatibility switch and runtime code does not branch on it; build/source/DLL provenance separately describes stale or mixed binaries.
+- The history/progression checker additionally enforces the commit rule when Git history is available: a mechanically recognizable qualifying SASGameRecord implementation commit increments exactly once, the revision never regresses or jumps by more than one, and unrelated commits do not increment it.
 
 Compilation, runtime smoke/autoplay testing, log inspection and code review validate recorder implementation/schema behavior. The checker intentionally does not parse/pin individual row fields, writer call sites, lifecycle topology, save-marker bindings, AI provenance paths or other C++ implementation shapes.
 
@@ -593,11 +595,20 @@ Intentional SASGameRecord-related code changes, including checker and code-comme
 
 #### `build/diagnostics/sas_revision_history.py`
 
-Automated historical provenance check. Validates every finalized SASGameRecord revision hash against the repository's canonical default-branch ancestry. A stale amended/rebased commit can still exist as a Git object, while a valid mainline commit need not be an ancestor of a feature branch, so neither object existence nor current `HEAD` ancestry is sufficient.
+Automated historical provenance and current-branch progression check. Validates every finalized SASGameRecord revision hash against the repository's canonical default-branch ancestry. A stale amended/rebased commit can still exist as a Git object, while a valid mainline commit need not be an ancestor of a feature branch, so neither object existence nor current `HEAD` ancestry is sufficient.
 
 Callers may pass an explicit canonical branch; otherwise local runs discover `origin/HEAD`, `origin/main` or `main`, and abstain from ancestry validation when none is available.
 
-From revision 69 onward, the referenced source header must also contain that entry's exact revision marker. Only the newest entry may say `pending`: a commit cannot store its own final hash, but older entries must be finalized.
+Revisions 69-152 verify their historical compiled-header marker; revision 153+ verifies the single `SAS_GAME_RECORD_REVISION` GlobalDefine stored by that commit. Only the newest entry may say `pending`: a commit cannot store its own final hash, but older entries must be finalized.
+
+When the default-branch range is available, the checker also inspects current branch commits individually. Dedicated recorder/checker/helper files always qualify; other source/config bridge changes qualify when their diff exposes SASGameRecord markers. This is intentionally conservative automation around the written policy rather than an attempt to infer every semantic dependency.
+
+Commit selection follows the event being checked:
+
+- Push events check the first-parent commits in the actual event's `before..after` range, including earlier commits in a multi-commit push to main.
+- Pull requests use the event's base/head merge base and authored head, independently of the synthetic merge checkout; real pushed merges are checked as real commits.
+- New-branch pushes use the default-branch divergence because their `before` SHA is all zeroes.
+- Local/manual checks compare against the default branch, or check the tip when already on that branch; they do not infer a past push range.
 
 This history check complements the minimal revision/default synchronization check and runs automatically in `checks-diagnostics.yml`. It needs canonical default-branch history, so that workflow performs a full-history metadata checkout with blob filtering.
 

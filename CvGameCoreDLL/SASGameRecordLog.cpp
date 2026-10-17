@@ -2814,8 +2814,12 @@ static void logSASGameRecordProvenanceContext()
 	if (!isSASGameRecordLogEnabled())
 		return;
 	logSASGameRecord("GAME_RECORD_MOD_CONTEXT %s", getSASModContextFields().GetCString());
-	// <!-- custom: Include the official recorder revision in SOURCE_CONTEXT: recordRevision tells copied implementations that SASGameRecord itself changed, while the remaining fields identify the exact running tree. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-	logSASGameRecord("GAME_RECORD_SOURCE_CONTEXT recordRevision=%d %s", SAS_GAME_RECORD_REVISION, getSASSourceContextFields().GetCString());
+	// <!-- custom: recordRevision is the single official SASGameRecord implementation-update label from GlobalDefines.
+	// It is reported for downstream review/provenance only; runtime behavior does not branch on it, and stale/mismatched binaries remain a separate build/source-provenance question. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Resolve the loaded XML label on the first enabled provenance snapshot, after XML initialization, and reuse it across new/load runs in the same DLL lifetime.
+	// The label is fixed for that lifetime; restart Civ4 after editing the Define. (GPT-6.1-Sol) -->
+	static const int iRecordRevision = GC.getDefineINT("SAS_GAME_RECORD_REVISION");
+	logSASGameRecord("GAME_RECORD_SOURCE_CONTEXT recordRevision=%d %s", iRecordRevision, getSASSourceContextFields().GetCString());
 	logSASGameRecord("GAME_RECORD_DLL_CONTEXT %s", getSASDllContextFields().GetCString());
 	// <!-- custom: Fingerprint the actual Civ4 executable separately from install-location labeling: exact bytes remain the durable build/branch identity even when storefront branches share one directory. (ChatGPT-5.6-Sol) -->
 	logSASGameRecord("GAME_RECORD_EXE_CONTEXT %s", getSASExeContextFields().GetCString());

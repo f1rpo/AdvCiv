@@ -11,11 +11,20 @@ import SASGameRecordConfig # <!-- custom: Share lazy None-initialized level cach
 import BugOptions
 import BugPath
 import os
+# <!-- custom: Add stat/errno for CustomAssets presence versus inspection failure, and sys for Python-2.4-compatible exception access; os.path.isdir alone reports missing and denied paths as false. (GPT-6.1-Sol) -->
+import stat
+import errno
+import sys
 
 try:
 	unicode
 except NameError:
 	unicode = str
+
+# <!-- custom: RI's stored-string report prompted this narrow review; do not expose all BUG paths, URLs or naming templates through the raw-value opt-in. (GPT-6.1-Sol) -->
+_SAS_REVIEWED_STRING_BUG_OPTIONS = {
+	"Scores__DisplayOrder": True,
+}
 
 _SAS_NUMERIC_STRING_BUG_OPTIONS = {
 	"MainInterface__FieldOfView_Value": True,
@@ -146,6 +155,7 @@ _SAS_MOD_INI_PRIVATE_KEYS = (
 _g_profileGroups = {}
 _g_bugGroups = {}
 _g_sessionActive = False
+_g_redactedBugStrings = {}
 
 
 def _plain(value):
@@ -361,6 +371,18 @@ def _collectProfileGroups(bIncludeEffectivePlayerOptions=True):
 	return groups
 
 
+# <!-- custom: Reviewing RI r5642's stored BUG-string reporting prompted inclusion of Scores__DisplayOrder for completeness.
+# Our initial uncommitted SAS draft tried a different approach with alphabet filtering and a 256-character limit; personal text such as ALICE passed the alphabet filter, while the length limit mapped distinct long values to the same withheld marker.
+# Use session-local IDs instead: equal values reuse an ID and changed values remain distinguishable without logging the text or a guessable hash; exact values require the explicit opt-in.
+# The mapping stays in memory and resets at each new/load/reload baseline; IDs are not cross-session identities.
+# IDs use four-digit minimum-width zero padding for consistent scanning; larger IDs are emitted in full without truncation or wraparound. (GPT-6.1-Sol) -->
+def _redactedBugString(value):
+	key = _plain(value)
+	if key not in _g_redactedBugStrings:
+		_g_redactedBugStrings[key] = "<REDACTED_%04d>" % (len(_g_redactedBugStrings) + 1)
+	return _g_redactedBugStrings[key]
+
+
 def _collectBugGroups():
 	options = BugOptions.getOptions().options
 	groups = {}
@@ -368,6 +390,8 @@ def _collectBugGroups():
 	iUnsavedSkipped = 0
 	iParameterizedSkipped = 0
 	iStringSkipped = 0
+	iStringRedacted = 0
+	bStringValuesEnabled = SASGameRecordConfig.getBugStringValuesEnabled()
 	iRecorded = 0
 	for optionID in sorted(options.keys()):
 		option = options[optionID]
@@ -382,7 +406,8 @@ def _collectBugGroups():
 		if hasattr(option, "isParameterized") and option.isParameterized():
 			iParameterizedSkipped += 1
 			continue
-		if option.getType() == "string" and optionID not in _SAS_NUMERIC_STRING_BUG_OPTIONS:
+		# <!-- custom: Limit string collection to the numeric exceptions and explicitly reviewed options; the raw-value opt-in must not include other BUG paths, URLs or naming templates. (GPT-6.1-Sol) -->
+		if option.getType() == "string" and optionID not in _SAS_NUMERIC_STRING_BUG_OPTIONS and optionID not in _SAS_REVIEWED_STRING_BUG_OPTIONS:
 			iStringSkipped += 1
 			continue
 		group = optionID.split("__", 1)[0]
@@ -394,9 +419,19 @@ def _collectBugGroups():
 		except (KeyboardInterrupt, SystemExit):
 			raise
 		except Exception:
-			value = "<UNREADABLE>"
+			# <!-- custom: Handle read failures before numeric/color formatting or redaction so <UNREADABLE> remains a failure marker, never a replacement ID for a value we did not obtain. (GPT-6.1-Sol) -->
+			groups[group][optionID] = "<UNREADABLE>"
+			iRecorded += 1
+			continue
 		if optionID in _SAS_NUMERIC_STRING_BUG_OPTIONS:
 			groups[group][optionID] = _numericConfiguredString(value)
+		elif optionID in _SAS_REVIEWED_STRING_BUG_OPTIONS:
+			if bStringValuesEnabled:
+				# <!-- custom: The raw-value opt-in preserves the full configured text, including values over 256 characters, so it does not silently truncate diagnostic evidence. (GPT-6.1-Sol) -->
+				groups[group][optionID] = _plain(value)
+			else:
+				groups[group][optionID] = _redactedBugString(value)
+				iStringRedacted += 1
 		elif option.getType() == "color":
 			groups[group][optionID] = _safeColorValue(value)
 		else:
@@ -408,6 +443,8 @@ def _collectBugGroups():
 		"recorded": _plain(iRecorded),
 		"registered": _plain(len(options)),
 		"stringSkipped": _plain(iStringSkipped),
+		"stringRedacted": _plain(iStringRedacted),
+		"stringValuesEnabled": _plain(bStringValuesEnabled),
 		"unsavedSkipped": _plain(iUnsavedSkipped),
 	}
 	result = {}
@@ -601,6 +638,28 @@ def _collectConfiguredFiles():
 	return groups
 
 
+# <!-- custom: The reviewed RI r5642 RIBugReport.py reports BUG's NoCustomAssets flag, recursively counts CustomAssets files and prints user/report paths; this informed our narrower support-context addition.
+# Sample only directory presence once per recorder session, behind the system-context gate, to avoid traversal cost/private paths; neither folder presence nor BUG's cached policy/search paths proves which assets the EXE loaded.
+# Keep this filesystem observation separate from the already-recorded configured NoCustomAssets policy.
+# RI's reviewed BugInit.py disables cyclic garbage collection during live Python reload, and its BugData.py removes Table.__del__.
+# As of this comparison, SAS uses the inherited AdvCiv/BUG initialization and Table finalizer without RI's reload-specific garbage-collection changes.
+# RI reload behavior therefore does not establish that saving runtime Python files is safe in SAS; this collector uses the existing session callbacks and does not change reload handling. (GPT-6.1-Sol) -->
+def _collectCustomAssetsContext():
+	root = BugPath.getRootDir()
+	if not root:
+		return {"directoryStatus": "ROOT_UNRESOLVED"}
+	try:
+		mode = os.stat(os.path.join(root, "CustomAssets")).st_mode
+	except OSError:
+		error = sys.exc_info()[1]
+		if error.errno in (errno.ENOENT, errno.ENOTDIR):
+			return {"directoryStatus": "ABSENT"}
+		return {"directoryStatus": "UNREADABLE"}
+	if stat.S_ISDIR(mode):
+		return {"directoryStatus": "PRESENT"}
+	return {"directoryStatus": "NOT_DIRECTORY"}
+
+
 def _collectSafely(collector):
 	try:
 		return collector(), True
@@ -631,7 +690,9 @@ def _changeGroups(previous, current, reason):
 
 
 def logSessionSettings(reason):
-	global _g_profileGroups, _g_bugGroups, _g_sessionActive
+	global _g_profileGroups, _g_bugGroups, _g_sessionActive, _g_redactedBugStrings
+	# <!-- custom: Start a fresh ID namespace before collecting the new session's BUG baseline; old comparison state is replaced by the snapshots below too. (GPT-6.1-Sol) -->
+	_g_redactedBugStrings = {}
 	profileGroups, bProfileReadable = _collectSafely(_collectProfileGroups)
 	bugGroups, bBugReadable = _collectSafely(_collectBugGroups)
 	configuredGroups, bConfiguredCollectionSucceeded = _collectSafely(_collectConfiguredFiles)
@@ -640,6 +701,13 @@ def logSessionSettings(reason):
 	for group, pair in configuredGroups.items():
 		source, values = pair
 		_emit("SNAPSHOT", reason, source, group, values)
+	# <!-- custom: Add a one-shot filesystem observation without putting it in profile/BUG change caches, which are resampled by options callbacks.
+	# The master recorder gate is at the session caller; system-context 0 skips even the path lookup/stat, while collection failure remains explicit. (GPT-6.1-Sol) -->
+	if SASGameRecordConfig.getSystemContextLevel() > 0:
+		assetValues, bAssetsReadable = _collectSafely(_collectCustomAssetsContext)
+		if not bAssetsReadable:
+			assetValues = {"directoryStatus": "UNREADABLE"}
+		_emit("SNAPSHOT", reason, "FILESYSTEM_OBSERVATION", "CUSTOM_ASSETS_CONTEXT", assetValues)
 	meta = {
 		"bugGroups": _plain(len(bugGroups)),
 		"bugReadable": _plain(bBugReadable),

@@ -103,6 +103,7 @@ In particular but not only, these are usually helpful:
 - When comparing two level-3 records, run [`LLM_Helpers/compare_sasgamerecord_rng.py`](/LLM_Helpers/compare_sasgamerecord_rng.py) before manually inspecting RNG rows.
   - It validates each record's checkpoint arithmetic/state progression and reports the first authoritative-RNG or call-provenance divergence; its [maintained example](/_1_AdvCiv-SAS/Docs/examples/sasgamerecord/sasgamerecord_rng_compared.txt) shows how to interpret the result.
 - SASGameRecord revision maintenance: every intentional SASGameRecord-related code change, including implementation/checker/bridge/configuration code comments or header-only edits, increments `SAS_GAME_RECORD_REVISION` and adds the matching latest-first entry to [`README_SASGameRecord_Revisions.md`](/_1_AdvCiv-SAS/Docs/README_SASGameRecord_Revisions.md) in the same commit.
+  - Edit the XML Define in `Assets/XML/GlobalDefines_advciv_sas.xml`. The DLL reports its first-use cached value as `GAME_RECORD_SOURCE_CONTEXT recordRevision`; Python-only updates do not require a DLL rebuild just to advance this label.
   - Do not debate compatibility; the revision is only a downstream-update signal.
   - Standalone docs/history/example-log/package refreshes do not require a bump.
   - The SASGameRecord build check verifies that source and history stay synchronized.
@@ -233,7 +234,9 @@ These are general guidelines, not irrevocable requirements; adjust based on task
 - For AI or gameplay logic changes, include a slightly more verbose rationale (why it helps efficiency or outcomes), not just what changed.
 - When adding rationale, focus on the economic/strategic reasoning (efficiency, versatility, risk, maintenance) and capture the thought process behind the change.
 - Do not commit changes unless the user explicitly approves; prefer review/discussion before commits.
-- Leave compiled `.dll` files, especially local Debug-opt builds, out of source/docs commits unless the user explicitly asks to include the DLL. General commit approval alone does not include compiled binaries; inspect the staged file list before committing.
+- Inspect staged DLLs and their build reports before committing.
+  - For a user-approved commit whose native changes require an updated shipped DLL, a user-staged matching Release DLL/report pair is approval to include that pair. Verify the successful Release build and matching binary identity, and retain the required `Update DLL` marker.
+  - Otherwise include compiled binaries only when the user explicitly asks; keep unrelated binaries and local Debug-opt builds out of source/docs commits.
 - Note: for the collapse multiline to singleline bullets below, such a refactor would be extensive, so if we need to, do it as we go rather than all in one-go throughout our whole codebase.
   - It's a low-priority nicety — don't go out of your way for it during unrelated tasks; only apply it to code you're already editing, or if it seems relevant/related to your current task, or when explicitly asked to do a collapse pass.
 - Try to make one liner code whenever possible, for example a line like `draw_expandable_text_panel(screen, self.top, szTitle, self.X_HISTORY, self.Y_HISTORY, self.W_HISTORY, self.H_HISTORY, szText, self.bHistoryExpanded, SAS_MAGIC_PEDIA_PYTHON_HISTORY_EXPAND)` is much easier to scan or grep through/compare throughout our codebase than a multiline mostly needlessly stylized version of it.

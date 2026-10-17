@@ -10,6 +10,7 @@ from CvPythonExtensions import CyGlobalContext
 _g_logLevel = None
 _g_systemContextLevel = None
 _g_actionTraceEnabled = None
+_g_bugStringValuesEnabled = None
 
 
 def getLogLevel():
@@ -32,3 +33,11 @@ def getActionTraceEnabled():
 	if _g_actionTraceEnabled is None:
 		_g_actionTraceEnabled = (CyGlobalContext().getDefineINT("SAS_GAME_RECORD_ACTION_TRACE_ENABLE") > 0)
 	return _g_actionTraceEnabled
+
+
+# <!-- custom: Cache the default-off reviewed BUG-string opt-in lazily, like the existing recorder gates; redacted IDs remain the default and XML edits require restarting/reloading the mod. (GPT-6.1-Sol) -->
+def getBugStringValuesEnabled():
+	global _g_bugStringValuesEnabled
+	if _g_bugStringValuesEnabled is None:
+		_g_bugStringValuesEnabled = (CyGlobalContext().getDefineINT("SAS_GAME_RECORD_BUG_STRING_VALUES_ENABLE") > 0)
+	return _g_bugStringValuesEnabled

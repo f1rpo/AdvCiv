@@ -4,10 +4,10 @@
     "configuration":  "Release",
     "target":  "Release",
     "request":  "BUILD",
-    "startedUtc":  "2026-10-15T09:13:29.623Z",
+    "startedUtc":  "2026-10-17T12:08:23.469Z",
     "branch":  "main",
-    "commit":  "9b54276a74a665579e0e487bce20d2f09091e6dc",
-    "workingTreeStatus":  "M  Assets/CvGameCoreDLL.dll\nM  Assets/CvGameCoreDLL.dll.build.json\n M Assets/XML/GlobalDefines_advciv_sas.xml\nM  CvGameCoreDLL/Project/build_with_report.ps1\nM  README.md\nM  _1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md\nM  _1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md",
+    "commit":  "e70922991fde319c07bc1d54930d926e34d8a651",
+    "workingTreeStatus":  "MM .github/workflows/README.md\nMM .github/workflows/build/diagnostics/sas_game_record_log.py\nMM .github/workflows/build/diagnostics/sas_revision_history.py\n M .github/workflows/checks-diagnostics.yml\nMM .github/workflows/tests/diagnostics/test_sas_revision_history.py\nMM .github/workflows/tests/diagnostics/test_sasgamerecord_revision.py\n M Assets/Python/SASGameRecordConfig.py\nMM Assets/Python/SASGameRecordSettings.py\n M Assets/XML/GlobalDefines_advciv_sas.xml\n M CvGameCoreDLL/SASGameRecordLog.cpp\nMM CvGameCoreDLL/SASGameRecordLog.h\nMM _1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md\nMM _1_AdvCiv-SAS/Docs/README_SASGameRecord_Revisions.md",
     "tempBefore":  {
                        "directoryPresent":  false,
                        "objectCount":  0,
@@ -17,8 +17,8 @@
                    },
     "dllBefore":  {
                       "sizeBytes":  8052736,
-                      "modifiedUtc":  "2026-10-15T08:59:18.507Z",
-                      "sha256":  "CB0AFA8D6F02D4D26BA008204EBCFBA58962839C4FE508F6DDA6FF78981B63B3"
+                      "modifiedUtc":  "2026-10-15T09:15:50.489Z",
+                      "sha256":  "1AA06AE7F52BAC18E253CF1798FE4028EDDDEEE42D38D7878B0499899723F975"
                   },
     "status":  "SUCCEEDED",
     "logFile":  "AdvCiv.log",
@@ -1983,15 +1983,15 @@
                               },
                               {
                                   "path":  "CvGameCoreDLL/SASGameRecordLog.cpp",
-                                  "sizeBytes":  1036666,
-                                  "modifiedUtc":  "2026-10-15T06:31:03.000Z",
-                                  "sha256":  "BFD7F811E89138D60BA5FBBC73DF2EBBCE4E571BC315F760BE8E9193BBAB435D"
+                                  "sizeBytes":  1037098,
+                                  "modifiedUtc":  "2026-10-17T11:46:30.551Z",
+                                  "sha256":  "09D7EC1BC3FD90773A03FADF5A5D43E6882E95A39C289651611E06B8369CC4F6"
                               },
                               {
                                   "path":  "CvGameCoreDLL/SASGameRecordLog.h",
-                                  "sizeBytes":  111245,
-                                  "modifiedUtc":  "2026-10-14T14:57:02.000Z",
-                                  "sha256":  "FA61BE7E45C67B28AFE9E7E3BB900D9EC1BDD0F208D9B42E8B776145EA796A26"
+                                  "sizeBytes":  110582,
+                                  "modifiedUtc":  "2026-10-17T09:20:16.000Z",
+                                  "sha256":  "0ECCB11BEB83EEA06438413404369FE53C76EEF883AA593BD551ABD8B1E8474C"
                               },
                               {
                                   "path":  "CvGameCoreDLL/SASSaveStreamFormat.h",
@@ -2201,34 +2201,48 @@
     "sincePreviousBuild":  {
                                "available":  true,
                                "scope":  "PREVIOUS_BUILD_END_TO_CURRENT_BUILD_START",
-                               "previousStartedUtc":  "2026-10-15T08:56:59.481Z",
-                               "previousEndedUtc":  "2026-10-15T08:59:18.567Z",
+                               "previousStartedUtc":  "2026-10-15T09:13:29.623Z",
+                               "previousEndedUtc":  "2026-10-15T09:15:50.532Z",
                                "previousConfiguration":  "Release",
                                "previousRequest":  "BUILD",
                                "previousStatus":  "SUCCEEDED",
-                               "previousCommit":  "8692ebec1f15eb4912a1ea113e4149e94059d7fb",
+                               "previousCommit":  "9b54276a74a665579e0e487bce20d2f09091e6dc",
                                "previousFileCount":  360,
                                "currentFileCount":  360,
-                               "changedCount":  1,
+                               "changedCount":  2,
                                "changes":  [
                                                {
-                                                   "path":  "CvGameCoreDLL/Project/build_with_report.ps1",
+                                                   "path":  "CvGameCoreDLL/SASGameRecordLog.cpp",
                                                    "change":  "CONTENT_CHANGED",
                                                    "after":  {
-                                                                 "sizeBytes":  16681,
-                                                                 "modifiedUtc":  "2026-10-15T09:08:58.793Z",
-                                                                 "sha256":  "92CE7C64EABEB94ACB5C766AC888AEAF35B92DBFEA23441E9875BBE997D02CBA"
+                                                                 "sizeBytes":  1037098,
+                                                                 "modifiedUtc":  "2026-10-17T11:46:30.551Z",
+                                                                 "sha256":  "09D7EC1BC3FD90773A03FADF5A5D43E6882E95A39C289651611E06B8369CC4F6"
                                                              },
                                                    "before":  {
-                                                                  "sizeBytes":  13257,
-                                                                  "modifiedUtc":  "2026-10-15T08:54:53.099Z",
-                                                                  "sha256":  "93EC92B058BF7F4FB574F25A8189D4CCC0EC411A45A1BD39B50E174C09C98011"
+                                                                  "sizeBytes":  1036666,
+                                                                  "modifiedUtc":  "2026-10-15T06:31:03.000Z",
+                                                                  "sha256":  "BFD7F811E89138D60BA5FBBC73DF2EBBCE4E571BC315F760BE8E9193BBAB435D"
+                                                              }
+                                               },
+                                               {
+                                                   "path":  "CvGameCoreDLL/SASGameRecordLog.h",
+                                                   "change":  "CONTENT_CHANGED",
+                                                   "after":  {
+                                                                 "sizeBytes":  110582,
+                                                                 "modifiedUtc":  "2026-10-17T09:20:16.000Z",
+                                                                 "sha256":  "0ECCB11BEB83EEA06438413404369FE53C76EEF883AA593BD551ABD8B1E8474C"
+                                                             },
+                                                   "before":  {
+                                                                  "sizeBytes":  111245,
+                                                                  "modifiedUtc":  "2026-10-14T14:57:02.000Z",
+                                                                  "sha256":  "FA61BE7E45C67B28AFE9E7E3BB900D9EC1BDD0F208D9B42E8B776145EA796A26"
                                                               }
                                                }
                                            ]
                            },
-    "endedUtc":  "2026-10-15T09:15:50.532Z",
-    "durationMilliseconds":  140894,
+    "endedUtc":  "2026-10-17T12:10:19.142Z",
+    "durationMilliseconds":  115646,
     "exitCode":  0,
     "warningCount":  0,
     "errorCount":  0,
@@ -2238,8 +2252,8 @@
     "recognizedErrorLines":  [
 
                              ],
-    "commitAfter":  "9b54276a74a665579e0e487bce20d2f09091e6dc",
-    "workingTreeStatusAfter":  "M  Assets/CvGameCoreDLL.dll\nM  Assets/CvGameCoreDLL.dll.build.json\n M Assets/XML/GlobalDefines_advciv_sas.xml\nM  CvGameCoreDLL/Project/build_with_report.ps1\nM  README.md\nM  _1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md\nM  _1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md\n?? CvGameCoreDLL/Project/temp_files/Release/",
+    "commitAfter":  "e70922991fde319c07bc1d54930d926e34d8a651",
+    "workingTreeStatusAfter":  "MM .github/workflows/README.md\nMM .github/workflows/build/diagnostics/sas_game_record_log.py\nMM .github/workflows/build/diagnostics/sas_revision_history.py\n M .github/workflows/checks-diagnostics.yml\nMM .github/workflows/tests/diagnostics/test_sas_revision_history.py\nMM .github/workflows/tests/diagnostics/test_sasgamerecord_revision.py\n M AGENTS.md\n M Assets/Python/SASGameRecordConfig.py\nMM Assets/Python/SASGameRecordSettings.py\n M Assets/XML/GlobalDefines_advciv_sas.xml\n M CvGameCoreDLL/SASGameRecordLog.cpp\nMM CvGameCoreDLL/SASGameRecordLog.h\nMM _1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md\nMM _1_AdvCiv-SAS/Docs/README_SASGameRecord_Revisions.md\n?? CvGameCoreDLL/Project/temp_files/Release/",
     "tempAfter":  {
                       "directoryPresent":  true,
                       "objectCount":  168,
@@ -2249,8 +2263,8 @@
                   },
     "dllAfter":  {
                      "sizeBytes":  8052736,
-                     "modifiedUtc":  "2026-10-15T09:15:50.489Z",
-                     "sha256":  "1AA06AE7F52BAC18E253CF1798FE4028EDDDEEE42D38D7878B0499899723F975"
+                     "modifiedUtc":  "2026-10-17T12:10:19.081Z",
+                     "sha256":  "111EA500CB2987DE8D274DA96B1DDF97BF825490ECBF814D5B90A4AD74B0F34B"
                  },
     "buildInputChanges":  [
 

@@ -7,16 +7,18 @@ import sys
 import tempfile
 import unittest
 
-ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(ROOT / ".github/workflows/build/diagnostics"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / ".github/workflows/build/diagnostics"))
+# <!-- custom: Keep the recorder import directly after its search-path setup and move ROOT below imports so Ruff can check the fixture without an E402 suppression; the imported dependency is unchanged. (GPT-6.1-Sol) -->
 import sas_game_record_log as recorder
+
+ROOT = Path(__file__).resolve().parents[4]
 
 class RevisionDocumentationTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
         self.repo = Path(self.temporary.name)
-        for relative in (recorder.REVISION_HEADER, recorder.REVISION_SOURCE, recorder.REVISION_HISTORY):
+        for relative in (recorder.REVISION_DEFINES, recorder.REVISION_SOURCE, recorder.REVISION_HISTORY):
             target = self.repo / relative
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(ROOT / relative, target)
@@ -26,18 +28,26 @@ class RevisionDocumentationTests(unittest.TestCase):
     def test_current_revision_documentation(self):
         self.assertEqual(recorder.check_revision(self.repo), [])
 
-    def test_source_bump_without_history_update(self):
-        path = self.repo / recorder.REVISION_HEADER
+    def _set_revision(self, value):
+        path = self.repo / recorder.REVISION_DEFINES
         text = path.read_text('utf-8')
-        updated = re.sub(r'(SAS_GAME_RECORD_REVISION\s*=\s*)(\d+)', lambda match: match.group(1) + str(int(match.group(2)) + 1), text, count=1)
+        pattern = r'(<DefineName>SAS_GAME_RECORD_REVISION</DefineName>\s*<iDefineIntVal>)\d+(</iDefineIntVal>)'
+        updated, count = re.subn(pattern, r'\g<1>%d\g<2>' % value, text, count=1)
+        self.assertEqual(count, 1)
         path.write_text(updated, 'utf-8')
+
+    def test_define_bump_without_history_update(self):
+        self._set_revision(154)
+        self.assertTrue(any('revision mismatch' in error for error in recorder.check_revision(self.repo)))
+
+    def test_history_bump_without_define_update(self):
+        self.history.write_text(re.sub(r'^(### Revision )153( - SAS practical \d+)', r'\g<1>154\g<2>', self.text, count=1, flags=re.MULTILINE), 'utf-8')
         self.assertTrue(any('revision mismatch' in error for error in recorder.check_revision(self.repo)))
 
     def test_removed_latest_history_entry(self):
         entries = list(re.finditer(r'^### Revision ', self.text, flags=re.MULTILINE))
         self.history.write_text(self.text[:entries[0].start()] + self.text[entries[1].start():], 'utf-8')
         self.assertTrue(any('revision mismatch' in error for error in recorder.check_revision(self.repo)))
-
 
 if __name__ == "__main__":
     unittest.main()

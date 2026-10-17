@@ -11,6 +11,12 @@
 - Do **not** spend time deciding whether a change is backward-compatible or behavior-changing. When in doubt, increment.
 - Do not increment for standalone documentation/history edits, refreshed example logs/screenshots/packages, or unrelated gameplay commits that merely used SASGameRecord as validation evidence.
 - Multiple SASGameRecord changes deliberately combined in one Git commit are one revision; this is an update counter, not a hunk/field counter.
+- `SAS_GAME_RECORD_REVISION` in `GlobalDefines_advciv_sas.xml` is the single official revision source.
+  - The revision is reported as `GAME_RECORD_SOURCE_CONTEXT recordRevision=...` in the SASGameRecord log.
+  - The build JSON records build/source/binary evidence separately and has no dedicated recorder-revision field.
+  - Treat it as a commit/update label, not a compatibility API: runtime code does not branch on the revision, and Python does not need revision-specific behavior merely because GlobalDefines makes the value accessible.
+  - Each qualifying commit increments it exactly once, never more than once; the sequence must not regress or skip numbers. Several recorder changes deliberately combined in one commit still produce one revision.
+  - Python/tooling-only revisions can advance without rebuilding an otherwise unchanged DLL. Exact Git/source/build/DLL provenance provides separate evidence about binary/source state.
 - The official revision sequence belongs to SASGameRecord. A downstream mod should report the highest official revision it has implemented and should not invent official revision numbers for private extensions.
 
 ## Current reconstructed number and first explicit marker
@@ -28,10 +34,10 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=152 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=153 ...
 ```
 
-After this, each qualifying SASGameRecord update increments `SAS_GAME_RECORD_REVISION` by one and adds one short latest-first entry to this file in the same commit. The revision is only a downstream-update signal; exact runtime source identity remains in `GAME_RECORD_SOURCE_CONTEXT`.
+After this, each qualifying SASGameRecord commit increments `SAS_GAME_RECORD_REVISION` in `GlobalDefines_advciv_sas.xml` exactly once and adds one short latest-first entry to this file in the same commit. The revision remains a downstream-update signal; exact runtime source/build identity remains separate provenance in `GAME_RECORD_SOURCE_CONTEXT` and the DLL/build context.
 
 ## Consumer/parser notes
 
@@ -71,10 +77,27 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
+### Revision 153 - SAS practical 6639
+
+- **Date:** 2026-10-17
+- **Git commit:** pending
+- **Change:** Comparing SAS diagnostics with RI r5642's `RIBugReport.py` highlighted gaps in CustomAssets and BUG-string context, prompting additions suited to SAS's existing session/settings record and privacy controls.
+  - SAS already recorded configured `NoCustomAssets`, but lacked evidence of whether the directory was present. `CUSTOM_ASSETS_CONTEXT` supplies that context without collecting personal paths or scanning its contents.
+    - Failed inspection is distinguished from absence, so unavailable evidence does not become a misleading diagnosis. Directory presence and configured loading policy do not establish which assets the EXE actually loaded.
+  - RI also reports stored BUG strings. `Scores__DisplayOrder` was accepted for completeness; our uncommitted SAS alphabet-filter draft admitted personal text unchanged, so it receives the redaction described below.
+    - Session-local replacement IDs preserve evidence that the reviewed value stayed the same or changed without disclosing its text. IDs cannot identify values across sessions; unreadable values remain distinguishable from successfully redacted ones.
+    - Default-off `SAS_GAME_RECORD_BUG_STRING_VALUES_ENABLE` allows explicitly opting into exact reviewed values. Unreviewed BUG strings remain excluded.
+  - Runtime context matters when comparing the mods: RI's reviewed Python initialization changes cyclic garbage collection during live reload and removes the BUG `Table` finalizer.
+    - As of this comparison, SAS uses the inherited AdvCiv/BUG initialization/finalizer. RI's live-reload behavior should therefore not be assumed to apply to SAS; the diagnostic additions here do not change reload handling.
+  - Independently, the Python-only additions also exposed an unnecessary coupling: advancing the recorder's update label required rebuilding an otherwise unchanged DLL.
+    - Keep the single `SAS_GAME_RECORD_REVISION` label in shared XML so Python/tooling-only updates can advance it without recompilation. It remains an update signal rather than a compatibility switch.
+    - With the label independent of DLL compilation, strengthen CI to detect missing or invalid revision changes more reliably while preserving one increment per qualifying implementation commit.
+    - Build/source/DLL provenance remains separate evidence for stale or mixed binaries.
+
 ### Revision 152 - SAS practical 6637
 
 - **Date:** 2026-10-15
-- **Git commit:** pending
+- **Git commit:** `46eeba49f191077a975e9749a1512da75f97cd9f`
 - **Change:** Broaden the per-session configured INI context for reproducibility and troubleshooting, retaining configured evidence separately from effective runtime state.
   - Read all sections of `CivilizationIV.ini` and the mod INI, fixing the former `[CONFIG]`-only omission of `[DEBUG]` settings; preserve section/key identity, unusual configured values and explicit missing-key information.
   - Cover reviewed support, graphics/audio, startup and developer settings. Default-off `SAS_GAME_RECORD_INI_PRIVATE_VALUES_ENABLE` and `SAS_GAME_RECORD_INI_NETWORK_VALUES_ENABLE` independently control private/path/free-text and network/account values; withheld keys remain visible, `CheatCode` is recorded directly as a public debug/autoplay setting, and unknown values are not exposed.
@@ -1419,7 +1442,7 @@ Note: Steam detection/path/build metadata are runtime-validated; GOG, Firaxis re
 
 ## Maintenance template
 
-For the next qualifying committed update, increment the public source constant and prepend one entry like this:
+For the next qualifying committed update, increment `SAS_GAME_RECORD_REVISION` in `GlobalDefines_advciv_sas.xml` exactly once and prepend one entry like this:
 
 ```markdown
 ### Revision N - SAS practical XXXX
@@ -1430,4 +1453,4 @@ For the next qualifying committed update, increment the public source constant a
 
 Do not try to place the final SHA of the same not-yet-created commit into its own history entry: changing the document would change that SHA again. Historical entries can retain already-known SHAs, while current runtime Git/source identity is recorded independently by `GAME_RECORD_SOURCE_CONTEXT`.
 
-Standalone docs/history/example-log/package-only updates do not bump the revision. If a qualifying code change and those maintenance files are committed together, they remain one revision.
+Standalone docs/history/example-log/package-only updates do not bump the revision. If a qualifying implementation change and those maintenance files are committed together, they remain one revision. Do not pre-bump, double-bump or reuse a revision for a later qualifying commit.
