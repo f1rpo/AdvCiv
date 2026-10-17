@@ -4,10 +4,9 @@ import sys
 import unittest
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[4]
-sys.path.insert(0, str(ROOT / "LLM_Helpers"))
-# <!-- custom: Import the repo-local logging audit after adding its helper directory, matching the workflow-test import convention. (GPT-6.1-Sol) -->
-import audit_cpp_logging_pregates as audit  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / "LLM_Helpers"))
+# <!-- custom: Import the repo-local logging audit after adding its helper directory, Ruff recognizes this sys.path setup without an import-order suppression. (GPT-6.1-Sol) -->
+import audit_cpp_logging_pregates as audit
 
 
 class MessageStyleTests(unittest.TestCase):

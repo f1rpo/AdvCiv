@@ -24,6 +24,11 @@ Note: The main changes guide serves as an index that covers concisely most AdvCi
 &emsp;[Renaming](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#renaming)\
 &emsp;[Mod Name/Version](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#mod-nameversion)\
 &emsp;[Tooling](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#tooling)\
+&emsp;&emsp;[Build](#build)\
+&emsp;&emsp;[Helpers](#helpers)\
+&emsp;&emsp;[CI](#ci)\
+&emsp;&emsp;[Light-source ZIP](#light-source-zip)\
+&emsp;&emsp;[Repository](#repository)\
 &emsp;[System - Misc](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#system---misc)\
 &emsp;[Code/Performance optimizations](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#codeperformance-optimizations)\
 &emsp;[Logging](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#logging)\
@@ -162,16 +167,39 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 
 ### Tooling
 
+#### Build
+
 - (Requires AdvCiv-SAS 6633+) **Persistent DLL build reports:** normal Visual Studio build commands retain each attempt's compiler output and detailed context with source identity, result, duration, warnings/errors and temporary-artifact state.
   - One current `AdvCiv.log` and full build JSON sit beside the corresponding Release, Debug-opt or other target DLL; Git/debug context remains available without a separate compact format or automatic archive cleanup.
   - (Requires AdvCiv-SAS 6637+) The JSON adds an initial source/project manifest with exact byte sizes, UTC modification times and SHA-256, followed by final details only for changed files; `AdvCiv.log` gets summary counts.
     - Content edits are distinguished from timestamp-only changes, with separate comparisons since the preceding completed build and during the current attempt. This information is external to the DLL; external toolchain/SDK inputs remain outside the snapshot.
-  - Intentionally committed Release DLL updates include the full JSON; CI requires both files to change together, configuration exactly `Release`, a successful build result and matching DLL hash alongside the existing `Update DLL` intent marker. The matching JSON remains required on source-only commits too; full compiler logs stay local, and ordinary build outputs remain Git-ignored.
-  - CI also catches an unchanged shipped DLL when C++-used XML define names are added, removed or renamed across `Assets/XML`: integration into the repository's default branch requires updated Release build evidence, while intermediate feature-branch source commits remain possible.
-  - Define value/comment edits and Python-only names are excluded; see the [structural define check](/.github/workflows/README.md#buildrepositorydll_define_changespy) for scope and limitations.
+  - Full compiler logs stay local and ordinary build outputs remain Git-ignored; see [DLL shipping checks](#ci) for committed Release DLL/JSON requirements.
   - Build reports are development tooling: Civ4 does not read them, so they add no gameplay changes or in-game cost. The separately embedded build provenance described under SASGameRecord remains available to enabled diagnostics.
   - See the [DLL Compilation Guide](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md#persistent-build-reports) and its [real build-output example](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md#example-build-output).
+- (Requires AdvCiv-SAS 6366+) **Lower-CPU Debug-opt compilation:**
+  - Debug-opt previously used parallel `bin\jom build` (in [AdvCiv.vcxproj](/CvGameCoreDLL/Project/AdvCiv.vcxproj)), which sustained high CPU usage and audibly drove the CPU fan to full speed.
+  - Recent Visual Studio logs measured parallel Debug-opt at `24.83` seconds versus `1` minute `46.22` seconds for sequential Release, only `81.39` seconds saved in a development iteration where an autoplay usually takes `10+` minutes.
+  - That small overall workflow-time gain does not justify the repeated CPU load, heat and power use when compiling many or dozens of DLLs during a development day.
+  - To fix this, Debug-opt now uses the same sequential `nmake dll` build path as Release to avoid needlessly stressing the hardware; the explicitly named `*-fast` configurations remain available when the shortest compile time is preferred.
+  - See [KI#38.3](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-38.3).
 
+#### Helpers
+
+- **Handicap XML comparison helper:** added [`compare_handicap_infos.py`](/LLM_Helpers/compare_handicap_infos.py), a report-only, mod-agnostic helper that compares two explicit `CIV4HandicapInfo.xml` file paths, inside or outside this mod folder, by handicap index; shows missing fields as blanks, includes absolute/percentage numeric deltas, and embeds a spreadsheet-friendly TSV matrix.
+
+#### CI
+
+- (Requires AdvCiv-SAS 6637+) **DLL shipping and rebuild checks:**
+  - Intentionally committed Release DLL updates require the DLL and full JSON to change together, configuration exactly `Release`, a successful build result, matching DLL hash and the `Update DLL` intent marker. The matching JSON remains required on source-only commits too.
+  - Adding, removing or renaming C++-used XML define names across `Assets/XML` requires updated Release build evidence when integrating into the repository's default branch; intermediate feature-branch source commits remain possible.
+    - Define value/comment edits and Python-only names are excluded; see the [structural define check](/.github/workflows/README.md#buildrepositorydll_define_changespy) for scope and limitations.
+- (Requires AdvCiv-SAS 6584+) **Broader repository sanity checks:**
+  - Automated checks cover repository/shipping hygiene, maintained documentation, XML/rules consistency, assets, diagnostics/revision history, runtime configuration, source-change conventions and workflow-helper regression tests.
+  - Nine `checks-*.yml` workflows match the repository, hygiene, documentation, XML, assets, diagnostics, runtime, source and tests areas; four specialized workflows cover Markdown lint, Ruff, real Python 2.4 compilation and AIP predump refresh.
+  - Active Python check helpers are grouped under `build/<subject>/`, shared workflow code under `lib/`, and behavioral checker tests under `tests/`.
+  - Detailed gameplay/AI correctness still relies on code review, compilation and Civ4 runtime/autoplay validation rather than static workflow checks alone.
+  - Refreshed existing document menus to match their body headings.
+  - See [current automated checks](/.github/workflows/README.md#current-automated-checks).
 - (Requires AdvCiv-SAS 6581+) **Repository encoding and Windows-path CI:**
   - checks tracked files for unsupported BOMs and paths too long for the standard Steam installation: full installed file paths may use at most 259 UTF-16 units, and parent directory paths at most 247.
   - These limits include the installation root and mod-folder name; the separate filename cap below complements them.
@@ -185,35 +213,11 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
   - Its exact name is embedded in `Gilgamesh.kfm`, so renaming only the animation file would break that reference.
   - CI collects all filename/path violations before failing.
   - See [repository hygiene CI](/.github/workflows/README.md#buildhygienerepository_hygienepy).
-- **Light source archive helper:**
-  - (Requires AdvCiv-SAS 6605+) Separate cumulative patches show committed branch work and the complete working snapshot, including staged/unstaged edits, against the same shared ancestor with the detected default branch. Both filter CRLF/LF and trailing-whitespace noise so reviewers can focus on meaningful changes.
-  - added [`make_light_source_zip.py`](/LLM_Helpers/README.md#make_light_source_zippy), which creates a timestamped compressed AdvCiv-SAS source/data/docs archive under the mod root or a chosen output folder.
-  - A small tracked Git file-tree manifest is also bundled so ZIP-only LLMs can see repository paths intentionally omitted from the archive.
-  - The archive now also includes generated `_SNAPSHOT_CONTEXT` with the current Git/repository state plus useful filtered textual diffs across the current HEAD's K-Mod -> pre-SAS AdvCiv -> AdvCiv-SAS branch history, including later upstream AdvCiv commits merged into that branch, making offline/ZIP-only LLM review and historical investigation much more complete without including the full `.git` repository or historical source trees.
-  - (Requires AdvCiv-SAS 6605+) A compact summary in the console and archive makes the review context easier to identify: current versus default-branch progress, staged/unstaged change counts and links to their already-bundled diffs, plus timestamped packaging/runtime observations. See the [output example](/LLM_Helpers/README.md#example-of-output-light_source-zip-git-bash).
-  - (Requires AdvCiv-SAS 6605+) A cumulative branch diff and default-branch reference files complement the current source, making the overall change and before/after code directly reviewable by humans or AI/LLM helpers from one archive, without a local Git checkout.
-  - (Requires AdvCiv-SAS 6605+) Immediate pre-edit HEAD/index reference files support direct review of partially staged work, while cache-reuse and regeneration progress messages make source packaging easier to follow during long first-time runs.
-  - (Requires AdvCiv-SAS 6605+) Omitted DLLs still have exact byte-identity and size-change context, letting source-only reviewers distinguish identical versus changed binaries without adding the binaries to the archive.
-  - This avoids repeatedly manually selecting and tediously creating an updated ZIP of each file/folder each time, of the same useful core files/folders ChatGPT or other LLMs can read or needs, while leaving unneeded or too heavy to use ones (e.g., as of now no .fpk, .tga, .dll, or pycache folders, broad art assets folder), when sharing compact mod context with local tools or LLMs. Some image folders are included too because advisors, Sevopedia, main menu, common UI, and rendered `SASGameRecord` map text are very useful for LLM development/review and help show what the mod actually looks like.
-  - The `SASGameRecord_map_text` screenshots are included because an LLM may read the raw text-map characters without reconstructing the visual/geographical layout as easily.
-  - Local agentic tools like Codex can inspect these screenshots directly, while external/ZIP-only LLMs like ChatGPT can only use them if the archive includes them; adding every image folder would currently add 50+ MB and roughly double the archive.
-- (Requires AdvCiv-SAS 6596+) **More compact generated commit-history context:**
-  - imported reference documents and archived published changelog copies now retain change summaries and path-history navigation without duplicating their full patches in generated `commit_diffs/`.
-  - Current reference/archive files remain available under the normal light-source snapshot rules; maintained README indexes, source files and ordinary development documentation keep their detailed history.
-  - The cache policy changes automatically so older cached renderings are not reused under the new filtering.
-  - See [light-source history filtering](/LLM_Helpers/README.md#make_light_source_zippy).
 - (Requires AdvCiv-SAS 6581+) **Generated documentation checks:**
   - regenerates registered source-to-text conversions and the published handicap XML comparison to detect stale tracked outputs.
   - The AdvCiv manual is the first registered conversion; future conversions can supply their own source, output and converter.
   - Complete PR/push ranges also require paired text updates when a registered source or related artifact changes.
   - See [generated documentation checks](/.github/workflows/README.md#builddocumentationgenerated_docspy).
-- (Requires AdvCiv-SAS 6584+) **Broader repository sanity checks:**
-  - Automated checks cover repository/shipping hygiene, maintained documentation, XML/rules consistency, assets, diagnostics/revision history, runtime configuration, source-change conventions and workflow-helper regression tests.
-  - Nine `checks-*.yml` workflows match the repository, hygiene, documentation, XML, assets, diagnostics, runtime, source and tests areas; four specialized workflows cover Markdown lint, Ruff, real Python 2.4 compilation and AIP predump refresh.
-  - Active Python check helpers are grouped under `build/<subject>/`, shared workflow code under `lib/`, and behavioral checker tests under `tests/`.
-  - Detailed gameplay/AI correctness still relies on code review, compilation and Civ4 runtime/autoplay validation rather than static workflow checks alone.
-  - Refreshed existing document menus to match their body headings.
-  - See [current automated checks](/.github/workflows/README.md#current-automated-checks).
 - **Markdown links/images CI:**
   - added GitHub workflow checks for repository-local Markdown images and links, including `#heading` anchors.
   - They catch missing/moved local targets and stale renamed section/KI links automatically; external web links are intentionally not checked.
@@ -236,22 +240,40 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
   - added [`python24-compile.yml`](/.github/workflows/python24-compile.yml), which runs `Assets/Python` and `PrivateMaps` through real CPython 2.4 syntax/bytecode compilation using our separate [`wonderingabout/python-2.4-docker`](https://github.com/wonderingabout/python-2.4-docker) GHCR image.
   - This complements Ruff by checking the old parser Civ4 embeds, without launching Civ4 or importing engine-only modules.
   - A deliberate [test confirmed it fails](https://github.com/wonderingabout/AdvCiv-SAS/actions/runs/27897204427) on Python 2.5+ ternary syntax such as `SAS_MAGIC_PY24_COMPILE_BREAK_TEST = 1 if True else 0` in `SASMagicNumbers.py`.
-  - See [`.github/workflows/README.md`](/.github/workflows/README.md#python-24-compile-workflow), and [README.md (External Python tooling)](/README.md#external-python-tooling) for screenshots.
+  - See [`.github/workflows/README.md`](/.github/workflows/README.md#python-24-compile-workflow), and [README.md (CI)](/README.md#ci) for screenshots.
 - **Dependabot for GitHub Actions:**
   - added Dependabot tracking for GitHub Actions versions to help address Node.js runtime deprecation warnings such as `actions/checkout@v4` and `actions/setup-python@v5` still using Node.js 20 (see [dependabot@PR#24](https://github.com/wonderingabout/AdvCiv-SAS/pull/24)). This should reduce manual maintenance and make future action-version updates easier to notice and apply.
   - See [`.github/workflows/README.md` current automated checks](/.github/workflows/README.md#current-automated-checks).
-- **Handicap XML comparison helper:** added [`compare_handicap_infos.py`](/LLM_Helpers/compare_handicap_infos.py), a report-only, mod-agnostic helper that compares two explicit `CIV4HandicapInfo.xml` file paths, inside or outside this mod folder, by handicap index; shows missing fields as blanks, includes absolute/percentage numeric deltas, and embeds a spreadsheet-friendly TSV matrix.
-- **External File Opening**: Access from Civ4 ingame local files in the system on Windows. See [KI#87](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-87).
+
+#### Light-source ZIP
+
+- **Light source archive helper:**
+  - (Requires AdvCiv-SAS 6638+) External agents such as web ChatGPT, currently using Linux without our locally installed Python 2.4, can use a separately supplied package to check Civ4 source; local Codex agents already use our Windows installation. A single note under the ZIP’s `_SNAPSHOT_CONTEXT` identifies the package and published updates, avoiding repeated runtime bytes in source uploads.
+    - The shared Python Docker repository maintains the runtime centrally; SAS checks its small manifest and leaves downloading/providing the package to the user. See [setup and platform limits](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#python-24-compatibility-for-modding).
+  - (Requires AdvCiv-SAS 6605+) Separate cumulative patches show committed branch work and the complete working snapshot, including staged/unstaged edits, against the same shared ancestor with the detected default branch. Both filter CRLF/LF and trailing-whitespace noise so reviewers can focus on meaningful changes.
+  - added [`make_light_source_zip.py`](/LLM_Helpers/README.md#make_light_source_zippy), which creates a timestamped compressed AdvCiv-SAS source/data/docs archive under the mod root or a chosen output folder.
+  - A small tracked Git file-tree manifest is also bundled so ZIP-only LLMs can see repository paths intentionally omitted from the archive.
+  - The archive now also includes generated `_SNAPSHOT_CONTEXT` with the current Git/repository state plus useful filtered textual diffs across the current HEAD's K-Mod -> pre-SAS AdvCiv -> AdvCiv-SAS branch history, including later upstream AdvCiv commits merged into that branch, making offline/ZIP-only LLM review and historical investigation much more complete without including the full `.git` repository or historical source trees.
+  - (Requires AdvCiv-SAS 6605+) A compact summary in the console and archive makes the review context easier to identify: current versus default-branch progress, staged/unstaged change counts and links to their already-bundled diffs, plus timestamped packaging/runtime observations. See the [output example](/LLM_Helpers/README.md#example-of-output-light_source-zip-git-bash).
+  - (Requires AdvCiv-SAS 6605+) A cumulative branch diff and default-branch reference files complement the current source, making the overall change and before/after code directly reviewable by humans or AI/LLM helpers from one archive, without a local Git checkout.
+  - (Requires AdvCiv-SAS 6605+) Immediate pre-edit HEAD/index reference files support direct review of partially staged work, while cache-reuse and regeneration progress messages make source packaging easier to follow during long first-time runs.
+  - (Requires AdvCiv-SAS 6605+) Omitted DLLs still have exact byte-identity and size-change context, letting source-only reviewers distinguish identical versus changed binaries without adding the binaries to the archive.
+  - This avoids repeatedly manually selecting and tediously creating an updated ZIP of each file/folder each time, of the same useful core files/folders ChatGPT or other LLMs can read or needs, while leaving unneeded or too heavy to use ones (e.g., as of now no .fpk, .tga, .dll, or pycache folders, broad art assets folder), when sharing compact mod context with local tools or LLMs. Some image folders are included too because advisors, Sevopedia, main menu, common UI, and rendered `SASGameRecord` map text are very useful for LLM development/review and help show what the mod actually looks like.
+  - The `SASGameRecord_map_text` screenshots are included because an LLM may read the raw text-map characters without reconstructing the visual/geographical layout as easily.
+  - Local agentic tools like Codex can inspect these screenshots directly, while external/ZIP-only LLMs like ChatGPT can only use them if the archive includes them; adding every image folder would currently add 50+ MB and roughly double the archive.
+- (Requires AdvCiv-SAS 6596+) **More compact generated commit-history context:**
+  - imported reference documents and archived published changelog copies now retain change summaries and path-history navigation without duplicating their full patches in generated `commit_diffs/`.
+  - Current reference/archive files remain available under the normal light-source snapshot rules; maintained README indexes, source files and ordinary development documentation keep their detailed history.
+  - The cache policy changes automatically so older cached renderings are not reused under the new filtering.
+  - See [light-source history filtering](/LLM_Helpers/README.md#make_light_source_zippy).
+
+#### Repository
+
 - Make **paths absolute** in **.gitignore** when relevant to fix folders with an identical name being incorrectly ignored; add **.gitattributes** for more precise archiving.
-- (Requires AdvCiv-SAS 6366+) **Lower-CPU Debug-opt compilation:**
-  - Debug-opt previously used parallel `bin\jom build` (in [AdvCiv.vcxproj](/CvGameCoreDLL/Project/AdvCiv.vcxproj)), which sustained high CPU usage and audibly drove the CPU fan to full speed.
-  - Recent Visual Studio logs measured parallel Debug-opt at `24.83` seconds versus `1` minute `46.22` seconds for sequential Release, only `81.39` seconds saved in a development iteration where an autoplay usually takes `10+` minutes.
-  - That small overall workflow-time gain does not justify the repeated CPU load, heat and power use when compiling many or dozens of DLLs during a development day.
-  - To fix this, Debug-opt now uses the same sequential `nmake dll` build path as Release to avoid needlessly stressing the hardware; the explicitly named `*-fast` configurations remain available when the shortest compile time is preferred.
-  - See [KI#38.3](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-38.3).
 
 ### System - Misc
 
+- **External File Opening**: Access from Civ4 ingame local files in the system on Windows. See [KI#87](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-87).
 - (Requires AdvCiv-SAS 6374+) **Permanent automatic saves for ordinary play and AI Auto Play testing:**
   - keep the beginning and outcome of a game without having to tediously remember to save them yourself.
   - Tunable `SASFastSave` corresponding defines create ordinary saves at new-game start, actual game end/victory, and an AI Auto Play stop (whether the requested turns finish or you interrupt it manually).

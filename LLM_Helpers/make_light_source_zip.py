@@ -24,6 +24,8 @@ from typing import Iterable, Iterator
 from zipfile import ZIP_DEFLATED, ZIP_STORED, ZipFile
 
 import refresh_commit_diffs
+# <!-- custom: Add Linux Python 2.4 package metadata and a handoff reminder for external review agents; local Civ4/Windows runtime checking is unchanged. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+import light_source_python24_linux
 
 
 # <!-- custom: Keep Git's canonical `Assets/Res` casing here even on Windows, whose case-insensitive filesystem may also display/accept `Assets/res`; GitHub/Linux paths and CI are case-sensitive. (ChatGPT-5.6-Sol) -->
@@ -272,7 +274,7 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help=(
             "Run `git fetch upstream --prune` before snapshot generation so pending-upstream context uses fresh remote-tracking refs. "
-            "This is opt-in because ordinary archive creation remains local/network-free by default."
+            "Upstream fetching is opt-in; the default Linux Python 2.4 reminder separately checks its small update manifest without downloading package bytes."
         ),
     )
     parser.add_argument(
@@ -289,6 +291,11 @@ def parse_args() -> argparse.Namespace:
         "--dry-run",
         action="store_true",
         help="Print what would be archived without writing the ZIP.",
+    )
+    parser.add_argument(
+        "--no-linux-python24",
+        action="store_true",
+        help="Disable the small Linux Python 2.4 manifest check and archived instructions; runtime binaries are never downloaded.",
     )
     parser.add_argument(
         "--no-duration",
@@ -2119,7 +2126,7 @@ def build_snapshot_context_readme() -> str:
         "  are not treated as releases merely because they are newer; --upstream-ref can explicitly select unusual naming\n"
         f"  or special maintenance lines. These commits are deliberately NOT mixed into {COMMIT_DIFF_CONTEXT_DIR}/ because they are not\n"
         "  current-HEAD ancestry. Remote refs can be stale until `git fetch upstream --prune`; use --fetch-upstream when\n"
-        "  archive creation should explicitly refresh upstream first (normal generation remains network-free).\n"
+        "  archive creation should explicitly refresh upstream first (runtime package update checks are separate).\n"
         "\nHistory cache/privacy\n"
         "  Generated history follows the existing anonymized Git-log email policy and also redacts email-shaped strings\n"
         "  embedded in historical patch text. Reuse checks the private immutable-SHA cache inside Git metadata first, then\n"
@@ -2338,7 +2345,13 @@ def main() -> int:
     zip_path = output_path(repo_root, args.output_dir, prefix, not args.dry_run)
     files = collect_files(repo_root)
     context_start_time = perf_counter()
+    runtime_context, python24_runtime_summary = light_source_python24_linux.build_archive_context(
+        repo_root,
+        disabled=args.no_linux_python24,
+        dry_run=args.dry_run,
+    )
     generated_context, commit_diff_summary = build_generated_context(repo_root, files, args.commit_diff_count, write_cache=not args.dry_run, explicit_upstream_refs=args.upstream_ref)
+    generated_context.update(runtime_context)
     context_duration_ms = int((perf_counter() - context_start_time) * 1000)
     compression_mode = "ZIP_STORED / no compression" if args.compression_level <= 0 else f"ZIP_DEFLATED / compression level {args.compression_level}"
 
@@ -2360,6 +2373,7 @@ def main() -> int:
         f"History commit limit: {args.commit_diff_count} (-1 = all reachable; 0 = disabled; positive = newest N)",
         f"Files: {len(files)} selected + {len(generated_context) + 1} generated context files",
         f"Mode: {compression_mode}",
+        python24_runtime_summary,
         *history_summary,
         "Scope: current HEAD ancestry and selected working-tree files; counts do not include uncommitted changes.",
         "Current-only/default-only are reachability counts, not necessarily a contiguous tail or an additive practical-version offset.",
@@ -2377,6 +2391,7 @@ def main() -> int:
     print(f"Files:     {len(files)} selected + {len(generated_context)} generated context files")
     print(f"Size:      {total_bytes:,} bytes before ZIP container overhead")
     print(f"Mode:      {compression_mode}")
+    print(python24_runtime_summary)
     for line in history_summary:
         print(line)
 

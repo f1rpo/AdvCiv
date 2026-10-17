@@ -525,6 +525,23 @@ Use this check after editing the mod's Python files, then test the affected feat
 
 GitHub also runs the check automatically for relevant pushes and pull-request updates through our [Python 2.4 compile workflow](/.github/workflows/python24-compile.yml), using Python 2.4.6 from [our Docker image project](https://github.com/wonderingabout/python-2.4-docker).
 
+Our local Codex agents currently use the Windows Python 2.4 installation above. External web ChatGPT currently runs in Linux without access to that installation; this environment may change. To let it and other compatible external agents run the same checks, the shared [Python Docker repository](https://github.com/wonderingabout/python-2.4-docker) also publishes a standalone Linux runtime.
+
+- Light-source packaging reads only its small [package manifest](https://github.com/wonderingabout/python-2.4-docker/releases/download/runtime-linux-x86_64-bookworm/runtime-manifest.json). One note inside the ZIP, `_SNAPSHOT_CONTEXT/python24_runtime.txt`, identifies the download URL, version, platform, size, SHA256 and usage instructions; the console also shows update status and the download link.
+- Download the runtime manually when needed and provide it separately, for example as a Library file accessible to the external agent. Reuse it until a new package is needed; no binary is downloaded, cached or bundled by the SAS helper.
+- First/unchanged/new status compares published metadata with the last successful local check, not with the recipient's stored copy. If the manifest is unavailable, the latest version is explicitly unknown and previous metadata is shown when available; packaging still proceeds.
+- The package targets Linux x86-64 on Debian bookworm/glibc, not every architecture or Linux environment. It includes CPython's upstream license and is built from official [Python 2.4.6 source](https://www.python.org/downloads/release/python-246/).
+- On 2026-10-17, web ChatGPT successfully ran the separately supplied Library runtime in its Linux x86-64 environment: SHA256 matched, Python 2.4.6 ran, all 240 Civ4 Python files passed the checker, and Python 2.5 conditional-expression syntax was rejected.
+  - Direct binary downloading from that execution environment remained unavailable, so providing the package separately avoids relying on that network access.
+- Verify the supplied archive's SHA256 against the reminder, extract it, and run from the source snapshot root:
+
+  ```bash
+  PYTHONHOME="/path/to/python-2.4.6" "/path/to/python-2.4.6/bin/python" .github/workflows/build/python/python24_compile.py --repo-root .
+  ```
+
+- If the runtime is missing or incompatible, report the Python 2.4 check as skipped; Python 3 cannot validate Python 2.4 syntax. Normal gameplay needs no separate Python installation.
+- `--no-linux-python24` disables this metadata/reminder support. Console output and the archived packaging summary describe its status.
+
 ## How to check with ruff installed locally a folder for py linter errors candidates to fix with text report
 
 Additionally to ruff VS Code extension "Problems" section, running ruff checks locally helps identify more broadly errors without manually checking files.

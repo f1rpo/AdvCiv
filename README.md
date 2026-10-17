@@ -8,7 +8,9 @@ The core changes brought by this mod are as of now an AI overhaul to make it muc
 
 Heavy reworks were made, while otherwise mostly staying in the base AdvCiv frame, but with a focus on game balance, generally more historical accuracy (but not too much else gameplay is impractical (e.g. religions appearing too late or too few or not varied enough to be gameplay relevant or effective at all)) and strategic value (e.g. if all religions beeline from same tech path it would not be too balanced or strategically diverse or valuable), and as for in particular UI in Sevopedia (e.g., item grouping, new Search Bar, Keyboard navigation (UP/DOWN for category-list items; LEFT/RIGHT for BACK/NEXT pages visited), Index as Category, new charts and Leader AI Personality Panel, Media Player (Movies with audio support, and Music with the ~1750 audio scripts that can be listened to), Vote (Votesources and Votes), EventTrigger (Event Triggers and Events), Exapnded Text Panels), and the city screen rework, main Menu rework (notably multiple random main menu music support (shuffle-bag)).
 
-Among notable UI changes, advisor screens have been reworked or new ones were added (e.g., new World Advisor with detailed geography information per city in BFC, suburbs, and territory; new Summary Tab, new Composition Tab, new Battles Tab (Military Advisor); new Score Tab and Timeline tabs (Info Screen)); and they now dynamically adjust to game resolution.They were also were expanded so they use more of the available screen space (notably now optimized for a 16:9 display), reducing the need for players to scroll, and with new information displayed as well.
+Among notable UI changes, advisor screens have been reworked or new ones were added (e.g., new World Advisor with detailed geography information per city in BFC, suburbs, and territory; new Summary Tab, new Composition Tab, new Battles Tab (Military Advisor); new Score Tab and Timeline tabs (Info Screen)); and they now dynamically adjust to game resolution.
+
+They were also were expanded so they use more of the available screen space (notably now optimized for a 16:9 display), reducing the need for players to scroll, and with new information displayed as well.
 
 Advisors have been reorganized for easier, logical, and even access (e.g., merge the Espionage Screen so it is now a tab of the Foreign Advisor, merge Civics, Religions, and Corporations so they are now tabs of the Policy Advisor).
 
@@ -134,11 +136,13 @@ For license and reuse terms, including project-specific restrictions and express
 [Long Comments Archive](/README.md#long-comments-archive)\
 [External file access in Civ4 ingame (on Windows)](/README.md#external-file-access-in-civ4-ingame-on-windows)\
 [Python 2.4 compatibility for modding](/README.md#python-24-compatibility-for-modding)\
-[External Python tooling](/README.md#external-python-tooling)\
+[Tooling](/README.md#tooling)\
+&emsp;[Build](/README.md#build)\
+&emsp;&emsp;[DLL build reports](/README.md#dll-build-reports)\
 &emsp;[Helpers](/README.md#helpers)\
 &emsp;[CI](/README.md#ci)\
 &emsp;[Light-source ZIP](/README.md#light-source-zip)\
-[DLL build reports](/README.md#dll-build-reports)\
+&emsp;[Repository](/README.md#repository)\
 [DLL Logging](/README.md#dll-logging)\
 &emsp;[Versioning](/README.md#versioning)\
 &emsp;[If .git does exist (dev)](#if-git-does-exist-dev)\
@@ -1028,7 +1032,25 @@ See [Modding Resources: local Python 2.4 setup and checks](/_1_AdvCiv-SAS/Docs/M
 
 Note 2: As of now, GitHub also automatically runs our Python 2.4 compile check when relevant commits are pushed or pull requests updated.
 
-## External Python tooling
+## Tooling
+
+### Build
+
+#### DLL build reports
+
+Building through the Visual C++ 2010 Express project keeps the usual `AdvCiv.log` and generates supporting reports beside the DLL in `CvGameCoreDLL/Project/<target>/`, such as `Release/` or `Debug-opt/`.
+
+- Each configuration keeps one current pair: `AdvCiv.log` for full output, and `CvGameCoreDLL.dll.build.json` for full Git/build/debug context, timing/result, diagnostics, temporary-artifact state and DLL hashes.
+  - The JSON starts as `RUNNING` and finishes as `SUCCEEDED` or `FAILED`. An interrupted build can leave `RUNNING` behind, so it means no completion was recorded rather than proof that compilation is still active.
+  - The JSON keeps one initial source/project file manifest and final details only for changed files, distinguishing content edits from timestamp-only changes. Separate comparisons show changes since the preceding completed build and changes during this attempt. `AdvCiv.log` records summary counts; see the compilation guide below for scope and limitations.
+- For an intentional shipped Release DLL update, copy/stage the DLL and matching full JSON together; keep `AdvCiv.log` locally for detailed investigations. See [CI](#ci) for the shipping checks.
+- Normal build outputs stay local and Git-ignored. We omit automatic timestamped archives and a separate compact JSON to avoid duplicate formats and routine cleanup; save a dated pair manually when needed.
+- These external development files have no in-game effect or runtime cost; local test installation still needs only the DLL.
+
+- See:
+  - [DLL Compilation Guide](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md#persistent-build-reports).
+  - [Complete build-output and JSON examples](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md#example-build-output).
+  - [Main Changes Guide tooling overview](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#tooling).
 
 ### Helpers
 
@@ -1037,6 +1059,9 @@ Active helper scripts for LLM-assisted review and tuning live in [LLM_Helpers](/
 For example, [`compare_handicap_infos.py`](/LLM_Helpers/compare_handicap_infos.py) compares two explicit `CIV4HandicapInfo.xml` file paths, inside or outside this mod folder, and can generate a stable Markdown example such as [`handicap_infos_compared.md`](/_1_AdvCiv-SAS/Docs/examples/handicap/handicap_infos_compared.md) with changed fields, numeric deltas, percentage deltas, and an embedded TSV matrix.
 
 ### CI
+
+- DLL shipping checks require a changed Release DLL/JSON pair, matching successful build evidence and the `Update DLL` commit-message marker; a marker without a changed pair also fails.
+- C++-used XML define name additions/removals/renames require updated Release build evidence at default-branch integration; value/comment edits and Python-only names are excluded. See [DLL shipping and rebuild checks](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#ci).
 
 GitHub workflow checks live under [`.github/workflows`](/.github/workflows/) and run through GitHub Actions.
 
@@ -1070,13 +1095,13 @@ See [`.github/workflows/README.md`](/.github/workflows/README.md#python-24-compi
 
 ### Light-source ZIP
 
-Light-source archives include separate cumulative review patches for committed branch changes and the full tracked working snapshot, including staged/unstaged edits. Both use the same shared ancestor with the detected default branch and filter CRLF/LF and trailing-whitespace noise; see the [snapshot context details](/LLM_Helpers/README.md#make_light_source_zippy).
+The [`make_light_source_zip.py`](/LLM_Helpers/README.md#make_light_source_zippy) helper creates a timestamped compressed source archive for local or external review (e.g., with ChatGPT), avoiding manual file selection and repeated packaging work.
 
-Or notably also [`make_light_source_zip.py`](/LLM_Helpers/README.md#make_light_source_zippy), that creates a timestamped compressed light source archive for quick local/LLM review handoffs (e.g., to ChatGPT) without manually selecting and tediously creating an updated ZIP of each file/folder each time.
+Light-source archives include separate cumulative review patches for committed branch changes and the full tracked working snapshot, including staged/unstaged edits. Both use the same shared ancestor with the detected default branch and filter CRLF/LF and trailing-whitespace noise; see the [snapshot context details](/LLM_Helpers/README.md#make_light_source_zippy).
 
 It also generates a small archive-only `_SNAPSHOT_CONTEXT/` folder containing the tracked Git file manifest, a compact ignored-path tree, a separate repository-state file (branch/HEAD, commit count, locally known upstream/ahead-behind state, tracked short status, and ZIP-selected untracked files), staged and unstaged diffs with line-ending-only noise ignored, and incremental committed history since the newest commit already recorded in the repository's AdvCiv-SAS Git-log file, or other similar data.
 
-The command also prints a compact packaging summary and includes it as `_SNAPSHOT_CONTEXT/packaging_summary.txt`, identifying current versus default-branch progress, staged/unstaged tracked-file counts and diff paths, UTC timestamps, and observed game/IDE/build processes.
+The command also prints a compact packaging summary and includes it as `_SNAPSHOT_CONTEXT/packaging_summary.txt`, identifying current versus default-branch progress, staged/unstaged tracked-file counts and diff paths, selected packaging options and supporting-file status, UTC timestamps, and observed game/IDE/build processes.
 
 This helps reviewers identify the development state behind a snapshot; final completion time and ZIP size remain console-only. See the [output example](/LLM_Helpers/README.md#example-of-output-light_source-zip-git-bash).
 
@@ -1100,22 +1125,17 @@ The tracked-file manifest also records exact current byte sizes, including for t
 
 A separate `pending_upstream/` snapshot section exposes fetched but not-yet-merged base AdvCiv release history: exact `MERGE_HEAD` while merging, otherwise a SHA-deduplicated union of locally fetched release-like refs, with topic/experimental refs kept separate and explicit-ref overrides available if upstream naming changes.
 
-Use `--fetch-upstream` when ZIP generation should first run `git fetch upstream --prune`; normal generation remains network-free. This makes upstream-change and merge-conflict review possible from the ZIP alone without misrepresenting pending commits as current source ancestry.
+Use `--fetch-upstream` when ZIP generation should first run `git fetch upstream --prune`; upstream fetching remains opt-in, independently of the runtime update check. This makes upstream-change and merge-conflict review possible from the ZIP alone without misrepresenting pending commits as current source ancestry.
+
+Local Codex agents currently use our Windows Python 2.4 installation; external web ChatGPT currently uses Linux without that installation.
+
+For compatible external agents, a separately provided Python 2.4 package enables the same Civ4 syntax checks; source handoffs include a package-information note under `_SNAPSHOT_CONTEXT`. See [Modding Resources](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#python-24-compatibility-for-modding) for package delivery, reuse and platform details.
 
 Very large/generated/binary/redundant historical payloads are summarized instead of embedded; see [`LLM_Helpers/README.md`](/LLM_Helpers/README.md) for details.
 
-## DLL build reports
+### Repository
 
-Building through the Visual C++ 2010 Express project keeps the usual `AdvCiv.log` and generates supporting reports beside the DLL in `CvGameCoreDLL/Project/<target>/`, such as `Release/` or `Debug-opt/`.
-
-- Each configuration keeps one current pair: `AdvCiv.log` for full output, and `CvGameCoreDLL.dll.build.json` for full Git/build/debug context, timing/result, diagnostics, temporary-artifact state and DLL hashes.
-  - The JSON starts as `RUNNING` and finishes as `SUCCEEDED` or `FAILED`. An interrupted build can leave `RUNNING` behind, so it means no completion was recorded rather than proof that compilation is still active.
-  - The JSON keeps one initial source/project file manifest and final details only for changed files, distinguishing content edits from timestamp-only changes. Separate comparisons show changes since the preceding completed build and changes during this attempt. `AdvCiv.log` records summary counts; see the compilation guide below for scope and limitations.
-- For an intentional shipped Release DLL update, copy/stage the DLL and matching full JSON together; keep `AdvCiv.log` locally for detailed investigations. CI requires both files to change together, the `Update DLL` message marker, and a matching successful build report with configuration exactly `Release`. A marker without a changed pair also fails.
-- Normal build outputs stay local and Git-ignored. We omit automatic timestamped archives and a separate compact JSON to avoid duplicate formats and routine cleanup; save a dated pair manually when needed.
-- These external development files have no in-game effect or runtime cost; local test installation still needs only the DLL.
-
-See the [DLL Compilation Guide](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md#persistent-build-reports), its [complete build-output and JSON examples](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md#example-build-output), and the [Main Changes Guide tooling overview](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#tooling).
+- See the [Main Changes Guide's Repository section](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#repository) for Git-ignore and archive conventions; automated repository checks are covered under [CI](#ci).
 
 ## DLL Logging
 

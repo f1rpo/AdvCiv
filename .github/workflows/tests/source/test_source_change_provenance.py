@@ -9,9 +9,8 @@ import tempfile
 import unittest
 # <!-- custom: Remove duplicate subprocess/tempfile imports; the single imports above remain necessary for the real Git fixtures. (GPT-6.1-Sol) -->
 
-ROOT = Path(__file__).resolve().parents[4]
 # <!-- custom: Restore blocking checks in the automated subject folders; regression fixtures import those same helpers. (GPT-6.1-Sol) -->
-sys.path.insert(0, str(ROOT / ".github/workflows/build/source"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[4] / ".github/workflows/build/source"))
 import source_change_provenance as checker
 
 
@@ -146,6 +145,7 @@ class SourceChangeProvenanceTests(unittest.TestCase):
         new = "// <!-- custom: User-authored explanation. (wonderingabout) -->\nint value = 1;\n"
         self.assertEqual(self.errors("CvGameCoreDLL/Test.cpp", old, new), [])
 
+    # <!-- custom: The noqa below is literal fixture text, not an active lint suppression; it verifies that machine directives do not require explanatory-comment authorship markers. (GPT-6.1-Sol) -->
     def test_boilerplate_and_directive_comments_are_exempt(self):
         old = ""
         new = (

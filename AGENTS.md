@@ -64,6 +64,7 @@ Use these specialized records for inherited regressions, suspicious behavior cha
 - Shared development context lives under [`LLM_Helpers/context/`](/LLM_Helpers/context/).
   - Normal full-history light-source ZIP generation includes freshly generated commit diffs at that same canonical path and refreshes the Git-ignored local generated copy after the ZIP succeeds; use `python LLM_Helpers/refresh_commit_diffs.py` to refresh it independently.
   - Both context corpora are omitted from generated historical patches to prevent recursion/import noise.
+  - When a significant light-source packaging change adds information useful to the recipient, include it in the console output and archived `_SNAPSHOT_CONTEXT/packaging_summary.txt` where relevant. Keep this concise and practical, such as included/omitted files, active options, update/reuse status or required user-provided artifacts.
 
 ## Information Fetching from other known helpful mods
 
@@ -284,11 +285,15 @@ These are general guidelines, not irrevocable requirements; adjust based on task
 - For UI text, do not hardcode font tags like `<font=2/3/4>`; use `SASFontUtils` (`sasFontTag*`/ `sasFontTag*.bold` / `SAS_FONT_TAG_CLOSE` / `getSASUIFont*`) so XML defines control scaling globally.
   - Example good: `sasFontTagLabel + szText + SAS_FONT_TAG_CLOSE` or `sasFontTagTitle.bold + szText + SAS_FONT_TAG_CLOSE`; avoid: `u"<font=3>%s</font>" % szText` or `u"<font=4b>%s</font>" % szText`.
 - Some rare exceptions exist where hard coded font size is necessary (e.g., as of now Foreign Advisor's Glance tab's diplomacy icons (else the cell's text clips horizontally)), some places where font size was not necessary to increase empirically to achieve the wanted result, or some places where upscaling was not implemented yet due to it being not possible (EXE-controlled or such) or not supported in AdvCiv-SAS (e.g., as of now Chat log, etc.).
-- Local CPython 2.4.4 is installed at `C:\Python24\python.exe`; use it explicitly for runtime-Python syntax checks without replacing modern Python tooling.
+- Local CPython 2.4.4 is installed at `C:\Python24\python.exe`; this is the usual local Codex setup for runtime-Python syntax checks, separate from modern Python tooling.
   - From the repo root in PowerShell: `& 'C:\Python24\python.exe' .github/workflows/build/python/python24_compile.py --repo-root .`.
   - For example, it caught the SASGameRecord revision 152 candidate's `",".join(missing) if missing else "-"` with `SyntaxError`; the explicit `if/else` fix passed, as did all 240 runtime Python files checked on 2026-10-15. Python 3 accepting a file does not prove Python 2.4 compatibility.
   - The checker writes bytecode into a temporary directory and does not import Civ4 engine modules; syntax success still needs appropriate in-game testing.
+  - External web ChatGPT currently uses Linux without access to our local Windows Python 2.4 installation; external-agent environments may change. If the user supplies a compatible standalone Linux Python 2.4 package separately, use it to run the same checker; the user identifies its location, for example in a Library folder.
+    - Extract the package and set `PYTHONHOME` to its `python-2.4.6` directory before invoking its `bin/python`. See [external-agent handoffs](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#python-24-compatibility-for-modding).
+    - Use the matching runtime supplied by the user, for example through ChatGPT Library; verify its SHA256 against `_SNAPSHOT_CONTEXT/python24_runtime.txt` before use.
 - Treat Ruff/lint output as hints only; Civ4 runs Python 2.4 and engine imports can look unused to modern linters.
+- Avoid `noqa` suppressions unless there is a strong reason; prefer fixing the underlying issue when practical. For each necessary suppression, name the specific rule and add a nearby comment explaining why it is needed; remove unnecessary suppressions in code being edited.
   - For actual parser compatibility, GitHub Actions now runs [`python24-compile.yml`](/.github/workflows/python24-compile.yml), which uses the Docker image from [`wonderingabout/python-2.4-docker`](https://github.com/wonderingabout/python-2.4-docker) to compile-check `Assets/Python` and `PrivateMaps` with real CPython 2.4 syntax/bytecode rules.
 - We don't always need to use linters as part of our tasks, but if we do, among them, VS Code Ruff extension is useful for open-file Problems feedback; locally installed Ruff (`py -m ruff`) is better for broad audits, saved reports, and narrow rule-by-rule autofixes.
 - Example (Git Bash): `cd "/c/Program Files (x86)/Steam/steamapps/common/Sid Meier's Civilization IV Beyond the Sword/Beyond the Sword/Mods/AdvCiv-SAS" && mkdir -p LLM_Helpers/outputs && ts=$(date +%Y%m%d_%H%M%S) && out="LLM_Helpers/outputs/ruff_all_py_${ts}.txt" && { py -m ruff check . --output-format=grouped > "$out" 2>&1 || true; } && echo "wrote $out"`

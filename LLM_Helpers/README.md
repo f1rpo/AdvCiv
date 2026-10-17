@@ -1299,7 +1299,14 @@ git diff -- "_0_Common_Docs/AdvCiv_Base_Doc/manual.txt"
 - Skips generated/helper outputs such as `LLM_Helpers/outputs`, Python cache files, previous light-source ZIPs, heavy/binary `.dll` and `.fpk`, non-useful compact-review `.tga`, `manual.pdf`, `Assets/res/Cursors`, and large/temporary DLL project artifacts such as `.sdf` or project files over 1 MB.
   - The exact base-AdvCiv `_0_Common_Docs/AdvCiv_Base_Doc/manual.odt` is a deliberate exception: it is the canonical input consumed by `convert_advciv_manual_to_txt.py`, so ZIP-only LLM/code-agent handoffs can regenerate/test the tracked `manual.txt`; other files named `manual.odt` remain skipped.
 - Does not globally exclude common image files such as `.jpg` or `.png`; small previews can be useful for LLM review, e.g. GameFont previews. Avoid heavy art/image folders by not adding those folders to the include lists instead.
-- Ordinary ZIP creation stays local/network-free.
+- Our local Codex agents currently use Python 2.4 installed on our Windows machine, while external web ChatGPT currently runs in a Linux environment without that installation. A separately supplied Linux package lets it check Civ4 source too; other compatible external tools can use it as well.
+  - The shared [`python-2.4-docker`](https://github.com/wonderingabout/python-2.4-docker) repository builds and publishes it centrally, so each mod does not maintain another runtime copy.
+  - ZIP creation checks only the small published manifest and places the download URL, version, platform, byte size, SHA256 and usage instructions in `_SNAPSHOT_CONTEXT/python24_runtime.txt`. No separate reminder file is generated.
+  - No binary is downloaded, cached, copied or bundled. Download it manually when needed, keep it somewhere available to the recipient, and tell the agent where to find it, for example in a Library file.
+  - The console and archived `packaging_summary.txt` report first/unchanged/new package status against the last successful local manifest check. This cannot establish whether the recipient's copy is current.
+  - An unavailable manifest check warns that the latest version is unknown and uses last known metadata when available; it does not block source packaging. Only small manifest metadata is retained under ignored `LLM_Helpers/outputs/`.
+  - Use `--no-linux-python24` to disable the manifest check, reminder and ZIP instructions. Our local Windows agents continue using `C:\Python24\python.exe`; the external package targets Linux x86-64 on Debian bookworm/glibc.
+- Apart from the small manifest request, ordinary ZIP creation stays local.
   - Use `--fetch-upstream` when the handoff should first refresh base AdvCiv with `git fetch upstream --prune`; if that explicit fetch fails, the helper aborts instead of quietly presenting stale refs as fresh.
   - During a merge this does not change the exact pending target because `MERGE_HEAD` remains authoritative.
 - Use one or more `--upstream-ref REF` options when upstream release naming changes or when a nonstandard maintenance line should intentionally be included in pending context; topic/experimental branches are otherwise only listed in `pending_upstream/UPSTREAM_REFS.txt`.
@@ -1323,6 +1330,8 @@ Same handoff while first refreshing locally known base AdvCiv release refs:
 ```bash
 python ./LLM_Helpers/make_light_source_zip.py --fetch-upstream --output-dir "C:\Users\PC\Downloads"
 ```
+
+Use `--no-linux-python24` when no external-runtime reminder is wanted. Otherwise read `_SNAPSHOT_CONTEXT/python24_runtime.txt` inside the generated ZIP and supply the matching package separately when needed. See [platform limits and checking instructions](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README.md#python-24-compatibility-for-modding).
 
 #### Example of output (light_source ZIP) (Git Bash)
 
