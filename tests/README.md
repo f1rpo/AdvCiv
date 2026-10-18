@@ -20,7 +20,7 @@ python tests/diagnostics/run_writer_tests.py
 
 - Requires Python 3, Windows, Visual C++ Toolkit 2003 (VC2003), the Windows SDK and the Civ4 Boost headers. Defaults follow the local [DLL compilation setup](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md); `--compiler`, `--vcvars` and `--sdk` override their locations, and `CIV4_LIB_INSTALL_PATH` supplies the library root.
 - VS2010's `vcvars32.bat` supplies environment setup; the compiler invoked is VC2003's `cl.exe`.
-- Exercises Unicode paths, reading during append, literal percent text, overwrite/append behavior, partial and zero-progress writes, shared retry-buffer limits, recovery notices, handle reuse/release and shutdown before BUG's root handoff.
+- Exercises Unicode paths, reading during append, literal percent text, overwrite/append behavior, partial and zero-progress writes, shared retry-buffer limits, recovery notices, writer-health counters, explicit producer types independent of filenames, drained-file failure recovery, handle reuse/release and shutdown before BUG's root handoff.
 - Runs in temporary directories, including simulated fallback output; no game DLL, project intermediates or real user logs are changed. The single C++ fixture needs no separate header because it shares no declarations with another compiled source file.
   - The executable and compiler outputs live under a temporary Windows folder, normally `%TEMP%\sas-cpp-writer-...`, and are removed when the runner finishes; they are not stored in Downloads, committed or installed into Civ4.
   - For example, on this setup the executable can be `C:\Users\PC\AppData\Local\Temp\sas-cpp-writer-ab12cd34\writer.exe`; the generated folder suffix varies.

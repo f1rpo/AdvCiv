@@ -478,6 +478,11 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 
 #### Logging (Common)
 
+- (Requires AdvCiv-SAS 6641+) **Shared diagnostic-writer health:** SASGameRecord records one compact `GAME_RECORD_DIAGNOSTIC_WRITER` snapshot at completed-turn checkpoints and session finalization.
+  - Reports current/peak pending text, the current blocked-file count, output failures/retries and dropped output, plus process-lifetime bytes successfully written for SASGameRecord and BBAI.
+  - One health row per completed game turn helps locate when backlog, failures or loss first appear; there is no health row per BBAI message. A final snapshot is recorded at session finalization.
+  - Written-byte counters are intentionally not labeled file sizes: fixed-name logs may append to earlier content. Integer accounting uses existing writer operations; snapshots add no disk reads, file-size polling or directory scans. The extra row uses the existing cached write path without forcing physical-disk flushes.
+  - A writer failure can also delay/lose its health row, so `SAS_DIAGNOSTIC_DATA_LOSS` remains the direct incomplete-record marker.
 - (Requires AdvCiv-SAS 6640+) Explicit flushing of SASGameRecord (and BBAI) lets users and AI/LLM agents read and analyze logs as they are generated, even during autoplay, without reloading a save or exiting/restarting Civ4, or some other kind of operation just to access them.
   - This live log access is the "open brain" view of the running game: agents can inspect recorded state and AI behavior as play continues.
     - Tests verified reading both logs as they grew during stress autoplay and reading completed output while Civ4 remained open; the old logger also allowed these reads in the control runs.

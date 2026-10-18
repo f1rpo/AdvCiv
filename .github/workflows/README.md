@@ -588,7 +588,7 @@ Verifies the BBAI and SASGameRecord final emission paths use the shared DLL-owne
 
 Ordinary rows are submitted promptly through persistent read/write/delete-shared handles so external tools can inspect or copy output during play; private retry buffers are reserved for unresolved startup paths and failed writes.
 
-The check guards sink wiring, read-sharing intent, checkpoint presence and the absence of `FlushFileBuffers` durability calls.
+The check guards sink wiring, read-sharing intent, checkpoint/health-row presence and the absence of `FlushFileBuffers` durability calls.
 
 - It does not execute native writes or prove bounded memory/error recovery. The local [diagnostic writer harness](/tests/README.md#diagnostic-writer) exercises the actual writer with normal and injected-failure I/O; it also checks prompt visibility and survival of final rows after abrupt process termination. Game lifecycle and autoplay performance require runtime testing.
 - Already-formatted text is written directly, so literal `%` needs no EXE-boundary doubling; producer format strings still use ordinary printf escaping (`%%` for one intended `%`).

@@ -91,15 +91,26 @@ uint getSASMonotonicMilliseconds();
 uint getSASElapsedMilliseconds(uint uiStartMilliseconds, uint uiEndMilliseconds);
 // <!-- custom: Return the one DLL-process UTC identity shared by BBAI and SASGameRecord. See KI#629. (GPT-5.6-Sol) -->
 CvString const& getSASProcessUtcTimestamp();
+// <!-- custom: Identify the producer explicitly; filenames are output identities, not reliable log-family metadata. (GPT-6.1-Sol) -->
+enum SASDiagnosticLogFamily
+{
+	SAS_DIAGNOSTIC_LOG_OTHER,
+	SAS_DIAGNOSTIC_LOG_BBAI,
+	SAS_DIAGNOSTIC_LOG_GAME_RECORD
+};
+
 // <!-- custom: Submit each already-formatted BBAI/SASGameRecord line directly through a shared persistent file handle; queue only pre-root or failed output in bounded retry storage.
 // Prompt writes preserve successful rows across an ordinary process crash and permit live reads without forced disk flushes; literal percent signs bypass the EXE logger's second printf pass. See KI#375.3. (ChatGPT-5.6-Sol + GPT-5.6-Sol + GPT-6.1-Sol) -->
-void logSASDiagnosticLiteralLine(char const* szLogName, char const* szLine);
+// <!-- custom: The caller supplies its family so byte accounting survives renamed files and unrelated matching prefixes. (GPT-6.1-Sol) -->
+void logSASDiagnosticLiteralLine(char const* szLogName, char const* szLine, SASDiagnosticLogFamily eFamily);
 // <!-- custom: Supply BUG's resolved user root as Unicode rather than ANSI text so non-ASCII/CvAltRoot paths are preserved without being logged. (GPT-6.1-Sol) -->
 void setSASDiagnosticLogRootDirectory(wchar_t const* szRootDirectory);
 // <!-- custom: Retry pending diagnostic writes and return success/failure; ordinary checkpoints retain handles, while session release closes them.
 // bReleaseStorage closes session handles and releases drained retry storage; pre-BUG rollover waits for its authoritative root unless bTerminal permits fallback on final destruction.
 // Successful rows are written immediately; ordinary checkpoints retry pending output without forcing physical-disk durability. (GPT-6.1-Sol) -->
 bool flushSASDiagnosticLogs(bool bReleaseStorage = false, bool bTerminal = false);
+// <!-- custom: Serialize process-lifetime health for the shared BBAI/SASGameRecord writer without extra filesystem queries; pending-text bytes are queued payload, not total RAM use, and written-byte counters are bytes accepted by Windows rather than physical file sizes. (ChatGPT-5.6-Sol) -->
+CvString getSASDiagnosticWriterHealthFields();
 // <!-- custom: Serialize the canonical active-mod display/folder/path fields shared by diagnostic log headers. (ChatGPT-5.6-Sol) -->
 CvString getSASModContextFields();
 // <!-- custom: Serialize runtime source/version provenance shared by BBAI and SASGameRecord; dirty is tri-state (-1 unavailable, 0 verified clean, 1 tracked changes). (ChatGPT-5.6-Sol) -->

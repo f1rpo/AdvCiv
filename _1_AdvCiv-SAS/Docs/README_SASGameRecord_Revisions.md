@@ -34,7 +34,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=154 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=155 ...
 ```
 
 After this, each qualifying SASGameRecord commit increments `SAS_GAME_RECORD_REVISION` in `GlobalDefines_advciv_sas.xml` exactly once and adds one short latest-first entry to this file in the same commit. The revision remains a downstream-update signal; exact runtime source/build identity remains separate provenance in `GAME_RECORD_SOURCE_CONTEXT` and the DLL/build context.
@@ -77,10 +77,20 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
-### Revision 154 - SAS practical 6640
+### Revision 155 - SAS practical 6641
 
 - **Date:** 2026-10-18
 - **Git commit:** pending
+- **Change:** Add compact shared diagnostic-writer health to existing SASGameRecord lifecycle checkpoints, so live/autoplay analysis can tell whether prompt logging is keeping up rather than inferring health only from file growth.
+  - `GAME_RECORD_DIAGNOSTIC_WRITER` follows each `GAME_RECORD_TURN_COMPLETED` marker and is also emitted before session finalization/handle release. It reports current/peak pending text bytes, the current blocked-file count, output failures, retry attempts/successes, and dropped rows/bytes.
+  - Process-lifetime `processWrittenBytes`, `bbaiProcessWrittenBytes`, `gameRecordProcessWrittenBytes` and `otherProcessWrittenBytes` count bytes successfully accepted by Windows. They deliberately are not called file sizes: fixed-name output can append to pre-existing files, and external mutation is possible while sharing is enabled.
+  - Counters piggyback on writer operations that already occur; no per-checkpoint file-size query, directory scan or per-write GameRecord row is added. Disabled diagnostics create no writer rows/counter work.
+  - The health snapshot is taken before writing its own row, so that row appears in the following checkpoint's byte totals. A failed writer can also prevent the summary itself from reaching disk; `SAS_DIAGNOSTIC_DATA_LOSS` remains the direct gap marker and the health row supplements it.
+
+### Revision 154 - SAS practical 6640
+
+- **Date:** 2026-10-18
+- **Git commit:** `05d68f1ce1d9a6068254c3b779ef03845797a175`
 - **Change:** Make SASGameRecord (and BBAI) readable while Civ4 keeps running, preserving successful final diagnostic rows across ordinary process crashes instead of holding them until a turn boundary.
   - A shared DLL-owned writer submits each row promptly to Windows through persistent read/write/delete-shared handles. This supports live inspection and preserves last-moment evidence useful in investigations such as KI#895/KI#896; Windows handles ordinary disk caching without forced physical-disk writes per row.
     - Existing filenames, `OverwriteLogs` intent, Unicode paths and BUG's `CvAltRoot` are retained. Direct output preserves literal percent signs without the EXE logger's second printf interpretation.

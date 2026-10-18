@@ -412,7 +412,7 @@ void logBBAI(TCHAR* format, ... )
 		return;
 	CvString const szLogName = getSASBBAILogName();
 	// <!-- custom: Submit the already-formatted row promptly through the shared DLL-owned writer; direct file emission preserves literal percent signs without Civ4's former second printf pass. See KI#375.3. (ChatGPT-5.6-Sol + GPT-5.6-Sol + GPT-6.1-Sol) -->
-	logSASDiagnosticLiteralLine(szLogName.GetCString(), szLine.c_str());
+	logSASDiagnosticLiteralLine(szLogName.GetCString(), szLine.c_str(), SAS_DIAGNOSTIC_LOG_BBAI);
 }
 
 // advc.133:

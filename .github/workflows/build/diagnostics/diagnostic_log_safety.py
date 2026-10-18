@@ -52,7 +52,7 @@ def main() -> int:
 	event_text = texts[EVENT_INTERFACE]
 
 	# <!-- custom: Keep this a small sink/sharing policy check, not a source-shape substitute for exercising I/O; the local C++ harness tests writes and failures with the actual writer code. (GPT-6.1-Sol) -->
-	for symbol in ("logSASDiagnosticLiteralLine", "setSASDiagnosticLogRootDirectory", "flushSASDiagnosticLogs"):
+	for symbol in ("logSASDiagnosticLiteralLine", "setSASDiagnosticLogRootDirectory", "flushSASDiagnosticLogs", "getSASDiagnosticWriterHealthFields"):
 		if not re.search(r"\b" + symbol + r"\s*\(", header_text):
 			failures.append(f"{UTILS_HEADER}: missing shared writer interface {symbol}")
 	if not re.search(r"CreateFileW\([^;]+FILE_SHARE_READ\s*\|\s*FILE_SHARE_WRITE\s*\|\s*FILE_SHARE_DELETE", utils_text):
@@ -65,8 +65,8 @@ def main() -> int:
 		failures.append(f"{UTILS_SOURCE}: direct writer should preserve already-formatted percent signs rather than EXE-boundary doubling")
 
 	for relative_path, text, expected_call in (
-		(BBAI_SOURCE, bbai_text, "logSASDiagnosticLiteralLine(szLogName.GetCString(), szLine.c_str());"),
-		(GAME_RECORD_SOURCE, record_text, "logSASDiagnosticLiteralLine(szLogName.GetCString(), szLine.c_str());"),
+		(BBAI_SOURCE, bbai_text, "logSASDiagnosticLiteralLine(szLogName.GetCString(), szLine.c_str(), SAS_DIAGNOSTIC_LOG_BBAI);"),
+		(GAME_RECORD_SOURCE, record_text, "logSASDiagnosticLiteralLine(szLogName.GetCString(), szLine.c_str(), SAS_DIAGNOSTIC_LOG_GAME_RECORD);"),
 	):
 		if expected_call not in text:
 			failures.append(f"{relative_path}: missing shared diagnostic sink call")
@@ -85,6 +85,9 @@ def main() -> int:
 		failures.append(f"{GAME_SOURCE}: BBAI-only reset no longer publishes the old-session shared buffer")
 	if "flushSASDiagnosticLogs(true);" not in record_text:
 		failures.append(f"{GAME_RECORD_SOURCE}: session finalization no longer publishes the shared diagnostic buffers")
+	# <!-- custom: Health is intentionally checkpoint-only; this source-policy guard ensures both turn completion and session finalization keep the compact row while the native harness exercises the counters themselves. (ChatGPT-5.6-Sol) -->
+	if 'logSASGameRecordDiagnosticWriterHealth(iGameTurn, "TURN_COMPLETED");' not in record_text or 'logSASGameRecordDiagnosticWriterHealth(GC.getGame().getGameTurn(), "SESSION_FINALIZE");' not in record_text:
+		failures.append(f"{GAME_RECORD_SOURCE}: diagnostic-writer health no longer covers turn completion and session finalization")
 	if "CyGame().setSASDiagnosticLogRoot(szRoot)" not in bug_init_text:
 		failures.append(f"{BUG_INIT}: BUG root resolution no longer supplies the shared diagnostic writer")
 	if "CyGame().flushSASDiagnosticLogs()" not in event_text:

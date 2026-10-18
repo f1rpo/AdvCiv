@@ -1282,10 +1282,21 @@ void logSASGameRecordRngCheckpoint(int iGameTurn, SASGameRecordRngCheckpointReas
 	logSASGameRecordStateCheckpoint(iGameTurn, getSASGameRecordRngCheckpointReason(eReason));
 }
 
+// <!-- custom: Writer health is sampled only at existing GameRecord lifecycle checkpoints, never per diagnostic write.
+// The shared counters are process-lifetime and the byte fields count bytes accepted by Windows, not pre-existing file size; this avoids extra file queries while still showing backlog, failures, loss and BBAI/GameRecord output growth.
+// One row per completed turn locates the first observed backlog/failure without adding health output to every BBAI message.
+// The snapshot is captured before its own health row is written, so that row contributes only to the following checkpoint. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+static void logSASGameRecordDiagnosticWriterHealth(int iGameTurn, char const* szReason)
+{
+	CvString const szHealth = getSASDiagnosticWriterHealthFields();
+	logSASGameRecord("GAME_RECORD_DIAGNOSTIC_WRITER turn=%d reason=%s %s", iGameTurn, szReason, szHealth.GetCString());
+}
+
 // <!-- custom: Level 3 already has the heavier END_GAME_TURN RNG/state checkpoint; this single cheap row gives levels 1/2 the same unambiguous last-fully-completed-turn boundary after crashes/truncation, while keeping one uniform marker at every enabled level. (ChatGPT-5.6-Sol) -->
 void logSASGameRecordTurnCompleted(int iGameTurn)
 {
 	logSASGameRecord("GAME_RECORD_TURN_COMPLETED turn=%d", iGameTurn);
+	logSASGameRecordDiagnosticWriterHealth(iGameTurn, "TURN_COMPLETED");
 }
 
 // <!-- custom: Windows exposes focus separately from minimization.
@@ -1936,7 +1947,7 @@ static void emitSASGameRecordLine(CvString const& szLogName, std::string szLine)
 		insertSASGameRecordFieldAfterRowType(szLine, szSequence.GetCString());
 	}
 	// <!-- custom: Submit the already-formatted row promptly through the shared writer so last-moment crash evidence is not held until a turn checkpoint; direct output preserves literal percent signs without the EXE's second printf pass. See KI#375.3. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
-	logSASDiagnosticLiteralLine(szLogName.GetCString(), szLine.c_str());
+	logSASDiagnosticLiteralLine(szLogName.GetCString(), szLine.c_str(), SAS_DIAGNOSTIC_LOG_GAME_RECORD);
 }
 
 static void logSASGameRecordFormattedLine(CvString const& szLogName, TCHAR* format, va_list args)
@@ -4353,6 +4364,8 @@ void finalizeSASGameRecordLogSession()
 	// Preserve the last authoritative RNG state/consumption before the old session disappears, then disable the hot hook until the next session initializes its baseline. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (g_bSASGameRecordRngTrackingActive) logSASGameRecordRngCheckpoint(GC.getGame().getGameTurn(), SAS_RNG_CHECKPOINT_SESSION_FINALIZE);
 	clearSASGameRecordRngTracking();
+	// <!-- custom: Emit one final pre-close writer-health snapshot; if output itself is unavailable this row may also remain pending or be lost, so it supplements rather than replaces SAS_DIAGNOSTIC_DATA_LOSS. (ChatGPT-5.6-Sol) -->
+	logSASGameRecordDiagnosticWriterHealth(GC.getGame().getGameTurn(), "SESSION_FINALIZE");
 	// <!-- custom: Retry pending diagnostics, close persistent handles and release drained retry storage before rollover; old timestamped sessions must not accumulate open files or retained peak allocations. (GPT-6.1-Sol) -->
 	flushSASDiagnosticLogs(true);
 }

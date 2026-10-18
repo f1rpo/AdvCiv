@@ -26,7 +26,7 @@ template<class T> static void harnessDeleteArray(T*& value) { delete[] value; va
 typedef wchar_t wchar;
 #include "CvString.h"
 
-// <!-- custom: Only the writer's loss-notice formatter needs this game-string method; all buffering, path and I/O logic below comes from the current source. (GPT-6.1-Sol) -->
+// <!-- custom: The writer's loss-notice and health-field formatters need this game-string method; all buffering, path and I/O logic below comes from the current source. (GPT-6.1-Sol) -->
 void CvString::Format(LPCSTR format, ...)
 {
 	char buffer[2048];
@@ -47,6 +47,7 @@ struct TestGlobals
 
 static bool g_shellFolderUnavailable = false;
 static bool g_failOpen = false;
+static bool g_failClose = false;
 static bool g_failPartialWrite = false;
 static bool g_zeroWrite = false;
 static bool g_inspectWhileWriting = false;
@@ -74,6 +75,19 @@ static HANDLE WINAPI testCreateFileW(LPCWSTR path, DWORD access, DWORD sharing, 
 		return INVALID_HANDLE_VALUE;
 	}
 	return ::CreateFileW(path, access, sharing, attributes, disposition, flags, templateFile);
+}
+
+// <!-- custom: Close the real handle but report failure once, exercising the drained-file recovery path without leaking fixture handles. (GPT-6.1-Sol) -->
+static BOOL WINAPI testCloseHandle(HANDLE file)
+{
+	BOOL const success = ::CloseHandle(file);
+	if (g_failClose)
+	{
+		g_failClose = false;
+		SetLastError(ERROR_WRITE_FAULT);
+		return FALSE;
+	}
+	return success;
 }
 
 static BOOL WINAPI testWriteFile(HANDLE file, LPCVOID bytes, DWORD count, LPDWORD written, LPOVERLAPPED overlapped)
@@ -111,7 +125,9 @@ static HMODULE WINAPI testLoadLibraryW(LPCWSTR name)
 #define LoadLibraryW testLoadLibraryW
 #define CreateFileW testCreateFileW
 #define WriteFile testWriteFile
+#define CloseHandle testCloseHandle
 #include "writer_under_test.inc"
+#undef CloseHandle
 #undef WriteFile
 #undef CreateFileW
 #undef LoadLibraryW
@@ -154,10 +170,10 @@ int main(int argc, char** argv)
 		require(CreateDirectoryW(documents.c_str(), NULL) != FALSE, "create fallback documents fixture");
 		require(CreateDirectoryW(games.c_str(), NULL) != FALSE, "create fallback games fixture");
 		require(CreateDirectoryW(fallback.c_str(), NULL) != FALSE, "create fallback game root fixture");
-		logSASDiagnosticLiteralLine("SASGameRecord_early_abort.log", "initialization ended before BUG");
+		logSASDiagnosticLiteralLine("SASGameRecord_early_abort.log", "initialization ended before BUG", SAS_DIAGNOSTIC_LOG_GAME_RECORD);
 		require(!flushSASDiagnosticLogs(true) && g_openCalls == 0, "rollover still preserves unresolved output");
 		require(flushSASDiagnosticLogs(true, true), "terminal flush resolves fallback without a BUG handoff");
-		require(getSASDiagnosticLogBuffer("SASGameRecord_early_abort.log").hFile == INVALID_HANDLE_VALUE, "terminal flush closes its handle");
+		require(getSASDiagnosticLogBuffer("SASGameRecord_early_abort.log", SAS_DIAGNOSTIC_LOG_GAME_RECORD).hFile == INVALID_HANDLE_VALUE, "terminal flush closes its handle");
 		require(g_szSASDiagnosticLogRootDirectory == fallback, "terminal output uses the isolated fallback root");
 		require(readFile(fallback + L"\\Logs\\SASGameRecord_early_abort.log") == "initialization ended before BUG\r\n", "terminal fallback preserves pending startup diagnostics");
 		puts("PASS C++ diagnostic writer: terminal pre-BUG fallback preserves early-abort output");
@@ -169,10 +185,10 @@ int main(int argc, char** argv)
 		std::wstring const crashRoot = std::wstring(temporary) + L"\\abrupt";
 		require(CreateDirectoryW(crashRoot.c_str(), NULL) != FALSE, "create abrupt-termination fixture root");
 		setSASDiagnosticLogRootDirectory(crashRoot.c_str());
-		logSASDiagnosticLiteralLine("BBAI_crash.log", "BBAI last evidence 75%");
-		logSASDiagnosticLiteralLine("SASGameRecord_crash.log", "SGR last evidence 75%");
-		logSASDiagnosticLiteralLine("BBAI_crash.log", "final BBAI tail");
-		logSASDiagnosticLiteralLine("SASGameRecord_crash.log", "final SGR tail");
+		logSASDiagnosticLiteralLine("BBAI_crash.log", "BBAI last evidence 75%", SAS_DIAGNOSTIC_LOG_BBAI);
+		logSASDiagnosticLiteralLine("SASGameRecord_crash.log", "SGR last evidence 75%", SAS_DIAGNOSTIC_LOG_GAME_RECORD);
+		logSASDiagnosticLiteralLine("BBAI_crash.log", "final BBAI tail", SAS_DIAGNOSTIC_LOG_BBAI);
+		logSASDiagnosticLiteralLine("SASGameRecord_crash.log", "final SGR tail", SAS_DIAGNOSTIC_LOG_GAME_RECORD);
 		require(g_iSASDiagnosticBufferedBytes == 0, "successful rows do not wait for a turn checkpoint");
 		TerminateProcess(GetCurrentProcess(), 73);
 		require(false, "abrupt termination must not return");
@@ -182,13 +198,13 @@ int main(int argc, char** argv)
 	require(CreateDirectoryW((root + L"\\Logs").c_str(), NULL) != FALSE, "create log directory");
 	int const beforeRoot = g_openCalls;
 	require(flushSASDiagnosticLogs(false), "empty writer does not resolve a fallback root");
-	logSASDiagnosticLiteralLine("SASGameRecord_pre_root.log", "before BUG initializes");
+	logSASDiagnosticLiteralLine("SASGameRecord_pre_root.log", "before BUG initializes", SAS_DIAGNOSTIC_LOG_GAME_RECORD);
 	require(!flushSASDiagnosticLogs(true) && g_openCalls == beforeRoot, "early native rollover waits for authoritative root");
 	std::string const startupRow(1024 * 1024, 's');
 	for (int startup = 0; startup < 18; startup++)
-		logSASDiagnosticLiteralLine("SASGameRecord_startup_budget.log", startupRow.c_str());
+		logSASDiagnosticLiteralLine("SASGameRecord_startup_budget.log", startupRow.c_str(), SAS_DIAGNOSTIC_LOG_GAME_RECORD);
 	require(g_openCalls == beforeRoot && !g_bSASDiagnosticLogRootResolved, "pre-BUG overflow never auto-binds a fallback root");
-	require(g_iSASDiagnosticBufferedBytes <= SAS_DIAGNOSTIC_MAX_BUFFERED_BYTES && getSASDiagnosticLogBuffer("SASGameRecord_startup_budget.log").uiDroppedRows > 0, "pre-BUG overflow is bounded and accounted");
+	require(g_iSASDiagnosticBufferedBytes <= SAS_DIAGNOSTIC_MAX_BUFFERED_BYTES && getSASDiagnosticLogBuffer("SASGameRecord_startup_budget.log", SAS_DIAGNOSTIC_LOG_GAME_RECORD).uiDroppedRows > 0, "pre-BUG overflow is bounded and accounted");
 	setSASDiagnosticLogRootDirectory((root + L"\\").c_str());
 	require(g_szSASDiagnosticLogRootDirectory == root, "root is Unicode and trailing separator is trimmed");
 	require(flushSASDiagnosticLogs(false), "pre-root batch flushes after BUG supplies root");
@@ -198,59 +214,88 @@ int main(int argc, char** argv)
 	require(flushSASDiagnosticLogs(false) && g_openCalls == initialOpens, "empty/disabled writer does no I/O");
 	seedFile(root + L"\\Logs\\BBAI.log");
 	g_inspectWhileWriting = true;
-	logSASDiagnosticLiteralLine("BBAI.log", "literal=75% %n %%");
+	logSASDiagnosticLiteralLine("BBAI.log", "literal=75% %n %%", SAS_DIAGNOSTIC_LOG_BBAI);
 	require(readFile(root + L"\\Logs\\BBAI.log") == "literal=75% %n %%\r\n", "ordinary row is visible before any checkpoint");
 	require(CopyFileW((root + L"\\Logs\\BBAI.log").c_str(), (root + L"\\BBAI_live_copy.log").c_str(), FALSE) != FALSE, "Windows copy succeeds while the writer handle remains open");
 	require(readFile(root + L"\\BBAI_live_copy.log") == "literal=75% %n %%\r\n", "live copy includes the completed row");
 	int const afterFirstRow = g_openCalls;
-	require(getSASDiagnosticLogBuffer("BBAI.log").hFile != INVALID_HANDLE_VALUE, "successful row retains shared handle");
+	require(getSASDiagnosticLogBuffer("BBAI.log", SAS_DIAGNOSTIC_LOG_BBAI).hFile != INVALID_HANDLE_VALUE, "successful row retains shared handle");
+	require(g_uiSASDiagnosticBBAIWrittenBytes == strlen("literal=75% %n %%\r\n"), "BBAI written bytes count accepted output");
+	require(g_uiSASDiagnosticWrittenBytes == g_uiSASDiagnosticBBAIWrittenBytes + g_uiSASDiagnosticGameRecordWrittenBytes + g_uiSASDiagnosticOtherWrittenBytes, "process written bytes equal all families including startup output");
+	require(getSASDiagnosticWriterHealthFields().find("bbaiProcessWrittenBytes=") != std::string::npos, "health fields expose per-log-family written bytes");
 	require(flushSASDiagnosticLogs(false), "first checkpoint succeeds");
 	require(readFile(root + L"\\Logs\\BBAI.log") == "literal=75% %n %%\r\n", "first overwrite and literal percent preservation");
-	logSASDiagnosticLiteralLine("BBAI.log", "next");
+	logSASDiagnosticLiteralLine("BBAI.log", "next", SAS_DIAGNOSTIC_LOG_BBAI);
 	require(g_openCalls == afterFirstRow, "later rows reuse the open handle");
+	// <!-- custom: Explicit families must survive renamed files and misleading prefixes; filename-based classification would misattribute both fixtures. (GPT-6.1-Sol) -->
+	unsigned __int64 const bbaiBeforeRename = g_uiSASDiagnosticBBAIWrittenBytes;
+	unsigned __int64 const otherBeforePrefix = g_uiSASDiagnosticOtherWrittenBytes;
+	logSASDiagnosticLiteralLine("renamed_decisions.log", "renamed BBAI", SAS_DIAGNOSTIC_LOG_BBAI);
+	logSASDiagnosticLiteralLine("BBAI_unrelated.log", "unrelated producer", SAS_DIAGNOSTIC_LOG_OTHER);
+	require(g_uiSASDiagnosticBBAIWrittenBytes == bbaiBeforeRename + strlen("renamed BBAI\r\n"), "renamed BBAI retains its explicit family");
+	require(g_uiSASDiagnosticOtherWrittenBytes == otherBeforePrefix + strlen("unrelated producer\r\n"), "BBAI prefix does not classify an unrelated producer");
+
 	require(flushSASDiagnosticLogs(true), "session-boundary checkpoint succeeds");
 	require(readFile(root + L"\\Logs\\BBAI.log") == "literal=75% %n %%\r\nnext\r\n", "later checkpoint appends");
-	require(getSASDiagnosticLogBuffer("BBAI.log").szData.capacity() == std::string().capacity(), "drained peak capacity released");
-	require(getSASDiagnosticLogBuffer("BBAI.log").hFile == INVALID_HANDLE_VALUE, "session release closes persistent handle");
-	logSASDiagnosticLiteralLine("BBAI.log", "after rollover");
+	require(getSASDiagnosticLogBuffer("BBAI.log", SAS_DIAGNOSTIC_LOG_BBAI).szData.capacity() == std::string().capacity(), "drained peak capacity released");
+	require(getSASDiagnosticLogBuffer("BBAI.log", SAS_DIAGNOSTIC_LOG_BBAI).hFile == INVALID_HANDLE_VALUE, "session release closes persistent handle");
+	logSASDiagnosticLiteralLine("BBAI.log", "after rollover", SAS_DIAGNOSTIC_LOG_BBAI);
 	require(readFile(root + L"\\Logs\\BBAI.log") == "literal=75% %n %%\r\nnext\r\nafter rollover\r\n", "reopening fixed name after release does not truncate prior rows");
 	setSASDiagnosticLogRootDirectory(temporary);
 	require(g_szSASDiagnosticLogRootDirectory == root, "successful output root remains stable");
 	GC.overwrite = false;
 	seedFile(root + L"\\Logs\\BBAI_append.log");
-	logSASDiagnosticLiteralLine("BBAI_append.log", "append");
+	logSASDiagnosticLiteralLine("BBAI_append.log", "append", SAS_DIAGNOSTIC_LOG_BBAI);
 	require(flushSASDiagnosticLogs(false), "append-only checkpoint succeeds");
 	require(readFile(root + L"\\Logs\\BBAI_append.log") == "old\r\nappend\r\n", "OverwriteLogs false preserves existing bytes");
 
 	g_maxWrite = 5;
 	g_failPartialWrite = true;
-	logSASDiagnosticLiteralLine("SASGameRecord_partial.log", "partial row survives");
-	require(getSASDiagnosticLogBuffer("SASGameRecord_partial.log").bAutoFlushBlocked, "failed immediate partial write blocks automatic retries");
+	logSASDiagnosticLiteralLine("SASGameRecord_partial.log", "partial row survives", SAS_DIAGNOSTIC_LOG_GAME_RECORD);
+	require(getSASDiagnosticLogBuffer("SASGameRecord_partial.log", SAS_DIAGNOSTIC_LOG_GAME_RECORD).bAutoFlushBlocked, "failed immediate partial write blocks automatic retries");
+	require(g_uiSASDiagnosticOutputFailures > 0 && g_iSASDiagnosticBlockedFiles > 0, "writer health counts failed output and blocked files");
 	require(readFile(root + L"\\Logs\\SASGameRecord_partial.log") == "parti", "acknowledged prefix exists once");
 	g_failPartialWrite = false;
+	unsigned __int64 const retriesBeforePartial = g_uiSASDiagnosticRetryAttempts;
 	require(flushSASDiagnosticLogs(false), "partial write resumes");
+	require(g_uiSASDiagnosticRetryAttempts == retriesBeforePartial + 1 && g_uiSASDiagnosticRetrySuccesses > 0, "writer health counts retry attempt and recovery");
+	require(g_iSASDiagnosticBlockedFiles == 0, "successful retry clears the live blocked-file count");
 	require(readFile(root + L"\\Logs\\SASGameRecord_partial.log") == "partial row survives\r\n", "retry does not duplicate acknowledged bytes");
 	g_maxWrite = 0xffffffff;
 	g_zeroWrite = true;
-	logSASDiagnosticLiteralLine("SASGameRecord_zero.log", "zero progress");
+	logSASDiagnosticLiteralLine("SASGameRecord_zero.log", "zero progress", SAS_DIAGNOSTIC_LOG_GAME_RECORD);
 	int const beforeZero = g_writeCalls;
-	require(getSASDiagnosticLogBuffer("SASGameRecord_zero.log").bAutoFlushBlocked, "zero-progress immediate write is blocked");
+	require(getSASDiagnosticLogBuffer("SASGameRecord_zero.log", SAS_DIAGNOSTIC_LOG_GAME_RECORD).bAutoFlushBlocked, "zero-progress immediate write is blocked");
 	require(!flushSASDiagnosticLogs(false) && g_writeCalls == beforeZero + 1, "zero progress stops without spinning");
 	g_zeroWrite = false;
 	require(flushSASDiagnosticLogs(true), "zero-progress retry recovers");
 
+	// <!-- custom: A failure can leave no queued bytes; the checkpoint must still recover the blocked state rather than permanently reporting a dead file. (GPT-6.1-Sol) -->
+	g_failPartialWrite = true;
+	logSASDiagnosticLiteralLine("accepted_but_failed.log", "fully acknowledged", SAS_DIAGNOSTIC_LOG_OTHER);
+	require(g_iSASDiagnosticBufferedBytes == 0 && g_iSASDiagnosticBlockedFiles == 1, "fully acknowledged failed write is blocked without pending text");
+	g_failPartialWrite = false;
+	require(flushSASDiagnosticLogs(true) && g_iSASDiagnosticBlockedFiles == 0, "empty failed write recovers at a checkpoint");
+	logSASDiagnosticLiteralLine("close_failure.log", "completed row", SAS_DIAGNOSTIC_LOG_OTHER);
+	g_failClose = true;
+	require(!flushSASDiagnosticLogs(true) && g_iSASDiagnosticBlockedFiles == 1, "failed close is counted after all text drains");
+	require(flushSASDiagnosticLogs(true) && g_iSASDiagnosticBlockedFiles == 0, "empty failed close recovers at the next checkpoint");
+
+
 	g_failOpen = true;
 	std::string const largeRow(1024 * 1024, 'x');
 	for (int i = 0; i < 4; i++)
-		logSASDiagnosticLiteralLine("BBAI_blocked.log", largeRow.c_str());
+		logSASDiagnosticLiteralLine("BBAI_blocked.log", largeRow.c_str(), SAS_DIAGNOSTIC_LOG_BBAI);
 	int const afterFailedOpen = g_openCalls;
 	for (int i = 0; i < 80; i++)
-		logSASDiagnosticLiteralLine("BBAI_blocked.log", largeRow.c_str());
+		logSASDiagnosticLiteralLine("BBAI_blocked.log", largeRow.c_str(), SAS_DIAGNOSTIC_LOG_BBAI);
 	require(g_openCalls == afterFailedOpen, "failed append does not retry on every row");
 	for (int i = 0; i < 80; i++)
-		logSASDiagnosticLiteralLine("SASGameRecord_blocked.log", largeRow.c_str());
+		logSASDiagnosticLiteralLine("SASGameRecord_blocked.log", largeRow.c_str(), SAS_DIAGNOSTIC_LOG_GAME_RECORD);
 	require(g_iSASDiagnosticBufferedBytes <= SAS_DIAGNOSTIC_MAX_BUFFERED_BYTES, "payload cap is shared across files");
-	require(getSASDiagnosticLogBuffer("BBAI_blocked.log").uiDroppedRows > 0, "overflow counts rejected rows");
+	require(getSASDiagnosticLogBuffer("BBAI_blocked.log", SAS_DIAGNOSTIC_LOG_BBAI).uiDroppedRows > 0, "overflow counts rejected rows");
+	require(g_uiSASDiagnosticDroppedRows > 0 && g_uiSASDiagnosticDroppedBytes > 0, "writer health retains cumulative dropped output");
+	require(g_iSASDiagnosticPeakBufferedBytes >= g_iSASDiagnosticBufferedBytes && g_iSASDiagnosticPeakBufferedBytes > 0, "writer health tracks peak pending text");
 	require(!flushSASDiagnosticLogs(false), "checkpoint reports ongoing open failure");
 	g_failOpen = false;
 	require(flushSASDiagnosticLogs(true), "blocked output recovers");
@@ -264,26 +309,26 @@ int main(int argc, char** argv)
 	g_failOpen = true;
 	// <!-- custom: Leave enough room for a small later row but not its gap notice; accepting that row would conceal the loss position even before checkpoint recovery. (GPT-6.1-Sol) -->
 	std::string const fullBudgetRow(SAS_DIAGNOSTIC_MAX_BUFFERED_BYTES - 34, 'b');
-	logSASDiagnosticLiteralLine("Z_budget_holder.log", fullBudgetRow.c_str());
-	logSASDiagnosticLiteralLine("A_loss_order.log", "first dropped row exceeds the remaining thirty-two bytes of storage");
-	logSASDiagnosticLiteralLine("A_loss_order.log", "dropped second");
-	require(getSASDiagnosticLogBuffer("A_loss_order.log").szData.empty() && getSASDiagnosticLogBuffer("A_loss_order.log").uiDroppedRows == 2, "full shared budget leaves only loss counters in another file");
+	logSASDiagnosticLiteralLine("Z_budget_holder.log", fullBudgetRow.c_str(), SAS_DIAGNOSTIC_LOG_OTHER);
+	logSASDiagnosticLiteralLine("A_loss_order.log", "first dropped row exceeds the remaining thirty-two bytes of storage", SAS_DIAGNOSTIC_LOG_OTHER);
+	logSASDiagnosticLiteralLine("A_loss_order.log", "dropped second", SAS_DIAGNOSTIC_LOG_OTHER);
+	require(getSASDiagnosticLogBuffer("A_loss_order.log", SAS_DIAGNOSTIC_LOG_OTHER).szData.empty() && getSASDiagnosticLogBuffer("A_loss_order.log", SAS_DIAGNOSTIC_LOG_OTHER).uiDroppedRows == 2, "full shared budget leaves only loss counters in another file");
 	g_failOpen = false;
 	require(!flushSASDiagnosticLogs(false), "earlier file cannot queue its notice before the later budget holder drains");
-	require(g_iSASDiagnosticBufferedBytes == 0 && getSASDiagnosticLogBuffer("A_loss_order.log").uiDroppedRows == 2, "later file frees the budget while the earlier loss notice remains outstanding");
-	logSASDiagnosticLiteralLine("A_loss_order.log", "after recovery");
+	require(g_iSASDiagnosticBufferedBytes == 0 && getSASDiagnosticLogBuffer("A_loss_order.log", SAS_DIAGNOSTIC_LOG_OTHER).uiDroppedRows == 2, "later file frees the budget while the earlier loss notice remains outstanding");
+	logSASDiagnosticLiteralLine("A_loss_order.log", "after recovery", SAS_DIAGNOSTIC_LOG_OTHER);
 	std::string const orderedLoss = readFile(root + L"\\Logs\\A_loss_order.log");
 	require(orderedLoss.find("SAS_DIAGNOSTIC_DATA_LOSS droppedRows=2") == 0, "cross-file recovery publishes the gap before the next accepted row");
 	require(orderedLoss.find("\r\nafter recovery\r\n") != std::string::npos, "later row follows the complete loss notice");
 	require(flushSASDiagnosticLogs(true), "cross-file recovery closes and releases drained buffers");
 
 	std::string const oversized(SAS_DIAGNOSTIC_MAX_BUFFERED_BYTES + 1, 'z');
-	logSASDiagnosticLiteralLine("SASGameRecord_oversized.log", oversized.c_str());
+	logSASDiagnosticLiteralLine("SASGameRecord_oversized.log", oversized.c_str(), SAS_DIAGNOSTIC_LOG_GAME_RECORD);
 	require(g_iSASDiagnosticBufferedBytes == 0, "oversized row is not copied into the pending buffer");
 	g_maxWrite = 5;
 	g_failPartialWrite = true;
 	require(!flushSASDiagnosticLogs(false), "loss-notice partial failure is reported");
-	require(getSASDiagnosticLogBuffer("SASGameRecord_oversized.log").uiDroppedRows == 0, "queued notice owns the loss counters");
+	require(getSASDiagnosticLogBuffer("SASGameRecord_oversized.log", SAS_DIAGNOSTIC_LOG_GAME_RECORD).uiDroppedRows == 0, "queued notice owns the loss counters");
 	g_failPartialWrite = false;
 	g_maxWrite = 0xffffffff;
 	require(flushSASDiagnosticLogs(true), "oversized-row notice resumes after failure");

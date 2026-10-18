@@ -81,7 +81,8 @@ CvString const& getSASProcessUtcTimestamp()
 // Direct writing also removes the EXE logger's second printf interpretation, so already-formatted percent signs must pass through unchanged. See KI#375.3. (ChatGPT-5.6-Sol + GPT-5.6-Sol + GPT-6.1-Sol) -->
 struct SASDiagnosticLogBuffer
 {
-	SASDiagnosticLogBuffer() : hFile(INVALID_HANDLE_VALUE), bFileInitialized(false), bAutoFlushBlocked(false), uiDroppedRows(0), uiDroppedBytes(0), dwLastError(NO_ERROR) {}
+	SASDiagnosticLogBuffer() : eFamily(SAS_DIAGNOSTIC_LOG_OTHER), hFile(INVALID_HANDLE_VALUE), bFileInitialized(false), bAutoFlushBlocked(false), uiDroppedRows(0), uiDroppedBytes(0), dwLastError(NO_ERROR) {}
+	SASDiagnosticLogFamily eFamily;
 	CvString szLogName;
 	// <!-- custom: Keep the OS handle across successful rows to avoid opening/seeking/closing for every message; session release closes it, while failed writes close it before checkpoint retry. (GPT-6.1-Sol) -->
 	HANDLE hFile;
@@ -103,6 +104,19 @@ static std::wstring g_szSASDiagnosticLogRootDirectory;
 static bool g_bSASDiagnosticLogRootResolved = false;
 static bool g_bSASDiagnosticLogWriteStarted = false;
 static size_t g_iSASDiagnosticBufferedBytes = 0;
+// <!-- custom: Keep process-lifetime writer health beside the shared pending-byte accounting so enabled diagnostics add only increments/comparisons on operations the writer already performs.
+// These counters intentionally do not query file sizes or string capacity: pending text is queued payload, while actual allocator/bookkeeping RAM can be larger. (ChatGPT-5.6-Sol) -->
+static size_t g_iSASDiagnosticPeakBufferedBytes = 0;
+static unsigned __int64 g_uiSASDiagnosticOutputFailures = 0;
+static unsigned __int64 g_uiSASDiagnosticRetryAttempts = 0;
+static unsigned __int64 g_uiSASDiagnosticRetrySuccesses = 0;
+static unsigned __int64 g_uiSASDiagnosticDroppedRows = 0;
+static unsigned __int64 g_uiSASDiagnosticDroppedBytes = 0;
+static unsigned __int64 g_uiSASDiagnosticWrittenBytes = 0;
+static unsigned __int64 g_uiSASDiagnosticBBAIWrittenBytes = 0;
+static unsigned __int64 g_uiSASDiagnosticGameRecordWrittenBytes = 0;
+static unsigned __int64 g_uiSASDiagnosticOtherWrittenBytes = 0;
+static int g_iSASDiagnosticBlockedFiles = 0;
 // <!-- custom: This is a shared pending-text budget across all current/failed files, including pre-BUG startup output; a per-file limit would still grow with repeated failed loads. (GPT-6.1-Sol) -->
 static size_t const SAS_DIAGNOSTIC_MAX_BUFFERED_BYTES = 16 * 1024 * 1024;
 
@@ -165,11 +179,16 @@ static bool resolveSASDiagnosticDefaultRootDirectory()
 	return g_bSASDiagnosticLogRootResolved;
 }
 
-static SASDiagnosticLogBuffer& getSASDiagnosticLogBuffer(char const* szLogName)
+// <!-- custom: Retain the caller-supplied family with the filename history; all producers sharing a physical file must agree on its family. (GPT-6.1-Sol) -->
+static SASDiagnosticLogBuffer& getSASDiagnosticLogBuffer(char const* szLogName, SASDiagnosticLogFamily eFamily)
 {
 	SASDiagnosticLogBuffer& kBuffer = g_aSASDiagnosticLogBuffers[szLogName];
 	if (kBuffer.szLogName.empty())
+	{
 		kBuffer.szLogName = szLogName;
+		kBuffer.eFamily = eFamily;
+	}
+	FAssert(kBuffer.eFamily == eFamily);
 	return kBuffer;
 }
 
@@ -184,8 +203,12 @@ static bool closeSASDiagnosticLogFile(SASDiagnosticLogBuffer& kBuffer)
 
 static bool failSASDiagnosticWrite(SASDiagnosticLogBuffer& kBuffer, DWORD dwError)
 {
+	g_uiSASDiagnosticOutputFailures++;
 	if (!kBuffer.bAutoFlushBlocked)
+	{
+		g_iSASDiagnosticBlockedFiles++;
 		OutputDebugStringA("AdvCiv-SAS diagnostic append failed; checkpoint retry and bounded loss reporting are active.\n");
+	}
 	closeSASDiagnosticLogFile(kBuffer);
 	kBuffer.dwLastError = dwError;
 	kBuffer.bAutoFlushBlocked = true;
@@ -215,6 +238,12 @@ static bool writeSASDiagnosticBuffer(HANDLE hFile, SASDiagnosticLogBuffer& kBuff
 	{
 		kBuffer.szData.erase(0, iWrittenTotal);
 		g_iSASDiagnosticBufferedBytes -= iWrittenTotal;
+		g_uiSASDiagnosticWrittenBytes += iWrittenTotal;
+		if (kBuffer.eFamily == SAS_DIAGNOSTIC_LOG_BBAI)
+			g_uiSASDiagnosticBBAIWrittenBytes += iWrittenTotal;
+		else if (kBuffer.eFamily == SAS_DIAGNOSTIC_LOG_GAME_RECORD)
+			g_uiSASDiagnosticGameRecordWrittenBytes += iWrittenTotal;
+		else g_uiSASDiagnosticOtherWrittenBytes += iWrittenTotal;
 	}
 	if (dwError != NO_ERROR)
 		return failSASDiagnosticWrite(kBuffer, dwError);
@@ -230,6 +259,7 @@ static bool queueSASDiagnosticLossNotice(SASDiagnosticLogBuffer& kBuffer)
 	// <!-- custom: Queue the notice as ordinary pending bytes before resetting counters; if its write fails, its unwritten suffix survives like any other batch. (GPT-6.1-Sol) -->
 	kBuffer.szData += szNotice;
 	g_iSASDiagnosticBufferedBytes += szNotice.size();
+	g_iSASDiagnosticPeakBufferedBytes = std::max(g_iSASDiagnosticPeakBufferedBytes, g_iSASDiagnosticBufferedBytes);
 	kBuffer.uiDroppedRows = 0;
 	kBuffer.uiDroppedBytes = 0;
 	return true;
@@ -237,8 +267,12 @@ static bool queueSASDiagnosticLossNotice(SASDiagnosticLogBuffer& kBuffer)
 
 static bool flushSASDiagnosticLogBuffer(SASDiagnosticLogBuffer& kBuffer)
 {
-	if (kBuffer.szData.empty() && kBuffer.uiDroppedRows == 0)
+	// <!-- custom: A failed session close or a fully acknowledged but failed write can block a drained file; retry its open even without pending text so the live blocked-file count can recover. (GPT-6.1-Sol) -->
+	if (kBuffer.szData.empty() && kBuffer.uiDroppedRows == 0 && !kBuffer.bAutoFlushBlocked)
 		return true;
+	bool const bRetry = kBuffer.bAutoFlushBlocked;
+	if (bRetry)
+		g_uiSASDiagnosticRetryAttempts++;
 	if (!resolveSASDiagnosticDefaultRootDirectory())
 		return failSASDiagnosticWrite(kBuffer, ERROR_PATH_NOT_FOUND);
 	if (kBuffer.hFile == INVALID_HANDLE_VALUE)
@@ -273,6 +307,13 @@ static bool flushSASDiagnosticLogBuffer(SASDiagnosticLogBuffer& kBuffer)
 	}
 	if (bSuccess)
 	{
+		if (bRetry)
+		{
+			g_uiSASDiagnosticRetrySuccesses++;
+			FAssert(g_iSASDiagnosticBlockedFiles > 0);
+			if (g_iSASDiagnosticBlockedFiles > 0)
+				g_iSASDiagnosticBlockedFiles--;
+		}
 		kBuffer.dwLastError = NO_ERROR;
 		kBuffer.bAutoFlushBlocked = false;
 	}
@@ -307,6 +348,20 @@ bool flushSASDiagnosticLogs(bool bReleaseStorage, bool bTerminal)
 	return bSuccess;
 }
 
+// <!-- custom: Expose compact process-lifetime writer health to SASGameRecord at existing checkpoints.
+// Per-family byte totals and the live blocked-file count are maintained by the writer, so health snapshots are constant-time and add no filesystem stat/seek or historical filename scan.
+// A health row snapshots counters before writing itself, and a writer failure can also prevent that row from reaching disk, so SAS_DIAGNOSTIC_DATA_LOSS remains the direct gap marker. (ChatGPT-5.6-Sol) -->
+CvString getSASDiagnosticWriterHealthFields()
+{
+	CvString szFields;
+	szFields.Format("pendingTextBytes=%u processPeakPendingTextBytes=%u blockedFiles=%d processOutputFailures=%I64u processRetryAttempts=%I64u processRetrySuccesses=%I64u processDroppedRows=%I64u processDroppedBytes=%I64u processWrittenBytes=%I64u bbaiProcessWrittenBytes=%I64u gameRecordProcessWrittenBytes=%I64u otherProcessWrittenBytes=%I64u",
+		(unsigned int)g_iSASDiagnosticBufferedBytes, (unsigned int)g_iSASDiagnosticPeakBufferedBytes, g_iSASDiagnosticBlockedFiles,
+		g_uiSASDiagnosticOutputFailures, g_uiSASDiagnosticRetryAttempts, g_uiSASDiagnosticRetrySuccesses,
+		g_uiSASDiagnosticDroppedRows, g_uiSASDiagnosticDroppedBytes, g_uiSASDiagnosticWrittenBytes, g_uiSASDiagnosticBBAIWrittenBytes,
+		g_uiSASDiagnosticGameRecordWrittenBytes, g_uiSASDiagnosticOtherWrittenBytes);
+	return szFields;
+}
+
 // <!-- custom: Accept a wide root instead of ANSI text so BUG's Unicode user/CvAltRoot paths reach the same Windows directory without a code-page conversion. (GPT-6.1-Sol) -->
 void setSASDiagnosticLogRootDirectory(wchar_t const* szRootDirectory)
 {
@@ -324,13 +379,14 @@ void setSASDiagnosticLogRootDirectory(wchar_t const* szRootDirectory)
 	flushSASDiagnosticLogs(false, false);
 }
 
-void logSASDiagnosticLiteralLine(char const* szLogName, char const* szLine)
+// <!-- custom: Use explicit producer metadata for accounting rather than inferring a family from the output filename. (GPT-6.1-Sol) -->
+void logSASDiagnosticLiteralLine(char const* szLogName, char const* szLine, SASDiagnosticLogFamily eFamily)
 {
 	FAssert(szLogName != NULL);
 	FAssert(szLine != NULL);
 	if (szLogName == NULL || szLine == NULL)
 		return;
-	SASDiagnosticLogBuffer& kBuffer = getSASDiagnosticLogBuffer(szLogName);
+	SASDiagnosticLogBuffer& kBuffer = getSASDiagnosticLogBuffer(szLogName, eFamily);
 	size_t const iLineBytes = strlen(szLine);
 	unsigned __int64 const uiRowBytes = (unsigned __int64)iLineBytes + 2;
 	if (g_bSASDiagnosticLogRootResolved && uiRowBytes <= SAS_DIAGNOSTIC_MAX_BUFFERED_BYTES && uiRowBytes > SAS_DIAGNOSTIC_MAX_BUFFERED_BYTES - g_iSASDiagnosticBufferedBytes && !kBuffer.bAutoFlushBlocked && !kBuffer.szData.empty())
@@ -342,11 +398,14 @@ void logSASDiagnosticLiteralLine(char const* szLogName, char const* szLine)
 	{
 		kBuffer.uiDroppedRows++;
 		kBuffer.uiDroppedBytes += uiRowBytes;
+		g_uiSASDiagnosticDroppedRows++;
+		g_uiSASDiagnosticDroppedBytes += uiRowBytes;
 		return;
 	}
 	kBuffer.szData.append(szLine, iLineBytes);
 	kBuffer.szData += "\r\n";
 	g_iSASDiagnosticBufferedBytes += (size_t)uiRowBytes;
+	g_iSASDiagnosticPeakBufferedBytes = std::max(g_iSASDiagnosticPeakBufferedBytes, g_iSASDiagnosticBufferedBytes);
 	// <!-- custom: Submit successful rows now so a crash cannot discard a turn-sized private batch; keep failed output in order and retry at explicit checkpoints instead of hammering an unavailable path per row.
 	// Before BUG supplies CvAltRoot, retain bounded startup output without selecting a fallback directory automatically. (GPT-6.1-Sol) -->
 	if (g_bSASDiagnosticLogRootResolved && !kBuffer.bAutoFlushBlocked)

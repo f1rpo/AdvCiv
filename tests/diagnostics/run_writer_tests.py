@@ -49,8 +49,11 @@ def main():
         temporary = Path(directory)
         # <!-- custom: The first extracted fixture omitted the header default argument and VC2003 rejected no-argument calls with C2660; include the actual public declaration so the fixture follows the current interface too. (GPT-6.1-Sol) -->
         header = (ROOT / "CvGameCoreDLL/CvGameCoreUtils.h").read_text(encoding="utf-8")
-        declaration = next(line for line in header.splitlines() if line.startswith("bool flushSASDiagnosticLogs("))
-        (temporary / "writer_under_test.inc").write_text(declaration + "\n" + source[start:end], encoding="utf-8")
+        # <!-- custom: The writer now depends on the public producer-family enum; extracting only the struct caused VC2003 C2146/C2501 failures, so include the real header enum before its declarations. (GPT-6.1-Sol) -->
+        family_start = header.index("enum SASDiagnosticLogFamily\n")
+        family_end = header.index("};", family_start) + 2
+        declarations = [header[family_start:family_end]] + [line for line in header.splitlines() if line.startswith("bool flushSASDiagnosticLogs(") or line.startswith("CvString getSASDiagnosticWriterHealthFields(")]
+        (temporary / "writer_under_test.inc").write_text("\n".join(declarations) + "\n" + source[start:end], encoding="utf-8")
         executable = temporary / "writer.exe"
         subprocess.run([
             str(args.compiler), "/nologo", "/EHsc", "/MT", "/W3", "/D_USRDLL",
