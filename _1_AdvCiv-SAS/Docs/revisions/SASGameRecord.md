@@ -34,7 +34,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=156 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=157 ...
 ```
 
 After this, each qualifying SASGameRecord commit increments `SAS_GAME_RECORD_REVISION` in `GlobalDefines_advciv_sas.xml` exactly once and adds one short latest-first entry to this file in the same commit. The revision remains a downstream-update signal; exact runtime source/build identity remains separate provenance in `GAME_RECORD_SOURCE_CONTEXT` and the DLL/build context.
@@ -77,10 +77,17 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
+### Revision 157 - SAS practical 6643
+
+- **Date:** 2026-10-19
+- **Git commit:** pending
+- **Change:** Keep build-report evidence separate from SASGameRecord implementation changes when checking revision progression. Source paths and recorded Git status inside a refreshed DLL report no longer request a revision increment; actual recorder, bridge, configuration and checker edits remain covered.
+  - Both recorder histories require a nonempty `Change` explanation through shared entry validation; dates, commit labels, hidden comments or fenced templates cannot replace it. A committed bump missing its explanation remains an error even if a later commit supplies the text.
+
 ### Revision 156 - SAS practical 6642
 
 - **Date:** 2026-10-18
-- **Git commit:** pending
+- **Git commit:** `b0ddbda713d15d04f229a377af1d0c392e886351`
 - **Change:** Share UTC formatting and native user-root discovery with the optional current-runtime status publisher while retaining SASGameRecord's existing output semantics.
   - BUG's root handoff updates the replaceable status snapshot independently of historical log handles; BBAI/SASGameRecord retain their committed append root after successful writes.
   - Runtime status includes loaded-DLL identity from the same cached binary context used by historical log headers, so current-state observations can be tied to their actual implementation without enabling those logs. Its paired snapshot/timeline outputs share a separate compiled runtime-recorder revision and history.

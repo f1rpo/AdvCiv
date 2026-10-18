@@ -10,10 +10,21 @@ Add a latest-first entry explaining the behavior and rationale. The diagnostics 
 
 ## History
 
-### Revision 1 - SAS practical 6642
+### Revision 2 - SAS practical 6643
 
 - **Date:** 2026-10-18
 - **Git commit:** pending
+- **Change:** Add event-driven presentation/lifecycle observations without frame polling or side-effectful diagnostic queries.
+  - Record the EXE's existing main-menu scene and loading-screen asset requests as explicitly named evidence, without treating either request as proof that a rendered frame reached the user.
+  - Distinguish native WorldBuilder mode from the Python WorldBuilder screen; time active editor intervals as their own coarse activity while recording screen show/hide separately and ignoring Advanced Start's reuse of the same Python screen.
+  - Restore `PLAYING` when `GAMESTATE_OVER` transitions to `GAMESTATE_EXTENDED`, so "Just one more turn" does not leave external status stuck at `GAME_ENDED`.
+  - Preserve whole activity durations when recording presentation-only observations. Timeline rows distinguish interval starts from observations inside an existing interval; a repeated activity label no longer implies that its clock restarted or that another completed duration should be counted.
+  - Filter Advanced Start inside the cached native gate, retaining real screen observations even when native mode is reported later. Pending menu/exit requests remain authoritative while editor callbacks finish arriving.
+
+### Revision 1 - SAS practical 6642
+
+- **Date:** 2026-10-18
+- **Git commit:** `b0ddbda713d15d04f229a377af1d0c392e886351`
 - **Change:** Publish optional current-state observations and a per-process activity timeline so agents can inspect creation, loading and autoplay while Civ4 remains open, with timing and loaded-DLL identity to interpret those observations.
   - Use one implementation revision across both outputs, replacing the draft's separate layout `schema` labels. The number refers to this history; it does not select compatibility branches or identify the Windows process.
   - Keep snapshot and activity serials as independent per-process counters: snapshots can advance each completed turn, while activity serials connect transitions with the snapshot that describes them.

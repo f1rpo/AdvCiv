@@ -78,6 +78,50 @@ function Get-DllState {
     return Get-BuildFileState (Join-Path $PSScriptRoot ($target + '/CvGameCoreDLL.dll'))
 }
 
+# <!-- custom: Exact source hashes remain provenance, but a comment added after a successful build must not imply that its DLL lacks a Python method.
+# Capture the same literal .def names/targets inspected by the integration guard; strings/comments are tokenized first, and nested target expressions retain their complete token sequence.
+# This describes registrations only, not arbitrary C++ implementation compatibility, and requires no Python installation on the build machine. (GPT-6.1-Sol) -->
+function Get-PythonBindingRegistrations([string]$Text) {
+    $pattern = '//[^\n]*|/\*.*?\*/|"(?:\\.|[^"\\])*"|''(?:\\.|[^''\\])*''|[A-Za-z_]\w*|[^\s]'
+    $tokens = @([regex]::Matches($Text, $pattern, [Text.RegularExpressions.RegexOptions]::Singleline) |
+        ForEach-Object { $_.Value } | Where-Object { -not ($_.StartsWith('//') -or $_.StartsWith('/*')) })
+    $seen = New-Object 'Collections.Generic.HashSet[string]'
+    for ($i = 0; $i -lt $tokens.Count - 5; $i++) {
+        if ($tokens[$i] -cne '.' -or $tokens[$i + 1] -cne 'def' -or $tokens[$i + 2] -cne '(' -or
+            -not $tokens[$i + 3].StartsWith('"') -or $tokens[$i + 4] -cne ',') { continue }
+        $targetTokens = New-Object 'Collections.Generic.List[string]'
+        $depth = 0
+        for ($j = $i + 5; $j -lt $tokens.Count; $j++) {
+            $token = $tokens[$j]
+            if ($depth -eq 0 -and $token -in @(',', ')')) { break }
+            $targetTokens.Add($token)
+            if ($token -in @('(', '[', '<')) { $depth++ }
+            elseif ($token -in @(')', ']', '>')) { $depth-- }
+        }
+        if ($targetTokens.Count -gt 0) {
+            $name = $tokens[$i + 3].Substring(1, $tokens[$i + 3].Length - 2)
+            $bindingTarget = $targetTokens -join ''
+            if ($seen.Add($name + "`0" + $bindingTarget)) {
+                [ordered]@{ name = $name; target = $bindingTarget }
+            }
+        }
+    }
+}
+
+# <!-- custom: Store one compact fingerprint per interface file rather than duplicating hundreds of registrations in every report.
+# Sort hex-encoded UTF-8 name/NUL/target records ordinally before hashing; this gives PowerShell and Python the same case-sensitive, locale-independent representation, including non-ASCII names. (GPT-6.1-Sol) -->
+function Get-PythonBindingFingerprint([string]$Text) {
+    [string[]]$records = @(Get-PythonBindingRegistrations $Text | ForEach-Object {
+        [BitConverter]::ToString([Text.Encoding]::UTF8.GetBytes($_.name + "`0" + $_.target)).Replace('-', '')
+    })
+    [Array]::Sort($records, [StringComparer]::Ordinal)
+    $algorithm = [Security.Cryptography.SHA256]::Create()
+    try {
+        return [BitConverter]::ToString($algorithm.ComputeHash([Text.Encoding]::ASCII.GetBytes(($records -join "`n")))).Replace('-', '')
+    }
+    finally { $algorithm.Dispose() }
+}
+
 # <!-- custom: Git status names changed paths but does not identify their bytes; sample local DLL sources and project/build configuration before and after each attempt.
 # Exclude output trees and external toolchains/SDKs; this is a scoped filesystem snapshot, not proof of exactly which inputs each compiler invocation read. (GPT-6.1-Sol) -->
 function Get-BuildInputSnapshot {
@@ -103,6 +147,9 @@ function Get-BuildInputSnapshot {
     foreach ($file in $files) {
         $relativePath = 'CvGameCoreDLL/' + $file.FullName.Substring($sourceRoot.Length + 1).Replace('\', '/')
         $snapshot[$relativePath] = Get-BuildFileState $file.FullName
+        if ($file.Name -clike '*Interface*.cpp') {
+            $snapshot[$relativePath]['pythonBindingsSha256'] = Get-PythonBindingFingerprint ([IO.File]::ReadAllText($file.FullName))
+        }
     }
     return $snapshot
 }
@@ -179,7 +226,9 @@ try {
     $inputsBefore = Get-BuildInputSnapshot
     $report['buildInputsBefore'] = @($inputsBefore.Keys | Sort-Object | ForEach-Object {
         $state = $inputsBefore[$_]
-        [ordered]@{ path = $_; sizeBytes = $state.sizeBytes; modifiedUtc = $state.modifiedUtc; sha256 = $state.sha256 }
+        $entry = [ordered]@{ path = $_; sizeBytes = $state.sizeBytes; modifiedUtc = $state.modifiedUtc; sha256 = $state.sha256 }
+        if ($state.Contains('pythonBindingsSha256')) { $entry['pythonBindingsSha256'] = $state.pythonBindingsSha256 }
+        $entry
     })
     if ($previousBuild.available) {
         $sincePrevious = @(Get-BuildInputReport $previousBuild.snapshot $inputsBefore -IncludeBefore)

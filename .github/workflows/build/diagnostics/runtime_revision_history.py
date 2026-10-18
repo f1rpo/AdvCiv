@@ -10,6 +10,8 @@ import re
 import subprocess
 # <!-- custom: Reuse the established push/PR/default-branch range selection and Git readers so runtime revisions follow the same per-commit boundaries as SASGameRecord. (GPT-6.1-Sol) -->
 from sas_revision_history import ROOT, changed_paths, first_parent, git_show, progression_commits, resolve_default_branch
+# <!-- custom: SASGameRecord's shared-helper path setup also exposes the common entry parser; both histories require real Change text while retaining their distinct bump policies. (GPT-6.1-Sol) -->
+from revision_history import change_errors, revision_entries
 
 SOURCE = "CvGameCoreDLL/SASRuntimeStatus.cpp"
 HISTORY = "_1_AdvCiv-SAS/Docs/revisions/SASRuntime.md"
@@ -24,12 +26,12 @@ def revision(source):
 
 def history_errors(source, history):
     value = revision(source)
-    entries = [int(number) for number in re.findall(r"^### Revision (\d+)\b", history, re.MULTILINE)]
+    entries = [number for number, _body in revision_entries(history)]
     if value is None or value < 1:
         return ["missing positive compiled SAS_RUNTIME_REVISION"]
     if entries != list(range(value, 0, -1)):
         return [f"runtime history must contain revisions {value} through 1 exactly once, latest first"]
-    return []
+    return change_errors(history)
 
 
 def read(repo, commit, path):

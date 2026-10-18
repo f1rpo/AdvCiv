@@ -515,6 +515,7 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 			{
 			case CONTROL_WORLD_BUILDER:
 				m_kUI.setWorldBuilder(!gDLL->GetWorldBuilderMode());
+				if (isSASRuntimeStatusEnabled()) updateSASRuntimeStatusWorldBuilderMode(gDLL->GetWorldBuilderMode());
 				break;
 			case CONTROL_ADMIN_DETAILS:
 				m_kUI.showAdminDetails();

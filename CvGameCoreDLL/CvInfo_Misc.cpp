@@ -2,6 +2,7 @@
 #include "CvInfo_Misc.h"
 #include "CvXMLLoadUtility.h"
 #include "CvGameTextMgr.h" // for CvGameText::read
+#include "CvGameCoreUtils.h" // <!-- custom: Passive EXE-facing menu/loading getters publish runtime presentation evidence without calling those getters just for diagnostics. (ChatGPT-5.6-Sol) -->
 
 // advc: Better leave these alone b/c they're DLLExports
 CvUnitFormationInfo::CvUnitFormationInfo() {}
@@ -1828,11 +1829,13 @@ bool CvGraphicOptionInfo::read(CvXMLLoadUtility* pXML)
 
 std::string CvMainMenuInfo::getScene() const
 {
+	if (isSASRuntimeStatusEnabled()) updateSASRuntimeStatusMainMenuSceneRequested();
 	return m_szScene;
 }
 
 std::string CvMainMenuInfo::getSceneNoShader() const
 {
+	if (isSASRuntimeStatusEnabled()) updateSASRuntimeStatusMainMenuSceneRequested();
 	return m_szSceneNoShader;
 }
 
@@ -1896,11 +1899,13 @@ std::string CvMainMenuInfo::getSoundtrack() const
 
 std::string CvMainMenuInfo::getLoading() const
 {
+	if (isSASRuntimeStatusEnabled()) updateSASRuntimeStatusLoadingScreenAssetRequested();
 	return m_szLoading;
 }
 
 std::string CvMainMenuInfo::getLoadingSlideshow() const
 {
+	if (isSASRuntimeStatusEnabled()) updateSASRuntimeStatusLoadingScreenAssetRequested();
 	return m_szLoadingSlideshow;
 }
 

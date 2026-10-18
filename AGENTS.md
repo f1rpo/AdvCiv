@@ -1,5 +1,63 @@
 # AGENTS
 
+## Menu
+
+- [Credit](#credit)
+- [General information](#general-information)
+- [git, GitHub, and git diff info](#git-github-and-git-diff-info)
+  - [Review and staging](#review-and-staging)
+  - [CI workflows](#ci-workflows)
+  - [Release preparation](#release-preparation)
+  - [DLL inclusion in commits](#dll-inclusion-in-commits)
+  - [Commit message writing](#commit-message-writing)
+- [Research and references](#research-and-references)
+  - [Source analysis](#source-analysis)
+  - [Information Fetching from other known helpful mods](#information-fetching-from-other-known-helpful-mods)
+  - [Information Fetching locally (Dbg.log, Err.log, etc.)](#information-fetching-locally-dbglog-errlog-etc)
+    - [Comparison with Base AdvCiv 1.12's CvMainInterface.py processed to single-line](#comparison-with-base-advciv-112s-cvmaininterfacepy-processed-to-single-line)
+    - [Sevopedia debug dumps (Python API introspection)](#sevopedia-debug-dumps-python-api-introspection)
+  - [Information Fetching online](#information-fetching-online)
+- [Documentation editing](#documentation-editing)
+  - [Examples and historical records](#examples-and-historical-records)
+  - [Markdown structure and readability](#markdown-structure-and-readability)
+  - [Main Changes Guide](#main-changes-guide)
+- [Comment Editing Rules](#comment-editing-rules)
+  - [Comment markers and attribution](#comment-markers-and-attribution)
+  - [Preserving meaning and technical detail](#preserving-meaning-and-technical-detail)
+  - [Source context and issue references](#source-context-and-issue-references)
+  - [Rationale and presentation](#rationale-and-presentation)
+    - [Rationale, observed results and uncertainty](#rationale-observed-results-and-uncertainty)
+    - [Comment syntax and logical reflow](#comment-syntax-and-logical-reflow)
+    - [Comment Style Example](#comment-style-example)
+- [Coding Preferences](#coding-preferences)
+  - [General](#general)
+    - [Values and implementation choices](#values-and-implementation-choices)
+    - [Current-version save format](#current-version-save-format)
+    - [Assignments and gameplay rationale](#assignments-and-gameplay-rationale)
+    - [Code layout and collapsing](#code-layout-and-collapsing)
+    - [Lookup and caching review](#lookup-and-caching-review)
+    - [Naming, diagnostics and text encoding](#naming-diagnostics-and-text-encoding)
+    - [Verifying accessor semantics](#verifying-accessor-semantics)
+  - [Python (Civ4)](#python-civ4)
+    - [Runtime compatibility](#runtime-compatibility)
+    - [UI fonts](#ui-fonts)
+    - [Syntax checks and linting](#syntax-checks-and-linting)
+    - [UI identifiers and display text](#ui-identifiers-and-display-text)
+    - [XML lookup, caching and validation](#xml-lookup-caching-and-validation)
+    - [Modules, shared constants and helper ownership](#modules-shared-constants-and-helper-ownership)
+  - [XML](#xml)
+  - [C++](#c)
+    - [Defines and AI behavior](#defines-and-ai-behavior)
+    - [Signatures and preprocessor layout](#signatures-and-preprocessor-layout)
+    - [Caching and variable reuse](#caching-and-variable-reuse)
+    - [Diagnostic gating and output](#diagnostic-gating-and-output)
+    - [Interface, dependency and toolchain comments](#interface-dependency-and-toolchain-comments)
+- [Diagnostic revision maintenance](#diagnostic-revision-maintenance)
+  - [SASGameRecord](#sasgamerecord)
+  - [Runtime status and history](#runtime-status-and-history)
+- [DLL compilation](#dll-compilation)
+- [Runtime safety and diagnostics](#runtime-safety-and-diagnostics)
+
 ## Credit
 
 AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
@@ -16,13 +74,24 @@ You can expand this [AGENTS.md](/AGENTS.md) freely as you see fit.
 
 Our mod is also on github, see [AdvCiv-SAS's github repo](https://github.com/wonderingabout/AdvCiv-SAS).
 
+### Review and staging
+
 Locally our project is a git repo too, generally with a fresh commit for each new main task, so feel free to git diff while doing your tasks to see your progress and analyze or such.
+
+- Generally leave staging/unstaging to the user during review; preserve the existing index and leave new edits unstaged unless asked otherwise or an explicitly approved commit is ready for final preparation.
+  - The staged/unstaged split supports iterative review of the same commit candidate, for example sharing only Codex's subsequent edits with ChatGPT, or vice versa. An already-staged file is not permission to stage its newer edits.
+  - Some changes are intentionally kept unstaged and are never meant for the commit. For example, `SAS_GAME_RECORD_LOG_LEVEL=3` and `SAS_RUNTIME_STATUS_ENABLE=1` are usually left enabled during development cycles, while shipped defaults are `0` to avoid unnecessary diagnostic overhead for regular users.
+    - CI helps catch accidentally committed development settings; shipping defaults can be checked in the staged XML or a temporary snapshot.
+    - Temporarily changing local settings is fine when needed, but restore them before handing back for user testing unless there is a specific reason to leave them disabled. Make that exception clear to the user, who may otherwise forget or not notice that diagnostics are off.
+- Do not commit changes without explicit user approval; leave the completed candidate for review first.
 
 Important git-diff caution: moving/reordering plus modifying large similar-looking XML blocks (e.g. `<BuildingInfo>` blocks) can make `git diff` look like a large rewrite/modification of these was made, when in fact none or only one was changed.
 
 Example: moving `BUILDING_IRELAND_SCRIPTORIUM` in `CIV4BuildingInfos.xml` from around the Library area to under the last civ-specific University block makes it seem like generic university, university madrassa, university salon were modified, but they were not and are still the same as before.
 
 In this case, let the user handle a separate commit for the move/reorder first, then continue with gameplay/stat edits afterward (then user will amend commit later after second-step modifications are reviewed).
+
+### CI workflows
 
 Workflows: we added GitHub YAML (and corresponding py) workflow checks in [`.github/workflows`](/.github/workflows/). These reduce tedium for us as each pushed commit now tells us if some sanity checks PASS or fail.
 
@@ -36,9 +105,17 @@ On your end you generally don't need to update them unless our infrastructure ch
 - Specialized automation belongs to an explicitly named category too; shared helper reuse is fine, but do not mix unrelated checks into a catch-all workflow. Keep shared code in `lib/`, automated helper tests in matching `tests/<subject>/` folders, and manual-only tooling outside the blocking `build/`/`checks-*.yml` structure.
 - GitHub workflow YAML files must remain directly under `.github/workflows/`; mirror the helper hierarchy through workflow filenames and display names. Give each check a descriptive named step so GitHub shows its progress and result separately.
 
+### Release preparation
+
 Release preparation: when preparing a stable release or substantial release update, use the living [AdvCiv-SAS Release Preparation and Release Checklist](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_Release_Process.md). It is intended for both the user and AI/LLM helpers; do not create/push tags or publish release pages unless the user explicitly asks.
 
-## Commit message writing
+### DLL inclusion in commits
+
+- Inspect staged DLLs and their build reports before committing.
+  - For a user-approved commit whose native changes require an updated shipped DLL, a user-staged matching Release DLL/report pair is approval to include that pair. Verify the successful Release build and matching binary identity, and retain the required `Update DLL` marker.
+  - Otherwise include compiled binaries only when the user explicitly asks; keep unrelated binaries and local Debug-opt builds out of source/docs commits.
+
+### Commit message writing
 
 - Do not wrap commit-message text at an arbitrary character/word count; use logical paragraphs and bullets. This keeps Git logs easier to read and follows our general preference against needless fixed-width wrapping.
 - Do not include practical commit numbers in commit messages: they can change across branches, rebases, merges and squashes.
@@ -46,7 +123,9 @@ Release preparation: when preparing a stable release or substantial release upda
   - This catches accidental inclusion of local test/Debug-opt binaries when the shipped Release DLL is updated less frequently than source commits.
   - The marker does not authorize a binary update by itself. Intentionally shipped DLL updates also need the generated full `<DLL filename>.build.json` staged beside the DLL from configuration exactly `Release`; both paths must change in the same commit, and `Update DLL` without a changed pair fails; the full `AdvCiv.log` remains a local diagnostic file. Ordinary build outputs remain local/Git-ignored.
 
-## Source analysis
+## Research and references
+
+### Source analysis
 
 Use these specialized records for inherited regressions, suspicious behavior changes, provenance questions, or systematic audits; routine coding tasks should normally start from current source and Git.
 
@@ -68,7 +147,7 @@ Use these specialized records for inherited regressions, suspicious behavior cha
   - Both context corpora are omitted from generated historical patches to prevent recursion/import noise.
   - When a significant light-source packaging change adds information useful to the recipient, include it in the console output and archived `_SNAPSHOT_CONTEXT/packaging_summary.txt` where relevant. Keep this concise and practical, such as included/omitted files, active options, update/reuse status or required user-provided artifacts.
 
-## Information Fetching from other known helpful mods
+### Information Fetching from other known helpful mods
 
 Generally develop and try our own solution from AdvCiv-SAS requirements before consulting other implementations: we may arrive at a new, different or preferable approach, and looking first can steer us toward assumptions that do not suit our mod.
 
@@ -86,7 +165,7 @@ Example of UI tip discovered: if a new Sevopedia category needs clickable entrie
 
 C2C mod also uses `WidgetTypes.WIDGET_PYTHON`.
 
-## Information Fetching locally (Dbg.log, Err.log, etc.)
+### Information Fetching locally (Dbg.log, Err.log, etc.)
 
 You can find Civ4 local user folder here "C:\Users\PC\Documents\My Games\beyond the sword".
 
@@ -104,11 +183,6 @@ In particular but not only, these are usually helpful:
 - A full raw example is kept at [_1_AdvCiv-SAS/Docs/examples/sasgamerecord/SASGameRecord_example.log](/_1_AdvCiv-SAS/Docs/examples/sasgamerecord/SASGameRecord_example.log) for development/LLM review.
 - When comparing two level-3 records, run [`LLM_Helpers/compare_sasgamerecord_rng.py`](/LLM_Helpers/compare_sasgamerecord_rng.py) before manually inspecting RNG rows.
   - It validates each record's checkpoint arithmetic/state progression and reports the first authoritative-RNG or call-provenance divergence; its [maintained example](/_1_AdvCiv-SAS/Docs/examples/sasgamerecord/sasgamerecord_rng_compared.txt) shows how to interpret the result.
-- SASGameRecord revision maintenance: every intentional SASGameRecord-related code change, including implementation/checker/bridge/configuration code comments or header-only edits, increments `SAS_GAME_RECORD_REVISION` and adds the matching latest-first entry to [`SASGameRecord.md`](/_1_AdvCiv-SAS/Docs/revisions/SASGameRecord.md) in the same commit.
-  - Edit the XML Define in `Assets/XML/GlobalDefines_advciv_sas.xml`. The DLL reports its first-use cached value as `GAME_RECORD_SOURCE_CONTEXT recordRevision`; Python-only updates do not require a DLL rebuild just to advance this label.
-  - Do not debate compatibility; the revision is only a downstream-update signal.
-  - Standalone docs/history/example-log/package refreshes do not require a bump.
-  - The SASGameRecord build check verifies that source and history stay synchronized.
 
 The root Program Files Civ4 folder is here:
 
@@ -133,13 +207,13 @@ Compile errors (e.g., for a "Debug-opt" build) at:
 
 - "C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\Project\Debug-opt\AdvCiv.log"
 
-## Comparison with Base AdvCiv 1.12's CvMainInterface.py processed to single-line
+#### Comparison with Base AdvCiv 1.12's CvMainInterface.py processed to single-line
 
 For comparison purposes, as of 2026-06-10 we have also processed with the help of ChatGPT-5.5 thanks Base AdvCiv 1.12's `CvMainInterface.py` to single-line: [CvMainInterface_1_12_singleline.py](/_1_AdvCiv-SAS/Docs/examples/source_comparison/CvMainInterface_1_12_singleline.py). If you need to, you may find looking at this file much easier than the old multi-line/unprocessed file.
 
 See also if needed [the corresponding readme section](/LLM_Helpers/README.md#comparison-with-base-advciv-112s-main-interface-processed-similarly).
 
-## Sevopedia debug dumps (Python API introspection)
+#### Sevopedia debug dumps (Python API introspection)
 
 When a Python getter seems missing or unclear (e.g., the culture breakdown error where `CvCivicInfo` has no `getCommerceChange`), use Sevopedia debug dumps to verify what Python can actually access without having to guess if a getter is exposed in Python or requires DLL changes; these debug logs are usually our first and preferred source of truth since they are real inspect logs, although they might be slightly outdated if DLL changes were made since then.
 
@@ -149,20 +223,56 @@ Alternatively, the Civ4 BUG documentation is also provided as .txt, may be helpf
 
 - "C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\_0_Common_Docs\CIV4BUG_Sourceforge_net_All_Classes_Doc\civ4bug_pythonAPI_AllClasses_html.txt"
 
-## Information Fetching online
+### Information Fetching online
 
 If you find yourself stuck like for audio stopping issues, feel free to ask the user to perform one or many web searches, maybe some solutions exist or insights on how solvable issues are.
 
+## Documentation editing
+
+### Examples and historical records
+
+- Usually keep one representative example per output type under a stable, untimestamped `_example` filename, such as SASGameRecord or runtime JSON/JSONL examples; replace it when refreshing so Git tracks its history instead of accumulating redundant or confusing captures. Preserve real timestamps and identity inside the captured data, and keep companion files consistent.
+- Preserve the chronology and original intent of historical or incremental documentation; append later developments with their date and explain how they follow from the earlier work.
+  - For Known Issues, append at the end of the relevant entry or add a relevant unused `.x` follow-up/new issue when warranted. Correct factual errors explicitly without rewriting the sequence of discovery.
+  - Audit/archaeology records change only when their own documented investigation resumes; ordinary source changes do not refresh their findings or continuation cursors.
+  - Prefer dates for later follow-ups; practical commit-count versions can change across branches/rebases. Reserve those versions for documents that need them, such as the Main Changes Guide and SASGameRecord revision history; omit them from commit messages.
+
+### Markdown structure and readability
+
+- For markdownlint, try to resolve warnings; if a fix is unclear or risky, ask the user.
+- For long Markdown prose, preserve the wording but prefer semantic structure that also reads clearly in rendered Markdown.
+  - Use a blank line for a real new paragraph or thought chunk; a plain source newline normally renders as a space and should be used only when the text is intentionally still one paragraph.
+  - Do not use a trailing `\`/hard line break merely to make prose look chunked in source; if the thought is genuinely separate, use a blank-line paragraph instead.
+  - In list-heavy technical/rule documentation, prefer a parent bullet with two-space-indented `-` child bullets for distinct details, exceptions, evidence, validation, examples, updates, or follow-up parts of the same point.
+  - Keep peer/top-level bullets for independently trackable rules/features/changes rather than nesting merely for visual uniformity.
+  - Do not impose an arbitrary width: short paragraphs, single long sentences, tables, logs, code, URLs, and other structures can stay on one physical line.
+  - `LLM_Helpers/reflow_markdown_prose.py` can perform a conservative source-line-only sentence-boundary pass, but it deliberately does not decide visible paragraph/list structure; always review and add real paragraphs/sub-bullets where appropriate.
+
+### Main Changes Guide
+
+- In [README_Main_Changes_Guide.md](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md), apply the same rule especially strictly: parent change/feature bullets should use real nested sub-bullets for distinct details, evidence, validation, updates, or part 2 of that same change.
+  - Plain continuation indentation does not create visible list structure.
+  - Keep a new top-level bullet for a separately trackable feature/change.
+- When adding doc entries in the [README_Main_Changes_Guide.md](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md), prefix bullet titles with `- (Requires AdvCiv-SAS X+)` where `X` is current latest commit + 1, since docs describe post-commit state for readers.
+  - Current rule of thumb: latest stable is 5500, so the first commit after it would be 5501+, 10 commits later would be 5510+, etc.
+- When a new stable release is made, then all these previous markers can be stripped (e.g. if next stable is AdvCiv-SAS 5560, then any requires <= 5559+ is stripped because players would have the changes in latest stable, so they don't need anymore the marker about a change they might not have yet (in main i.e. as of now our dev branch)).
+  - We don't need to mark other files since they are generally not player facing in that way and more general information on the mod (plus it's less tedious as such).
+
 ## Comment Editing Rules
+
+### Comment markers and attribution
 
 - When adding new comments, use the format `<!-- custom: ... (model credit) -->` (with `//` or `#` prefix as appropriate), and put the model credit in the suffix before `-->` (e.g., `(GPT-5.3-Codex) -->`, `GPT-5.5`, `(ChatGPT-5.6-Sol) -->`, `(Claude code Sonnet 4.5 (summarized)) -->`).
   - Do not use other tags like `advc.` as the authorship marker (they do not belong to us: e.g., base AdvCiv uses `advc.sas` to reference our AdvCiv-SAS changes).
   - Model-authored comments need a model credit. User-authored comments may remain uncredited; do not add the user's name or bulk-clean existing uncredited comments. The automated source-provenance check reports missing model credits only as advisory warnings because Git cannot distinguish user and model authorship.
+- Generally preserve model-name credits as context for chronology, authorship and intent, and prefer appending your own (e.g., `+ GPT-6.1-Sol`). Credits may be dropped when clearly stale, for example when a comment is removed or its explanation is entirely replaced.
+  - CI conservatively catches clear credit loss but can miss substantial rewording that retains earlier reasoning; review attribution manually rather than forcing old credits onto genuinely replaced explanations.
+
+### Preserving meaning and technical detail
+
 - Simplify verbose comments without changing meaning or technical details.
 - Focus on rewording/rephrasing - the goal is to remove prose and conversational filler while preserving all technical information. Don't over-summarize to the point of losing important technical context.
 - Do not requalify subjective wording (e.g., keep "nicer display" instead of rephrasing as "tighter look") to avoid misinterpreting meaning.
-- Generally preserve model-name credits as context for chronology, authorship and intent, and prefer appending your own (e.g., `+ GPT-6.1-Sol`). Credits may be dropped when clearly stale, for example when a comment is removed or its explanation is entirely replaced.
-  - CI conservatively catches clear credit loss but can miss substantial rewording that retains earlier reasoning; review attribution manually rather than forcing old credits onto genuinely replaced explanations.
 - Preserve important technical specifics verbatim (e.g., "0 / 0 / 0 / 0 / 100", "2 placeholders vs 3 substitutions", "remove the extra X starting position").
 - Preserve all technical qualifiers - e.g., "debug DLL" not just "DLL", "tech advisor screen height" not just "screen height", etc. These distinctions matter.
 - Preserve specific scope qualifiers in technical details; avoid vague rewrites that drop precise context (e.g., keep "tech advisor screen height" rather than just "screen height").
@@ -172,6 +282,20 @@ If you find yourself stuck like for audio stopping issues, feel free to ask the 
 - Keep exact technical phrasing; avoid substituting terms like "starting position" -> "start" or dropping modifiers like "vertically".
 - Preserve exact spacing/formatting in technical details (e.g., "- 30" vs "-30").
 - Preserve exact counts/quantities when they are mentioned (e.g., "3 strings").
+
+### Source context and issue references
+
+- Generally comment from the old/base AdvCiv perspective to explain what we changed.
+  - Some code we change is already AdvCiv-SAS custom code; when that is clear, try to convey it briefly so the comment stays accurate and shows the logic behind the change (e.g., `# <!-- custom: Manually positioning the mouse on footer Back/Next for each pedia link is tedious. After we added Up/Down item-list navigation, map Left/Right arrows to Sevopedia Back/Next history as the natural keyboard counterpart. (GPT-5.5) -->`).
+  - Tracing code origin is hard though and not critical, so do not overthink it; leave it to the user if in doubt.
+- Preserve contrast/difference phrasing when it carries technical meaning (e.g., "unlike in the foreign advisor").
+- Keep exact marker strings like "AdvCiv Mod" or "AdvCiv-SAS Mod" for later searches.
+- When a code comment documents a Known Issues fix or prepared fix, include the exact greppable reference `See KI#number.` (for example, `See KI#234.`). Treat it as a closing note: in a multiline comment, place it on the final line immediately before the model credit.
+
+### Rationale and presentation
+
+#### Rationale, observed results and uncertainty
+
 - Preserve rationales (e.g., "it is distracting") when they explain why a change was made.
 - Preserve rationale clauses about why something is unnecessary (e.g., "we don't need to show beyond BFC").
 - Be more verbose when explaining rationales - it's important to capture the intent behind the change while summarizing. The "why" is critical, so preserve problem descriptions, observed behavior, and intended fixes more fully than other commentary.
@@ -186,14 +310,10 @@ If you find yourself stuck like for audio stopping issues, feel free to ask the 
   - Example good: `# <!-- custom: Late-game Battles tab opened slowly in a sample with 710+ rows. Data-layer caching and fully prepared row-payload caching were tested first and did not significantly help; preserving the built table widget made same-advisor tab switches almost instant, and making the screen persistent preserves it across close/reopen too. Rebuild when player/history/layout signature changes. (GPT-5.5) -->`.
 - Appendix for uncertainty in comments: omit uncertain explanations by default rather than writing something that could be wrong.
   - Include uncertainty only when it is useful technical context, and then state the uncertainty directly (e.g., "not yet tested after changing screen resolution in-session") instead of implying a guessed mechanism.
-- Generally comment from the old/base AdvCiv perspective to explain what we changed.
-  - Some code we change is already AdvCiv-SAS custom code; when that is clear, try to convey it briefly so the comment stays accurate and shows the logic behind the change (e.g., `# <!-- custom: Manually positioning the mouse on footer Back/Next for each pedia link is tedious. After we added Up/Down item-list navigation, map Left/Right arrows to Sevopedia Back/Next history as the natural keyboard counterpart. (GPT-5.5) -->`).
-  - Tracing code origin is hard though and not critical, so do not overthink it; leave it to the user if in doubt.
-- Preserve contrast/difference phrasing when it carries technical meaning (e.g., "unlike in the foreign advisor").
-- Keep exact marker strings like "AdvCiv Mod" or "AdvCiv-SAS Mod" for later searches.
-- When a code comment documents a Known Issues fix or prepared fix, include the exact greppable reference `See KI#number.` (for example, `See KI#234.`). Treat it as a closing note: in a multiline comment, place it on the final line immediately before the model credit.
+
+#### Comment syntax and logical reflow
+
 - Do not use `/*` or `"""` or `'''` or such docstrings or variants. Prefer `//` or `#` or similar so they are easier to manage/uncomment and less costly computationally. Keep existing ones as they are, as some `"""` docstrings seem functionally used in tests (do not modify these, only the new ones we create).
-- Do NOT commit changes without explicit user approval - wait for review at the end.
 - Preserve problem descriptions, observed behaviors, empirical results (e.g., "city C fully improved at turn 105"), and intended fixes while removing verbosity
 - Pattern: Keep technical details and "why" verbose, remove conversational filler
 - Preserve the existing physical line structure of pre-existing comments unless you are changing that comment for content/correctness, the user explicitly asks to reflow it, or a dedicated custom-comment logical-reflow pass is being run. Never join or split comment lines merely to satisfy a width target.
@@ -205,7 +325,9 @@ If you find yourself stuck like for audio stopping issues, feel free to ask the 
   - Do not normally place two substantial complete sentences on one physical custom-comment line. Put them on separate comment lines instead. If two short, closely related independent clauses read naturally together, prefer a semicolon on one line (e.g. `A is true; B follows.`); if that combined thought becomes clearly long, prefer a period and a new logical line.
   - Short trailing provenance/configuration fragments can stay with the preceding thought when that reads better rather than becoming tiny standalone lines; e.g. `... See KI#48.5; was 70.`. Closing metadata such as `See KI#...`, a source/Long_Comments reference, or the model credit may remain on the final substantive line and does not itself force a new physical line.
 
-## Comment Style Example
+#### Comment Style Example
+
+The example preserves strategic reasoning and technical details while grouping comment lines by related thoughts rather than a width target.
 
 ```cpp
 // <!-- custom: For AI stack attacks, spend expendable units first to preserve elite finishers. This is economically efficient: older/weaker units cost upkeep but scale poorly, while elite units are costly to lose and can secure the fight if early attacks go badly; keeping them as finishers preserves flexibility and escape odds.
@@ -221,26 +343,32 @@ These are general guidelines, not irrevocable requirements; adjust based on task
 
 ### General
 
+#### Values and implementation choices
+
 - No approximations like `"%.1f"` or `%02d`; we want precision, no fluff. Use `%f` or `%d` instead. Example of exception: `%02d` as zero-padding for nicer ordering/alignment `(Calendar_01, Calendar_02, ...)`.
 - Prefer `const` for locals whenever possible to make intent clear and prevent accidental mutation.
 - Favor effectiveness and simplicity over complex heuristics; avoid overengineering.
+
+#### Current-version save format
+
 - AdvCiv-SAS supports only saves created by the current mod version.
   - When the save schema changes, read and write only the current format; do not add `uiFlag` compatibility branches, migrations, fallback defaults, legacy-field handling, or tests for older saves.
   - Save/reload within the same current version must still work.
 - Current-version-only support does not mean leaving serialized format identifiers stale.
   - When a persistent subsystem already stores its own format/version marker (e.g. `UWAICache::City::iSaveVersion`), bump that marker when its current record layout changes and update the unconditional current-format write/read order together.
   - This truthfully identifies the new layout; it is distinct from adding `uiFlag` or version-conditional compatibility paths for older saves, which remain unwanted.
+
+#### Assignments and gameplay rationale
+
 - Prefer derived variables or an explicit `if/else` over assigning a value and then mutating it.
   - Example problem: avoid setting `iPlotCol = iBaseCol` and later doing `iPlotCol += 3`, or setting a default like `iPlotCol = 19` and then overriding it later with `iPlotCol = 22`.
   - Example solution: use `iContextColCount = 3` and `iPlotCol = iBaseCol + iContextColCount`, or set `iPlotCol` once in each branch when a SAS define changes the number of desired columns/parameters.
   - An `if/else` is also good when the branches explain distinct layout or logic cases.
 - For AI or gameplay logic changes, include a slightly more verbose rationale (why it helps efficiency or outcomes), not just what changed.
 - When adding rationale, focus on the economic/strategic reasoning (efficiency, versatility, risk, maintenance) and capture the thought process behind the change.
-- Do not commit changes unless the user explicitly approves; prefer review/discussion before commits.
-- Preserve the user's local logging Define values like `SAS_GAME_RECORD_LOG_LEVEL` set to `3` not `0` as unstaged changes; validate shipping defaults against the staged XML or a temporary snapshot instead of repeatedly switching the working settings off. If a preparation step requires changing them, restore the local settings afterward and keep them out of the commit.
-- Inspect staged DLLs and their build reports before committing.
-  - For a user-approved commit whose native changes require an updated shipped DLL, a user-staged matching Release DLL/report pair is approval to include that pair. Verify the successful Release build and matching binary identity, and retain the required `Update DLL` marker.
-  - Otherwise include compiled binaries only when the user explicitly asks; keep unrelated binaries and local Debug-opt builds out of source/docs commits.
+
+#### Code layout and collapsing
+
 - Note: for the collapse multiline to singleline bullets below, such a refactor would be extensive, so if we need to, do it as we go rather than all in one-go throughout our whole codebase.
   - It's a low-priority nicety — don't go out of your way for it during unrelated tasks; only apply it to code you're already editing, or if it seems relevant/related to your current task, or when explicitly asked to do a collapse pass.
 - Try to make one liner code whenever possible, for example a line like `draw_expandable_text_panel(screen, self.top, szTitle, self.X_HISTORY, self.Y_HISTORY, self.W_HISTORY, self.H_HISTORY, szText, self.bHistoryExpanded, SAS_MAGIC_PEDIA_PYTHON_HISTORY_EXPAND)` is much easier to scan or grep through/compare throughout our codebase than a multiline mostly needlessly stylized version of it.
@@ -255,6 +383,9 @@ These are general guidelines, not irrevocable requirements; adjust based on task
 - Note: a fast way to find collapse candidates is a global regex search for `(\n\t` and `[\n\t` (an open paren or bracket immediately followed by a newline + tab, i.e. a wrapped call/list/tuple/`if`/`def`); also `,\n\t` catches mid-arg splits.
 - When manually collapsing, if a block has inline comments mid-args, hoist them into a single comment line just above the now-collapsed line (rephrase so it still reads correctly out of position) rather than skipping the collapse — one greppable line of code is the goal, comments above are fine.
 - After collapsing, verify nothing broke: compare `(`/`[`/`{` balance of the file vs `git show HEAD:<file>` (must be identical, since collapsing only removes newlines/indent, never tokens) and `ast.parse` it (a pre-existing Python 2 `print x` statement will fail Py3 `ast.parse` even on untouched files; the paren-balance-vs-HEAD check is the reliable one there).
+
+#### Lookup and caching review
+
 - When doing performance optimizations, checking quotes (i.e. `"`) only on one side is handy to spot all string lookups we could potentially cache.
   - E.g. `gc.getInfoTypeForString("` has this result `iHill = gc.getInfoTypeForString("TERRAIN_HILL")` (or the same with `getInfoTypeOrFail("`).
   - Or appending `.` or `)` or ` ` or `,`, or ` `, etc., to what we want to simplify.
@@ -264,6 +395,9 @@ These are general guidelines, not irrevocable requirements; adjust based on task
   - For example, `start_year = gc.getDefineINT("START_YEAR")` reads the value into a local variable when building the Sevopedia chart. We then cache and reuse the finished chart, so separately retaining `START_YEAR` in a persistent cache would be needless.
   - Check the globals accessor too: [KI#243](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-243) uses `CvGlobals::getInstance()` in `CvMapGenerator::addRivers()` because `GC` is const and restoring river defines requires mutable access. Its local `kGlobals` reference is intentional; the separate caching bug was retaining first-generation define values.
   - If convenient, also comment non-obvious exceptions near the read, e.g. `not cached: read once only`, or explain which runtime/map-generation boundary changes the value.
+
+#### Naming, diagnostics and text encoding
+
 - Use specific asset names whenever possibly to avoid likely reuse of an unknown BTS one that may not be listed in our mod's files. Example: `TXT_KEY_PEDIA_STATISTICS` to `TXT_KEY_PEDIA_SAS_STATISTICS`.
 - For machine-readable diagnostics/provenance of static C++ enums that have no `CvInfo` type string, prefer one shared `getSAS*Type(...)` helper in `CvGameCoreUtils` over duplicated switches or preprocessor stringification.
   - Keep translated/friendly UI labels separate when they serve presentation rather than canonical raw identity.
@@ -282,16 +416,27 @@ These are general guidelines, not irrevocable requirements; adjust based on task
 - Note (appendix): As for the cure, the GitHub workflow now checks this with [`build/hygiene/line_endings.py`](/.github/workflows/README.md#buildhygieneline_endingspy) (e.g., `PrivateMaps/Pangaea.py: has mixed line endings: CRLF=614, LF=21, lone_CR=0`), and local reviewed cleanup can use [`fix_line_endings.py`](/LLM_Helpers/fix_line_endings.py), which preserves each file's dominant line-ending style by default.
   - On your end, if you notice warnings such as `LF will be replaced by CRLF`, use commands like `git diff --ignore-space-at-eol` and focus on your task first rather than getting distracted or going down a rabbit hole needlessly.
   - If needed, you can use the abovementioned resources to diagnose and fix them (because this is always nice and cleaner, but not high-priority; better make code work first, and at worst we'll just amend the commit and fix the test later).
+
+#### Verifying accessor semantics
+
 - Before confirming an apparent enum/type mismatch through an accessor macro or helper, trace the active definition and overloads in the caller's include context.
   - `GET_TEAM(PlayerTypes)` is deliberately valid: `CoreAI::getTeam(PlayerTypes)` and the parallel non-AI `CvGamePlay::getTeam(PlayerTypes)` resolve through `TEAMID(ePlayer)`.
   - KI#311 and KI#387 record the respective rejected false positives and the `TEAMREF(PlayerTypes)` -> overloaded `GET_TEAM` lineage.
 
 ### Python (Civ4)
 
+#### Runtime compatibility
+
 - Assume Python 2.4 constraints: avoid closures and ternary operators, define variables before use, and prefer tabs for indentation.
+
+#### UI fonts
+
 - For UI text, do not hardcode font tags like `<font=2/3/4>`; use `SASFontUtils` (`sasFontTag*`/ `sasFontTag*.bold` / `SAS_FONT_TAG_CLOSE` / `getSASUIFont*`) so XML defines control scaling globally.
   - Example good: `sasFontTagLabel + szText + SAS_FONT_TAG_CLOSE` or `sasFontTagTitle.bold + szText + SAS_FONT_TAG_CLOSE`; avoid: `u"<font=3>%s</font>" % szText` or `u"<font=4b>%s</font>" % szText`.
 - Some rare exceptions exist where hard coded font size is necessary (e.g., as of now Foreign Advisor's Glance tab's diplomacy icons (else the cell's text clips horizontally)), some places where font size was not necessary to increase empirically to achieve the wanted result, or some places where upscaling was not implemented yet due to it being not possible (EXE-controlled or such) or not supported in AdvCiv-SAS (e.g., as of now Chat log, etc.).
+
+#### Syntax checks and linting
+
 - Local CPython 2.4.4 is installed at `C:\Python24\python.exe`; this is the usual local Codex setup for runtime-Python syntax checks, separate from modern Python tooling.
   - From the repo root in PowerShell: `& 'C:\Python24\python.exe' .github/workflows/build/python/python24_compile.py --repo-root .`.
   - For example, it caught the SASGameRecord revision 152 candidate's `",".join(missing) if missing else "-"` with `SyntaxError`; the explicit `if/else` fix passed, as did all 240 runtime Python files checked on 2026-10-15. Python 3 accepting a file does not prove Python 2.4 compatibility.
@@ -313,6 +458,9 @@ These are general guidelines, not irrevocable requirements; adjust based on task
   - For bulk cleanup of simple Python 2 bare prints, use [wrap_python2_prints_for_linting.py](/LLM_Helpers/wrap_python2_prints_for_linting.py), then manually review any comma-print cases that need `%` formatting so Ruff/Python 3 parsing can show real issues instead of print-syntax noise.
 - For Python 2 parser cleanup, start with the easy cases first, such as `print "x"` -> `print("x")` or `raise Error, value` -> `raise Error(value)`.
   - Leave more complicated cases, such as old `except Error, e` syntax, tuple-unpacking `except`, re-raise changes, or compatibility fallbacks, for manual review or a later pass.
+
+#### UI identifiers and display text
+
 - Prefer robust UI identifiers: widget names can strip numeric suffixes, so use descriptive text suffixes and map widget IDs to data for event handling.
 - For Civ4 Python UI labels that pass through font-tagged/markup renderers (`screen.setText`, `screen.setLabel`, `SASTextScale.labelText`, etc.), keep raw text in state and escape only the display string: `szDisplay = szRaw.replace(u"&", u"&amp;").replace(u"<", u"&lt;").replace(u">", u"&gt;")`.
   - This preserves clicked or keyboard-typed raw characters for logic/search while rendering them safely.
@@ -320,6 +468,9 @@ These are general guidelines, not irrevocable requirements; adjust based on task
   - In the Sevopedia search bar, raw `<`/`>` corrupted the label with `/font`-like fragments, and raw `&` could be invisible and make following characters unclear, so they can be considered illegal for our needs too.
 - In fragile Civ4 Python, wrap risky calls in try/except and trust UI state when engine state can drift.
 - When adding guidance, include at least one simple code example so other agents can copy the pattern.
+
+#### XML lookup, caching and validation
+
 - In Civ4 runtime Python, generally cache repeated define/XML reads for performance.
   - Prefer lazy `None` initialization: capture the current value on first use after engine/XML setup, then reuse it to avoid needless repeated lookups. Typical patterns are module-level `global` with `if cachedValue is None`, or instance-level `self.cachedValue = None` resolved at use time.
   - [KI#128](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-128) recorded instability after live SAS XML UI-define edits; lazy initialization helped in that case. This is an additional reason to prefer the pattern over premature reads, alongside the performance benefit of caching.
@@ -332,6 +483,9 @@ These are general guidelines, not irrevocable requirements; adjust based on task
   - This keeps missing or renamed XML tags loud instead of silently returning `-1`; it helped catch incorrect direction-string usage in Planet Generator map (e.g., `getInfoTypeOrFail("DIRECTION_NORTH")` instead of `DirectionTypes.DIRECTION_NORTH*`) and incorrect plot/terrain-style lookups (e.g., `getInfoTypeOrFail("PLOT_PEAK")` instead of `PlotTypes.PLOT_PEAK` in Peirce map).
   - Dynamic/guarded legacy lookups can stay raw when intentionally reviewed; the automated [`.github/workflows/build/source/raw_getinfotype.py`](/.github/workflows/README.md#buildsourceraw_getinfotypepy) check flags literal/static runtime lookups that should use the fail-fast policy.
 - When parsing large structured data, validate against expected samples or assertions early, and log diagnostics to surface schema/list mistakes (e.g., missing commas or malformed enum lists).
+
+#### Modules, shared constants and helper ownership
+
 - Use `from module import *` for helper modules to reduce import tedium and make future additions seamless.
 - For map scripts, keep reusable helper modules outside `PrivateMaps` (e.g., in `Assets/Python/SAS_WorldSizeUtils.py`) when they define or might define names that Civ4 treats as map-script callbacks (`getGridSize`, `getNumPlotsPercent`, `getDescription`, etc.).
   - The old playable `PrivateMaps/SAS_WorldSizes.py` helper leaked its compact `getGridSize` through `from SAS_WorldSizes import *`, making RandomScriptMap Huge generate empirically too small (`60 x 44`).
@@ -346,7 +500,7 @@ These are general guidelines, not irrevocable requirements; adjust based on task
   - Useful examples: `SAS_MAGIC_PEDIA_PYTHON_BUILD = 6798` is shared by Sevopedia and Tech Chooser instead of being defined twice; `SAS_MAGIC_PEDIA_PYTHON_LEADER_ATTITUDE = 6805` was originally local to Sevopedia Leader but also checked by Sevopedia Main, so centralizing avoids widget-id drift/collision.
 - When extracting shared code to helpers, group all patterns together if similar enough otherwise (e.g. all enum prefixes in one tuple) for simplicity, even if some prefixes are only used by one caller.
 
-## XML
+### XML
 
 - Any new XML text should go to our AdvCiv-SAS files such as [AdvCiv-SAS_main.xml](/Assets/XML/Text/AdvCiv-SAS_main.xml) (e.g., `TXT_KEY_BUILDING_KOREAN_GYEONGDANG`), and only in `<English>`.
 - Example of exception: long Civilopedia blurbs (e.g., `TXT_KEY_BUILDING_KOREAN_GYEONGDANG_PEDIA`) in [AdvCiv-SAS_Sevopedia_Lengthy.xml](/Assets/XML/Text/AdvCiv-SAS_Sevopedia_Lengthy.xml), even when it uses a stub (becuase it will be filled later with lengthy content).
@@ -360,7 +514,9 @@ These are general guidelines, not irrevocable requirements; adjust based on task
 - Exception: preserve each XML file's existing encoding if it's not UTF-8; do not convert encodings unless explicitly requested for no tedium and as we have no reason to (e.g., keep legacy Windows-1252 files such as BUG XML files as-is), plus this would have a high chance of causing formatting errors otherwise.
 - Note and additional observation: the codex formatter seems unreliable and inconsistent with what users see (e.g., showing the LLM model a BOM text when user sees a non BOM one, causing mismatches and weird git diff: refer to git diff or what base AdvCiv mod uses as format if in doubt).
 
-## C++
+### C++
+
+#### Defines and AI behavior
 
 - Prefer SAS defines for new AI toggles; use `SAS_<func_name>_<effect>` naming and a boolean-style enable/disable flag (int in XML, bool in C++). Rationale: toggles allow quick testing without recompiles; avoid overusing defines when the feature is tiny or unlikely to need tuning.
 - Turn-valued SAS integer defines must make game-speed semantics explicit: use `TURN(S)_NORMAL_GAMESPEED` when the XML value is expressed at Normal speed and code scales it with the appropriate game-speed percentage, or `TURN(S)_UNSCALED_GAMESPEED` for intentional literal game/path turns such as movement distance.
@@ -371,11 +527,17 @@ These are general guidelines, not irrevocable requirements; adjust based on task
 - When changing attack logic, account for special unit roles (bombard/collateral) and UWAI expectations.
 - Prefer low-level entry points (e.g., `canScrap`, `canUpgrade`, `AI_chooseUnit` or equivalent) to avoid edge cases from higher-level callers; keep logic close to core decisions.
   - Example: for attack order changes, hook `groupAttack`/`AI_getBestGroupAttacker` rather than odds-estimation helpers, so other functions or pieces of logic don't overlap with or override our code.
+
+#### Signatures and preprocessor layout
+
 - C++ signatures: prefer safe one-line function declarations/definitions for easier grep, diffs, and LLM-agent review, especially for overloaded functions like `void addMessage` where the whole signature is the useful search key.
   - Example: a declaration like `void CvDeal::endTrade(TradeData trade, PlayerTypes eFromPlayer, PlayerTypes eToPlayer, bool bTeam, /* advc.036: */ bool bUpdateAttitude, PlayerTypes eCancelPlayer) // advc.130p` is easier to find and reason about than the old three-line equivalent.
   - See also [collapse_cpp_signatures.py](/LLM_Helpers/README.md#collapse_cpp_signaturespy) if needed.
   - Note: Since the C++ codebase is large, apply this as we go if deemed relevant rather than trying to fix them all right away.
 - Treat physical line breaks inside continued preprocessor directives/macros (`#define ... \`) as semantic: every continued physical line must retain its trailing `\`. Automated C++ reflow helpers should skip preprocessor/macro bodies unless they explicitly preserve and validate line-splicing.
+
+#### Caching and variable reuse
+
 - When doing performance optimizations, such as caching to `CvTeamAI const& kTeam = GET_TEAM(getTeam());` redundant definitions in a function, reuse existing variable names unless not relevant for our needs.
   - It is fine if some functions have `kTeam` while others have `kOurTeam` in the same file, what matters is same function is consistent when using the same variable.
   - This avoids errors too.
@@ -384,6 +546,9 @@ These are general guidelines, not irrevocable requirements; adjust based on task
   - Example: `static const bool bSAS_CAN_SCRAP_OBSOLETE_TECH = GC.getDefineBOOL("SAS_CAN_SCRAP_OBSOLETE_TECH");`.
 - If a recurring string-backed Define lookup intentionally remains uncached, leave a short nearby reason; one-shot setup/snapshot reads and already-cached enum access do not need blanket cache-exemption comments.
 - Do not add another function-local cache around enum-backed `GC.getDefineINT(CvGlobals::...)`: that overload already reads the global integer define cache. Likewise, do not cache one-shot reads or values intentionally expected to change during runtime/setup; read those directly so the code reflects their semantics.
+
+#### Diagnostic gating and output
+
 - Gate BBAI and SASGameRecord diagnostics at the caller before `logBBAI(...)`, `logSASGameRecord...(...)`, or a logging-only helper, and guard logging-only setup too; a check inside the helper is too late because C++ evaluates call arguments first.
   - Prefer ordinary inline predicates and explicit `if` statements over logging macros that expand to control flow (for example the inherited found-value `IFLOG` pattern); hidden `if` macros obscure the caller-side pre-gate and compose poorly with `else` or extra semantic predicates.
   - Keep domain logging helpers unguarded (a debug `FAssert` precondition is fine) and use e.g. `if (gUnitLogLevel >= 2) logUnitDecision(computeDetail());` at the caller. The final generic logger may retain a defensive disabled-log backstop, but it is not a substitute for caller pre-gating.
@@ -404,8 +569,12 @@ These are general guidelines, not irrevocable requirements; adjust based on task
   - Producer format strings use ordinary printf escaping: for example, formatting `75%%` produces `75%`, which the shared sink writes literally without interpreting the percent sign again.
   - Prefer structured field names (e.g. for SASGameRecord) such as `Percent`/`X100` when clearer for parsers; naming is not a substitute for safe text handling.
   - The writer's rationale and constraints belong beside its implementation in `CvGameCoreUtils.cpp`; see [local diagnostic tests](/tests/README.md#diagnostic-writer) for verification. KI#375.3 explains the former EXE logger's percent-sign handling.
+
+#### Interface, dependency and toolchain comments
+
 - In C++ declarations and definitions, document new functions and changes to existing functions, including renames, parameters/defaults/return types and responsibilities.
   - Explain the previous versus current contract and why it changed beside each affected declaration/definition; a header comment alone does not replace implementation context. Document new or changed structural members similarly so headers remain a concise interface summary.
+  - For new or changed Python bindings (`.def(...)`), explain why Python needs the exposed operation beside the binding; its Python help string describes usage but does not replace that rationale.
 - When adding, removing or changing parameters on an existing non-SAS function, add a nearby custom comment explaining what changed in the interface and why. Do this beside each affected declaration/definition that is edited; clearly SAS-named helper functions are optional because their custom ownership is already explicit.
 - Explain every added, removed or changed C/C++ `#include` or Python `import`/`from ... import` with a nearby custom comment naming the dependency and its purpose, including in new files. One comment may cover a coherent group if it explains all of them; untouched inherited dependencies need no new annotation.
   - For C++ includes, explain why a forward declaration is insufficient where relevant; do not bulk-annotate unrelated inherited includes.
@@ -419,7 +588,23 @@ Example based on the inherited `WarEvaluator::evaluate(WarPlanTypes, bool, int)`
 int WarEvaluator::evaluateScenario(bool bDiagnosticOnly, WarPlanTypes eWarPlan, bool bNaval, int iPreparationTime)
 ```
 
-### DLL compilation
+## Diagnostic revision maintenance
+
+### SASGameRecord
+
+- SASGameRecord revision maintenance: every intentional SASGameRecord-related code change, including implementation/checker/bridge/configuration code comments or header-only edits, increments `SAS_GAME_RECORD_REVISION` and adds the matching latest-first entry to [`SASGameRecord.md`](/_1_AdvCiv-SAS/Docs/revisions/SASGameRecord.md) in the same commit.
+  - Edit the XML Define in `Assets/XML/GlobalDefines_advciv_sas.xml`. The DLL reports its first-use cached value as `GAME_RECORD_SOURCE_CONTEXT recordRevision`; Python-only updates do not require a DLL rebuild just to advance this label.
+  - Do not debate compatibility; the revision is only a downstream-update signal.
+  - Standalone docs/history/example-log/package refreshes do not require a bump.
+  - The SASGameRecord build check verifies that source and history stay synchronized.
+
+### Runtime status and history
+
+- Changes to the loaded runtime recorder, its configuration/interfaces/call sites or shared runtime services, including implementation comments, increment compiled `SAS_RUNTIME_REVISION` once per commit and add a matching entry to [`SASRuntime.md`](/_1_AdvCiv-SAS/Docs/revisions/SASRuntime.md).
+  - Keep one pending increment throughout drafting; pure CI/checker, docs/examples and test maintenance do not require a bump or DLL rebuild.
+  - Both runtime files report this independent revision; CI checks recognizable changes, with manual review for unusual shared-code refactors.
+
+## DLL compilation
 
 - By default, let the user compile the DLL; the local legacy Civ4 SDK toolchain is configured, and the user generally prefers to handle compilation to save agent time/tokens. Do not compile merely for routine verification when the user has said they will do it.
 - If compilation is needed or the user is fine with the agent doing it, follow the tested [AdvCiv-SAS DLL Compilation Guide](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md).
@@ -445,14 +630,11 @@ Get-ChildItem -Path 'CvGameCoreDLL/Project/*/CvGameCoreDLL.dll.build.json' -File
   - Other generated temp targets remain unignored as a visible warning.
   - Keep the parent folder's tracked zero-byte `.gitkeep` for fresh clones and CI.
 
-### Editing while an autoplay is running
+## Runtime safety and diagnostics
 
 - Before editing runtime-sensitive files, check for Civ4 processes with PowerShell: `Get-Process -Name Civ4BeyondSword -ErrorAction SilentlyContinue`. Process presence confirms only that the executable has not exited; it does not prove a visible window, responsiveness, initialized gameplay or active autoplay.
   - A process can be starting, hidden, unresponsive or stranded after a failure. Use available window/response evidence and status/log progression when assessing its condition; an unchanged status file alone does not prove a hang because idle play and long initialization need not publish updates.
   - When the optional `Logs/SASRuntimeStatus.json` exists, use its DLL/process/session/autoplay fields as additional current-state evidence; verify the reported DLL identity against the intended build before treating a run as validation. Match `processId` and `processStartUtc` to the live process before trusting `RUNNING`: a crash can leave the last JSON behind.
-  - Changes to the loaded runtime recorder, its configuration/interfaces/call sites or shared runtime services, including implementation comments, increment compiled `SAS_RUNTIME_REVISION` once per commit and add a matching entry to [`SASRuntime.md`](/_1_AdvCiv-SAS/Docs/revisions/SASRuntime.md).
-    - Keep one pending increment throughout drafting; pure CI/checker, docs/examples and test maintenance do not require a bump or DLL rebuild.
-    - Both runtime files report this independent revision; CI checks recognizable changes, with manual review for unusual shared-code refactors.
   - The file reports autoplay state, not an idle/busy lock: a manually advanced turn also runs with `autoplayActive=0`. Check `gameState` for initialization and do not infer XML/Python edit safety from the autoplay flag alone.
   - Check Windows directly to establish whether the Civ4 process still exists; the JSON can outlive it. If no Civ4 process exists, no separate user confirmation of closure is needed. A lingering process can still retain runtime resources even without a visible window.
   - The status feature is default-off and deliberately does not guess human idle/UI state. While Civ4 is running, an absent, stale or unmatched status file does not establish that runtime-sensitive files are safe to edit.
@@ -464,25 +646,3 @@ Get-ChildItem -Path 'CvGameCoreDLL/Project/*/CvGameCoreDLL.dll.build.json' -File
     - A read can catch an append in progress, and file size/content can change immediately afterward; retry an incomplete trailing row and use completed output for final-size/full-run comparisons.
     - Other inherited logs do not share this guarantee.
 - Note: these boundaries describe the current Civ4 runtime and can be revised if later testing proves different behavior.
-
-### Docs
-
-- Preserve the chronology and original intent of historical or incremental documentation; append later developments with their date and explain how they follow from the earlier work.
-  - For Known Issues, append at the end of the relevant entry or add a relevant unused `.x` follow-up/new issue when warranted. Correct factual errors explicitly without rewriting the sequence of discovery.
-  - Audit/archaeology records change only when their own documented investigation resumes; ordinary source changes do not refresh their findings or continuation cursors.
-  - Prefer dates for later follow-ups; practical commit-count versions can change across branches/rebases. Reserve those versions for documents that need them, such as the Main Changes Guide and SASGameRecord revision history; omit them from commit messages.
-- For markdownlint, try to resolve warnings; if a fix is unclear or risky, ask the user.
-- For long Markdown prose, preserve the wording but prefer semantic structure that also reads clearly in rendered Markdown.
-  - Use a blank line for a real new paragraph or thought chunk; a plain source newline normally renders as a space and should be used only when the text is intentionally still one paragraph.
-  - Do not use a trailing `\`/hard line break merely to make prose look chunked in source; if the thought is genuinely separate, use a blank-line paragraph instead.
-  - In list-heavy technical/rule documentation, prefer a parent bullet with two-space-indented `-` child bullets for distinct details, exceptions, evidence, validation, examples, updates, or follow-up parts of the same point.
-  - Keep peer/top-level bullets for independently trackable rules/features/changes rather than nesting merely for visual uniformity.
-  - Do not impose an arbitrary width: short paragraphs, single long sentences, tables, logs, code, URLs, and other structures can stay on one physical line.
-  - `LLM_Helpers/reflow_markdown_prose.py` can perform a conservative source-line-only sentence-boundary pass, but it deliberately does not decide visible paragraph/list structure; always review and add real paragraphs/sub-bullets where appropriate.
-- In [README_Main_Changes_Guide.md](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md), apply the same rule especially strictly: parent change/feature bullets should use real nested sub-bullets for distinct details, evidence, validation, updates, or part 2 of that same change.
-  - Plain continuation indentation does not create visible list structure.
-  - Keep a new top-level bullet for a separately trackable feature/change.
-- When adding doc entries in the [README_Main_Changes_Guide.md](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md), prefix bullet titles with `- (Requires AdvCiv-SAS X+)` where `X` is current latest commit + 1, since docs describe post-commit state for readers.
-  - Current rule of thumb: latest stable is 5500, so the first commit after it would be 5501+, 10 commits later would be 5510+, etc.
-- When a new stable release is made, then all these previous markers can be stripped (e.g. if next stable is AdvCiv-SAS 5560, then any requires <= 5559+ is stripped because players would have the changes in latest stable, so they don't need anymore the marker about a change they might not have yet (in main i.e. as of now our dev branch)).
-  - We don't need to mark other files since they are generally not player facing in that way and more general information on the mod (plus it's less tedious as such).

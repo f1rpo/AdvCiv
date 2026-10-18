@@ -43,6 +43,12 @@ def registrations(text):
     return found
 
 
+# <!-- custom: Match the build wrapper's sorted hex-encoded UTF-8 name/NUL/target records; only the registration contract enters this fingerprint, while exact file bytes retain their separate provenance hash. (GPT-6.1-Sol) -->
+def binding_fingerprint(text):
+    records = sorted((name + "\0" + target).encode("utf-8").hex().upper() for name, target in registrations(text))
+    return hashlib.sha256("\n".join(records).encode("ascii")).hexdigest()
+
+
 def binding_sources(repo, revision):
     if revision is None:
         return {}
@@ -57,11 +63,12 @@ def binding_sources(repo, revision):
     return result
 
 
-# <!-- custom: A different DLL/report pair can still predate the new binding; verify affected registration-source bytes against the pre-build manifest, not only the binary/report hash pair.
-# Deleted sources must be absent from that manifest; moved registrations with identical names/targets need no rebuild on their own. (GPT-6.1-Sol) -->
+# <!-- custom: A different DLL/report pair can still predate the new binding; compare affected registrations with the build's captured names/targets, not merely the binary/report hash pair.
+# Exact file hashes wrongly rejected a post-build rationale comment in CyGameInterface.cpp despite unchanged registrations; keep hashes as byte provenance and accept the captured binding contract when only that file identity differs.
+# Reports without binding snapshots still need exact source evidence; deleted sources must be absent, and unchanged registrations moved between files do not request a rebuild. (GPT-6.1-Sol) -->
 def manifest_errors(repo, head, paths):
     report = json.loads(git(repo, "show", f"{head}:{DLL}.build.json").decode("utf-8-sig"))
-    recorded = {row["path"]: row["sha256"].lower() for row in report.get("buildInputsBefore", [])}
+    recorded = {row["path"]: row for row in report.get("buildInputsBefore", [])}
     errors = []
     for path in sorted(paths):
         if blob_id(repo, head, path) is None:
@@ -73,7 +80,11 @@ def manifest_errors(repo, head, paths):
             data = git(repo, "show", f"{head}:{path}")
             lf = data.replace(b"\r\n", b"\n")
             hashes = {hashlib.sha256(form).hexdigest() for form in (data, lf, lf.replace(b"\n", b"\r\n"))}
-            if recorded.get(path) not in hashes:
+            row = recorded.get(path, {})
+            if row.get("sha256", "").lower() in hashes:
+                continue
+            fingerprint = row.get("pythonBindingsSha256")
+            if not isinstance(fingerprint, str) or fingerprint.lower() != binding_fingerprint(data.decode("utf-8-sig", errors="replace")):
                 errors.append(f"Release build manifest does not match binding source {path}; rebuild from the integration sources")
     return errors
 

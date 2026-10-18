@@ -2227,7 +2227,7 @@ Enforced by the turn_define_gamespeed CI check. (GPT-5.6 Thinking) -->
 	Keep the newest Docs/revisions/SASGameRecord.md entry synchronized; build/source/DLL provenance separately describes whether a particular compiled binary is stale or came from another source state. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	<Define>
 		<DefineName>SAS_GAME_RECORD_REVISION</DefineName>
-		<iDefineIntVal>156</iDefineIntVal>
+		<iDefineIntVal>157</iDefineIntVal>
 	</Define>
 
 

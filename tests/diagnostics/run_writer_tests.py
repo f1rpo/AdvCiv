@@ -89,6 +89,10 @@ def main():
         cause_start = source.index("char const* getSASAutoPlayEndCause(")
         cause_end = source.index("// <!-- custom: Keep one iterable source of truth", cause_start)
         (temporary / "runtime_status_under_test.inc").write_text(source[cause_start:cause_end] + source[clock_start:clock_end] + source[identity_start:identity_end] + status[status_start:] + gate, encoding="utf-8")
+        bridge = (ROOT / "CvGameCoreDLL/CyGame.cpp").read_text(encoding="utf-8")
+        bridge_start = bridge.index("void CyGame::updateSASRuntimeStatusWorldBuilderScreen(")
+        bridge_end = bridge.index("// <!-- custom: Bridge only the post-Python lifecycle", bridge_start)
+        (temporary / "runtime_world_builder_bridge_under_test.inc").write_text(bridge[bridge_start:bridge_end], encoding="utf-8")
         executable = temporary / "writer.exe"
         subprocess.run([
             str(args.compiler), "/nologo", "/EHsc", "/MT", "/W3", "/D_USRDLL",
@@ -101,7 +105,29 @@ def main():
         subprocess.run([str(executable), "--terminal-fallback"], cwd=temporary, env=environment, check=True)
         subprocess.run([str(executable), "--runtime-status-disabled"], cwd=temporary, env=environment, check=True)
         subprocess.run([str(executable), "--runtime-status"], cwd=temporary, env=environment, check=True)
+        subprocess.run([str(executable), "--runtime-presentation"], cwd=temporary, env=environment, check=True)
         subprocess.run([str(executable), "--runtime-status-output-failure"], cwd=temporary, env=environment, check=True)
+        presentation = json.loads((temporary / "runtime_presentation.json").read_text(encoding="utf-8"))
+        presentation_timeline = [json.loads(line) for line in (temporary / "runtime_presentation.jsonl").read_text(encoding="utf-8").splitlines()]
+        assert presentation["revision"] == expected_revision and presentation["gameState"] == "PLAYING" and presentation["extendedGame"] == 1
+        assert presentation["worldBuilderMode"] == 0 and presentation["worldBuilderScreenVisible"] == 0
+        assert presentation["mainMenuSceneRequestedUtc"] == "-" and presentation["loadingScreenAssetRequestedUtc"] != "-"
+        presentation_reasons = [row["reason"] for row in presentation_timeline]
+        for reason in ("MAIN_MENU_SCENE_REQUESTED", "LOADING_SCREEN_ASSET_REQUESTED", "WORLD_BUILDER_MODE_ENTERED", "WORLD_BUILDER_SCREEN_SHOWN", "WORLD_BUILDER_SCREEN_HIDDEN", "WORLD_BUILDER_MODE_EXITED", "GAME_ENDED", "EXTENDED_GAME_STARTED"):
+            assert reason in presentation_reasons, reason
+        shown = next(row for row in presentation_timeline if row["reason"] == "WORLD_BUILDER_SCREEN_SHOWN")
+        mode_exit = next(row for row in presentation_timeline if row["reason"] == "WORLD_BUILDER_MODE_EXITED")
+        hidden = next(row for row in presentation_timeline if row["reason"] == "WORLD_BUILDER_SCREEN_HIDDEN")
+        extended = next(row for row in presentation_timeline if row["reason"] == "EXTENDED_GAME_STARTED")
+        assert shown["state"] == "WORLD_BUILDER" and mode_exit["previousState"] == "WORLD_BUILDER" and mode_exit["previousDurationMilliseconds"] == 2000
+        loading = next(row for row in presentation_timeline if row["reason"] == "LOADING_SCREEN_ASSET_REQUESTED")
+        creation = next(row for row in presentation_timeline if row["reason"] == "NEW_GAME_STARTED")
+        ready = next(row for row in presentation_timeline if row["reason"] == "NEW_GAME_NATIVE_READY")
+        assert loading["intervalStarted"] == 0 and loading["previousState"] == "NONE" and loading["previousDurationMilliseconds"] == -1
+        assert loading["stateStartedUtc"] == creation["stateStartedUtc"] and loading["stateElapsedMilliseconds"] == 250
+        assert ready["intervalStarted"] == 1 and ready["previousDurationMilliseconds"] == 1000
+        assert hidden["intervalStarted"] == 0 and hidden["previousState"] == "NONE" and hidden["previousDurationMilliseconds"] == -1 and hidden["stateElapsedMilliseconds"] == 100
+        assert extended["state"] == "PLAYING" and extended["reason"] == "EXTENDED_GAME_STARTED"
         recovered = json.loads((temporary / "runtime_failed_output.json").read_text(encoding="utf-8"))
         assert recovered["previousActivityDurationMilliseconds"] == 5000 and recovered["historyWriteFailures"] == 1
         assert recovered["historyRowsWritten"] == 2 and recovered["activitySerial"] == 3 and recovered["statusWriteFailures"] == 1

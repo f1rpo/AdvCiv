@@ -42,7 +42,7 @@ class RuntimeRevisionTests(unittest.TestCase):
 
     def record(self, value, comment=""):
         self.write(history.SOURCE, f"enum {{ SAS_RUNTIME_REVISION = {value} }};\n// {comment}\n")
-        self.write(history.HISTORY, "\n".join(f"### Revision {number}\n\n- Fixture behavior.\n" for number in range(value, 0, -1)))
+        self.write(history.HISTORY, "\n".join(f"### Revision {number}\n\n- **Change:** Fixture behavior.\n" for number in range(value, 0, -1)))
 
     def check_push(self, tip):
         return history.check(self.repo, "main", "push", {"before": self.base, "after": tip})
@@ -85,6 +85,22 @@ class RuntimeRevisionTests(unittest.TestCase):
         self.assertTrue(any("history" in error for error in history.transition_errors(self.repo, "HEAD", None)))
         self.write(history.HISTORY, "### Revision 2\n### Revision 1\n### Revision 1\n")
         self.assertTrue(any("history" in error for error in history.transition_errors(self.repo, "HEAD", None)))
+
+    def test_missing_change_and_metadata_only_entries_fail(self):
+        source = "enum { SAS_RUNTIME_REVISION = 1 };"
+        for content in ('', '- **Change:** ', '- **Change:** <!-- explanation later -->'):
+            with self.subTest(content=content):
+                text = '### Revision 1\n- **Date:** 2026-10-19\n- **Git commit:** pending\n' + content
+                self.assertTrue(any('nonempty Change' in error for error in history.history_errors(source, text)))
+
+    def test_later_documentation_does_not_hide_missing_committed_blurb(self):
+        self.record(2, 'new behavior')
+        text = (self.repo / history.HISTORY).read_text()
+        self.write(history.HISTORY, text.replace('- **Change:** Fixture behavior.', '- **Change:** ', 1))
+        bad = self.commit()
+        self.record(2, 'new behavior')
+        errors = self.check_push(self.commit())
+        self.assertTrue(any(bad[:12] in error and 'nonempty Change' in error for error in errors), errors)
 
     def test_shared_hook_changes_qualify_but_test_only_changes_do_not(self):
         self.write("CvGameCoreDLL/CvGame.cpp", "updateSASRuntimeStatusTurnCompleted();\n")

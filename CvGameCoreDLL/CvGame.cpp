@@ -5786,9 +5786,13 @@ void CvGame::setWinner(TeamTypes eNewWinner, VictoryTypes eNewVictory)
 
 void CvGame::setGameState(GameStateTypes eNewValue)
 {
-	if (getGameState() == eNewValue)
+	GameStateTypes const eOldValue = getGameState();
+	if (eOldValue == eNewValue)
 		return;
 	m_eGameState = eNewValue;
+	// <!-- custom: The end-game popup and multiplayer extended-game handshake can resume play through different call paths; observe the authoritative OVER -> EXTENDED state transition here. (ChatGPT-5.6-Sol) -->
+	if (isSASRuntimeStatusEnabled() && eOldValue == GAMESTATE_OVER && eNewValue == GAMESTATE_EXTENDED)
+		updateSASRuntimeStatusExtendedGameStarted();
 	if (eNewValue == GAMESTATE_OVER)
 	{
 		CvEventReporter::getInstance().gameEnd();

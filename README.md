@@ -1351,6 +1351,8 @@ Initial context includes small and medium geography overviews before the full mu
 
 See also the full raw [SASGameRecord example log](/_1_AdvCiv-SAS/Docs/examples/sasgamerecord/SASGameRecord_example.log). It can be given to an external to the repo LLM (e.g. ChatGPT instead of Codex) to get an as of now token-cheap or free review of the `SASGameRecord` example sample.
 
+The matching [`SASRuntimeStatus_example.json`](/_1_AdvCiv-SAS/Docs/examples/runtime_status/SASRuntimeStatus_example.json) and [`SASRuntimeHistory_example.jsonl`](/_1_AdvCiv-SAS/Docs/examples/runtime_status/SASRuntimeHistory_example.jsonl) show real current-state observations and timed activity history alongside the detailed game logs.
+
 For example, `SASGameRecord_*.log` starts with lifecycle, provenance and run-setup rows before adding RNG/state checkpoints and compact turn snapshots. These selected revision-137 rows come from the same October 9, 2026 development test as the BBAI header above; gaps in `seq` mean unrelated intervening rows are omitted:
 
 ```log

@@ -32,9 +32,11 @@ A successful run exits with code 0 and prints three `PASS C++ diagnostic writer`
 
 To inspect synthetic fixture output, pass `--export-runtime-examples <scratch-directory>`. Keep it separate from the [documented real-run pair](/_1_AdvCiv-SAS/Docs/examples/runtime_status/README.md); normal test runs leave both untouched.
 
-Runtime-status cases parse the actual JSON and JSONL timeline, check disabled no-I/O/provenance behavior and autoplay countdown gating, and exercise lifecycle transitions, shared DLL identity, exact monotonic activity durations, interrupted autoplay, root migration, rollback after partial history appends, readable history after an unconfirmed close, and recovered status-failure counters.
+Runtime-status cases parse the actual JSON and JSONL timeline, check disabled no-I/O/provenance behavior and autoplay countdown gating, and exercise lifecycle transitions, passive menu/loading observations, WorldBuilder mode versus visible-editor state, extended-game continuation, shared DLL identity, exact monotonic activity durations, interrupted autoplay, root migration, rollback after partial history appends, readable history after an unconfirmed close, and recovered status-failure counters.
 
 Missing tools, compilation errors or failed assertions return a nonzero exit code.
+
+Presentation cases also compile the actual CyGame screen bridge: disabled recording skips native editor/Advanced Start queries, either mode/show/hide ordering remains observable, and presentation-only rows retain whole activity durations. Pending exit requests survive late editor/turn callbacks.
 
 The harness supplies minimal game scaffolding and simulates failures. Full DLL compilation, Python/EXE lifecycle integration, in-game live log access and autoplay performance still require separate validation.
 

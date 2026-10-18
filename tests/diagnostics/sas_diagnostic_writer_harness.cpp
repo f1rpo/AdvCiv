@@ -42,12 +42,20 @@ void CvString::Format(LPCSTR format, ...)
 }
 
 // <!-- custom: Minimal read-only game/map state lets the separate runtime-status publisher run without Civ4; Define lookup accepts only its own independent enable switch. (GPT-6.1-Sol) -->
+// <!-- custom: Production GameStateTypes comes from the Civ4 headers; the standalone fixture needs only the values inspected by runtime status. (ChatGPT-5.6-Sol) -->
+enum GameStateTypes { GAMESTATE_ON = 0, GAMESTATE_OVER, GAMESTATE_EXTENDED };
+static int g_worldBuilderModeReads = 0;
+static int g_advancedStartReads = 0;
 struct CvGame
 {
-	CvGame() : ready(false), autoplay(0) {}
+	CvGame() : ready(false), autoplay(0), state(GAMESTATE_ON), advancedStart(false) {}
 	bool ready;
 	int autoplay;
+	GameStateTypes state;
+	bool advancedStart;
+	bool isInAdvancedStart() const { ++g_advancedStartReads; return advancedStart; }
 	bool isFinalInitialized() const { return ready; }
+	GameStateTypes getGameState() const { return state; }
 	int getGameTurn() const { return 9; }
 	int getElapsedGameTurns() const { return 9; }
 	int getActivePlayer() const { return 0; }
@@ -76,6 +84,23 @@ struct TestGlobals
 	CvGame const& getGame() const { return game; }
 	TestMap const& getMap() const { return map; }
 } GC;
+
+// <!-- custom: Compile the actual WorldBuilder Python bridge with observable native getters; disabled cases must skip both mode queries and the Advanced Start scan. (GPT-6.1-Sol) -->
+struct RuntimeTestDLL
+{
+	RuntimeTestDLL() : worldBuilder(false) {}
+	bool worldBuilder;
+	bool GetWorldBuilderMode() const { ++g_worldBuilderModeReads; return worldBuilder; }
+} g_runtimeTestDLL;
+static RuntimeTestDLL* gDLL = &g_runtimeTestDLL;
+class CyGame
+{
+public:
+	CyGame(CvGame& game) : m_kGame(game) {}
+	void updateSASRuntimeStatusWorldBuilderScreen(bool bVisible);
+private:
+	CvGame& m_kGame;
+};
 
 // <!-- custom: Supply a stable DLL-load label; process creation time and status UTC still use their actual production Win32 implementations. (GPT-6.1-Sol) -->
 CvString const& getSASProcessUtcTimestamp() { static CvString const stamp("20261018T000000Z"); return stamp; }
@@ -184,6 +209,8 @@ static SASBinaryDiagnosticContext const& getSASDllDiagnosticContext()
 }
 // <!-- custom: Compile the separate current-state publisher with the same real Win32 wrappers and explicit game fixture so JSON/lifecycle failures are exercised alongside writer I/O. (GPT-6.1-Sol) -->
 #include "runtime_status_under_test.inc"
+// <!-- custom: Extract the production CyGame notification body so callback ordering and pre-gating are tested at the real bridge, not just at its lower-level helpers. (GPT-6.1-Sol) -->
+#include "runtime_world_builder_bridge_under_test.inc"
 #undef CloseHandle
 #undef WriteFile
 #undef CreateFileW
@@ -230,6 +257,10 @@ int main(int argc, char** argv)
 		updateSASRuntimeStatusSessionReady();
 		updateSASRuntimeStatusTurnCompleted(3);
 		updateSASRuntimeStatusAutoPlay(SAS_RUNTIME_STATUS_AUTOPLAY_STARTED);
+		CyGame bridge(GC.game);
+		bridge.updateSASRuntimeStatusWorldBuilderScreen(true);
+		bridge.updateSASRuntimeStatusWorldBuilderScreen(false);
+		require(g_worldBuilderModeReads == 0 && g_advancedStartReads == 0, "disabled Python bridge skips native mode and Advanced Start queries");
 		updateSASRuntimeStatusGameEnded();
 		updateSASRuntimeStatusRequest(SAS_RUNTIME_STATUS_EXIT_REQUESTED);
 		updateSASRuntimeStatusCleanExit();
@@ -273,6 +304,109 @@ int main(int argc, char** argv)
 		setSASRuntimeStatusRootDirectory(root);
 		require(g_uiSASRuntimeStatusWriteFailures == 5, "status failures include open, close, failed/zero write and missing root");
 		require(CopyFileW((root + L"\\Logs\\SASRuntimeStatus.json").c_str(), (std::wstring(temporary) + L"\\runtime_failed_status.json").c_str(), FALSE) != FALSE, "retain recovered status-failure snapshot");
+		return 0;
+	}
+	// <!-- custom: Exercise passive presentation/lifecycle observations separately from the baseline timing fixture so new boundaries do not rewrite its established duration expectations. (ChatGPT-5.6-Sol) -->
+	if (argc == 2 && strcmp(argv[1], "--runtime-presentation") == 0)
+	{
+		GC.runtimeStatus = true;
+		std::wstring const root = std::wstring(temporary) + L"\\runtime_presentation";
+		require(CreateDirectoryW(root.c_str(), NULL) != FALSE, "create runtime-presentation fixture root");
+		setSASRuntimeStatusRootDirectory(root);
+
+		g_runtimeClock = 100;
+		unsigned int before = g_uiSASRuntimeStatusSerial;
+		updateSASRuntimeStatusMainMenuSceneRequested();
+		require(g_szSASRuntimeMainMenuSceneRequestedUtc != "-" && g_uiSASRuntimeStatusSerial == before + 1, "first main-menu scene request is observed");
+		before = g_uiSASRuntimeStatusSerial;
+		updateSASRuntimeStatusMainMenuSceneRequested();
+		require(g_uiSASRuntimeStatusSerial == before, "duplicate main-menu scene requests are suppressed");
+
+		g_runtimeClock = 1000;
+		updateSASRuntimeStatusSessionStarted(false);
+		CvString const creationStartedUtc = g_szSASRuntimeActivityStartedUtc;
+		require(g_szSASRuntimeMainMenuSceneRequestedUtc == "-" && g_szSASRuntimeLoadingScreenAssetRequestedUtc == "-", "session start resets presentation observations");
+		g_runtimeClock = 1250;
+		before = g_uiSASRuntimeStatusSerial;
+		updateSASRuntimeStatusLoadingScreenAssetRequested();
+		require(g_szSASRuntimeLoadingScreenAssetRequestedUtc != "-" && g_uiSASRuntimeStatusSerial == before + 1 && g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_CREATING_GAME, "first loading asset request preserves creation activity");
+		require(g_szSASRuntimeActivityStartedUtc == creationStartedUtc && g_uiSASRuntimeActivityStartedMilliseconds == 1000, "loading presentation does not restart creation timing");
+		before = g_uiSASRuntimeStatusSerial;
+		updateSASRuntimeStatusLoadingScreenAssetRequested();
+		require(g_uiSASRuntimeStatusSerial == before, "duplicate loading asset requests are suppressed");
+
+		GC.game.ready = true;
+		GC.game.state = GAMESTATE_ON;
+		g_runtimeClock = 2000;
+		updateSASRuntimeStatusSessionReady();
+		require(g_iSASRuntimePreviousDurationMilliseconds == 1000, "creation completion retains its whole interval across loading presentation");
+		CyGame bridge(GC.game);
+		g_runtimeTestDLL.worldBuilder = true;
+		GC.game.advancedStart = true;
+		before = g_uiSASRuntimeStatusSerial;
+		bridge.updateSASRuntimeStatusWorldBuilderScreen(true);
+		require(g_uiSASRuntimeStatusSerial == before && !g_bSASRuntimeWorldBuilderMode, "real bridge rejects Advanced Start even when EXE editor mode is enabled");
+		GC.game.advancedStart = false;
+		g_runtimeClock = 2200;
+		updateSASRuntimeStatusWorldBuilderMode(true);
+		require(g_bSASRuntimeWorldBuilderMode && !g_bSASRuntimeWorldBuilderScreenVisible && g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_PLAYING, "native WorldBuilder mode is distinct from visible editor activity");
+		g_runtimeClock = 2300;
+		bridge.updateSASRuntimeStatusWorldBuilderScreen(true);
+		require(g_bSASRuntimeWorldBuilderScreenVisible && g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_WORLD_BUILDER, "visible WorldBuilder screen starts editor activity");
+		g_runtimeClock = 4300;
+		updateSASRuntimeStatusWorldBuilderMode(false);
+		require(!g_bSASRuntimeWorldBuilderMode && g_bSASRuntimeWorldBuilderScreenVisible && g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_PLAYING && g_iSASRuntimePreviousDurationMilliseconds == 2000, "native WorldBuilder exit ends editor activity without erasing the independent screen observation");
+		g_runtimeClock = 4400;
+		g_runtimeTestDLL.worldBuilder = false;
+		bridge.updateSASRuntimeStatusWorldBuilderScreen(false);
+		require(!g_bSASRuntimeWorldBuilderScreenVisible && g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_PLAYING, "later WorldBuilder hide records presentation closure after mode exit");
+		require(g_uiSASRuntimeActivityStartedMilliseconds == 4300 && g_iSASRuntimePreviousDurationMilliseconds == 2000, "hide-only observation preserves current play start and completed editor duration");
+		before = g_uiSASRuntimeStatusSerial;
+		GC.game.advancedStart = true;
+		bridge.updateSASRuntimeStatusWorldBuilderScreen(true);
+		require(g_uiSASRuntimeStatusSerial == before && !g_bSASRuntimeWorldBuilderScreenVisible, "Advanced Start screen reuse is ignored without native WorldBuilder mode");
+		GC.game.advancedStart = false;
+
+		GC.game.state = GAMESTATE_OVER;
+		g_runtimeClock = 5000;
+		updateSASRuntimeStatusGameEnded();
+		require(g_eSASRuntimeGameState == SAS_RUNTIME_GAME_GAME_ENDED, "victory enters ended runtime state");
+		GC.game.state = GAMESTATE_EXTENDED;
+		g_runtimeClock = 5200;
+		updateSASRuntimeStatusExtendedGameStarted();
+		require(g_eSASRuntimeGameState == SAS_RUNTIME_GAME_PLAYING && g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_PLAYING, "extended game restores active play");
+		require(CopyFileW((root + L"\\Logs\\SASRuntimeStatus.json").c_str(), (std::wstring(temporary) + L"\\runtime_presentation.json").c_str(), FALSE) != FALSE, "retain runtime-presentation status snapshot");
+		std::wstring const historyName(g_szSASRuntimeHistoryFilename.begin(), g_szSASRuntimeHistoryFilename.end());
+		require(CopyFileW((root + L"\\Logs\\" + historyName).c_str(), (std::wstring(temporary) + L"\\runtime_presentation.jsonl").c_str(), FALSE) != FALSE, "retain runtime-presentation history");
+		// <!-- custom: Exercise Python-first mode/show plus screen-hide-before-native-mode-off, complementing the native-first ordering above. (GPT-6.1-Sol) -->
+		g_runtimeClock = 6000;
+		g_runtimeTestDLL.worldBuilder = true;
+		bridge.updateSASRuntimeStatusWorldBuilderScreen(true);
+		require(g_bSASRuntimeWorldBuilderMode && g_bSASRuntimeWorldBuilderScreenVisible, "Python-first show observes mode and visibility together");
+		before = g_uiSASRuntimeStatusSerial;
+		updateSASRuntimeStatusWorldBuilderMode(true);
+		require(g_uiSASRuntimeStatusSerial == before, "later native mode notification deduplicates Python-first observation");
+		g_runtimeClock = 7200;
+		g_runtimeTestDLL.worldBuilder = false;
+		bridge.updateSASRuntimeStatusWorldBuilderScreen(false);
+		require(!g_bSASRuntimeWorldBuilderMode && !g_bSASRuntimeWorldBuilderScreenVisible && g_iSASRuntimePreviousDurationMilliseconds == 1200, "screen-first hide preserves the full editor interval through subsequent mode observation");
+		g_runtimeClock = 7300;
+		bridge.updateSASRuntimeStatusWorldBuilderScreen(true);
+		require(!g_bSASRuntimeWorldBuilderMode && g_bSASRuntimeWorldBuilderScreenVisible && g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_PLAYING, "show arriving before native mode is retained without inventing editor activity");
+		g_runtimeClock = 7400;
+		g_runtimeTestDLL.worldBuilder = true;
+		updateSASRuntimeStatusWorldBuilderMode(true);
+		require(g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_WORLD_BUILDER, "later native mode completes the previously observed editor visibility");
+		g_runtimeClock = 7600;
+		g_runtimeTestDLL.worldBuilder = false;
+		bridge.updateSASRuntimeStatusWorldBuilderScreen(false);
+		require(g_iSASRuntimePreviousDurationMilliseconds == 200, "editor duration begins only after both observations are present");
+		g_runtimeClock = 8000;
+		g_runtimeTestDLL.worldBuilder = true;
+		bridge.updateSASRuntimeStatusWorldBuilderScreen(true);
+		updateSASRuntimeStatusRequest(SAS_RUNTIME_STATUS_EXIT_REQUESTED);
+		updateSASRuntimeStatusTurnCompleted(9);
+		require(g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_EXIT_REQUESTED, "late callbacks cannot replace an exit request with a still-visible editor");
 		return 0;
 	}
 	if (argc == 2 && strcmp(argv[1], "--runtime-status") == 0)

@@ -54,5 +54,15 @@ class RevisionDocumentationTests(unittest.TestCase):
         self.history.write_text(self.text[:entries[0].start()] + self.text[entries[1].start():], 'utf-8')
         self.assertTrue(any('revision mismatch' in error for error in recorder.check_revision(self.repo)))
 
+    def test_latest_revision_needs_more_than_date_and_commit(self):
+        entries = list(re.finditer(r'^### Revision ', self.text, flags=re.MULTILINE))
+        start, end = entries[0].start(), entries[1].start()
+        metadata = self.text[start:end].split('- **Change:**', 1)[0]
+        for content in ('', '- **Change:** \n', '- **Change:** <!-- later -->\n'):
+            with self.subTest(content=content):
+                self.history.write_text(self.text[:start] + metadata + content + self.text[end:], 'utf-8')
+                errors = recorder.check_revision(self.repo)
+                self.assertTrue(any('nonempty Change' in error for error in errors), errors)
+
 if __name__ == "__main__":
     unittest.main()

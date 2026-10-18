@@ -220,7 +220,8 @@ python .github/workflows/build/repository/dll_define_changes.py --base-ref HEAD~
 Adding a Python method call alongside an old DLL can break startup or game loading even when Python syntax checks pass. This guard catches changed literal Boost.Python method registrations in `CvGameCoreDLL/**/*Interface*.cpp` and requires matching Release build evidence at default-branch integration.
 
 - Compare `.def("name", target, ...)` names and target expressions against each selected commit's first parent; additions, removals and retargeting require a changed shipped DLL. Comments, help strings, whitespace, registration ordering and moves between interface files do not trigger a rebuild by themselves.
-- Reuse the existing successful Release report/binary checks, then compare affected registration-source hashes with `buildInputsBefore`. Accept Git LF or Windows CRLF representation, without ignoring other content changes; a different but still stale DLL/report pair does not satisfy the source check.
+- Reuse the existing successful Release report/binary checks, then verify affected registrations against `buildInputsBefore`. An exact source hash matches directly; otherwise the captured `pythonBindingsSha256` fingerprint of names/targets must match, so later comments, reflow or help-string edits do not require another compile. Stale registrations still fail.
+  - Build reporting retains exact source hashes for provenance and separately fingerprints literal bindings without requiring Python on the build machine. Reports without that fingerprint still need an exact source match, accepting Git LF or Windows CRLF.
 - Like structural XML define changes, intermediate feature-branch commits may remain source-only. Default-branch pushes and PRs require the matching pair at the integration head; existing per-commit DLL intent rules still apply.
 - Scope is explicit literal method registrations, not a complete C++/Python compatibility analysis: class/enum/property registrations, macro-generated or computed names, target-signature changes without registration edits, trailing policies/argument metadata and Python callers are not checked.
 
@@ -634,6 +635,8 @@ Keeps the blocking SASGameRecord CI intentionally small:
 - The history/progression checker additionally enforces the commit rule when Git history is available: a mechanically recognizable qualifying SASGameRecord implementation commit increments exactly once, the revision never regresses or jumps by more than one, and unrelated commits do not increment it.
 
 Compilation, runtime smoke/autoplay testing, log inspection and code review validate recorder implementation/schema behavior. The checker intentionally does not parse/pin individual row fields, writer call sites, lifecycle topology, save-marker bindings, AI provenance paths or other C++ implementation shapes.
+
+Both recorder histories share numbered-entry parsing and require a nonempty `Change` explanation. Continued paragraphs/sub-bullets are accepted; dates, commit labels, hidden comments and fenced examples do not replace the explanation. A later documentation commit does not repair a missing blurb in the commit that advanced the revision.
 
 Intentional SASGameRecord-related code changes, including checker and code-comment maintenance, increment the public revision even when emitted semantics are unchanged. Standalone documentation/history/example/package refreshes do not require a bump.
 

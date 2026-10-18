@@ -333,6 +333,30 @@ bool CyGame::flushSASDiagnosticLogs()
 	return ::flushSASDiagnosticLogs();
 }
 
+// <!-- custom: Python previously inspected native mode and scanned Advanced Start players even while runtime recording was disabled.
+// This infrequent show/hide notification passes only a literal bool; querying the native enable flag from Python would itself require a bridge call.
+// Disabled recording retains that notification-call overhead but skips native diagnostic queries, formatting and output; computed arguments or state collection must still be pre-gated by their caller.
+// Native mode remains a separate deduplicated observation, with hide recorded even if mode already switched off. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+void CyGame::updateSASRuntimeStatusWorldBuilderScreen(bool bVisible)
+{
+	if (!isSASRuntimeStatusEnabled())
+		return;
+	if (bVisible)
+	{
+		if (!m_kGame.isInAdvancedStart())
+		{
+			::updateSASRuntimeStatusWorldBuilderMode(gDLL->GetWorldBuilderMode());
+			::updateSASRuntimeStatusWorldBuilderScreen(true);
+		}
+	}
+	else
+	{
+		::updateSASRuntimeStatusWorldBuilderScreen(false);
+		if (!gDLL->GetWorldBuilderMode())
+			::updateSASRuntimeStatusWorldBuilderMode(false);
+	}
+}
+
 // <!-- custom: Bridge only the post-Python lifecycle observation; the cached native gate also protects direct Python callers before any option reads or formatting.
 // Python contributes only graphics-profile values unavailable through the DLL API; native code owns canonical formatting and all other diagnostics. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 void CyGame::logSASGameRecordDiagnosticContext(int iRenderQualityLevel, int iAntiAliasingIndex, int iAntiAliasingSamples, int iGlobeViewRenderLevel, int iMovieQualityLevel)

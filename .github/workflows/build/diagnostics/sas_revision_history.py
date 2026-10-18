@@ -16,6 +16,10 @@ import sys
 # <!-- custom: Parse historical/current GlobalDefines structurally so revision/config comparisons do not depend on XML whitespace or element formatting. (ChatGPT-5.6-Sol) -->
 import xml.etree.ElementTree as ET
 
+# <!-- custom: Share visible history-entry parsing and Change-field checks with the current-default and runtime guards; per-commit validation also catches an explanation deferred to a later commit. (GPT-6.1-Sol) -->
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "lib"))
+from revision_history import change_errors, revision_entries
+
 ROOT = Path(__file__).resolve().parents[4]
 HISTORY = Path("_1_AdvCiv-SAS/Docs/revisions/SASGameRecord.md")
 HEADER = "CvGameCoreDLL/SASGameRecordLog.h"
@@ -154,7 +158,9 @@ def commit_has_qualifying_change(repo, parent, commit):
             if global_define_change_qualifies(repo, parent, commit):
                 return True
             continue
-        if normalized.startswith(".github/workflows/tests/") or Path(normalized).suffix.lower() in IGNORED_SUFFIXES:
+        # <!-- custom: Shipped DLL reports contain source paths and recorded Git status; changing that evidence falsely requested revision 157 for a runtime-only commit.
+        # Exclude this artifact type from implementation detection without excluding JSON configuration files generally. (GPT-6.1-Sol) -->
+        if normalized.startswith(".github/workflows/tests/") or normalized.lower().endswith(".dll.build.json") or Path(normalized).suffix.lower() in IGNORED_SUFFIXES:
             continue
         if normalized.startswith("LLM_Helpers/") and "sasgamerecord" in Path(normalized).name.lower() and Path(normalized).suffix.lower() == ".py":
             return True
@@ -234,6 +240,9 @@ def check_progression(repo, default_branch_ref=None, event_name="local", event_d
             errors.append(f"commit {short}: qualifying SASGameRecord implementation change requires exactly one revision increment ({previous}->{previous + 1})")
         elif not qualifies and delta != 0:
             errors.append(f"commit {short}: SASGameRecord revision advanced {previous}->{current} without an automatically recognized qualifying implementation change")
+        if delta == 1:
+            history = git_show(repo, commit, HISTORY.as_posix())
+            errors.extend(f"commit {short}: {error}" for error in change_errors("" if history is None else history.decode("utf-8", "replace"), current))
     return errors
 
 
@@ -245,13 +254,12 @@ def check_history(repo, default_branch_ref=None):
         return ["revision provenance requires full Git history (checkout fetch-depth: 0)"]
     ancestors = None if branch_commit is None else set(subprocess.check_output(["git", "rev-list", branch_commit], cwd=repo).decode().splitlines())
     text = (repo / HISTORY).read_text("utf-8")
-    entries = list(re.finditer(r"^### Revision (\d+)\b(.*?)(?=^### Revision |\Z)", text, re.MULTILINE | re.DOTALL))
+    entries = revision_entries(text)
     if not entries:
         return ["no revision history entries"]
-    errors = []
-    for index, entry in enumerate(entries):
-        revision = int(entry.group(1))
-        value = re.search(r"^- \*\*Git commit:\*\* (.+)$", entry.group(2), re.MULTILINE)
+    errors = change_errors(text)
+    for index, (revision, body) in enumerate(entries):
+        value = re.search(r"^- \*\*Git commit:\*\* (.+)$", body, re.MULTILINE)
         if value is None:
             errors.append(f"revision {revision}: missing Git commit field")
             continue

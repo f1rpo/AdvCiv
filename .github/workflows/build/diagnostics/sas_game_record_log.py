@@ -14,6 +14,8 @@ import sys
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "lib"))
 
 from xml_defines import get_default_repo_root, read_global_define_ints, require_int_values
+# <!-- custom: Require the same nonempty explanation as runtime history without duplicating Markdown-entry validation. (GPT-6.1-Sol) -->
+from revision_history import change_errors
 
 
 REVISION_DEFINES = Path("Assets/XML/GlobalDefines_advciv_sas.xml")
@@ -66,6 +68,7 @@ def check_revision(repo_root: Path, defines: dict[str, int] | None = None) -> li
 
     history_revision, errors = latest_history_revision(history)
     failures.extend(errors)
+    failures.extend(change_errors(history))
     if revision is not None and history_revision is not None and revision != history_revision:
         failures.append(f"revision mismatch: SAS_GAME_RECORD_REVISION={revision}, newest history={history_revision}")
 

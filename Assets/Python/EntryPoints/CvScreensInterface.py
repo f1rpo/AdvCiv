@@ -593,9 +593,13 @@ def getWorldBuilderScreen():
 def showWorldBuilderScreen():
 	SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_WORLD_BUILDER, SASGameRecordActions.SHOW_REQUEST)
 	worldBuilderScreen.interfaceScreen()
+	# <!-- custom: This show/hide-only exception sends a literal bool to the native gate; asking Python to query that native flag would itself cross the bridge.
+	# Keep diagnostic collection/computed arguments caller-pre-gated; this notification does neither, and C++ checks before WorldBuilder/Advanced Start queries. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	CyGame().updateSASRuntimeStatusWorldBuilderScreen(True)
 
 def hideWorldBuilderScreen():
 	worldBuilderScreen.killScreen()
+	CyGame().updateSASRuntimeStatusWorldBuilderScreen(False)
 	SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_WORLD_BUILDER, SASGameRecordActions.HIDE)
 
 def WorldBuilderToggleUnitEditCB():

@@ -14,7 +14,7 @@
 // Compile the label into the publisher: an edited XML value must not make an older loaded DLL report a newer implementation; this counter is independent of SASGameRecord and binary-save versions. (GPT-6.1-Sol) -->
 enum SASRuntimeRecorderRevision
 {
-	SAS_RUNTIME_REVISION = 1
+	SAS_RUNTIME_REVISION = 2
 };
 
 #define SAS_RUNTIME_PROCESS_STATES(DO) DO(RUNNING) DO(EXITED_CLEANLY)
@@ -73,7 +73,7 @@ BOOST_STATIC_ASSERT(sizeof(aSASRuntimeStatusReasonNames) / sizeof(aSASRuntimeSta
 
 // <!-- custom: Activity is separate from game lifecycle: initialized play can be manual or autoplay, while creation and save loading need distinct timed intervals.
 // Requests such as returning to the menu are observed boundaries, not claims that the EXE has displayed that menu. (GPT-6.1-Sol) -->
-#define SAS_RUNTIME_ACTIVITIES(DO) DO(NONE) DO(NO_GAME) DO(CREATING_GAME) DO(LOADING_SAVE) DO(PLAYING) DO(AUTOPLAY) DO(GAME_ENDED) DO(RETURNING_TO_MENU) DO(EXIT_REQUESTED) DO(SHUTTING_DOWN)
+#define SAS_RUNTIME_ACTIVITIES(DO) DO(NONE) DO(NO_GAME) DO(CREATING_GAME) DO(LOADING_SAVE) DO(PLAYING) DO(AUTOPLAY) DO(WORLD_BUILDER) DO(GAME_ENDED) DO(RETURNING_TO_MENU) DO(EXIT_REQUESTED) DO(SHUTTING_DOWN)
 enum SASRuntimeActivity
 {
 #define SAS_RUNTIME_ACTIVITY_ENUM(NAME) SAS_RUNTIME_ACTIVITY_##NAME,
@@ -121,6 +121,11 @@ static SASRuntimeGameState g_eSASRuntimeGameState = SAS_RUNTIME_GAME_NO_GAME;
 static SASRuntimeSessionState g_eSASRuntimeSessionKind = SAS_RUNTIME_SESSION_NONE;
 static CvString g_szSASRuntimeSessionStartedUtc = "-";
 static CvString g_szSASRuntimeNativeReadyUtc = "-";
+// <!-- custom: These are passive presentation observations, not claims that an EXE-rendered frame reached the user; exported info getters and Python screen callbacks provide event-driven boundaries without frame polling. (ChatGPT-5.6-Sol) -->
+static CvString g_szSASRuntimeMainMenuSceneRequestedUtc = "-";
+static CvString g_szSASRuntimeLoadingScreenAssetRequestedUtc = "-";
+static bool g_bSASRuntimeWorldBuilderMode = false;
+static bool g_bSASRuntimeWorldBuilderScreenVisible = false;
 static std::wstring g_szSASRuntimeStatusRootDirectory;
 static std::wstring g_szSASRuntimeStatusSupersededPath;
 static bool g_bSASRuntimeStatusRootResolved = false;
@@ -260,23 +265,51 @@ static SASRuntimeActivity getSASRuntimeActivity(SASRuntimeStatusReason eReason, 
 	// <!-- custom: A completed-turn callback can arrive after an exit request; preserve the pending request until a reset/new session or shutdown actually changes lifecycle. (GPT-6.1-Sol) -->
 	if (g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_RETURNING_TO_MENU || g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_EXIT_REQUESTED)
 		return g_eSASRuntimeActivity;
+	// <!-- custom: A still-visible editor must not overwrite an already observed menu/exit request when another callback arrives before its hide notification. (GPT-6.1-Sol) -->
+	if (g_bSASRuntimeWorldBuilderMode && g_bSASRuntimeWorldBuilderScreenVisible)
+		return SAS_RUNTIME_ACTIVITY_WORLD_BUILDER;
 	return (iAutoPlayRemaining > 0 ? SAS_RUNTIME_ACTIVITY_AUTOPLAY : SAS_RUNTIME_ACTIVITY_PLAYING);
 }
 
 static void updateSASRuntimeActivity(SASRuntimeStatusReason eReason, CvString const& szNowUtc, uint uiNowMilliseconds, int iGameTurn, int iAutoPlayRemaining, int iLoadedCheckpointTurn, int iLoadedCheckpointElapsedTurn, char const* szLoadedCheckpointUtc)
 {
 	SASRuntimeActivity const eActivity = getSASRuntimeActivity(eReason, iAutoPlayRemaining);
-	if (eActivity == g_eSASRuntimeActivity && eReason != SAS_RUNTIME_STATUS_AUTOPLAY_CHANGED && g_uiSASRuntimeActivitySession == g_uiSASRuntimeSessionSerial)
+	// <!-- custom: Keep presentation observations in the timeline without splitting the underlying activity interval.
+	// The native fixture's creation from 1000 to 2000 ms previously became 250 ms plus 750 ms after its loading-asset request; preserving the interval start restores the full 1000 ms completion duration. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	bool const bPresentationBoundary = (
+		eReason == SAS_RUNTIME_STATUS_MAIN_MENU_SCENE_REQUESTED ||
+		eReason == SAS_RUNTIME_STATUS_LOADING_SCREEN_ASSET_REQUESTED ||
+		eReason == SAS_RUNTIME_STATUS_WORLD_BUILDER_MODE_ENTERED ||
+		eReason == SAS_RUNTIME_STATUS_WORLD_BUILDER_MODE_EXITED ||
+		eReason == SAS_RUNTIME_STATUS_WORLD_BUILDER_SCREEN_SHOWN ||
+		eReason == SAS_RUNTIME_STATUS_WORLD_BUILDER_SCREEN_HIDDEN);
+	bool const bIntervalStarted = (eActivity != g_eSASRuntimeActivity || eReason == SAS_RUNTIME_STATUS_AUTOPLAY_CHANGED || g_uiSASRuntimeActivitySession != g_uiSASRuntimeSessionSerial);
+	if (!bIntervalStarted && !bPresentationBoundary)
 		return;
-	g_eSASRuntimePreviousActivity = g_eSASRuntimeActivity;
-	g_szSASRuntimePreviousStartedUtc = g_szSASRuntimeActivityStartedUtc;
-	g_szSASRuntimePreviousEndedUtc = (g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_NONE ? CvString("-") : szNowUtc);
-	g_iSASRuntimePreviousDurationMilliseconds = (g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_NONE ? -1 : (__int64)getSASElapsedMilliseconds(g_uiSASRuntimeActivityStartedMilliseconds, uiNowMilliseconds));
+	unsigned int const uiPreviousSession = (bIntervalStarted ? g_uiSASRuntimeActivitySession : 0);
+	int const iPreviousStartTurn = (bIntervalStarted ? g_iSASRuntimeActivityStartTurn : -1);
+	int const iPreviousRequestedTurns = (bIntervalStarted ? g_iSASRuntimeActivityRequestedTurns : 0);
+	if (bIntervalStarted)
+	{
+		g_eSASRuntimePreviousActivity = g_eSASRuntimeActivity;
+		g_szSASRuntimePreviousStartedUtc = g_szSASRuntimeActivityStartedUtc;
+		g_szSASRuntimePreviousEndedUtc = (g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_NONE ? CvString("-") : szNowUtc);
+		g_iSASRuntimePreviousDurationMilliseconds = (g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_NONE ? -1 : (__int64)getSASElapsedMilliseconds(g_uiSASRuntimeActivityStartedMilliseconds, uiNowMilliseconds));
+		g_eSASRuntimeActivity = eActivity;
+		g_szSASRuntimeActivityStartedUtc = szNowUtc;
+		g_uiSASRuntimeActivityStartedMilliseconds = uiNowMilliseconds;
+		g_uiSASRuntimeActivitySession = g_uiSASRuntimeSessionSerial;
+		g_iSASRuntimeActivityStartTurn = iGameTurn;
+		g_iSASRuntimeActivityRequestedTurns = iAutoPlayRemaining;
+	}
 	CvString szRow;
 	CvString const& szDllIdentity = getSASRuntimeDllIdentity();
+	// <!-- custom: An observation-only row has intervalStarted=0 and no completed previous interval, avoiding duplicate duration totals; state-start/elapsed fields retain its position inside the ongoing interval.
+	// Snapshot previousActivity fields still describe the most recently completed interval, while the serial continues to order every timeline row. (GPT-6.1-Sol) -->
 	// <!-- custom: Keep one JSONL record on each output line; adjacent C++ literals let the source show one field per line without inserting output newlines. (GPT-6.1-Sol) -->
 	szRow.Format("{\"revision\":%d,"
 		"\"stateSerial\":%u,"
+		"\"intervalStarted\":%d,"
 		"\"processId\":%lu,"
 		"\"processStartUtc\":\"%s\","
 		"\"dllIdentity\":%s,"
@@ -289,6 +322,8 @@ static void updateSASRuntimeActivity(SASRuntimeStatusReason eReason, CvString co
 		"\"previousRequestedAutoplayTurns\":%d,"
 		"\"recordedUtc\":\"%s\","
 		"\"state\":\"%s\","
+		"\"stateStartedUtc\":\"%s\","
+		"\"stateElapsedMilliseconds\":%u,"
 		"\"sessionSerial\":%u,"
 		"\"gameTurn\":%d,"
 		"\"autoplayRemainingTurns\":%d,"
@@ -297,19 +332,13 @@ static void updateSASRuntimeActivity(SASRuntimeStatusReason eReason, CvString co
 		"\"loadedSaveCheckpointTurn\":%d,"
 		"\"loadedSaveCheckpointElapsedTurn\":%d,"
 		"\"loadedSaveCheckpointUtc\":\"%s\"}\r\n",
-		SAS_RUNTIME_REVISION, ++g_uiSASRuntimeActivitySerial, (unsigned long)GetCurrentProcessId(), getSASExecutableProcessStartUtc().GetCString(), szDllIdentity.GetCString(),
-		aSASRuntimeActivityNames[g_eSASRuntimePreviousActivity], g_szSASRuntimePreviousStartedUtc.GetCString(), g_szSASRuntimePreviousEndedUtc.GetCString(), g_iSASRuntimePreviousDurationMilliseconds,
-		g_uiSASRuntimeActivitySession, g_iSASRuntimeActivityStartTurn, g_iSASRuntimeActivityRequestedTurns, szNowUtc.GetCString(), aSASRuntimeActivityNames[eActivity], g_uiSASRuntimeSessionSerial, iGameTurn, iAutoPlayRemaining,
+		SAS_RUNTIME_REVISION, ++g_uiSASRuntimeActivitySerial, bIntervalStarted ? 1 : 0, (unsigned long)GetCurrentProcessId(), getSASExecutableProcessStartUtc().GetCString(), szDllIdentity.GetCString(),
+		aSASRuntimeActivityNames[bIntervalStarted ? g_eSASRuntimePreviousActivity : SAS_RUNTIME_ACTIVITY_NONE], bIntervalStarted ? g_szSASRuntimePreviousStartedUtc.GetCString() : "-", bIntervalStarted ? g_szSASRuntimePreviousEndedUtc.GetCString() : "-", bIntervalStarted ? g_iSASRuntimePreviousDurationMilliseconds : (__int64)-1,
+		uiPreviousSession, iPreviousStartTurn, iPreviousRequestedTurns, szNowUtc.GetCString(), aSASRuntimeActivityNames[eActivity], g_szSASRuntimeActivityStartedUtc.GetCString(), getSASElapsedMilliseconds(g_uiSASRuntimeActivityStartedMilliseconds, uiNowMilliseconds), g_uiSASRuntimeSessionSerial, iGameTurn, iAutoPlayRemaining,
 		aSASRuntimeStatusReasonNames[eReason], (eReason == SAS_RUNTIME_STATUS_AUTOPLAY_ENDED ? getSASAutoPlayEndCause(g_eSASRuntimeLastAutoplayEndCause) : "-"), iLoadedCheckpointTurn, iLoadedCheckpointElapsedTurn, szLoadedCheckpointUtc);
 	if (appendSASRuntimeHistory(szRow))
 		g_uiSASRuntimeHistoryRowsWritten++;
 	else g_uiSASRuntimeHistoryWriteFailures++;
-	g_eSASRuntimeActivity = eActivity;
-	g_szSASRuntimeActivityStartedUtc = szNowUtc;
-	g_uiSASRuntimeActivityStartedMilliseconds = uiNowMilliseconds;
-	g_uiSASRuntimeActivitySession = g_uiSASRuntimeSessionSerial;
-	g_iSASRuntimeActivityStartTurn = iGameTurn;
-	g_iSASRuntimeActivityRequestedTurns = iAutoPlayRemaining;
 }
 
 // <!-- custom: Write one small current-state JSON file for external agents.
@@ -345,6 +374,7 @@ static bool publishSASRuntimeStatus(SASRuntimeStatusReason eReason)
 	int const iWorldSize = (bGameLoaded ? (int)GC.getMap().getWorldSize() : -1);
 	int const iGameSpeed = (bGameLoaded ? (int)kGame.getGameSpeedType() : -1);
 	int const iScenario = (bGameLoaded ? (int)kGame.isScenario() : 0);
+	int const iExtendedGame = (bGameLoaded && kGame.getGameState() == GAMESTATE_EXTENDED ? 1 : 0);
 	int const iLoadedCheckpointTurn = (bGameLoaded && g_eSASRuntimeSessionKind == SAS_RUNTIME_SESSION_LOAD_GAME ? kGame.getSASLoadedSaveCheckpointTurn() : -1);
 	int const iLoadedCheckpointElapsedTurn = (bGameLoaded && g_eSASRuntimeSessionKind == SAS_RUNTIME_SESSION_LOAD_GAME ? kGame.getSASLoadedSaveCheckpointElapsedTurn() : -1);
 	char const* szLoadedCheckpointUtc = "-";
@@ -391,6 +421,11 @@ static bool publishSASRuntimeStatus(SASRuntimeStatusReason eReason)
 		"  \"sessionKind\": \"%s\",\r\n"
 		"  \"sessionStartedUtc\": \"%s\",\r\n"
 		"  \"nativeReadyUtc\": \"%s\",\r\n"
+		"  \"mainMenuSceneRequestedUtc\": \"%s\",\r\n"
+		"  \"loadingScreenAssetRequestedUtc\": \"%s\",\r\n"
+		"  \"worldBuilderMode\": %d,\r\n"
+		"  \"worldBuilderScreenVisible\": %d,\r\n"
+		"  \"extendedGame\": %d,\r\n"
 		"  \"gameTurn\": %d,\r\n"
 		"  \"elapsedGameTurns\": %d,\r\n"
 		"  \"lastCompletedTurn\": %d,\r\n"
@@ -412,7 +447,9 @@ static bool publishSASRuntimeStatus(SASRuntimeStatusReason eReason)
 		aSASRuntimeActivityNames[g_eSASRuntimePreviousActivity], g_szSASRuntimePreviousStartedUtc.GetCString(), g_szSASRuntimePreviousEndedUtc.GetCString(), g_iSASRuntimePreviousDurationMilliseconds,
 		g_szSASRuntimeHistoryFilename.GetCString(), g_bSASRuntimeHistoryAtCurrentRoot, g_uiSASRuntimeHistoryRowsWritten, g_uiSASRuntimeHistoryWriteFailures,
 		aSASRuntimeStatusReasonNames[eReason], g_uiSASRuntimeSessionSerial, g_uiSASRuntimeNewGameCount, g_uiSASRuntimeLoadCount,
-		aSASRuntimeSessionStateNames[g_eSASRuntimeSessionKind], g_szSASRuntimeSessionStartedUtc.GetCString(), g_szSASRuntimeNativeReadyUtc.GetCString(), iGameTurn, iElapsedGameTurns, g_iSASRuntimeLastCompletedTurn, iActivePlayer,
+		aSASRuntimeSessionStateNames[g_eSASRuntimeSessionKind], g_szSASRuntimeSessionStartedUtc.GetCString(), g_szSASRuntimeNativeReadyUtc.GetCString(),
+		g_szSASRuntimeMainMenuSceneRequestedUtc.GetCString(), g_szSASRuntimeLoadingScreenAssetRequestedUtc.GetCString(), g_bSASRuntimeWorldBuilderMode, g_bSASRuntimeWorldBuilderScreenVisible, iExtendedGame,
+		iGameTurn, iElapsedGameTurns, g_iSASRuntimeLastCompletedTurn, iActivePlayer,
 		(iAutoPlayRemaining > 0 ? 1 : 0), iAutoPlayRemaining, iMapWidth, iMapHeight, iWorldSize, iGameSpeed, iScenario,
 		iLoadedCheckpointTurn, iLoadedCheckpointElapsedTurn, szLoadedCheckpointUtc);
 
@@ -466,8 +503,23 @@ void updateSASRuntimeStatusNoGame()
 	g_eSASRuntimeSessionKind = SAS_RUNTIME_SESSION_NONE;
 	g_szSASRuntimeSessionStartedUtc = "-";
 	g_szSASRuntimeNativeReadyUtc = "-";
+	g_szSASRuntimeMainMenuSceneRequestedUtc = "-";
+	g_szSASRuntimeLoadingScreenAssetRequestedUtc = "-";
+	g_bSASRuntimeWorldBuilderMode = false;
+	g_bSASRuntimeWorldBuilderScreenVisible = false;
 	g_iSASRuntimeLastCompletedTurn = -1;
 	writeSASRuntimeStatus(SAS_RUNTIME_STATUS_GAME_RESET);
+}
+
+// <!-- custom: CvMainMenuInfo scene getters are DllExports consumed by the EXE and have no local caller; observing an existing request avoids calling side-effectful soundtrack code or polling CyInterface().
+// Record this only while no game is represented and once per no-game interval.
+// It is presentation evidence, not proof that a rendered frame reached the user. (ChatGPT-5.6-Sol) -->
+void updateSASRuntimeStatusMainMenuSceneRequested()
+{
+	if (!isSASRuntimeStatusEnabled() || g_eSASRuntimeGameState != SAS_RUNTIME_GAME_NO_GAME || g_szSASRuntimeMainMenuSceneRequestedUtc != "-")
+		return;
+	g_szSASRuntimeMainMenuSceneRequestedUtc = createSASUtcTimestampMilliseconds();
+	writeSASRuntimeStatus(SAS_RUNTIME_STATUS_MAIN_MENU_SCENE_REQUESTED);
 }
 
 void updateSASRuntimeStatusSessionStarted(bool bLoadedSave)
@@ -488,8 +540,22 @@ void updateSASRuntimeStatusSessionStarted(bool bLoadedSave)
 	g_eSASRuntimeGameState = SAS_RUNTIME_GAME_SESSION_STARTING;
 	g_szSASRuntimeSessionStartedUtc = createSASUtcTimestampMilliseconds();
 	g_szSASRuntimeNativeReadyUtc = "-";
+	g_szSASRuntimeMainMenuSceneRequestedUtc = "-";
+	g_szSASRuntimeLoadingScreenAssetRequestedUtc = "-";
+	g_bSASRuntimeWorldBuilderMode = false;
+	g_bSASRuntimeWorldBuilderScreenVisible = false;
 	g_iSASRuntimeLastCompletedTurn = -1;
 	writeSASRuntimeStatus(bLoadedSave ? SAS_RUNTIME_STATUS_LOAD_GAME_STARTED : SAS_RUNTIME_STATUS_NEW_GAME_STARTED);
+}
+
+// <!-- custom: getLoading/getLoadingSlideshow are passive EXE-facing asset requests.
+// Preserve the first request inside each native new/load interval as a loading-presentation proxy without calling either getter ourselves. (ChatGPT-5.6-Sol) -->
+void updateSASRuntimeStatusLoadingScreenAssetRequested()
+{
+	if (!isSASRuntimeStatusEnabled() || g_eSASRuntimeGameState != SAS_RUNTIME_GAME_SESSION_STARTING || g_szSASRuntimeLoadingScreenAssetRequestedUtc != "-")
+		return;
+	g_szSASRuntimeLoadingScreenAssetRequestedUtc = createSASUtcTimestampMilliseconds();
+	writeSASRuntimeStatus(SAS_RUNTIME_STATUS_LOADING_SCREEN_ASSET_REQUESTED);
 }
 
 void updateSASRuntimeStatusSessionReady()
@@ -518,6 +584,35 @@ void updateSASRuntimeStatusAutoPlay(SASRuntimeStatusReason eReason, SASAutoPlayE
 	writeSASRuntimeStatus(eReason);
 }
 
+void updateSASRuntimeStatusWorldBuilderMode(bool bEnabled)
+{
+	if (!isSASRuntimeStatusEnabled() || g_bSASRuntimeWorldBuilderMode == bEnabled)
+		return;
+	g_bSASRuntimeWorldBuilderMode = bEnabled;
+	// <!-- custom: Keep the Python screen observation independent from native mode so either exit ordering remains visible: mode-off ends editor activity immediately, while the later hide callback records presentation closure. (ChatGPT-5.6-Sol) -->
+	writeSASRuntimeStatus(bEnabled ? SAS_RUNTIME_STATUS_WORLD_BUILDER_MODE_ENTERED : SAS_RUNTIME_STATUS_WORLD_BUILDER_MODE_EXITED);
+}
+
+void updateSASRuntimeStatusWorldBuilderScreen(bool bVisible)
+{
+	if (!isSASRuntimeStatusEnabled() || g_eSASRuntimeGameState != SAS_RUNTIME_GAME_PLAYING || g_bSASRuntimeWorldBuilderScreenVisible == bVisible)
+		return;
+	// <!-- custom: The Python bridge filters Advanced Start before reaching this helper; retain a genuine show observation even if the EXE has not exposed its mode toggle yet.
+	// Editor activity starts only once both mode and visibility are observed, so callback order cannot discard a visible screen or invent active editor time from mode alone. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	g_bSASRuntimeWorldBuilderScreenVisible = bVisible;
+	writeSASRuntimeStatus(bVisible ? SAS_RUNTIME_STATUS_WORLD_BUILDER_SCREEN_SHOWN : SAS_RUNTIME_STATUS_WORLD_BUILDER_SCREEN_HIDDEN);
+}
+
+void updateSASRuntimeStatusExtendedGameStarted()
+{
+	if (!isSASRuntimeStatusEnabled())
+		return;
+	g_eSASRuntimeGameState = SAS_RUNTIME_GAME_PLAYING;
+	g_bSASRuntimeWorldBuilderMode = false;
+	g_bSASRuntimeWorldBuilderScreenVisible = false;
+	writeSASRuntimeStatus(SAS_RUNTIME_STATUS_EXTENDED_GAME_STARTED);
+}
+
 // <!-- custom: Preserve explicit UI navigation/exit requests separately from observed reset/shutdown completion. (GPT-6.1-Sol) -->
 void updateSASRuntimeStatusRequest(SASRuntimeStatusReason eReason)
 {
@@ -531,6 +626,8 @@ void updateSASRuntimeStatusGameEnded()
 	if (!isSASRuntimeStatusEnabled())
 		return;
 	g_eSASRuntimeGameState = SAS_RUNTIME_GAME_GAME_ENDED;
+	g_bSASRuntimeWorldBuilderMode = false;
+	g_bSASRuntimeWorldBuilderScreenVisible = false;
 	writeSASRuntimeStatus(SAS_RUNTIME_STATUS_GAME_ENDED);
 }
 

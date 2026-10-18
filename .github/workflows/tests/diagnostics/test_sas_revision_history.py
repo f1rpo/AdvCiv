@@ -27,6 +27,10 @@ def write_revision_define(repo, value):
     path = repo / history.DEFINES
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text('<Civ4Defines><Define><DefineName>SAS_GAME_RECORD_REVISION</DefineName><iDefineIntVal>%d</iDefineIntVal></Define></Civ4Defines>' % value, 'utf-8')
+    # <!-- custom: Ordinary progression fixtures include the bump's explanation; missing-entry/blurb tests deliberately replace this small document. (GPT-6.1-Sol) -->
+    history_path = repo / history.HISTORY
+    history_path.parent.mkdir(parents=True, exist_ok=True)
+    history_path.write_text('### Revision %d\n- **Change:** Fixture recorder change.\n' % value, 'utf-8')
 
 
 def commit_fixture(repo, message):
@@ -51,7 +55,7 @@ class RevisionHistoryTests(unittest.TestCase):
             target = repo / history.HISTORY
             target.parent.mkdir(parents=True)
             def record(commit):
-                target.write_text('### Revision 70 - fixture\n- **Git commit:** pending\n\n### Revision 69 - fixture\n- **Git commit:** `' + commit + '`\n', 'utf-8')
+                target.write_text('### Revision 70 - fixture\n- **Git commit:** pending\n- **Change:** Fixture change.\n\n### Revision 69 - fixture\n- **Git commit:** `' + commit + '`\n- **Change:** Fixture change.\n', 'utf-8')
             record(original)
             self.assertEqual(history.check_history(repo, "main"), [])
             record(amended)
@@ -71,8 +75,8 @@ class RevisionHistoryTests(unittest.TestCase):
             committed = commit_fixture(repo, 'define fixture revision')
             git(repo, 'branch', 'main')
             target = repo / history.HISTORY
-            target.parent.mkdir(parents=True)
-            target.write_text('### Revision 153 - fixture\n- **Git commit:** `' + committed + '`\n', 'utf-8')
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text('### Revision 153 - fixture\n- **Git commit:** `' + committed + '`\n- **Change:** Fixture change.\n', 'utf-8')
             self.assertEqual(history.check_history(repo, "main"), [])
             target.write_text(target.read_text().replace('Revision 153', 'Revision 154'))
             self.assertTrue(any('SAS_GAME_RECORD_REVISION=154' in e for e in history.check_history(repo, "main")))
@@ -150,6 +154,25 @@ class RevisionHistoryTests(unittest.TestCase):
             commit_fixture(repo, 'bridge recorder change')
             self.assertEqual(history.check_progression(repo, 'main'), [])
 
+    def test_later_documentation_does_not_hide_missing_committed_blurb(self):
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            fixture_git(repo)
+            write_revision_define(repo, 153)
+            commit_fixture(repo, 'base')
+            git(repo, 'branch', 'main')
+            write_revision_define(repo, 154)
+            source = repo / 'CvGameCoreDLL/SASGameRecordLog.cpp'
+            source.parent.mkdir(parents=True, exist_ok=True)
+            source.write_text('// recorder change\n')
+            document = repo / history.HISTORY
+            document.write_text('### Revision 154\n- **Date:** 2026-10-19\n- **Git commit:** pending\n')
+            bad = commit_fixture(repo, 'missing explanation')
+            document.write_text(document.read_text() + '- **Change:** Added recorder behavior.\n')
+            commit_fixture(repo, 'later explanation')
+            errors = history.check_progression(repo, 'main')
+            self.assertTrue(any(bad[:12] in error and 'nonempty Change' in error for error in errors), errors)
+
     def test_progression_recognizes_nonrevision_sas_define_change(self):
         with tempfile.TemporaryDirectory() as temp:
             repo = Path(temp)
@@ -161,6 +184,9 @@ class RevisionHistoryTests(unittest.TestCase):
             git(repo, 'branch', 'main')
             git(repo, 'switch', '-qc', 'feature')
             defines.write_text('<Civ4Defines><Define><DefineName>SAS_GAME_RECORD_REVISION</DefineName><iDefineIntVal>154</iDefineIntVal></Define><Define><DefineName>SAS_GAME_RECORD_LOG_LEVEL</DefineName><iDefineIntVal>1</iDefineIntVal></Define></Civ4Defines>', 'utf-8')
+            document = repo / history.HISTORY
+            document.parent.mkdir(parents=True, exist_ok=True)
+            document.write_text('### Revision 154\n- **Change:** Updated recorder configuration.\n', 'utf-8')
             commit_fixture(repo, 'recorder define change')
             self.assertEqual(history.check_progression(repo, 'main'), [])
 
@@ -189,6 +215,42 @@ class RevisionHistoryTests(unittest.TestCase):
             other.write_text('unrelated docs\n')
             commit_fixture(repo, 'unrelated')
             self.assertEqual(history.check_progression(repo, 'main'), [])
+
+    # <!-- custom: The real runtime-only commit was falsely classified through source paths/Git-status text inside its shipped DLL report; artifact refreshes must not independently advance SASGameRecord. (GPT-6.1-Sol) -->
+    def test_build_report_metadata_does_not_require_revision(self):
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            fixture_git(repo)
+            write_revision_define(repo, 153)
+            commit_fixture(repo, 'base')
+            git(repo, 'branch', 'main')
+            report = repo / 'Assets/CvGameCoreDLL.dll.build.json'
+            report.parent.mkdir(parents=True, exist_ok=True)
+            report.write_text('{"workingTreeStatus":"M sas_revision_history.py", "buildInputsBefore":[{"path":"CvGameCoreDLL/SASGameRecordLog.cpp"}]}', 'utf-8')
+            commit_fixture(repo, 'refresh report evidence only')
+            self.assertEqual(history.check_progression(repo, 'main'), [])
+
+    def test_report_exclusion_keeps_actual_bridge_checker_and_json_changes(self):
+        for path, content in (
+            ('Assets/Python/BUG/BugEventManager.py', 'SASGameRecordSettings.logSessionSettings("GAME_START")'),
+            ('.github/workflows/build/diagnostics/sas_revision_history.py', '# revised checker implementation'),
+            ('Assets/SASGameRecordConfig.json', '{"SAS_GAME_RECORD_LOG_LEVEL":1}'),
+        ):
+            with self.subTest(path=path), tempfile.TemporaryDirectory() as temp:
+                repo = Path(temp)
+                fixture_git(repo)
+                write_revision_define(repo, 153)
+                commit_fixture(repo, 'base')
+                git(repo, 'branch', 'main')
+                source = repo / path
+                source.parent.mkdir(parents=True, exist_ok=True)
+                source.write_text(content, 'utf-8')
+                report = repo / 'Assets/CvGameCoreDLL.dll.build.json'
+                report.parent.mkdir(parents=True, exist_ok=True)
+                report.write_text('{"purpose":"SASGameRecord source evidence"}', 'utf-8')
+                commit_fixture(repo, 'actual implementation change alongside report')
+                errors = history.check_progression(repo, 'main')
+                self.assertTrue(any('requires exactly one revision increment' in error for error in errors), errors)
 
     def test_push_checks_bad_earlier_commit_even_when_main_is_already_at_tip(self):
         for revision in (153, 154):
@@ -265,7 +327,7 @@ class RevisionHistoryTests(unittest.TestCase):
             fixture_git(repo)
             target = repo / history.HISTORY
             target.parent.mkdir(parents=True)
-            target.write_text('### Revision 68 - fixture\n- **Git commit:** `0000000000000000000000000000000000000000`\n', 'utf-8')
+            target.write_text('### Revision 68 - fixture\n- **Git commit:** `0000000000000000000000000000000000000000`\n- **Change:** Fixture change.\n', 'utf-8')
             self.assertEqual(history.check_history(repo, "refs/remotes/origin/missing"), [])
 
 if __name__ == "__main__":

@@ -1931,6 +1931,7 @@ void CvGame::enterWorldBuilder()
 		m_bFeignSP = true;
 		gDLL->setChtLvl(1); // </advc.135c>
 		gDLL->UI().setWorldBuilder(!gDLL->GetWorldBuilderMode());
+		if (isSASRuntimeStatusEnabled()) updateSASRuntimeStatusWorldBuilderMode(gDLL->GetWorldBuilderMode());
 		m_bFeignSP = false; // advc.135c
 	}
 	else

@@ -106,16 +106,27 @@ enum SASRuntimeStatusReason
 // <!-- custom: Optional external-agent current-state artifact.
 // These transition-driven helpers update the compact JSON and append timed activity intervals to a per-process JSONL timeline only when SAS_RUNTIME_STATUS_ENABLE is on; detailed UI/action evidence remains in SASGameRecord. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 // <!-- custom: Caller pre-gates skip status-only arguments/setup; publication remains independently default-off and does not use Civ4 INI logging masters. (GPT-6.1-Sol) -->
+// <!-- custom: Native lifecycle callers pre-gate these notifications; recorder entry guards additionally protect direct entry without collecting state or publishing while disabled.
+// The Python WorldBuilder bridge passes only a literal visibility bool and gates native queries inside CyGame; shutdown checks the cached flag directly to avoid a first XML read during teardown. (GPT-6.1-Sol) -->
 bool isSASRuntimeStatusEnabled();
 // <!-- custom: Both services share native root discovery, while status root migration is independent from historical log append handles. (GPT-6.1-Sol) -->
 bool getSASNativeDefaultRootDirectory(std::wstring& szRootDirectory);
 void setSASRuntimeStatusRootDirectory(std::wstring const& szRoot);
 // <!-- custom: Reset has one fixed reason; autoplay accepts a known update-reason enum rather than arbitrary string labels. (GPT-6.1-Sol) -->
 void updateSASRuntimeStatusNoGame();
+// <!-- custom: Observe existing EXE menu-scene requests once per no-game interval; neither this evidence nor loading-asset requests below imply a rendered frame or restart the activity clock. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+void updateSASRuntimeStatusMainMenuSceneRequested();
 void updateSASRuntimeStatusSessionStarted(bool bLoadedSave);
+// <!-- custom: Record the first existing loading-asset request within native new/load initialization without querying that asset for diagnostics. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+void updateSASRuntimeStatusLoadingScreenAssetRequested();
 void updateSASRuntimeStatusSessionReady();
 void updateSASRuntimeStatusTurnCompleted(int iCompletedTurn);
 void updateSASRuntimeStatusAutoPlay(SASRuntimeStatusReason eReason, SASAutoPlayEndCause eEndCause = SAS_AUTOPLAY_END_UNSPECIFIED);
+// <!-- custom: WorldBuilder mode and Python-screen visibility are separate observed boundaries: the EXE can toggle native mode before its Python UI is shown or hidden. (ChatGPT-5.6-Sol) -->
+void updateSASRuntimeStatusWorldBuilderMode(bool bEnabled);
+void updateSASRuntimeStatusWorldBuilderScreen(bool bVisible);
+// <!-- custom: A GAMESTATE_OVER -> GAMESTATE_EXTENDED transition resumes live play after the end-game popup; preserve that instead of leaving external status at GAME_ENDED. (ChatGPT-5.6-Sol) -->
+void updateSASRuntimeStatusExtendedGameStarted();
 // <!-- custom: Menu/exit request boundaries are observable before EXE work; their completion is not inferred from the request. (GPT-6.1-Sol) -->
 void updateSASRuntimeStatusRequest(SASRuntimeStatusReason eReason);
 void updateSASRuntimeStatusGameEnded();

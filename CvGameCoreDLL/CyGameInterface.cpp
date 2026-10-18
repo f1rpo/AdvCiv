@@ -87,6 +87,8 @@ void CyGamePythonInterface()
 		// <!-- custom: Let BUG supply its resolved user root and expose a deliberate live-inspection flush for the shared native BBAI/SASGameRecord writer. (ChatGPT-5.6-Sol) -->
 		.def("setSASDiagnosticLogRoot", &CyGame::setSASDiagnosticLogRoot)
 		.def("flushSASDiagnosticLogs", &CyGame::flushSASDiagnosticLogs, "bool () - publish pending diagnostics; false indicates failed output")
+		// <!-- custom: Python owns WorldBuilder screen show/hide callbacks; expose their literal visibility notification so the native recorder can distinguish screen visibility from mode and filter Advanced Start behind its cached enable gate. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+		.def("updateSASRuntimeStatusWorldBuilderScreen", &CyGame::updateSASRuntimeStatusWorldBuilderScreen, "void (bool) - report observed WorldBuilder Python screen visibility")
 		// <!-- custom: Expose the post-GameStart/OnLoad diagnostic hook; Python invokes it after event dispatch and only while SASGameRecord is enabled. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 		.def("logSASGameRecordDiagnosticContext", &CyGame::logSASGameRecordDiagnosticContext, "void (int renderQualityLevel, int antiAliasingIndex, int antiAliasingSamples, int globeViewRenderLevel, int movieQualityLevel) - record finalized session diagnostic settings")
 		// <!-- custom: Compact configuration baseline/change rows, native runtime-view baseline and internal alternate-INI discovery for SASGameRecord; the INI path itself is not logged. (ChatGPT-5.6-Sol) -->
