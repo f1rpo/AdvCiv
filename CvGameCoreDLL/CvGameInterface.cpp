@@ -1948,6 +1948,8 @@ void CvGame::enterWorldBuilder()
 	In case that there's something we want to do beforehand. */
 void CvGame::exitToMenu()
 {
+	// <!-- custom: Time the observed return request before entering EXE menu work; a later reset is distinct from confirmed menu arrival. (GPT-6.1-Sol) -->
+	if (isSASRuntimeStatusEnabled()) updateSASRuntimeStatusRequest(SAS_RUNTIME_STATUS_RETURN_TO_MENU_REQUESTED);
 	gDLL->UI().exitingToMainMenu();
 }
 

@@ -45,6 +45,8 @@
     <ClCompile Include="..\BarbarianWeightMap.cpp" />
     <ClCompile Include="..\BBAILog.cpp" />
     <ClCompile Include="..\SASGameRecordLog.cpp" />
+    <!-- custom: NMake discovers root sources independently; list the status publisher here too so it is visible in the VC2010 IDE. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+    <ClCompile Include="..\SASRuntimeStatus.cpp" />
     <ClCompile Include="..\CitySiteEvaluator.cpp" />
     <ClCompile Include="..\CombatOdds.cpp" />
     <ClCompile Include="..\CvAgents.cpp" />
@@ -216,6 +218,8 @@
     <ClInclude Include="..\BarbarianWeightMap.h" />
     <ClInclude Include="..\BBAILog.h" />
     <ClInclude Include="..\SASGameRecordLog.h" />
+    <!-- custom: Include the repeated-expansion reason catalog in the IDE source view as well as the compiler include graph. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+    <ClInclude Include="..\SASRuntimeStatusReasons.h" />
     <ClInclude Include="..\SASSaveStreamFormat.h" />
     <ClInclude Include="..\BitUtil.h" />
     <ClInclude Include="..\BoostPythonPCH.h" />

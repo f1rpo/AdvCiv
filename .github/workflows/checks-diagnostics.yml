@@ -33,6 +33,12 @@ jobs:
       - name: SASGameRecord defaults and revision
         run: python .github/workflows/build/diagnostics/sas_game_record_log.py
 
+      - name: External-agent runtime status
+        run: python .github/workflows/build/diagnostics/runtime_status.py
+
       # <!-- custom: Supply GitHub's explicit push/PR range so multi-commit pushes and real merges are checked without ancestry-based event guesses. (GPT-6.1-Sol) -->
       - name: SASGameRecord revision commit history
         run: python .github/workflows/build/diagnostics/sas_revision_history.py --default-branch-ref "refs/remotes/origin/$DEFAULT_BRANCH" --event-name "$GITHUB_EVENT_NAME" --event-path "$GITHUB_EVENT_PATH"
+
+      - name: Runtime recorder revision commit history
+        run: python .github/workflows/build/diagnostics/runtime_revision_history.py --default-branch-ref "refs/remotes/origin/$DEFAULT_BRANCH" --event-name "$GITHUB_EVENT_NAME" --event-path "$GITHUB_EVENT_PATH"

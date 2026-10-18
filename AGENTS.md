@@ -104,7 +104,7 @@ In particular but not only, these are usually helpful:
 - A full raw example is kept at [_1_AdvCiv-SAS/Docs/examples/sasgamerecord/SASGameRecord_example.log](/_1_AdvCiv-SAS/Docs/examples/sasgamerecord/SASGameRecord_example.log) for development/LLM review.
 - When comparing two level-3 records, run [`LLM_Helpers/compare_sasgamerecord_rng.py`](/LLM_Helpers/compare_sasgamerecord_rng.py) before manually inspecting RNG rows.
   - It validates each record's checkpoint arithmetic/state progression and reports the first authoritative-RNG or call-provenance divergence; its [maintained example](/_1_AdvCiv-SAS/Docs/examples/sasgamerecord/sasgamerecord_rng_compared.txt) shows how to interpret the result.
-- SASGameRecord revision maintenance: every intentional SASGameRecord-related code change, including implementation/checker/bridge/configuration code comments or header-only edits, increments `SAS_GAME_RECORD_REVISION` and adds the matching latest-first entry to [`README_SASGameRecord_Revisions.md`](/_1_AdvCiv-SAS/Docs/README_SASGameRecord_Revisions.md) in the same commit.
+- SASGameRecord revision maintenance: every intentional SASGameRecord-related code change, including implementation/checker/bridge/configuration code comments or header-only edits, increments `SAS_GAME_RECORD_REVISION` and adds the matching latest-first entry to [`SASGameRecord.md`](/_1_AdvCiv-SAS/Docs/revisions/SASGameRecord.md) in the same commit.
   - Edit the XML Define in `Assets/XML/GlobalDefines_advciv_sas.xml`. The DLL reports its first-use cached value as `GAME_RECORD_SOURCE_CONTEXT recordRevision`; Python-only updates do not require a DLL rebuild just to advance this label.
   - Do not debate compatibility; the revision is only a downstream-update signal.
   - Standalone docs/history/example-log/package refreshes do not require a bump.
@@ -382,6 +382,7 @@ These are general guidelines, not irrevocable requirements; adjust based on task
   - Same reasoning with `kPlayer` and `kOwner`, etc.
 - In C++, recurring or hot-path string-backed GlobalDefine reads such as `GC.getDefineINT("...")` / `GC.getDefineBOOL("...")` should normally use a function-local `static const` when the define is intended to stay fixed for the process; this avoids repeated name lookup while keeping cache scope local.
   - Example: `static const bool bSAS_CAN_SCRAP_OBSOLETE_TECH = GC.getDefineBOOL("SAS_CAN_SCRAP_OBSOLETE_TECH");`.
+- If a recurring string-backed Define lookup intentionally remains uncached, leave a short nearby reason; one-shot setup/snapshot reads and already-cached enum access do not need blanket cache-exemption comments.
 - Do not add another function-local cache around enum-backed `GC.getDefineINT(CvGlobals::...)`: that overload already reads the global integer define cache. Likewise, do not cache one-shot reads or values intentionally expected to change during runtime/setup; read those directly so the code reflects their semantics.
 - Gate BBAI and SASGameRecord diagnostics at the caller before `logBBAI(...)`, `logSASGameRecord...(...)`, or a logging-only helper, and guard logging-only setup too; a check inside the helper is too late because C++ evaluates call arguments first.
   - Prefer ordinary inline predicates and explicit `if` statements over logging macros that expand to control flow (for example the inherited found-value `IFLOG` pattern); hidden `if` macros obscure the caller-side pre-gate and compose poorly with `else` or extra semantic predicates.
@@ -406,7 +407,7 @@ These are general guidelines, not irrevocable requirements; adjust based on task
 - In C++ declarations and definitions, document new functions and changes to existing functions, including renames, parameters/defaults/return types and responsibilities.
   - Explain the previous versus current contract and why it changed beside each affected declaration/definition; a header comment alone does not replace implementation context. Document new or changed structural members similarly so headers remain a concise interface summary.
 - When adding, removing or changing parameters on an existing non-SAS function, add a nearby custom comment explaining what changed in the interface and why. Do this beside each affected declaration/definition that is edited; clearly SAS-named helper functions are optional because their custom ownership is already explicit.
-- When adding, removing or changing a C/C++ `#include` or Python `import`/`from ... import` in an existing file, add a nearby custom comment explaining which dependency changed and why. One comment may cover a coherent group of dependency edits. New files are exempt from this dependency-diff rule because their import/include list has no previous contract to explain.
+- Explain every added, removed or changed C/C++ `#include` or Python `import`/`from ... import` with a nearby custom comment naming the dependency and its purpose, including in new files. One comment may cover a coherent group if it explains all of them; untouched inherited dependencies need no new annotation.
   - For C++ includes, explain why a forward declaration is insufficient where relevant; do not bulk-annotate unrelated inherited includes.
 - If implementation encounters a compilation failure, preserve the verified pitfall and working correction in a nearby custom comment, including the exact API/type/toolchain constraint when useful. Put it beside the affected declaration, include or implementation; do not claim an untested theory as the cause.
 
@@ -427,6 +428,7 @@ int WarEvaluator::evaluateScenario(bool bDiagnosticOnly, WarPlanTypes eWarPlan, 
   - `RUNNING` means no completion was recorded; it can remain after a forcibly interrupted build. `SUCCEEDED`/`FAILED` with final fields confirms that recorded attempt ended, not that no later/direct build started.
   - If a report is missing, unreadable, still `RUNNING`, or a new build is suspected, inspect the actual build session/workers (`nmake`, `jom`, `cl`, `link`) and their project context. For agent-started builds, track the command/session directly; raw `nmake` bypasses reporting.
   - An open `VCExpress` window or lingering `MSBuild.exe` alone does not prove compilation is active; both have remained open after builds. Do not ask repeatedly when completion is already established; if status genuinely remains uncertain, leave build-sensitive files untouched until clarified.
+  - `AdvCiv.log` receives incremental compiler diagnostics: terminal builds flush each received line, while IDE builds use MSBuild's logger. Final success/failure comes from command exit codes and the completed build report, not merely from seeing output in the log.
   - While compilation is running, do not modify C++ source/headers, project/build files, intermediates or DLL/PDB outputs. Documentation edits are safe.
 
 ```powershell
@@ -445,12 +447,22 @@ Get-ChildItem -Path 'CvGameCoreDLL/Project/*/CvGameCoreDLL.dll.build.json' -File
 
 ### Editing while an autoplay is running
 
-- Before editing runtime-sensitive files, check whether Civ4 is open with PowerShell: `Get-Process -Name Civ4BeyondSword -ErrorAction SilentlyContinue`. A running process confirms the game is open, not that autoplay is active; treat runtime-sensitive files as in use until the user confirms it is safe to edit them.
+- Before editing runtime-sensitive files, check for Civ4 processes with PowerShell: `Get-Process -Name Civ4BeyondSword -ErrorAction SilentlyContinue`. Process presence confirms only that the executable has not exited; it does not prove a visible window, responsiveness, initialized gameplay or active autoplay.
+  - A process can be starting, hidden, unresponsive or stranded after a failure. Use available window/response evidence and status/log progression when assessing its condition; an unchanged status file alone does not prove a hang because idle play and long initialization need not publish updates.
+  - When the optional `Logs/SASRuntimeStatus.json` exists, use its DLL/process/session/autoplay fields as additional current-state evidence; verify the reported DLL identity against the intended build before treating a run as validation. Match `processId` and `processStartUtc` to the live process before trusting `RUNNING`: a crash can leave the last JSON behind.
+  - Changes to the loaded runtime recorder, its configuration/interfaces/call sites or shared runtime services, including implementation comments, increment compiled `SAS_RUNTIME_REVISION` once per commit and add a matching entry to [`SASRuntime.md`](/_1_AdvCiv-SAS/Docs/revisions/SASRuntime.md).
+    - Keep one pending increment throughout drafting; pure CI/checker, docs/examples and test maintenance do not require a bump or DLL rebuild.
+    - Both runtime files report this independent revision; CI checks recognizable changes, with manual review for unusual shared-code refactors.
+  - The file reports autoplay state, not an idle/busy lock: a manually advanced turn also runs with `autoplayActive=0`. Check `gameState` for initialization and do not infer XML/Python edit safety from the autoplay flag alone.
+  - Check Windows directly to establish whether the Civ4 process still exists; the JSON can outlive it. If no Civ4 process exists, no separate user confirmation of closure is needed. A lingering process can still retain runtime resources even without a visible window.
+  - The status feature is default-off and deliberately does not guess human idle/UI state. While Civ4 is running, an absent, stale or unmatched status file does not establish that runtime-sensitive files are safe to edit.
 
 - While a validation autoplay is running:
   - Documentation and C++ source/header edits are safe because the live game does not reload them.
   - Do not edit runtime-sensitive files like XML or Python files during the run: as of now, this has produced live XML errors and Python errors/crashes.
-  - Active BBAI, SASGameRecord and other logs may still be growing, buffered or temporarily locked. Reading might work, but the visible contents, final row and reported size may be incomplete or change between reads; do not infer corruption or a completed run from an active file alone. Use a completed, closed log for final size measurements and full-run comparisons.
+  - Active BBAI and SASGameRecord files are intentionally live-readable through the shared writer, so agents may inspect/copy them while Civ4/autoplay continues.
+    - A read can catch an append in progress, and file size/content can change immediately afterward; retry an incomplete trailing row and use completed output for final-size/full-run comparisons.
+    - Other inherited logs do not share this guarantee.
 - Note: these boundaries describe the current Civ4 runtime and can be revised if later testing proves different behavior.
 
 ### Docs

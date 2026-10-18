@@ -1,0 +1,19 @@
+// AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
+// (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
+
+// <!-- custom: One finite update-reason catalog generates the public enum and its JSON-name table, following the building-focus descriptor pattern.
+// Intentionally no include guard: each includer supplies SAS_RUNTIME_STATUS_REASON, includes these rows, then undefines the temporary expansion macro. (GPT-6.1-Sol) -->
+SAS_RUNTIME_STATUS_REASON(ROOT_READY)
+SAS_RUNTIME_STATUS_REASON(GAME_RESET)
+SAS_RUNTIME_STATUS_REASON(NEW_GAME_STARTED)
+SAS_RUNTIME_STATUS_REASON(LOAD_GAME_STARTED)
+SAS_RUNTIME_STATUS_REASON(NEW_GAME_NATIVE_READY)
+SAS_RUNTIME_STATUS_REASON(LOAD_GAME_NATIVE_READY)
+SAS_RUNTIME_STATUS_REASON(AUTOPLAY_STARTED)
+SAS_RUNTIME_STATUS_REASON(AUTOPLAY_CHANGED)
+SAS_RUNTIME_STATUS_REASON(AUTOPLAY_ENDED)
+SAS_RUNTIME_STATUS_REASON(TURN_COMPLETED)
+SAS_RUNTIME_STATUS_REASON(GAME_ENDED)
+SAS_RUNTIME_STATUS_REASON(RETURN_TO_MENU_REQUESTED)
+SAS_RUNTIME_STATUS_REASON(EXIT_REQUESTED)
+SAS_RUNTIME_STATUS_REASON(PROCESS_EXIT)

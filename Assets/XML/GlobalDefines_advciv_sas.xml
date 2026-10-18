@@ -2224,10 +2224,23 @@ Enforced by the turn_define_gamespeed CI check. (GPT-5.6 Thinking) -->
 	<!-- custom: Official SASGameRecord implementation revision label.
 	Increment exactly once for each qualifying committed SASGameRecord implementation update, regardless of whether that commit changes C++, Python, bridges, tooling/checkers, or several of them together.
 	This is a downstream review/update signal, not a compatibility switch: runtime code does not branch on it, and Python does not need to consume it merely because it is available through GlobalDefines.
-	Keep the newest README_SASGameRecord_Revisions.md entry synchronized; build/source/DLL provenance separately describes whether a particular compiled binary is stale or came from another source state. (ChatGPT-5.6-Sol) -->
+	Keep the newest Docs/revisions/SASGameRecord.md entry synchronized; build/source/DLL provenance separately describes whether a particular compiled binary is stale or came from another source state. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	<Define>
 		<DefineName>SAS_GAME_RECORD_REVISION</DefineName>
-		<iDefineIntVal>155</iDefineIntVal>
+		<iDefineIntVal>156</iDefineIntVal>
+	</Define>
+
+
+
+	<!-- custom: Optional current-runtime status for external tools/agents.
+	1 overwrites Logs/SASRuntimeStatus.json only at meaningful lifecycle/autoplay/completed-turn boundaries; 0 (default) skips status formatting and file I/O apart from cheap cached hook checks.
+	This switch is independent of CivilizationIV.ini LoggingEnabled/MessageLog/RandLog/SynchLog; the current-state snapshot is always replaced regardless of OverwriteLogs.
+	The snapshot reports loaded-DLL/process/session identity and timed current/previous activity; a timestamped SASRuntimeHistory_*.jsonl companion retains state intervals across new/load/autoplay actions without requiring SASGameRecord logging.
+	Historical advisor/Sevopedia/control actions remain in SASGameRecord's separately gated action trace.
+	The toggle is cached on first use; change it before launch rather than expecting live XML retuning. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	<Define>
+		<DefineName>SAS_RUNTIME_STATUS_ENABLE</DefineName>
+		<iDefineIntVal>0</iDefineIntVal>
 	</Define>
 
 

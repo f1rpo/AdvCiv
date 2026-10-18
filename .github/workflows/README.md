@@ -239,6 +239,10 @@ The version placeholder uses one immutable `SAS_VERSION_ANCHOR_<exact-commit-cou
 
 The anchor is one-time repository infrastructure and must not be moved or renamed after creation.
 
+#### `build/repository/project_sources.py`
+
+Checks that root `CvGameCoreDLL/*.cpp` and `*.h` files appear under the matching `ClCompile`/`ClInclude` project entries, and reports stale or misclassified root entries. NMake discovers sources independently, so a successful build does not prove that files are visible in the VC2010 IDE. Project-local resources and nested generated files are excluded.
+
 ### Hygiene
 
 #### `build/hygiene/line_endings.py`
@@ -595,6 +599,22 @@ The check guards sink wiring, read-sharing intent, checkpoint/health-row presenc
 
 This check remains intentionally scoped to the two SAS diagnostic sinks implicated by [KI#375.3](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-375.3), plus their shared writer/checkpoint plumbing, rather than every inherited logging caller in the DLL.
 
+#### `build/diagnostics/runtime_status.py`
+
+Checks the default-off runtime-status Define and lifecycle/process-identity wiring. The fixed `Logs/SASRuntimeStatus.json` and its linked timed-activity JSONL history are independent of BBAI/SASGameRecord enables and Civ4 INI logging switches.
+
+This is a small source-policy check; the local VC2003 diagnostic harness exercises JSON output, disabled no-I/O behavior, autoplay countdown filtering and failed root migration. Actual EXE lifecycle transitions still require gameplay validation.
+
+#### `build/diagnostics/runtime_revision_history.py`
+
+Checks the compiled runtime-recorder revision against its [history](/_1_AdvCiv-SAS/Docs/revisions/SASRuntime.md), shared by the current-state JSON and activity JSONL. This label is independent of SASGameRecord's revision.
+
+Reuses SASGameRecord's GitHub push/PR range selection and checks each commit against its first parent: recognized implementation changes require exactly one increment; pure CI/checker, documentation/example and test maintenance leaves it unchanged. Local checks also validate the pending working-tree increment, including new files before staging.
+
+Dedicated runtime files always qualify, including implementation comments. Shared source/configuration changes are recognized by runtime symbols in changed lines; unusual refactors still need manual review.
+
+The regression tests cover multiple commits, missed increments, jumps/regressions, history mismatches, checker-only maintenance and clean CRLF working trees.
+
 #### `build/diagnostics/bbai_log.py`
 
 Verifies BBAI logging is disabled by default in `Assets/XML/GlobalDefines_advciv_sas.xml`. Every integer `SAS_BBAI_*` define is discovered automatically and required to be `0`, so dedicated categories such as Citizen, Culture, Evacuation, Worker, and Worker-sea logging cannot be omitted from the check when categories are added.
@@ -697,10 +717,10 @@ It enforces these review rules introduced after repeated provenance mistakes:
 - newly authored or substantively rewritten source comments use `<!-- custom: ... (model credit) -->`; model-authored comments need the credit, while user-authored comments may omit it. Missing model credits are advisory warnings, not helper failures; unchanged/moved inherited comments and whitespace-only reflow remain valid, while stale inherited comments may simply be removed;
 - when a nearby replacement custom comment retains identical or substantially unchanged prose, recognized existing credits in its trailing parenthesized credit list are preserved; dropping one contributor still fails even if another credit remains. Credit reordering/additions and whitespace reflow are allowed, as are whole-comment deletions and unrelated replacements;
 - if an inherited comment is replaced by a nearby custom comment, known provenance markers such as `advc.xxx`, `KI#...` and `Long_Comments_... #N` are retained;
-- edits to existing-file C/C++ `#include` or Python import dependencies have a nearby newly added custom rationale comment;
+- every added/removed/changed C/C++ `#include` or Python import has a nearby newly added custom rationale comment, including dependencies in new files; untouched inherited directives are excluded;
 - parameter-list changes on existing non-SAS C++/Python functions have a nearby newly added custom comment explaining the interface change. Clearly SAS-named helpers are intentionally optional.
 
-The check is deliberately conservative rather than a full C++ parser. New files are exempt from dependency/parameter-diff requirements, standard repository header/directive comments are exempt from the new-comment rule, and source-file deletion is allowed without a tombstone comment.
+The check is deliberately conservative rather than a full C++ parser. New files require dependency explanations but have no changed-parameter contract to explain. Standard repository header/directive comments are exempt from the new-comment rule, and source-file deletion is allowed without a tombstone comment.
 
 Credit matching is deliberately conservative: free-form attribution, distant moves combined with rewrites and wholesale rewrites still need review.
 

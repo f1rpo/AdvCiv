@@ -32,6 +32,11 @@ class ReferenceHistoryFilteringTests(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertFalse(self.summarize(path)[0])
 
+    def test_revision_subfolder_keeps_maintained_history_patches(self):
+        for name in ("SASGameRecord.md", "SASRuntime.md"):
+            with self.subTest(name=name):
+                self.assertFalse(self.summarize("_1_AdvCiv-SAS/Docs/revisions/" + name)[0])
+
     def test_renames_across_policy_boundary_keep_patches(self):
         archived = '_1_AdvCiv-SAS/Docs/changelogs_web/5500.md'
         maintained = '_1_AdvCiv-SAS/Docs/guide.md'

@@ -91,6 +91,35 @@ uint getSASMonotonicMilliseconds();
 uint getSASElapsedMilliseconds(uint uiStartMilliseconds, uint uiEndMilliseconds);
 // <!-- custom: Return the one DLL-process UTC identity shared by BBAI and SASGameRecord. See KI#629. (GPT-5.6-Sol) -->
 CvString const& getSASProcessUtcTimestamp();
+// <!-- custom: Return the actual Civ4BeyondSword.exe process creation UTC from GetProcessTimes, separate from the DLL-load identity above. (ChatGPT-5.6-Sol) -->
+CvString const& getSASExecutableProcessStartUtc();
+// <!-- custom: Known status reasons are typed at call sites and iterable through NUM_SAS_RUNTIME_STATUS_REASONS; the same catalog generates their external JSON names. (GPT-6.1-Sol) -->
+enum SASRuntimeStatusReason
+{
+#define SAS_RUNTIME_STATUS_REASON(NAME) SAS_RUNTIME_STATUS_##NAME,
+// <!-- custom: Include the finite update-reason rows with an enum expansion; the publisher reuses these rows to generate its name table. (GPT-6.1-Sol) -->
+#include "SASRuntimeStatusReasons.h"
+#undef SAS_RUNTIME_STATUS_REASON
+	NUM_SAS_RUNTIME_STATUS_REASONS
+};
+
+// <!-- custom: Optional external-agent current-state artifact.
+// These transition-driven helpers update the compact JSON and append timed activity intervals to a per-process JSONL timeline only when SAS_RUNTIME_STATUS_ENABLE is on; detailed UI/action evidence remains in SASGameRecord. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+// <!-- custom: Caller pre-gates skip status-only arguments/setup; publication remains independently default-off and does not use Civ4 INI logging masters. (GPT-6.1-Sol) -->
+bool isSASRuntimeStatusEnabled();
+// <!-- custom: Both services share native root discovery, while status root migration is independent from historical log append handles. (GPT-6.1-Sol) -->
+bool getSASNativeDefaultRootDirectory(std::wstring& szRootDirectory);
+void setSASRuntimeStatusRootDirectory(std::wstring const& szRoot);
+// <!-- custom: Reset has one fixed reason; autoplay accepts a known update-reason enum rather than arbitrary string labels. (GPT-6.1-Sol) -->
+void updateSASRuntimeStatusNoGame();
+void updateSASRuntimeStatusSessionStarted(bool bLoadedSave);
+void updateSASRuntimeStatusSessionReady();
+void updateSASRuntimeStatusTurnCompleted(int iCompletedTurn);
+void updateSASRuntimeStatusAutoPlay(SASRuntimeStatusReason eReason, SASAutoPlayEndCause eEndCause = SAS_AUTOPLAY_END_UNSPECIFIED);
+// <!-- custom: Menu/exit request boundaries are observable before EXE work; their completion is not inferred from the request. (GPT-6.1-Sol) -->
+void updateSASRuntimeStatusRequest(SASRuntimeStatusReason eReason);
+void updateSASRuntimeStatusGameEnded();
+void updateSASRuntimeStatusCleanExit();
 // <!-- custom: Identify the producer explicitly; filenames are output identities, not reliable log-family metadata. (GPT-6.1-Sol) -->
 enum SASDiagnosticLogFamily
 {
@@ -121,6 +150,9 @@ CvWString getSASCompactSourceVersion(char const* szVersion, char const* szCommit
 CvWString getSASRuntimeDisplayNameAndVersion();
 // <!-- custom: Serialize exact loaded-DLL build/binary provenance shared by diagnostic log headers, including numeric file/product resource versions when present plus embedded pre-build facts and independent current build-tree observations; copying only the DLL preserves its build evidence. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 CvString getSASDllContextFields();
+// <!-- custom: Share the cached loaded-module fingerprint/build identity with the standalone runtime JSON without requiring historical logging or exposing local paths. (GPT-6.1-Sol) -->
+// <!-- custom: Indented output nests beneath the status document's two-space field indentation; compact output keeps each JSONL transition on one physical line. (GPT-6.1-Sol) -->
+CvString getSASDllRuntimeIdentityJson(bool bIndented = false);
 // <!-- custom: Serialize exact Civ4 executable binary provenance independently from source/mod identity, through the same fingerprint/time/resource-version schema as the DLL. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 CvString getSASExeContextFields();
 // <!-- custom: Serialize the Direct3D 9 module that Civ4 actually loaded after graphics initialization.

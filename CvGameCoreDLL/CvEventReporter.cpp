@@ -183,6 +183,8 @@ void CvEventReporter::gameStart()
 	if (isSASBBAILogEnabled()) logSASBBAINewGameStarted();
 	if (isSASGameRecordLogEnabled()) logSASGameRecordNewGameStarted();
 	m_kPythonEventMgr.reportGameStart();
+	// <!-- custom: The new-session attempt was published before map generation; mark readiness only after Python GameStart handlers return so agents can distinguish initialization time from usable state. (ChatGPT-5.6-Sol) -->
+	if (isSASRuntimeStatusEnabled()) updateSASRuntimeStatusSessionReady();
 	// <!-- custom: End the level-3 initialization RNG interval only after Python gameStart too, so map/setup consumption has one complete baseline before normal gameplay begins. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (g_bSASGameRecordRngTrackingActive) logSASGameRecordRngCheckpoint(GC.getGame().getGameTurn(), SAS_RNG_CHECKPOINT_NEW_GAME_INITIALIZED);
 }
@@ -190,6 +192,8 @@ void CvEventReporter::gameStart()
 void CvEventReporter::gameEnd()
 {
 	m_kPythonEventMgr.reportGameEnd();
+	// <!-- custom: Keep the process alive but distinguish an ended game from active play; reset will later publish NO_GAME if the user returns to the menu. (ChatGPT-5.6-Sol) -->
+	if (isSASRuntimeStatusEnabled()) updateSASRuntimeStatusGameEnded();
 }
 
 void CvEventReporter::beginGameTurn(int iGameTurn)

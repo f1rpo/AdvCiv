@@ -1,6 +1,6 @@
 # SASGameRecord Revision History
 
-> Historical reconstruction from the AdvCiv-SAS commit-diff corpus, reconciled through practical version 6439 (`03b44b8932a0715be234e8c5332fcb8a1d1cf3b2`).
+Historical reconstruction from the AdvCiv-SAS commit-diff corpus, reconciled through practical version 6439 (`03b44b8932a0715be234e8c5332fcb8a1d1cf3b2`).
 
 ## Revision policy
 
@@ -34,7 +34,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=155 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=156 ...
 ```
 
 After this, each qualifying SASGameRecord commit increments `SAS_GAME_RECORD_REVISION` in `GlobalDefines_advciv_sas.xml` exactly once and adds one short latest-first entry to this file in the same commit. The revision remains a downstream-update signal; exact runtime source/build identity remains separate provenance in `GAME_RECORD_SOURCE_CONTEXT` and the DLL/build context.
@@ -77,10 +77,20 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
-### Revision 155 - SAS practical 6641
+### Revision 156 - SAS practical 6642
 
 - **Date:** 2026-10-18
 - **Git commit:** pending
+- **Change:** Share UTC formatting and native user-root discovery with the optional current-runtime status publisher while retaining SASGameRecord's existing output semantics.
+  - BUG's root handoff updates the replaceable status snapshot independently of historical log handles; BBAI/SASGameRecord retain their committed append root after successful writes.
+  - Runtime status includes loaded-DLL identity from the same cached binary context used by historical log headers, so current-state observations can be tied to their actual implementation without enabling those logs. Its paired snapshot/timeline outputs share a separate compiled runtime-recorder revision and history.
+  - Runtime status uses finite typed update reasons and states, with enum/name catalogs keeping readable JSON labels synchronized and avoiding string-backed state comparisons.
+  - `Logs/SASRuntimeStatus.json` is a fixed-name current observation for agents, enabled independently of the timestamped historical logs and Civ4 INI logging switches. The status snapshot exposes failed-publication counts and links to a per-process activity timeline with monotonic state durations and autoplay end causes; SASGameRecord remains the detailed gameplay/action history.
+
+### Revision 155 - SAS practical 6641
+
+- **Date:** 2026-10-18
+- **Git commit:** `7cd0c44ffced52c13505d6a62d411ab4a68178e1`
 - **Change:** Add compact shared diagnostic-writer health to existing SASGameRecord lifecycle checkpoints, so live/autoplay analysis can tell whether prompt logging is keeping up rather than inferring health only from file growth.
   - `GAME_RECORD_DIAGNOSTIC_WRITER` follows each `GAME_RECORD_TURN_COMPLETED` marker and is also emitted before session finalization/handle release. It reports current/peak pending text bytes, the current blocked-file count, output failures, retry attempts/successes, and dropped rows/bytes.
   - Process-lifetime `processWrittenBytes`, `bbaiProcessWrittenBytes`, `gameRecordProcessWrittenBytes` and `otherProcessWrittenBytes` count bytes successfully accepted by Windows. They deliberately are not called file sizes: fixed-name output can append to pre-existing files, and external mutation is possible while sharing is enabled.
@@ -1475,9 +1485,12 @@ For the next qualifying committed update, increment `SAS_GAME_RECORD_REVISION` i
 ### Revision N - SAS practical XXXX
 
 - **Date:** YYYY-MM-DD
+- **Git commit:** pending
 - **Change:** Briefly state what changed in SASGameRecord-related code and why a downstream copy should review/update.
 ```
 
-Do not try to place the final SHA of the same not-yet-created commit into its own history entry: changing the document would change that SHA again. Historical entries can retain already-known SHAs, while current runtime Git/source identity is recorded independently by `GAME_RECORD_SOURCE_CONTEXT`.
+Keep only the latest entry's Git commit as `pending`; when adding the next revision, replace the preceding entry's `pending` with its finalized full SHA from the default branch, reconciling after an amend or rebase.
+
+Do not put the current commit's own SHA into its entry: editing the document would change that SHA again. Current runtime Git/source identity is recorded independently by `GAME_RECORD_SOURCE_CONTEXT`.
 
 Standalone docs/history/example-log/package-only updates do not bump the revision. If a qualifying implementation change and those maintenance files are committed together, they remain one revision. Do not pre-bump, double-bump or reuse a revision for a later qualifying commit.

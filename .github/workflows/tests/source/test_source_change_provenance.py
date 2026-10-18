@@ -1,6 +1,6 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
-# <!-- custom: These fixtures protect the diff-aware source-history guard itself: reflowed legacy prose must remain legal, newly authored prose must be explicitly custom, missing model credits remain advisory for user comments, dependency edits need rationale, and changed non-SAS interfaces need nearby explanation without forcing comments on wholly new files. (ChatGPT-6-Sol) -->
+# <!-- custom: These fixtures protect the diff-aware source-history guard itself: reflowed legacy prose must remain legal, newly authored prose must be explicitly custom, missing model credits remain advisory for user comments, dependency edits need rationale, and changed non-SAS interfaces need nearby explanation while new files require dependency rationale but no changed-parameter explanation. (ChatGPT-6-Sol + GPT-6.1-Sol) -->
 
 from pathlib import Path
 import subprocess
@@ -165,16 +165,40 @@ class SourceChangeProvenanceTests(unittest.TestCase):
         self.assertTrue(any("parameters changed" in error for error in self.errors("LLM_Helpers/test.py", old, bad)))
         self.assertEqual(self.errors("LLM_Helpers/test.py", old, good), [])
 
-    def test_new_file_does_not_require_dependency_or_parameter_change_notes(self):
-        new = (
-            "# AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)\n"
-            "# (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)\n"
-            "# <!-- custom: Add a focused helper for the new workflow. (ChatGPT-5.6-Sol) -->\n"
-            "import argparse\n\n"
-            "def run(value):\n"
-            "    return value\n"
-        )
+    def test_new_file_functions_do_not_require_changed_parameter_notes(self):
+        new = "def run(value):\n    return value\n"
         self.assertEqual(self.errors("LLM_Helpers/new_helper.py", None, new), [])
+
+    def test_new_cpp_file_requires_include_rationale(self):
+        bad = '#include "CvGame.h"\nint value;\n'
+        good = '// <!-- custom: CvGame.h supplies complete game getters used by this source. (GPT-6.1-Sol) -->\n' + bad
+        self.assertTrue(any("include/import change" in error for error in self.errors("CvGameCoreDLL/New.cpp", None, bad)))
+        self.assertEqual(self.errors("CvGameCoreDLL/New.cpp", None, good), [])
+
+    def test_new_python_file_requires_import_rationale(self):
+        bad = "import argparse\nvalue = 1\n"
+        good = "# <!-- custom: argparse exposes the helper's command-line options. (GPT-6.1-Sol) -->\n" + bad
+        self.assertTrue(any("include/import change" in error for error in self.errors("LLM_Helpers/new.py", None, bad)))
+        self.assertEqual(self.errors("LLM_Helpers/new.py", None, good), [])
+
+    def test_distant_comment_cannot_cover_new_file_dependency(self):
+        new = "# <!-- custom: Explain a later calculation. (GPT-6.1-Sol) -->\n" + "\n" * 12 + "import argparse\n"
+        self.assertTrue(any("include/import change" in error for error in self.errors("LLM_Helpers/new.py", None, new)))
+
+    def test_each_dependency_requires_nearby_rationale(self):
+        new = "# <!-- custom: argparse handles CLI options. (GPT-6.1-Sol) -->\nimport argparse\n" + "\n" * 12 + "import pathlib\n"
+        errors = self.errors("LLM_Helpers/new.py", None, new)
+        self.assertEqual(len(errors), 1)
+        self.assertIn("pathlib", errors[0])
+
+    def test_untouched_inherited_includes_do_not_need_new_comments(self):
+        old = '#include "Inherited.h"\nint value = 1;\n'
+        new = '#include "Inherited.h"\nint value = 2;\n'
+        self.assertEqual(self.errors("CvGameCoreDLL/Test.cpp", old, new), [])
+
+    def test_shared_comment_can_explain_related_new_dependencies(self):
+        new = '// <!-- custom: vector stores fixture rows and string holds their text. (GPT-6.1-Sol) -->\n#include <vector>\n#include <string>\n'
+        self.assertEqual(self.errors("tests/New.cpp", None, new), [])
 
 
     def test_single_line_custom_comment_does_not_absorb_following_legacy_comment(self):

@@ -74,6 +74,26 @@ CvString const& getSASProcessUtcTimestamp()
 	return g_szSASProcessUtcTimestamp;
 }
 
+// <!-- custom: The existing processUtc value is sampled when this DLL initializes; external agents also benefit from the actual Civ4 process creation time so a stale status file cannot be confused with a later PID reuse.
+// GetProcessTimes gives the executable-process creation FILETIME without filesystem queries. (ChatGPT-5.6-Sol) -->
+static CvString createSASExecutableProcessStartUtc()
+{
+	FILETIME kCreationTime, kExitTime, kKernelTime, kUserTime;
+	if (!GetProcessTimes(GetCurrentProcess(), &kCreationTime, &kExitTime, &kKernelTime, &kUserTime))
+		return "unknown_time";
+	SYSTEMTIME kUtcTime;
+	if (!FileTimeToSystemTime(&kCreationTime, &kUtcTime))
+		return "unknown_time";
+	return formatSASUtcSystemTime(kUtcTime);
+}
+
+CvString const& getSASExecutableProcessStartUtc()
+{
+	// <!-- custom: Keep the optional status feature fully lazy when disabled; process creation time is sampled only if an enabled status write actually needs it. (ChatGPT-5.6-Sol) -->
+	static CvString const szProcessStartUtc = createSASExecutableProcessStartUtc();
+	return szProcessStartUtc;
+}
+
 // <!-- custom: BBAI and SASGameRecord need live-readable files during long autoplay runs; Civ4's EXE logger exposes no flush operation and can keep its file handles/buffers opaque until reload or exit.
 // Our uncommitted turn-batched draft made live reads possible but could lose the current turn's final evidence on a crash, which matters for investigations such as KI#895/KI#896.
 // Submit each row to Windows immediately using a persistent read/write/delete-shared handle; Windows owns normal disk caching, so no per-row open/close or forced physical-disk flush is needed.
@@ -149,14 +169,13 @@ static std::wstring getSASDiagnosticExecutableFolder()
 	return szDirectory.substr(iDirectorySlash + 1);
 }
 
-static bool resolveSASDiagnosticDefaultRootDirectory()
+// <!-- custom: Share native user-root discovery between the historical BBAI/SASGameRecord writer and the optional current-status publisher; BUG still supplies the authoritative CvAltRoot later. (GPT-6.1-Sol) -->
+bool getSASNativeDefaultRootDirectory(std::wstring& szRootDirectory)
 {
-	if (g_bSASDiagnosticLogRootResolved)
-		return !g_szSASDiagnosticLogRootDirectory.empty();
 	wchar_t szDocuments[MAX_PATH];
 	szDocuments[0] = L'\0';
-	// <!-- custom: Resolve Documents through the wide API without adding a shell32 linker dependency; BUG remains the authoritative CvAltRoot source. (GPT-6.1-Sol) -->
-	typedef HRESULT (WINAPI* SHGetFolderPathWFunction)(HWND, int, HANDLE, DWORD, LPWSTR);
+	// <!-- custom: Resolve Documents through the wide API without adding a shell32 linker dependency; BUG remains the authoritative CvAltRoot source for diagnostic logs. (GPT-6.1-Sol + ChatGPT-5.6-Sol) -->
+	typedef HRESULT (WINAPI *SHGetFolderPathWFunction)(HWND, int, HANDLE, DWORD, LPWSTR);
 	HMODULE const hShell = LoadLibraryW(L"shell32.dll");
 	if (hShell != NULL)
 	{
@@ -174,9 +193,18 @@ static bool resolveSASDiagnosticDefaultRootDirectory()
 			return false;
 		szDocumentsPath = std::wstring(szUserProfile) + L"\\Documents";
 	}
-	g_szSASDiagnosticLogRootDirectory = trimSASDiagnosticDirectory(szDocumentsPath + L"\\My Games\\" + getSASDiagnosticExecutableFolder());
-	g_bSASDiagnosticLogRootResolved = !g_szSASDiagnosticLogRootDirectory.empty();
-	return g_bSASDiagnosticLogRootResolved;
+	szRootDirectory = trimSASDiagnosticDirectory(szDocumentsPath + L"\\My Games\\" + getSASDiagnosticExecutableFolder());
+	return !szRootDirectory.empty();
+}
+
+static bool resolveSASDiagnosticDefaultRootDirectory()
+{
+	if (g_bSASDiagnosticLogRootResolved)
+		return !g_szSASDiagnosticLogRootDirectory.empty();
+	if (!getSASNativeDefaultRootDirectory(g_szSASDiagnosticLogRootDirectory))
+		return false;
+	g_bSASDiagnosticLogRootResolved = true;
+	return true;
 }
 
 // <!-- custom: Retain the caller-supplied family with the filename history; all producers sharing a physical file must agree on its family. (GPT-6.1-Sol) -->
@@ -370,6 +398,8 @@ void setSASDiagnosticLogRootDirectory(wchar_t const* szRootDirectory)
 	std::wstring const szRoot = trimSASDiagnosticDirectory(szRootDirectory);
 	if (szRoot.empty())
 		return;
+	// <!-- custom: Status may replace its current-state root even after the historical log writer has committed to a path; keep these contracts independent. (GPT-6.1-Sol) -->
+	setSASRuntimeStatusRootDirectory(szRoot);
 	// <!-- custom: Changing roots after a successful append would split a logical log; permit BUG to replace a fallback root only before writing starts. (GPT-6.1-Sol) -->
 	if (g_bSASDiagnosticLogWriteStarted)
 		return;
@@ -963,6 +993,33 @@ CvString getSASDllContextFields()
 			getSASDllBuildConfiguration(), getSASBinaryContextFields(kContext, "dll").GetCString(), getSASDllBuildProvenanceFields(kContext).GetCString(), iFAssertEnabled, iDebugDefine, iNDebugDefine,
 			iMsvcVersion, iMsvcFullVersion, iInternalProfilerCompiled, iTscProfilerCompiled, iProfileAIAutoPlayCompiled, iReproTestCompiled);
 	return szContext;
+}
+
+// <!-- custom: Runtime status must identify its loaded DLL independently of SASGameRecord; a live status file previously hid that an older DLL was running after a newer build.
+// Reuse the log diagnostics' cached module-backed file identity, not the build sidecar or current source revision; only controlled labels/numeric fields enter JSON, with no machine paths.
+// This fingerprints the backing file observed on first use, not a hash of mapped memory; readers compare it with build evidence rather than assuming current source was compiled. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+CvString getSASDllRuntimeIdentityJson(bool bIndented)
+{
+	SASBinaryDiagnosticContext const& kContext = getSASDllDiagnosticContext();
+	// <!-- custom: Share one field list between the readable nested snapshot and compact JSONL identity; only whitespace differs, so timeline rows remain single-line and their metadata cannot drift. (GPT-6.1-Sol) -->
+	char const* const szFieldPrefix = (bIndented ? "\r\n    " : "");
+	char const* const szValuePrefix = (bIndented ? " " : "");
+	CvString szJson;
+	szJson.Format("{%s\"buildConfiguration\":%s\"%s\","
+		"%s\"moduleFound\":%s%d,"
+		"%s\"fileReadable\":%s%d,"
+		"%s\"fileSizeBytes\":%s%I64d,"
+		"%s\"fingerprint\":%s\"%s\","
+		"%s\"lastWriteUtc\":%s\"%s\","
+		"%s\"peTimestampRaw\":%s%lu%s}",
+		szFieldPrefix, szValuePrefix, getSASDllBuildConfiguration(),
+		szFieldPrefix, szValuePrefix, kContext.bModuleFound,
+		szFieldPrefix, szValuePrefix, kContext.bFileReadable,
+		szFieldPrefix, szValuePrefix, kContext.iFileSize,
+		szFieldPrefix, szValuePrefix, getSASBinaryFingerprint(kContext).GetCString(),
+		szFieldPrefix, szValuePrefix, kContext.szLastWriteUtc.GetCString(),
+		szFieldPrefix, szValuePrefix, (unsigned long)kContext.uiPETimestamp, (bIndented ? "\r\n  " : ""));
+	return szJson;
 }
 
 CvString getSASExeContextFields()

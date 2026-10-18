@@ -18,7 +18,7 @@ from xml_defines import get_default_repo_root, read_global_define_ints, require_
 
 REVISION_DEFINES = Path("Assets/XML/GlobalDefines_advciv_sas.xml")
 REVISION_SOURCE = Path("CvGameCoreDLL/SASGameRecordLog.cpp")
-REVISION_HISTORY = Path("_1_AdvCiv-SAS/Docs/README_SASGameRecord_Revisions.md")
+REVISION_HISTORY = Path("_1_AdvCiv-SAS/Docs/revisions/SASGameRecord.md")
 EXPECTED_GAME_RECORD_DEFAULTS = {
     "SAS_GAME_RECORD_LOG_LEVEL": 0,
     # <!-- custom: Ship action tracing ready for deliberately enabled records while the recorder master stays off; catch accidental staging of an actions-off test override. (GPT-6.1-Sol) -->

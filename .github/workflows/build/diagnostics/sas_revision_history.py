@@ -17,7 +17,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[4]
-HISTORY = Path("_1_AdvCiv-SAS/Docs/README_SASGameRecord_Revisions.md")
+HISTORY = Path("_1_AdvCiv-SAS/Docs/revisions/SASGameRecord.md")
 HEADER = "CvGameCoreDLL/SASGameRecordLog.h"
 DEFINES = "Assets/XML/GlobalDefines_advciv_sas.xml"
 DEFINE_FIRST_REVISION = 153

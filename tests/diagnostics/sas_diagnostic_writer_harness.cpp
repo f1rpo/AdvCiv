@@ -23,13 +23,16 @@
 #include <boost/static_assert.hpp>
 template<class T> static void harnessDeleteArray(T*& value) { delete[] value; value = NULL; }
 #define SAFE_DELETE_ARRAY(value) harnessDeleteArray(value)
+// <!-- custom: Runtime timing uses the game PCH's uint alias; standalone VC2003 compilation failed with C2146/C2501 until the fixture supplied the same unsigned type. (GPT-6.1-Sol) -->
+typedef unsigned int uint;
 typedef wchar_t wchar;
 #include "CvString.h"
 
 // <!-- custom: The writer's loss-notice and health-field formatters need this game-string method; all buffering, path and I/O logic below comes from the current source. (GPT-6.1-Sol) -->
 void CvString::Format(LPCSTR format, ...)
 {
-	char buffer[2048];
+	// <!-- custom: The indented runtime snapshot includes timing and identity fields; this fixture formatter must accommodate it like production CvString rather than truncate at the old 2 KiB writer-row limit. (GPT-6.1-Sol) -->
+	char buffer[8192];
 	va_list args;
 	va_start(args, format);
 	int const length = _vsnprintf(buffer, sizeof(buffer), format, args);
@@ -38,12 +41,44 @@ void CvString::Format(LPCSTR format, ...)
 	assign(buffer, length);
 }
 
+// <!-- custom: Minimal read-only game/map state lets the separate runtime-status publisher run without Civ4; Define lookup accepts only its own independent enable switch. (GPT-6.1-Sol) -->
+struct CvGame
+{
+	CvGame() : ready(false), autoplay(0) {}
+	bool ready;
+	int autoplay;
+	bool isFinalInitialized() const { return ready; }
+	int getGameTurn() const { return 9; }
+	int getElapsedGameTurns() const { return 9; }
+	int getActivePlayer() const { return 0; }
+	int getAIAutoPlay() const { return autoplay; }
+	int getGameSpeedType() const { return 2; }
+	bool isScenario() const { return false; }
+	int getSASLoadedSaveCheckpointTurn() const { return 7; }
+	int getSASLoadedSaveCheckpointElapsedTurn() const { return 7; }
+	char const* getSASLoadedSaveCheckpointUtc() const { return "20261018T000000.000Z"; }
+};
+struct TestMap
+{
+	int getGridWidth() const { return 120; }
+	int getGridHeight() const { return 84; }
+	int getWorldSize() const { return 5; }
+};
 struct TestGlobals
 {
-	TestGlobals() : overwrite(true) {}
+	TestGlobals() : overwrite(true), runtimeStatus(false) {}
 	bool overwrite;
+	bool runtimeStatus;
+	CvGame game;
+	TestMap map;
 	bool isOverwriteLogs() const { return overwrite; }
+	int getDefineINT(char const* name) const { assert(strcmp(name, "SAS_RUNTIME_STATUS_ENABLE") == 0); return runtimeStatus ? 1 : 0; }
+	CvGame const& getGame() const { return game; }
+	TestMap const& getMap() const { return map; }
 } GC;
+
+// <!-- custom: Supply a stable DLL-load label; process creation time and status UTC still use their actual production Win32 implementations. (GPT-6.1-Sol) -->
+CvString const& getSASProcessUtcTimestamp() { static CvString const stamp("20261018T000000Z"); return stamp; }
 
 static bool g_shellFolderUnavailable = false;
 static bool g_failOpen = false;
@@ -127,6 +162,28 @@ static HMODULE WINAPI testLoadLibraryW(LPCWSTR name)
 #define WriteFile testWriteFile
 #define CloseHandle testCloseHandle
 #include "writer_under_test.inc"
+// <!-- custom: Compile the production binary context and JSON formatter against controlled fixture metadata; this generated include comes from the same runner as the writer extraction. (GPT-6.1-Sol) -->
+#define SAS_DLL_BUILD_CONFIGURATION 2
+#include "runtime_binary_context_under_test.inc"
+// <!-- custom: Count binary-context accesses and supply a controllable clock so lifecycle tests verify lazy formatting and exact elapsed times independently of real UTC progression. (GPT-6.1-Sol) -->
+static int g_dllIdentityLookups = 0;
+static unsigned int g_runtimeClock = 0;
+unsigned int getSASMonotonicMilliseconds() { return g_runtimeClock; }
+unsigned int getSASElapsedMilliseconds(unsigned int start, unsigned int end) { return end - start; }
+static SASBinaryDiagnosticContext const& getSASDllDiagnosticContext()
+{
+	static SASBinaryDiagnosticContext context;
+	++g_dllIdentityLookups;
+	context.bModuleFound = true;
+	context.bFileReadable = true;
+	context.iFileSize = 123456;
+	context.uiFingerprint = 0x123456789ABCDEF0ui64;
+	context.szLastWriteUtc = "20261018T000000.000Z";
+	context.uiPETimestamp = 42;
+	return context;
+}
+// <!-- custom: Compile the separate current-state publisher with the same real Win32 wrappers and explicit game fixture so JSON/lifecycle failures are exercised alongside writer I/O. (GPT-6.1-Sol) -->
+#include "runtime_status_under_test.inc"
 #undef CloseHandle
 #undef WriteFile
 #undef CreateFileW
@@ -155,10 +212,167 @@ static void seedFile(std::wstring const& path)
 	CloseHandle(file);
 }
 
+// <!-- custom: Preserve each overwritten state as a fixture snapshot so Python's JSON parser checks the actual emitted document, rather than reproducing its formatter. (GPT-6.1-Sol) -->
+static void snapshotStatus(std::wstring const& root, std::wstring const& snapshots, wchar_t const* name)
+{
+	require(CopyFileW((root + L"\\Logs\\SASRuntimeStatus.json").c_str(), (snapshots + L"\\" + name + L".json").c_str(), FALSE) != FALSE, "copy runtime snapshot");
+}
+
 int main(int argc, char** argv)
 {
 	wchar_t temporary[MAX_PATH];
 	require(GetEnvironmentVariableW(L"SAS_DIAGNOSTIC_TEST_ROOT", temporary, MAX_PATH) > 0, "test root is provided");
+	if (argc == 2 && strcmp(argv[1], "--runtime-status-disabled") == 0)
+	{
+		require(!shouldPublishAutoplayChange(0, 5, true), "disabled hook skips explicit autoplay changes");
+		setSASDiagnosticLogRootDirectory(temporary);
+		updateSASRuntimeStatusSessionStarted(false);
+		updateSASRuntimeStatusSessionReady();
+		updateSASRuntimeStatusTurnCompleted(3);
+		updateSASRuntimeStatusAutoPlay(SAS_RUNTIME_STATUS_AUTOPLAY_STARTED);
+		updateSASRuntimeStatusGameEnded();
+		updateSASRuntimeStatusRequest(SAS_RUNTIME_STATUS_EXIT_REQUESTED);
+		updateSASRuntimeStatusCleanExit();
+		require(g_openCalls == 0 && g_dllIdentityLookups == 0 && g_uiSASRuntimeStatusWriteFailures == 0 && g_uiSASRuntimeActivitySerial == 0 && g_uiSASRuntimeStatusSerial == 0 && g_uiSASRuntimeSessionSerial == 0, "disabled status does not publish or accumulate session state");
+		return 0;
+	}
+	// <!-- custom: A blocked output path must not stretch creation time until the next successful write; retain the observed interval and expose a missing history row through counters/serials. (GPT-6.1-Sol) -->
+	if (argc == 2 && strcmp(argv[1], "--runtime-status-output-failure") == 0)
+	{
+		GC.runtimeStatus = true;
+		std::wstring const root = std::wstring(temporary) + L"\\status_failure";
+		require(CreateDirectoryW(root.c_str(), NULL) != FALSE, "create failed-output fixture root");
+		setSASRuntimeStatusRootDirectory(root);
+		g_runtimeClock = 100;
+		g_failOpen = true;
+		updateSASRuntimeStatusSessionStarted(false);
+		g_failOpen = false;
+		require(g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_CREATING_GAME && g_uiSASRuntimeHistoryWriteFailures == 1, "failed publication retains creation start and discloses lost transition");
+		g_runtimeClock = 5100;
+		GC.game.ready = true;
+		updateSASRuntimeStatusSessionReady();
+		require(g_iSASRuntimePreviousDurationMilliseconds == 5000, "creation time uses observed start despite failed output");
+		require(CopyFileW((root + L"\\Logs\\SASRuntimeStatus.json").c_str(), (std::wstring(temporary) + L"\\runtime_failed_output.json").c_str(), FALSE) != FALSE, "retain recovered failure snapshot");
+		// <!-- custom: A fully written history row can remain readable after close reports failure; counters mean confirmed successful appends, not a physical line count. (ChatGPT (review) + GPT-6.1-Sol) -->
+		GC.game.autoplay = 5;
+		g_failClose = true;
+		updateSASRuntimeStatusAutoPlay(SAS_RUNTIME_STATUS_AUTOPLAY_STARTED);
+		require(g_uiSASRuntimeHistoryRowsWritten == 2 && g_uiSASRuntimeHistoryWriteFailures == 2, "unconfirmed history close does not count as a confirmed append");
+		std::wstring const historyName(g_szSASRuntimeHistoryFilename.begin(), g_szSASRuntimeHistoryFilename.end());
+		require(readFile(root + L"\\Logs\\" + historyName).find("AUTOPLAY_STARTED") != std::string::npos, "row can exist after reported history close failure");
+		// <!-- custom: Exercise each status-only failure path without creating more history transitions; recovery must expose failures even when a write acknowledged every byte before reporting failure. (GPT-6.1-Sol) -->
+		g_failClose = true;
+		updateSASRuntimeStatusTurnCompleted(9);
+		g_failPartialWrite = true;
+		updateSASRuntimeStatusTurnCompleted(9);
+		g_failPartialWrite = false;
+		g_zeroWrite = true;
+		updateSASRuntimeStatusTurnCompleted(9);
+		g_zeroWrite = false;
+		setSASRuntimeStatusRootDirectory(root + L"\\missing_parent\\missing_child");
+		setSASRuntimeStatusRootDirectory(root);
+		require(g_uiSASRuntimeStatusWriteFailures == 5, "status failures include open, close, failed/zero write and missing root");
+		require(CopyFileW((root + L"\\Logs\\SASRuntimeStatus.json").c_str(), (std::wstring(temporary) + L"\\runtime_failed_status.json").c_str(), FALSE) != FALSE, "retain recovered status-failure snapshot");
+		return 0;
+	}
+	if (argc == 2 && strcmp(argv[1], "--runtime-status") == 0)
+	{
+		GC.runtimeStatus = true;
+		require(!shouldPublishAutoplayChange(5, 4, false), "ordinary countdown uses only the turn-completion update");
+		require(shouldPublishAutoplayChange(0, 5, true) && shouldPublishAutoplayChange(5, 0, false) && shouldPublishAutoplayChange(5, 8, true), "explicit start/adjustment and automatic end publish immediately");
+		GC.overwrite = false;
+		std::wstring const fallback = std::wstring(temporary) + L"\\status_fallback";
+		std::wstring const root = std::wstring(temporary) + L"\\status_\x0416\x6f22";
+		std::wstring const snapshots = std::wstring(temporary) + L"\\runtime_snapshots";
+		require(CreateDirectoryW(fallback.c_str(), NULL) && CreateDirectoryW(root.c_str(), NULL) && CreateDirectoryW(snapshots.c_str(), NULL), "create runtime fixture directories");
+		setSASDiagnosticLogRootDirectory(fallback.c_str());
+		logSASDiagnosticLiteralLine("BBAI_root_lock.log", "historical root stays fixed", SAS_DIAGNOSTIC_LOG_BBAI);
+		g_failOpen = true;
+		setSASDiagnosticLogRootDirectory(root.c_str());
+		require(g_szSASDiagnosticLogRootDirectory == fallback && g_szSASRuntimeStatusRootDirectory == root, "status migration is independent of committed historical handles");
+		require(GetFileAttributesW((fallback + L"\\Logs\\SASRuntimeStatus.json").c_str()) != INVALID_FILE_ATTRIBUTES, "failed migration preserves fallback");
+		std::wstring const anotherFailedRoot = root + L"_failed";
+		require(CreateDirectoryW(anotherFailedRoot.c_str(), NULL) != FALSE, "create second failed handoff root");
+		setSASRuntimeStatusRootDirectory(anotherFailedRoot);
+		g_failOpen = false;
+		g_failClose = true;
+		setSASRuntimeStatusRootDirectory(root);
+		require(GetFileAttributesW((fallback + L"\\Logs\\SASRuntimeStatus.json").c_str()) != INVALID_FILE_ATTRIBUTES, "failed close preserves fallback");
+		setSASRuntimeStatusRootDirectory(root);
+		require(GetFileAttributesW((fallback + L"\\Logs\\SASRuntimeStatus.json").c_str()) == INVALID_FILE_ATTRIBUTES, "successful migration removes obsolete fallback");
+		// <!-- custom: BUG/native root spellings can differ only by case; migration cleanup must not delete the same physical JSON that was just rewritten. (GPT-6.1-Sol) -->
+		std::wstring sameRoot = root;
+		// <!-- custom: ASCII case changes are sufficient for this regression; CharUpperBuffW caused LNK2019 because the standalone fixture does not link User32. (GPT-6.1-Sol) -->
+		for (size_t i = 0; i < sameRoot.size(); i++)
+		{
+			if (sameRoot[i] >= L'a' && sameRoot[i] <= L'z')
+				sameRoot[i] -= L'a' - L'A';
+		}
+		setSASRuntimeStatusRootDirectory(sameRoot);
+		require(GetFileAttributesW((root + L"\\Logs\\SASRuntimeStatus.json").c_str()) != INVALID_FILE_ATTRIBUTES, "same root with different casing retains current JSON");
+		for (size_t i = 0; i < sameRoot.size(); i++)
+		{
+			if (sameRoot[i] == L'\\')
+				sameRoot[i] = L'/';
+		}
+		setSASRuntimeStatusRootDirectory(sameRoot);
+		require(GetFileAttributesW((root + L"\\Logs\\SASRuntimeStatus.json").c_str()) != INVALID_FILE_ATTRIBUTES, "same root with slash/case changes retains current JSON");
+		snapshotStatus(root, snapshots, L"no_game");
+		GC.game.ready = true;
+		g_runtimeClock = 100;
+		updateSASRuntimeStatusSessionStarted(false);
+		snapshotStatus(root, snapshots, L"starting");
+		g_runtimeClock = 15900;
+		updateSASRuntimeStatusSessionReady();
+		snapshotStatus(root, snapshots, L"ready");
+		g_runtimeClock = 19100;
+		GC.game.autoplay = 5;
+		updateSASRuntimeStatusAutoPlay(SAS_RUNTIME_STATUS_AUTOPLAY_STARTED);
+		snapshotStatus(root, snapshots, L"autoplay");
+		g_runtimeClock = 25000;
+		unsigned int const beforeTurnRows = g_uiSASRuntimeHistoryRowsWritten;
+		updateSASRuntimeStatusTurnCompleted(4);
+		require(g_uiSASRuntimeHistoryRowsWritten == beforeTurnRows, "ordinary turn does not append another activity interval");
+		snapshotStatus(root, snapshots, L"turn");
+		g_runtimeClock = 35100;
+		GC.game.autoplay = 0;
+		updateSASRuntimeStatusAutoPlay(SAS_RUNTIME_STATUS_AUTOPLAY_ENDED, SAS_AUTOPLAY_END_USER_INTERRUPTED);
+		snapshotStatus(root, snapshots, L"interrupted");
+		g_runtimeClock = 35200;
+		updateSASRuntimeStatusRequest(SAS_RUNTIME_STATUS_RETURN_TO_MENU_REQUESTED);
+		snapshotStatus(root, snapshots, L"menu_request");
+		g_runtimeClock = 39000;
+		GC.game.ready = false;
+		updateSASRuntimeStatusNoGame();
+		snapshotStatus(root, snapshots, L"menu_reset");
+		g_runtimeClock = 39200;
+		GC.game.ready = true;
+		updateSASRuntimeStatusSessionStarted(true);
+		snapshotStatus(root, snapshots, L"load_starting");
+		g_runtimeClock = 42400;
+		updateSASRuntimeStatusSessionReady();
+		snapshotStatus(root, snapshots, L"loaded");
+		updateSASRuntimeStatusGameEnded();
+		snapshotStatus(root, snapshots, L"ended");
+		updateSASRuntimeStatusNoGame();
+		snapshotStatus(root, snapshots, L"reset");
+		updateSASRuntimeStatusRequest(SAS_RUNTIME_STATUS_EXIT_REQUESTED);
+		snapshotStatus(root, snapshots, L"exit_request");
+		updateSASRuntimeStatusCleanExit();
+		snapshotStatus(root, snapshots, L"exit");
+		std::wstring const historyName(g_szSASRuntimeHistoryFilename.begin(), g_szSASRuntimeHistoryFilename.end());
+		std::wstring const historyPath = root + L"\\Logs\\" + historyName;
+		std::string const beforeFailure = readFile(historyPath);
+		g_maxWrite = 7;
+		g_failPartialWrite = true;
+		require(!appendSASRuntimeHistory("{\"failedProbe\":true}\r\n"), "partial history write reports failure");
+		g_failPartialWrite = false;
+		g_maxWrite = 0xffffffff;
+		require(readFile(historyPath) == beforeFailure, "partial history write rolls back without harming prior intervals");
+		require(CopyFileW(historyPath.c_str(), (snapshots + L"\\timeline.jsonl").c_str(), FALSE) != FALSE, "retain timeline fixture for JSON parsing");
+		require(g_dllIdentityLookups == 2, "runtime DLL identity formats each whitespace representation once across lifecycle snapshots");
+		return 0;
+	}
 	// <!-- custom: A separate process preserves genuine unresolved-root startup state while exercising terminal fallback after an early initialization abort. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	if (argc == 2 && strcmp(argv[1], "--terminal-fallback") == 0)
 	{

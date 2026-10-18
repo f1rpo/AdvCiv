@@ -701,16 +701,20 @@ def check_change(path: str, old_text: str | None, new_text: str | None, warnings
                 % (path, nearby[0].start, ", ".join(missing))
             )
 
-    if not new_file and suffix in CPP_SUFFIXES | PY_SUFFIXES:
-        for start, end, directives in import_include_changes(old_text, new_text, suffix):
-            nearby = nearby_added_custom(added_custom, start, end, radius=5)
-            if not nearby:
-                summary = ", ".join("%s %s" % (action, target) for action, _line, _kind, target, _raw in directives)
-                errors.append(
-                    "%s:%d: include/import change lacks a nearby new custom rationale comment (%s)"
-                    % (path, start, summary)
-                )
+    # <!-- custom: New files also introduce dependencies whose purpose must be recorded; only untouched inherited directives are outside this diff-aware rule.
+    # Check proximity to each directive, not the entire diff hunk: a new-file hunk spans the whole file and would otherwise accept an unrelated distant comment. (GPT-6.1-Sol) -->
+    if suffix in CPP_SUFFIXES | PY_SUFFIXES:
+        for _start, _end, directives in import_include_changes(old_text, new_text, suffix):
+            for action, line, _kind, target, _raw in directives:
+                position = line if action == "added" else map_old_line_to_new(line, opcodes)
+                nearby = nearby_added_custom(added_custom, position, position, radius=5)
+                if not nearby:
+                    errors.append(
+                        "%s:%d: include/import change lacks a nearby new custom rationale comment (%s %s)"
+                        % (path, position, action, target)
+                    )
 
+    if not new_file and suffix in CPP_SUFFIXES | PY_SUFFIXES:
         for old_sig, new_sig in changed_signatures(old_text, new_text, suffix):
             nearby = nearby_added_custom(added_custom, new_sig.start, new_sig.end, radius=6)
             if not nearby:

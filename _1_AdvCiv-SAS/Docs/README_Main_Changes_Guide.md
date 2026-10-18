@@ -476,6 +476,32 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 
 ### Logging
 
+- (Requires AdvCiv-SAS 6642+) **Optional external-agent runtime status:** lets agents check the latest reported game/session/autoplay state without searching historical logs. `SAS_RUNTIME_STATUS_ENABLE=1` maintains `Logs/SASRuntimeStatus.json` independently from BBAI/SASGameRecord logging; the shipped default is 0.
+  - Both runtime files report one compiled recorder revision, independent of SASGameRecord; its [revision history](/_1_AdvCiv-SAS/Docs/revisions/SASRuntime.md) explains the implementation changes.
+  - [Runtime-status examples and format guide](/_1_AdvCiv-SAS/Docs/examples/runtime_status/README.md) explain the current JSON snapshot, append-only JSONL timeline and their timing fields.
+  - This complements `CvGameCoreDLL.dll.build.json`, which reports started/completed/failed DLL builds: agents can inspect both compilation and game/autoplay state through the corresponding JSON artifacts.
+  - The `dllIdentity` object identifies the loaded DLL through build configuration, cached module-backed file fingerprint/size, file-write UTC and PE timestamp, with explicit availability flags. Compare this evidence with the intended build; a running process or current source tree alone does not establish that the latest DLL was loaded.
+  - Records the Civ4 process ID and actual process-creation UTC, DLL-load UTC, status-update serial/time, clean-running versus clean-exit state, current game state, and the reason for the latest status rewrite.
+    - New/load attempts increment process-lifetime session/new/load counters at the start of generation/reading, record `sessionStartedUtc`, then record `nativeReadyUtc` when native initialization has completed (`GameStart` waits for its Python handlers too). A crash during loading/generation therefore leaves the attempted session visible rather than only the previous ready state.
+    - Ready-game state includes current/last-completed turn, active-player ID, autoplay state/remaining turns, map dimensions/world-size/game-speed/scenario IDs, and loaded-save checkpoint turn/UTC when that SAS save metadata exists.
+  - Updates only when BUG supplies the authoritative user root, a game resets/starts/becomes ready/ends, autoplay is explicitly started/ended/adjusted, a native menu/desktop-exit request is observed, a game turn completes, or orderly game destruction begins. There is no frame/update polling; disabled runs skip status formatting and file I/O after the cached Define check.
+    - `NO_GAME` means no initialized game is represented; it is deliberately not an exact UI-menu or human-idle detector. `SESSION_STARTING`, `PLAYING` and `GAME_ENDED` distinguish the useful game lifecycle states without guessing what the user is doing between events.
+  - The file lives beside SASGameRecord/BBAI under the resolved user root's `Logs` folder, including `CvAltRoot`. Its fixed name lets agents discover the current process without choosing among timestamped stale snapshots.
+    - `activity`, `activitySerial` and `activityStartedUtc` identify the current observed interval; `activityElapsedMilliseconds` is its elapsed time as of `updatedUtc`, not a continuously running counter. Previous-activity fields retain its start/end UTC and completed duration in milliseconds.
+    - Elapsed durations use the monotonic diagnostic clock, so changing the system clock does not change those measurements.
+    - The linked `SASRuntimeHistory_<process-start UTC>_<PID>.jsonl` appends one JSON row at each activity transition, preserving creation/loading durations, play outside autoplay, autoplay starts/adjustments/stops and their completion causes across successive sessions. Ordinary turn updates do not add timeline rows, and no growing history is retained in memory.
+    - Each timeline row closes the previous interval and enters the next at `recordedUtc`; it includes DLL/process/session identity and known loaded-save checkpoint metadata for matching that session later. Checkpoints identify serialization evidence, not necessarily the filename opened. The first interval starts at the first enabled observation; crash/forced-exit tails have no observed end.
+    - A return-to-menu interval measures the observed request through the next observed state boundary, not confirmed menu arrival. Exact main-menu and WorldBuilder detection are not implemented.
+    - `statusWriteFailures` reports earlier failed current-status publications after recovery, independently of timeline failures. It includes unavailable roots, failed opens/writes and unconfirmed closes.
+    - `historyRowsWritten` counts confirmed successful appends; a full row may still exist after close reports failure, so it is not always the physical line count. `historyWriteFailures` and state serials disclose unsuccessful or unconfirmed history writes.
+    - The history is best-effort rather than a guarantee against I/O or power failure. Root handoff copies existing history to the new Logs folder without deleting the earlier copy; `historyAtCurrentRoot=0` means migration failed and appends remain at the earlier root. No physical-disk flush is requested.
+  - Its own enable switch controls direct file writes even when `CivilizationIV.ini` has `LoggingEnabled=0`; MessageLog, RandLog and SynchLog do not gate it, and OverwriteLogs does not govern this always-replaced snapshot.
+  - Process state describes the last observed lifecycle boundary, not the action used to close Civ4. `RUNNING` is independent of autoplay; `EXITED_CLEANLY` currently records entry into orderly `CvGame` destruction, not proof that the process has finished exiting. Validate the live process using its PID and creation UTC.
+    - The native return-to-menu and confirmed in-game Exit to Desktop requests have distinct reasons; they do not identify window-close actions while idle or during autoplay, or the separate EXE main-menu exit button. `NO_GAME` reports a reset, not confirmed arrival at the main menu. Window-close behavior in both idle and autoplay conditions still needs in-game validation.
+    - Crashes, forced termination and abrupt Windows shutdown can leave stale `RUNNING` status; a vanished process without a recorded shutdown does not identify the cause. A live process can also be unresponsive, so neither its existence nor an unchanged turn snapshot proves it is healthy or hung.
+    - A reader that catches the tiny overwrite in progress should retry malformed/partial JSON.
+  - Save filenames/paths, user names and free text are not written. Historical advisor/tab/Sevopedia/control interaction is already available through the existing level-2+ `SAS_GAME_RECORD_ACTION_TRACE_ENABLE` trace, so runtime status deliberately does not duplicate a high-volume clickstream.
+
 #### Logging (Common)
 
 - (Requires AdvCiv-SAS 6641+) **Shared diagnostic-writer health:** SASGameRecord records one compact `GAME_RECORD_DIAGNOSTIC_WRITER` snapshot at completed-turn checkpoints and session finalization.
@@ -615,7 +641,7 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
   - Shared DLL context identifies the compiler and compiled profiler/ReproTest switches alongside the existing build configuration, while DLL/EXE identity includes actual binary resource versions when available; system-context level 3 with the process-context opt-in also records debugger presence and selected development-tool processes at session start, without treating an open IDE or lingering build process as proof of active compilation.
   - Save-format context distinguishes mod/replay identity and the loaded save's game-stream flag from the current writer markers for core/AI objects and supporting subsystems; the shared writer registry supplies that component context without changing serialized bytes.
 
-(Requires AdvCiv-SAS 6440+) Note: `SASGameRecord` log has its own revision system, see [`README_SASGameRecord_Revisions.md`](/_1_AdvCiv-SAS/Docs/README_SASGameRecord_Revisions.md) for details and miscellanous information.
+(Requires AdvCiv-SAS 6440+) Note: `SASGameRecord` log has its own revision system, see [`SASGameRecord.md`](/_1_AdvCiv-SAS/Docs/revisions/SASGameRecord.md) for details and miscellanous information.
 
 - (Requires AdvCiv-SAS 6626+) **SASGameRecord helps distinguish attractive city plots from sustainable worked-plot combinations:**
   - At city founding, compact player-known Food budgets show how much surplus remains for small and larger worked-plot cores, both with potential improvements and with features retained before improvements.
@@ -631,7 +657,7 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 - (Requires AdvCiv-SAS 6551+) **Consumer/reproducibility context is clearer without bloating every run:**
   - level-3 display context with the hardware-identity opt-in distinguishes multi-adapter/multi-vendor Windows systems so hybrid-GPU or driver/device-selection issues are easier to recognize, while structured text-map legend/layer rows repeat their turn for self-locating parser/grep slices.
   - The runtime log intentionally does not emit an exhaustive static manifest of every row type the build could produce; exact source/revision/settings identify the producer, while schema/parser guidance stays in source/docs/checkers.
-  - See [`README_SASGameRecord_Revisions.md`](/_1_AdvCiv-SAS/Docs/README_SASGameRecord_Revisions.md#consumerparser-notes).
+  - See [`SASGameRecord.md`](/_1_AdvCiv-SAS/Docs/revisions/SASGameRecord.md#consumerparser-notes).
 - (Requires AdvCiv-SAS 6552+) **Level-3 periodic city detail now uses bounded checkpoint-plus-delta encoding:**
   - the five largest repetitive city families keep full rows at session start and every tenth observation, while intermediate rows emit only changed fields with explicit reconstruction links.
   - New/load files restart the chains, a strict helper can restore the old full-row shape, and levels 0-2 are unaffected.

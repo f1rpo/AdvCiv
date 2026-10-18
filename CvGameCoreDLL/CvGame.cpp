@@ -135,6 +135,8 @@ CvGame::~CvGame()
 	// <!-- custom: Using the reset/load root-waiting mode here would leave pending startup diagnostics unwritten if initialization ended before BUG supplied its root.
 	// Destruction has no later handoff to wait for, so retry final output with native fallback discovery and close session handles; an empty writer does no file I/O. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	flushSASDiagnosticLogs(true, true);
+	// <!-- custom: Mark only orderly CvGame destruction as a clean process exit; a crash leaves the previous RUNNING status plus PID/process-start identity for stale-state detection. (ChatGPT-5.6-Sol) -->
+	updateSASRuntimeStatusCleanExit();
 	uninit();
 	SAFE_DELETE(m_pRiseFall); // advc.700
 	SAFE_DELETE(m_pSpah); // advc.250b
@@ -147,6 +149,8 @@ void CvGame::init(HandicapTypes eHandicap)
 	CvInitCore& ic = GC.getInitCore();
 
 	reset(eHandicap); // Reset serialized data
+	// <!-- custom: Publish the new-session attempt before map generation so an external agent can distinguish loading/generation time from the later native-ready checkpoint. (ChatGPT-5.6-Sol) -->
+	if (isSASRuntimeStatusEnabled()) updateSASRuntimeStatusSessionStarted(false);
 	// <!-- custom: Start distinct diagnostic/report files before map generation so a new game begun after save-file tests does not continue writing to the last loaded-save logs.
 	// Caller-gated to avoid entering disabled logging helpers. (GPT-5.5) -->
 	if (isSASBBAILogEnabled()) startSASBBAILogForNewGame();
@@ -855,7 +859,11 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	/*	<advc.003v> No need to read data from a savegame first; CvInitCore
 		is responsible for the game options and is loaded before CvGame. */
 	if (!bConstructorCall)
+	{
 		CvGlobals::getInstance().loadOptionalXMLInfo(); // </advc.003v>
+		// <!-- custom: A reset can mean return-to-menu or the transition before another new/load session; publish NO_GAME immediately, then the later session-start hook replaces it. (ChatGPT-5.6-Sol) -->
+		if (isSASRuntimeStatusEnabled()) updateSASRuntimeStatusNoGame();
+	}
 }
 
 /*	The EXE calls this after generating the map but before initFreeState
@@ -4845,6 +4853,14 @@ void CvGame::setAIAutoPlay(int iNewValue, /* <advc.127> */ bool bChangePlayerSta
 	// Explicit completion causes distinguish scheduled completion from interruption, victory, player defeat, desync, assertions, and other resets.
 	// Skip ordinary countdown ticks because they call setAIAutoPlay every turn and would spam AUTOPLAY_CHANGED rows. See KI#203. (GPT-5.5 + GPT-5.6-Sol) -->
 	if (gGameRecordLogLevel >= 2 && (bChangePlayerStatus || iOldAIAutoPlay == 0 || m_iAIAutoPlay == 0)) logSASGameRecordAutoPlayChanged(iOldAIAutoPlay, m_iAIAutoPlay, bChangePlayerStatus, eEndCause);
+	// <!-- custom: Current-state agents need requested autoplay changes immediately, while ordinary countdown ticks are already refreshed by the completed-turn heartbeat.
+	// Distinguish start/end from an active-count adjustment instead of reusing the broader game-record condition above. (ChatGPT-5.6-Sol) -->
+	// <!-- custom: Ordinary countdown calls use bChangePlayerStatus=false; the previous condition emitted a redundant rewrite every tick despite the completed-turn update. (GPT-6.1-Sol) -->
+	if (isSASRuntimeStatusEnabled() && iOldAIAutoPlay != m_iAIAutoPlay && (bChangePlayerStatus || iOldAIAutoPlay == 0 || m_iAIAutoPlay == 0))
+	{
+		SASRuntimeStatusReason const eStatusReason = (iOldAIAutoPlay == 0 ? SAS_RUNTIME_STATUS_AUTOPLAY_STARTED : (m_iAIAutoPlay == 0 ? SAS_RUNTIME_STATUS_AUTOPLAY_ENDED : SAS_RUNTIME_STATUS_AUTOPLAY_CHANGED));
+		updateSASRuntimeStatusAutoPlay(eStatusReason, eEndCause);
+	}
 	if (!bChangePlayerStatus)
 		return; // </advc.127>
 	// Erik <BM1>
@@ -6482,6 +6498,8 @@ void CvGame::doTurn()
 	if (isSASGameRecordLogEnabled()) logSASGameRecordTurnCompleted(getGameTurn());
 	// <!-- custom: Retry failed/pre-root output at each completed turn; successful ordinary rows are already written promptly through shared persistent handles so crash-tail evidence does not wait for this checkpoint. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	if (isSASBBAILogEnabled() || isSASGameRecordLogEnabled()) flushSASDiagnosticLogs();
+	// <!-- custom: One default-off status heartbeat per completed game turn keeps external agents current without frame/update polling; it also carries the post-cleanup autoplay remaining count. (ChatGPT-5.6-Sol) -->
+	if (isSASRuntimeStatusEnabled()) updateSASRuntimeStatusTurnCompleted(getGameTurn());
 
 	// <!-- custom: Corporation maintenance is cached after dividing out inflation, but AdvCiv computes inflation on demand.
 	// Preserve each effective rate across the two clock increments and rebuild only players whose rounded rate changed, preventing cached inverse-inflation terms from becoming obsolete. See KI#744. (GPT-5.6-Sol) -->
@@ -9402,6 +9420,8 @@ uint CvGame::getNumReplayMessages() const
 void CvGame::read(FDataStreamBase* pStream)
 {
 	reset(NO_HANDICAP);
+	// <!-- custom: Mark the load attempt before serialized fields are read; if loading aborts/crashes, the fixed status file retains which session attempt was in progress and when it began. (ChatGPT-5.6-Sol) -->
+	if (isSASRuntimeStatusEnabled()) updateSASRuntimeStatusSessionStarted(true);
 
 	// <!-- custom: removed old uiflag code (e.g. `if(uiFlag < 12)`), and now running any modern compliant uiflag such as of now according to chatgpt 5 anyways where uiflag == xx latest for example == 17 is true such as uiflag >= 6, uiflag >= 15 or such, see code comment around as of now the top of CvCity::read. -->
 	uint uiFlag=0;
@@ -10015,6 +10035,8 @@ void CvGame::onAllGameDataRead()
 	} // </advc.134a>
 	// <!-- custom: Loaded-session tracking begins once complete serialized state is available; close its initialization interval only after all load-finalization work so its RNG use is not attributed to the first played turn. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (g_bSASGameRecordRngTrackingActive) logSASGameRecordRngCheckpoint(getGameTurn(), SAS_RNG_CHECKPOINT_SAVE_LOADED);
+	// <!-- custom: Publish the loaded session only after serialized state and native load-finalization are complete; the status also exposes the save-checkpoint turn/UTC when SAS Fast Save metadata is present, never the save path/name. (ChatGPT-5.6-Sol) -->
+	if (isSASRuntimeStatusEnabled()) updateSASRuntimeStatusSessionReady();
 }
 
 

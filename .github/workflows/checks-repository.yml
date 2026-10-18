@@ -27,6 +27,9 @@ jobs:
       - name: Temporary files
         run: python .github/workflows/build/repository/temp_files.py
 
+      - name: IDE source/header coverage
+        run: python .github/workflows/build/repository/project_sources.py
+
       - name: Shipped DLL layout
         run: python .github/workflows/build/repository/assets_dlls.py
 

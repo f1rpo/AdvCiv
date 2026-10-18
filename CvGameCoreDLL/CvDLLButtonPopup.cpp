@@ -101,6 +101,8 @@ void CvDLLButtonPopup::OnOkClicked(CvPopup* pPopup, PopupReturn *pPopupReturn, C
 			switch (info.getData1())
 			{
 			case 0:
+				// <!-- custom: Record the confirmed in-game Exit to Desktop request before handing control to the EXE; window-close/forced termination are not inferred from this UI route. (GPT-6.1-Sol) -->
+				if (isSASRuntimeStatusEnabled()) updateSASRuntimeStatusRequest(SAS_RUNTIME_STATUS_EXIT_REQUESTED);
 				gDLL->SetDone(true);
 				break;
 			case 1:
