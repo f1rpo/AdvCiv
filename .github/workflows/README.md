@@ -133,6 +133,8 @@ To run one subject locally, use the same top-level directory:
 python -m unittest discover -s .github/workflows/tests/repository -t .github/workflows -v
 ```
 
+Local platform-specific game-code tests live separately under [`tests/`](/tests/README.md), including the Windows/VC2003 diagnostic writer harness; they are not part of this workflow.
+
 The `-t` argument keeps test package names distinct from standard-library modules such as `xml`. Source-tool tests also cover related manual helpers in `LLM_Helpers`; the commit-diff packaging tests live with repository tooling.
 
 ## Helper reference
@@ -213,6 +215,22 @@ python .github/workflows/build/repository/dll_define_changes.py
 python .github/workflows/build/repository/dll_define_changes.py --base-ref HEAD~3 --head-ref HEAD
 ```
 
+#### `build/repository/dll_python_bindings.py`
+
+Adding a Python method call alongside an old DLL can break startup or game loading even when Python syntax checks pass. This guard catches changed literal Boost.Python method registrations in `CvGameCoreDLL/**/*Interface*.cpp` and requires matching Release build evidence at default-branch integration.
+
+- Compare `.def("name", target, ...)` names and target expressions against each selected commit's first parent; additions, removals and retargeting require a changed shipped DLL. Comments, help strings, whitespace, registration ordering and moves between interface files do not trigger a rebuild by themselves.
+- Reuse the existing successful Release report/binary checks, then compare affected registration-source hashes with `buildInputsBefore`. Accept Git LF or Windows CRLF representation, without ignoring other content changes; a different but still stale DLL/report pair does not satisfy the source check.
+- Like structural XML define changes, intermediate feature-branch commits may remain source-only. Default-branch pushes and PRs require the matching pair at the integration head; existing per-commit DLL intent rules still apply.
+- Scope is explicit literal method registrations, not a complete C++/Python compatibility analysis: class/enum/property registrations, macro-generated or computed names, target-signature changes without registration edits, trailing policies/argument metadata and Python callers are not checked.
+
+The guard does not compile or run Civ4, authenticate a report or prove that all native implementation files match. Compilation, runtime testing and review remain necessary.
+
+```sh
+python .github/workflows/build/repository/dll_python_bindings.py
+python .github/workflows/build/repository/dll_python_bindings.py --base-ref HEAD~3 --head-ref HEAD
+```
+
 #### `build/repository/version_metadata.py`
 
 Verifies the tracked `Assets/SASModVersion.txt` archive marker retains its Git `export-subst` version-anchor describe, commit, and commit-date placeholders, and that `.gitattributes` still marks the file `export-subst`.
@@ -278,11 +296,12 @@ Only leading signatures are read; binary assets are not decoded.
 
 #### `build/documentation/markdown_prose_changes.py`
 
-Checks added/edited Markdown prose blocks against the push/PR base (local default: `HEAD^`). Untouched historical blocks are exempt.
+Checks list layout in every tracked Markdown file, plus added/edited maintained prose against the push/PR base (local default: `HEAD^`).
 
 - Flags blocks of at least 400 characters only when the existing prose helper finds a safe sentence boundary with at least 100 characters on each side; single long sentences and short attached follow-ups remain valid.
 - Soft-wrapped lines still form one rendered paragraph. Split distinct thoughts into a few blank-line paragraphs or child bullets, keeping short related sentences together.
-- Excludes fenced/indented code, tables, blockquotes, HTML comments, copied/generated context and numbered archived changelogs.
+- Reject an apparent tab/four-space-indented list immediately after a prose paragraph, including in unchanged tracked docs: Markdown can merge its bullets into that paragraph. Separate a new top-level list with a blank line and leave its bullets unindented; valid nested lists and ordinary soft wrapping remain allowed.
+- Code, tables, blockquotes and HTML comments are excluded. The paragraph-length rule additionally excludes untouched historical prose, copied/generated context and numbered archived changelogs; the tracked-file list-layout scan has no historical-doc exemption.
 - Reports affected paths and line numbers without rewriting files. Run locally with `python .github/workflows/build/documentation/markdown_prose_changes.py --base-ref HEAD`.
 
 The [existing helper](/LLM_Helpers/README.md#reflow_markdown_prosepy) previews sentence boundaries; its source-only output still needs review for visible structure. Passing this automated check does not establish that the chosen paragraphs or bullets are coherent.
@@ -565,11 +584,16 @@ Missing the Tipi's BuildingArtInfo wrapper caused a startup crash even though it
 
 #### `build/diagnostics/diagnostic_log_safety.py`
 
-Verifies the BBAI and SASGameRecord final emission paths use the shared `logSASDiagnosticLiteralLine` wrapper instead of passing an already-formatted dynamic line directly to `gDLL->logMsg`. Civ4's EXE logger can interpret `%` in that message as printf syntax again; the wrapper doubles every remaining literal percent only at the final boundary.
+Verifies the BBAI and SASGameRecord final emission paths use the shared DLL-owned `logSASDiagnosticLiteralLine` writer instead of Civ4's opaque EXE `gDLL->logMsg` sink.
 
-The check also guards the helper's percent-doubling implementation and carries small executable-specification examples such as `75%` -> `75%%`. Producer format strings still use ordinary printf escaping (`%%` for one intended `%`).
+Ordinary rows are submitted promptly through persistent read/write/delete-shared handles so external tools can inspect or copy output during play; private retry buffers are reserved for unresolved startup paths and failed writes.
 
-This check is intentionally scoped to the two SAS diagnostic sinks implicated by [KI#375.3](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-375.3), not every inherited `gDLL->logMsg` caller in the DLL.
+The check guards sink wiring, read-sharing intent, checkpoint presence and the absence of `FlushFileBuffers` durability calls.
+
+- It does not execute native writes or prove bounded memory/error recovery. The local [diagnostic writer harness](/tests/README.md#diagnostic-writer) exercises the actual writer with normal and injected-failure I/O; it also checks prompt visibility and survival of final rows after abrupt process termination. Game lifecycle and autoplay performance require runtime testing.
+- Already-formatted text is written directly, so literal `%` needs no EXE-boundary doubling; producer format strings still use ordinary printf escaping (`%%` for one intended `%`).
+
+This check remains intentionally scoped to the two SAS diagnostic sinks implicated by [KI#375.3](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-375.3), plus their shared writer/checkpoint plumbing, rather than every inherited logging caller in the DLL.
 
 #### `build/diagnostics/bbai_log.py`
 
@@ -668,14 +692,17 @@ Verifies every playable `PrivateMaps/*.py` script is listed exactly once across 
 
 Diff-aware source-history guard for maintained C/C++, Python and XML source. It compares the selected push/PR range with its base instead of linting old source in isolation.
 
-It enforces four review rules introduced after repeated provenance mistakes:
+It enforces these review rules introduced after repeated provenance mistakes:
 
 - newly authored or substantively rewritten source comments use `<!-- custom: ... (model credit) -->`; model-authored comments need the credit, while user-authored comments may omit it. Missing model credits are advisory warnings, not helper failures; unchanged/moved inherited comments and whitespace-only reflow remain valid, while stale inherited comments may simply be removed;
+- when a nearby replacement custom comment retains identical or substantially unchanged prose, recognized existing credits in its trailing parenthesized credit list are preserved; dropping one contributor still fails even if another credit remains. Credit reordering/additions and whitespace reflow are allowed, as are whole-comment deletions and unrelated replacements;
 - if an inherited comment is replaced by a nearby custom comment, known provenance markers such as `advc.xxx`, `KI#...` and `Long_Comments_... #N` are retained;
 - edits to existing-file C/C++ `#include` or Python import dependencies have a nearby newly added custom rationale comment;
 - parameter-list changes on existing non-SAS C++/Python functions have a nearby newly added custom comment explaining the interface change. Clearly SAS-named helpers are intentionally optional.
 
 The check is deliberately conservative rather than a full C++ parser. New files are exempt from dependency/parameter-diff requirements, standard repository header/directive comments are exempt from the new-comment rule, and source-file deletion is allowed without a tombstone comment.
+
+Credit matching is deliberately conservative: free-form attribution, distant moves combined with rewrites and wholesale rewrites still need review.
 
 Comment wording quality remains a human-review concern; when run, the helper verifies provenance/rationale presence, not whether the rationale is persuasive.
 

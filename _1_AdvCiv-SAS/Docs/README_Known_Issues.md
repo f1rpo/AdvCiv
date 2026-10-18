@@ -10202,8 +10202,9 @@ Dedicated BBAI component/price diagnostics and SASGameRecord's ordinary/trade ma
 In the final validation run, Byzantium owned both Horse and Camel and late Camel declined to value `1`; owning Coal similarly reduced Oil's Railroad contribution from `4000` to `2000` while preserving Oil's independent military-unit value.
 
 Update:
-	- [KI#178.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-178.2) later found one first-capital consumer-side interaction: the shared dynamic value's generic no-city happiness/health component overlapped KI#178's explicit settlement-specific resource value.
-	- The shared dynamic valuation remains unchanged for ordinary callers; only actual first-capital scoring requests the exact no-overlap remainder.
+
+- [KI#178.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-178.2) later found one first-capital consumer-side interaction: the shared dynamic value's generic no-city happiness/health component overlapped KI#178's explicit settlement-specific resource value.
+- The shared dynamic valuation remains unchanged for ordinary callers; only actual first-capital scoring requests the exact no-overlap remainder.
 
 <a id="ki-110"></a>
 
@@ -11555,8 +11556,9 @@ Performance follow-up (ChatGPT-5.6-Sol + GPT-6.1-Sol):
 - The autoplay results above validate the original scouting change; this later optimization requires its own compilation and runtime validation.
 
 Follow-up:
-	- the later first-capital diagnostic pass prompted by this work exposed the separate [KI#178.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-178.2) AdvCiv-SAS resource-value overlap; that issue is documented with the city-site bonus valuation work rather than consuming a new sequential KI number.
-	- The same diagnostic pass also exposed [KI#144.3](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-144.3), a direct refinement of KI#144's capital food-resource classifier.
+
+- the later first-capital diagnostic pass prompted by this work exposed the separate [KI#178.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-178.2) AdvCiv-SAS resource-value overlap; that issue is documented with the city-site bonus valuation work rather than consuming a new sequential KI number.
+- The same diagnostic pass also exposed [KI#144.3](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-144.3), a direct refinement of KI#144's capital food-resource classifier.
 
 <a id="ki-144.3"></a>
 
@@ -13468,8 +13470,9 @@ The same run also showed that the new Zulu western city Nobamba at `(9,45)` was 
 That result is a defense/history issue, not evidence that the city-site valuation itself rejected the west.
 
 Update:
-	- [KI#178.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-178.2) later found that practical 6577's dynamic `AI_baseBonusVal` layer reintroduced generic no-city happiness/health on top of this explicit settlement value for actual first-capital scoring.
-	- KI#178.2 removes only that overlap while preserving the dynamic strategic components.
+
+- [KI#178.2](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-178.2) later found that practical 6577's dynamic `AI_baseBonusVal` layer reintroduced generic no-city happiness/health on top of this explicit settlement value for actual first-capital scoring.
+- KI#178.2 removes only that overlap while preserving the dynamic strategic components.
 
 Fixed with the help of GPT-5.5 (on ChatGPT Codex) thanks.
 
@@ -22378,6 +22381,12 @@ Runtime validation used a fresh Debug-opt DLL and a 50-turn smoke autoplay.
 BBAI and SASGameRecord both reached turn 50 normally, including final turn/checkpoint rows, with no crash or garbage-byte replacement.
 
 Diagnosed from the matching T312 dump plus byte-level BBAI evidence, with the fix/CI/docs prepared by ChatGPT-5.6-Sol and Debug-opt smoke-autoplay validation by wonderingabout, thanks.
+
+Later follow-up (2026-10-17): to make logs accessible during autoplay, SASGameRecord (and BBAI) now use a shared DLL-owned writer.
+
+Bypassing the EXE also removes the second printf interpretation diagnosed above: already-formatted `%` passes through literally, replacing the earlier doubling workaround.
+
+Prepared with ChatGPT-5.6-Sol and GPT-6.1-Sol; in-game validation remains pending.
 
 <a id="ki-376"></a>
 

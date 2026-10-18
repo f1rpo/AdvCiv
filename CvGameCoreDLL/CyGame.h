@@ -91,6 +91,9 @@ public:
 	int getGameTurnYear();
 
 	int getElapsedGameTurns();
+	// <!-- custom: Use a Unicode root instead of narrow text and return checkpoint success instead of void; Python can preserve non-ASCII paths and detect failed live-inspection output. (GPT-6.1-Sol) -->
+	void setSASDiagnosticLogRoot(std::wstring szRootDirectory);
+	bool flushSASDiagnosticLogs();
 	// <!-- custom: New lifecycle bridge records diagnostic settings after Python GameStart/OnLoad handlers finalize Autolog; it gathers no data when SASGameRecord is disabled. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	void logSASGameRecordDiagnosticContext(int iRenderQualityLevel, int iAntiAliasingIndex, int iAntiAliasingSamples, int iGlobeViewRenderLevel, int iMovieQualityLevel);
 	// <!-- custom: Session-configuration timeline bridge plus level-2+ native runtime-view snapshot and internal active-INI resolver; caller-side gates avoid Python collection work when SASGameRecord is disabled. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->

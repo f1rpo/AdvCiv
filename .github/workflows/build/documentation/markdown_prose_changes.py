@@ -90,8 +90,23 @@ def needs_split(body):
     return False
 
 
-# <!-- custom: Enforce the 400-character candidate threshold only when a block has a safe sentence boundary and intersects added/edited Git lines.
-# Reviewers choose a few coherent paragraphs or child bullets; the check never requires one paragraph per sentence or a fixed-width wrap. (GPT-6.1-Sol) -->
+# <!-- custom: Detect apparent indented lists that Markdown merges into the preceding paragraph, independently of edit history.
+# The README teaser reproduced that rendering failure: tabs before its bullets plus no blank line produced one paragraph and zero list items.
+# Ordinary soft wrapping, valid nested lists and code examples remain allowed. (GPT-6.1-Sol) -->
+def list_findings(path, text):
+    physical = text.splitlines()
+    errors = []
+    for lines, _body in prose_blocks(text):
+        first, last = lines[0], lines[-1]
+        if prose.LIST_PREFIX_RE.match(physical[first]) or physical[first][:1].isspace():
+            continue
+        following = last + 1
+        if following < len(physical) and re.match(r"^(?:\t| {4})[ \t]*(?:[-+*]|\d+[.)])\s+", physical[following]):
+            errors.append(f"{path}:{following + 1}: indented list directly after prose renders as paragraph text; insert a blank line and unindent top-level bullets")
+    return errors
+
+
+# <!-- custom: Paragraph grouping remains an incremental editorial rule; untouched historical prose does not need reworking just because a different section changed. (GPT-6.1-Sol) -->
 def findings(path, old, new, edited_lines=None):
     if not maintained(path):
         return []
@@ -114,13 +129,20 @@ def findings(path, old, new, edited_lines=None):
     return errors
 
 
-# <!-- custom: Support local working-tree review and push/PR bases through the same Git selection as the provenance checker; deleted files cannot introduce bulky prose. (GPT-6.1-Sol) -->
+# <!-- custom: Always scan tracked Markdown for the concrete list-rendering defect; the earlier changed-files-only scope missed four older instances.
+# Prose-length review still uses the push/PR base and changed-line hunks, avoiding a broad historical rewrite. (GPT-6.1-Sol) -->
 def check(repo, base_ref, event_name):
+    errors = []
+    tracked = git_context.run_git(repo, "ls-files", "-z").stdout.decode("utf-8").split("\0")
+    for path in tracked:
+        current = repo / path
+        if path.lower().endswith(".md") and current.is_file():
+            _encoding, text = prose.decode_bytes(current.read_bytes())
+            errors.extend(list_findings(path, text))
     base = git_context.ensure_base(repo, base_ref, event_name)
     if base is None:
-        return [], 0
+        return errors, 0
     raw = git_context.run_git(repo, "diff", "--name-only", "-z", "--diff-filter=ACMRT", base, "--").stdout
-    errors = []
     count = 0
     for path in raw.decode("utf-8").split("\0"):
         if not maintained(path):
@@ -141,9 +163,9 @@ def check(repo, base_ref, event_name):
     return errors, count
 
 
-# <!-- custom: CI reports all affected edited lines and never writes Markdown; sentence splitting does not replace human review of visible paragraph/list structure. (GPT-6.1-Sol) -->
+# <!-- custom: Report global tracked-list failures and incremental prose findings without rewriting Markdown; grouping distinct thoughts still needs human review. (GPT-6.1-Sol) -->
 def main():
-    parser = argparse.ArgumentParser(description="Check long Markdown prose blocks only on added/edited lines.")
+    parser = argparse.ArgumentParser(description="Check all tracked Markdown list layouts and long prose blocks on added/edited lines.")
     parser.add_argument("--repo-root", type=Path, default=ROOT)
     parser.add_argument("--base-ref")
     parser.add_argument("--event-name", default="local", choices=("local", "push", "pull_request", "workflow_dispatch"))
@@ -153,7 +175,7 @@ def main():
     except (RuntimeError, OSError, ValueError) as error:
         print(f"FAIL Markdown prose setup: {error}")
         return 1
-    print("FAIL edited Markdown prose" if errors else f"PASS edited Markdown prose ({count} changed documents checked)")
+    print("FAIL Markdown list layout/edited prose" if errors else f"PASS Markdown list layout/edited prose (all tracked Markdown lists; {count} changed documents checked for prose)")
     for error in errors:
         print("  - " + error)
     return int(bool(errors))

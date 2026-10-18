@@ -1,5 +1,7 @@
 # Workflow helper tests
 
+Local platform-specific game-code tests live separately under [`tests/`](/tests/README.md).
+
 These Python regression tests verify the workflow/tooling helpers themselves. `checks-tests.yml` runs the full suite automatically on pushes and pull requests; the same suite is also useful for focused local validation.
 
 Many tests use small deterministic fixtures in temporary directories. A fixture is a deliberately constructed example that should either pass or fail a helper in a known way; it does not randomly alter or sample the mod's real gameplay XML. Other tests exercise the current repository where that is the behavior being protected.

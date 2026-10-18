@@ -194,7 +194,8 @@ def render_menu(text, known_issues=False, document=None):
     return text[:start] + "\n\n" + "\n".join(rows) + "\n\n" + text[end:]
 
 def paths(root):
-    return sorted(set([root / "README.md", root / "AGENTS.md", root / "LLM_Helpers/README.md", root / ".github/workflows/README.md"] + list((root / "_1_AdvCiv-SAS/Docs").rglob("*.md"))))
+    # <!-- custom: Include the local-tests guide alongside the other maintained root/tooling docs after separating executable test programs from helper scripts. (GPT-6.1-Sol) -->
+    return sorted(set([root / "README.md", root / "AGENTS.md", root / "LLM_Helpers/README.md", root / ".github/workflows/README.md"] + list((root / "_1_AdvCiv-SAS/Docs").rglob("*.md")) + list((root / "tests").rglob("*.md"))))
 
 def main():
     parser = argparse.ArgumentParser(description="Validate declared Markdown menus and balanced bold markers in maintained docs.")

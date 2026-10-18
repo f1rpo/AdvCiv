@@ -108,13 +108,15 @@ def maintained_source_path(path: str) -> bool:
     lower = posix.lower()
     if "/context/" in lower or lower.startswith("_snapshot_context/"):
         return False
+    # <!-- custom: Local game-code tests now live under tests/ rather than the helper folder; keep their Python runners and C++ fixtures covered by source-provenance review. (GPT-6.1-Sol) -->
     if suffix in CPP_SUFFIXES:
-        return lower.startswith("cvgamecoredll/")
+        return lower.startswith(("cvgamecoredll/", "tests/"))
     if suffix in PY_SUFFIXES:
         return (
             lower.startswith("assets/python/")
             or lower.startswith("privatemaps/")
             or lower.startswith("llm_helpers/")
+            or lower.startswith("tests/")
             or lower.startswith(".github/workflows/")
         )
     return lower.startswith("assets/xml/")
@@ -330,6 +332,32 @@ def unmatched_blocks(old: list[CommentBlock], new: list[CommentBlock], custom: b
         removed.extend(old_items[common:])
         added.extend(new_items[common:])
     return removed, added
+
+
+# <!-- custom: A partial rewrite of the logging comments dropped one existing contributor while keeping another, so merely checking that some credit exists missed the loss.
+# Recognize the normal trailing parenthesized credit list separately from prose; do not treat model names mentioned in the explanation as authorship. (GPT-6.1-Sol) -->
+def comment_credit_parts(block: CommentBlock) -> tuple[dict[str, str], list[str]]:
+    payload = block.text.replace(CUSTOM_CLOSE, "").strip()
+    match = re.search(r"\(([^()]*(?:\([^()]*\)[^()]*)*)\)\s*$", payload)
+    credits = {}
+    if match:
+        for part in re.split(r"\s*\+\s*|,\s*|\s+(?:and|&)\s+", match.group(1)):
+            label = re.sub(r"\s*\([^()]*\)", "", part).strip()
+            if re.fullmatch(r"(?:ChatGPT|GPT|Codex|Claude|Gemini|DeepSeek|Grok|wonderingabout|AI/LLM)(?:[ \t-]+[A-Za-z0-9.]+)*", label, re.I):
+                credits[re.sub(r"\s+", " ", label).casefold()] = label
+        if credits:
+            payload = payload[:match.start()]
+    words = re.findall(r"[a-z0-9_]+", payload.replace(CUSTOM_OPEN, "").casefold())
+    return credits, words
+
+
+# <!-- custom: Require identical prose or a mostly retained explanation with a substantial unchanged phrase; proximity alone would wrongly attribute an unrelated replacement to the deleted comment.
+# This is a conservative guard for clear credit loss, not a semantic authorship detector for complete rewrites. (GPT-6.1-Sol) -->
+def retained_comment_prose(old_words: list[str], new_words: list[str]) -> bool:
+    if old_words == new_words:
+        return bool(old_words)
+    matcher = difflib.SequenceMatcher(a=old_words, b=new_words, autojunk=False)
+    return matcher.ratio() >= 0.75 and matcher.find_longest_match().size >= 8
 
 
 def line_opcodes(old_text: str, new_text: str):
@@ -625,7 +653,7 @@ def check_change(path: str, old_text: str | None, new_text: str | None, warnings
     old_comments = comments(old_text, suffix)
     new_comments = comments(new_text, suffix)
     removed_legacy, added_legacy = unmatched_blocks(old_comments, new_comments, custom=False)
-    _removed_custom, added_custom = unmatched_blocks(old_comments, new_comments, custom=True)
+    removed_custom, added_custom = unmatched_blocks(old_comments, new_comments, custom=True)
 
     for block in added_legacy:
         if exempt_new_comment(block):
@@ -642,6 +670,22 @@ def check_change(path: str, old_text: str | None, new_text: str | None, warnings
             )
 
     _old_lines, _new_lines, opcodes = line_opcodes(old_text, new_text)
+    for block in removed_custom:
+        old_credits, old_words = comment_credit_parts(block)
+        if not old_credits:
+            continue
+        mapped = map_old_line_to_new(block.start, opcodes)
+        for replacement in nearby_added_custom(added_custom, mapped, mapped, radius=6):
+            new_credits, new_words = comment_credit_parts(replacement)
+            if not retained_comment_prose(old_words, new_words):
+                continue
+            missing = [label for key, label in old_credits.items() if key not in new_credits]
+            if missing:
+                errors.append(
+                    "%s:%d: partially retained custom comment dropped existing credit(s): %s"
+                    % (path, replacement.start, ", ".join(missing))
+                )
+
     for block in removed_legacy:
         if not block.references:
             continue

@@ -2,6 +2,7 @@
 #include "CvGameCoreUtils.h"
 #include "SASBuildProvenance.generated.h" // <!-- custom: Generated in the active target's temp directory before precompilation; embeds pre-build evidence so copying the DLL alone preserves it, with no sidecar dependency. (GPT-6.1-Sol) -->
 #include <winver.h> // <!-- custom: VS_FIXEDFILEINFO describes the binary resource version; version.dll APIs are resolved dynamically for optional diagnostics without a linker dependency. (GPT-6.1-Sol) -->
+#include <map> // <!-- custom: Index diagnostic buffers by filename so repeated loads do not add a linear history scan to every logged row; map nodes also avoid copying existing pending batches. (GPT-6.1-Sol) -->
 #include "ReproTest.h" // <!-- custom: Read ENABLE_REPRO_TEST from its owning header so DLL diagnostics report the actual serialization instrumentation switch, including a source-enabled build. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 #include "CoreAI.h"
 #include "CvUnitAI.h"
@@ -73,23 +74,283 @@ CvString const& getSASProcessUtcTimestamp()
 	return g_szSASProcessUtcTimestamp;
 }
 
-// <!-- custom: Civ4's EXE log boundary treats the message as printf-style text even when the DLL has already formatted it.
-// Escape every remaining percent sign here so a legitimate line such as "timing=75% second=..." reaches the file literally instead of letting "% s" consume a bogus vararg/pointer.
-// Keep this after producer formatting: producer format strings still use ordinary printf rules and %% for one intended percent. See KI#375.3. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+// <!-- custom: BBAI and SASGameRecord need live-readable files during long autoplay runs; Civ4's EXE logger exposes no flush operation and can keep its file handles/buffers opaque until reload or exit.
+// Our uncommitted turn-batched draft made live reads possible but could lose the current turn's final evidence on a crash, which matters for investigations such as KI#895/KI#896.
+// Submit each row to Windows immediately using a persistent read/write/delete-shared handle; Windows owns normal disk caching, so no per-row open/close or forced physical-disk flush is needed.
+// Only pre-BUG startup output and failed writes wait in our bounded retry buffers; completed writes survive ordinary process termination, while incomplete writes and machine/power failure remain outside that guarantee.
+// Direct writing also removes the EXE logger's second printf interpretation, so already-formatted percent signs must pass through unchanged. See KI#375.3. (ChatGPT-5.6-Sol + GPT-5.6-Sol + GPT-6.1-Sol) -->
+struct SASDiagnosticLogBuffer
+{
+	SASDiagnosticLogBuffer() : hFile(INVALID_HANDLE_VALUE), bFileInitialized(false), bAutoFlushBlocked(false), uiDroppedRows(0), uiDroppedBytes(0), dwLastError(NO_ERROR) {}
+	CvString szLogName;
+	// <!-- custom: Keep the OS handle across successful rows to avoid opening/seeking/closing for every message; session release closes it, while failed writes close it before checkpoint retry. (GPT-6.1-Sol) -->
+	HANDLE hFile;
+	std::string szData;
+	// <!-- custom: Preserve fixed-name OverwriteLogs behavior across sessions; failed I/O blocks automatic per-row retries until the next explicit checkpoint. (GPT-6.1-Sol) -->
+	bool bFileInitialized;
+	bool bAutoFlushBlocked;
+	// <!-- custom: After the shared payload budget is exhausted, count rejected complete rows rather than letting diagnostic failure exhaust the game's 32-bit address space; report the gap when this file becomes writable. (GPT-6.1-Sol) -->
+	unsigned __int64 uiDroppedRows;
+	unsigned __int64 uiDroppedBytes;
+	DWORD dwLastError;
+};
+
+// <!-- custom: Retain lightweight filename/status history to preserve OverwriteLogs if a name is reused, including a timestamp collision.
+// ChatGPT's repeated-load review identified that the draft list searched all historical names for each row; indexed lookup avoids that growing linear cost without forgetting first-open state. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+typedef std::map<CvString, SASDiagnosticLogBuffer> SASDiagnosticLogBuffers;
+static SASDiagnosticLogBuffers g_aSASDiagnosticLogBuffers;
+static std::wstring g_szSASDiagnosticLogRootDirectory;
+static bool g_bSASDiagnosticLogRootResolved = false;
+static bool g_bSASDiagnosticLogWriteStarted = false;
+static size_t g_iSASDiagnosticBufferedBytes = 0;
+// <!-- custom: This is a shared pending-text budget across all current/failed files, including pre-BUG startup output; a per-file limit would still grow with repeated failed loads. (GPT-6.1-Sol) -->
+static size_t const SAS_DIAGNOSTIC_MAX_BUFFERED_BYTES = 16 * 1024 * 1024;
+
+static std::wstring trimSASDiagnosticDirectory(std::wstring szDirectory)
+{
+	while (szDirectory.length() > 3)
+	{
+		size_t const iLast = szDirectory.length() - 1;
+		if (szDirectory[iLast] != L'\\' && szDirectory[iLast] != L'/')
+			break;
+		szDirectory.erase(iLast, 1);
+	}
+	return szDirectory;
+}
+
+static std::wstring getSASDiagnosticExecutableFolder()
+{
+	wchar_t szExePath[MAX_PATH];
+	DWORD const iLength = GetModuleFileNameW(NULL, szExePath, MAX_PATH);
+	if (iLength == 0 || iLength >= MAX_PATH)
+		return L"Beyond the Sword";
+	std::wstring const szPath(szExePath);
+	size_t const iFileSlash = szPath.find_last_of(L"\\/");
+	if (iFileSlash == std::wstring::npos)
+		return L"Beyond the Sword";
+	std::wstring const szDirectory = szPath.substr(0, iFileSlash);
+	size_t const iDirectorySlash = szDirectory.find_last_of(L"\\/");
+	if (iDirectorySlash == std::wstring::npos || iDirectorySlash + 1 >= szDirectory.length())
+		return L"Beyond the Sword";
+	return szDirectory.substr(iDirectorySlash + 1);
+}
+
+static bool resolveSASDiagnosticDefaultRootDirectory()
+{
+	if (g_bSASDiagnosticLogRootResolved)
+		return !g_szSASDiagnosticLogRootDirectory.empty();
+	wchar_t szDocuments[MAX_PATH];
+	szDocuments[0] = L'\0';
+	// <!-- custom: Resolve Documents through the wide API without adding a shell32 linker dependency; BUG remains the authoritative CvAltRoot source. (GPT-6.1-Sol) -->
+	typedef HRESULT (WINAPI* SHGetFolderPathWFunction)(HWND, int, HANDLE, DWORD, LPWSTR);
+	HMODULE const hShell = LoadLibraryW(L"shell32.dll");
+	if (hShell != NULL)
+	{
+		SHGetFolderPathWFunction const pGetFolder = (SHGetFolderPathWFunction)GetProcAddress(hShell, "SHGetFolderPathW");
+		if (pGetFolder != NULL && pGetFolder(NULL, 0x0005, NULL, 0, szDocuments) != 0)
+			szDocuments[0] = L'\0';
+		FreeLibrary(hShell);
+	}
+	std::wstring szDocumentsPath(szDocuments);
+	if (szDocumentsPath.empty())
+	{
+		wchar_t szUserProfile[MAX_PATH];
+		DWORD const iLength = GetEnvironmentVariableW(L"USERPROFILE", szUserProfile, MAX_PATH);
+		if (iLength == 0 || iLength >= MAX_PATH)
+			return false;
+		szDocumentsPath = std::wstring(szUserProfile) + L"\\Documents";
+	}
+	g_szSASDiagnosticLogRootDirectory = trimSASDiagnosticDirectory(szDocumentsPath + L"\\My Games\\" + getSASDiagnosticExecutableFolder());
+	g_bSASDiagnosticLogRootResolved = !g_szSASDiagnosticLogRootDirectory.empty();
+	return g_bSASDiagnosticLogRootResolved;
+}
+
+static SASDiagnosticLogBuffer& getSASDiagnosticLogBuffer(char const* szLogName)
+{
+	SASDiagnosticLogBuffer& kBuffer = g_aSASDiagnosticLogBuffers[szLogName];
+	if (kBuffer.szLogName.empty())
+		kBuffer.szLogName = szLogName;
+	return kBuffer;
+}
+
+static bool closeSASDiagnosticLogFile(SASDiagnosticLogBuffer& kBuffer)
+{
+	if (kBuffer.hFile == INVALID_HANDLE_VALUE)
+		return true;
+	BOOL const bClosed = CloseHandle(kBuffer.hFile);
+	kBuffer.hFile = INVALID_HANDLE_VALUE;
+	return bClosed != FALSE;
+}
+
+static bool failSASDiagnosticWrite(SASDiagnosticLogBuffer& kBuffer, DWORD dwError)
+{
+	if (!kBuffer.bAutoFlushBlocked)
+		OutputDebugStringA("AdvCiv-SAS diagnostic append failed; checkpoint retry and bounded loss reporting are active.\n");
+	closeSASDiagnosticLogFile(kBuffer);
+	kBuffer.dwLastError = dwError;
+	kBuffer.bAutoFlushBlocked = true;
+	return false;
+}
+
+static bool writeSASDiagnosticBuffer(HANDLE hFile, SASDiagnosticLogBuffer& kBuffer)
+{
+	size_t iWrittenTotal = 0;
+	DWORD dwError = NO_ERROR;
+	while (iWrittenTotal < kBuffer.szData.size())
+	{
+		size_t const iRemaining = kBuffer.szData.size() - iWrittenTotal;
+		DWORD const iChunk = (DWORD)std::min(iRemaining, (size_t)(1024 * 1024));
+		DWORD iWritten = 0;
+		BOOL const bWritten = WriteFile(hFile, kBuffer.szData.data() + iWrittenTotal, iChunk, &iWritten, NULL);
+		// <!-- custom: Retire bytes acknowledged even by a failed partial write; retrying those bytes would duplicate output.
+		// Zero progress must stop rather than spin. (GPT-6.1-Sol) -->
+		iWrittenTotal += iWritten;
+		if (!bWritten || iWritten == 0)
+		{
+			dwError = (bWritten ? ERROR_WRITE_FAULT : GetLastError());
+			break;
+		}
+	}
+	if (iWrittenTotal > 0)
+	{
+		kBuffer.szData.erase(0, iWrittenTotal);
+		g_iSASDiagnosticBufferedBytes -= iWrittenTotal;
+	}
+	if (dwError != NO_ERROR)
+		return failSASDiagnosticWrite(kBuffer, dwError);
+	return true;
+}
+
+static bool queueSASDiagnosticLossNotice(SASDiagnosticLogBuffer& kBuffer)
+{
+	CvString szNotice;
+	szNotice.Format("SAS_DIAGNOSTIC_DATA_LOSS droppedRows=%I64u droppedBytes=%I64u lastWriteError=%lu\r\n", kBuffer.uiDroppedRows, kBuffer.uiDroppedBytes, kBuffer.dwLastError);
+	if (szNotice.size() > SAS_DIAGNOSTIC_MAX_BUFFERED_BYTES - g_iSASDiagnosticBufferedBytes)
+		return false;
+	// <!-- custom: Queue the notice as ordinary pending bytes before resetting counters; if its write fails, its unwritten suffix survives like any other batch. (GPT-6.1-Sol) -->
+	kBuffer.szData += szNotice;
+	g_iSASDiagnosticBufferedBytes += szNotice.size();
+	kBuffer.uiDroppedRows = 0;
+	kBuffer.uiDroppedBytes = 0;
+	return true;
+}
+
+static bool flushSASDiagnosticLogBuffer(SASDiagnosticLogBuffer& kBuffer)
+{
+	if (kBuffer.szData.empty() && kBuffer.uiDroppedRows == 0)
+		return true;
+	if (!resolveSASDiagnosticDefaultRootDirectory())
+		return failSASDiagnosticWrite(kBuffer, ERROR_PATH_NOT_FOUND);
+	if (kBuffer.hFile == INVALID_HANDLE_VALUE)
+	{
+		std::wstring const szLogDirectory = g_szSASDiagnosticLogRootDirectory + L"\\Logs";
+		if (!CreateDirectoryW(szLogDirectory.c_str(), NULL) && GetLastError() != ERROR_ALREADY_EXISTS)
+			return failSASDiagnosticWrite(kBuffer, GetLastError());
+		std::wstring szPath = szLogDirectory + L"\\";
+		// <!-- custom: Diagnostic filenames are generated ASCII identifiers; retain their bytes while keeping the supplied directory Unicode. (GPT-6.1-Sol) -->
+		for (size_t iI = 0; iI < kBuffer.szLogName.size(); iI++)
+			szPath += (wchar_t)(unsigned char)kBuffer.szLogName[iI];
+		DWORD const iCreationDisposition = (!kBuffer.bFileInitialized && GC.isOverwriteLogs() ? CREATE_ALWAYS : OPEN_ALWAYS);
+		kBuffer.hFile = CreateFileW(szPath.c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, NULL, iCreationDisposition, FILE_ATTRIBUTE_NORMAL, NULL);
+		if (kBuffer.hFile == INVALID_HANDLE_VALUE)
+			return failSASDiagnosticWrite(kBuffer, GetLastError());
+		kBuffer.bFileInitialized = true;
+		LONG iHigh = 0;
+		SetLastError(NO_ERROR);
+		if (SetFilePointer(kBuffer.hFile, 0, &iHigh, FILE_END) == INVALID_SET_FILE_POINTER && GetLastError() != NO_ERROR)
+		{
+			DWORD const dwError = GetLastError();
+			return failSASDiagnosticWrite(kBuffer, dwError);
+		}
+	}
+	g_bSASDiagnosticLogWriteStarted = true;
+	bool bSuccess = writeSASDiagnosticBuffer(kBuffer.hFile, kBuffer);
+	if (bSuccess && kBuffer.uiDroppedRows > 0)
+	{
+		bSuccess = queueSASDiagnosticLossNotice(kBuffer);
+		if (bSuccess)
+			bSuccess = writeSASDiagnosticBuffer(kBuffer.hFile, kBuffer);
+	}
+	if (bSuccess)
+	{
+		kBuffer.dwLastError = NO_ERROR;
+		kBuffer.bAutoFlushBlocked = false;
+	}
+	return bSuccess;
+}
+
+// <!-- custom: Return append success to Python/manual callers instead of an unobservable void result; lifecycle callers may ignore it.
+// Session boundaries close handles and release drained storage; ordinary checkpoints retry failed/pre-root output without delaying successful rows.
+// Terminal destruction additionally permits fallback root discovery because no later BUG handoff remains. (GPT-6.1-Sol) -->
+bool flushSASDiagnosticLogs(bool bReleaseStorage, bool bTerminal)
+{
+	bool bSuccess = true;
+	for (SASDiagnosticLogBuffers::iterator it = g_aSASDiagnosticLogBuffers.begin(); it != g_aSASDiagnosticLogBuffers.end(); ++it)
+	{
+		SASDiagnosticLogBuffer& kBuffer = it->second;
+		// <!-- custom: Native reset/load finalization can precede BUG initialization; keep those early batches pending instead of binding a default root before CvAltRoot can be supplied. (GPT-6.1-Sol) -->
+		if (bReleaseStorage && !bTerminal && !g_bSASDiagnosticLogRootResolved && (!kBuffer.szData.empty() || kBuffer.uiDroppedRows > 0))
+			bSuccess = false;
+		else if (!flushSASDiagnosticLogBuffer(kBuffer))
+			bSuccess = false;
+		if (bReleaseStorage)
+		{
+			if (!closeSASDiagnosticLogFile(kBuffer))
+			{
+				failSASDiagnosticWrite(kBuffer, GetLastError());
+				bSuccess = false;
+			}
+			if (kBuffer.szData.empty())
+				std::string().swap(kBuffer.szData);
+		}
+	}
+	return bSuccess;
+}
+
+// <!-- custom: Accept a wide root instead of ANSI text so BUG's Unicode user/CvAltRoot paths reach the same Windows directory without a code-page conversion. (GPT-6.1-Sol) -->
+void setSASDiagnosticLogRootDirectory(wchar_t const* szRootDirectory)
+{
+	if (szRootDirectory == NULL || szRootDirectory[0] == L'\0')
+		return;
+	std::wstring const szRoot = trimSASDiagnosticDirectory(szRootDirectory);
+	if (szRoot.empty())
+		return;
+	// <!-- custom: Changing roots after a successful append would split a logical log; permit BUG to replace a fallback root only before writing starts. (GPT-6.1-Sol) -->
+	if (g_bSASDiagnosticLogWriteStarted)
+		return;
+	g_szSASDiagnosticLogRootDirectory = szRoot;
+	g_bSASDiagnosticLogRootResolved = true;
+	// <!-- custom: Publish rows collected before BUG immediately when its authoritative root arrives, rather than leaving startup evidence waiting for the next game turn. (GPT-6.1-Sol) -->
+	flushSASDiagnosticLogs(false, false);
+}
+
 void logSASDiagnosticLiteralLine(char const* szLogName, char const* szLine)
 {
 	FAssert(szLogName != NULL);
 	FAssert(szLine != NULL);
 	if (szLogName == NULL || szLine == NULL)
 		return;
-	std::string szEscapedLine;
-	for (char const* p = szLine; *p != '\0'; p++)
+	SASDiagnosticLogBuffer& kBuffer = getSASDiagnosticLogBuffer(szLogName);
+	size_t const iLineBytes = strlen(szLine);
+	unsigned __int64 const uiRowBytes = (unsigned __int64)iLineBytes + 2;
+	if (g_bSASDiagnosticLogRootResolved && uiRowBytes <= SAS_DIAGNOSTIC_MAX_BUFFERED_BYTES && uiRowBytes > SAS_DIAGNOSTIC_MAX_BUFFERED_BYTES - g_iSASDiagnosticBufferedBytes && !kBuffer.bAutoFlushBlocked && !kBuffer.szData.empty())
+		flushSASDiagnosticLogBuffer(kBuffer);
+	// <!-- custom: Another file can exhaust the shared budget, leaving this file with loss counters but no pending text; a checkpoint may visit it before the other file frees storage.
+	// The harness reproduced a later row appearing before the earlier loss notice; queueing the outstanding gap after older pending bytes and before accepting any later row fixed this.
+	// If the notice cannot fit, count that row as dropped too so recovery cannot place new evidence ahead of its gap marker. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	if ((kBuffer.uiDroppedRows > 0 && !queueSASDiagnosticLossNotice(kBuffer)) || uiRowBytes > SAS_DIAGNOSTIC_MAX_BUFFERED_BYTES - g_iSASDiagnosticBufferedBytes)
 	{
-		if (*p == '%')
-			szEscapedLine += '%';
-		szEscapedLine += *p;
+		kBuffer.uiDroppedRows++;
+		kBuffer.uiDroppedBytes += uiRowBytes;
+		return;
 	}
-	gDLL->logMsg(szLogName, szEscapedLine.c_str(), false, false);
+	kBuffer.szData.append(szLine, iLineBytes);
+	kBuffer.szData += "\r\n";
+	g_iSASDiagnosticBufferedBytes += (size_t)uiRowBytes;
+	// <!-- custom: Submit successful rows now so a crash cannot discard a turn-sized private batch; keep failed output in order and retry at explicit checkpoints instead of hammering an unavailable path per row.
+	// Before BUG supplies CvAltRoot, retain bounded startup output without selecting a fallback directory automatically. (GPT-6.1-Sol) -->
+	if (g_bSASDiagnosticLogRootResolved && !kBuffer.bAutoFlushBlocked)
+		flushSASDiagnosticLogBuffer(kBuffer);
 }
 
 // <!-- custom: The Makefile stamps the real nmake target through /DSAS_DLL_BUILD_CONFIGURATION; keep 0 only as an UNKNOWN fallback for alternate or legacy build paths that do not inject it.

@@ -26,6 +26,7 @@ Note: The main changes guide serves as an index that covers concisely most AdvCi
 &emsp;[Tooling](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#tooling)\
 &emsp;&emsp;[Build](#build)\
 &emsp;&emsp;[Helpers](#helpers)\
+&emsp;&emsp;[Local tests](#local-tests)\
 &emsp;&emsp;[CI](#ci)\
 &emsp;&emsp;[Light-source ZIP](#light-source-zip)\
 &emsp;&emsp;[Repository](#repository)\
@@ -186,6 +187,13 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 #### Helpers
 
 - **Handicap XML comparison helper:** added [`compare_handicap_infos.py`](/LLM_Helpers/compare_handicap_infos.py), a report-only, mod-agnostic helper that compares two explicit `CIV4HandicapInfo.xml` file paths, inside or outside this mod folder, by handicap index; shows missing fields as blanks, includes absolute/percentage numeric deltas, and embeds a spreadsheet-friendly TSV matrix.
+
+#### Local tests
+
+- (Requires AdvCiv-SAS 6640+) **Local tests complement GitHub CI:** [`tests/`](/tests/README.md) holds platform-specific tests run when changing the relevant subsystem. Its diagnostic writer harness exercises the actual Windows writer with VC2003, including live file sharing, Unicode paths and failed writes; it builds a temporary executable without installing a DLL or running during gameplay.
+  - A user or agent explicitly runs the Python launcher; it invokes VC2003 to compile the current writer with the C++ test cases, runs the temporary executable and cleans it up afterward. Flushing in Civ4 works independently of this test.
+  - For example, the executable can be `C:\Users\PC\AppData\Local\Temp\sas-cpp-writer-ab12cd34\writer.exe`; the temporary folder suffix varies and the runner removes it afterward.
+  - Run the relevant test after changes to that subsystem or when investigating a failure; these tests do not run during gameplay or normal DLL builds. Workflow-helper regression tests remain under `.github/workflows/tests/` and run automatically in GitHub CI.
 
 #### CI
 
@@ -470,6 +478,18 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 
 #### Logging (Common)
 
+- (Requires AdvCiv-SAS 6640+) Explicit flushing of SASGameRecord (and BBAI) lets users and AI/LLM agents read and analyze logs as they are generated, even during autoplay, without reloading a save or exiting/restarting Civ4, or some other kind of operation just to access them.
+  - This live log access is the "open brain" view of the running game: agents can inspect recorded state and AI behavior as play continues.
+    - Tests verified reading both logs as they grew during stress autoplay and reading completed output while Civ4 remained open; the old logger also allowed these reads in the control runs.
+  - Persistent write failure is handled within a bounded pending-text budget; `SAS_DIAGNOSTIC_DATA_LOSS` reports any overflow after recovery, marking the affected record as incomplete.
+  - Successful rows are handed to Windows immediately so final crash-investigation evidence does not wait in Civ4 RAM until the next turn; persistent shared handles avoid reopening each file per row. Windows handles ordinary disk caching, without forced physical-disk writes for each message.
+  - Existing filenames and the user's `Logs` folder are retained. BUG supplies the resolved root when available; native fallback discovery remains available when no BUG root was supplied. File sharing permits external read/copy access during the run; failed appends retain pending bytes for a later checkpoint.
+  - Startup rows wait until BUG supplies its log root; failed writes retain a bounded retry queue and are retried at checkpoints. Session boundaries close handles and release drained storage.
+  - The Windows test verifies that final submitted rows survive abrupt process termination without checkpoints or cleanup. An unfinished write or pending retry queue can still be lost on a crash; power/system failure has no durability guarantee. A reader that catches a write in progress can retry an incomplete trailing row.
+  - [Local Debug-opt comparisons](/_1_AdvCiv-SAS/Docs/README_Logging_Flushing_Comparison.md) support the expected logging-performance benefit: two different SAS48 games with Found, Settler and all UWAI categories at maximum detail took roughly 40% less autoplay time while producing gigabytes of BBAI output.
+    - A Huge-map run with SASGameRecord alone differed by less than 1%, within possible run-to-run variation; the observed benefit is strongest under heavy logging, without establishing map size as the cause or measuring disabled-logging performance.
+  - Note: this opens up the door to further future interactive change possibilities; for example, making changes and observing their effect live, possibly.
+  - BBAI and SASGameRecord now use their shared DLL-owned writer, so Civ4's top-level `LoggingEnabled` switch is no longer a prerequisite for these two diagnostics; their own SAS logging gates control whether they emit. Other inherited Civ4/AdvCiv logs remain separate.
 - (Requires AdvCiv-SAS 6478+) **Disabled diagnostic logging is kept lightweight:**
   - after SASGameRecord and BBAI expanded across many more gameplay/AI paths, their effective XML log levels are cached once after all GlobalDefines/module overrides finish loading.
   - The widespread runtime gates are therefore direct cached reads rather than repeated out-of-line getter calls, while logging-only scans, snapshots, formatting, and other arguments remain pre-gated where relevant.
@@ -505,7 +525,6 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 - **BBAI logging is now XML-tunable:**
   - BBAI AI-decision logging can now be enabled/disabled and adjusted through **SAS defines**, rather than editing and recompiling the DLL as in base AdvCiv.
   - This is deemed valuable **not only for modders, but also for users** who can now view or generate `BBAI.log` files for review.
-  - Note: `LoggingEnabled=1` in `CivilizationIV.ini` is still required for Civ4 to write.
   - This allowed for example to surgically identify and fix the root cause of a city not producing its first settler until ~T90 at normal game speed, which is way too late (`bWarPlan` was too aggressively gating settler production; now it only blocks settler production after early expansion has reached enough cities (inefficient at that point, better switch strategy)).
   - Note: BBAI logs can be very long; for broad raw-log diagnosis, we usually give to an external LLM/AI such as ChatGPT the log file, as it is as of now agentic-token-free analysis (also good to give us a different point of view/review if needed).
 - (Requires AdvCiv-SAS 6600+) **Clearer AI city-site diagnostics (KI#505.2):**

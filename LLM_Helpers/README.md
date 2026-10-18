@@ -2,7 +2,11 @@
 
 Primary audience: coding agents (Claude Code, Codex, etc.) invoking these scripts on the user's behalf. Prefer agent-spec bullets over prose; show example output where it clarifies the contract.
 
-This folder contains external helper scripts, mostly Python 3, for tasks outside Civ4's embedded Python runtime. These scripts are meant for LLM-assisted workflows, balancing workflows, code review, refactoring support, report generation, and other tooling.
+This folder contains external development tools, mostly Python 3 scripts, for tasks outside Civ4's embedded Python runtime.
+
+Platform-specific test programs live separately under [`tests/`](/tests/README.md); workflow-helper regression tests live under [`.github/workflows/tests/`](/.github/workflows/tests/README.md).
+
+These scripts are meant for LLM-assisted workflows, balancing workflows, code review, refactoring support, report generation, and other tooling.
 
 Maintained examples live centrally under [`Docs/examples`](/_1_AdvCiv-SAS/Docs/examples/); executable helpers stay here. The `sasgamerecord/` subfolder groups the raw game-record sample with the RNG-comparison report, while `handicap/` holds the comparison report and its pinned XML baseline, and `source_comparison/` retains the processed AdvCiv 1.12 reference.
 

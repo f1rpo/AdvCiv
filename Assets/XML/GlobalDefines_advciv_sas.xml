@@ -1991,14 +1991,6 @@ Enforced by the turn_define_gamespeed CI check. (GPT-5.6 Thinking) -->
 
 
 
-	<!-- custom: Official SASGameRecord implementation revision label.
-	Increment exactly once for each qualifying committed SASGameRecord implementation update, regardless of whether that commit changes C++, Python, bridges, tooling/checkers, or several of them together.
-	This is a downstream review/update signal, not a compatibility switch: runtime code does not branch on it, and Python does not need to consume it merely because it is available through GlobalDefines.
-	Keep the newest README_SASGameRecord_Revisions.md entry synchronized; build/source/DLL provenance separately describes whether a particular compiled binary is stale or came from another source state. (ChatGPT-5.6-Sol) -->
-	<Define>
-		<DefineName>SAS_GAME_RECORD_REVISION</DefineName>
-		<iDefineIntVal>153</iDefineIntVal>
-	</Define>
 	<!-- custom: Dedicated structured SASGameRecord report, notably for autoplay comparison, general game analysis, user-assistance summaries, and external LLM review.
 	This is independent from the classic SAS_BBAI_LOG_ENABLE diagnostic master switch and writes to SASGameRecord_*.log, so it can produce compact GAME_RECORD_* rows without broad AI-decision spam.
 	The record has one overall log-level define: 0 disables it, while higher values enable more detail; subject-specific supporting switches can suppress selected expensive/noisy families without becoming separate recorder masters.
@@ -2228,6 +2220,14 @@ Enforced by the turn_define_gamespeed CI check. (GPT-5.6 Thinking) -->
 	<Define>
 		<DefineName>SAS_GAME_RECORD_BUG_STRING_VALUES_ENABLE</DefineName>
 		<iDefineIntVal>0</iDefineIntVal>
+	</Define>
+	<!-- custom: Official SASGameRecord implementation revision label.
+	Increment exactly once for each qualifying committed SASGameRecord implementation update, regardless of whether that commit changes C++, Python, bridges, tooling/checkers, or several of them together.
+	This is a downstream review/update signal, not a compatibility switch: runtime code does not branch on it, and Python does not need to consume it merely because it is available through GlobalDefines.
+	Keep the newest README_SASGameRecord_Revisions.md entry synchronized; build/source/DLL provenance separately describes whether a particular compiled binary is stale or came from another source state. (ChatGPT-5.6-Sol) -->
+	<Define>
+		<DefineName>SAS_GAME_RECORD_REVISION</DefineName>
+		<iDefineIntVal>154</iDefineIntVal>
 	</Define>
 
 

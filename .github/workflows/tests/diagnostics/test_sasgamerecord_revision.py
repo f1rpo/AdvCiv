@@ -24,6 +24,9 @@ class RevisionDocumentationTests(unittest.TestCase):
             shutil.copyfile(ROOT / relative, target)
         self.history = self.repo / recorder.REVISION_HISTORY
         self.text = self.history.read_text('utf-8')
+        # <!-- custom: Derive mutation fixtures from the current newest revision so the regression tests survive each legitimate revision bump instead of hardcoding yesterday's number. (ChatGPT-5.6-Sol) -->
+        self.revision = recorder.latest_history_revision(self.text)[0]
+        self.assertIsNotNone(self.revision)
 
     def test_current_revision_documentation(self):
         self.assertEqual(recorder.check_revision(self.repo), [])
@@ -37,11 +40,13 @@ class RevisionDocumentationTests(unittest.TestCase):
         path.write_text(updated, 'utf-8')
 
     def test_define_bump_without_history_update(self):
-        self._set_revision(154)
+        self._set_revision(self.revision + 1)
         self.assertTrue(any('revision mismatch' in error for error in recorder.check_revision(self.repo)))
 
     def test_history_bump_without_define_update(self):
-        self.history.write_text(re.sub(r'^(### Revision )153( - SAS practical \d+)', r'\g<1>154\g<2>', self.text, count=1, flags=re.MULTILINE), 'utf-8')
+        pattern = r'^(### Revision )%d( - SAS practical \d+)' % self.revision
+        replacement = r'\g<1>%d\g<2>' % (self.revision + 1)
+        self.history.write_text(re.sub(pattern, replacement, self.text, count=1, flags=re.MULTILINE), 'utf-8')
         self.assertTrue(any('revision mismatch' in error for error in recorder.check_revision(self.repo)))
 
     def test_removed_latest_history_entry(self):

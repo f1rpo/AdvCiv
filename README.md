@@ -36,6 +36,13 @@ It notably also preserves exact high-level AI strategy, victory-route stage and 
 
 This is an all-player diagnostic record and can contain spoilers, so it is not a spoiler-free player-advice export.
 
+Another significant logging improvement is "flushing":
+
+- As of now only for SASGameRecord and BBAI. It allows users or AI/LLM agents to open, read and analyze these logs as they are generated (an "open brain" view), even during autoplay, without having to tediously wait until it finishes to forcibly and inefficiently reload a save or exit/restart Civ4, or some other kind of operation anymore just to access them.
+- Local tests also support the expected logging-performance benefit: autoplay time differed by less than 1% on a Huge map with SASGameRecord alone, while two different SAS48 games with Found, Settler and all UWAI BBAI logging categories at maximum detail took roughly 40% less time.
+- Live access was also verified: both logs could be read as they grew during autoplay and after the run finished, while Civ4 remained open.
+- This also opens up the door to further future interactive change possibilities; for example, making changes and observing their effect live, possibly.
+
 Other system/tooling convenience enhancements are added to help reduce tedium, notably include SASFastSave (e.g. `ALEXANDER_T0000_HUGE_CUSTOM_CONTINENTS_NORMAL_41500016_41500016_20260909T171232Z_START` or `ALEXANDER_T0459_HUGE_CUSTOM_CONTINENTS_SPACE_ZARA_YAQOB_NORMAL_41500016_41500016_20260910T184208Z`), make save info clearer, and avoid identical filename handling issues, AIAutoPlay runs not being interrupted when the active player dies or other notices so they can continue and complete unattended, or the default number of turns being adjusted to max depending on game speed or tunable (e.g., 501 turns at Normal Gamespeed, 1001 turns at Marathon).
 
 AdvCiv-SAS also more broadly modernizes the inherited DLL build reporting with richer compiler logs, a structured JSON report and embedded build provenance, making build results and the origin of an installed DLL easier to investigate.
@@ -140,6 +147,7 @@ For license and reuse terms, including project-specific restrictions and express
 &emsp;[Build](/README.md#build)\
 &emsp;&emsp;[DLL build reports](/README.md#dll-build-reports)\
 &emsp;[Helpers](/README.md#helpers)\
+&emsp;[Local tests](#local-tests)\
 &emsp;[CI](/README.md#ci)\
 &emsp;[Light-source ZIP](/README.md#light-source-zip)\
 &emsp;[Repository](/README.md#repository)\
@@ -149,6 +157,7 @@ For license and reuse terms, including project-specific restrictions and express
 &emsp;[If .git does not exist (regular users or download ZIP from GitHub)](#if-git-does-not-exist-regular-users-or-download-zip-from-github)\
 &emsp;[BBAI logging and head example](/README.md#bbai-logging-and-head-example)\
 &emsp;[SASGameRecord log](/README.md#sasgamerecord-log)\
+&emsp;[Live log inspection during gameplay](#live-log-inspection-during-gameplay)\
 [CuCuGS](#cucugs)\
 [LLM-assisted source analysis](/README.md#llm-assisted-source-analysis)\
 &emsp;[Light-source analysis](#light-source-analysis)\
@@ -1054,9 +1063,15 @@ Building through the Visual C++ 2010 Express project keeps the usual `AdvCiv.log
 
 ### Helpers
 
-Active helper scripts for LLM-assisted review and tuning live in [LLM_Helpers](/LLM_Helpers/).
+External development tools for LLM-assisted review and tuning live in [LLM_Helpers](/LLM_Helpers/), mostly Python scripts. Local test programs have their own [tests folder](/tests/README.md).
 
 For example, [`compare_handicap_infos.py`](/LLM_Helpers/compare_handicap_infos.py) compares two explicit `CIV4HandicapInfo.xml` file paths, inside or outside this mod folder, and can generate a stable Markdown example such as [`handicap_infos_compared.md`](/_1_AdvCiv-SAS/Docs/examples/handicap/handicap_infos_compared.md) with changed fields, numeric deltas, percentage deltas, and an embedded TSV matrix.
+
+### Local tests
+
+Alongside the automated GitHub CI checks, [`tests/`](/tests/README.md) contains local tests for behavior that needs the development machine's platform or tools. These are run deliberately when changing the relevant subsystem; they do not run during gameplay or normal DLL compilation.
+
+The first is a Windows/VC2003 diagnostic writer test: it compiles the actual logging code into a temporary program and checks file sharing, Unicode paths and recovery from simulated write failures. Run it when changing the writer or investigating missing/corrupted output; full DLL compilation and in-game validation remain separate.
 
 ### CI
 
@@ -1110,6 +1125,8 @@ For branch review, the archive also pairs a cumulative committed/staged/unstaged
 The folder is general snapshot context rather than repository content or LLM-specific data; it lets ZIP-only reviewers distinguish tracked, ignored, omitted, and selected-untracked files and inspect recent committed or working-tree changes without bundling `.git`.
 
 It also includes the core useful source/data/docs/helper files, including [LLM_Helpers](/LLM_Helpers/) itself, plus selected screenshot folders useful for UI and rendered `SASGameRecord` map text review: local agentic tools like Codex can inspect screenshots directly, while external/ZIP-only LLMs like ChatGPT can only see them if the archive includes them.
+
+Local test sources and their setup instructions in [`tests/`](/tests/README.md) are included too; running the Windows writer harness still requires the local compiler/SDK.
 
 The `SASGameRecord_map_text` screenshots are included because an LLM may read the raw text-map characters without reconstructing the visual/geographical layout as easily.
 
@@ -1352,6 +1369,26 @@ GAME_RECORD_ACTION seq=1007 turn=0 type=DEBUG_MODE_CHANGED old=0 new=1 activePla
 Note: `SASGameRecord` log has its own revision system, see [`README_SASGameRecord_Revisions.md`](/_1_AdvCiv-SAS/Docs/README_SASGameRecord_Revisions.md).
 
 Note 2: when sending this file or other logs to external/web LLMs such as ChatGPT, ZIP them first for a smaller upload and, currently, a substantially faster one; uploading raw `.log` files can hang or take much longer.
+
+### Live log inspection during gameplay
+
+Enabled SASGameRecord and BBAI logs submit each completed row to Windows immediately through shared file handles, so players and local agents can inspect or copy output while the game continues. This makes early-game analysis available during long autoplay runs, without waiting for the run to finish or restarting Civ4 to release its logs.
+
+A shared DLL-owned writer replaces Civ4's EXE logger, which exposes no flush operation; persistent handles avoid repeated open/close work, while Windows handles normal disk caching. Files keep their existing names and user `Logs` location, including `CvAltRoot`; these two logs follow their SAS defines independently of the INI's `LoggingEnabled` setting.
+
+This shared flushing covers SASGameRecord and BBAI; other Civ4/Python logs use separate writers. For example, BUG Autolog already closes its file after each `writeLog` call, while EXE-owned logs such as PythonDbg/PythonErr are outside this writer's control.
+
+Readers can briefly encounter a write in progress; retry an incomplete trailing row. Successful rows are handed to Windows promptly to preserve crash-tail evidence; unresolved-path or failed-write buffers and unfinished writes can still be lost on a process crash, and power/system failure has no durability guarantee. Logging remains optional.
+
+The local Debug-opt comparisons support the expected benefit of reducing output overhead when diagnostics produce large volumes of text: two different SAS48 games with Found, Settler and all UWAI categories at maximum detail took roughly 40% less autoplay time, producing about 1.8–2.1 GB of BBAI output each.
+
+With lighter logging, the measured difference was small: a Huge-map, 251-turn SASGameRecord-only run differed by less than 1%, within possible run-to-run variation. The useful takeaway is lower overhead under heavy logging; these tests do not isolate map size as the cause or measure performance with logging disabled.
+
+The live-access tests also succeeded: BBAI and SASGameRecord were readable as they grew during stress autoplay, and completed output remained readable with Civ4 still open. These observations also succeeded with the old logger in the control runs.
+
+The [measurement report](/_1_AdvCiv-SAS/Docs/README_Logging_Flushing_Comparison.md) preserves exact timings, settings, output sizes and read/focus conditions, including successful live reads with the old logger and the second stress pair's focus mismatch.
+
+This opens up the door to further future interactive change possibilities; for example, making changes and observing their effect live, possibly.
 
 ## CuCuGS
 

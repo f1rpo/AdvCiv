@@ -55,6 +55,54 @@ class SourceChangeProvenanceTests(unittest.TestCase):
         self.assertEqual(checker.check_change("CvGameCoreDLL/Test.cpp", old, new, warnings), [])
         self.assertTrue(any("has no recognized model credit" in warning for warning in warnings))
 
+    # <!-- custom: Guard the specific loss that an any-credit check misses, while keeping deletions, unrelated replacements and newly uncredited user comments legal. (GPT-6.1-Sol) -->
+    def test_partial_rewrite_cannot_drop_one_existing_credit(self):
+        prose = "Keep pending diagnostic rows bounded across every active file so failures cannot exhaust memory."
+        for path, prefix, close in (("CvGameCoreDLL/Test.cpp", "// ", "int value = 1;"), ("LLM_Helpers/test.py", "# ", "value = 1"), ("Assets/XML/Test.xml", "", "<root/>")):
+            with self.subTest(path=path):
+                old = prefix + "<!-- custom: " + prose + " (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->\n" + close + "\n"
+                bad = prefix + "<!-- custom: " + prose + " Report overflow after recovery. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->\n" + close + "\n"
+                errors = self.errors(path, old, bad)
+                self.assertTrue(any("dropped existing credit(s): GPT-5.6-Sol" in error for error in errors), errors)
+                good = bad.replace("ChatGPT-5.6-Sol + GPT-6.1-Sol", "GPT-6.1-Sol + GPT-5.6-Sol + ChatGPT-5.6-Sol")
+                self.assertEqual(self.errors(path, old, good), [])
+
+    def test_credit_only_removal_fails_even_when_all_credits_are_removed(self):
+        old = "// <!-- custom: Existing rationale. (GPT-5.6-Sol) -->\nint value = 1;\n"
+        new = "// <!-- custom: Existing rationale. -->\nint value = 1;\n"
+        self.assertTrue(any("dropped existing credit" in error for error in self.errors("CvGameCoreDLL/Test.cpp", old, new)))
+
+    def test_chatgpt_credit_does_not_replace_gpt_credit(self):
+        old = "// <!-- custom: Existing rationale. (GPT-5.6-Sol) -->\nint value = 1;\n"
+        new = old.replace("(GPT-5.6-Sol)", "(ChatGPT-5.6-Sol)")
+        self.assertTrue(any("dropped existing credit" in error for error in self.errors("CvGameCoreDLL/Test.cpp", old, new)))
+
+    def test_credit_reordering_and_comment_reflow_are_allowed(self):
+        old = "// <!-- custom: Keep the explanation on two\n// physical lines. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->\nint value = 1;\n"
+        new = "// <!-- custom: Keep the explanation on two physical lines. (ChatGPT-5.6-Sol + GPT-5.6-Sol + GPT-6.1-Sol) -->\nint value = 1;\n"
+        self.assertEqual(self.errors("CvGameCoreDLL/Test.cpp", old, new), [])
+
+    def test_deleted_comment_and_unrelated_replacement_do_not_require_old_credit(self):
+        old = "// <!-- custom: Explain obsolete worker allocation. (GPT-5.6-Sol) -->\nint value = 1;\n"
+        for new in ("int value = 1;\n", "// <!-- custom: Describe network packet routing. (GPT-6.1-Sol) -->\nint value = 1;\n"):
+            with self.subTest(new=new):
+                self.assertEqual(self.errors("CvGameCoreDLL/Test.cpp", old, new), [])
+
+    def test_entirely_corrected_explanation_can_replace_the_old_credit(self):
+        old = "// <!-- custom: Close the handle because it forces every byte onto physical disk. (GPT-5.6-Sol) -->\nint value = 1;\n"
+        new = "// <!-- custom: Closing publishes the buffered output for readers; storage durability is not guaranteed. (GPT-6.1-Sol) -->\nint value = 1;\n"
+        self.assertEqual(self.errors("CvGameCoreDLL/Test.cpp", old, new), [])
+
+    def test_reflow_does_not_hide_credit_loss(self):
+        old = "// <!-- custom: Keep the explanation on two\n// physical lines. (GPT-5.6-Sol + ChatGPT-5.6-Sol) -->\nint value = 1;\n"
+        new = "// <!-- custom: Keep the explanation on two physical lines. (ChatGPT-5.6-Sol) -->\nint value = 1;\n"
+        self.assertTrue(any("dropped existing credit" in error for error in self.errors("CvGameCoreDLL/Test.cpp", old, new)))
+
+    def test_model_mention_in_prose_is_not_a_suffix_credit(self):
+        old = "// <!-- custom: GPT-5.6-Sol reviewed this explanation. (GPT-6.1-Sol) -->\nint value = 1;\n"
+        new = old.replace("GPT-5.6-Sol reviewed", "ChatGPT-5.6-Sol reviewed")
+        self.assertEqual(self.errors("CvGameCoreDLL/Test.cpp", old, new), [])
+
     def test_legacy_comment_reflow_is_allowed(self):
         old = "// Inherited sentence that was wrapped\n// across two physical lines.\nint value = 1;\n"
         new = "// Inherited sentence that was wrapped across two physical lines.\nint value = 1;\n"

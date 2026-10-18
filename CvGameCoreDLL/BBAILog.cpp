@@ -411,8 +411,7 @@ void logBBAI(TCHAR* format, ... )
 	if (!bFormatted)
 		return;
 	CvString const szLogName = getSASBBAILogName();
-	// <!-- custom: The EXE logger applies a second printf-style interpretation to this already-formatted line.
-	// Preserve literal percent signs and prevent bogus vararg reads through the shared final-boundary escape. See KI#375.3. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Submit the already-formatted row promptly through the shared DLL-owned writer; direct file emission preserves literal percent signs without Civ4's former second printf pass. See KI#375.3. (ChatGPT-5.6-Sol + GPT-5.6-Sol + GPT-6.1-Sol) -->
 	logSASDiagnosticLiteralLine(szLogName.GetCString(), szLine.c_str());
 }
 

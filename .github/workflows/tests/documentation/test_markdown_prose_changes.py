@@ -72,6 +72,38 @@ class MarkdownProseChangesTests(unittest.TestCase):
             self.assertEqual(checker.findings(path, "", LONG), [])
         self.assertTrue(checker.findings("NewFolder/new.md", "", LONG))
 
+    def test_indented_list_after_prose_fails_without_paragraph_break(self):
+        for indent in ("\t", "    "):
+            source = "Logging improvements:\n" + indent + "- First benefit.\n" + indent + "- Second benefit.\n"
+            with self.subTest(indent=indent):
+                errors = checker.list_findings("README.md", source)
+                self.assertTrue(any("indented list" in error for error in errors))
+
+    def test_valid_lists_code_and_soft_wrapping_are_not_rejected(self):
+        for source in (
+            "Logging improvements:\n\n- First benefit.\n- Second benefit.\n",
+            "- Parent:\n    - Child.\n    - Another child.\n",
+            "```text\nLogging improvements:\n\t- Literal code example.\n```\n",
+            "A sentence continues\non its next physical line.\n",
+        ):
+            with self.subTest(source=source):
+                self.assertEqual(checker.list_findings("README.md", source), [])
+
+    def test_unchanged_tracked_list_is_checked_even_in_reference_docs(self):
+        with tempfile.TemporaryDirectory(prefix="sas-md-lists-") as folder:
+            repo = Path(folder)
+            subprocess.run(["git", "init", "-q", str(repo)], check=True)
+            path = repo / "_0_Common_Docs/example.md"
+            path.parent.mkdir()
+            path.write_text("Example:\n\t- First.\n\t- Second.\n", encoding="utf-8")
+            subprocess.run(["git", "-C", str(repo), "add", "."], check=True)
+            subprocess.run(["git", "-C", str(repo), "-c", "user.name=Fixture", "-c", "user.email=fixture@example.invalid", "-c", "commit.gpgsign=false", "commit", "-qm", "Baseline"], check=True)
+            errors, count = checker.check(repo, "HEAD", "local")
+            self.assertEqual(count, 0)
+            self.assertTrue(any("_0_Common_Docs/example.md:2: indented list" in error for error in errors))
+            path.write_text("Example:\n\n- First.\n- Second.\n", encoding="utf-8")
+            self.assertEqual(checker.check(repo, "HEAD", "local")[0], [])
+
     def test_git_cli_exit_codes_and_read_only_behavior(self):
         with tempfile.TemporaryDirectory(prefix="sas-md-prose-") as folder:
             repo = Path(folder)

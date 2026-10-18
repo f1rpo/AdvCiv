@@ -11,6 +11,7 @@
 #include "CvMap.h" // advc.enum
 #include "CvDLLPythonIFaceBase.h" // <!-- custom: Needed for the concrete Python-interface method used by the rejected-offer bridge; CvDLLUtilityIFaceBase only forward-declares this type. (ChatGPT-5.6-Sol) -->
 #include "SASGameRecordLog.h" // <!-- custom: Bridge resolved Python diplomacy-UI events and post-handler session diagnostics into the factual game record; AI valuation remains elsewhere. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+#include "CvGameCoreUtils.h" // <!-- custom: Python supplies BUG's resolved user root and can request a live shared BBAI/SASGameRecord buffer flush without going through the EXE logger. (ChatGPT-5.6-Sol) -->
 
 namespace
 {
@@ -318,6 +319,18 @@ int CyGame::getGameTurnYear()
 int CyGame::getElapsedGameTurns()
 {
 	return m_kGame.getElapsedGameTurns();
+}
+
+// <!-- custom: Accept Unicode rather than narrow text from BUG's resolved user root so CvAltRoot/non-ASCII paths reach the wide Win32 writer without a lossy code-page conversion. (GPT-6.1-Sol) -->
+void CyGame::setSASDiagnosticLogRoot(std::wstring szRootDirectory)
+{
+	setSASDiagnosticLogRootDirectory(szRootDirectory.c_str());
+}
+
+// <!-- custom: Return the shared checkpoint result to Python so manual live inspection can detect failed output; lifecycle callers may ignore it and successful ordinary rows are already submitted immediately. (GPT-6.1-Sol) -->
+bool CyGame::flushSASDiagnosticLogs()
+{
+	return ::flushSASDiagnosticLogs();
 }
 
 // <!-- custom: Bridge only the post-Python lifecycle observation; the cached native gate also protects direct Python callers before any option reads or formatting.

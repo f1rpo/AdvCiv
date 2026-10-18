@@ -1935,7 +1935,7 @@ static void emitSASGameRecordLine(CvString const& szLogName, std::string szLine)
 		szSequence.Format(" seq=%I64u", ++g_uiSASGameRecordSemanticSequence);
 		insertSASGameRecordFieldAfterRowType(szLine, szSequence.GetCString());
 	}
-	// <!-- custom: Preserve any literal percent signs that survive producer formatting (including dynamic/free text) before crossing Civ4's printf-style EXE log boundary. See KI#375.3. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+	// <!-- custom: Submit the already-formatted row promptly through the shared writer so last-moment crash evidence is not held until a turn checkpoint; direct output preserves literal percent signs without the EXE's second printf pass. See KI#375.3. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	logSASDiagnosticLiteralLine(szLogName.GetCString(), szLine.c_str());
 }
 
@@ -4353,6 +4353,8 @@ void finalizeSASGameRecordLogSession()
 	// Preserve the last authoritative RNG state/consumption before the old session disappears, then disable the hot hook until the next session initializes its baseline. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (g_bSASGameRecordRngTrackingActive) logSASGameRecordRngCheckpoint(GC.getGame().getGameTurn(), SAS_RNG_CHECKPOINT_SESSION_FINALIZE);
 	clearSASGameRecordRngTracking();
+	// <!-- custom: Retry pending diagnostics, close persistent handles and release drained retry storage before rollover; old timestamped sessions must not accumulate open files or retained peak allocations. (GPT-6.1-Sol) -->
+	flushSASDiagnosticLogs(true);
 }
 
 static void prepareSASGameRecordTurnChanges()

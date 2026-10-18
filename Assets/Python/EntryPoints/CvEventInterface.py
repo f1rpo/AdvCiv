@@ -69,6 +69,9 @@ def onEvent(argsList):
 			if tag == "GameStart":
 				szSettingsReason = "GAME_START"
 			SASGameRecordSettings.logSessionSettings(szSettingsReason)
+		# <!-- custom: Retry pending startup/failed writes after BUG/Autolog/settings handlers settle, including BBAI-only runs; successful rows are already submitted immediately, and keeping this outside the recorder gate covers either log.
+		# With no output, the checkpoint performs no path resolution or file I/O. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+		CyGame().flushSASDiagnosticLogs()
 	return result
 
 def applyEvent(argsList):

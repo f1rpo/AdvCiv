@@ -34,7 +34,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=153 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=154 ...
 ```
 
 After this, each qualifying SASGameRecord commit increments `SAS_GAME_RECORD_REVISION` in `GlobalDefines_advciv_sas.xml` exactly once and adds one short latest-first entry to this file in the same commit. The revision remains a downstream-update signal; exact runtime source/build identity remains separate provenance in `GAME_RECORD_SOURCE_CONTEXT` and the DLL/build context.
@@ -77,10 +77,26 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
+### Revision 154 - SAS practical 6640
+
+- **Date:** 2026-10-18
+- **Git commit:** pending
+- **Change:** Make SASGameRecord (and BBAI) readable while Civ4 keeps running, preserving successful final diagnostic rows across ordinary process crashes instead of holding them until a turn boundary.
+  - A shared DLL-owned writer submits each row promptly to Windows through persistent read/write/delete-shared handles. This supports live inspection and preserves last-moment evidence useful in investigations such as KI#895/KI#896; Windows handles ordinary disk caching without forced physical-disk writes per row.
+    - Existing filenames, `OverwriteLogs` intent, Unicode paths and BUG's `CvAltRoot` are retained. Direct output preserves literal percent signs without the EXE logger's second printf interpretation.
+    - Early startup rows wait for BUG's root and are published when it arrives. Failed writes keep an ordered, bounded retry queue; checkpoints retry output and session boundaries close handles. Terminal shutdown permits native fallback when no later BUG handoff remains.
+    - Pending or unfinished writes can still be lost on a process crash; power/system failure has no durability guarantee. Readers can retry an incomplete trailing row caught during a write.
+  - Shared retry storage is bounded across files; overflow is disclosed with `SAS_DIAGNOSTIC_DATA_LOSS` notices before later accepted rows, preserving the gap's chronological position even when another file exhausted the shared budget. Indexed filename history preserves first-open behavior without a per-row linear scan across repeated loads.
+  - SAS logging gates control these logs independently of the INI's `LoggingEnabled`. Disabled logging skips row construction and file I/O; one-time root setup and empty lifecycle checks remain.
+  - The VC2003 harness covers immediate visibility, handle reuse/release, failed/partial writes and abrupt process termination without cleanup.
+    - The [2026-10-18 Debug-opt comparisons](/_1_AdvCiv-SAS/Docs/README_Logging_Flushing_Comparison.md) support lower overhead under heavy logging: two different SAS48 games with Found, Settler and all UWAI categories at maximum detail took roughly 40% less autoplay time, with matching recorded state checkpoints.
+    - A Huge-map run with SASGameRecord alone differed by less than 1%, within possible run-to-run variation; the detailed report retains the measurement conditions and limits.
+    - Live reads succeeded while BBAI/SASGameRecord grew during stress autoplay and after completion with Civ4 still open; the old-logger controls also permitted these reads.
+
 ### Revision 153 - SAS practical 6639
 
 - **Date:** 2026-10-17
-- **Git commit:** pending
+- **Git commit:** `52871e8dcf69034f7b8d83affac2ffe9d3c96af9`
 - **Change:** Comparing SAS diagnostics with RI r5642's `RIBugReport.py` highlighted gaps in CustomAssets and BUG-string context, prompting additions suited to SAS's existing session/settings record and privacy controls.
   - SAS already recorded configured `NoCustomAssets`, but lacked evidence of whether the directory was present. `CUSTOM_ASSETS_CONTEXT` supplies that context without collecting personal paths or scanning its contents.
     - Failed inspection is distinguished from absence, so unavailable evidence does not become a misleading diagnosis. Directory presence and configured loading policy do not establish which assets the EXE actually loaded.
@@ -293,10 +309,11 @@ Disabled logging skips only the `GAME_RECORD_SAVE_CHECKPOINT_SERIALIZED` output.
 - **Change:** Added compact realized Settler-scout provenance and rare loaded-transport defender-selection diagnostics without changing AI or combat behavior.
 
 Settler scouting now preserves only realized actions rather than BBAI's rejected-candidate search:
-	- `GAME_RECORD_AI_FIRST_CITY_CORE_SCOUT_STEP` records the bounded stronger-growth-core investigation that can begin a capital search.
-	- `GAME_RECORD_AI_FIRST_CITY_SCOUT_STEP` records chosen capital-scout moves with the already-computed settle-now quality, information/upside and delay terms.
-	- `GAME_RECORD_AI_FIRST_CITY_SCOUT_END` records stops caused by the hard deadline, low expected upside, or absence of a safe scout step.
-	- `GAME_RECORD_AI_SETTLER_FOG_SCOUT_STEP` separately records later promising-fog detours with the selected-site versus scout-site evidence that caused the move.
+
+- `GAME_RECORD_AI_FIRST_CITY_CORE_SCOUT_STEP` records the bounded stronger-growth-core investigation that can begin a capital search.
+- `GAME_RECORD_AI_FIRST_CITY_SCOUT_STEP` records chosen capital-scout moves with the already-computed settle-now quality, information/upside and delay terms.
+- `GAME_RECORD_AI_FIRST_CITY_SCOUT_END` records stops caused by the hard deadline, low expected upside, or absence of a safe scout step.
+- `GAME_RECORD_AI_SETTLER_FOG_SCOUT_STEP` separately records later promising-fog detours with the selected-site versus scout-site evidence that caused the move.
 
 At level 3, `GAME_RECORD_NAVAL_TRANSPORT_DEFENDER_SELECTION` is emitted only when a sea attack selects among at least two eligible defenders and at least one is carrying cargo.
 

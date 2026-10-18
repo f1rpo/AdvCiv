@@ -37,7 +37,7 @@ jobs:
       - name: Markdown menus and structure
         run: python .github/workflows/build/documentation/markdown_structure.py
 
-      - name: Edited Markdown prose
+      - name: Markdown list layout and edited prose
         run: python .github/workflows/build/documentation/markdown_prose_changes.py --base-ref "$BASE_REF" --event-name "$EVENT_NAME"
 
       - name: Generated documentation freshness

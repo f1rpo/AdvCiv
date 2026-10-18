@@ -26,7 +26,7 @@ In this case, let the user handle a separate commit for the move/reorder first, 
 
 Workflows: we added GitHub YAML (and corresponding py) workflow checks in [`.github/workflows`](/.github/workflows/). These reduce tedium for us as each pushed commit now tells us if some sanity checks PASS or fail.
 
-The checks are fairly straightforward as of now and notably include launch-guard sentinels, XML tag references in SAS define text values, integer SAS define bounds, opening-music setup, disabled BBAI logging, literal-safe BBAI/SASGameRecord EXE log sinks, shared UI font defaults, AI Personality Panel predumped-cache defaults, world-size enum/XML alignment, and map-script classification coverage.
+The checks are fairly straightforward as of now and notably include launch-guard sentinels, XML tag references in SAS define text values, integer SAS define bounds, opening-music setup, disabled BBAI logging, live-readable literal-safe BBAI/SASGameRecord sinks, shared UI font defaults, AI Personality Panel predumped-cache defaults, world-size enum/XML alignment, and map-script classification coverage.
 
 On your end you generally don't need to update them unless our infrastructure changes, but for details if needed see: [the corresponding README](/.github/workflows/README.md).
 
@@ -61,6 +61,8 @@ Use these specialized records for inherited regressions, suspicious behavior cha
 - Current AdvCiv-SAS source and Git are authoritative.
   - Local comparison trees share the parent "C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods": use `AdvCiv` for AdvCiv 1.14, `K-Mod` for the downloaded K-Mod 1.46 master snapshot, `Taurus` for the latest downloaded Taurus source, and `Civ4CE-main/BtS/CvGameCoreDLL` for supporting vanilla/BtS tip-state comparison.
 - Within AdvCiv-SAS's mod repo, generate/use `LLM_Helpers/context/commit_diffs/` for exact inherited ancestry and [`LLM_Helpers/context/mapscript_refs/`](/LLM_Helpers/context/mapscript_refs/) for imported map-script originals.
+- External review/tuning tools live under `LLM_Helpers/`; local platform-specific tests live under [`tests/`](/tests/README.md). Workflow-helper regression tests remain under `.github/workflows/tests/` and run in CI as well as locally.
+  - Run the local diagnostic writer harness when changing its buffering, paths, retries or lifecycle checkpoints; it exercises real Windows I/O with VC2003 without building/installing a game DLL. It is not part of gameplay or normal DLL builds.
 - Shared development context lives under [`LLM_Helpers/context/`](/LLM_Helpers/context/).
   - Normal full-history light-source ZIP generation includes freshly generated commit diffs at that same canonical path and refreshes the Git-ignored local generated copy after the ZIP succeeds; use `python LLM_Helpers/refresh_commit_diffs.py` to refresh it independently.
   - Both context corpora are omitted from generated historical patches to prevent recursion/import noise.
@@ -159,7 +161,8 @@ If you find yourself stuck like for audio stopping issues, feel free to ask the 
 - Simplify verbose comments without changing meaning or technical details.
 - Focus on rewording/rephrasing - the goal is to remove prose and conversational filler while preserving all technical information. Don't over-summarize to the point of losing important technical context.
 - Do not requalify subjective wording (e.g., keep "nicer display" instead of rephrasing as "tighter look") to avoid misinterpreting meaning.
-- Keep credits (e.g., "with help of Gemini 3 Pro/Claude/ChatGPT") and preserve them when rewriting.
+- Generally preserve model-name credits as context for chronology, authorship and intent, and prefer appending your own (e.g., `+ GPT-6.1-Sol`). Credits may be dropped when clearly stale, for example when a comment is removed or its explanation is entirely replaced.
+  - CI conservatively catches clear credit loss but can miss substantial rewording that retains earlier reasoning; review attribution manually rather than forcing old credits onto genuinely replaced explanations.
 - Preserve important technical specifics verbatim (e.g., "0 / 0 / 0 / 0 / 100", "2 placeholders vs 3 substitutions", "remove the extra X starting position").
 - Preserve all technical qualifiers - e.g., "debug DLL" not just "DLL", "tech advisor screen height" not just "screen height", etc. These distinctions matter.
 - Preserve specific scope qualifiers in technical details; avoid vague rewrites that drop precise context (e.g., keep "tech advisor screen height" rather than just "screen height").
@@ -234,6 +237,7 @@ These are general guidelines, not irrevocable requirements; adjust based on task
 - For AI or gameplay logic changes, include a slightly more verbose rationale (why it helps efficiency or outcomes), not just what changed.
 - When adding rationale, focus on the economic/strategic reasoning (efficiency, versatility, risk, maintenance) and capture the thought process behind the change.
 - Do not commit changes unless the user explicitly approves; prefer review/discussion before commits.
+- Preserve the user's local logging Define values like `SAS_GAME_RECORD_LOG_LEVEL` set to `3` not `0` as unstaged changes; validate shipping defaults against the staged XML or a temporary snapshot instead of repeatedly switching the working settings off. If a preparation step requires changing them, restore the local settings afterward and keep them out of the commit.
 - Inspect staged DLLs and their build reports before committing.
   - For a user-approved commit whose native changes require an updated shipped DLL, a user-staged matching Release DLL/report pair is approval to include that pair. Verify the successful Release build and matching binary identity, and retain the required `Update DLL` marker.
   - Otherwise include compiled binaries only when the user explicitly asks; keep unrelated binaries and local Debug-opt builds out of source/docs commits.
@@ -395,12 +399,10 @@ These are general guidelines, not irrevocable requirements; adjust based on task
   - Preserve documented log-level scope and cost: keep low levels compact, and reserve per-candidate/component detail for the documented higher levels. Keep each category's exact level meanings beside its XML setting; implementation history belongs in Known Issues (for example KI#505.2 and KI#505.3).
   - Prefer direct pre-gated logger rows over temporary `ostringstream`/string aggregation when the same diagnostic can be expressed clearly as ordinary structured fields or rows. Use stream/string builders when one value genuinely needs variable-length aggregation or for non-diagnostic/user-facing text; in diagnostic code, keep that construction behind the relevant logging gate.
   - Label hypothetical comparisons explicitly and keep them outside AI decisions. See KI#505.2.
-- C++ diagnostic logging safety: Civ4's EXE `gDLL->logMsg` boundary can interpret percent signs in an already-formatted message as printf syntax again.
-  - BBAI and SASGameRecord must therefore pass completed lines through `logSASDiagnosticLiteralLine` rather than directly passing dynamic `szLine.c_str()` to `gDLL->logMsg`; the helper doubles literal `%` only at that final boundary.
-  - Producer format strings still use ordinary printf escaping (`%%` to request one literal `%`).
-  - For structured SASGameRecord fields, continue preferring names such as `Percent`/`X100` when they are clearer for parsers, but do not rely on that naming convention for safety.
-  - The `diagnostic_log_safety.py` build check guards this contract.
-  - See KI#375.3.
+- When changing BBAI/SASGameRecord output, preserve live readability, prompt submission of final crash evidence, bounded failure storage and literal text through the shared `logSASDiagnosticLiteralLine` sink.
+  - Producer format strings use ordinary printf escaping: for example, formatting `75%%` produces `75%`, which the shared sink writes literally without interpreting the percent sign again.
+  - Prefer structured field names (e.g. for SASGameRecord) such as `Percent`/`X100` when clearer for parsers; naming is not a substitute for safe text handling.
+  - The writer's rationale and constraints belong beside its implementation in `CvGameCoreUtils.cpp`; see [local diagnostic tests](/tests/README.md#diagnostic-writer) for verification. KI#375.3 explains the former EXE logger's percent-sign handling.
 - In C++ declarations and definitions, document new functions and changes to existing functions, including renames, parameters/defaults/return types and responsibilities.
   - Explain the previous versus current contract and why it changed beside each affected declaration/definition; a header comment alone does not replace implementation context. Document new or changed structural members similarly so headers remain a concise interface summary.
 - When adding, removing or changing parameters on an existing non-SAS function, add a nearby custom comment explaining what changed in the interface and why. Do this beside each affected declaration/definition that is edited; clearly SAS-named helper functions are optional because their custom ownership is already explicit.
@@ -453,6 +455,10 @@ Get-ChildItem -Path 'CvGameCoreDLL/Project/*/CvGameCoreDLL.dll.build.json' -File
 
 ### Docs
 
+- Preserve the chronology and original intent of historical or incremental documentation; append later developments with their date and explain how they follow from the earlier work.
+  - For Known Issues, append at the end of the relevant entry or add a relevant unused `.x` follow-up/new issue when warranted. Correct factual errors explicitly without rewriting the sequence of discovery.
+  - Audit/archaeology records change only when their own documented investigation resumes; ordinary source changes do not refresh their findings or continuation cursors.
+  - Prefer dates for later follow-ups; practical commit-count versions can change across branches/rebases. Reserve those versions for documents that need them, such as the Main Changes Guide and SASGameRecord revision history; omit them from commit messages.
 - For markdownlint, try to resolve warnings; if a fix is unclear or risky, ask the user.
 - For long Markdown prose, preserve the wording but prefer semantic structure that also reads clearly in rendered Markdown.
   - Use a blank line for a real new paragraph or thought chunk; a plain source newline normally renders as a space and should be used only when the text is intentionally still one paragraph.

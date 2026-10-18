@@ -132,6 +132,9 @@ CvGame::CvGame() :
 
 CvGame::~CvGame()
 {
+	// <!-- custom: Using the reset/load root-waiting mode here would leave pending startup diagnostics unwritten if initialization ended before BUG supplied its root.
+	// Destruction has no later handoff to wait for, so retry final output with native fallback discovery and close session handles; an empty writer does no file I/O. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	flushSASDiagnosticLogs(true, true);
 	uninit();
 	SAFE_DELETE(m_pRiseFall); // advc.700
 	SAFE_DELETE(m_pSpah); // advc.250b
@@ -697,7 +700,12 @@ void CvGame::reset(HandicapTypes eHandicap, bool bConstructorCall)
 	// <!-- custom: The EXE can call this exported reset directly, before CvGame::init/read.
 	// Finalize every non-constructor GameRecord session here while the old game, map and authoritative RNG states still exist; this also prevents reset() from recording its seed-zeroing as old-session RNG consumption.
 	// CvMap::read retains duplicate-safe protection for load orders that replace the map independently. See KI#382. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
-	if (!bConstructorCall && isSASGameRecordLogEnabled()) finalizeSASGameRecordLogSession();
+	if (!bConstructorCall)
+	{
+		// <!-- custom: GameRecord finalization already retries pending output and closes both diagnostic handles; BBAI-only sessions need the same release before reset destroys state. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+		if (isSASGameRecordLogEnabled()) finalizeSASGameRecordLogSession();
+		else if (isSASBBAILogEnabled()) flushSASDiagnosticLogs(true);
+	}
 	uninit();
 
 	m_bAllGameDataRead = false; // advc;
@@ -6472,6 +6480,8 @@ void CvGame::doTurn()
 	// <!-- custom: Lower recorder levels do not emit the RNG checkpoint above.
 	// Preserve the same authoritative completed-turn boundary with one tiny row at every enabled level, after autoplay/sync cleanup and before the game clock advances. (ChatGPT-5.6-Sol) -->
 	if (isSASGameRecordLogEnabled()) logSASGameRecordTurnCompleted(getGameTurn());
+	// <!-- custom: Retry failed/pre-root output at each completed turn; successful ordinary rows are already written promptly through shared persistent handles so crash-tail evidence does not wait for this checkpoint. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	if (isSASBBAILogEnabled() || isSASGameRecordLogEnabled()) flushSASDiagnosticLogs();
 
 	// <!-- custom: Corporation maintenance is cached after dividing out inflation, but AdvCiv computes inflation on demand.
 	// Preserve each effective rate across the two clock increments and rebuild only players whose rounded rate changed, preventing cached inverse-inflation terms from becoming obsolete. See KI#744. (GPT-5.6-Sol) -->
@@ -9951,6 +9961,8 @@ void CvGame::onAllGameDataRead()
 	// <!-- custom: Reconcile persisted game-source history with the currently running source before any loaded-save log header reads it.
 	// Older saves deliberately enter as creation-untracked and begin history at this load. (ChatGPT-5.6-Sol) -->
 	updateSASVersionHistoryAfterLoad();
+	// <!-- custom: Retry previous-session output and close its handles before load rolls to new filenames; BUG reaffirms the user root and the post-handler checkpoint covers any pending startup output. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	if (isSASBBAILogEnabled() || isSASGameRecordLogEnabled()) flushSASDiagnosticLogs(true);
 	// <!-- custom: Start distinct timestamped diagnostic/report logs now that the complete loaded game state is available, before load-finalization code can emit AI diagnostics or summary rows.
 	// Caller-gated to avoid entering disabled logging helpers. (GPT-5.5) -->
 	if (isSASBBAILogEnabled()) startSASBBAILogForLoadedSave();

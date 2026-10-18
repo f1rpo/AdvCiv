@@ -13,6 +13,7 @@ import BugConfig
 import BugCore
 import BugPath
 import BugUtil
+import sys # <!-- custom: Decode byte-valued filesystem roots using Python's filesystem encoding before the Unicode native log-path bridge. (GPT-6.1-Sol) -->
 
 g_initRunning = False
 g_initDone = False
@@ -44,6 +45,13 @@ def init():
 	timer = BugUtil.Timer("BUG init")
 
 	BugPath.init()
+	# <!-- custom: Give the shared writer BUG's authoritative user root (including CvAltRoot); this one-time handoff also covers BBAI-only runs without duplicating its category gates in Python.
+	# The handoff publishes queued startup diagnostics immediately; disabled diagnostics still skip row construction and file I/O. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	szRoot = BugPath.getRootDir()
+	if szRoot:
+		if not isinstance(szRoot, unicode):
+			szRoot = szRoot.decode(sys.getfilesystemencoding())
+		CyGame().setSASDiagnosticLogRoot(szRoot)
 	timer.log("init paths").start()
 
 	loadMod("init")
