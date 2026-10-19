@@ -43,6 +43,8 @@ Another significant logging improvement is "flushing":
 - Live access was also verified: both logs could be read as they grew during autoplay and after the run finished, while Civ4 remained open.
 - This also opens up the door to further future interactive change possibilities; for example, making changes and observing their effect live, possibly.
 
+Python debug and error output (e.g. PythonDbg.log, PythonErr.log and PythonErr2.log) also gains UTC timestamps, making it easier for users and AI/LLM agents to follow when messages occurred and correlate them with game activity during debugging.
+
 Additional LLM/agent instrumentation helps users and AI assistants follow Civ4 runs and investigate development:
 
 - `SASRuntimeStatus.json` gives the latest observed game/session and autoplay state, together with the identity of the DLL reporting it.
@@ -1161,6 +1163,17 @@ Very large/generated/binary/redundant historical payloads are summarized instead
 - See the [Main Changes Guide's Repository section](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#repository) for Git-ignore and archive conventions; automated repository checks are covered under [CI](#ci).
 
 ## DLL Logging
+
+The [logging reference](/_1_AdvCiv-SAS/Docs/README_Logging_Inventory.md) explains files such as `PythonDbg.log` (prints/debug messages), `PythonErr.log` (tracebacks), `PythonErr2.log` (including module-loading output) and `xml.log` (XML loading/errors), with Before/After timestamp examples.
+
+Other examples covered there include:
+
+- `RandLog` and `MessageLog` INI controls, with RNG/message traces such as `MPLog.txt` and AdvCiv's per-player `MPLog<player>.log`.
+- `ASyncRand.log` for asynchronous RNG, and `OOSLog - <player> - Turn <turn>.log` for game-state comparisons after multiplayer desynchronization.
+- `StartingPos.log` for starting-position diagnostics and `IFP_log.txt` / `TSCProfile.log` for profiling.
+- BUG Autolog's configurable text/HTML gameplay journal, distinct from error/debug logs.
+
+It also traces outputs such as `bull.log` (BULL), `C2C.log` (Caveman2Cosmos) and `MLF.log` (modular XML loading), and marks uncertain cases such as `ResourceAllocation.log`.
 
 AdvCiv-SAS has two complementary log families, that are as of now both tunable via SAS defines (i.e. XML) without needing DLL modifications: the BBAI log, and the SASGameRecord log. See [README_Main_Changes_Guide.md (Logging)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#logging).
 

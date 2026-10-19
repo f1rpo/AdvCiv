@@ -1,13 +1,26 @@
 #include "CvGameCoreDLL.h"
 #include "CyGameCoreUtils.h"
+// <!-- custom: CvGameCoreUtils declares the existing Win32 UTC sampler used by Python diagnostic timestamps; the adapter below needs its callable declaration. (GPT-6.1-Sol) -->
+#include "CvGameCoreUtils.h"
 
 //
 // Python interface for CvgameCoreUtils.h.
 //
 
+// <!-- custom: Supply current compact UTC (YYYYMMDDTHHMMSS.mmmZ) to Python diagnostics without relying on the embedded Python wall clock, which stayed fixed in the measured game trial.
+// SASPythonLogging requires a rebuilt DLL exporting this binding; the bridge supplies reliable wall time, not a measured speed improvement.
+// Return std::string for the existing Boost.Python converter rather than exposing the derived CvString type; keep this binding-only adapter private to this file. (GPT-6.1-Sol) -->
+static std::string getSASDiagnosticUtcTimestamp()
+{
+	return createSASUtcTimestampMilliseconds();
+}
+
 void CyGameCoreUtilsPythonInterface()
 {
 	printToConsole("Python Extension Module - CyGameCoreUtilsPythonInterface\n");
+
+	// <!-- custom: Python's optional diagnostic prefixes need a fresh Windows UTC reading even when its embedded time/datetime readings do not advance. (GPT-6.1-Sol) -->
+	python::def("getSASDiagnosticUtcTimestamp", getSASDiagnosticUtcTimestamp, "str () - current UTC as YYYYMMDDTHHMMSS.mmmZ");
 
 	python::def("cyIntRange", cyIntRange,"int (int iNum, int iLow, int iHigh)");
 	python::def("cyFloatRange", cyFloatRange,"float (float fNum, float fLow, float fHigh)");

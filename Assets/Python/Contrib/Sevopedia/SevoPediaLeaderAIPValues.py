@@ -6,7 +6,8 @@
 # <!-- custom: Long_Comments_py.txt #3 -->
 
 from CvPythonExtensions import *
-import sys
+# <!-- custom: SASPythonLogging replaces the serializer's direct sys.stdout writes with an explicit raw-output path so the generated cache module remains copyable. (GPT-6.1-Sol) -->
+import SASPythonLogging
 
 from ai_utils_shared_with_civ4 import *
 from _sevopedia_helpers import *
@@ -43,7 +44,7 @@ PREDUMPED_MODULE_NAME = "SevoPediaLeaderCachePredumped"
 def dump_leader_cache_to_pythondbg(leaders_info_cached, excluded_leader_types, is_emoji_enabled, is_raw_xml_names):
 	# Dumps the leader cache to PythonDbg.log in a format that can be copy-pasted into a .py module file.
 	def emit(line):
-		sys.stdout.write("%s\n" % line)
+		SASPythonLogging.writeRaw("%s\n" % line)
 	leader_index_type_pairs = []
 	for iLeader in xrange(gc.getNumLeaderHeadInfos()):
 		leader_index_type_pairs.append((iLeader, gc.getLeaderHeadInfo(iLeader).getType()))

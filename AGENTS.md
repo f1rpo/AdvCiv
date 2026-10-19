@@ -125,6 +125,7 @@ Release preparation: when preparing a stable release or substantial release upda
 - When an explicitly authorized commit changes a tracked `.dll`, include the exact phrase `Update DLL` in its title or body (e.g. `- Update DLL`); the DLL commit-message CI check requires it.
   - This catches accidental inclusion of local test/Debug-opt binaries when the shipped Release DLL is updated less frequently than source commits.
   - The marker does not authorize a binary update by itself. Intentionally shipped DLL updates also need the generated full `<DLL filename>.build.json` staged beside the DLL from configuration exactly `Release`; both paths must change in the same commit, and `Update DLL` without a changed pair fails; the full `AdvCiv.log` remains a local diagnostic file. Ordinary build outputs remain local/Git-ignored.
+- Validation text in commit messages is optional; keep it brief when it explains a meaningful technical risk or supports a bug-fix claim. Omit routine checklists that add little; this does not waive appropriate checks.
 
 ## Research and references
 
@@ -171,6 +172,8 @@ C2C mod also uses `WidgetTypes.WIDGET_PYTHON`.
 ### Information Fetching locally (Dbg.log, Err.log, etc.)
 
 You can find Civ4 local user folder here "C:\Users\PC\Documents\My Games\beyond the sword".
+
+For examples such as `PythonErr.log` tracebacks, `xml.log` errors, `RandLog`/`MPLog.txt` RNG tracing, and older files such as `bull.log`/`MLF.log`, see the [logging reference](/_1_AdvCiv-SAS/Docs/README_Logging_Inventory.md), including their controls, source references and Before/After samples.
 
 In particular but not only, these are usually helpful:
 
@@ -231,6 +234,8 @@ Alternatively, the Civ4 BUG documentation is also provided as .txt, may be helpf
 If you find yourself stuck like for audio stopping issues, feel free to ask the user to perform one or many web searches, maybe some solutions exist or insights on how solvable issues are.
 
 ## Documentation editing
+
+- Describe current behavior and limits without implying future commitments, for example "Performance was not measured" rather than "Performance has not yet been measured". Mention possible extensions only when useful, using wording such as "A possible extension would be..."; otherwise omit speculative plans.
 
 ### Examples and historical records
 

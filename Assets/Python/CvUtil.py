@@ -13,6 +13,8 @@ import sys
 
 # For Civ game code access
 from CvPythonExtensions import *
+# <!-- custom: Install shared row timestamps before UI imports emit startup diagnostics; SASPythonLogging avoids importing CvUtil/BUG so this early hook has no dependency cycle. (GPT-6.1-Sol) -->
+import SASPythonLogging
 import SASTextScale
 
 # For exception handling
@@ -127,27 +129,17 @@ def convertToStr(s):
 		return s.encode("latin_1")
 	return s
 
-class RedirectDebug:
-	# Send Debug Messages to Civ Engine
+# <!-- custom: Retain the engine's existing redirect entry points and byte/unicode sinks, but give both the shared row formatter too.
+# The EXE can replace sys.stdout/stderr with these classes after importing CvUtil; inheriting the wrapper preserves coverage across that replacement. (GPT-6.1-Sol) -->
+class RedirectDebug(SASPythonLogging.TimestampedStream):
 	def __init__(self):
 		self.m_PythonMgr = CyPythonMgr()
-	def write(self, stuff):
-		# if str is non unicode and contains encoded unicode data, supply the right encoder to encode it into a unicode object
-		if (isinstance(stuff, unicode)):
-			self.m_PythonMgr.debugMsgWide(stuff)
-		else:
-			self.m_PythonMgr.debugMsg(stuff)
+		SASPythonLogging.TimestampedStream.__init__(self, SASPythonLogging.NativeSink(self.m_PythonMgr.debugMsg, self.m_PythonMgr.debugMsgWide))
 
-class RedirectError:
-	# Send Error Messages to Civ Engine
+class RedirectError(SASPythonLogging.TimestampedStream):
 	def __init__(self):
 		self.m_PythonMgr = CyPythonMgr()
-	def write(self, stuff):
-		# if str is non unicode and contains encoded unicode data, supply the right encoder to encode it into a unicode object
-		if (isinstance(stuff, unicode)):
-			self.m_PythonMgr.errorMsgWide(stuff)
-		else:
-			self.m_PythonMgr.errorMsg(stuff)
+		SASPythonLogging.TimestampedStream.__init__(self, SASPythonLogging.NativeSink(self.m_PythonMgr.errorMsg, self.m_PythonMgr.errorMsgWide))
 
 def myExceptHook(type, value, tb):
 	lines=traceback.format_exception(type, value, tb)

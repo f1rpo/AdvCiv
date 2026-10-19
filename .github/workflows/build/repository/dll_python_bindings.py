@@ -26,7 +26,11 @@ def registrations(text):
     tokens = [m.group() for m in TOKENS.finditer(text) if not m.group().startswith(("//", "/*"))]
     found = set()
     for i in range(len(tokens) - 5):
-        if tokens[i:i + 3] != [".", "def", "("] or not tokens[i + 3].startswith('"') or tokens[i + 4] != ",":
+        # <!-- custom: Module-level python::def functions need the same rebuilt DLL as class .def methods; the Python timestamp bridge uses this global-function form.
+        # Keep the build-report parser aligned. (GPT-6.1-Sol) -->
+        is_method = tokens[i:i + 3] == [".", "def", "("]
+        is_function = i >= 2 and tokens[i - 2:i + 3] == ["python", ":", ":", "def", "("]
+        if not (is_method or is_function) or not tokens[i + 3].startswith('"') or tokens[i + 4] != ",":
             continue
         target = []
         depth = 0
@@ -124,7 +128,7 @@ def check(repo, commits, head):
 
 # <!-- custom: Match the structural-define guard's integration policy: source-only feature commits remain possible, but default-branch pushes/PRs must provide the matching DLL at their final head. (GPT-6.1-Sol) -->
 def main():
-    parser = argparse.ArgumentParser(description="Require matching Release DLL evidence for literal Boost.Python method registration changes.")
+    parser = argparse.ArgumentParser(description="Require matching Release DLL evidence for literal Boost.Python method/function registration changes.")
     parser.add_argument("--repo-root", type=Path, default=ROOT)
     parser.add_argument("--base-ref")
     parser.add_argument("--head-ref", default="HEAD")

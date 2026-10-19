@@ -140,6 +140,8 @@
 # <!-- custom: AdvCiv-SAS does not actively maintain this third-party file; changes here are minor (e.g. collapsing multiline statements to single-line for grep/readability, and similar low-risk consistency tweaks). (Claude code Opus 4.7) -->
 
 from CvPythonExtensions import *
+# <!-- custom: SASPythonLogging owns stdout/stderr row timestamps; importing the leaf helper here also covers callers that load BUG before CvUtil. (GPT-6.1-Sol) -->
+import SASPythonLogging
 import ColorUtil
 import sys
 import time
@@ -262,14 +264,9 @@ def error(message, *args):
 	log(ERROR, message, args)
 
 def log(level, message, args=()):
-	# Logs a message on-screen or to a file depending on the current levels.
-	#
-	# The message is sent to each if the level is at least that of the destination.
-	# The level of the message is prepended to the message, and if logTime is True, 
-	# the current time in HH:MM:SS format is prepended as well.
-	#
-	# Any encoding errors are swallowed and no message is logged.
-	#
+	# <!-- custom: Preserve BUG's destination-level filtering and level labels; optional file timestamps now include the UTC date and milliseconds so messages can be correlated with SAS runtime history across runs and time zones.
+	# Screen text remains unchanged.
+	# Encoding errors retain the inherited handling. (GPT-6.1-Sol) -->
 	if level >= minimumLogLevel:
 		try:
 			if args:
@@ -286,14 +283,17 @@ def logToScreen(message):
 	#
 	interface.addImmediateMessage(escapeXml(message), "")
 
-def logToFile(message):
-	# Writes the message to the debug log with a time stamp if that option is enabled.
-	#
-	if logTime:
-		message = time.asctime()[11:20] + message
+def logSASPythonDiagnostic(message):
+	# <!-- custom: Give the shared SAS Python diagnostic writer an explicit name for new callers; the inherited logToFile name remains an alias below.
+	# The existing logTime option controls timestamps, so the name does not promise that every message is timestamped. (GPT-6.1-Sol) -->
+	# <!-- custom: Shared stream redirects now timestamp all Python-written rows, including direct prints and multiline errors; do not add another prefix here.
+	# Preserve BUG's encoding and level filtering while its existing timestamp preference controls the shared formatter. (GPT-6.1-Sol) -->
 	if isinstance(message, unicode):
 		message = message.encode("iso8859")
 	sys.stdout.write(message + "\n")
+
+# <!-- custom: Keep BUG's existing public name without duplicating formatting or adding a wrapper call; ordinary BUG log/trace callers and SAS diagnostics use the same writer. (GPT-6.1-Sol) -->
+logToFile = logSASPythonDiagnostic
 
 def readLoggingOptions(option=None, value=None):
 	# Pulls the logging options from the BUG_Core_Options and stores into local copies.
@@ -306,6 +306,7 @@ def readLoggingOptions(option=None, value=None):
 	fileLogLevel = CoreOpt.getFileLogLevel()
 	minimumLogLevel = min(screenLogLevel, fileLogLevel)
 	logTime = CoreOpt.isLogTime()
+	SASPythonLogging.setTimestampEnabled(logTime)
 
 ## Event Tracking and Output
 

@@ -46,7 +46,7 @@ jobs:
       - name: Version metadata
         run: python .github/workflows/build/repository/version_metadata.py
 
-      - name: DLL rebuild for Python method binding changes
+      - name: DLL rebuild for Python method/function binding changes
         run: python .github/workflows/build/repository/dll_python_bindings.py --event-name "$EVENT_NAME" --event-path "$GITHUB_EVENT_PATH"
         env:
           EVENT_NAME: ${{ github.event_name }}

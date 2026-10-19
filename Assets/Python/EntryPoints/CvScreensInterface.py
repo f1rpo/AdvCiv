@@ -52,6 +52,8 @@ import SASDefineGuard
 # Emit SHOW_REQUEST before drawing: a drawing failure otherwise loses its causal row, and interfaceScreen may return without actually opening.
 # This is intent, not visibility confirmation. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 import SASGameRecordActions
+# <!-- custom: BugUtil supplies the shared SAS Python diagnostic writer for ordinary interface messages; the stream layer supplies row timestamps without adding a new log-level filter here. (GPT-6.1-Sol) -->
+import BugUtil
 # K-Mod
 import BugOptionsScreen
 def showBugOptionsScreen(argsList=None):
@@ -63,7 +65,7 @@ g_bIsScreenActive = -1
 
 def toggleSetNoScreens():
 	global g_bIsScreenActive
-	print("SCREEN OFF")
+	BugUtil.logSASPythonDiagnostic("SCREEN OFF")
 	g_bIsScreenActive = -1
 	# <!-- custom: Real menu/game Sevopedia tests emitted this EXE no-screens notification without a recorded onClose hide edge.
 	# Observe that lifecycle boundary directly; querying isActive here could still see the old flag during dispatch.
@@ -74,7 +76,7 @@ def toggleSetNoScreens():
 
 def toggleSetScreenOn(argsList):
 	global g_bIsScreenActive
-	print("%s SCREEN TURNED ON" %(argsList[0],))
+	BugUtil.logSASPythonDiagnostic("%s SCREEN TURNED ON" %(argsList[0],))
 	g_bIsScreenActive = argsList[0]
 
 # BUG - Options - start
@@ -763,7 +765,7 @@ def WorldBuilderGetHighlightPlot(argsList):
 
 def WorldBuilderOnAdvancedStartBrushSelected(argsList):
 	iList,iIndex,iTab = argsList
-	print("WB Advanced Start brush selected, iList=%d, iIndex=%d, type=%d" %(iList,iIndex,iTab))	
+	BugUtil.logSASPythonDiagnostic("WB Advanced Start brush selected, iList=%d, iIndex=%d, type=%d" %(iList,iIndex,iTab))
 	if (iTab == worldBuilderScreen.m_iASTechTabID):
 		showTechChooser()
 	elif (iTab == worldBuilderScreen.m_iASCityTabID and iList == worldBuilderScreen.m_iASAutomateListID):
@@ -776,14 +778,14 @@ def WorldBuilderOnAdvancedStartBrushSelected(argsList):
 
 def WorldBuilderOnNormalPlayerBrushSelected(argsList):
 	iList,iIndex,iTab = argsList
-	print("WB brush selected, iList=%d, iIndex=%d, type=%d" %(iList,iIndex,iTab))	
+	BugUtil.logSASPythonDiagnostic("WB brush selected, iList=%d, iIndex=%d, type=%d" %(iList,iIndex,iTab))
 	if (worldBuilderScreen.setCurrentNormalPlayerIndex(iIndex)):
 		return 1
 	return 0
 
 def WorldBuilderOnNormalMapBrushSelected(argsList):
 	iList,iIndex,iTab = argsList
-	print("WB brush selected, iList=%d, iIndex=%d, type=%d" %(iList,iIndex,iTab))	
+	BugUtil.logSASPythonDiagnostic("WB brush selected, iList=%d, iIndex=%d, type=%d" %(iList,iIndex,iTab))
 	if (worldBuilderScreen.setCurrentNormalMapIndex(iIndex)):
 		if (worldBuilderScreen.setCurrentNormalMapList(iList)):
 			return 1
@@ -1095,7 +1097,7 @@ def handleBack(screens):
 		if (HandleNavigationMap.has_key(iScreen)):
 			screen = HandleNavigationMap.get( iScreen )
 			screen.back()
-	print("Mouse BACK")
+	BugUtil.logSASPythonDiagnostic("Mouse BACK")
 	return 0
 
 def handleForward(screens):
@@ -1103,7 +1105,7 @@ def handleForward(screens):
 		if (HandleNavigationMap.has_key(iScreen)):
 			screen = HandleNavigationMap.get( iScreen )
 			screen.forward()
-	print("Mouse FWD")
+	BugUtil.logSASPythonDiagnostic("Mouse FWD")
 	return 0
 
 def refreshMilitaryAdvisor (argsList):

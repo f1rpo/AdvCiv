@@ -87,7 +87,10 @@ function Get-PythonBindingRegistrations([string]$Text) {
         ForEach-Object { $_.Value } | Where-Object { -not ($_.StartsWith('//') -or $_.StartsWith('/*')) })
     $seen = New-Object 'Collections.Generic.HashSet[string]'
     for ($i = 0; $i -lt $tokens.Count - 5; $i++) {
-        if ($tokens[$i] -cne '.' -or $tokens[$i + 1] -cne 'def' -or $tokens[$i + 2] -cne '(' -or
+        # <!-- custom: Global python::def registrations are DLL contracts too; mirror the integration guard so the UTC logging bridge enters build fingerprints alongside class methods. (GPT-6.1-Sol) -->
+        $isMethod = $tokens[$i] -ceq '.'
+        $isFunction = $i -ge 2 -and $tokens[$i - 2] -ceq 'python' -and $tokens[$i - 1] -ceq ':' -and $tokens[$i] -ceq ':'
+        if (-not ($isMethod -or $isFunction) -or $tokens[$i + 1] -cne 'def' -or $tokens[$i + 2] -cne '(' -or
             -not $tokens[$i + 3].StartsWith('"') -or $tokens[$i + 4] -cne ',') { continue }
         $targetTokens = New-Object 'Collections.Generic.List[string]'
         $depth = 0

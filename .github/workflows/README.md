@@ -218,9 +218,9 @@ python .github/workflows/build/repository/dll_define_changes.py --base-ref HEAD~
 
 #### `build/repository/dll_python_bindings.py`
 
-Adding a Python method call alongside an old DLL can break startup or game loading even when Python syntax checks pass. This guard catches changed literal Boost.Python method registrations in `CvGameCoreDLL/**/*Interface*.cpp` and requires matching Release build evidence at default-branch integration.
+Adding a Python method/function call alongside an old DLL can break startup or game loading even when Python syntax checks pass. This guard catches changed literal Boost.Python class-method and module-function registrations in `CvGameCoreDLL/**/*Interface*.cpp` and requires matching Release build evidence at default-branch integration.
 
-- Compare `.def("name", target, ...)` names and target expressions against each selected commit's first parent; additions, removals and retargeting require a changed shipped DLL. Comments, help strings, whitespace, registration ordering and moves between interface files do not trigger a rebuild by themselves.
+- Compare `.def("name", target, ...)` and `python::def("name", target, ...)` names and target expressions against each selected commit's first parent; additions, removals and retargeting require a changed shipped DLL. Comments, help strings, whitespace, registration ordering and moves between interface files do not trigger a rebuild by themselves.
 - Reuse the existing successful Release report/binary checks, then verify affected registrations against `buildInputsBefore`. An exact source hash matches directly; otherwise the captured `pythonBindingsSha256` fingerprint of names/targets must match, so later comments, reflow or help-string edits do not require another compile. Stale registrations still fail.
   - Build reporting retains exact source hashes for provenance and separately fingerprints literal bindings without requiring Python on the build machine. Reports without that fingerprint still need an exact source match, accepting Git LF or Windows CRLF.
 - Like structural XML define changes, intermediate feature-branch commits may remain source-only. Default-branch pushes and PRs require the matching pair at the integration head; existing per-commit DLL intent rules still apply.

@@ -72,6 +72,17 @@ class DLLPythonBindingsTests(unittest.TestCase):
         self.assertEqual({name for name, _ in affected}, {"flushSASDiagnosticLogs"})
         self.assertIn("rebuilt Release DLL", errors[0])
 
+    # <!-- custom: The timestamp bridge is a module-level function, not a class method; ensure the same stale-DLL protection covers both registration forms. (GPT-6.1-Sol) -->
+    def test_global_function_requires_matching_release(self):
+        content = OLD + b'python::def("getSASDiagnosticUtcTimestamp", getSASDiagnosticUtcTimestamp, "help");\n'
+        self.write(SOURCE, content)
+        source = self.commit()
+        errors, affected = checker.check(self.repo, [source], source)
+        self.assertIn("rebuilt Release DLL", errors[0])
+        self.assertEqual({name for name, _ in affected}, {"getSASDiagnosticUtcTimestamp"})
+        head = self.release(source=content, capture_bindings=True)
+        self.assertFalse(checker.check(self.repo, [source, head], head)[0])
+
     def test_later_matching_release_passes(self):
         source = self.add_binding()
         head = self.release()
@@ -128,7 +139,7 @@ class DLLPythonBindingsTests(unittest.TestCase):
         powershell = shutil.which('pwsh') or shutil.which('powershell')
         if not powershell:
             self.skipTest('PowerShell unavailable; integration fixtures still run')
-        cases = [NEW.decode(), '', '// .def("fake", &CyGame::fake)\n',
+        cases = [NEW.decode(), 'python::def("utc", getUtc); boost::python::def("other", getOther);', '', '// .def("fake", &CyGame::fake)\n',
                  '.def("f", static_cast<void (CyGame::*)(int)>(&CyGame::f), "help").def("f", &CyCity::f)',
                  '.def(/* comment */ "f", & CyGame :: f, "help").def("f", &CyGame::f)',
                  '.def("é", &CyGame::f).def("É", &CyGame::f).def("Ω", &CyGame::g).def("𐐀", &CyGame::h)']
