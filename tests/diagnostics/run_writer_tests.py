@@ -105,6 +105,8 @@ def main():
             "/I" + str(ROOT / "CvGameCoreDLL"), "/I" + str(temporary),
             str(ROOT / "tests/diagnostics/sas_diagnostic_writer_harness.cpp"),
             "/Fo" + str(temporary / "writer.obj"), "/Fe" + str(executable),
+            # <!-- custom: WM_CLOSE observation and the fixture window use User32; the standalone VC2003 link failed with LNK2019 until its import library was supplied explicitly. (GPT-6.1-Sol) -->
+            "/link", "user32.lib",
         ], cwd=temporary, env=environment, check=True)
         environment["SAS_DIAGNOSTIC_TEST_ROOT"] = str(temporary)
         subprocess.run([str(executable)], cwd=temporary, env=environment, check=True)
@@ -113,6 +115,7 @@ def main():
         subprocess.run([str(executable), "--runtime-status-disabled"], cwd=temporary, env=environment, check=True)
         subprocess.run([str(executable), "--runtime-status"], cwd=temporary, env=environment, check=True)
         subprocess.run([str(executable), "--runtime-presentation"], cwd=temporary, env=environment, check=True)
+        subprocess.run([str(executable), "--runtime-window-close"], cwd=temporary, env=environment, check=True)
         subprocess.run([str(executable), "--runtime-status-output-failure"], cwd=temporary, env=environment, check=True)
         subprocess.run([str(executable), "--runtime-session-metadata-retry"], cwd=temporary, env=environment, check=True)
         subprocess.run([str(executable), "--runtime-history-uncertain-migration"], cwd=temporary, env=environment, check=True)
@@ -157,6 +160,18 @@ def main():
         assert ready["intervalStarted"] == 1 and ready["previousDurationMilliseconds"] == 1000
         assert hidden["intervalStarted"] == 0 and hidden["previousState"] == "NONE" and hidden["previousDurationMilliseconds"] == -1 and hidden["stateElapsedMilliseconds"] == 100
         assert extended["state"] == "PLAYING" and extended["reason"] == "EXTENDED_GAME_STARTED"
+        window_close = json.loads((temporary / "runtime_window_close.json").read_text(encoding="utf-8"))
+        window_close_rows = [json.loads(line) for line in (temporary / "runtime_window_close.jsonl").read_text(encoding="utf-8").splitlines()]
+        window_close_transitions = [row for row in window_close_rows if row["record"] == "transition"]
+        close_rows = [row for row in window_close_transitions if row["reason"] == "WINDOW_CLOSE_MESSAGE_OBSERVED"]
+        assert len(close_rows) == 2
+        assert sum(row["reason"] == "WINDOW_CLOSE_COMMAND_OBSERVED" for row in window_close_transitions) == 1
+        dequeued = [row for row in window_close_transitions if row["reason"] in ("WINDOW_CLOSE_MESSAGE_DEQUEUED", "WINDOW_CLOSE_COMMAND_DEQUEUED")]
+        assert len(dequeued) == 2 and all(row["intervalStarted"] == 0 for row in dequeued)
+        assert close_rows[0]["intervalStarted"] == 1 and close_rows[0]["previousState"] == "AUTOPLAY" and close_rows[0]["state"] == "EXIT_REQUESTED"
+        assert close_rows[1]["intervalStarted"] == 0 and close_rows[1]["state"] == "EXIT_REQUESTED"
+        assert window_close["processState"] == "EXITED_CLEANLY" and window_close["windowCloseObservationArmed"] == 1
+        assert window_close["windowCloseRequestObservedUtc"] != "-"
         recovered = json.loads((temporary / "runtime_failed_output.json").read_text(encoding="utf-8"))
         assert recovered["previousActivityDurationMilliseconds"] == 5000 and recovered["historyWriteFailures"] == 2
         assert recovered["historyRowsWritten"] == 3 and recovered["activitySerial"] == 3 and recovered["statusWriteFailures"] == 1
@@ -231,7 +246,7 @@ def main():
             (destination / "SASRuntimeStatus_example.json").write_text(json.dumps(example, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
             (destination / example["historyFilename"]).write_text("".join(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n" for row in rows), encoding="utf-8", newline="\n")
             print("Exported illustrative fixture examples (controlled DLL/game/elapsed-clock data; not Civ4 benchmark measurements): " + str(destination))
-        print("PASS C++ runtime status: JSON/lifecycle/DLL identity, timed history/interruption, root migration, partial append rollback and disabled no-I/O")
+        print("PASS C++ runtime status: JSON/lifecycle/DLL identity, timed history/interruption, WM_CLOSE observation, root migration, partial append rollback and disabled no-I/O")
         abrupt = subprocess.run([str(executable), "--abrupt-tail"], cwd=temporary, env=environment)
         if abrupt.returncode != 73:
             raise RuntimeError("abrupt writer fixture did not terminate at the expected point")

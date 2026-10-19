@@ -14,7 +14,7 @@
 // Compile the label into the publisher: an edited XML value must not make an older loaded DLL report a newer implementation; this counter is independent of SASGameRecord and binary-save versions. (GPT-6.1-Sol) -->
 enum SASRuntimeRecorderRevision
 {
-	SAS_RUNTIME_REVISION = 3
+	SAS_RUNTIME_REVISION = 4
 };
 
 #define SAS_RUNTIME_PROCESS_STATES(DO) DO(RUNNING) DO(EXITED_CLEANLY)
@@ -140,6 +140,19 @@ static std::wstring g_szSASRuntimeStatusSupersededPath;
 static bool g_bSASRuntimeStatusRootResolved = false;
 // <!-- custom: Track the last successfully published root, not merely the last attempted root; several failed handoffs must retain the actual fallback copy until a replacement succeeds. (GPT-6.1-Sol) -->
 static std::wstring g_szSASRuntimeStatusLastPublishedRoot;
+// <!-- custom: Observe Windows close messages without replacing Civ4's WndProc: thread-specific hooks watch queue removal and sent-message delivery, always chaining onward.
+// Keep the hook entirely inside the default-off runtime recorder; normal gameplay with status disabled never enumerates windows or installs a hook.
+// The observation identifies a Windows close message/command, not whether it came from the title-bar X, Alt+F4, automation, or another sender. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+static HHOOK g_hSASRuntimeWindowMessageHook = NULL;
+// <!-- custom: Window-procedure delivery alone missed the first real autoplay/red-cross test although the observer was armed.
+// Observe queue removal too: an EXE can handle a retrieved message without dispatching it to its WndProc; both hooks remain read-only and thread-specific. (GPT-6.1-Sol) -->
+static HHOOK g_hSASRuntimeWindowQueueHook = NULL;
+static DWORD g_uiSASRuntimeWindowHookThreadId = 0;
+static HWND g_hSASRuntimeObservedWindow = NULL;
+static bool g_bSASRuntimeHandlingWindowClose = false;
+static bool g_bSASRuntimeWindowCloseObservationArmed = false;
+// <!-- custom: Both WM_CLOSE and SC_CLOSE observations update this request timestamp; the field names the shared meaning rather than suggesting only WM_CLOSE is covered. (GPT-6.1-Sol) -->
+static CvString g_szSASRuntimeWindowCloseRequestObservedUtc = "-";
 
 // <!-- custom: Read XML once on first use, then reuse the setting until restart: -1 means unread, 0 means cached off, and 1 means cached on.
 // Shutdown checks the stored value directly; if it was never read, skip status publication rather than performing a first XML lookup after XML caches may have been released. (GPT-6.1-Sol) -->
@@ -191,6 +204,144 @@ void setSASRuntimeStatusRootDirectory(std::wstring const& szRoot)
 	g_szSASRuntimeStatusRootDirectory = szRoot;
 	g_bSASRuntimeStatusRootResolved = true;
 	writeSASRuntimeStatus(SAS_RUNTIME_STATUS_ROOT_READY);
+}
+
+// <!-- custom: Locate Civ4's visible, unowned top-level window only during enabled lifecycle observations.
+// Queue and sent-message hooks observe its thread without subclassing, consuming, or altering the EXE's messages; when no window is visible yet, arm on the lifecycle caller's thread. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+struct SASRuntimeProcessWindow
+{
+	SASRuntimeProcessWindow() : hWindow(NULL), uiThreadId(0) {}
+	HWND hWindow;
+	DWORD uiThreadId;
+};
+
+static BOOL CALLBACK findSASRuntimeProcessWindow(HWND hWindow, LPARAM lParam)
+{
+	DWORD uiProcessId = 0;
+	DWORD const uiThreadId = GetWindowThreadProcessId(hWindow, &uiProcessId);
+	if (uiProcessId != GetCurrentProcessId() || uiThreadId == 0 || !IsWindowVisible(hWindow) || GetWindow(hWindow, GW_OWNER) != NULL)
+		return TRUE;
+	SASRuntimeProcessWindow& kWindow = *(SASRuntimeProcessWindow*)lParam;
+	kWindow.hWindow = hWindow;
+	kWindow.uiThreadId = uiThreadId;
+	return FALSE;
+}
+
+// <!-- custom: Keep close evidence typed by both message and observation boundary.
+// Queue removal proves retrieval, not window-procedure delivery or completed exit; keep a later delivery observation without restarting its exit interval. (GPT-6.1-Sol) -->
+static bool isSASRuntimeWindowCloseReason(SASRuntimeStatusReason eReason)
+{
+	switch (eReason)
+	{
+	case SAS_RUNTIME_STATUS_WINDOW_CLOSE_MESSAGE_OBSERVED:
+	case SAS_RUNTIME_STATUS_WINDOW_CLOSE_COMMAND_OBSERVED:
+	case SAS_RUNTIME_STATUS_WINDOW_CLOSE_MESSAGE_DEQUEUED:
+	case SAS_RUNTIME_STATUS_WINDOW_CLOSE_COMMAND_DEQUEUED:
+		return true;
+	default:
+		return false;
+	}
+}
+
+// <!-- custom: Reject unrelated messages before querying windows, formatting JSON or writing files; enabled hooks incur only this small filter for ordinary messages.
+// SC_CLOSE can precede WM_CLOSE and may be handled directly by the EXE.
+// Windows reserves the low four command bits, so mask them as documented for WM_SYSCOMMAND.
+// The first real autoplay/red-cross retest observed SC_CLOSE without WM_CLOSE; the queue hook separately covers posted requests reproduced by the standalone fixture. (GPT-6.1-Sol) -->
+static void observeSASRuntimeWindowClose(HWND hWindow, UINT uiMessage, WPARAM wParam, bool bDequeued)
+{
+	bool const bCloseMessage = (uiMessage == WM_CLOSE);
+	if (!bCloseMessage && !(uiMessage == WM_SYSCOMMAND && (wParam & 0xFFF0) == SC_CLOSE))
+		return;
+	if (g_bSASRuntimeHandlingWindowClose || g_eSASRuntimeProcessState == SAS_RUNTIME_PROCESS_EXITED_CLEANLY)
+		return;
+	if (g_hSASRuntimeObservedWindow == NULL)
+	{
+		// <!-- custom: Civ4's first menu-scene observation occurred before a visible window was discoverable.
+		// An observer armed on that thread can bind a later close target without frame polling or requiring a game to have started. (GPT-6.1-Sol) -->
+		DWORD uiProcessId = 0;
+		DWORD const uiThreadId = GetWindowThreadProcessId(hWindow, &uiProcessId);
+		if (uiProcessId != GetCurrentProcessId() || uiThreadId != g_uiSASRuntimeWindowHookThreadId || GetWindow(hWindow, GW_OWNER) != NULL)
+			return;
+		g_hSASRuntimeObservedWindow = hWindow;
+	}
+	if (hWindow != g_hSASRuntimeObservedWindow)
+		return;
+	SASRuntimeStatusReason const eReason = (bCloseMessage ?
+		(bDequeued ? SAS_RUNTIME_STATUS_WINDOW_CLOSE_MESSAGE_DEQUEUED : SAS_RUNTIME_STATUS_WINDOW_CLOSE_MESSAGE_OBSERVED) :
+		(bDequeued ? SAS_RUNTIME_STATUS_WINDOW_CLOSE_COMMAND_DEQUEUED : SAS_RUNTIME_STATUS_WINDOW_CLOSE_COMMAND_OBSERVED));
+	g_bSASRuntimeHandlingWindowClose = true;
+	writeSASRuntimeStatus(eReason);
+	g_bSASRuntimeHandlingWindowClose = false;
+}
+
+static LRESULT CALLBACK observeSASRuntimeWindowMessage(int iCode, WPARAM wParam, LPARAM lParam)
+{
+	if (iCode >= 0 && lParam != 0)
+	{
+		CWPSTRUCT const& kMessage = *(CWPSTRUCT const*)lParam;
+		observeSASRuntimeWindowClose(kMessage.hwnd, kMessage.message, kMessage.wParam, false);
+	}
+	return CallNextHookEx(g_hSASRuntimeWindowMessageHook, iCode, wParam, lParam);
+}
+
+// <!-- custom: WH_GETMESSAGE runs before GetMessage/PeekMessage returns to the EXE, covering messages consumed by its message loop before DispatchMessage.
+// Ignore PM_NOREMOVE peeks so repeatedly inspecting one queued request does not repeatedly record it.
+// Never modify MSG or suppress its normal return to the EXE. (GPT-6.1-Sol) -->
+static LRESULT CALLBACK observeSASRuntimeWindowQueue(int iCode, WPARAM wParam, LPARAM lParam)
+{
+	if (iCode >= 0 && wParam == PM_REMOVE && lParam != 0)
+	{
+		MSG const& kMessage = *(MSG const*)lParam;
+		observeSASRuntimeWindowClose(kMessage.hwnd, kMessage.message, kMessage.wParam, true);
+	}
+	return CallNextHookEx(g_hSASRuntimeWindowQueueHook, iCode, wParam, lParam);
+}
+
+static void releaseSASRuntimeWindowMessageHook()
+{
+	if (g_hSASRuntimeWindowMessageHook != NULL)
+		UnhookWindowsHookEx(g_hSASRuntimeWindowMessageHook);
+	if (g_hSASRuntimeWindowQueueHook != NULL)
+		UnhookWindowsHookEx(g_hSASRuntimeWindowQueueHook);
+	g_hSASRuntimeWindowMessageHook = NULL;
+	g_hSASRuntimeWindowQueueHook = NULL;
+	g_hSASRuntimeObservedWindow = NULL;
+	g_uiSASRuntimeWindowHookThreadId = 0;
+}
+
+static void ensureSASRuntimeWindowMessageHook()
+{
+	if (g_hSASRuntimeWindowMessageHook != NULL && g_hSASRuntimeWindowQueueHook != NULL &&
+		g_hSASRuntimeObservedWindow != NULL && IsWindow(g_hSASRuntimeObservedWindow))
+		return;
+	SASRuntimeProcessWindow kWindow;
+	EnumWindows(findSASRuntimeProcessWindow, (LPARAM)&kWindow);
+	// <!-- custom: Before the main window is visible, observe the thread making this lifecycle callback; bind its top-level close target when one is actually observed.
+	// Later lifecycle observations can move the hooks to the discovered window's thread if it differs.
+	// No turn/frame polling is added. (GPT-6.1-Sol) -->
+	if (kWindow.uiThreadId == 0)
+		kWindow.uiThreadId = GetCurrentThreadId();
+	if (g_hSASRuntimeWindowMessageHook != NULL && g_hSASRuntimeWindowQueueHook != NULL && g_uiSASRuntimeWindowHookThreadId == kWindow.uiThreadId)
+	{
+		g_hSASRuntimeObservedWindow = kWindow.hWindow;
+		return;
+	}
+	releaseSASRuntimeWindowMessageHook();
+	HHOOK const hMessageHook = SetWindowsHookExW(WH_CALLWNDPROC, observeSASRuntimeWindowMessage, NULL, kWindow.uiThreadId);
+	if (hMessageHook == NULL)
+		return;
+	HHOOK const hQueueHook = SetWindowsHookExW(WH_GETMESSAGE, observeSASRuntimeWindowQueue, NULL, kWindow.uiThreadId);
+	if (hQueueHook == NULL)
+	{
+		// <!-- custom: Arming means both observation paths were installed; roll back a partial installation so later lifecycle callbacks can retry the complete pair. (GPT-6.1-Sol) -->
+		UnhookWindowsHookEx(hMessageHook);
+		return;
+	}
+	g_hSASRuntimeObservedWindow = kWindow.hWindow;
+	g_uiSASRuntimeWindowHookThreadId = kWindow.uiThreadId;
+	g_hSASRuntimeWindowMessageHook = hMessageHook;
+	g_hSASRuntimeWindowQueueHook = hQueueHook;
+	g_bSASRuntimeWindowCloseObservationArmed = true;
 }
 
 // <!-- custom: Cache each whitespace representation once for enabled output; the shared binary context already caches module discovery/hashing, so neither formatting style repeats that I/O. (GPT-6.1-Sol) -->
@@ -370,7 +521,7 @@ static SASRuntimeActivity getSASRuntimeActivity(SASRuntimeStatusReason eReason, 
 		return SAS_RUNTIME_ACTIVITY_SHUTTING_DOWN;
 	if (eReason == SAS_RUNTIME_STATUS_RETURN_TO_MENU_REQUESTED)
 		return SAS_RUNTIME_ACTIVITY_RETURNING_TO_MENU;
-	if (eReason == SAS_RUNTIME_STATUS_EXIT_REQUESTED)
+	if (eReason == SAS_RUNTIME_STATUS_EXIT_REQUESTED || isSASRuntimeWindowCloseReason(eReason))
 		return SAS_RUNTIME_ACTIVITY_EXIT_REQUESTED;
 	if (g_eSASRuntimeGameState == SAS_RUNTIME_GAME_NO_GAME)
 		return SAS_RUNTIME_ACTIVITY_NO_GAME;
@@ -393,15 +544,16 @@ static void updateSASRuntimeActivity(SASRuntimeStatusReason eReason, CvString co
 	SASRuntimeActivity const eActivity = getSASRuntimeActivity(eReason, iAutoPlayRemaining);
 	// <!-- custom: Keep presentation observations in the timeline without splitting the underlying activity interval.
 	// The native fixture's creation from 1000 to 2000 ms previously became 250 ms plus 750 ms after its loading-asset request; preserving the interval start restores the full 1000 ms completion duration. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
-	bool const bPresentationBoundary = (
+	bool const bObservationBoundary = (
 		eReason == SAS_RUNTIME_STATUS_MAIN_MENU_SCENE_REQUESTED ||
 		eReason == SAS_RUNTIME_STATUS_LOADING_SCREEN_ASSET_REQUESTED ||
 		eReason == SAS_RUNTIME_STATUS_WORLD_BUILDER_MODE_ENTERED ||
 		eReason == SAS_RUNTIME_STATUS_WORLD_BUILDER_MODE_EXITED ||
 		eReason == SAS_RUNTIME_STATUS_WORLD_BUILDER_SCREEN_SHOWN ||
-		eReason == SAS_RUNTIME_STATUS_WORLD_BUILDER_SCREEN_HIDDEN);
+		eReason == SAS_RUNTIME_STATUS_WORLD_BUILDER_SCREEN_HIDDEN ||
+		isSASRuntimeWindowCloseReason(eReason));
 	bool const bIntervalStarted = (eActivity != g_eSASRuntimeActivity || eReason == SAS_RUNTIME_STATUS_AUTOPLAY_CHANGED || g_uiSASRuntimeActivitySession != g_uiSASRuntimeSessionSerial);
-	if (!bIntervalStarted && !bPresentationBoundary)
+	if (!bIntervalStarted && !bObservationBoundary)
 		return;
 	unsigned int const uiPreviousSession = (bIntervalStarted ? g_uiSASRuntimeActivitySession : 0);
 	int const iPreviousStartTurn = (bIntervalStarted ? g_iSASRuntimeActivityStartTurn : -1);
@@ -467,8 +619,13 @@ static bool publishSASRuntimeStatus(SASRuntimeStatusReason eReason)
 	FAssert(eReason >= 0 && eReason < NUM_SAS_RUNTIME_STATUS_REASONS);
 	if (eReason < 0 || eReason >= NUM_SAS_RUNTIME_STATUS_REASONS)
 		return false;
+	// <!-- custom: Do not retry window discovery on ordinary turn heartbeats; startup/menu/session/request boundaries provide repeated low-frequency opportunities to arm the observer if the window did not exist yet. (ChatGPT-5.6-Sol) -->
+	if (eReason != SAS_RUNTIME_STATUS_TURN_COMPLETED && eReason != SAS_RUNTIME_STATUS_PROCESS_EXIT && !isSASRuntimeWindowCloseReason(eReason))
+		ensureSASRuntimeWindowMessageHook();
 	// <!-- custom: Sample the observed boundary before root discovery or file I/O, so slow publication does not redefine when creation/loading or autoplay changed state. (GPT-6.1-Sol) -->
 	CvString const szUpdatedUtc = createSASUtcTimestampMilliseconds();
+	if (isSASRuntimeWindowCloseReason(eReason))
+		g_szSASRuntimeWindowCloseRequestObservedUtc = szUpdatedUtc;
 	uint const uiNowMilliseconds = getSASMonotonicMilliseconds();
 	bool const bRootReady = resolveSASRuntimeStatusDefaultRootDirectory();
 	std::wstring const szLogDirectory = g_szSASRuntimeStatusRootDirectory + L"\\Logs";
@@ -522,6 +679,8 @@ static bool publishSASRuntimeStatus(SASRuntimeStatusReason eReason)
 		"  \"dllLoadUtc\": \"%s\",\r\n"
 		"  \"updatedUtc\": \"%s\",\r\n"
 		"  \"processState\": \"%s\",\r\n"
+		"  \"windowCloseObservationArmed\": %d,\r\n"
+		"  \"windowCloseRequestObservedUtc\": \"%s\",\r\n"
 		"  \"gameState\": \"%s\",\r\n"
 		"  \"activity\": \"%s\",\r\n"
 		"  \"activitySerial\": %u,\r\n"
@@ -563,7 +722,8 @@ static bool publishSASRuntimeStatus(SASRuntimeStatusReason eReason)
 		"  \"loadedSaveCheckpointUtc\": \"%s\"\r\n"
 		"}\r\n",
 		SAS_RUNTIME_REVISION, szDllIdentity.GetCString(), g_uiSASRuntimeStatusSerial, g_uiSASRuntimeStatusWriteFailures, (unsigned long)GetCurrentProcessId(), getSASExecutableProcessStartUtc().GetCString(), getSASProcessUtcTimestamp().GetCString(), szUpdatedUtc.GetCString(),
-		aSASRuntimeProcessStateNames[g_eSASRuntimeProcessState], aSASRuntimeGameStateNames[g_eSASRuntimeGameState],
+		aSASRuntimeProcessStateNames[g_eSASRuntimeProcessState], (g_bSASRuntimeWindowCloseObservationArmed ? 1 : 0), g_szSASRuntimeWindowCloseRequestObservedUtc.GetCString(),
+		aSASRuntimeGameStateNames[g_eSASRuntimeGameState],
 		aSASRuntimeActivityNames[g_eSASRuntimeActivity], g_uiSASRuntimeActivitySerial, g_szSASRuntimeActivityStartedUtc.GetCString(), getSASElapsedMilliseconds(g_uiSASRuntimeActivityStartedMilliseconds, uiNowMilliseconds),
 		aSASRuntimeActivityNames[g_eSASRuntimePreviousActivity], g_szSASRuntimePreviousStartedUtc.GetCString(), g_szSASRuntimePreviousEndedUtc.GetCString(), g_iSASRuntimePreviousDurationMilliseconds,
 		g_szSASRuntimeHistoryFilename.GetCString(), g_bSASRuntimeHistoryAtCurrentRoot, g_uiSASRuntimeHistoryRowsWritten, g_uiSASRuntimeHistoryWriteFailures,
@@ -759,4 +919,6 @@ void updateSASRuntimeStatusCleanExit()
 		return;
 	g_eSASRuntimeProcessState = SAS_RUNTIME_PROCESS_EXITED_CLEANLY;
 	writeSASRuntimeStatus(SAS_RUNTIME_STATUS_PROCESS_EXIT);
+	// <!-- custom: Release the thread-local message observer after the final orderly snapshot; the snapshot keeps the cumulative observation-armed flag, while abrupt process termination is cleaned up by Windows. (ChatGPT-5.6-Sol) -->
+	releaseSASRuntimeWindowMessageHook();
 }

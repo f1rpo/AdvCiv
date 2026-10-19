@@ -271,6 +271,15 @@ namespace recordFinalizationFixture
 	#include "record_finalization_under_test.inc"
 }
 
+// <!-- custom: Keep WM_CLOSE observable without letting the fixture window actually disappear; production only observes and chains the message, while this test WndProc suppresses destruction so two close-ordering scenarios can run in one process. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Handle SC_CLOSE directly in this fixture, without generating WM_CLOSE, to test the gap left by watching only direct WM_CLOSE delivery. (GPT-6.1-Sol) -->
+static LRESULT CALLBACK runtimeCloseTestWindowProc(HWND hWindow, UINT uiMessage, WPARAM wParam, LPARAM lParam)
+{
+	if (uiMessage == WM_CLOSE || (uiMessage == WM_SYSCOMMAND && (wParam & 0xFFF0) == SC_CLOSE))
+		return 0;
+	return DefWindowProcW(hWindow, uiMessage, wParam, lParam);
+}
+
 int main(int argc, char** argv)
 {
 	wchar_t temporary[MAX_PATH];
@@ -320,6 +329,7 @@ int main(int argc, char** argv)
 		updateSASRuntimeStatusCleanExit();
 		require(g_openCalls == 0 && g_dllIdentityLookups == 0 && g_uiSASRuntimeStatusWriteFailures == 0 && g_uiSASRuntimeActivitySerial == 0 && g_uiSASRuntimeStatusSerial == 0 && g_uiSASRuntimeSessionSerial == 0, "disabled status does not publish or accumulate session state");
 		require(g_uiSASRuntimeHistorySessionMetadataCaptured == 0 && g_szSASRuntimeHistoryPendingSessionMetadata.empty(), "disabled status does not capture pending metadata");
+		require(g_hSASRuntimeWindowMessageHook == NULL && g_hSASRuntimeWindowQueueHook == NULL && g_hSASRuntimeObservedWindow == NULL, "disabled status installs no window-message or queue hook");
 		return 0;
 	}
 	// <!-- custom: A blocked output path must not stretch creation time until the next successful write; retain the observed interval and expose a missing history row through counters/serials. (GPT-6.1-Sol) -->
@@ -537,6 +547,89 @@ int main(int argc, char** argv)
 		updateSASRuntimeStatusRequest(SAS_RUNTIME_STATUS_EXIT_REQUESTED);
 		updateSASRuntimeStatusTurnCompleted(9);
 		require(g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_EXIT_REQUESTED, "late callbacks cannot replace an exit request with a still-visible editor");
+		return 0;
+	}
+	if (argc == 2 && strcmp(argv[1], "--runtime-window-close") == 0)
+	{
+		GC.runtimeStatus = true;
+		std::wstring const root = std::wstring(temporary) + L"\\runtime_window_close";
+		require(CreateDirectoryW(root.c_str(), NULL) != FALSE, "create runtime-window-close fixture root");
+		// <!-- custom: First menu status can precede window visibility.
+		// Arm before creating the fixture HWND, then require a close to bind it without another lifecycle update. (GPT-6.1-Sol) -->
+		setSASRuntimeStatusRootDirectory(root);
+		require(g_hSASRuntimeWindowMessageHook != NULL && g_hSASRuntimeWindowQueueHook != NULL && g_hSASRuntimeObservedWindow == NULL, "early status arms both hooks before a top-level window exists");
+		WNDCLASSW kClass;
+		ZeroMemory(&kClass, sizeof(kClass));
+		kClass.lpfnWndProc = runtimeCloseTestWindowProc;
+		kClass.hInstance = GetModuleHandleW(NULL);
+		kClass.lpszClassName = L"SASRuntimeCloseFixtureWindow";
+		require(RegisterClassW(&kClass) != 0, "register runtime close fixture window");
+		HWND const hWindow = CreateWindowW(kClass.lpszClassName, L"SAS runtime close fixture", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 320, 200, NULL, NULL, kClass.hInstance, NULL);
+		require(hWindow != NULL, "create runtime close fixture window");
+		ShowWindow(hWindow, SW_SHOW);
+		UpdateWindow(hWindow);
+		unsigned int const uiBeforeUnrelatedMessage = g_uiSASRuntimeActivitySerial;
+		SendMessageW(hWindow, WM_NULL, 0, 0);
+		require(g_uiSASRuntimeActivitySerial == uiBeforeUnrelatedMessage && g_szSASRuntimeWindowCloseRequestObservedUtc == "-", "ordinary messages perform no status publication");
+		SendMessageW(hWindow, WM_SYSCOMMAND, SC_CLOSE | 3, 0);
+		require(g_hSASRuntimeObservedWindow == hWindow && g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_EXIT_REQUESTED, "close command binds the later window and records its request even without a WM_CLOSE");
+		updateSASRuntimeStatusNoGame();
+
+		g_runtimeClock = 100;
+		updateSASRuntimeStatusSessionStarted(false);
+		GC.game.ready = true;
+		g_runtimeClock = 200;
+		updateSASRuntimeStatusSessionReady();
+		GC.game.autoplay = 5;
+		g_runtimeClock = 300;
+		updateSASRuntimeStatusAutoPlay(SAS_RUNTIME_STATUS_AUTOPLAY_STARTED);
+		g_runtimeClock = 400;
+		SendMessageW(hWindow, WM_CLOSE, 0, 0);
+		require(g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_EXIT_REQUESTED && g_szSASRuntimeWindowCloseRequestObservedUtc != "-", "WM_CLOSE during autoplay records an observed exit request without consuming the message");
+
+		GC.game.autoplay = 0;
+		GC.game.ready = false;
+		g_runtimeClock = 500;
+		updateSASRuntimeStatusNoGame();
+		g_runtimeClock = 600;
+		updateSASRuntimeStatusRequest(SAS_RUNTIME_STATUS_EXIT_REQUESTED);
+		uint const uiExplicitExitStart = g_uiSASRuntimeActivityStartedMilliseconds;
+		g_runtimeClock = 700;
+		SendMessageW(hWindow, WM_CLOSE, 0, 0);
+		require(g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_EXIT_REQUESTED && g_uiSASRuntimeActivityStartedMilliseconds == uiExplicitExitStart, "WM_CLOSE after an explicit UI exit remains observation-only and does not restart the exit interval");
+
+		// <!-- custom: A game message loop may remove a close and exit without calling DispatchMessage; the old SendMessage-only fixture could not expose that blind spot.
+		// PM_NOREMOVE inspection must not publish, and the observer must leave the actual retrieved MSG unchanged. (GPT-6.1-Sol) -->
+		MSG kQueued;
+		require(PostMessageW(hWindow, WM_CLOSE, 0, 0) != FALSE, "post close for an undispatched message-loop case");
+		unsigned int const uiBeforePeek = g_uiSASRuntimeActivitySerial;
+		require(PeekMessageW(&kQueued, hWindow, WM_CLOSE, WM_CLOSE, PM_NOREMOVE) != FALSE, "peek queued close without removing it");
+		require(PeekMessageW(&kQueued, hWindow, WM_CLOSE, WM_CLOSE, PM_NOREMOVE) != FALSE && g_uiSASRuntimeActivitySerial == uiBeforePeek, "repeated peeks create no duplicate observation");
+		require(PeekMessageW(&kQueued, hWindow, WM_CLOSE, WM_CLOSE, PM_REMOVE) != FALSE, "remove close without dispatching it");
+		require(kQueued.hwnd == hWindow && kQueued.message == WM_CLOSE && g_uiSASRuntimeActivitySerial == uiBeforePeek + 1, "undispatched close is observed without modifying its message");
+		require(g_uiSASRuntimeActivityStartedMilliseconds == uiExplicitExitStart, "queued observation preserves the existing exit interval");
+		require(PostMessageW(hWindow, WM_SYSCOMMAND, SC_CLOSE | 3, 0) != FALSE, "post close system command with reserved low bits");
+		require(PeekMessageW(&kQueued, hWindow, WM_SYSCOMMAND, WM_SYSCOMMAND, PM_REMOVE) != FALSE, "remove close system command");
+		require(kQueued.wParam == (SC_CLOSE | 3), "system command remains unchanged for Civ4");
+		DispatchMessageW(&kQueued);
+		require(g_uiSASRuntimeActivitySerial == uiBeforePeek + 2 && g_uiSASRuntimeActivityStartedMilliseconds == uiExplicitExitStart, "posted commands are observed at queue removal even when DispatchMessage bypasses the sent-message hook");
+
+		// <!-- custom: Exercise the stale-HWND recovery path without adding another close transition: Civ4 normally keeps one main window, but an observer must not remain pinned to a destroyed handle if the EXE recreates it. (ChatGPT-5.6-Sol) -->
+		require(DestroyWindow(hWindow) != FALSE, "destroy original runtime close fixture window");
+		HWND const hReplacement = CreateWindowW(kClass.lpszClassName, L"SAS runtime close replacement", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 320, 200, NULL, NULL, kClass.hInstance, NULL);
+		require(hReplacement != NULL, "create replacement runtime close fixture window");
+		ShowWindow(hReplacement, SW_SHOW);
+		UpdateWindow(hReplacement);
+		ensureSASRuntimeWindowMessageHook();
+		require(g_hSASRuntimeWindowMessageHook != NULL && g_hSASRuntimeObservedWindow == hReplacement, "observer re-arms on a replacement top-level window after the original HWND disappears");
+
+		updateSASRuntimeStatusCleanExit();
+		require(g_hSASRuntimeWindowMessageHook == NULL && g_hSASRuntimeWindowQueueHook == NULL && g_hSASRuntimeObservedWindow == NULL, "orderly shutdown releases both window observers after final publication");
+		require(CopyFileW((root + L"\\Logs\\SASRuntimeStatus.json").c_str(), (std::wstring(temporary) + L"\\runtime_window_close.json").c_str(), FALSE) != FALSE, "retain window-close status snapshot");
+		std::wstring const historyName(g_szSASRuntimeHistoryFilename.begin(), g_szSASRuntimeHistoryFilename.end());
+		require(CopyFileW((root + L"\\Logs\\" + historyName).c_str(), (std::wstring(temporary) + L"\\runtime_window_close.jsonl").c_str(), FALSE) != FALSE, "retain window-close runtime history");
+		DestroyWindow(hReplacement);
+		UnregisterClassW(kClass.lpszClassName, kClass.hInstance);
 		return 0;
 	}
 	if (argc == 2 && strcmp(argv[1], "--runtime-status") == 0)

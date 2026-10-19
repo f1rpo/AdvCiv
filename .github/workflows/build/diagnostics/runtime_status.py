@@ -86,6 +86,20 @@ def main() -> int:
             'SAS_RUNTIME_STATUS_REASON(WORLD_BUILDER_MODE_ENTERED)',
             'SAS_RUNTIME_STATUS_REASON(WORLD_BUILDER_SCREEN_SHOWN)',
             'SAS_RUNTIME_STATUS_REASON(EXTENDED_GAME_STARTED)',
+            'SAS_RUNTIME_STATUS_REASON(WINDOW_CLOSE_MESSAGE_OBSERVED)',
+            'WH_CALLWNDPROC',
+            'WH_GETMESSAGE',
+            'PM_REMOVE',
+            'SC_CLOSE',
+            'SAS_RUNTIME_STATUS_REASON(WINDOW_CLOSE_COMMAND_OBSERVED)',
+            'SAS_RUNTIME_STATUS_REASON(WINDOW_CLOSE_MESSAGE_DEQUEUED)',
+            'SAS_RUNTIME_STATUS_REASON(WINDOW_CLOSE_COMMAND_DEQUEUED)',
+            'SetWindowsHookExW(',
+            'CallNextHookEx(',
+            'UnhookWindowsHookEx(',
+            'WM_CLOSE',
+            r'\"windowCloseObservationArmed\"',
+            r'\"windowCloseRequestObservedUtc\"',
             r'\"mainMenuSceneRequestedUtc\"',
             r'\"loadingScreenAssetRequestedUtc\"',
             r'\"worldBuilderMode\"',
@@ -127,12 +141,14 @@ def main() -> int:
                 failures.append(f"{SCREENS_SOURCE}: missing filtered WorldBuilder presentation hook {token}")
         if "getSoundtrack" in texts[STATUS_SOURCE] or "isInMainMenu" in texts[STATUS_SOURCE]:
             failures.append(f"{STATUS_SOURCE}: runtime status must not query side-effectful soundtrack or poll main-menu state")
+        if "SetWindowLong" in texts[STATUS_SOURCE] or "GWLP_WNDPROC" in texts[STATUS_SOURCE] or "GWL_WNDPROC" in texts[STATUS_SOURCE]:
+            failures.append(f"{STATUS_SOURCE}: close observation must not subclass/replace Civ4's window procedure")
     if failures:
         print("FAIL SAS runtime status")
         for failure in failures:
             print(f"  - {failure}")
         return 1
-    print("PASS SAS runtime status: disabled by default; lifecycle/presentation hooks are event-driven and avoid side-effectful polling")
+    print("PASS SAS runtime status: disabled by default; lifecycle/presentation/WM_CLOSE observation is event-driven and avoids side-effectful polling or WndProc replacement")
     return 0
 
 

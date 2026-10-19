@@ -90,6 +90,10 @@ A scene or loading-asset request is evidence that the EXE requested that present
 
 A crash or forced termination leaves an unfinished last interval, not an invented end time or crash cause. Match the live Windows process using PID and process-start UTC; inspect history-write failures/state serials before assuming the timeline is complete.
 
+From runtime revision 4, the current snapshot also reports `windowCloseObservationArmed` and `windowCloseRequestObservedUtc`. Thread-specific observers cover both sent messages and queue removal, without changing messages or replacing the window procedure.
+
+`WINDOW_CLOSE_MESSAGE_OBSERVED` identifies a sent `WM_CLOSE`; `WINDOW_CLOSE_COMMAND_OBSERVED` identifies a sent `SC_CLOSE` system command. The corresponding `WINDOW_CLOSE_MESSAGE_DEQUEUED` / `WINDOW_CLOSE_COMMAND_DEQUEUED` reasons identify queue retrieval before the EXE handles or dispatches that request. They do not identify red-X versus Alt+F4/automation, and none proves successful exit. An existing exit interval is preserved if a later close observation follows an explicit UI exit.
+
 ## Real output and test fixtures
 
 The linked JSON and JSONL files provide a real example of the recorder's output, with matching process/DLL identity and timeline entries through the snapshot's `activitySerial`. Their captured fields and timings are preserved; only the companion filename is normalized as described above.

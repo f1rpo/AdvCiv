@@ -10,10 +10,29 @@ Add a latest-first entry explaining the behavior and rationale. The diagnostics 
 
 ## History
 
-### Revision 3 - SAS practical 6644
+### Revision 4 - SAS practical 6645
 
 - **Date:** 2026-10-19
 - **Git commit:** pending
+- **Change:** Observe Windows close messages as distinct best-effort exit-request evidence without replacing Civ4's window procedure.
+  - When runtime status is enabled, observe both sent messages (`WH_CALLWNDPROC`) and queue removal (`WH_GETMESSAGE`) on the window's thread.
+    - Before a visible window is available, arm on the lifecycle caller's thread and bind a later top-level close target; later lifecycle callbacks can retarget the hooks.
+    - Disabled status performs no window enumeration or hook installation; enabled ordinary messages incur only short filters.
+  - Distinguish `WM_CLOSE` from the earlier `WM_SYSCOMMAND` / `SC_CLOSE` command.
+    - `WINDOW_CLOSE_MESSAGE_OBSERVED` and `WINDOW_CLOSE_COMMAND_OBSERVED` identify sent-message observations; their `DEQUEUED` counterparts identify removal from the message queue, before the EXE decides whether to dispatch or handle them directly.
+    - They do not identify red-X versus Alt+F4/automation, and explicit Civ4 UI exit requests remain separate evidence.
+  - The first real red-cross/autoplay run exited with the observer armed but no close row. The expanded Windows fixture reproduced a blind spot in the original direct-`SendMessage` test: posted close commands need queue observation even when subsequently dispatched.
+    - Ignore non-removing peeks, and leave retrieved messages unchanged. The first run establishes missing evidence, not which message the EXE handled.
+    - The rebuilt autoplay/red-cross retest recorded a sent `SC_CLOSE` command, followed by orderly teardown, without a `WM_CLOSE` observation. Queue handling remains separately covered by the Windows fixture.
+    - Initial-main-menu red cross also recorded `SC_CLOSE`; in-game Exit to Desktop recorded its explicit UI request instead. The tested EXE main-menu Exit button reached orderly teardown without a close-command/message or dedicated UI-request row; absence of those rows alone does not identify that button.
+  - A close-message observation enters the existing `EXIT_REQUESTED` activity when no exit request is already active; when an explicit UI exit already started that activity, the close message is retained as an observation-only transition instead of restarting the interval.
+  - The fixed snapshot exposes whether close observation was successfully armed in the process; `windowCloseRequestObservedUtc` retains the latest observed request time for either message or command. Orderly `CvGame` destruction publishes its final state before unhooking; abrupt process termination remains identifiable only through stale process identity, not a fabricated crash cause.
+  - Both hooks chain through `CallNextHookEx`; the recorder neither changes queue messages nor replaces Civ4's window procedure. Window discovery/rearming remains confined to non-turn lifecycle observations. Roll back partial installation, and release both hooks after the final orderly snapshot.
+
+### Revision 3 - SAS practical 6644
+
+- **Date:** 2026-10-19
+- **Git commit:** `39a7ad075bd95ce94f6bb683b3436da693ec4033`
 - **Change:** Make each per-process JSONL timeline more useful as a standalone archive while removing repeated constant identity from every transition.
   - Add one typed `run` record with process start/PID, DLL-load UTC and full loaded-DLL identity. Transition records retain the recorder revision and compact run ID so a copied/grepped line still identifies its source run without repeating the full identity object.
   - Add one typed `session` record for each ready new/load session, normally before its first ready transition, with session timestamps/counters, ready-game turn/active-player IDs, map/game configuration and known loaded-save checkpoint evidence. Capture that context once so a later retry preserves the original ready observation even after the game advances or resets.
