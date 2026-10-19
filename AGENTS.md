@@ -111,6 +111,9 @@ Release preparation: when preparing a stable release or substantial release upda
 
 ### DLL inclusion in commits
 
+- During development, the shipped DLL need not follow every C++ source commit. When the existing binary remains suitable for normal gameplay, DLL updates may be deferred to reduce compilation work and binary commit noise; ongoing development provides further opportunities to ship accumulated changes.
+  - Update it when needed for normal gameplay, for example Python calling a newly exposed method or structural DLL-referenced define changes; these examples are not exhaustive. Compile when needed to test native changes, but a tested local build does not itself require shipping that binary in the same commit.
+  - If another condition is found that would break normal gameplay with the existing DLL, consider extending the rebuild CI guards to block integration without a matching DLL refresh.
 - Inspect staged DLLs and their build reports before committing.
   - For a user-approved commit whose native changes require an updated shipped DLL, a user-staged matching Release DLL/report pair is approval to include that pair. Verify the successful Release build and matching binary identity, and retain the required `Update DLL` marker.
   - Otherwise include compiled binaries only when the user explicitly asks; keep unrelated binaries and local Debug-opt builds out of source/docs commits.
@@ -232,6 +235,7 @@ If you find yourself stuck like for audio stopping issues, feel free to ask the 
 ### Examples and historical records
 
 - Usually keep one representative example per output type under a stable, untimestamped `_example` filename, such as SASGameRecord or runtime JSON/JSONL examples; replace it when refreshing so Git tracks its history instead of accumulating redundant or confusing captures. Preserve real timestamps and identity inside the captured data, and keep companion files consistent.
+  - Refresh example captures when convenient or worthwhile, weighing their usefulness against commit noise and review effort; no per-commit refresh is required.
 - Preserve the chronology and original intent of historical or incremental documentation; append later developments with their date and explain how they follow from the earlier work.
   - For Known Issues, append at the end of the relevant entry or add a relevant unused `.x` follow-up/new issue when warranted. Correct factual errors explicitly without rewriting the sequence of discovery.
   - Audit/archaeology records change only when their own documented investigation resumes; ordinary source changes do not refresh their findings or continuation cursors.
@@ -290,7 +294,8 @@ If you find yourself stuck like for audio stopping issues, feel free to ask the 
   - Tracing code origin is hard though and not critical, so do not overthink it; leave it to the user if in doubt.
 - Preserve contrast/difference phrasing when it carries technical meaning (e.g., "unlike in the foreign advisor").
 - Keep exact marker strings like "AdvCiv Mod" or "AdvCiv-SAS Mod" for later searches.
-- When a code comment documents a Known Issues fix or prepared fix, include the exact greppable reference `See KI#number.` (for example, `See KI#234.`). Treat it as a closing note: in a multiline comment, place it on the final line immediately before the model credit.
+- When a code comment explains a Known Issue, its cause, related behavior, constraints or a fix/prepared fix, include its exact greppable reference, such as `See KI#382.3.` for the startup-record fix. Treat it as a closing note: in a multiline comment, place it on the final line immediately before the model credit.
+  - For example, if a fix for KI#382.3 spanned five separate C++ locations, two Python locations and one XML setting, add `See KI#382.3.` to the relevant comment at each location. The same applies to related code explaining the cause or a constraint, so readers can find the issue's wider context; unrelated changes in the same commit do not need the reference.
 
 ### Rationale and presentation
 

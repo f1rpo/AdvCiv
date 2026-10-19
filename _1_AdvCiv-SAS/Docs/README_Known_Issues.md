@@ -500,6 +500,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#381 - (Fixed AdvCiv-SAS diagnostic accounting defect) Process conversion was reported during city disorder](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-381)\
 [KI#382 - (Fixed AdvCiv-SAS diagnostic durability defect) Session rollover discarded buffered observations](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-382)\
 [KI#382.2 - (Fixed AdvCiv-SAS diagnostic regression) Loading after another game crashed while fingerprinting the closing session](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-382.2)\
+[KI#382.3 - (Fixed AdvCiv-SAS logging lifecycle defect) Startup reset created a record without a session](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-382.3)\
 [KI#383 - (Fixed AdvCiv-SAS UI regression) Leader Glance lost its War Trades hover explanation](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-383)\
 [KI#384 - (Fixed inherited AdvCiv Pedia regression) Opening-menu right clicks formed a NULL civilization reference](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-384)\
 [KI#385 - (Pending Architectural inherited AdvCiv/K-Mod diagnostic drift widened by SAS) Scoreboard cheat war predictions duplicate stale AI_doWar logic](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-385)\
@@ -22575,6 +22576,26 @@ The corrected Debug-opt DLL completed a new Pangaea autoplay followed in the sam
 The first loaded session finalized successfully when the second load began.
 
 Across the three post-fix records, 3,204 exact ownership rows had zero `UNKNOWN` causes and all 271 transaction begins had matching ends; neither load crashed.
+
+<a id="ki-382.3"></a>
+
+## KI#382.3 - (Fixed AdvCiv-SAS logging lifecycle defect) Startup reset created a record without a session
+
+Screenshots/files for this issue: [google drive folder link](https://drive.google.com/drive/folders/1zEiMuScu9RPtQxJZsUOukeh5QqTagWSK?usp=sharing).
+
+2026-10-19: Following the reset/finalization work above, the first game creation was observed to produce a 353-byte `SASGameRecord_20261019T064448Z.log` alongside the proper `SASGameRecord_20261019T064448Z_new1.log`. The extra file contained only one row related to `GAME_RECORD_DIAGNOSTIC_WRITER reason=SESSION_FINALIZE`; earlier retained runs had the same pattern.
+
+```log
+GAME_RECORD_DIAGNOSTIC_WRITER seq=1 turn=0 reason=SESSION_FINALIZE pendingTextBytes=0 processPeakPendingTextBytes=0 blockedFiles=0 processOutputFailures=0 processRetryAttempts=0 processRetrySuccesses=0 processDroppedRows=0 processDroppedBytes=0 processWrittenBytes=0 bbaiProcessWrittenBytes=0 gameRecordProcessWrittenBytes=0 otherProcessWrittenBytes=0
+```
+
+The non-constructor reset finalizes diagnostics even before a new/load recording session exists. Its unconditional health row invoked the lazy timestamp/filename helper while the session context was still empty, creating the timestamp-only file. Repeated finalization could also duplicate the health row for an existing session.
+
+The fix tracks whether a recorder session is open, starting before initialization rows so aborted initialization remains covered. Only that session receives final writer health, once; buffered-observation cleanup and shared-writer retries/handle release remain unconditional. The guard also applies when timestamped filenames are disabled.
+
+The standalone native harness covers startup, repeated finalization, aborted initialization and pending-output retries.
+
+A subsequent rebuilt Release run under the same Arena startup conditions emitted only the proper `_new1.log` (110,101 readable bytes, recorder revision 158), without a new timestamp-only file; the independent turn-0 defeat recurred.
 
 <a id="ki-383"></a>
 

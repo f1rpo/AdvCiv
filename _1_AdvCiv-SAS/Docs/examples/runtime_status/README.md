@@ -2,6 +2,8 @@
 
 These companion files were captured from the user's real Civ4 run on 2026-10-18, with the final snapshot sampled at `20261018T193858.716Z`. They retain the reporting Release DLL's identity and process/session fields; these are observed runtime records, not synthetic harness output.
 
+> **Capture revision:** these retained real examples are runtime revision 2. Runtime revision 3 introduces typed `run`/`session`/`transition` records; its archival layout is described below, but is not represented by these earlier captures.
+
 The process created three Advanced Start games, recorded autoplay ending at victory, continued through "Just one more turn", returned to the menu twice, and exited directly from the final game. These are functional observations, not a controlled performance comparison.
 
 ## Files and purpose
@@ -21,11 +23,11 @@ Live output stays in the resolved user root's `Logs` folder, outside the reposit
 
 The current recorder reports `revision` in both files, using one compiled `SAS_RUNTIME_REVISION`. Its [revision history](../../revisions/SASRuntime.md) records implementation changes, including minor changes, once per qualifying commit. This revision is independent of SASGameRecord and binary-save versions.
 
-All captured files report `revision: 2` from the rebuilt DLL, including presentation observations and the explicit interval-start distinction.
+These revision-2 captures include presentation observations and the explicit interval-start distinction. Runtime revision 3 retains the self-contained fixed snapshot and uses typed JSONL records. Its `readyGameTurn` and `readyActivePlayer` describe the first ready-session observation, preserved even if that context is published after a failed write and later game progression.
 
 Serials count observations within one process, independently of revision and Windows process ID. `statusSerial` counts prepared snapshots; `activitySerial` in the snapshot matches `stateSerial` in timeline rows. This capture reached snapshot 35 and entry 20 in process 53492.
 
-From revision 2, `stateSerial` also orders presentation-only timeline observations; it is a row counter, not a count of completed activity intervals. Counters can advance despite failed publication, so use the explicit failure counters when interpreting gaps.
+In this revision-2 capture, `stateSerial` orders every timeline row, including presentation-only observations; it is not a count of completed activity intervals. From revision 3, `stateSerial` orders only `transition` records because `run` and `session` metadata records have their own identity keys. Counters can advance despite failed publication, so use the explicit failure counters when interpreting gaps.
 
 ## Why two formats?
 
@@ -33,9 +35,9 @@ JSONL means JSON Lines: each physical line is a separate JSON document. Read it 
 
 Spreading a JSONL record across multiple lines would break that line-by-line reading contract. The current-state JSON is one complete document, so it can use multiline indentation for direct inspection.
 
-Line-oriented searches such as `rg USER_INTERRUPTED SASRuntimeHistory_*.jsonl` return the complete matching transition, including its identity and timing fields, without collecting neighboring lines. This is a practical search advantage; one long line still contains all of its text and does not make the record free to read.
+Line-oriented searches such as `rg USER_INTERRUPTED SASRuntimeHistory_*.jsonl` return the complete matching transition without collecting neighboring lines. In runtime revision 3, each transition keeps `revision` plus a compact `run` ID while the full DLL/process identity lives in the typed `run` record; copied lines remain attributable without repeating the bulky identity object on every transition.
 
-The fixed-name JSON is replaced to keep current-state discovery small and readable. The timestamped JSONL appends transitions across successive new/load sessions without copying all earlier history on every completed turn or retaining a growing history in memory.
+The fixed-name JSON is replaced to keep current-state discovery small and readable. The timestamped JSONL appends observations across successive new/load sessions without copying all earlier history on every completed turn or retaining a growing history in memory.
 
 The fixed snapshot name lets a reader locate the latest published observation without choosing among old runs. A new process gets its own timestamp/PID history filename so earlier process histories are retained instead of overwritten.
 
@@ -43,9 +45,9 @@ A single JSON document could hold both, but an embedded history array would requ
 
 ## Field coverage
 
-The timeline is not a full snapshot archive. Activity, activity serial, update time/reason and previous-interval fields have corresponding timeline names such as `state`, `stateSerial`, `recordedUtc` and `reason`; DLL/process/session identity and loaded-save checkpoints are retained too.
+The timeline is not a full snapshot archive. Activity, activity serial, update time/reason and previous-interval fields have corresponding transition names such as `state`, `stateSerial`, `recordedUtc` and `reason`.
 
-Current-only fields include per-turn elapsed/last-completed-turn observations, player/map configuration, session counters/readiness timestamps and status/history publication counters. The timeline records activity transitions, not each completed-turn snapshot; its autoplay completion cause is retained even after later snapshots replace the current reason.
+From runtime revision 3, one `run` record retains constant revision/process/DLL identity, and one `session` record per ready game retains session timestamps/counters, player/map configuration and known loaded-save checkpoint evidence. Transition records then focus on timed lifecycle/presentation evidence and prior publication-failure counters. Per-turn elapsed/last-completed-turn observations remain current-snapshot-only.
 
 For coarse phase timing, a full snapshot copy at every turn is unnecessary. SASGameRecord remains the detailed game-history source. To preserve an older process's final published snapshot as well as its timeline, copy the pair before a later process replaces the fixed-name JSON.
 
@@ -84,7 +86,7 @@ A scene or loading-asset request is evidence that the EXE requested that present
 
 `statusWriteFailures` counts earlier failed snapshot publications, including root/open/write/close failures, and becomes visible in a recovered snapshot. This captured run reported zero status/history write failures; `PythonErr.log` was empty, and SASGameRecord's final writer-health row reported no pending text, output failures or dropped rows/bytes.
 
-`historyRowsWritten` counts confirmed successful appends. A row can already be readable when close reports failure, so this counter can be lower than the physical line count; `historyWriteFailures` includes that unconfirmed result.
+`historyRowsWritten` counts confirmed successful JSONL records. A record can already be readable when close reports failure, so this counter can be lower than the physical line count; `historyWriteFailures` includes that unconfirmed result. Runtime revision 3 avoids retrying a fully written metadata/session record after such an unconfirmed close, while open/partial-write failures remain retryable.
 
 A crash or forced termination leaves an unfinished last interval, not an invented end time or crash cause. Match the live Windows process using PID and process-start UTC; inspect history-write failures/state serials before assuming the timeline is complete.
 

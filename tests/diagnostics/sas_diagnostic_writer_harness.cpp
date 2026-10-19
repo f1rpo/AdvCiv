@@ -48,17 +48,20 @@ static int g_worldBuilderModeReads = 0;
 static int g_advancedStartReads = 0;
 struct CvGame
 {
-	CvGame() : ready(false), autoplay(0), state(GAMESTATE_ON), advancedStart(false) {}
+	CvGame() : ready(false), autoplay(0), state(GAMESTATE_ON), advancedStart(false), gameTurn(9), activePlayer(0) {}
 	bool ready;
 	int autoplay;
 	GameStateTypes state;
 	bool advancedStart;
+	// <!-- custom: Mutable observation fields reproduce delayed metadata writes after the game turn or active player changes; normal fixture defaults remain turn 9/player 0. (GPT-6.1-Sol) -->
+	int gameTurn;
+	int activePlayer;
 	bool isInAdvancedStart() const { ++g_advancedStartReads; return advancedStart; }
 	bool isFinalInitialized() const { return ready; }
 	GameStateTypes getGameState() const { return state; }
-	int getGameTurn() const { return 9; }
-	int getElapsedGameTurns() const { return 9; }
-	int getActivePlayer() const { return 0; }
+	int getGameTurn() const { return gameTurn; }
+	int getElapsedGameTurns() const { return gameTurn; }
+	int getActivePlayer() const { return activePlayer; }
 	int getAIAutoPlay() const { return autoplay; }
 	int getGameSpeedType() const { return 2; }
 	bool isScenario() const { return false; }
@@ -245,10 +248,61 @@ static void snapshotStatus(std::wstring const& root, std::wstring const& snapsho
 	require(CopyFileW((root + L"\\Logs\\SASRuntimeStatus.json").c_str(), (snapshots + L"\\" + name + L".json").c_str(), FALSE) != FALSE, "copy runtime snapshot");
 }
 
+// <!-- custom: Isolate recorder observation stubs from the runtime publisher fixture; the included finalizer and open-session declaration come directly from production.
+// Health writes use the real sink, while counters verify that aborted setup, plot observations and RNG cleanup survive the no-session health guard. (GPT-6.1-Sol) -->
+namespace recordFinalizationFixture
+{
+	static bool g_bSASGameRecordBufferInitializingActions = false;
+	static int g_iSASGameRecordPendingPlotTurn = -1;
+	static bool g_bSASGameRecordRngTrackingActive = false;
+	static int const SAS_RNG_CHECKPOINT_SESSION_FINALIZE = 1;
+	static int setupFlushes = 0, plotFlushes = 0, rngCheckpoints = 0, healthRows = 0;
+	static void flushSASGameRecordInitializingActions(bool complete) { assert(!complete); ++setupFlushes; }
+	static void flushSASGameRecordTurnChanges(int turn) { ++plotFlushes; g_iSASGameRecordPendingPlotTurn = -1; }
+	static void flushSASGameRecordPendingCityBombard() {}
+	static void logSASGameRecordRngCheckpoint(int turn, int reason) { ++rngCheckpoints; }
+	static void clearSASGameRecordRngTracking() { g_bSASGameRecordRngTrackingActive = false; }
+	static void logSASGameRecordDiagnosticWriterHealth(int turn, char const* reason)
+	{
+		++healthRows;
+		logSASDiagnosticLiteralLine("record_finalize.log", reason, SAS_DIAGNOSTIC_LOG_GAME_RECORD);
+	}
+	// <!-- custom: Use the extracted production function rather than copying its lifecycle guard into this test. (GPT-6.1-Sol) -->
+	#include "record_finalization_under_test.inc"
+}
+
 int main(int argc, char** argv)
 {
 	wchar_t temporary[MAX_PATH];
 	require(GetEnvironmentVariableW(L"SAS_DIAGNOSTIC_TEST_ROOT", temporary, MAX_PATH) > 0, "test root is provided");
+	if (argc == 2 && strcmp(argv[1], "--record-finalization") == 0)
+	{
+		using namespace recordFinalizationFixture;
+		std::wstring const root = std::wstring(temporary) + L"\\record_finalization";
+		require(CreateDirectoryW(root.c_str(), NULL) != FALSE, "create recorder finalization fixture root");
+		setSASDiagnosticLogRootDirectory(root.c_str());
+		finalizeSASGameRecordLogSession();
+		require(healthRows == 0 && readFile(root + L"\\Logs\\record_finalize.log").empty(), "startup reset creates no recorder health file");
+		g_failOpen = true;
+		logSASDiagnosticLiteralLine("BBAI_pending.log", "pending before session", SAS_DIAGNOSTIC_LOG_BBAI);
+		require(g_iSASDiagnosticBufferedBytes > 0, "fixture holds pending shared output");
+		g_failOpen = false;
+		finalizeSASGameRecordLogSession();
+		require(g_iSASDiagnosticBufferedBytes == 0 && readFile(root + L"\\Logs\\BBAI_pending.log").find("pending before session") != std::string::npos, "no-session reset still retries shared output");
+		g_bSASGameRecordSessionOpen = true;
+		g_bSASGameRecordBufferInitializingActions = true;
+		g_iSASGameRecordPendingPlotTurn = 0;
+		g_bSASGameRecordRngTrackingActive = true;
+		finalizeSASGameRecordLogSession();
+		require(setupFlushes == 1 && plotFlushes == 1 && rngCheckpoints == 1 && healthRows == 1, "aborted initialization preserves buffered observations and final health");
+		finalizeSASGameRecordLogSession();
+		require(healthRows == 1 && rngCheckpoints == 1, "repeated reset does not duplicate final rows");
+		g_bSASGameRecordSessionOpen = true;
+		finalizeSASGameRecordLogSession();
+		require(healthRows == 2 && !g_bSASGameRecordSessionOpen, "next recording session gets its own final health");
+		puts("PASS recorder finalization: startup, retry, aborted initialization, repeated reset and next session");
+		return 0;
+	}
 	if (argc == 2 && strcmp(argv[1], "--runtime-status-disabled") == 0)
 	{
 		require(!shouldPublishAutoplayChange(0, 5, true), "disabled hook skips explicit autoplay changes");
@@ -265,6 +319,7 @@ int main(int argc, char** argv)
 		updateSASRuntimeStatusRequest(SAS_RUNTIME_STATUS_EXIT_REQUESTED);
 		updateSASRuntimeStatusCleanExit();
 		require(g_openCalls == 0 && g_dllIdentityLookups == 0 && g_uiSASRuntimeStatusWriteFailures == 0 && g_uiSASRuntimeActivitySerial == 0 && g_uiSASRuntimeStatusSerial == 0 && g_uiSASRuntimeSessionSerial == 0, "disabled status does not publish or accumulate session state");
+		require(g_uiSASRuntimeHistorySessionMetadataCaptured == 0 && g_szSASRuntimeHistoryPendingSessionMetadata.empty(), "disabled status does not capture pending metadata");
 		return 0;
 	}
 	// <!-- custom: A blocked output path must not stretch creation time until the next successful write; retain the observed interval and expose a missing history row through counters/serials. (GPT-6.1-Sol) -->
@@ -273,22 +328,30 @@ int main(int argc, char** argv)
 		GC.runtimeStatus = true;
 		std::wstring const root = std::wstring(temporary) + L"\\status_failure";
 		require(CreateDirectoryW(root.c_str(), NULL) != FALSE, "create failed-output fixture root");
+		// <!-- custom: A fully written run-metadata row with an unconfirmed close must not be appended again on the next update; failure counters preserve the uncertainty without duplicating identity. (ChatGPT-5.6-Sol) -->
+		g_failClose = true;
 		setSASRuntimeStatusRootDirectory(root);
+		require(g_uiSASRuntimeHistoryRowsWritten == 1 && g_uiSASRuntimeHistoryWriteFailures == 1, "unconfirmed run metadata is not counted as confirmed but the following transition still publishes");
 		g_runtimeClock = 100;
 		g_failOpen = true;
 		updateSASRuntimeStatusSessionStarted(false);
 		g_failOpen = false;
-		require(g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_CREATING_GAME && g_uiSASRuntimeHistoryWriteFailures == 1, "failed publication retains creation start and discloses lost transition");
+		require(g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_CREATING_GAME && g_uiSASRuntimeHistoryWriteFailures == 2, "failed publication retains creation start and discloses lost transition");
 		g_runtimeClock = 5100;
 		GC.game.ready = true;
 		updateSASRuntimeStatusSessionReady();
 		require(g_iSASRuntimePreviousDurationMilliseconds == 5000, "creation time uses observed start despite failed output");
 		require(CopyFileW((root + L"\\Logs\\SASRuntimeStatus.json").c_str(), (std::wstring(temporary) + L"\\runtime_failed_output.json").c_str(), FALSE) != FALSE, "retain recovered failure snapshot");
+		std::wstring const recoveredHistoryName(g_szSASRuntimeHistoryFilename.begin(), g_szSASRuntimeHistoryFilename.end());
+		std::string const recoveredHistory = readFile(root + L"\\Logs\\" + recoveredHistoryName);
+		std::string const runRecord = "\"record\":\"run\"";
+		size_t const firstRunRecord = recoveredHistory.find(runRecord);
+		require(firstRunRecord != std::string::npos && recoveredHistory.find(runRecord, firstRunRecord + 1) == std::string::npos, "unconfirmed run metadata is not duplicated on recovery");
 		// <!-- custom: A fully written history row can remain readable after close reports failure; counters mean confirmed successful appends, not a physical line count. (ChatGPT (review) + GPT-6.1-Sol) -->
 		GC.game.autoplay = 5;
 		g_failClose = true;
 		updateSASRuntimeStatusAutoPlay(SAS_RUNTIME_STATUS_AUTOPLAY_STARTED);
-		require(g_uiSASRuntimeHistoryRowsWritten == 2 && g_uiSASRuntimeHistoryWriteFailures == 2, "unconfirmed history close does not count as a confirmed append");
+		require(g_uiSASRuntimeHistoryRowsWritten == 3 && g_uiSASRuntimeHistoryWriteFailures == 3, "unconfirmed history close does not count as a confirmed append");
 		std::wstring const historyName(g_szSASRuntimeHistoryFilename.begin(), g_szSASRuntimeHistoryFilename.end());
 		require(readFile(root + L"\\Logs\\" + historyName).find("AUTOPLAY_STARTED") != std::string::npos, "row can exist after reported history close failure");
 		// <!-- custom: Exercise each status-only failure path without creating more history transitions; recovery must expose failures even when a write acknowledged every byte before reporting failure. (GPT-6.1-Sol) -->
@@ -306,6 +369,73 @@ int main(int argc, char** argv)
 		require(CopyFileW((root + L"\\Logs\\SASRuntimeStatus.json").c_str(), (std::wstring(temporary) + L"\\runtime_failed_status.json").c_str(), FALSE) != FALSE, "retain recovered status-failure snapshot");
 		return 0;
 	}
+	// <!-- custom: Failed first-ready output previously resampled a later turn/player as the original ready context.
+	// Exercise recovery during play and after reset; the frozen session evidence must survive both while the fixed snapshot continues to reflect current state. (GPT-6.1-Sol) -->
+	if (argc == 2 && strcmp(argv[1], "--runtime-session-metadata-retry") == 0)
+	{
+		GC.runtimeStatus = true;
+		std::wstring const root = std::wstring(temporary) + L"\\session_metadata_retry";
+		require(CreateDirectoryW(root.c_str(), NULL) != FALSE, "create session retry root");
+		g_failOpen = true;
+		setSASRuntimeStatusRootDirectory(root);
+		updateSASRuntimeStatusSessionStarted(false);
+		GC.game.ready = true;
+		updateSASRuntimeStatusSessionReady();
+		require(!g_bSASRuntimeHistoryMetadataWritten && !g_szSASRuntimeHistoryPendingSessionMetadata.empty(), "failed ready publication retains context even before run metadata can be written");
+		g_failOpen = false;
+		GC.game.gameTurn = 10;
+		GC.game.activePlayer = 1;
+		updateSASRuntimeStatusTurnCompleted(9);
+		require(g_szSASRuntimeHistoryPendingSessionMetadata.empty(), "successful retry releases pending context");
+		require(CopyFileW((root + L"\\Logs\\SASRuntimeStatus.json").c_str(), (std::wstring(temporary) + L"\\runtime_session_retry.json").c_str(), FALSE) != FALSE, "retain current-state retry snapshot");
+		unsigned int const beforeTurnRows = g_uiSASRuntimeHistoryRowsWritten;
+		updateSASRuntimeStatusTurnCompleted(9);
+		require(g_uiSASRuntimeHistoryRowsWritten == beforeTurnRows, "published session context is not recreated on later turns");
+		updateSASRuntimeStatusNoGame();
+		updateSASRuntimeStatusSessionStarted(true);
+		GC.game.gameTurn = 20;
+		GC.game.activePlayer = 2;
+		g_failOpen = true;
+		updateSASRuntimeStatusSessionReady();
+		g_failOpen = false;
+		GC.game.ready = false;
+		updateSASRuntimeStatusNoGame();
+		require(g_szSASRuntimeHistoryPendingSessionMetadata.empty(), "menu/reset can publish the last pending ready context without querying live gameplay");
+		updateSASRuntimeStatusSessionStarted(false);
+		GC.game.ready = true;
+		GC.game.gameTurn = 30;
+		GC.game.activePlayer = 3;
+		g_failClose = true;
+		updateSASRuntimeStatusSessionReady();
+		require(g_szSASRuntimeHistoryPendingSessionMetadata.empty(), "complete session bytes with an uncertain close are not queued again");
+		unsigned int const beforeLaterTurnRows = g_uiSASRuntimeHistoryRowsWritten;
+		GC.game.gameTurn = 31;
+		GC.game.activePlayer = 4;
+		updateSASRuntimeStatusTurnCompleted(30);
+		require(g_uiSASRuntimeHistoryRowsWritten == beforeLaterTurnRows, "uncertain session close does not cause a duplicate on the next turn");
+		require(CopyFileW((root + L"\\Logs\\SASRuntimeStatus.json").c_str(), (std::wstring(temporary) + L"\\runtime_session_uncertain.json").c_str(), FALSE) != FALSE, "retain uncertain-session accounting snapshot");
+		return 0;
+	}
+	// <!-- custom: A full history write with an unconfirmed close can leave physical evidence while confirmed-row count remains zero; CvAltRoot migration must still carry that possible evidence forward. (ChatGPT-5.6-Sol) -->
+	if (argc == 2 && strcmp(argv[1], "--runtime-history-uncertain-migration") == 0)
+	{
+		std::wstring const oldRoot = std::wstring(temporary) + L"\\history_uncertain_old";
+		std::wstring const newRoot = std::wstring(temporary) + L"\\history_uncertain_new";
+		require(CreateDirectoryW(oldRoot.c_str(), NULL) != FALSE, "create uncertain old root");
+		require(CreateDirectoryW(newRoot.c_str(), NULL) != FALSE, "create uncertain new root");
+		require(CreateDirectoryW((oldRoot + L"\\Logs").c_str(), NULL) != FALSE, "create uncertain old Logs");
+		require(CreateDirectoryW((newRoot + L"\\Logs").c_str(), NULL) != FALSE, "create uncertain new Logs");
+		g_szSASRuntimeHistoryFilename = "SASRuntimeHistory_uncertain.jsonl";
+		g_szSASRuntimeHistoryRoot = oldRoot;
+		g_failClose = true;
+		bool bContentComplete = false;
+		require(!recordSASRuntimeHistoryRow("{\"record\":\"uncertain\"}\r\n", &bContentComplete), "unconfirmed close is not a confirmed history append");
+		require(bContentComplete && g_uiSASRuntimeHistoryRowsWritten == 0 && g_uiSASRuntimeHistoryWriteFailures == 1 && g_bSASRuntimeHistoryMayContainRows, "full unconfirmed row retains migration evidence despite zero confirmed rows");
+		require(prepareSASRuntimeHistory(newRoot) && g_bSASRuntimeHistoryAtCurrentRoot, "uncertain history migrates to authoritative root");
+		require(readFile(newRoot + L"\\Logs\\SASRuntimeHistory_uncertain.jsonl").find("uncertain") != std::string::npos, "uncertain physical history row survives root migration");
+		return 0;
+	}
+
 	// <!-- custom: Exercise passive presentation/lifecycle observations separately from the baseline timing fixture so new boundaries do not rewrite its established duration expectations. (ChatGPT-5.6-Sol) -->
 	if (argc == 2 && strcmp(argv[1], "--runtime-presentation") == 0)
 	{

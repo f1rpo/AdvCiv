@@ -113,6 +113,10 @@ def build_report_errors(repo, commit, paths):
                     raise ValueError(f"{field} must be a nonnegative integer")
             if summary["errorCount"] != 0 or summary.get("exitCode") != 0:
                 raise ValueError("successful build report must report zero errors")
+            # <!-- custom: A compiler can produce a usable DLL despite warnings.
+            # Reject that shipping evidence so successful compilation does not hide diagnostics still needing attention. (GPT-6.1-Sol) -->
+            if summary["warningCount"] != 0:
+                raise ValueError(f"shipped Release build must report zero warnings (reported {summary['warningCount']}); address diagnostics and rebuild")
             times = [datetime.fromisoformat(summary[field].replace("Z", "+00:00")) for field in ("startedUtc", "endedUtc")]
             if any(time.utcoffset() != timezone.utc.utcoffset(None) for time in times) or times[1] < times[0]:
                 raise ValueError("requires ordered UTC start/end timestamps")

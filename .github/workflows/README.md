@@ -181,7 +181,8 @@ For commits containing the automatic `CvGameCoreDLL/Project/build_with_report.ps
 
 - The wrapper keeps one current full JSON report beside the DLL and its full `AdvCiv.log`; there is no separate compact format or automatic timestamped archive. Normal build outputs stay Git-ignored.
 - Copy/stage the full JSON with an intentionally shipped Release DLL; keep the full log locally. The report retains Git/debug context, timings, diagnostics, temporary-artifact state and DLL hashes; the local log preserves all emitted compiler output, including uncoded messages.
-- The guard requires a successful Build/Rebuild with configuration exactly `Release`, zero exit/error status, ordered UTC timestamps, nonnegative duration/diagnostic counts, size/SHA-256 matching the committed binary. Warning counts may be nonzero.
+- The guard requires a successful Build/Rebuild with configuration exactly `Release`, zero exit/error status, ordered UTC timestamps, nonnegative duration/diagnostic counts, size/SHA-256 matching the committed binary.
+  - Warning counts must also be zero: successful compilation can still emit warnings that need addressing before shipping. CI checks the diagnostics captured by the report; it does not rerun the compiler.
 - Every current push/PR/manual head must retain the shipped `Assets/CvGameCoreDLL.dll` and its matching successful Release JSON, even if only source/docs changed. Missing, stale or deleted evidence fails; local uncommitted copies do not count.
 - Pair enforcement includes additions, removals and renames. Git compares file bytes: a byte-identical rebuilt DLL is unchanged, so its refreshed JSON cannot be committed alone.
 - Historical DLL deletions need no per-commit build evidence. A later report or an uncommitted local file cannot satisfy an earlier binary-changing commit; the current shipped-DLL requirement is checked separately at the head.

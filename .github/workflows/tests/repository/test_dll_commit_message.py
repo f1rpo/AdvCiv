@@ -55,7 +55,7 @@ class DLLCommitMessageTests(unittest.TestCase):
         if include_summary:
             summary = dict(configuration='Release', status='SUCCEEDED', request='BUILD',
                            startedUtc='2026-10-12T10:00:00.000Z', endedUtc='2026-10-12T10:01:00.000Z',
-                           durationMilliseconds=60000, warningCount=2, errorCount=0, exitCode=0, logFile='AdvCiv.log',
+                           durationMilliseconds=60000, warningCount=0, errorCount=0, exitCode=0, logFile='AdvCiv.log',
                            dllAfter=dict(sha256=hashlib.sha256(data).hexdigest(), sizeBytes=len(data)),
                            branch='fixture-branch', commit=self.git('rev-parse', 'HEAD'))
             summary.update(summary_changes or {})
@@ -84,6 +84,22 @@ class DLLCommitMessageTests(unittest.TestCase):
     def test_matching_release_summary_passes(self):
         commit = self.summary_commit()
         self.assertEqual(checker.check(self.repo, [commit]), ([], 1))
+
+    def test_successful_release_with_warnings_fails(self):
+        commit = self.summary_commit({'warningCount': 2})
+        errors, updated = checker.check(self.repo, [commit])
+        self.assertEqual(updated, 1)
+        self.assertTrue(any('zero warnings (reported 2)' in error for error in errors))
+        self.write('source.cpp', b'int changed;')
+        head = self.commit('Source only retains warning-bearing DLL')
+        self.assertTrue(any('zero warnings' in error for error in checker.shipped_build_errors(self.repo, head)))
+
+    def test_invalid_warning_counts_fail(self):
+        for count in (True, -1, '0', None):
+            with self.subTest(count=count):
+                commit = self.summary_commit({'warningCount': count}, data=repr(count).encode())
+                self.assertTrue(any('warningCount must be a nonnegative integer' in error
+                                    for error in checker.check(self.repo, [commit])[0]))
 
     def test_missing_summary_fails(self):
         commit = self.summary_commit(include_summary=False)

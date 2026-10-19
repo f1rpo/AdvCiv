@@ -229,6 +229,9 @@ static bool isSASGameRecordMapAsciiPoliticalEnabled()
 static CvString g_szSASGameRecordLogTimestamp;
 static int g_iSASGameRecordLogSequence = 0;
 static CvString g_szSASGameRecordLogContext;
+// <!-- custom: A reset can precede the first new/load record, and game/map teardown can finalize the same session twice.
+// Track the recorder lifecycle independently of filename context (which can be disabled) so only an opened session receives a final health row. See KI#382.3. (GPT-6.1-Sol) -->
+static bool g_bSASGameRecordSessionOpen = false;
 // <!-- custom: Structured row sequence and transaction IDs are recorder/session-local only; they never enter gameplay or save state.
 // `seq` is assigned only when a GAME_RECORD_* row is actually emitted, so buffered initialization actions receive their canonical chronology at flush time rather than when first formatted.
 // `tx` is attached when a row is formatted inside an active causal scope, so delayed emission cannot accidentally inherit a later unrelated transaction.
@@ -1724,6 +1727,8 @@ static CvString getSASGameRecordLogName()
 
 static void rollSASGameRecordLog(const char* szContext)
 {
+	// <!-- custom: Mark the session before setup rows: aborted initialization still owns a record requiring finalization. (GPT-6.1-Sol) -->
+	g_bSASGameRecordSessionOpen = true;
 	// <!-- custom: `seq`, `tx` and immediate plot-owner cause state are intentionally local to one timestamped record session; source/log identity distinguishes different new/load files. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	g_uiSASGameRecordSemanticSequence = 0;
 	g_uiSASGameRecordNextTransaction = 0;
@@ -4364,8 +4369,14 @@ void finalizeSASGameRecordLogSession()
 	// Preserve the last authoritative RNG state/consumption before the old session disappears, then disable the hot hook until the next session initializes its baseline. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	if (g_bSASGameRecordRngTrackingActive) logSASGameRecordRngCheckpoint(GC.getGame().getGameTurn(), SAS_RNG_CHECKPOINT_SESSION_FINALIZE);
 	clearSASGameRecordRngTracking();
-	// <!-- custom: Emit one final pre-close writer-health snapshot; if output itself is unavailable this row may also remain pending or be lost, so it supplements rather than replaces SAS_DIAGNOSTIC_DATA_LOSS. (ChatGPT-5.6-Sol) -->
-	logSASGameRecordDiagnosticWriterHealth(GC.getGame().getGameTurn(), "SESSION_FINALIZE");
+	// <!-- custom: Emit one final pre-close writer-health snapshot; if output itself is unavailable this row may also remain pending or be lost, so it supplements rather than replaces SAS_DIAGNOSTIC_DATA_LOSS.
+	// Before the first session, this row created a timestamp-only file; repeated resets also appended redundant final health rows.
+	// Consume the open-session marker once, but retain the unconditional shared-writer flush below for retries and BBAI output. See KI#382.3. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	if (g_bSASGameRecordSessionOpen)
+	{
+		logSASGameRecordDiagnosticWriterHealth(GC.getGame().getGameTurn(), "SESSION_FINALIZE");
+		g_bSASGameRecordSessionOpen = false;
+	}
 	// <!-- custom: Retry pending diagnostics, close persistent handles and release drained retry storage before rollover; old timestamped sessions must not accumulate open files or retained peak allocations. (GPT-6.1-Sol) -->
 	flushSASDiagnosticLogs(true);
 }

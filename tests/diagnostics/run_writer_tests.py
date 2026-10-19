@@ -93,6 +93,12 @@ def main():
         bridge_start = bridge.index("void CyGame::updateSASRuntimeStatusWorldBuilderScreen(")
         bridge_end = bridge.index("// <!-- custom: Bridge only the post-Python lifecycle", bridge_start)
         (temporary / "runtime_world_builder_bridge_under_test.inc").write_text(bridge[bridge_start:bridge_end], encoding="utf-8")
+        # <!-- custom: Compile the actual recorder finalizer against small observation stubs, so startup/repeated-reset behavior and shared-writer retries are checked without building the game DLL. (GPT-6.1-Sol) -->
+        recorder = (ROOT / "CvGameCoreDLL/SASGameRecordLog.cpp").read_text(encoding="utf-8")
+        finalize_start = recorder.index("void finalizeSASGameRecordLogSession()\n")
+        finalize_end = recorder.index("static void prepareSASGameRecordTurnChanges()", finalize_start)
+        marker = next(line for line in recorder.splitlines() if line.startswith("static bool g_bSASGameRecordSessionOpen ="))
+        (temporary / "record_finalization_under_test.inc").write_text(marker + "\n" + recorder[finalize_start:finalize_end], encoding="utf-8")
         executable = temporary / "writer.exe"
         subprocess.run([
             str(args.compiler), "/nologo", "/EHsc", "/MT", "/W3", "/D_USRDLL",
@@ -102,13 +108,36 @@ def main():
         ], cwd=temporary, env=environment, check=True)
         environment["SAS_DIAGNOSTIC_TEST_ROOT"] = str(temporary)
         subprocess.run([str(executable)], cwd=temporary, env=environment, check=True)
+        subprocess.run([str(executable), "--record-finalization"], cwd=temporary, env=environment, check=True)
         subprocess.run([str(executable), "--terminal-fallback"], cwd=temporary, env=environment, check=True)
         subprocess.run([str(executable), "--runtime-status-disabled"], cwd=temporary, env=environment, check=True)
         subprocess.run([str(executable), "--runtime-status"], cwd=temporary, env=environment, check=True)
         subprocess.run([str(executable), "--runtime-presentation"], cwd=temporary, env=environment, check=True)
         subprocess.run([str(executable), "--runtime-status-output-failure"], cwd=temporary, env=environment, check=True)
+        subprocess.run([str(executable), "--runtime-session-metadata-retry"], cwd=temporary, env=environment, check=True)
+        subprocess.run([str(executable), "--runtime-history-uncertain-migration"], cwd=temporary, env=environment, check=True)
+        # <!-- custom: Ready-session context must retain the original turn/player after a failed write, including recovery after gameplay has reset; the current-state JSON must still report the later live values. (GPT-6.1-Sol) -->
+        retry_snapshot = json.loads((temporary / "runtime_session_retry.json").read_text(encoding="utf-8"))
+        retry_history = next((temporary / "session_metadata_retry/Logs").glob("SASRuntimeHistory_*.jsonl"))
+        retry_records = [json.loads(line) for line in retry_history.read_text(encoding="utf-8").splitlines()]
+        retry_sessions = [row for row in retry_records if row["record"] == "session"]
+        assert [(row["sessionSerial"], row["readyGameTurn"], row["readyActivePlayer"]) for row in retry_sessions] == [(1, 9, 0), (2, 20, 2), (3, 30, 3)]
+        assert retry_snapshot["gameTurn"] == 10 and retry_snapshot["activePlayer"] == 1
+        assert retry_sessions[0]["priorHistoryWriteFailures"] == 6 and retry_sessions[0]["priorStatusWriteFailures"] == 3
+        assert retry_sessions[1]["priorHistoryWriteFailures"] == 8 and retry_sessions[1]["priorStatusWriteFailures"] == 4
+        assert retry_sessions[1]["sessionKind"] == "LOAD_GAME" and retry_sessions[1]["nativeReadyUtc"] != "-"
+        assert retry_sessions[1]["loadedSaveCheckpointTurn"] == 7 and retry_sessions[1]["loadedSaveCheckpointUtc"] == "20261018T000000.000Z"
+        uncertain_session = json.loads((temporary / "runtime_session_uncertain.json").read_text(encoding="utf-8"))
+        assert uncertain_session["historyWriteFailures"] == 9 and uncertain_session["statusWriteFailures"] == 4
+        assert len(retry_records) == uncertain_session["historyRowsWritten"] + 1
         presentation = json.loads((temporary / "runtime_presentation.json").read_text(encoding="utf-8"))
-        presentation_timeline = [json.loads(line) for line in (temporary / "runtime_presentation.jsonl").read_text(encoding="utf-8").splitlines()]
+        presentation_records = [json.loads(line) for line in (temporary / "runtime_presentation.jsonl").read_text(encoding="utf-8").splitlines()]
+        presentation_runs = [row for row in presentation_records if row["record"] == "run"]
+        presentation_sessions = [row for row in presentation_records if row["record"] == "session"]
+        presentation_timeline = [row for row in presentation_records if row["record"] == "transition"]
+        assert len(presentation_runs) == 1 and len(presentation_sessions) == 1
+        assert presentation_runs[0]["revision"] == expected_revision and presentation_runs[0]["dllIdentity"] == presentation["dllIdentity"]
+        assert presentation_sessions[0]["mapWidth"] == 120 and presentation_sessions[0]["mapHeight"] == 84
         assert presentation["revision"] == expected_revision and presentation["gameState"] == "PLAYING" and presentation["extendedGame"] == 1
         assert presentation["worldBuilderMode"] == 0 and presentation["worldBuilderScreenVisible"] == 0
         assert presentation["mainMenuSceneRequestedUtc"] == "-" and presentation["loadingScreenAssetRequestedUtc"] != "-"
@@ -129,11 +158,16 @@ def main():
         assert hidden["intervalStarted"] == 0 and hidden["previousState"] == "NONE" and hidden["previousDurationMilliseconds"] == -1 and hidden["stateElapsedMilliseconds"] == 100
         assert extended["state"] == "PLAYING" and extended["reason"] == "EXTENDED_GAME_STARTED"
         recovered = json.loads((temporary / "runtime_failed_output.json").read_text(encoding="utf-8"))
-        assert recovered["previousActivityDurationMilliseconds"] == 5000 and recovered["historyWriteFailures"] == 1
-        assert recovered["historyRowsWritten"] == 2 and recovered["activitySerial"] == 3 and recovered["statusWriteFailures"] == 1
+        assert recovered["previousActivityDurationMilliseconds"] == 5000 and recovered["historyWriteFailures"] == 2
+        assert recovered["historyRowsWritten"] == 3 and recovered["activitySerial"] == 3 and recovered["statusWriteFailures"] == 1
         recovered_status = json.loads((temporary / "runtime_failed_status.json").read_text(encoding="utf-8"))
-        assert recovered_status["statusWriteFailures"] == 5 and recovered_status["historyWriteFailures"] == 2
-        assert recovered_status["historyRowsWritten"] == 2 and recovered_status["activitySerial"] == 4
+        assert recovered_status["statusWriteFailures"] == 5 and recovered_status["historyWriteFailures"] == 3
+        assert recovered_status["historyRowsWritten"] == 3 and recovered_status["activitySerial"] == 4
+        failure_history_path = next((temporary / "status_failure/Logs").glob("SASRuntimeHistory_*.jsonl"))
+        failure_records = [json.loads(line) for line in failure_history_path.read_text(encoding="utf-8").splitlines()]
+        assert len([row for row in failure_records if row["record"] == "run"]) == 1
+        recovered_transition = next(row for row in failure_records if row.get("reason") == "NEW_GAME_NATIVE_READY")
+        assert recovered_transition["priorHistoryWriteFailures"] == 2 and recovered_transition["priorStatusWriteFailures"] == 1
         snapshots = {path.stem: json.loads(path.read_text(encoding="utf-8")) for path in (temporary / "runtime_snapshots").glob("*.json")}
         expected = {"no_game": ("NO_GAME", "NONE", 0), "starting": ("SESSION_STARTING", "NEW_GAME", 1), "ready": ("PLAYING", "NEW_GAME", 1), "autoplay": ("PLAYING", "NEW_GAME", 1), "turn": ("PLAYING", "NEW_GAME", 1), "interrupted": ("PLAYING", "NEW_GAME", 1), "menu_request": ("PLAYING", "NEW_GAME", 1), "menu_reset": ("NO_GAME", "NONE", 1), "exit_request": ("NO_GAME", "NONE", 2), "load_starting": ("SESSION_STARTING", "LOAD_GAME", 2), "loaded": ("PLAYING", "LOAD_GAME", 2), "ended": ("GAME_ENDED", "LOAD_GAME", 2), "reset": ("NO_GAME", "NONE", 2), "exit": ("NO_GAME", "NONE", 2)}
         reasons = {"no_game": "ROOT_READY", "starting": "NEW_GAME_STARTED", "ready": "NEW_GAME_NATIVE_READY", "autoplay": "AUTOPLAY_STARTED", "turn": "TURN_COMPLETED", "interrupted": "AUTOPLAY_ENDED", "menu_request": "RETURN_TO_MENU_REQUESTED", "menu_reset": "GAME_RESET", "exit_request": "EXIT_REQUESTED", "load_starting": "LOAD_GAME_STARTED", "loaded": "LOAD_GAME_NATIVE_READY", "ended": "GAME_ENDED", "reset": "GAME_RESET", "exit": "PROCESS_EXIT"}
@@ -163,22 +197,36 @@ def main():
         assert snapshots["interrupted"]["previousActivity"] == "AUTOPLAY" and snapshots["interrupted"]["previousActivityDurationMilliseconds"] == 16000
         assert snapshots["menu_reset"]["previousActivity"] == "RETURNING_TO_MENU" and snapshots["menu_reset"]["previousActivityDurationMilliseconds"] == 3800
         assert snapshots["loaded"]["previousActivity"] == "LOADING_SAVE" and snapshots["loaded"]["previousActivityDurationMilliseconds"] == 3200
-        timeline = [json.loads(line) for line in (temporary / "runtime_snapshots/timeline.jsonl").read_text(encoding="utf-8").splitlines()]
-        assert len(timeline) == snapshots["exit"]["historyRowsWritten"] and snapshots["exit"]["historyWriteFailures"] == 0
-        assert [row["stateSerial"] for row in timeline] == list(range(1, len(timeline) + 1))
+        history_records = [json.loads(line) for line in (temporary / "runtime_snapshots/timeline.jsonl").read_text(encoding="utf-8").splitlines()]
+        run_records = [row for row in history_records if row["record"] == "run"]
+        session_records = [row for row in history_records if row["record"] == "session"]
+        timeline = [row for row in history_records if row["record"] == "transition"]
+        assert len(history_records) == snapshots["exit"]["historyRowsWritten"] and snapshots["exit"]["historyWriteFailures"] == 0
+        assert len(run_records) == 1 and len(session_records) == 2
+        first_ready_index = next(index for index, row in enumerate(history_records) if row.get("reason") == "NEW_GAME_NATIVE_READY")
+        first_session_index = next(index for index, row in enumerate(history_records) if row["record"] == "session" and row["sessionSerial"] == 1)
+        assert first_session_index < first_ready_index
+        run = run_records[0]
+        assert run["revision"] == expected_revision and run["processId"] == snapshots["exit"]["processId"] and run["processStartUtc"] == snapshots["exit"]["processStartUtc"]
+        assert run["dllIdentity"] == snapshots["exit"]["dllIdentity"] and run["run"] in snapshots["exit"]["historyFilename"]
+        assert [row["stateSerial"] for row in timeline] == list(range(1, snapshots["exit"]["activitySerial"] + 1))
         assert timeline[0]["state"] == "NO_GAME" and timeline[-1]["state"] == "SHUTTING_DOWN"
+        assert all(row["revision"] == expected_revision and row["run"] == run["run"] and "dllIdentity" not in row for row in timeline)
+        assert all("priorStatusWriteFailures" in row and "priorHistoryWriteFailures" in row for row in timeline)
         stop = next(row for row in timeline if row["reason"] == "AUTOPLAY_ENDED")
         assert stop["autoplayEndCause"] == "USER_INTERRUPTED" and stop["previousRequestedAutoplayTurns"] == 5
-        assert all(row["revision"] == expected_revision and "schema" not in row and row["dllIdentity"] == snapshots["exit"]["dllIdentity"] for row in timeline)
-        loaded = next(row for row in timeline if row["reason"] == "LOAD_GAME_NATIVE_READY")
-        assert loaded["loadedSaveCheckpointTurn"] == 7 and loaded["loadedSaveCheckpointUtc"] == "20261018T000000.000Z"
+        loaded_context = next(row for row in session_records if row["sessionKind"] == "LOAD_GAME")
+        assert loaded_context["loadedSaveCheckpointTurn"] == 7 and loaded_context["loadedSaveCheckpointUtc"] == "20261018T000000.000Z"
+        assert loaded_context["mapWidth"] == 120 and loaded_context["mapHeight"] == 84 and loaded_context["gameSpeed"] == 2
+        assert loaded_context["readyGameTurn"] == snapshots["loaded"]["gameTurn"] and loaded_context["readyActivePlayer"] == snapshots["loaded"]["activePlayer"]
+        assert "gameTurn" not in loaded_context and "activePlayer" not in loaded_context
         # <!-- custom: Export a matched snapshot/history prefix only on explicit request; use a portable companion basename and keep fixture data clearly separate from empirical Civ4 results. (GPT-6.1-Sol) -->
         if args.export_runtime_examples is not None:
             destination = args.export_runtime_examples.resolve()
             destination.mkdir(parents=True, exist_ok=True)
             example = dict(snapshots["loaded"])
             example["historyFilename"] = "SASRuntimeHistory_example.jsonl"
-            rows = [row for row in timeline if row["stateSerial"] <= example["activitySerial"]]
+            rows = [row for row in history_records if row["record"] == "run" or (row["record"] == "session" and row["sessionSerial"] <= example["sessionSerial"]) or (row["record"] == "transition" and row["stateSerial"] <= example["activitySerial"])]
             assert len(rows) == example["historyRowsWritten"]
             (destination / "SASRuntimeStatus_example.json").write_text(json.dumps(example, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
             (destination / example["historyFilename"]).write_text("".join(json.dumps(row, ensure_ascii=False, separators=(",", ":")) + "\n" for row in rows), encoding="utf-8", newline="\n")

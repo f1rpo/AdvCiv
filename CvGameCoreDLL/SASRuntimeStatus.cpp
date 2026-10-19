@@ -14,7 +14,7 @@
 // Compile the label into the publisher: an edited XML value must not make an older loaded DLL report a newer implementation; this counter is independent of SASGameRecord and binary-save versions. (GPT-6.1-Sol) -->
 enum SASRuntimeRecorderRevision
 {
-	SAS_RUNTIME_REVISION = 2
+	SAS_RUNTIME_REVISION = 3
 };
 
 #define SAS_RUNTIME_PROCESS_STATES(DO) DO(RUNNING) DO(EXITED_CLEANLY)
@@ -94,15 +94,24 @@ static CvString g_szSASRuntimePreviousStartedUtc = "-";
 static CvString g_szSASRuntimePreviousEndedUtc = "-";
 static uint g_uiSASRuntimeActivityStartedMilliseconds = 0;
 static __int64 g_iSASRuntimePreviousDurationMilliseconds = -1;
+// <!-- custom: stateSerial orders transition observations only; run/session metadata contributes to confirmed historyRowsWritten without consuming a transition serial. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 static unsigned int g_uiSASRuntimeActivitySerial = 0;
 static unsigned int g_uiSASRuntimeActivitySession = 0;
 static int g_iSASRuntimeActivityStartTurn = -1;
 static int g_iSASRuntimeActivityRequestedTurns = 0;
 static SASAutoPlayEndCause g_eSASRuntimeLastAutoplayEndCause = SAS_AUTOPLAY_END_UNSPECIFIED;
 static CvString g_szSASRuntimeHistoryFilename;
+static CvString g_szSASRuntimeHistoryRunId;
 static std::wstring g_szSASRuntimeHistoryRoot;
 static unsigned int g_uiSASRuntimeHistoryRowsWritten = 0;
 static unsigned int g_uiSASRuntimeHistoryWriteFailures = 0;
+// <!-- custom: Retain one bounded ready-session payload for retry, not an in-memory history.
+// A failed publication at turn 9/player 0 was retried with turn 10/player 1 mislabeled as the ready state; capture before I/O and retain that observation while failure counters remain live.
+// A later ready session supersedes any still-unpublished context; this best-effort archive does not queue failed sessions indefinitely. (GPT-6.1-Sol) -->
+static unsigned int g_uiSASRuntimeHistorySessionMetadataCaptured = 0;
+static CvString g_szSASRuntimeHistoryPendingSessionMetadata;
+static bool g_bSASRuntimeHistoryMetadataWritten = false;
+static bool g_bSASRuntimeHistoryMayContainRows = false;
 static bool g_bSASRuntimeHistoryAtCurrentRoot = false;
 
 // <!-- custom: Keep the external-agent runtime status independent from the structured game-record and AI-diagnostic enablement.
@@ -197,15 +206,22 @@ static CvString const& getSASRuntimeDllIdentity(bool bIndented = false)
 }
 
 // <!-- custom: Keep the timing history append-only and independent from optional SASGameRecord logging; retaining only the latest snapshot lost earlier new/load/autoplay intervals.
-// Each transition stores the completed interval and the newly entered activity, so idle periods survive without a frame timer or an in-memory history that grows throughout the process.
-// State durations use the shared monotonic clock, not UTC subtraction; UTC still locates intervals in external evidence.
-// A loaded-session row retains known serialization checkpoints for later matching; these do not identify the current filesystem name after a save was renamed or copied. (GPT-6.1-Sol) -->
+// Runtime revision 3 stores constant process/DLL identity once in a typed run record and ready-game context once per session; transition rows keep a compact run reference plus their local timing/failure evidence.
+// A copied transition identifies its run, but full DLL/map interpretation needs its metadata records; the fixed current-state snapshot remains self-contained, and missing metadata does not suppress later transition evidence.
+// State durations use the shared monotonic clock, not UTC subtraction; UTC still locates intervals in external evidence. (GPT-6.1-Sol + ChatGPT-5.6-Sol) -->
+static CvString const& getSASRuntimeHistoryRunId()
+{
+	if (g_szSASRuntimeHistoryRunId.empty())
+		g_szSASRuntimeHistoryRunId.Format("%s_%lu", getSASExecutableProcessStartUtc().GetCString(), (unsigned long)GetCurrentProcessId());
+	return g_szSASRuntimeHistoryRunId;
+}
+
 static bool prepareSASRuntimeHistory(std::wstring const& szRoot)
 {
 	if (g_szSASRuntimeHistoryFilename.empty())
-		g_szSASRuntimeHistoryFilename.Format("SASRuntimeHistory_%s_%lu.jsonl", getSASExecutableProcessStartUtc().GetCString(), (unsigned long)GetCurrentProcessId());
+		g_szSASRuntimeHistoryFilename.Format("SASRuntimeHistory_%s.jsonl", getSASRuntimeHistoryRunId().GetCString());
 	std::wstring const szName(g_szSASRuntimeHistoryFilename.begin(), g_szSASRuntimeHistoryFilename.end());
-	if (g_uiSASRuntimeHistoryRowsWritten != 0 && !g_szSASRuntimeHistoryRoot.empty() && !isSASRuntimeStatusSamePath(g_szSASRuntimeHistoryRoot, szRoot))
+	if (g_bSASRuntimeHistoryMayContainRows && !g_szSASRuntimeHistoryRoot.empty() && !isSASRuntimeStatusSamePath(g_szSASRuntimeHistoryRoot, szRoot))
 	{
 		// <!-- custom: Copy the small timeline when BUG changes the root; never delete the old evidence, and continue there if migration fails rather than silently splitting the history. (GPT-6.1-Sol) -->
 		std::wstring const szOldPath = g_szSASRuntimeHistoryRoot + L"\\Logs\\" + szName;
@@ -218,8 +234,12 @@ static bool prepareSASRuntimeHistory(std::wstring const& szRoot)
 	return !g_szSASRuntimeHistoryRoot.empty();
 }
 
-static bool appendSASRuntimeHistory(CvString const& szRow)
+// <!-- custom: Distinguish complete row bytes from confirmed write/close success through pbContentComplete.
+// Metadata can avoid duplicate retries after an uncertain close while confirmed-row counters still require the successful close result. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+static bool appendSASRuntimeHistory(CvString const& szRow, bool* pbContentComplete = NULL)
 {
+	if (pbContentComplete != NULL)
+		*pbContentComplete = false;
 	if (g_szSASRuntimeHistoryRoot.empty())
 		return false;
 	std::wstring const szName(g_szSASRuntimeHistoryFilename.begin(), g_szSASRuntimeHistoryFilename.end());
@@ -244,8 +264,104 @@ static bool appendSASRuntimeHistory(CvString const& szRow)
 		if (SetFilePointerEx(hFile, kStart, NULL, FILE_BEGIN))
 			SetEndOfFile(hFile);
 	}
+	if (pbContentComplete != NULL)
+		*pbContentComplete = bComplete;
 	BOOL const bClosed = CloseHandle(hFile);
 	return bComplete && bClosed != FALSE;
+}
+
+// <!-- custom: Account for all three record types in one place; physical-row evidence and confirmed-success counts are deliberately separate after an uncertain close.
+// Separate row writes keep each retry decision tied to that record's outcome rather than an ambiguous context/transition batch. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+static bool recordSASRuntimeHistoryRow(CvString const& szRow, bool* pbContentComplete = NULL)
+{
+	bool bContentComplete = false;
+	bool const bConfirmed = appendSASRuntimeHistory(szRow, &bContentComplete);
+	if (pbContentComplete != NULL)
+		*pbContentComplete = bContentComplete;
+	// <!-- custom: A full WriteFile followed by an unconfirmed close can leave a physical row even though it is not counted as confirmed; remember that possibility so a later CvAltRoot migration does not silently abandon the old history file. (ChatGPT-5.6-Sol) -->
+	if (bConfirmed || bContentComplete)
+		g_bSASRuntimeHistoryMayContainRows = true;
+	if (bConfirmed)
+	{
+		g_uiSASRuntimeHistoryRowsWritten++;
+		return true;
+	}
+	g_uiSASRuntimeHistoryWriteFailures++;
+	return false;
+}
+
+// <!-- custom: Normally publish one run record before transitions so constant revision/process/DLL identity is not repeated on every line.
+// If this metadata write fails, transition rows still carry revision + run ID and prior failure counters; open/partial failures retry later, while a full row with unconfirmed close is not duplicated. (ChatGPT-5.6-Sol) -->
+static bool ensureSASRuntimeHistoryMetadata()
+{
+	if (g_bSASRuntimeHistoryMetadataWritten)
+		return true;
+	CvString szRow;
+	CvString const& szDllIdentity = getSASRuntimeDllIdentity();
+	szRow.Format("{\"record\":\"run\","
+		"\"revision\":%d,"
+		"\"run\":\"%s\","
+		"\"processId\":%lu,"
+		"\"processStartUtc\":\"%s\","
+		"\"dllLoadUtc\":\"%s\","
+		"\"dllIdentity\":%s,"
+		"\"priorStatusWriteFailures\":%u,"
+		"\"priorHistoryWriteFailures\":%u}\r\n",
+		SAS_RUNTIME_REVISION, getSASRuntimeHistoryRunId().GetCString(), (unsigned long)GetCurrentProcessId(), getSASExecutableProcessStartUtc().GetCString(), getSASProcessUtcTimestamp().GetCString(), szDllIdentity.GetCString(),
+		g_uiSASRuntimeStatusWriteFailures, g_uiSASRuntimeHistoryWriteFailures);
+	bool bContentComplete = false;
+	bool const bConfirmed = recordSASRuntimeHistoryRow(szRow, &bContentComplete);
+	// <!-- custom: Do not duplicate a fully written row after an unconfirmed close; historyWriteFailures already marks that its physical presence is uncertain.
+	// Retry only when the row bytes themselves did not complete. (ChatGPT-5.6-Sol) -->
+	g_bSASRuntimeHistoryMetadataWritten = bConfirmed || bContentComplete;
+	return g_bSASRuntimeHistoryMetadataWritten;
+}
+
+// <!-- custom: Capture first-ready context once per session instead of repeating it on transitions or resampling a later turn during retries.
+// Cache the serialized stable fields independently of directory availability or metadata-write success; recordedUtc locates that observation, while publication-failure counters are appended at each write attempt. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+static void captureSASRuntimeHistorySessionMetadata(CvString const& szNowUtc, int iReadyGameTurn, int iReadyActivePlayer, int iMapWidth, int iMapHeight, int iWorldSize, int iGameSpeed, int iScenario, int iLoadedCheckpointTurn, int iLoadedCheckpointElapsedTurn, char const* szLoadedCheckpointUtc)
+{
+	if (g_uiSASRuntimeSessionSerial == 0 || g_uiSASRuntimeHistorySessionMetadataCaptured == g_uiSASRuntimeSessionSerial)
+		return;
+	g_szSASRuntimeHistoryPendingSessionMetadata.Format("{\"record\":\"session\","
+		"\"revision\":%d,"
+		"\"run\":\"%s\","
+		"\"recordedUtc\":\"%s\","
+		"\"sessionSerial\":%u,"
+		"\"sessionKind\":\"%s\","
+		"\"sessionStartedUtc\":\"%s\","
+		"\"nativeReadyUtc\":\"%s\","
+		"\"newGameCount\":%u,"
+		"\"loadCount\":%u,"
+		"\"readyGameTurn\":%d,"
+		"\"readyActivePlayer\":%d,"
+		"\"mapWidth\":%d,"
+		"\"mapHeight\":%d,"
+		"\"worldSize\":%d,"
+		"\"gameSpeed\":%d,"
+		"\"scenario\":%d,"
+		"\"loadedSaveCheckpointTurn\":%d,"
+		"\"loadedSaveCheckpointElapsedTurn\":%d,"
+		"\"loadedSaveCheckpointUtc\":\"%s\",",
+		SAS_RUNTIME_REVISION, getSASRuntimeHistoryRunId().GetCString(), szNowUtc.GetCString(), g_uiSASRuntimeSessionSerial, aSASRuntimeSessionStateNames[g_eSASRuntimeSessionKind], g_szSASRuntimeSessionStartedUtc.GetCString(), g_szSASRuntimeNativeReadyUtc.GetCString(),
+		g_uiSASRuntimeNewGameCount, g_uiSASRuntimeLoadCount, iReadyGameTurn, iReadyActivePlayer, iMapWidth, iMapHeight, iWorldSize, iGameSpeed, iScenario,
+		iLoadedCheckpointTurn, iLoadedCheckpointElapsedTurn, szLoadedCheckpointUtc);
+	g_uiSASRuntimeHistorySessionMetadataCaptured = g_uiSASRuntimeSessionSerial;
+}
+
+// <!-- custom: Retry the frozen session payload independently of live gameplay so a menu/reset update can still recover the last ready observation.
+// Open/partial failures leave it pending; fully written metadata with an uncertain close is not duplicated, and keeping the capture serial prevents later turn updates from recreating it. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+static void ensureSASRuntimeHistorySessionMetadata()
+{
+	if (!g_bSASRuntimeHistoryMetadataWritten || g_szSASRuntimeHistoryPendingSessionMetadata.empty())
+		return;
+	CvString szRow;
+	szRow.Format("%s\"priorStatusWriteFailures\":%u,\"priorHistoryWriteFailures\":%u}\r\n",
+		g_szSASRuntimeHistoryPendingSessionMetadata.GetCString(), g_uiSASRuntimeStatusWriteFailures, g_uiSASRuntimeHistoryWriteFailures);
+	bool bContentComplete = false;
+	bool const bConfirmed = recordSASRuntimeHistoryRow(szRow, &bContentComplete);
+	if (bConfirmed || bContentComplete)
+		g_szSASRuntimeHistoryPendingSessionMetadata.clear();
 }
 
 static SASRuntimeActivity getSASRuntimeActivity(SASRuntimeStatusReason eReason, int iAutoPlayRemaining)
@@ -271,7 +387,8 @@ static SASRuntimeActivity getSASRuntimeActivity(SASRuntimeStatusReason eReason, 
 	return (iAutoPlayRemaining > 0 ? SAS_RUNTIME_ACTIVITY_AUTOPLAY : SAS_RUNTIME_ACTIVITY_PLAYING);
 }
 
-static void updateSASRuntimeActivity(SASRuntimeStatusReason eReason, CvString const& szNowUtc, uint uiNowMilliseconds, int iGameTurn, int iAutoPlayRemaining, int iLoadedCheckpointTurn, int iLoadedCheckpointElapsedTurn, char const* szLoadedCheckpointUtc)
+// <!-- custom: Save-checkpoint/map context now belongs to frozen session metadata; this formatter takes only the current transition's time, turn and autoplay values. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+static void updateSASRuntimeActivity(SASRuntimeStatusReason eReason, CvString const& szNowUtc, uint uiNowMilliseconds, int iGameTurn, int iAutoPlayRemaining)
 {
 	SASRuntimeActivity const eActivity = getSASRuntimeActivity(eReason, iAutoPlayRemaining);
 	// <!-- custom: Keep presentation observations in the timeline without splitting the underlying activity interval.
@@ -303,16 +420,15 @@ static void updateSASRuntimeActivity(SASRuntimeStatusReason eReason, CvString co
 		g_iSASRuntimeActivityRequestedTurns = iAutoPlayRemaining;
 	}
 	CvString szRow;
-	CvString const& szDllIdentity = getSASRuntimeDllIdentity();
-	// <!-- custom: An observation-only row has intervalStarted=0 and no completed previous interval, avoiding duplicate duration totals; state-start/elapsed fields retain its position inside the ongoing interval.
-	// Snapshot previousActivity fields still describe the most recently completed interval, while the serial continues to order every timeline row. (GPT-6.1-Sol) -->
-	// <!-- custom: Keep one JSONL record on each output line; adjacent C++ literals let the source show one field per line without inserting output newlines. (GPT-6.1-Sol) -->
-	szRow.Format("{\"revision\":%d,"
+	// <!-- custom: Keep one JSONL record on each output line.
+	// Constant binary/process identity lives in the run record; revision + run ID stay on transitions so copied/grepped lines still identify their recorder/run.
+	// Observation-only rows do not repeat a completed previous interval; the fixed snapshot still retains the most recently completed activity.
+	// Prior publication counters disclose missing earlier evidence without making every row repeat the fixed snapshot or session metadata. (GPT-6.1-Sol + ChatGPT-5.6-Sol) -->
+	szRow.Format("{\"record\":\"transition\","
+		"\"revision\":%d,"
+		"\"run\":\"%s\","
 		"\"stateSerial\":%u,"
 		"\"intervalStarted\":%d,"
-		"\"processId\":%lu,"
-		"\"processStartUtc\":\"%s\","
-		"\"dllIdentity\":%s,"
 		"\"previousState\":\"%s\","
 		"\"previousStartedUtc\":\"%s\","
 		"\"previousEndedUtc\":\"%s\","
@@ -329,16 +445,13 @@ static void updateSASRuntimeActivity(SASRuntimeStatusReason eReason, CvString co
 		"\"autoplayRemainingTurns\":%d,"
 		"\"reason\":\"%s\","
 		"\"autoplayEndCause\":\"%s\","
-		"\"loadedSaveCheckpointTurn\":%d,"
-		"\"loadedSaveCheckpointElapsedTurn\":%d,"
-		"\"loadedSaveCheckpointUtc\":\"%s\"}\r\n",
-		SAS_RUNTIME_REVISION, ++g_uiSASRuntimeActivitySerial, bIntervalStarted ? 1 : 0, (unsigned long)GetCurrentProcessId(), getSASExecutableProcessStartUtc().GetCString(), szDllIdentity.GetCString(),
+		"\"priorStatusWriteFailures\":%u,"
+		"\"priorHistoryWriteFailures\":%u}\r\n",
+		SAS_RUNTIME_REVISION, getSASRuntimeHistoryRunId().GetCString(), ++g_uiSASRuntimeActivitySerial, bIntervalStarted ? 1 : 0,
 		aSASRuntimeActivityNames[bIntervalStarted ? g_eSASRuntimePreviousActivity : SAS_RUNTIME_ACTIVITY_NONE], bIntervalStarted ? g_szSASRuntimePreviousStartedUtc.GetCString() : "-", bIntervalStarted ? g_szSASRuntimePreviousEndedUtc.GetCString() : "-", bIntervalStarted ? g_iSASRuntimePreviousDurationMilliseconds : (__int64)-1,
 		uiPreviousSession, iPreviousStartTurn, iPreviousRequestedTurns, szNowUtc.GetCString(), aSASRuntimeActivityNames[eActivity], g_szSASRuntimeActivityStartedUtc.GetCString(), getSASElapsedMilliseconds(g_uiSASRuntimeActivityStartedMilliseconds, uiNowMilliseconds), g_uiSASRuntimeSessionSerial, iGameTurn, iAutoPlayRemaining,
-		aSASRuntimeStatusReasonNames[eReason], (eReason == SAS_RUNTIME_STATUS_AUTOPLAY_ENDED ? getSASAutoPlayEndCause(g_eSASRuntimeLastAutoplayEndCause) : "-"), iLoadedCheckpointTurn, iLoadedCheckpointElapsedTurn, szLoadedCheckpointUtc);
-	if (appendSASRuntimeHistory(szRow))
-		g_uiSASRuntimeHistoryRowsWritten++;
-	else g_uiSASRuntimeHistoryWriteFailures++;
+		aSASRuntimeStatusReasonNames[eReason], (eReason == SAS_RUNTIME_STATUS_AUTOPLAY_ENDED ? getSASAutoPlayEndCause(g_eSASRuntimeLastAutoplayEndCause) : "-"), g_uiSASRuntimeStatusWriteFailures, g_uiSASRuntimeHistoryWriteFailures);
+	recordSASRuntimeHistoryRow(szRow);
 }
 
 // <!-- custom: Write one small current-state JSON file for external agents.
@@ -380,10 +493,18 @@ static bool publishSASRuntimeStatus(SASRuntimeStatusReason eReason)
 	char const* szLoadedCheckpointUtc = "-";
 	if (bGameLoaded && g_eSASRuntimeSessionKind == SAS_RUNTIME_SESSION_LOAD_GAME && kGame.getSASLoadedSaveCheckpointUtc() != NULL && kGame.getSASLoadedSaveCheckpointUtc()[0] != '\0')
 		szLoadedCheckpointUtc = kGame.getSASLoadedSaveCheckpointUtc();
+	if (bGameLoaded)
+		captureSASRuntimeHistorySessionMetadata(szUpdatedUtc, iGameTurn, iActivePlayer, iMapWidth, iMapHeight, iWorldSize, iGameSpeed, iScenario, iLoadedCheckpointTurn, iLoadedCheckpointElapsedTurn, szLoadedCheckpointUtc);
 	// <!-- custom: Failed output must not postpone the observed transition or inflate the next interval; retain timing in memory and disclose unsuccessful history appends when publication resumes. (GPT-6.1-Sol) -->
-	if (bDirectoryReady) prepareSASRuntimeHistory(g_szSASRuntimeStatusRootDirectory);
+	if (bDirectoryReady)
+	{
+		prepareSASRuntimeHistory(g_szSASRuntimeStatusRootDirectory);
+		ensureSASRuntimeHistoryMetadata();
+		// <!-- custom: Normally session context precedes its ready transition; after I/O failure, retry the captured context even if this update reports a menu/reset boundary. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+		ensureSASRuntimeHistorySessionMetadata();
+	}
 	else g_bSASRuntimeHistoryAtCurrentRoot = false;
-	updateSASRuntimeActivity(eReason, szUpdatedUtc, uiNowMilliseconds, iGameTurn, iAutoPlayRemaining, iLoadedCheckpointTurn, iLoadedCheckpointElapsedTurn, szLoadedCheckpointUtc);
+	updateSASRuntimeActivity(eReason, szUpdatedUtc, uiNowMilliseconds, iGameTurn, iAutoPlayRemaining);
 	if (!bDirectoryReady)
 		return false;
 	g_uiSASRuntimeStatusSerial++;

@@ -2018,10 +2018,14 @@ Enforced by the turn_define_gamespeed CI check. (GPT-5.6 Thinking) -->
 		<DefineName>SAS_GAME_RECORD_TRADE_MARKET_AI_TECH_VALUES_ENABLE</DefineName>
 		<iDefineIntVal>1</iDefineIntVal>
 	</Define>
-	<!-- custom: Interval in game turns for periodic game-record snapshots.
+	<!-- custom: Interval in game turns for periodic game-record snapshots, without game-speed scaling.
+	Turn 0 has separate initial context; interval 10 writes periodic snapshots at the end of turns 10, 20, 30, 40, and so on.
+	Autoplay counts turn 0 as its first turn, so a 10-turn request from turn 0 processes turns 0-9.
+	Therefore request 11 turns to include the end-of-turn-10 snapshot, or 41 to include turn 40: the target snapshot turn plus one, when starting at turn 0.
+	Loading a save preserves the game-turn schedule rather than restarting the interval count.
 	Major chronicle actions such as techs, wars, city captures and Great People still log when they happen at game-record level 2+.
 	Set this to 1 for an every-turn account, 5 or 10 for compact autoplay records, or higher for broad long-game trends.
-	Clamped to at least 1 in SASGameRecordLog.cpp. (ChatGPT-5.5) -->
+	Clamped to at least 1 in SASGameRecordLog.cpp. (ChatGPT-5.5 + GPT-6.1-Sol) -->
 	<Define>
 		<DefineName>SAS_GAME_RECORD_INTERVAL_TURNS_UNSCALED_GAMESPEED</DefineName>
 		<iDefineIntVal>10</iDefineIntVal>
@@ -2227,7 +2231,7 @@ Enforced by the turn_define_gamespeed CI check. (GPT-5.6 Thinking) -->
 	Keep the newest Docs/revisions/SASGameRecord.md entry synchronized; build/source/DLL provenance separately describes whether a particular compiled binary is stale or came from another source state. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	<Define>
 		<DefineName>SAS_GAME_RECORD_REVISION</DefineName>
-		<iDefineIntVal>157</iDefineIntVal>
+		<iDefineIntVal>158</iDefineIntVal>
 	</Define>
 
 

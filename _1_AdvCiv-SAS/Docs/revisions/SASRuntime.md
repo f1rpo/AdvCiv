@@ -10,10 +10,20 @@ Add a latest-first entry explaining the behavior and rationale. The diagnostics 
 
 ## History
 
+### Revision 3 - SAS practical 6644
+
+- **Date:** 2026-10-19
+- **Git commit:** pending
+- **Change:** Make each per-process JSONL timeline more useful as a standalone archive while removing repeated constant identity from every transition.
+  - Add one typed `run` record with process start/PID, DLL-load UTC and full loaded-DLL identity. Transition records retain the recorder revision and compact run ID so a copied/grepped line still identifies its source run without repeating the full identity object.
+  - Add one typed `session` record for each ready new/load session, normally before its first ready transition, with session timestamps/counters, ready-game turn/active-player IDs, map/game configuration and known loaded-save checkpoint evidence. Capture that context once so a later retry preserves the original ready observation even after the game advances or resets.
+  - Keep `transition` records focused on timed activity boundaries and presentation observations. Record prior status/history publication-failure counters on archival rows so recovered evidence discloses earlier gaps.
+  - A failed run-metadata publication does not block later transitions. Open/partial failures retry on later updates; a fully written row with an unconfirmed close is not duplicated, and failure counters disclose the uncertainty. Root migration treats such possibly written rows as evidence too, so typed records remain together when `CvAltRoot` takes over.
+
 ### Revision 2 - SAS practical 6643
 
 - **Date:** 2026-10-18
-- **Git commit:** pending
+- **Git commit:** `e58d41b6e8a6e6fe69993c4b8aa056f8679d82bd`
 - **Change:** Add event-driven presentation/lifecycle observations without frame polling or side-effectful diagnostic queries.
   - Record the EXE's existing main-menu scene and loading-screen asset requests as explicitly named evidence, without treating either request as proof that a rendered frame reached the user.
   - Distinguish native WorldBuilder mode from the Python WorldBuilder screen; time active editor intervals as their own coarse activity while recording screen show/hide separately and ignoring Advanced Start's reuse of the same Python screen.

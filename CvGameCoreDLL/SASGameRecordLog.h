@@ -33,7 +33,8 @@ __forceinline bool isSASGameRecordLogEnabled() { return g_iSASGameRecordLogLevel
 __forceinline int getSASGameRecordLogLevel() { return g_iSASGameRecordLogLevel; }
 __forceinline bool isSASGameRecordActionTraceEnabled() { return g_bSASGameRecordActionTraceEnabled; }
 int getSASGameRecordTurnInterval();
-// <!-- custom: Finalize buffered observations in the old game state before a new game or loaded save resets/replaces it. See KI#382. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
+// <!-- custom: Finalize buffered observations in the old game state before a new game or loaded save resets/replaces it.
+// Only an opened recorder session emits final writer health; startup/repeated resets still retry and release shared output without creating a record. See KI#382. See KI#382.3. (ChatGPT-5.6-Sol + GPT-5.6-Sol + GPT-6.1-Sol) -->
 void finalizeSASGameRecordLogSession();
 void startSASGameRecordLogForNewGame();
 void logSASGameRecordNewGameStarted();

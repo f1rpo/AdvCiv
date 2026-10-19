@@ -34,7 +34,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=157 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=158 ...
 ```
 
 After this, each qualifying SASGameRecord commit increments `SAS_GAME_RECORD_REVISION` in `GlobalDefines_advciv_sas.xml` exactly once and adds one short latest-first entry to this file in the same commit. The revision remains a downstream-update signal; exact runtime source/build identity remains separate provenance in `GAME_RECORD_SOURCE_CONTEXT` and the DLL/build context.
@@ -77,10 +77,16 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
-### Revision 157 - SAS practical 6643
+### Revision 158 - SAS practical 6644
 
 - **Date:** 2026-10-19
 - **Git commit:** pending
+- **Change:** Emit final writer health only for an opened new/load recording session. Startup reset no longer creates a timestamp-only SASGameRecord file, and repeated finalization no longer duplicates its health row; pending observations and shared-writer retries still drain. See KI#382.3.
+
+### Revision 157 - SAS practical 6643
+
+- **Date:** 2026-10-19
+- **Git commit:** `e58d41b6e8a6e6fe69993c4b8aa056f8679d82bd`
 - **Change:** Keep build-report evidence separate from SASGameRecord implementation changes when checking revision progression. Source paths and recorded Git status inside a refreshed DLL report no longer request a revision increment; actual recorder, bridge, configuration and checker edits remain covered.
   - Both recorder histories require a nonempty `Change` explanation through shared entry validation; dates, commit labels, hidden comments or fenced templates cannot replace it. A committed bump missing its explanation remains an error even if a later commit supplies the text.
 

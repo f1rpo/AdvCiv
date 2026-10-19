@@ -91,6 +91,11 @@ def main() -> int:
             r'\"worldBuilderMode\"',
             r'\"worldBuilderScreenVisible\"',
             r'\"extendedGame\"',
+            r'\"record\":\"run\"',
+            r'\"record\":\"session\"',
+            r'\"record\":\"transition\"',
+            r'\"priorStatusWriteFailures\"',
+            r'\"priorHistoryWriteFailures\"',
         ):
             if token not in utils:
                 failures.append(f"{UTILS_SOURCE}: missing runtime-status contract token {token}")
