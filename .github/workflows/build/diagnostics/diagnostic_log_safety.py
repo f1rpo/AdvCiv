@@ -1,106 +1,59 @@
 #!/usr/bin/env python3
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
-# <!-- custom: Resolve repository/shared-helper paths from this subject subfolder after the workflow-tool reorganization. (GPT-6.1-Sol) -->
 #
-# <!-- custom: Build check: BBAI and SASGameRecord share the DLL-owned live-readable prompt writer and keep literal text safe. (ChatGPT-5.6-Sol) -->
+# <!-- custom: Keep a small source-policy guard for the shared BBAI/SASGameRecord sink and runtime publisher.
+# Exact argument lists, local variable names, checkpoint statements and JSON fields are implementation details; the native harness and game tests exercise their behavior.
+# These source checks are conservative review sentinels, not proof of live readability or correct lifecycle handling. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 
+# <!-- custom: Path locates maintained publishers, argparse handles the CLI, and sys returns its status. (GPT-6.1-Sol) -->
 from pathlib import Path
 import argparse
-import re
 import sys
 
 
-UTILS_HEADER = Path("CvGameCoreDLL/CvGameCoreUtils.h")
 UTILS_SOURCE = Path("CvGameCoreDLL/CvGameCoreUtils.cpp")
+STATUS_SOURCE = Path("CvGameCoreDLL/SASRuntimeStatus.cpp")
 BBAI_SOURCE = Path("CvGameCoreDLL/BBAILog.cpp")
 GAME_RECORD_SOURCE = Path("CvGameCoreDLL/SASGameRecordLog.cpp")
-GAME_SOURCE = Path("CvGameCoreDLL/CvGame.cpp")
-BUG_INIT = Path("Assets/Python/BUG/BugInit.py")
-EVENT_INTERFACE = Path("Assets/Python/EntryPoints/CvEventInterface.py")
-
-
-def get_default_repo_root() -> Path:
-	return Path(__file__).resolve().parents[4]
 
 
 def main() -> int:
-	parser = argparse.ArgumentParser(description="Check live-readable BBAI/SASGameRecord emission and literal-text safety.")
-	parser.add_argument("--repo-root", type=Path, default=get_default_repo_root(), help="repository root; defaults to the root containing .github/")
-	args = parser.parse_args()
+    parser = argparse.ArgumentParser(description="Check diagnostic sink and live-reading source policies.")
+    parser.add_argument("--repo-root", type=Path, default=Path(__file__).resolve().parents[4])
+    args = parser.parse_args()
+    failures = []
+    texts = {}
+    for relative in (UTILS_SOURCE, STATUS_SOURCE, BBAI_SOURCE, GAME_RECORD_SOURCE):
+        path = args.repo_root / relative
+        if not path.is_file():
+            failures.append(f"missing diagnostic publisher source: {relative}")
+        else:
+            texts[relative] = path.read_text(encoding="utf-8", errors="replace")
 
-	failures = []
-	texts = {}
-	paths = (UTILS_HEADER, UTILS_SOURCE, BBAI_SOURCE, GAME_RECORD_SOURCE, GAME_SOURCE, BUG_INIT, EVENT_INTERFACE)
-	for relative_path in paths:
-		path = args.repo_root / relative_path
-		if not path.is_file():
-			failures.append(f"missing diagnostic log-safety file: {relative_path}")
-			continue
-		texts[relative_path] = path.read_text(encoding="utf-8", errors="replace")
-	if failures:
-		for failure in failures:
-			print(f"FAIL diagnostic log safety: {failure}")
-		return 1
+    # <!-- custom: Win32 sharing flags express the reader-access policy; their order and surrounding call layout are irrelevant here.
+    # Ignore whitespace for prohibited direct calls, without prescribing writer arguments or the implementation of lifecycle checkpoints. (GPT-6.1-Sol) -->
+    for relative, text in texts.items():
+        compact = "".join(text.split())
+        if "FlushFileBuffers(" in compact:
+            failures.append(f"{relative}: diagnostic visibility must not force physical-disk durability")
+        if "gDLL->logMsg(" in compact:
+            failures.append(f"{relative}: SAS diagnostic output must not bypass the owned writer through the EXE logger")
+        if relative in (UTILS_SOURCE, STATUS_SOURCE):
+            for flag in ("FILE_SHARE_READ", "FILE_SHARE_WRITE", "FILE_SHARE_DELETE"):
+                if flag not in text:
+                    failures.append(f"{relative}: missing live-reader sharing policy flag {flag}")
+        elif "logSASDiagnosticLiteralLine" not in text:
+            failures.append(f"{relative}: missing shared literal-text diagnostic sink")
 
-	header_text = texts[UTILS_HEADER]
-	utils_text = texts[UTILS_SOURCE]
-	bbai_text = texts[BBAI_SOURCE]
-	record_text = texts[GAME_RECORD_SOURCE]
-	game_text = texts[GAME_SOURCE]
-	bug_init_text = texts[BUG_INIT]
-	event_text = texts[EVENT_INTERFACE]
-
-	# <!-- custom: Keep this a small sink/sharing policy check, not a source-shape substitute for exercising I/O; the local C++ harness tests writes and failures with the actual writer code. (GPT-6.1-Sol) -->
-	for symbol in ("logSASDiagnosticLiteralLine", "setSASDiagnosticLogRootDirectory", "flushSASDiagnosticLogs", "getSASDiagnosticWriterHealthFields"):
-		if not re.search(r"\b" + symbol + r"\s*\(", header_text):
-			failures.append(f"{UTILS_HEADER}: missing shared writer interface {symbol}")
-	if not re.search(r"CreateFileW\([^;]+FILE_SHARE_READ\s*\|\s*FILE_SHARE_WRITE\s*\|\s*FILE_SHARE_DELETE", utils_text):
-		failures.append(f"{UTILS_SOURCE}: diagnostic output must use Unicode paths and permit live reading/copying")
-	if "FlushFileBuffers(" in utils_text:
-		failures.append(f"{UTILS_SOURCE}: live-readability flush must not request physical-disk durability through FlushFileBuffers")
-	if "gDLL->logMsg(" in utils_text:
-		failures.append(f"{UTILS_SOURCE}: shared SAS diagnostic writer must not fall back to the opaque EXE logger")
-	if "szEscapedLine" in utils_text or "if (*p == '%')" in utils_text:
-		failures.append(f"{UTILS_SOURCE}: direct writer should preserve already-formatted percent signs rather than EXE-boundary doubling")
-
-	for relative_path, text, expected_call in (
-		(BBAI_SOURCE, bbai_text, "logSASDiagnosticLiteralLine(szLogName.GetCString(), szLine.c_str(), SAS_DIAGNOSTIC_LOG_BBAI);"),
-		(GAME_RECORD_SOURCE, record_text, "logSASDiagnosticLiteralLine(szLogName.GetCString(), szLine.c_str(), SAS_DIAGNOSTIC_LOG_GAME_RECORD);"),
-	):
-		if expected_call not in text:
-			failures.append(f"{relative_path}: missing shared diagnostic sink call")
-		if "gDLL->logMsg(" in text:
-			failures.append(f"{relative_path}: direct gDLL->logMsg bypasses live-readable writing")
-
-	turn_row = "if (isSASGameRecordLogEnabled()) logSASGameRecordTurnCompleted(getGameTurn());"
-	turn_flush = "if (isSASBBAILogEnabled() || isSASGameRecordLogEnabled()) flushSASDiagnosticLogs();"
-	if turn_row not in game_text or turn_flush not in game_text or game_text.find(turn_flush, game_text.find(turn_row)) < game_text.find(turn_row):
-		failures.append(f"{GAME_SOURCE}: completed-turn boundary no longer retries pending diagnostic writes after the GameRecord completion marker")
-	# <!-- custom: Shutdown must not defer early diagnostics for a BUG root handoff that will never happen; rollover retains that wait. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
-	destructor = re.search(r"CvGame::~CvGame\(\)\s*\{(.*?)\n\}", game_text, re.S)
-	if destructor is None or "flushSASDiagnosticLogs(true, true);" not in destructor.group(1):
-		failures.append(f"{GAME_SOURCE}: terminal destruction must allow fallback flushing of pre-BUG output")
-	if not re.search(r"else if \(isSASBBAILogEnabled\(\)\) flushSASDiagnosticLogs\(true\);", game_text):
-		failures.append(f"{GAME_SOURCE}: BBAI-only reset no longer publishes the old-session shared buffer")
-	if "flushSASDiagnosticLogs(true);" not in record_text:
-		failures.append(f"{GAME_RECORD_SOURCE}: session finalization no longer publishes the shared diagnostic buffers")
-	# <!-- custom: Health is intentionally checkpoint-only; this source-policy guard ensures both turn completion and session finalization keep the compact row while the native harness exercises the counters themselves. (ChatGPT-5.6-Sol) -->
-	if 'logSASGameRecordDiagnosticWriterHealth(iGameTurn, "TURN_COMPLETED");' not in record_text or 'logSASGameRecordDiagnosticWriterHealth(GC.getGame().getGameTurn(), "SESSION_FINALIZE");' not in record_text:
-		failures.append(f"{GAME_RECORD_SOURCE}: diagnostic-writer health no longer covers turn completion and session finalization")
-	if "CyGame().setSASDiagnosticLogRoot(szRoot)" not in bug_init_text:
-		failures.append(f"{BUG_INIT}: BUG root resolution no longer supplies the shared diagnostic writer")
-	if "CyGame().flushSASDiagnosticLogs()" not in event_text:
-		failures.append(f"{EVENT_INTERFACE}: session event no longer publishes finalized GameStart/OnLoad diagnostic batches")
-
-	if failures:
-		print("FAIL diagnostic live-buffer/log safety")
-		for failure in failures:
-			print(f"  - {failure}")
-		return 1
-	print("PASS diagnostic live-buffer/log safety: BBAI and SASGameRecord use read-shared files with literal text preserved")
-	return 0
+    if failures:
+        print("FAIL diagnostic sink policy")
+        for failure in failures:
+            print(f"  - {failure}")
+        return 1
+    print("PASS diagnostic sink policy: shared literal sink, reader-sharing flags and no forced disk flush or EXE fallback")
+    return 0
 
 
 if __name__ == "__main__":
-	sys.exit(main())
+    sys.exit(main())

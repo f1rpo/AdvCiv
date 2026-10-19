@@ -668,6 +668,11 @@ def hookupPreGameStartEvent():
 
 def preGameStart(originalFunc):
 	SASDefineGuard.verify_or_raise("BugEventManager.preGameStart")
+	# <!-- custom: The EXE invokes this extension during new/load initialization.
+	# Record that boundary before Python handlers; the cached native gate skips publication while disabled, and this is not evidence that a loading frame was rendered. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	game = CyGame()
+	if game.isSASRuntimeStatusRecordingEnabled():
+		game.updateSASRuntimeStatusPreGameStart()
 	g_eventManager.fireEvent("PreGameStart")
 	originalFunc()
 

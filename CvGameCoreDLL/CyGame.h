@@ -96,6 +96,12 @@ public:
 	bool flushSASDiagnosticLogs();
 	// <!-- custom: Bridge screen show/hide through one cached native gate before inspecting editor/Advanced Start state; native code orders mode and visibility observations for either EXE callback ordering. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	void updateSASRuntimeStatusWorldBuilderScreen(bool bVisible);
+	// <!-- custom: Expose the cached native gate so Python can avoid diagnostic-only UI queries while recording is disabled. (GPT-6.1-Sol) -->
+	bool isSASRuntimeStatusRecordingEnabled() const;
+	// <!-- custom: Rare Python lifecycle/screen callbacks pass only already-observed primitives; native runtime helpers own default-off gating, deduplication and publication. (ChatGPT-5.6-Sol) -->
+	void updateSASRuntimeStatusMainMenuState(bool bInMainMenu);
+	void updateSASRuntimeStatusPreGameStart();
+	void updateSASRuntimeStatusCivilopedia(bool bVisible, bool bInMainMenu);
 	// <!-- custom: New lifecycle bridge records diagnostic settings after Python GameStart/OnLoad handlers finalize Autolog; it gathers no data when SASGameRecord is disabled. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	void logSASGameRecordDiagnosticContext(int iRenderQualityLevel, int iAntiAliasingIndex, int iAntiAliasingSamples, int iGlobeViewRenderLevel, int iMovieQualityLevel);
 	// <!-- custom: Session-configuration timeline bridge plus level-2+ native runtime-view snapshot and internal active-INI resolver; caller-side gates avoid Python collection work when SASGameRecord is disabled. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->

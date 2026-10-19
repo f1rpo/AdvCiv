@@ -34,7 +34,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=158 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=159 ...
 ```
 
 After this, each qualifying SASGameRecord commit increments `SAS_GAME_RECORD_REVISION` in `GlobalDefines_advciv_sas.xml` exactly once and adds one short latest-first entry to this file in the same commit. The revision remains a downstream-update signal; exact runtime source/build identity remains separate provenance in `GAME_RECORD_SOURCE_CONTEXT` and the DLL/build context.
@@ -77,10 +77,16 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
-### Revision 158 - SAS practical 6644
+### Revision 159 - SAS practical 6646
 
 - **Date:** 2026-10-19
 - **Git commit:** pending
+- **Change:** Limit shared revision-marker classification to implementation/configuration roots so archive rules, local tests and general workflow-policy edits do not require recorder revisions. Recorder-specific checkers and actual source/configuration changes remain covered; emitted records are unchanged.
+
+### Revision 158 - SAS practical 6644
+
+- **Date:** 2026-10-19
+- **Git commit:** `39a7ad075bd95ce94f6bb683b3436da693ec4033`
 - **Change:** Emit final writer health only for an opened new/load recording session. Startup reset no longer creates a timestamp-only SASGameRecord file, and repeated finalization no longer duplicates its health row; pending observations and shared-writer retries still drain. See KI#382.3.
 
 ### Revision 157 - SAS practical 6643

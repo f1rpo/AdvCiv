@@ -89,6 +89,11 @@ void CyGamePythonInterface()
 		.def("flushSASDiagnosticLogs", &CyGame::flushSASDiagnosticLogs, "bool () - publish pending diagnostics; false indicates failed output")
 		// <!-- custom: Python owns WorldBuilder screen show/hide callbacks; expose their literal visibility notification so the native recorder can distinguish screen visibility from mode and filter Advanced Start behind its cached enable gate. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 		.def("updateSASRuntimeStatusWorldBuilderScreen", &CyGame::updateSASRuntimeStatusWorldBuilderScreen, "void (bool) - report observed WorldBuilder Python screen visibility")
+		// <!-- custom: Python owns menu/screen observations and PreGameStart; expose literal notifications plus the native cached gate so disabled recording skips their diagnostic-only queries. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+		.def("isSASRuntimeStatusRecordingEnabled", &CyGame::isSASRuntimeStatusRecordingEnabled, "bool () - cached runtime recording gate for Python observation callers")
+		.def("updateSASRuntimeStatusMainMenuState", &CyGame::updateSASRuntimeStatusMainMenuState, "void (bool) - report an event-driven main-menu state sample")
+		.def("updateSASRuntimeStatusPreGameStart", &CyGame::updateSASRuntimeStatusPreGameStart, "void () - report the EXE-driven Python PreGameStart lifecycle boundary")
+		.def("updateSASRuntimeStatusCivilopedia", &CyGame::updateSASRuntimeStatusCivilopedia, "void (bool visible, bool inMainMenu) - report observed Civilopedia visibility and its menu/game context")
 		// <!-- custom: Expose the post-GameStart/OnLoad diagnostic hook; Python invokes it after event dispatch and only while SASGameRecord is enabled. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 		.def("logSASGameRecordDiagnosticContext", &CyGame::logSASGameRecordDiagnosticContext, "void (int renderQualityLevel, int antiAliasingIndex, int antiAliasingSamples, int globeViewRenderLevel, int movieQualityLevel) - record finalized session diagnostic settings")
 		// <!-- custom: Compact configuration baseline/change rows, native runtime-view baseline and internal alternate-INI discovery for SASGameRecord; the INI path itself is not logged. (ChatGPT-5.6-Sol) -->

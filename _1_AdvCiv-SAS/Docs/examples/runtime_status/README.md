@@ -1,21 +1,19 @@
 # Runtime-status examples
 
-These companion files were captured from the user's real Civ4 run on 2026-10-18, with the final snapshot sampled at `20261018T193858.716Z`. They retain the reporting Release DLL's identity and process/session fields; these are observed runtime records, not synthetic harness output.
+These companion files were captured from the user's real Civ4 run on 2026-10-19, with the final snapshot sampled at `20261019T134313.266Z`. They retain runtime revision 5, the reporting Debug-opt DLL identity and process/session fields; these are observed records, not synthetic harness output.
 
-> **Capture revision:** these retained real examples are runtime revision 2. Runtime revision 3 introduces typed `run`/`session`/`transition` records; its archival layout is described below, but is not represented by these earlier captures.
-
-The process created three Advanced Start games, recorded autoplay ending at victory, continued through "Just one more turn", returned to the menu twice, and exited directly from the final game. These are functional observations, not a controlled performance comparison.
+The process created two games, loaded a save, opened/closed Sevopedia from the main menu, in-game and during autoplay, ran scheduled and interrupted autoplay, entered/exited WorldBuilder, returned to the menu twice and exited through the in-game UI. These are functional observations, not a controlled performance comparison.
 
 ## Files and purpose
 
 | File | Meaning |
 | --- | --- |
 | [SASRuntimeStatus_example.json](SASRuntimeStatus_example.json) | One indented JSON object describing the latest observed state, loaded-DLL identity and current/previous activity timing. |
-| [SASRuntimeHistory_example.jsonl](SASRuntimeHistory_example.jsonl) | One complete JSON object per line, retaining activity transitions through the same observation. |
+| [SASRuntimeHistory_example.jsonl](SASRuntimeHistory_example.jsonl) | One complete JSON object per line: run identity, ready-session context and timed transitions. |
 
-The snapshot's `historyFilename` is normalized to the example companion's filename; no other fields are removed. Its companion contains 20 consecutive entries through the snapshot's activity serial. The final snapshot reports `EXITED_CLEANLY` / `SHUTTING_DOWN`, and Windows inspection confirmed the process had exited.
+The snapshot's `historyFilename` is normalized to the example companion's filename; all other captured fields remain unchanged. The history contains one `run`, three `session` and 35 consecutive `transition` records through the final snapshot's activity serial.
 
-No timestamps, DLL identity or measurements were replaced. The DLL's fingerprint matches the installed binary and successful Release build report; all 362 recorded build inputs matched current source at review, with zero build warnings/errors.
+The final snapshot reports `EXITED_CLEANLY` / `SHUTTING_DOWN`, and Windows inspection confirmed the process had exited. The installed binary matches its successful Debug-opt build report, which records zero warnings/errors. Real timestamps, DLL identity and measurements are preserved.
 
 Live output stays in the resolved user root's `Logs` folder, outside the repository. These repository examples are deliberately retained documentation; they are not required by Civ4.
 
@@ -23,11 +21,11 @@ Live output stays in the resolved user root's `Logs` folder, outside the reposit
 
 The current recorder reports `revision` in both files, using one compiled `SAS_RUNTIME_REVISION`. Its [revision history](../../revisions/SASRuntime.md) records implementation changes, including minor changes, once per qualifying commit. This revision is independent of SASGameRecord and binary-save versions.
 
-These revision-2 captures include presentation observations and the explicit interval-start distinction. Runtime revision 3 retains the self-contained fixed snapshot and uses typed JSONL records. Its `readyGameTurn` and `readyActivePlayer` describe the first ready-session observation, preserved even if that context is published after a failed write and later game progression.
+These revision-5 captures include presentation observations, the explicit interval-start distinction and typed JSONL records introduced in revision 3. Its `readyGameTurn` and `readyActivePlayer` describe the first ready-session observation, preserved even if that context is published after a failed write and later game progression.
 
-Serials count observations within one process, independently of revision and Windows process ID. `statusSerial` counts prepared snapshots; `activitySerial` in the snapshot matches `stateSerial` in timeline rows. This capture reached snapshot 35 and entry 20 in process 53492.
+Serials count observations within one process, independently of revision and Windows process ID. `statusSerial` counts prepared snapshots; `activitySerial` in the snapshot matches `stateSerial` in timeline rows. This capture reached snapshot 92 and transition 35 in process 584.
 
-In this revision-2 capture, `stateSerial` orders every timeline row, including presentation-only observations; it is not a count of completed activity intervals. From revision 3, `stateSerial` orders only `transition` records because `run` and `session` metadata records have their own identity keys. Counters can advance despite failed publication, so use the explicit failure counters when interpreting gaps.
+`stateSerial` orders transition records, including presentation-only observations; it is not a count of completed activity intervals. Run and session metadata records have their own identity keys. Counters can advance despite failed publication, so use the explicit failure counters when interpreting gaps.
 
 ## Why two formats?
 
@@ -57,7 +55,7 @@ For coarse phase timing, a full snapshot copy at every turn is unnecessary. SASG
 
 Previous-activity fields retain its start/end UTC and completed duration. Production elapsed durations use the monotonic diagnostic clock, independently of system-clock corrections.
 
-In revision 2, a timeline row with `intervalStarted=1` closes `previousState` and starts `state` at `recordedUtc`. A row with `intervalStarted=0` is an observation inside the current activity; its `previousState` is `NONE`, its previous timing fields are unavailable, and no completed interval should be counted again.
+A transition row with `intervalStarted=1` closes `previousState` and starts `state` at `recordedUtc`. A row with `intervalStarted=0` is an observation inside the current activity; its `previousState` is `NONE`, its previous timing fields are unavailable, and no completed interval should be counted again.
 
 `stateStartedUtc` and `stateElapsedMilliseconds` locate either row within its ongoing activity. Presentation-only observations retain the original activity start and the snapshot's most recently completed interval, so a loading-asset request does not shorten the eventual creation/load duration.
 
@@ -67,16 +65,20 @@ Completed intervals recorded in this real example are:
 
 | Completed activity | Duration | Following observation |
 | --- | --- | --- |
-| First new-world creation | 2,170 ms | Native game initialization ready |
-| Autoplay | 2,862 ms | `VICTORY` end cause at turn 11 |
-| End-game interval | 15,713 ms | `EXTENDED_GAME_STARTED`, restoring `PLAYING` |
-| First menu-return request through reset | 223 ms | `NO_GAME` |
-| Second new-world creation | 1,313 ms | Native game initialization ready |
-| Second menu-return request through reset | 59 ms | `NO_GAME` |
-| Third new-world creation | 939 ms | Native game initialization ready |
-| In-game exit request through orderly destruction entry | 151 ms | `SHUTTING_DOWN` / `PROCESS_EXIT` |
+| Native new-world creation | 1,904 ms | `NEW_GAME_NATIVE_READY` |
+| Autoplay | 2,790 ms | `AUTOPLAY_ENDED / SCHEDULED` |
+| WorldBuilder | 5,110 ms | `WORLD_BUILDER_SCREEN_HIDDEN` |
+| Autoplay | 3,680 ms | `AUTOPLAY_ENDED / USER_INTERRUPTED` |
+| Menu-return request through reset | 127 ms | `GAME_RESET` |
+| Native save loading | 66 ms | `LOAD_GAME_NATIVE_READY` |
+| Menu-return request through reset | 83 ms | `GAME_RESET` |
+| Native new-world creation | 1,178 ms | `NEW_GAME_NATIVE_READY` |
+| Autoplay | 6,849 ms | `AUTOPLAY_ENDED / USER_INTERRUPTED` |
+| In-game exit request through orderly destruction entry | 103 ms | `PROCESS_EXIT` |
 
-SASGameRecord corroborated `GAMEOPTION_ADVANCED_START`, 400 configured points and placement-screen calls in all three sessions. The runtime timeline contains no false WorldBuilder activity for them; the second session also recorded game end at turn 0, without identifying its cause.
+Civilopedia show/hide pairs distinguish main-menu context (no active player), in-game context (player `0`, civilization `21`) and an opening during autoplay (player `0`, civilization `29`). These observations preserve the underlying play/autoplay timers. This capture does not demonstrate Windows close requests, Advanced Start or extended play.
+
+The new-game sessions record `PYTHON_PRE_GAME_START` before native-ready. The loaded session records it afterward, demonstrating why the recorder does not impose a single order on both flows.
 
 The loading-asset getters were not observed inside these new/load intervals, so their timestamp remains unavailable. No diagnostic call was added to manufacture that observation.
 
@@ -84,7 +86,7 @@ The final shutdown interval has a start observation but no later completion obse
 
 A scene or loading-asset request is evidence that the EXE requested that presentation asset, not proof that a rendered frame reached the user. Loaded-save checkpoints likewise do not prove the filename actually opened.
 
-`statusWriteFailures` counts earlier failed snapshot publications, including root/open/write/close failures, and becomes visible in a recovered snapshot. This captured run reported zero status/history write failures; `PythonErr.log` was empty, and SASGameRecord's final writer-health row reported no pending text, output failures or dropped rows/bytes.
+`statusWriteFailures` counts earlier failed snapshot publications, including root/open/write/close failures, and becomes visible in a recovered snapshot. This captured run reported zero status/history write failures; `PythonErr.log` was empty.
 
 `historyRowsWritten` counts confirmed successful JSONL records. A record can already be readable when close reports failure, so this counter can be lower than the physical line count; `historyWriteFailures` includes that unconfirmed result. Runtime revision 3 avoids retrying a fully written metadata/session record after such an unconfirmed close, while open/partial-write failures remain retryable.
 
@@ -93,6 +95,10 @@ A crash or forced termination leaves an unfinished last interval, not an invente
 From runtime revision 4, the current snapshot also reports `windowCloseObservationArmed` and `windowCloseRequestObservedUtc`. Thread-specific observers cover both sent messages and queue removal, without changing messages or replacing the window procedure.
 
 `WINDOW_CLOSE_MESSAGE_OBSERVED` identifies a sent `WM_CLOSE`; `WINDOW_CLOSE_COMMAND_OBSERVED` identifies a sent `SC_CLOSE` system command. The corresponding `WINDOW_CLOSE_MESSAGE_DEQUEUED` / `WINDOW_CLOSE_COMMAND_DEQUEUED` reasons identify queue retrieval before the EXE handles or dispatches that request. They do not identify red-X versus Alt+F4/automation, and none proves successful exit. An existing exit interval is preserved if a later close observation follows an explicit UI exit.
+
+From runtime revision 5, `mainMenuStateObservedUtc` can retain a positive main-menu state sample from an explicit Options/Civilopedia entry point. `pythonPreGameStartUtc` records BUG's EXE-driven Python initialization callback once per session; neither identifies the first rendered menu/loading frame.
+
+Civilopedia observations now cover main-menu and in-game use. `civilopediaVisible` reports observed screen state (active after showing; hidden on the EXE no-screens notification or an inactive-screen close check), while `civilopediaContext` retains `MAIN_MENU` or `IN_GAME` through the hide row (`NONE` before observation or after reset). `civilopediaActivePlayer` / `civilopediaActiveCivilization` identify the in-game UI owner, not the displayed page or preview model; menu observations use `-1`. These fields are present in both companion examples; this capture demonstrates the in-game context.
 
 ## Real output and test fixtures
 

@@ -357,6 +357,29 @@ void CyGame::updateSASRuntimeStatusWorldBuilderScreen(bool bVisible)
 	}
 }
 
+// <!-- custom: Python must skip diagnostic-only interface/screen reads before evaluating notification arguments.
+// Reuse the native first-use cached enable flag instead of adding a second Python XML cache. (GPT-6.1-Sol) -->
+bool CyGame::isSASRuntimeStatusRecordingEnabled() const
+{
+	return ::isSASRuntimeStatusEnabled();
+}
+
+// <!-- custom: These infrequent Python callbacks own the EXE/UI observations; bridge literal menu/game context and screen visibility into the default-off native recorder. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+void CyGame::updateSASRuntimeStatusMainMenuState(bool bInMainMenu)
+{
+	if (isSASRuntimeStatusEnabled()) ::updateSASRuntimeStatusMainMenuState(bInMainMenu);
+}
+
+void CyGame::updateSASRuntimeStatusPreGameStart()
+{
+	if (isSASRuntimeStatusEnabled()) ::updateSASRuntimeStatusPreGameStart();
+}
+
+void CyGame::updateSASRuntimeStatusCivilopedia(bool bVisible, bool bInMainMenu)
+{
+	if (isSASRuntimeStatusEnabled()) ::updateSASRuntimeStatusCivilopedia(bVisible, bInMainMenu);
+}
+
 // <!-- custom: Bridge only the post-Python lifecycle observation; the cached native gate also protects direct Python callers before any option reads or formatting.
 // Python contributes only graphics-profile values unavailable through the DLL API; native code owns canonical formatting and all other diagnostics. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 void CyGame::logSASGameRecordDiagnosticContext(int iRenderQualityLevel, int iAntiAliasingIndex, int iAntiAliasingSamples, int iGlobeViewRenderLevel, int iMovieQualityLevel)

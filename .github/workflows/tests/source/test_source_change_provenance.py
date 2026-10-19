@@ -140,6 +140,20 @@ class SourceChangeProvenanceTests(unittest.TestCase):
         self.assertTrue(any("include/import change" in error for error in self.errors("LLM_Helpers/test.py", old, bad)))
         self.assertEqual(self.errors("LLM_Helpers/test.py", old, good), [])
 
+    def test_python_binding_requires_rationale_even_with_help_string(self):
+        path = "CvGameCoreDLL/CyGameInterface.cpp"
+        binding = '\t.def("observe", &CyGame::observe, "void () - observe state")\n'
+        rationale = '// <!-- custom: Python owns this screen callback, so expose its observation to the recorder. (GPT-6.1-Sol) -->\n'
+        for old in (None, "void setup() {}\n"):
+            self.assertTrue(any(".def binding" in error for error in self.errors(path, old, binding)))
+            self.assertEqual(self.errors(path, old, rationale + binding), [])
+        self.assertTrue(any(".def binding" in error for error in self.errors(path, binding, "")))
+        changed = binding.replace("&CyGame::observe", "&CyGame::observeNew")
+        self.assertTrue(any(".def binding" in error for error in self.errors(path, binding, changed)))
+        self.assertEqual(self.errors(path, binding, rationale + changed), [])
+        self.assertEqual(self.errors(path, binding, rationale), [])
+        self.assertEqual(self.errors(path, binding, binding.replace(", &", ",\n\t	&")), [])
+
     def test_parameter_change_requires_nearby_custom_comment(self):
         old = "int Worker::score(int iValue)\n{\n\treturn iValue;\n}\n"
         bad = "int Worker::score(int iValue, bool bFast)\n{\n\treturn iValue;\n}\n"

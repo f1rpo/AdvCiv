@@ -230,6 +230,24 @@ class RevisionHistoryTests(unittest.TestCase):
             commit_fixture(repo, 'refresh report evidence only')
             self.assertEqual(history.check_progression(repo, 'main'), [])
 
+    def test_packaging_and_general_ci_mentions_do_not_require_revision(self):
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            fixture_git(repo)
+            write_revision_define(repo, 153)
+            commit_fixture(repo, 'base')
+            git(repo, 'branch', 'main')
+            for path, content in (
+                ('.gitattributes', '/examples/SASGameRecord_example.log export-ignore'),
+                ('.github/workflows/build/diagnostics/diagnostic_log_safety.py', '# SASGameRecord shared sink policy'),
+                ('tests/diagnostics/harness.cpp', '// SASGameRecord fixture'),
+            ):
+                target = repo / path
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(content, 'utf-8')
+            commit_fixture(repo, 'packaging and general diagnostic checks')
+            self.assertEqual(history.check_progression(repo, 'main'), [])
+
     def test_report_exclusion_keeps_actual_bridge_checker_and_json_changes(self):
         for path, content in (
             ('Assets/Python/BUG/BugEventManager.py', 'SASGameRecordSettings.logSessionSettings("GAME_START")'),

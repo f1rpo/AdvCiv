@@ -718,10 +718,20 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 	def createScreen(self, screen):
 		if screen.isActive():
 			return
+		# <!-- custom: All Sevopedia page jumps share screen creation, including direct in-game links that bypass CvScreensInterface.pediaShow.
+		# Capture menu context before showing, then confirm active; disabled recording skips the diagnostic-only interface query. (GPT-6.1-Sol) -->
+		game = CyGame()
+		bRecordRuntime = game.isSASRuntimeStatusRecordingEnabled()
+		bInMainMenu = False
+		if bRecordRuntime:
+			bInMainMenu = CyInterface().isInMainMenu()
+			game.updateSASRuntimeStatusMainMenuState(bInMainMenu)
 		BugUtil.debug("Creating screen")
 		self.iCategory = -1
 		self.tab = None
 		self.setPediaCommonWidgets()
+		if bRecordRuntime and screen.isActive():
+			game.updateSASRuntimeStatusCivilopedia(True, bInMainMenu)
 
 	def pediaShow(self):
 		SASDefineGuard.verify_or_raise("SevoPediaMain.pediaShow")

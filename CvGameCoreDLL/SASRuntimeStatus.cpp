@@ -5,6 +5,7 @@
 #include "CvGameCoreUtils.h" // <!-- custom: Declares typed status reasons plus the shared clocks and user-root services used by this publisher. (GPT-6.1-Sol) -->
 // <!-- custom: Keep this publisher separate from the BBAI/SASGameRecord writer so its standalone I/O fixture has explicit gameplay dependencies. (GPT-6.1-Sol) -->
 #include "CvGame.h" // <!-- custom: Game/autoplay/save-checkpoint getters require the complete CvGame type, not a forward declaration. (GPT-6.1-Sol) -->
+#include "CvPlayerAI.h" // <!-- custom: GET_PLAYER returns CvPlayerAI; its complete type provides the active player civilization for UI context, distinct from the previewed entry. (GPT-6.1-Sol) -->
 #include "CvMap.h" // <!-- custom: Map dimension/world-size getters require the complete CvMap type. (GPT-6.1-Sol) -->
 
 // <!-- custom: Finite process/game/session states use enums rather than heap-backed strings; the same local rows generate their immutable JSON names.
@@ -14,7 +15,7 @@
 // Compile the label into the publisher: an edited XML value must not make an older loaded DLL report a newer implementation; this counter is independent of SASGameRecord and binary-save versions. (GPT-6.1-Sol) -->
 enum SASRuntimeRecorderRevision
 {
-	SAS_RUNTIME_REVISION = 4
+	SAS_RUNTIME_REVISION = 5
 };
 
 #define SAS_RUNTIME_PROCESS_STATES(DO) DO(RUNNING) DO(EXITED_CLEANLY)
@@ -132,9 +133,36 @@ static CvString g_szSASRuntimeSessionStartedUtc = "-";
 static CvString g_szSASRuntimeNativeReadyUtc = "-";
 // <!-- custom: These are passive presentation observations, not claims that an EXE-rendered frame reached the user; exported info getters and Python screen callbacks provide event-driven boundaries without frame polling. (ChatGPT-5.6-Sol) -->
 static CvString g_szSASRuntimeMainMenuSceneRequestedUtc = "-";
+static CvString g_szSASRuntimeMainMenuStateObservedUtc = "-";
 static CvString g_szSASRuntimeLoadingScreenAssetRequestedUtc = "-";
+static CvString g_szSASRuntimePythonPreGameStartUtc = "-";
 static bool g_bSASRuntimeWorldBuilderMode = false;
 static bool g_bSASRuntimeWorldBuilderScreenVisible = false;
+// <!-- custom: Remember the last observed overlay context through its hide row; reset/new-session clears it.
+// Active player/civilization identify the game's UI owner, not the civilization or model being previewed in a page. (GPT-6.1-Sol) -->
+#define SAS_RUNTIME_CIVILOPEDIA_CONTEXTS(DO) DO(NONE) DO(MAIN_MENU) DO(IN_GAME)
+enum SASRuntimeCivilopediaContext
+{
+#define SAS_RUNTIME_CIVILOPEDIA_ENUM(NAME) SAS_RUNTIME_CIVILOPEDIA_##NAME,
+	SAS_RUNTIME_CIVILOPEDIA_CONTEXTS(SAS_RUNTIME_CIVILOPEDIA_ENUM)
+#undef SAS_RUNTIME_CIVILOPEDIA_ENUM
+};
+static char const* const aSASRuntimeCivilopediaContextNames[] =
+{
+#define SAS_RUNTIME_CIVILOPEDIA_NAME(NAME) #NAME,
+	SAS_RUNTIME_CIVILOPEDIA_CONTEXTS(SAS_RUNTIME_CIVILOPEDIA_NAME)
+#undef SAS_RUNTIME_CIVILOPEDIA_NAME
+};
+#undef SAS_RUNTIME_CIVILOPEDIA_CONTEXTS
+static bool g_bSASRuntimeCivilopediaVisible = false;
+static SASRuntimeCivilopediaContext g_eSASRuntimeCivilopediaContext = SAS_RUNTIME_CIVILOPEDIA_NONE;
+static int g_iSASRuntimeCivilopediaActivePlayer = -1;
+static int g_iSASRuntimeCivilopediaActiveCivilization = -1;
+
+static char const* getSASRuntimeCivilopediaContext()
+{
+	return aSASRuntimeCivilopediaContextNames[g_eSASRuntimeCivilopediaContext];
+}
 static std::wstring g_szSASRuntimeStatusRootDirectory;
 static std::wstring g_szSASRuntimeStatusSupersededPath;
 static bool g_bSASRuntimeStatusRootResolved = false;
@@ -546,11 +574,15 @@ static void updateSASRuntimeActivity(SASRuntimeStatusReason eReason, CvString co
 	// The native fixture's creation from 1000 to 2000 ms previously became 250 ms plus 750 ms after its loading-asset request; preserving the interval start restores the full 1000 ms completion duration. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	bool const bObservationBoundary = (
 		eReason == SAS_RUNTIME_STATUS_MAIN_MENU_SCENE_REQUESTED ||
+		eReason == SAS_RUNTIME_STATUS_MAIN_MENU_STATE_OBSERVED ||
 		eReason == SAS_RUNTIME_STATUS_LOADING_SCREEN_ASSET_REQUESTED ||
+		eReason == SAS_RUNTIME_STATUS_PYTHON_PRE_GAME_START ||
 		eReason == SAS_RUNTIME_STATUS_WORLD_BUILDER_MODE_ENTERED ||
 		eReason == SAS_RUNTIME_STATUS_WORLD_BUILDER_MODE_EXITED ||
 		eReason == SAS_RUNTIME_STATUS_WORLD_BUILDER_SCREEN_SHOWN ||
 		eReason == SAS_RUNTIME_STATUS_WORLD_BUILDER_SCREEN_HIDDEN ||
+		eReason == SAS_RUNTIME_STATUS_CIVILOPEDIA_SHOWN ||
+		eReason == SAS_RUNTIME_STATUS_CIVILOPEDIA_HIDDEN ||
 		isSASRuntimeWindowCloseReason(eReason));
 	bool const bIntervalStarted = (eActivity != g_eSASRuntimeActivity || eReason == SAS_RUNTIME_STATUS_AUTOPLAY_CHANGED || g_uiSASRuntimeActivitySession != g_uiSASRuntimeSessionSerial);
 	if (!bIntervalStarted && !bObservationBoundary)
@@ -596,13 +628,17 @@ static void updateSASRuntimeActivity(SASRuntimeStatusReason eReason, CvString co
 		"\"gameTurn\":%d,"
 		"\"autoplayRemainingTurns\":%d,"
 		"\"reason\":\"%s\","
+		"\"civilopediaVisible\":%d,"
+		"\"civilopediaContext\":\"%s\","
+		"\"civilopediaActivePlayer\":%d,"
+		"\"civilopediaActiveCivilization\":%d,"
 		"\"autoplayEndCause\":\"%s\","
 		"\"priorStatusWriteFailures\":%u,"
 		"\"priorHistoryWriteFailures\":%u}\r\n",
 		SAS_RUNTIME_REVISION, getSASRuntimeHistoryRunId().GetCString(), ++g_uiSASRuntimeActivitySerial, bIntervalStarted ? 1 : 0,
 		aSASRuntimeActivityNames[bIntervalStarted ? g_eSASRuntimePreviousActivity : SAS_RUNTIME_ACTIVITY_NONE], bIntervalStarted ? g_szSASRuntimePreviousStartedUtc.GetCString() : "-", bIntervalStarted ? g_szSASRuntimePreviousEndedUtc.GetCString() : "-", bIntervalStarted ? g_iSASRuntimePreviousDurationMilliseconds : (__int64)-1,
 		uiPreviousSession, iPreviousStartTurn, iPreviousRequestedTurns, szNowUtc.GetCString(), aSASRuntimeActivityNames[eActivity], g_szSASRuntimeActivityStartedUtc.GetCString(), getSASElapsedMilliseconds(g_uiSASRuntimeActivityStartedMilliseconds, uiNowMilliseconds), g_uiSASRuntimeSessionSerial, iGameTurn, iAutoPlayRemaining,
-		aSASRuntimeStatusReasonNames[eReason], (eReason == SAS_RUNTIME_STATUS_AUTOPLAY_ENDED ? getSASAutoPlayEndCause(g_eSASRuntimeLastAutoplayEndCause) : "-"), g_uiSASRuntimeStatusWriteFailures, g_uiSASRuntimeHistoryWriteFailures);
+		aSASRuntimeStatusReasonNames[eReason], g_bSASRuntimeCivilopediaVisible, getSASRuntimeCivilopediaContext(), g_iSASRuntimeCivilopediaActivePlayer, g_iSASRuntimeCivilopediaActiveCivilization, (eReason == SAS_RUNTIME_STATUS_AUTOPLAY_ENDED ? getSASAutoPlayEndCause(g_eSASRuntimeLastAutoplayEndCause) : "-"), g_uiSASRuntimeStatusWriteFailures, g_uiSASRuntimeHistoryWriteFailures);
 	recordSASRuntimeHistoryRow(szRow);
 }
 
@@ -702,9 +738,15 @@ static bool publishSASRuntimeStatus(SASRuntimeStatusReason eReason)
 		"  \"sessionStartedUtc\": \"%s\",\r\n"
 		"  \"nativeReadyUtc\": \"%s\",\r\n"
 		"  \"mainMenuSceneRequestedUtc\": \"%s\",\r\n"
+		"  \"mainMenuStateObservedUtc\": \"%s\",\r\n"
 		"  \"loadingScreenAssetRequestedUtc\": \"%s\",\r\n"
+		"  \"pythonPreGameStartUtc\": \"%s\",\r\n"
 		"  \"worldBuilderMode\": %d,\r\n"
 		"  \"worldBuilderScreenVisible\": %d,\r\n"
+		"  \"civilopediaVisible\": %d,\r\n"
+		"  \"civilopediaContext\": \"%s\",\r\n"
+		"  \"civilopediaActivePlayer\": %d,\r\n"
+		"  \"civilopediaActiveCivilization\": %d,\r\n"
 		"  \"extendedGame\": %d,\r\n"
 		"  \"gameTurn\": %d,\r\n"
 		"  \"elapsedGameTurns\": %d,\r\n"
@@ -729,7 +771,8 @@ static bool publishSASRuntimeStatus(SASRuntimeStatusReason eReason)
 		g_szSASRuntimeHistoryFilename.GetCString(), g_bSASRuntimeHistoryAtCurrentRoot, g_uiSASRuntimeHistoryRowsWritten, g_uiSASRuntimeHistoryWriteFailures,
 		aSASRuntimeStatusReasonNames[eReason], g_uiSASRuntimeSessionSerial, g_uiSASRuntimeNewGameCount, g_uiSASRuntimeLoadCount,
 		aSASRuntimeSessionStateNames[g_eSASRuntimeSessionKind], g_szSASRuntimeSessionStartedUtc.GetCString(), g_szSASRuntimeNativeReadyUtc.GetCString(),
-		g_szSASRuntimeMainMenuSceneRequestedUtc.GetCString(), g_szSASRuntimeLoadingScreenAssetRequestedUtc.GetCString(), g_bSASRuntimeWorldBuilderMode, g_bSASRuntimeWorldBuilderScreenVisible, iExtendedGame,
+		g_szSASRuntimeMainMenuSceneRequestedUtc.GetCString(), g_szSASRuntimeMainMenuStateObservedUtc.GetCString(), g_szSASRuntimeLoadingScreenAssetRequestedUtc.GetCString(), g_szSASRuntimePythonPreGameStartUtc.GetCString(),
+		g_bSASRuntimeWorldBuilderMode, g_bSASRuntimeWorldBuilderScreenVisible, g_bSASRuntimeCivilopediaVisible, getSASRuntimeCivilopediaContext(), g_iSASRuntimeCivilopediaActivePlayer, g_iSASRuntimeCivilopediaActiveCivilization, iExtendedGame,
 		iGameTurn, iElapsedGameTurns, g_iSASRuntimeLastCompletedTurn, iActivePlayer,
 		(iAutoPlayRemaining > 0 ? 1 : 0), iAutoPlayRemaining, iMapWidth, iMapHeight, iWorldSize, iGameSpeed, iScenario,
 		iLoadedCheckpointTurn, iLoadedCheckpointElapsedTurn, szLoadedCheckpointUtc);
@@ -785,9 +828,15 @@ void updateSASRuntimeStatusNoGame()
 	g_szSASRuntimeSessionStartedUtc = "-";
 	g_szSASRuntimeNativeReadyUtc = "-";
 	g_szSASRuntimeMainMenuSceneRequestedUtc = "-";
+	g_szSASRuntimeMainMenuStateObservedUtc = "-";
 	g_szSASRuntimeLoadingScreenAssetRequestedUtc = "-";
+	g_szSASRuntimePythonPreGameStartUtc = "-";
 	g_bSASRuntimeWorldBuilderMode = false;
 	g_bSASRuntimeWorldBuilderScreenVisible = false;
+	g_bSASRuntimeCivilopediaVisible = false;
+	g_eSASRuntimeCivilopediaContext = SAS_RUNTIME_CIVILOPEDIA_NONE;
+	g_iSASRuntimeCivilopediaActivePlayer = -1;
+	g_iSASRuntimeCivilopediaActiveCivilization = -1;
 	g_iSASRuntimeLastCompletedTurn = -1;
 	writeSASRuntimeStatus(SAS_RUNTIME_STATUS_GAME_RESET);
 }
@@ -801,6 +850,16 @@ void updateSASRuntimeStatusMainMenuSceneRequested()
 		return;
 	g_szSASRuntimeMainMenuSceneRequestedUtc = createSASUtcTimestampMilliseconds();
 	writeSASRuntimeStatus(SAS_RUNTIME_STATUS_MAIN_MENU_SCENE_REQUESTED);
+}
+
+// <!-- custom: Sample the Python-provided main-menu Boolean only from explicit menu-capable screen entry points.
+// A positive sample proves EXE main-menu state at that callback, but can occur long after initial arrival; retain the first positive sample per no-game interval without frame polling. (ChatGPT-5.6-Sol) -->
+void updateSASRuntimeStatusMainMenuState(bool bInMainMenu)
+{
+	if (!isSASRuntimeStatusEnabled() || !bInMainMenu || g_eSASRuntimeGameState != SAS_RUNTIME_GAME_NO_GAME || g_szSASRuntimeMainMenuStateObservedUtc != "-")
+		return;
+	g_szSASRuntimeMainMenuStateObservedUtc = createSASUtcTimestampMilliseconds();
+	writeSASRuntimeStatus(SAS_RUNTIME_STATUS_MAIN_MENU_STATE_OBSERVED);
 }
 
 void updateSASRuntimeStatusSessionStarted(bool bLoadedSave)
@@ -822,9 +881,15 @@ void updateSASRuntimeStatusSessionStarted(bool bLoadedSave)
 	g_szSASRuntimeSessionStartedUtc = createSASUtcTimestampMilliseconds();
 	g_szSASRuntimeNativeReadyUtc = "-";
 	g_szSASRuntimeMainMenuSceneRequestedUtc = "-";
+	g_szSASRuntimeMainMenuStateObservedUtc = "-";
 	g_szSASRuntimeLoadingScreenAssetRequestedUtc = "-";
+	g_szSASRuntimePythonPreGameStartUtc = "-";
 	g_bSASRuntimeWorldBuilderMode = false;
 	g_bSASRuntimeWorldBuilderScreenVisible = false;
+	g_bSASRuntimeCivilopediaVisible = false;
+	g_eSASRuntimeCivilopediaContext = SAS_RUNTIME_CIVILOPEDIA_NONE;
+	g_iSASRuntimeCivilopediaActivePlayer = -1;
+	g_iSASRuntimeCivilopediaActiveCivilization = -1;
 	g_iSASRuntimeLastCompletedTurn = -1;
 	writeSASRuntimeStatus(bLoadedSave ? SAS_RUNTIME_STATUS_LOAD_GAME_STARTED : SAS_RUNTIME_STATUS_NEW_GAME_STARTED);
 }
@@ -837,6 +902,16 @@ void updateSASRuntimeStatusLoadingScreenAssetRequested()
 		return;
 	g_szSASRuntimeLoadingScreenAssetRequestedUtc = createSASUtcTimestampMilliseconds();
 	writeSASRuntimeStatus(SAS_RUNTIME_STATUS_LOADING_SCREEN_ASSET_REQUESTED);
+}
+
+// <!-- custom: BUG's PreGameStart extension is an EXE-driven initialization callback shared by new and loaded games.
+// Record it once for the current session without assuming its order relative to native-ready on every load path; it does not prove that a loading image or slideshow frame was actually rendered. (ChatGPT-5.6-Sol) -->
+void updateSASRuntimeStatusPreGameStart()
+{
+	if (!isSASRuntimeStatusEnabled() || g_eSASRuntimeSessionKind == SAS_RUNTIME_SESSION_NONE || g_szSASRuntimePythonPreGameStartUtc != "-")
+		return;
+	g_szSASRuntimePythonPreGameStartUtc = createSASUtcTimestampMilliseconds();
+	writeSASRuntimeStatus(SAS_RUNTIME_STATUS_PYTHON_PRE_GAME_START);
 }
 
 void updateSASRuntimeStatusSessionReady()
@@ -882,6 +957,30 @@ void updateSASRuntimeStatusWorldBuilderScreen(bool bVisible)
 	// Editor activity starts only once both mode and visibility are observed, so callback order cannot discard a visible screen or invent active editor time from mode alone. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 	g_bSASRuntimeWorldBuilderScreenVisible = bVisible;
 	writeSASRuntimeStatus(bVisible ? SAS_RUNTIME_STATUS_WORLD_BUILDER_SCREEN_SHOWN : SAS_RUNTIME_STATUS_WORLD_BUILDER_SCREEN_HIDDEN);
+}
+
+// <!-- custom: Shows require an active screen; hides use the EXE no-screens notification or an inactive-screen check after close handlers.
+// Keep the overlay separate from activity timing and retain its origin/player on the hide row, so agents can distinguish game UI from menu previews without inventing an active menu player. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+void updateSASRuntimeStatusCivilopedia(bool bVisible, bool bInMainMenu)
+{
+	if (!isSASRuntimeStatusEnabled())
+		return;
+	if (bVisible)
+	{
+		if (bInMainMenu ? g_eSASRuntimeGameState != SAS_RUNTIME_GAME_NO_GAME : (g_eSASRuntimeGameState != SAS_RUNTIME_GAME_PLAYING && g_eSASRuntimeGameState != SAS_RUNTIME_GAME_GAME_ENDED))
+			return;
+		SASRuntimeCivilopediaContext const eContext = bInMainMenu ? SAS_RUNTIME_CIVILOPEDIA_MAIN_MENU : SAS_RUNTIME_CIVILOPEDIA_IN_GAME;
+		int const iPlayer = bInMainMenu ? -1 : (int)GC.getGame().getActivePlayer();
+		if (g_bSASRuntimeCivilopediaVisible && g_eSASRuntimeCivilopediaContext == eContext && g_iSASRuntimeCivilopediaActivePlayer == iPlayer)
+			return;
+		g_eSASRuntimeCivilopediaContext = eContext;
+		g_iSASRuntimeCivilopediaActivePlayer = iPlayer;
+		g_iSASRuntimeCivilopediaActiveCivilization = (iPlayer < 0 ? -1 : (int)GET_PLAYER((PlayerTypes)iPlayer).getCivilizationType());
+	}
+	else if (!g_bSASRuntimeCivilopediaVisible)
+		return;
+	g_bSASRuntimeCivilopediaVisible = bVisible;
+	writeSASRuntimeStatus(bVisible ? SAS_RUNTIME_STATUS_CIVILOPEDIA_SHOWN : SAS_RUNTIME_STATUS_CIVILOPEDIA_HIDDEN);
 }
 
 void updateSASRuntimeStatusExtendedGameStarted()

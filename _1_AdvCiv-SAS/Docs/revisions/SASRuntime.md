@@ -10,10 +10,25 @@ Add a latest-first entry explaining the behavior and rationale. The diagnostics 
 
 ## History
 
-### Revision 4 - SAS practical 6645
+### Revision 5 - SAS practical 6646
 
 - **Date:** 2026-10-19
 - **Git commit:** pending
+- **Change:** Add stronger event-driven menu and initialization observations where the Python/UI interfaces expose state, while keeping unavailable EXE presentation facts explicitly unresolved.
+  - `MAIN_MENU_STATE_OBSERVED` records the first positive `CyInterface().isInMainMenu()` sample in a no-game interval, but only when an explicit menu-capable Python screen entry point already runs. `mainMenuStateObservedUtc` therefore proves menu state at that callback; it is not claimed as the initial rendered-menu arrival time.
+  - Civilopedia visibility distinguishes `MAIN_MENU` and `IN_GAME` context in both the current JSON and history. The top-level entry covers standard Civilopedia/Sevopedia; Sevopedia's shared screen-creation hook also covers direct in-game page links.
+    - Show observations require an active screen. Hides use the EXE's no-screens notification, with an inactive-screen check after close handlers as another observation path; duplicate hides are suppressed.
+      - Real menu/game tests retained `civilopediaVisible=1` after closing Sevopedia: `PythonDbg.log` recorded screen `200` followed by `SCREEN OFF`, but the `onClose` path supplied no hide row. The existing `toggleSetNoScreens()` callback closes this gap without frame polling or assuming when `isActive()` changes during dispatch.
+    - `civilopediaVisible` and `civilopediaContext` keep this overlay separate from the underlying activity clock.
+    - `civilopediaActivePlayer` and `civilopediaActiveCivilization` identify the in-game UI owner at observation time, not the page or 3D model being previewed. Main-menu observations use `-1` for both; hide rows retain the last observed context until reset/new-session clears it.
+  - BUG's EXE-driven `PreGameStart` extension records `PYTHON_PRE_GAME_START` once per current session as `pythonPreGameStartUtc`. This is a Python initialization boundary for new/load flows, not proof that any loading/slideshow frame was rendered, and its ordering relative to native-ready is not assumed for every load path.
+  - These are observation-only timeline rows: they preserve the underlying `NO_GAME`, creation/load or play activity interval instead of inventing a menu-overlay/loading-screen activity. Python checks the cached native enable flag before diagnostic-only interface/screen queries; the samples occur only on existing callbacks, without frame polling.
+  - The exact initial main-menu frame, exact loading-frame visibility and the EXE-owned main-menu Exit button remain unavailable through the reviewed SDK/Python callbacks. Continue to report scene/loading requests and orderly teardown as separate evidence rather than inferring those missing facts.
+
+### Revision 4 - SAS practical 6645
+
+- **Date:** 2026-10-19
+- **Git commit:** `5174aae5d8ec4b2172ca4a8bd31e08f6c4429700`
 - **Change:** Observe Windows close messages as distinct best-effort exit-request evidence without replacing Civ4's window procedure.
   - When runtime status is enabled, observe both sent messages (`WH_CALLWNDPROC`) and queue removal (`WH_GETMESSAGE`) on the window's thread.
     - Before a visible window is available, arm on the lifecycle caller's thread and bind a later top-level close target; later lifecycle callbacks can retarget the hooks.

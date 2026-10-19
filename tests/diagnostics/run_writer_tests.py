@@ -142,20 +142,30 @@ def main():
         assert presentation_runs[0]["revision"] == expected_revision and presentation_runs[0]["dllIdentity"] == presentation["dllIdentity"]
         assert presentation_sessions[0]["mapWidth"] == 120 and presentation_sessions[0]["mapHeight"] == 84
         assert presentation["revision"] == expected_revision and presentation["gameState"] == "PLAYING" and presentation["extendedGame"] == 1
-        assert presentation["worldBuilderMode"] == 0 and presentation["worldBuilderScreenVisible"] == 0
-        assert presentation["mainMenuSceneRequestedUtc"] == "-" and presentation["loadingScreenAssetRequestedUtc"] != "-"
+        assert presentation["worldBuilderMode"] == 0 and presentation["worldBuilderScreenVisible"] == 0 and presentation["civilopediaVisible"] == 0
+        assert presentation["mainMenuSceneRequestedUtc"] == "-" and presentation["mainMenuStateObservedUtc"] == "-" and presentation["loadingScreenAssetRequestedUtc"] != "-" and presentation["pythonPreGameStartUtc"] != "-"
         presentation_reasons = [row["reason"] for row in presentation_timeline]
-        for reason in ("MAIN_MENU_SCENE_REQUESTED", "LOADING_SCREEN_ASSET_REQUESTED", "WORLD_BUILDER_MODE_ENTERED", "WORLD_BUILDER_SCREEN_SHOWN", "WORLD_BUILDER_SCREEN_HIDDEN", "WORLD_BUILDER_MODE_EXITED", "GAME_ENDED", "EXTENDED_GAME_STARTED"):
+        for reason in ("MAIN_MENU_SCENE_REQUESTED", "MAIN_MENU_STATE_OBSERVED", "CIVILOPEDIA_SHOWN", "CIVILOPEDIA_HIDDEN", "LOADING_SCREEN_ASSET_REQUESTED", "PYTHON_PRE_GAME_START", "WORLD_BUILDER_MODE_ENTERED", "WORLD_BUILDER_SCREEN_SHOWN", "WORLD_BUILDER_SCREEN_HIDDEN", "WORLD_BUILDER_MODE_EXITED", "GAME_ENDED", "EXTENDED_GAME_STARTED"):
             assert reason in presentation_reasons, reason
         shown = next(row for row in presentation_timeline if row["reason"] == "WORLD_BUILDER_SCREEN_SHOWN")
         mode_exit = next(row for row in presentation_timeline if row["reason"] == "WORLD_BUILDER_MODE_EXITED")
         hidden = next(row for row in presentation_timeline if row["reason"] == "WORLD_BUILDER_SCREEN_HIDDEN")
         extended = next(row for row in presentation_timeline if row["reason"] == "EXTENDED_GAME_STARTED")
         assert shown["state"] == "WORLD_BUILDER" and mode_exit["previousState"] == "WORLD_BUILDER" and mode_exit["previousDurationMilliseconds"] == 2000
+        game_pedia = next(row for row in presentation_timeline if row["reason"] == "CIVILOPEDIA_SHOWN" and row["civilopediaContext"] == "IN_GAME")
+        assert game_pedia["civilopediaVisible"] == 1 and game_pedia["civilopediaActivePlayer"] == 0 and game_pedia["civilopediaActiveCivilization"] == 4
+        menu_pedia = next(row for row in presentation_timeline if row["reason"] == "CIVILOPEDIA_SHOWN" and row["civilopediaContext"] == "MAIN_MENU")
+        assert menu_pedia["civilopediaActivePlayer"] == -1 and menu_pedia["civilopediaActiveCivilization"] == -1
+        menu_state = next(row for row in presentation_timeline if row["reason"] == "MAIN_MENU_STATE_OBSERVED")
+        pedia_shown = next(row for row in presentation_timeline if row["reason"] == "CIVILOPEDIA_SHOWN")
+        pedia_hidden = next(row for row in presentation_timeline if row["reason"] == "CIVILOPEDIA_HIDDEN")
         loading = next(row for row in presentation_timeline if row["reason"] == "LOADING_SCREEN_ASSET_REQUESTED")
+        pre_game = next(row for row in presentation_timeline if row["reason"] == "PYTHON_PRE_GAME_START")
         creation = next(row for row in presentation_timeline if row["reason"] == "NEW_GAME_STARTED")
         ready = next(row for row in presentation_timeline if row["reason"] == "NEW_GAME_NATIVE_READY")
+        assert menu_state["intervalStarted"] == 0 and pedia_shown["intervalStarted"] == 0 and pedia_hidden["intervalStarted"] == 0
         assert loading["intervalStarted"] == 0 and loading["previousState"] == "NONE" and loading["previousDurationMilliseconds"] == -1
+        assert pre_game["intervalStarted"] == 0 and pre_game["stateStartedUtc"] == creation["stateStartedUtc"] and pre_game["stateElapsedMilliseconds"] == 500
         assert loading["stateStartedUtc"] == creation["stateStartedUtc"] and loading["stateElapsedMilliseconds"] == 250
         assert ready["intervalStarted"] == 1 and ready["previousDurationMilliseconds"] == 1000
         assert hidden["intervalStarted"] == 0 and hidden["previousState"] == "NONE" and hidden["previousDurationMilliseconds"] == -1 and hidden["stateElapsedMilliseconds"] == 100

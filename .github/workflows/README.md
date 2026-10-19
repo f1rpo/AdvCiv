@@ -594,18 +594,18 @@ Verifies the BBAI and SASGameRecord final emission paths use the shared DLL-owne
 
 Ordinary rows are submitted promptly through persistent read/write/delete-shared handles so external tools can inspect or copy output during play; private retry buffers are reserved for unresolved startup paths and failed writes.
 
-The check guards sink wiring, read-sharing intent, checkpoint/health-row presence and the absence of `FlushFileBuffers` durability calls.
+The check guards shared-sink presence, reader-sharing flags and the absence of physical-disk `FlushFileBuffers` calls or EXE-logger fallback. It does not prescribe argument lists, flag order, checkpoint statements or output-field spellings.
 
 - It does not execute native writes or prove bounded memory/error recovery. The local [diagnostic writer harness](/tests/README.md#diagnostic-writer) exercises the actual writer with normal and injected-failure I/O; it also checks prompt visibility and survival of final rows after abrupt process termination. Game lifecycle and autoplay performance require runtime testing.
 - Already-formatted text is written directly, so literal `%` needs no EXE-boundary doubling; producer format strings still use ordinary printf escaping (`%%` for one intended `%`).
 
-This check remains intentionally scoped to the two SAS diagnostic sinks implicated by [KI#375.3](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-375.3), plus their shared writer/checkpoint plumbing, rather than every inherited logging caller in the DLL.
+This check remains intentionally scoped to the two SAS diagnostic sinks implicated by [KI#375.3](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-375.3), plus their shared writer and the runtime publisher, rather than every inherited logging caller in the DLL.
 
 #### `build/diagnostics/runtime_status.py`
 
-Checks the default-off runtime-status Define and lifecycle/process-identity wiring. The fixed `Logs/SASRuntimeStatus.json` and its linked timed-activity JSONL history are independent of BBAI/SASGameRecord enables and Civ4 INI logging switches.
+Checks that runtime recording is disabled in the shipped XML. The fixed `Logs/SASRuntimeStatus.json` and its linked timed-activity JSONL history are independent of BBAI/SASGameRecord enables and Civ4 INI logging switches.
 
-This is a small source-policy check; the local VC2003 diagnostic harness exercises JSON output, disabled no-I/O behavior, autoplay countdown filtering and failed root migration. Actual EXE lifecycle transitions still require gameplay validation.
+Function names, JSON field inventories and exact callback statements are not checked here. The local VC2003 diagnostic harness exercises JSON output, disabled no-I/O behavior, autoplay countdown filtering and failed root migration. Actual EXE lifecycle transitions still require gameplay validation.
 
 #### `build/diagnostics/runtime_revision_history.py`
 
@@ -722,6 +722,7 @@ It enforces these review rules introduced after repeated provenance mistakes:
 - when a nearby replacement custom comment retains identical or substantially unchanged prose, recognized existing credits in its trailing parenthesized credit list are preserved; dropping one contributor still fails even if another credit remains. Credit reordering/additions and whitespace reflow are allowed, as are whole-comment deletions and unrelated replacements;
 - if an inherited comment is replaced by a nearby custom comment, known provenance markers such as `advc.xxx`, `KI#...` and `Long_Comments_... #N` are retained;
 - every added/removed/changed C/C++ `#include` or Python import has a nearby newly added custom rationale comment, including dependencies in new files; untouched inherited directives are excluded;
+- added/removed/changed literal-named Boost.Python `.def(...)` bindings have a nearby new custom rationale comment; a Python help string alone is insufficient. A coherent nearby binding group may share its explanation, and unchanged/reflowed bindings are excluded;
 - parameter-list changes on existing non-SAS C++/Python functions have a nearby newly added custom comment explaining the interface change. Clearly SAS-named helpers are intentionally optional.
 
 The check is deliberately conservative rather than a full C++ parser. New files require dependency explanations but have no changed-parameter contract to explain. Standard repository header/directive comments are exempt from the new-comment rule, and source-file deletion is allowed without a tombstone comment.

@@ -116,15 +116,21 @@ void setSASRuntimeStatusRootDirectory(std::wstring const& szRoot);
 void updateSASRuntimeStatusNoGame();
 // <!-- custom: Observe existing EXE menu-scene requests once per no-game interval; neither this evidence nor loading-asset requests below imply a rendered frame or restart the activity clock. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 void updateSASRuntimeStatusMainMenuSceneRequested();
+// <!-- custom: Positive CyInterface main-menu samples come only from explicit Python screen entry points; they strengthen menu evidence without frame polling or claiming the first rendered menu frame. (ChatGPT-5.6-Sol) -->
+void updateSASRuntimeStatusMainMenuState(bool bInMainMenu);
 void updateSASRuntimeStatusSessionStarted(bool bLoadedSave);
 // <!-- custom: Record the first existing loading-asset request within native new/load initialization without querying that asset for diagnostics. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 void updateSASRuntimeStatusLoadingScreenAssetRequested();
+// <!-- custom: BUG extends the EXE PreGameStart callback during both new/load initialization; preserve that late lifecycle boundary separately from loading-asset requests and native-ready completion. (ChatGPT-5.6-Sol) -->
+void updateSASRuntimeStatusPreGameStart();
 void updateSASRuntimeStatusSessionReady();
 void updateSASRuntimeStatusTurnCompleted(int iCompletedTurn);
 void updateSASRuntimeStatusAutoPlay(SASRuntimeStatusReason eReason, SASAutoPlayEndCause eEndCause = SAS_AUTOPLAY_END_UNSPECIFIED);
 // <!-- custom: WorldBuilder mode and Python-screen visibility are separate observed boundaries: the EXE can toggle native mode before its Python UI is shown or hidden. (ChatGPT-5.6-Sol) -->
 void updateSASRuntimeStatusWorldBuilderMode(bool bEnabled);
 void updateSASRuntimeStatusWorldBuilderScreen(bool bVisible);
+// <!-- custom: Track confirmed Civilopedia visibility with menu/game origin and in-game active-player context; this overlay does not change the underlying activity timer. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+void updateSASRuntimeStatusCivilopedia(bool bVisible, bool bInMainMenu);
 // <!-- custom: A GAMESTATE_OVER -> GAMESTATE_EXTENDED transition resumes live play after the end-game popup; preserve that instead of leaving external status at GAME_ENDED. (ChatGPT-5.6-Sol) -->
 void updateSASRuntimeStatusExtendedGameStarted();
 // <!-- custom: Menu/exit request boundaries are observable before EXE work; their completion is not inferred from the request. (GPT-6.1-Sol) -->

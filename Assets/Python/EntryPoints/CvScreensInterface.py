@@ -65,6 +65,12 @@ def toggleSetNoScreens():
 	global g_bIsScreenActive
 	print("SCREEN OFF")
 	g_bIsScreenActive = -1
+	# <!-- custom: Real menu/game Sevopedia tests emitted this EXE no-screens notification without a recorded onClose hide edge.
+	# Observe that lifecycle boundary directly; querying isActive here could still see the old flag during dispatch.
+	# The native helper ignores duplicate hides and preserves the last overlay's menu/player context. (GPT-6.1-Sol) -->
+	game = CyGame()
+	if game.isSASRuntimeStatusRecordingEnabled():
+		game.updateSASRuntimeStatusCivilopedia(False, False)
 
 def toggleSetScreenOn(argsList):
 	global g_bIsScreenActive
@@ -127,6 +133,11 @@ def showCorporationScreen():
 
 optionsScreen = CvOptionsScreen.CvOptionsScreen()
 def showOptionsScreen():
+	# <!-- custom: Options is available from the EXE main menu; sample its state only on this explicit screen entry instead of polling frames.
+	# The cached native gate precedes the diagnostic-only interface query. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	game = CyGame()
+	if game.isSASRuntimeStatusRecordingEnabled():
+		game.updateSASRuntimeStatusMainMenuState(CyInterface().isInMainMenu())
 	SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_OPTIONS, SASGameRecordActions.SHOW_REQUEST)
 	optionsScreen.interfaceScreen()
 
@@ -451,7 +462,19 @@ def linkToPedia(argsList):
 
 def pediaShow():
 	createCivilopedia()
-	return pediaMainScreen.pediaShow()
+	# <!-- custom: Preserve menu context before the overlay changes presentation, but skip diagnostic-only UI queries when recording is disabled.
+	# A positive sample proves EXE main-menu state at this callback, not initial menu-arrival time. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	game = CyGame()
+	bRecordRuntime = game.isSASRuntimeStatusRecordingEnabled()
+	bInMainMenu = False
+	if bRecordRuntime:
+		bInMainMenu = CyInterface().isInMainMenu()
+		game.updateSASRuntimeStatusMainMenuState(bInMainMenu)
+	result = pediaMainScreen.pediaShow()
+	# <!-- custom: Both standard Civilopedia and Sevopedia expose getScreen().isActive(); report the overlay and its menu/game context only after the show path confirms it active. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	if bRecordRuntime and pediaMainScreen.getScreen().isActive():
+		game.updateSASRuntimeStatusCivilopedia(True, bInMainMenu)
+	return result
 
 def pediaBack():
 	return pediaMainScreen.back()
@@ -1007,12 +1030,17 @@ def onClose (argsList):
 	if argsList[0] in HandleInputMap:
 		SASGameRecordActions.logScreenAction(SASGameRecordActions.SCREEN_PYTHON_SCREEN, SASGameRecordActions.CLOSE_CALLBACK, argsList[0])
 	# allows overides for mods
-	if (CvScreenUtilsInterface.getScreenUtils().onClose(argsList)):
-		return
-
-	if (HandleCloseMap.has_key(argsList[0])):
+	bHandled = CvScreenUtilsInterface.getScreenUtils().onClose(argsList)
+	if not bHandled and argsList[0] in HandleCloseMap:
 		screen = HandleCloseMap.get(argsList[0])
 		screen.onClose()
+	# <!-- custom: All standard/Sevopedia page IDs share the pedia object, but a close callback alone does not prove it hidden.
+	# Preserve override dispatch, then confirm the screen inactive before clearing the observed overlay; an override may have kept it open.
+	# This event-driven probe is gated before screen queries and never polls frames. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+	game = CyGame()
+	if game.isSASRuntimeStatusRecordingEnabled() and pediaMainScreen is not None and HandleInputMap.get(argsList[0]) is pediaMainScreen:
+		if not pediaMainScreen.getScreen().isActive():
+			game.updateSASRuntimeStatusCivilopedia(False, False)
 
 # Forced screen update
 def forceScreenUpdate (argsList):

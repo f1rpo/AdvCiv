@@ -641,6 +641,38 @@ def changed_signatures(old_text: str, new_text: str, suffix: str):
     return changes
 
 
+# <!-- custom: Boost.Python .def bindings are interfaces too; a help string describes usage but does not explain why Python needs the operation.
+# Recognize literal-named chained bindings and compare balanced calls so unchanged/reflowed bindings need no new comment; this is a conservative source check, not a C++ parser. (GPT-6.1-Sol) -->
+def python_bindings(text: str):
+    result = []
+    for match in re.finditer(r'^\s*\.def\s*\(\s*"([^"\n]+)"', text, re.MULTILINE):
+        start = text.index("(", match.start())
+        depth = 0
+        quote = None
+        escaped = False
+        end = start
+        for end in range(start, len(text)):
+            char = text[end]
+            if quote:
+                if escaped:
+                    escaped = False
+                elif char == "\\":
+                    escaped = True
+                elif char == quote:
+                    quote = None
+            elif char in ("'", '"'):
+                quote = char
+            elif char == "(":
+                depth += 1
+            elif char == ")":
+                depth -= 1
+                if depth == 0:
+                    break
+        line = text.count("\n", 0, start) + 1
+        result.append((match.group(1), re.sub(r"\s+", " ", text[start:end + 1]), line))
+    return result
+
+
 # <!-- custom: Add an optional warnings collector so missing model credits remain advisory: Git cannot distinguish an uncredited user comment from an LLM comment.
 # Other provenance failures retain their blocking results. (GPT-6.1-Sol) -->
 def check_change(path: str, old_text: str | None, new_text: str | None, warnings: list[str] | None = None) -> list[str]:
@@ -713,6 +745,21 @@ def check_change(path: str, old_text: str | None, new_text: str | None, warnings
                         "%s:%d: include/import change lacks a nearby new custom rationale comment (%s %s)"
                         % (path, position, action, target)
                     )
+
+    if suffix in CPP_SUFFIXES:
+        old_bindings = python_bindings(old_text)
+        new_bindings = python_bindings(new_text)
+        old_keys = [(name, call) for name, call, _line in old_bindings]
+        new_keys = [(name, call) for name, call, _line in new_bindings]
+        matcher = difflib.SequenceMatcher(a=old_keys, b=new_keys, autojunk=False)
+        for action, old_start, old_end, new_start, new_end in matcher.get_opcodes():
+            if action == "equal":
+                continue
+            changed = [("added/changed", name, line) for name, _call, line in new_bindings[new_start:new_end]]
+            changed += [("removed/changed", name, map_old_line_to_new(line, opcodes)) for name, _call, line in old_bindings[old_start:old_end]]
+            for action, name, position in changed:
+                if not nearby_added_custom(added_custom, position, position, radius=5):
+                    errors.append("%s:%d: Python .def binding lacks a nearby new custom rationale comment (%s %s)" % (path, position, action, name))
 
     if not new_file and suffix in CPP_SUFFIXES | PY_SUFFIXES:
         for old_sig, new_sig in changed_signatures(old_text, new_text, suffix):

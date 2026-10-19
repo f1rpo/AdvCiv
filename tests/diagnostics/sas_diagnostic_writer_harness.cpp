@@ -43,6 +43,11 @@ void CvString::Format(LPCSTR format, ...)
 
 // <!-- custom: Minimal read-only game/map state lets the separate runtime-status publisher run without Civ4; Define lookup accepts only its own independent enable switch. (GPT-6.1-Sol) -->
 // <!-- custom: Production GameStateTypes comes from the Civ4 headers; the standalone fixture needs only the values inspected by runtime status. (ChatGPT-5.6-Sol) -->
+// <!-- custom: Minimal player/civilization stubs exercise overlay ownership without including gameplay code in this standalone test. (GPT-6.1-Sol) -->
+typedef int PlayerTypes;
+struct TestPlayer { int getCivilizationType() const { return 4; } };
+static TestPlayer g_runtimePlayer;
+#define GET_PLAYER(PLAYER) g_runtimePlayer
 enum GameStateTypes { GAMESTATE_ON = 0, GAMESTATE_OVER, GAMESTATE_EXTENDED };
 static int g_worldBuilderModeReads = 0;
 static int g_advancedStartReads = 0;
@@ -101,6 +106,10 @@ class CyGame
 public:
 	CyGame(CvGame& game) : m_kGame(game) {}
 	void updateSASRuntimeStatusWorldBuilderScreen(bool bVisible);
+	bool isSASRuntimeStatusRecordingEnabled() const;
+	void updateSASRuntimeStatusMainMenuState(bool bInMainMenu);
+	void updateSASRuntimeStatusPreGameStart();
+	void updateSASRuntimeStatusCivilopedia(bool bVisible, bool bInMainMenu);
 private:
 	CvGame& m_kGame;
 };
@@ -321,6 +330,10 @@ int main(int argc, char** argv)
 		updateSASRuntimeStatusTurnCompleted(3);
 		updateSASRuntimeStatusAutoPlay(SAS_RUNTIME_STATUS_AUTOPLAY_STARTED);
 		CyGame bridge(GC.game);
+		require(!bridge.isSASRuntimeStatusRecordingEnabled(), "Python recording gate is disabled");
+		bridge.updateSASRuntimeStatusMainMenuState(true);
+		bridge.updateSASRuntimeStatusCivilopedia(true, true);
+		bridge.updateSASRuntimeStatusPreGameStart();
 		bridge.updateSASRuntimeStatusWorldBuilderScreen(true);
 		bridge.updateSASRuntimeStatusWorldBuilderScreen(false);
 		require(g_worldBuilderModeReads == 0 && g_advancedStartReads == 0, "disabled Python bridge skips native mode and Advanced Start queries");
@@ -454,6 +467,7 @@ int main(int argc, char** argv)
 		require(CreateDirectoryW(root.c_str(), NULL) != FALSE, "create runtime-presentation fixture root");
 		setSASRuntimeStatusRootDirectory(root);
 
+		CyGame bridge(GC.game);
 		g_runtimeClock = 100;
 		unsigned int before = g_uiSASRuntimeStatusSerial;
 		updateSASRuntimeStatusMainMenuSceneRequested();
@@ -462,10 +476,30 @@ int main(int argc, char** argv)
 		updateSASRuntimeStatusMainMenuSceneRequested();
 		require(g_uiSASRuntimeStatusSerial == before, "duplicate main-menu scene requests are suppressed");
 
+		require(bridge.isSASRuntimeStatusRecordingEnabled(), "Python recording gate is enabled");
+		g_runtimeClock = 140;
+		before = g_uiSASRuntimeStatusSerial;
+		bridge.updateSASRuntimeStatusMainMenuState(false);
+		require(g_uiSASRuntimeStatusSerial == before && g_szSASRuntimeMainMenuStateObservedUtc == "-", "negative main-menu state sample is not published");
+		bridge.updateSASRuntimeStatusCivilopedia(true, false);
+		require(g_uiSASRuntimeStatusSerial == before && !g_bSASRuntimeCivilopediaVisible, "in-game overlay needs a ready game context");
+		g_runtimeClock = 150;
+		bridge.updateSASRuntimeStatusMainMenuState(true);
+		require(g_szSASRuntimeMainMenuStateObservedUtc != "-" && g_uiSASRuntimeStatusSerial == before + 1, "positive main-menu state sample is observed");
+		g_runtimeClock = 160;
+		bridge.updateSASRuntimeStatusCivilopedia(true, true);
+		require(g_bSASRuntimeCivilopediaVisible, "confirmed main-menu Civilopedia show is observed");
+		before = g_uiSASRuntimeStatusSerial;
+		bridge.updateSASRuntimeStatusCivilopedia(true, true);
+		require(g_uiSASRuntimeStatusSerial == before, "duplicate main-menu Civilopedia shows are suppressed");
+		g_runtimeClock = 180;
+		bridge.updateSASRuntimeStatusCivilopedia(false, false);
+		require(!g_bSASRuntimeCivilopediaVisible, "main-menu Civilopedia close is observed");
+
 		g_runtimeClock = 1000;
 		updateSASRuntimeStatusSessionStarted(false);
 		CvString const creationStartedUtc = g_szSASRuntimeActivityStartedUtc;
-		require(g_szSASRuntimeMainMenuSceneRequestedUtc == "-" && g_szSASRuntimeLoadingScreenAssetRequestedUtc == "-", "session start resets presentation observations");
+		require(g_szSASRuntimeMainMenuSceneRequestedUtc == "-" && g_szSASRuntimeMainMenuStateObservedUtc == "-" && g_szSASRuntimeLoadingScreenAssetRequestedUtc == "-" && g_szSASRuntimePythonPreGameStartUtc == "-" && !g_bSASRuntimeCivilopediaVisible, "session start resets presentation observations");
 		g_runtimeClock = 1250;
 		before = g_uiSASRuntimeStatusSerial;
 		updateSASRuntimeStatusLoadingScreenAssetRequested();
@@ -474,13 +508,22 @@ int main(int argc, char** argv)
 		before = g_uiSASRuntimeStatusSerial;
 		updateSASRuntimeStatusLoadingScreenAssetRequested();
 		require(g_uiSASRuntimeStatusSerial == before, "duplicate loading asset requests are suppressed");
+		g_runtimeClock = 1500;
+		bridge.updateSASRuntimeStatusPreGameStart();
+		require(g_szSASRuntimePythonPreGameStartUtc != "-" && g_eSASRuntimeActivity == SAS_RUNTIME_ACTIVITY_CREATING_GAME && g_uiSASRuntimeActivityStartedMilliseconds == 1000, "Python PreGameStart preserves creation activity timing");
+		before = g_uiSASRuntimeStatusSerial;
+		bridge.updateSASRuntimeStatusPreGameStart();
+		require(g_uiSASRuntimeStatusSerial == before, "duplicate Python PreGameStart observations are suppressed");
 
 		GC.game.ready = true;
 		GC.game.state = GAMESTATE_ON;
 		g_runtimeClock = 2000;
 		updateSASRuntimeStatusSessionReady();
 		require(g_iSASRuntimePreviousDurationMilliseconds == 1000, "creation completion retains its whole interval across loading presentation");
-		CyGame bridge(GC.game);
+		bridge.updateSASRuntimeStatusCivilopedia(true, false);
+		require(g_bSASRuntimeCivilopediaVisible && g_eSASRuntimeCivilopediaContext == SAS_RUNTIME_CIVILOPEDIA_IN_GAME && g_iSASRuntimeCivilopediaActivePlayer == 0 && g_iSASRuntimeCivilopediaActiveCivilization == 4, "in-game Civilopedia records active player and civilization");
+		bridge.updateSASRuntimeStatusCivilopedia(false, false);
+		require(!g_bSASRuntimeCivilopediaVisible && g_iSASRuntimeCivilopediaActivePlayer == 0, "hide retains the observed overlay owner");
 		g_runtimeTestDLL.worldBuilder = true;
 		GC.game.advancedStart = true;
 		before = g_uiSASRuntimeStatusSerial;
