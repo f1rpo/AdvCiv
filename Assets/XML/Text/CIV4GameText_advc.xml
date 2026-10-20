@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
+(c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
+-->
 <!-- advc: Game text added by the AdvCiv mod and changes to BtS game text;
 	 such changes are tagged with a comment that says "redefine".
 	 Some of the Romance-language translations are based on www.deepl.com. -->
@@ -1323,7 +1327,6 @@
 		<Italian>Nuova estrazione casuale per ricarica</Italian>
 		<Spanish>Nueva "seed" aleatoria al volver a cargar</Spanish>
 	</TEXT>
-
 
 
 	<!-- I don't think these are shown anywhere, but I still wanted to correct

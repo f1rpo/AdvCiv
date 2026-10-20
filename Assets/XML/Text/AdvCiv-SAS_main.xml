@@ -440,14 +440,12 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: A replay record has only one visibility player and cannot require that a Timeline observer know both the victim and killer.
 	Keep the public historical event without naming the potentially unknown killer; exact transient messages remain available to eligible observers. See KI#334. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 	<TEXT>
 		<Tag>TXT_KEY_MISC_GENERAL_KILLED_PUBLIC</Tag>
 		<English>%s1_warlord (%s2_Civ) has died in combat!</English>
 	</TEXT>
-
 
 
 	<TEXT>
@@ -484,14 +482,12 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: remove folder name in case it changes as it did since we transitionned from AdvCiv to AdvCiv-SAS folder name if i'm not mistaken.
 	Clearer to remove it entirely rather i'd say i mean i think -->
 	<TEXT>
 		<Tag>TXT_KEY_BUG_OPT_MAININTERFACE__MODNAMEINREPLAYS_HOVER</Tag>
 		<English>When checked, the name of the mod's folder is written into your replay files, which excludes them from the Hall of Fame screen when BtS is run without mods. (As for showing replays created by BtS or other mods on the AdvCiv Hall of Fame screen, see the [COLOR_BUILDING_TEXT]HOF_...[COLOR_REVERT] variables in [COLOR_BUILDING_TEXT]GlobalDefines_advc.xml[COLOR_REVERT].)</English>
 	</TEXT>
-
 
 
 	<!-- custom: rename "Difficulty" to "Handicap" -->
@@ -506,7 +502,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_BUG_OPT_AUTOSAVE__USEPLAYERNAME_HOVER</Tag>
 		<English>When checked, your player name is used for the saved game name along with the turn year. Otherwise the name is a concatenation of 3-letter versions of Leader Name, Handicap, Map Size, Map Type, Speed, Era, Year, Climate and Sea Level.</English>
 	</TEXT>
-
 
 
 	<!-- custom: add new unit combat types or modify existing ones -->
@@ -570,7 +565,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: rename "Play Now" to "Simple Game" (matches code name, and is as the C2C mod does for example too) -->
 	<!-- advc.002g -->
 	<!-- See CIV4ColorVals.xml for the available colors. PLAYER_GRAY is,
@@ -584,7 +578,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<TEXT>
 		<Tag>TXT_KEY_BUILDINGS_ROM_291</Tag>
 		<English>Buildings</English>
@@ -593,7 +586,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_UNITS_ROM_291</Tag>
 		<English>Units</English>
 	</TEXT>
-
 
 
 	<TEXT>
@@ -610,7 +602,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_PEDIA_PLOT_TYPE_TERRAIN_CUSTOM</Tag>
 		<English>Plot Type / Terrain</English>
 	</TEXT>
-
 
 
 	<!-- custom: add mention that this does not include plot types (such as hills, peak, as well), renamed asset as such; "some" as ocean is included since we show the ice cap (i.e. ice feature in base advciv +/- civ4) feature -->
@@ -663,7 +654,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<TEXT>
 		<Tag>TXT_KEY_PEDIA_FAVOURITE_CIVICS_AND_RELIGIONS</Tag>
 		<English>Favorites</English>
@@ -673,7 +663,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_PEDIA_REPLACE_REPLACED_BY_CUSTOM</Tag>
 		<English>Replaced By</English>
 	</TEXT>
-
 
 
 	<TEXT>
@@ -859,13 +848,11 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: we don't use strategy tags at all anymore in AdvCiv-SAS, they will be empty just to have the tag existing, but it shuold never be used otherwise or displayed anymore in AdvCiv-SAS's sevopedia -->
 	<TEXT>
 		<Tag>TXT_KEY_DUMMY_EMPTY_CUSTOM_TXTKEY_STRATEGY</Tag>
 		<English></English>
 	</TEXT>
-
 
 
 	<!-- custom: Long_Comments_XML.txt #218 -->
@@ -877,7 +864,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_FREE_UNITS_NO</Tag>
 		<English>No Civilization Unit</English>
 	</TEXT>
-
 
 
 	<TEXT>
@@ -1042,7 +1028,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: Long_Comments_XML.txt #148 -->
 	<TEXT>
 		<Tag>TXT_KEY_PEDIA_CATEGORY_CONCEPT</Tag>
@@ -1123,12 +1108,10 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<TEXT>
 		<Tag>TXT_KEY_PEDIA_CIVILIZATIONS_THAT_START_WITH_THIS_TECH</Tag>
 		<English>Civilizations that start with this technology</English>
 	</TEXT>
-
 
 
 	<!-- custom rename "Resource" to "Bonus" -->
@@ -1144,13 +1127,11 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: renamed from the old and now removed TXT_KEY_PEDIA_FAV_CIVIC so it shows only "Favorites" for concision and so we can show favorite religions (if any) as well -->
 	<TEXT>
 		<Tag>TXT_KEY_PEDIA_FAVORITES</Tag>
 		<English>Favorites</English>
 	</TEXT>
-
 
 
 	<!-- custom: i have accidentally noticed that having an empty "header" tag removes it entirely while also and still giving the flexibility to add it again later (but you'd need to adjust self.H_AI_UPPER_PADDING in SevoPediaLeader.py to accodomodate that, see the specific implementation and code comments there) -->
@@ -1166,7 +1147,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_AI_PERSONALITY_LEFT_PANEL</Tag>
 		<English></English>
 	</TEXT>
-
 
 
 	<TEXT>
@@ -1227,13 +1207,11 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: GPT-5.2-Codex: Long_Comments_XML.txt #74 -->
 	<TEXT>
 		<Tag>TXT_KEY_PEDIA_BONUS_TRADE</Tag>
 		<English>Tradeable Since</English>
 	</TEXT>
-
 
 
 	<!-- custom: Long_Comments_XML.txt #154 -->
@@ -1260,7 +1238,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: Long_Comments_XML.txt #220 -->
 	<TEXT>
 		<Tag>TXT_KEY_PROMOTION_EVASION_TEXT</Tag>
@@ -1270,7 +1247,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_PROMOTION_INTERCEPT_TEXT</Tag>
 		<English>[ICON_BULLET]%D1_Change%% Air Interception Chance</English>
 	</TEXT>
-
 
 
 	<!-- custom: add " (Rank)" so we can have more compact strings in the values. -->
@@ -1287,7 +1263,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_THOUSANDS_SEPARATOR_COMMA</Tag>
 		<English>,</English>
 	</TEXT>
-
 
 
 	<!-- custom: Long_Comments_XML.txt #222 -->
@@ -1313,7 +1288,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_SAS_NOT_ACTIVE_SHORT</Tag>
 		<English>Not active</English>
 	</TEXT>
-
 
 
 	<!-- custom: rename "SEALEVEL" to "SEA LEVEL". -->
@@ -1351,7 +1325,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_MAIN_MENU_SELECT_GAME_SPEED_TITLE</Tag>
 		<English>GAME SPEED (50 000 BC - 2105 AD)</English>
 	</TEXT>
-
 
 
 	<!-- custom: add "Willing to become a vassal" type of button as it is useful for the human player to see it in UI in the glances tab -->
@@ -1483,7 +1456,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: for placeCivilizations, placeObsoletesWith, and placeReplace; added in sevopediaunit with the help of Claude AI thanks -->
 	<TEXT>
 		<Tag>TXT_KEY_PEDIA_CIVILIZATIONS</Tag>
@@ -1543,14 +1515,12 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: from Age of Empires wiki, did not find much info online so using this (see copyright at root of project if needed): https://ageofempires.fandom.com/wiki/Clubman
 	Slightly edited too to fit AdvCiv-SAS -->
 	<TEXT>
 		<Tag>TXT_KEY_UNIT_WARRIOR_PEDIA</Tag>
 		<English>[TAB]Sometimes called the "clubman" (as it wields a wooden club), the Ancient Maceman is a durable and quite fast Stone Age unit, so can be used to explore the map with less to fear from predators such as Lions and Bears.</English>
 	</TEXT>
-
 
 
 	<!-- custom: not a lengthy description per sebut putting here as fits the theme maybe or not -->
@@ -1566,7 +1536,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_UNIT_BARBARIAN_WORKBOAT</Tag>
 		<English>Work Boat (Barbarian)</English>
 	</TEXT>
-
 
 
 	<TEXT>
@@ -1591,13 +1560,11 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: added here for exhaustiveness -->
 	<TEXT>
 		<Tag>TXT_KEY_BUILDING_PROVIDES_POWER</Tag>
 		<English>[ICON_BULLET]Provides power ([ICON_POWER])</English>
 	</TEXT>
-
 
 
 	<!-- custom: Long_Comments_XML.txt #311 -->
@@ -1615,7 +1582,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<TEXT>
 		<Tag>TXT_KEY_BUILDING_PROVIDES_POWER_IN_THIS_CITY_DIRTY</Tag>
 		<English>in this city (dirty power ([ICON_POWER])): </English>
@@ -1624,8 +1590,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_BUILDING_PROVIDES_POWER_IN_THIS_CITY_CLEAN</Tag>
 		<English>in this city (clean power ([ICON_POWER])): </English>
 	</TEXT>
-
-
 
 
 	<!-- custom: remove the common provides power part from the areacleanpower message, and add mention that area clean power (areacleanpower) (all cities clean power) also applies to all cities, (note: ) perhaps differently in terms of unhealthiness bonus or not -->
@@ -1643,7 +1607,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: add info that it applies only outside of cultural borders -->
 	<TEXT>
 		<Tag>TXT_KEY_UNIT_CANNOT_ENTER</Tag>
@@ -1654,7 +1617,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_UNIT_CANNOT_ENTER_SHORT_MAP_VIEW</Tag>
 		<English>[ICON_BULLET]Cannot Enter (see sevopedia):</English>
 	</TEXT>
-
 
 
 	<!-- custom: add info that some units are exceptions that can move even in impassable -->
@@ -1688,13 +1650,11 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: no header for more compact and prettier display -->
 	<TEXT>
 		<Tag>TXT_KEY_PEDIA_LEADER_TRAITS</Tag>
 		<English></English>
 	</TEXT>
-
 
 
 	<!-- custom: all below in this group modified to remove the extra redundant/uneeded for example "STRENGTH: " in "STRENGTH: 5" now displaying (only) as "5" much clearer and cleaner i think this way, making a separate tag in case the original one is relevant somewhere else -->
@@ -1724,7 +1684,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	<!-- custom: Long_Comments_XML.txt #312 -->
 
 
-
 	<!-- custom: in sevopediabuilding and perhaps in other places that use our custom tag, "Happy: 5" (for example) is now "5" -->
 	<TEXT>
 		<Tag>TXT_KEY_PEDIA_HAPPY_CUSTOM</Tag>
@@ -1746,7 +1705,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_PEDIA_GREAT_PEOPLE_CUSTOM</Tag>
 		<English>%D1</English>
 	</TEXT>
-
 
 
 	<!-- custom: Long_Comments_XML.txt #224 -->
@@ -1819,14 +1777,12 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: this only lists units without a unit combat, not military ones like swordsmen or such.
 	Rename "All Units" to a clearer or more accurate name. -->
 	<TEXT>
 		<Tag>TXT_KEY_PEDIA_ALL_UNITS</Tag>
 		<English>No UnitCombat</English>
 	</TEXT>
-
 
 
 	<!-- custom: new text key for Obsoletes panel in Sevopedia Tech (Claude code Sonnet 4.5) -->
@@ -1846,7 +1802,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: new panels, see sevopedia improvement for details -->
 	<TEXT>
 		<Tag>TXT_KEY_PEDIA_TERRAIN_MAKES_VALIDS</Tag>
@@ -1864,7 +1819,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_PEDIA_FEATURE_MAKES_VALIDS_NO_RESTRICTION</Tag>
 		<English>No Restriction in ImprovementInfo 's FeatureMakesValids</English>
 	</TEXT>
-
 
 
 	<!-- custom: make this a separate entry for headers or such or not such -->
@@ -1911,7 +1865,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<TEXT> 
 		<Tag>TXT_KEY_PEDIA_SEVOPEDIA_BONUS_NATURAL_TILE_YIELD_CHANGES</Tag>
 		<English>Natural Tile Yield Change(s)</English>
@@ -1928,13 +1881,11 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: rename "Unique Buildings" to "Civilization Buildings" -->
 	<TEXT>
 		<Tag>TXT_KEY_UNIQUE_BUILDINGS</Tag>
 		<English>Civilization Buildings</English>
 	</TEXT>
-
 
 
 	<!-- custom: add (new) the <bTrade> tech info xml flag in sevopedia tech's placeSpecial, see also buildBTradeString -->
@@ -1947,7 +1898,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_MISC_TECH_CAN_BE_REPEATED</Tag>
 		<English>[ICON_BULLET]Can be researched multiple times.</English>
 	</TEXT>
-
 
 
 	<!-- custom: show this info in sevopedia unit's as of now placeSpecial for example for the robotic_infantry we added in advciv-sas -->
@@ -1970,7 +1920,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- advc.650: Would be nice to make clear somehow that the evasion chance
 		 is already taken into account here. -->
 	<!-- custom: GPT-5.2-Codex: Long_Comments_XML.txt #65 -->
@@ -1978,7 +1927,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_NUKE_INTERCEPT_CHANCE</Tag>
 		<English>[COLOR_NEGATIVE_TEXT]Adjusted Air Interception chance[COLOR_REVERT](%s1_TeamName): %d2%%</English>
 	</TEXT>
-
 
 
 	<!-- custom: Long_Comments_XML.txt #223 -->
@@ -1998,7 +1946,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: rename "great wonders" to "world wonders", in line with world project -->
 	<!-- advc.004w: Put only the number in parentheses, not the wonder type -->
 	<TEXT>
@@ -2010,7 +1957,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_BUILDING_WORLD_WONDER1</Tag>
 		<English>[ICON_BULLET]World Wonder</English>
 	</TEXT>
-
 
 
 	<!-- custom: rename "Difficulty" to "Handicap" -->
@@ -2026,13 +1972,11 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: simplify defense text to only show the char for concision and quicker read, was "%F1 Defense: %D2%%" -->
 	<TEXT>
 		<Tag>TXT_KEY_MAIN_CITY_DEFENSE</Tag>
 		<English>%F1: %D2%%</English>
 	</TEXT>
-
 
 
 	<TEXT>
@@ -2055,7 +1999,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_SAS_INFO_ENTIRE_TIMELINE</Tag>
 		<English>Entire timeline</English>
 	</TEXT>
-
 
 
 	<TEXT>
@@ -2088,12 +2031,10 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<TEXT>
 		<Tag>TXT_KEY_MISC_HELP_OBSOLETE_BUILDING_COMMERCE</Tag>
 		<English>[ICON_BULLET]%D1%F2 from Obsolete Buildings</English>
 	</TEXT>
-
 
 
 	<TEXT>
@@ -2108,7 +2049,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_MENU_SIZE</Tag>
 		<English>Size:</English>
 	</TEXT>
-
 
 
 	<TEXT>
@@ -2153,7 +2093,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<TEXT>
 		<Tag>TXT_KEY_MAP_SCRIPT_SAS_SIMPLE_FLAT_GRASS_DESCR</Tag>
 		<English>A minimal SAS simple flat-grass sandbox map (almost all land).</English>
@@ -2164,7 +2103,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_MAP_SCRIPT_SAS_COASTAL_LARGEST_CONTINENT</Tag>
 		<English>Coastal on Largest Continent</English>
 	</TEXT>
-
 
 
 	<TEXT>
@@ -2199,7 +2137,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_GAMESPEED_VERY_SLOW</Tag>
 		<English>Very Slow (2000 / 400%)</English>
 	</TEXT>
-
 
 
 	<TEXT>
@@ -2250,7 +2187,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: rename "Difficulty" to "Handicap"; Long_Comments_XML.txt #233 -->
 	<TEXT>
 		<Tag>TXT_KEY_HANDICAP_ROOKIE_HELP</Tag>
@@ -2298,7 +2234,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: disambiguate Ice Terrain vs Ice Feature, hopefully clearer with these 2 separate terms. -->
 	<TEXT>
 		<Tag>TXT_KEY_TERRAIN_ICE</Tag>
@@ -2306,12 +2241,10 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<TEXT>
 		<Tag>TXT_KEY_FEATURE_ICE</Tag>
 		<English>Ice Cap</English>
 	</TEXT>
-
 
 
 	<!-- custom: Long_Comments_XML.txt #149 -->
@@ -2346,7 +2279,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_BONUS_CAMEL</Tag>
 		<English>Camel</English>
 	</TEXT>
-
 
 
 	<!-- custom: added new Build action texts (SevoPedia Builds page), generated with the help of ChatGPT-5.2 Thinking. -->
@@ -2440,13 +2372,11 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: GPT-5.2-Codex: Long_Comments_XML.txt #78 -->
 	<TEXT>
 		<Tag>TXT_KEY_SPECIALIST_GREAT_PRIEST</Tag>
 		<English>Great Priest</English>
 	</TEXT>
-
 
 
 	<TEXT>
@@ -2483,7 +2413,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<TEXT>
 		<Tag>TXT_KEY_RELIGION_PAGANISM</Tag>
 		<English>Paganism</English>
@@ -2518,7 +2447,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<TEXT>
 		<Tag>TXT_KEY_CIVIC_PREHISTORIC_RELIGION</Tag>
 		<English>Prehistoric Religion</English>
@@ -2537,7 +2465,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: was <English>U.N. Resolution #743 (Global Civic - Emancipation)</English> -->
 	<TEXT>
 		<Tag>TXT_KEY_VOTE_WAGE_LABOR</Tag>
@@ -2548,7 +2475,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_VOTE_TRADE_BLOC</Tag>
 		<English>U.N. Resolution #1190 (Global Civic - Trade Bloc)</English>
 	</TEXT>
-
 
 
 	<TEXT>
@@ -2684,7 +2610,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<TEXT>
 		<Tag>TXT_KEY_UNIT_WARRIOR</Tag>
 		<English>Ancient Maceman</English>
@@ -2816,7 +2741,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_UNIT_BAZOOKA</Tag>
 		<English>Bazooka</English>
 	</TEXT>
-
 
 
 	<!-- custom: clearer renaming to some promotions, accuracy is so misleading as a name for example, hopefully clearer now -->
@@ -3044,7 +2968,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: new/modified unit combat types -->
 	<TEXT>
 		<Tag>TXT_KEY_UNITCOMBAT_ARCHER_BOW_SHORT</Tag>
@@ -3115,7 +3038,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: from (adjust to your mod path) C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Assets\XML\Text\CIV4GameText_Misc1.xml and modified or not for advciv-sas -->
 	<TEXT>
 		<Tag>TXT_KEY_FEAT_UNITCOMBAT_ARCHER_BOW_SHORT</Tag>
@@ -3137,7 +3059,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_FEAT_UNITCOMBAT_MOUNTED_RANGED</Tag>
 		<English>Congratulations, you have trained your first Mounted (Ranged) Unit ([COLOR_UNIT_TEXT]%s1Unit_Name[COLOR_REVERT]) in %s2City_Name! These units can move farther per turn than regular units, allowing them to wreak havoc behind enemy lines.</English>
 	</TEXT>
-
 
 
 	<!-- custom: rename _HORSEBACK_RIDING to _MOUNTED_COMBAT -->
@@ -3280,7 +3201,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_TECH_PROFESSIONAL_ARMY</Tag>
 		<English>Professional Army</English>
 	</TEXT>
-
 
 
 	<!-- custom: rename _HORSEBACK_RIDING to _MOUNTED_COMBAT, this asset is a part that is extracted from C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Assets\XML\Text\CIV4GameTextInfos.xml -->
@@ -3511,7 +3431,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: rename "American Empire" and such to "United States of America" and such (too long to fit empire and may be awkward semantically to have a united states empire although actually thinking of it it may fit quite well actually...) -->
 	<TEXT>
 		<Tag>TXT_KEY_CIV_AMERICA_DESC</Tag>
@@ -3609,7 +3528,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: add Civ Kingdom Of Benin with their leader Ewuare -->
 	<TEXT>
 		<Tag>TXT_KEY_LEADER_EWUARE</Tag>
@@ -3642,7 +3560,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: rename "_VIKING" and "_VIKINGS" to "_SCANDINAVIA" -->
 	<TEXT>
 		<Tag>TXT_KEY_CIV_SCANDINAVIA_DESC</Tag>
@@ -3665,7 +3582,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>TXT_KEY_UNIT_SCANDINAVIA_VIKING</Tag>
 		<English>Viking</English>
 	</TEXT>
-
 
 
 	<!-- custom: Ireland civilization and leaders. (GPT-5.3-Codex) -->
@@ -3703,13 +3619,11 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: now renamed "montezuma" to "moctezuma (2/II)" -->
 	<TEXT>
 		<Tag>TXT_KEY_CITY_NAME_MOCTEZUMA_CASTLE</Tag>
 		<English>Moctezuma Castle</English>
 	</TEXT>
-
 
 
     <!-- custom: Kingdom of Benin cities -->
@@ -3867,7 +3781,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: Ireland city list text keys. (GPT-5.3-Codex) -->
 	<TEXT>
 		<Tag>TXT_KEY_CITY_NAME_DUBLIN_IRELAND</Tag>
@@ -4015,7 +3928,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<!-- custom: "_MONTEZUMA_" -> "_MOCTEZUMA_" so add now missing corresponding assets -->
 	<TEXT>
 		<Tag>AI_DIPLO_FIRST_CONTACT_LEADER_MOCTEZUMA_1</Tag>
@@ -4068,7 +3980,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 	</TEXT>
 
 
-
 	<TEXT>
 		<Tag>AI_DIPLO_FIRST_CONTACT_LEADER_EWUARE_1</Tag>
 		<English>I am [OUR_NAME], Oba of Benin. You enter my court, [CT_NAME]. Speak with respect, and we may prosper.</English>
@@ -4101,7 +4012,6 @@ AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Ad
 		<Tag>AI_DIPLO_DEMAND_TRIBUTE_POWER_STRONGER_EWUARE_1</Tag>
 		<English>Even the mighty benefit from order, [CT_NAME]. Honor my court with tribute, and we both avoid wasteful war.</English>
 	</TEXT>
-
 
 
 	<!-- custom: Ireland and Ewuare diplomacy text hooks. (GPT-5.3-Codex) -->

@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 <!--
+AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
+(c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
+-->
+<!--
 	Autolog
 	Options Game Text
 
@@ -671,7 +675,6 @@
 		<Italian>Quando è selezionato, il Registro Automatico registra i saccheggi effettuate da te o quando i tuoi miglioramenti vengono saccheggiati.</Italian>
 		<Spanish>Permite registrar los pillajes que realices o el pillaje de tus mejoras.</Spanish>
 	</TEXT>
-
 
 
 	<!-- advc.004: German was "Handelsangebote" -->

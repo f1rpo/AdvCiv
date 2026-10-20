@@ -3967,7 +3967,6 @@ int CvGame::countPossibleVote(VoteTypes eVote, VoteSourceTypes eVoteSource) cons
 }
 
 
-
 TeamTypes CvGame::findHighestVoteTeam(const VoteTriggeredData& kData) const
 {
 	if (!isTeamVote(kData.kVoteOption.eVote))

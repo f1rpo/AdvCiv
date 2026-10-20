@@ -4790,7 +4790,6 @@ bool CvUnit::canRecon(const CvPlot* pPlot) const
 }
 
 
-
 bool CvUnit::canReconAt(const CvPlot* pPlot, int iX, int iY) const
 {
 	if (!canRecon(pPlot))
@@ -4842,7 +4841,6 @@ bool CvUnit::canParadrop(const CvPlot* pPlot) const
 		return false;
 	return true;
 }
-
 
 
 bool CvUnit::canParadropAt(const CvPlot* pPlot, int iX, int iY) const

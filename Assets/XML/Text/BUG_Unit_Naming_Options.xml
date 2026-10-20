@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="ISO-8859-1" ?>
 <!--
+AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
+(c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
+-->
+<!--
 	Unit Naming
 	Options Game Text
 
@@ -120,7 +124,6 @@
 		<Italian>Inserisci la tua convenzione di denominazione personalizzata per le Unità di Combattimento Ravvicinato ('Combat[MELEE]').</Italian>
 		<Spanish>Introducir la convención de nombrado para unidades cuerpo a cuerpo.</Spanish>
 	</TEXT>
-
 
 
 	<TEXT>

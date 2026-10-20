@@ -30,6 +30,7 @@ class SourceChangeProvenanceTests(unittest.TestCase):
                 ("// <!-- custom: Explain the rule. (GPT-6.1-Sol) -->\n", 0, False),
                 ("// Newly authored explanation.\n", 1, False),
                 ('#include "Changed.h"\n', 1, False),
+                ('\n' * 3, 1, False),
             ]
             for prefix, status, warning in cases:
                 with self.subTest(prefix=prefix):
@@ -260,8 +261,9 @@ class SourceChangeProvenanceTests(unittest.TestCase):
     def test_each_dependency_requires_nearby_rationale(self):
         new = "# <!-- custom: argparse handles CLI options. (GPT-6.1-Sol) -->\nimport argparse\n" + "\n" * 12 + "import pathlib\n"
         errors = self.errors("LLM_Helpers/new.py", None, new)
-        self.assertEqual(len(errors), 1)
-        self.assertIn("pathlib", errors[0])
+        dependency_errors = [error for error in errors if "include/import change" in error]
+        self.assertEqual(len(dependency_errors), 1)
+        self.assertIn("pathlib", dependency_errors[0])
 
     def test_untouched_inherited_includes_do_not_need_new_comments(self):
         old = '#include "Inherited.h"\nint value = 1;\n'
@@ -323,6 +325,49 @@ class SourceChangeProvenanceTests(unittest.TestCase):
             moved.write_text(moved.read_text(encoding="utf-8") + "# Newly authored untagged explanation.\n", encoding="utf-8")
             git("add", "-A")
             self.assertTrue(any("new/rewritten non-custom comment" in error for error in checker.check(repo, base)[0]))
+
+
+    # <!-- custom: Spacing fixtures cover inserted and deletion-created separators, inherited cleanup, and multiline payloads whose blank rows belong to captured data rather than source layout. (GPT-6.1-Sol) -->
+    def test_new_blank_separators_in_each_source_language(self):
+        for suffix, first, last in ((".py", "value = 1", "other = 2"), (".cpp", "int value;", "int other;"), (".xml", "<root>", "</root>")):
+            with self.subTest(suffix=suffix):
+                old = first + "\n\n\n" + last + "\n"
+                self.assertEqual(checker.blank_line_errors("fixture" + suffix, "", old, suffix), [])
+                new = first + "\n\n\n\n" + last + "\n"
+                self.assertEqual(len(checker.blank_line_errors("fixture" + suffix, old, new, suffix)), 1)
+
+    def test_inherited_blank_separators_can_be_kept_or_cleaned(self):
+        old = "value = 1\n" + " \n" * 5 + "other = 2\n"
+        for count in (3, 4, 5):
+            with self.subTest(count=count):
+                new = "value = 1\n" + "\n" * count + "other = 3\n"
+                self.assertEqual(checker.blank_line_errors("fixture.py", old, new, ".py"), [])
+        extended = "value = 1\n" + "\n" * 6 + "other = 2\n"
+        self.assertEqual(len(checker.blank_line_errors("fixture.py", old, extended, ".py")), 1)
+
+    def test_deletion_can_join_short_blank_separators(self):
+        old = "value = 1\n\n\nremoved = 0\n\n\nother = 2\n"
+        new = old.replace("removed = 0\n", "")
+        self.assertEqual(len(checker.blank_line_errors("fixture.py", old, new, ".py")), 1)
+
+    def test_literal_text_and_block_comments_preserve_blank_rows(self):
+        gap = "\n" * 4
+        cases = [
+            (".py", 'value = """head' + gap + 'tail"""\n'),
+            (".py", 'value = f"""head' + gap + '{1}"""\n'),
+            (".cpp", 'const char* value = R"tag(head' + gap + 'tail)tag";\n'),
+            (".cpp", '/* head' + gap + 'tail */\n'),
+            (".xml", '<root>head' + gap + 'tail</root>\n'),
+            (".xml", '<root><![CDATA[head' + gap + 'tail]]></root>\n'),
+            (".xml", '<!-- head' + gap + 'tail -->\n'),
+        ]
+        for suffix, source in cases:
+            with self.subTest(suffix=suffix, source=source):
+                self.assertEqual(checker.blank_line_errors("fixture" + suffix, "", source, suffix), [])
+
+    def test_blank_separator_findings_are_collected_together(self):
+        source = "value = 1\n" + "\n" * 3 + "other = 2\n" + "\n" * 4 + "last = 3\n"
+        self.assertEqual(len(checker.blank_line_errors("fixture.py", "", source, ".py")), 2)
 
 
 if __name__ == "__main__":

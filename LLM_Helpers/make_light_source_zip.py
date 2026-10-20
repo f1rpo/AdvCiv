@@ -1208,7 +1208,6 @@ def build_incremental_git_log(repo_root: Path) -> str:
     return "\n".join(lines) + "\n"
 
 
-
 def redact_generated_history_emails(text: str) -> str:
     """Redact email-shaped strings from archive-only Git history without modifying repository files."""
     return GENERATED_HISTORY_EMAIL_RE.sub("<hidden-email>", text)
@@ -1573,7 +1572,6 @@ def render_commit_diff(repo_root: Path, commit: dict[str, str]) -> tuple[bytes, 
     if version_error and version == "unknown":
         body.extend(["", f"[VERSION WARNING] {version_error}"])
     return (redact_generated_history_emails("\n".join(body)).rstrip() + "\n").encode("utf-8"), version, status
-
 
 
 def historical_patch_paths(patch_label: str) -> list[str]:

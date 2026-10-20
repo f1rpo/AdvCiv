@@ -33,7 +33,6 @@ BBAI_REGISTRY_PATH = "CvGameCoreDLL/BBAILog.cpp"
 BBAI_REGISTRY_CONSUMER_RE = re.compile(r"getClampedSASBBAILogLevel\s*\(\s*[A-Za-z_]\w*\s*\.\s*szDefineName\s*\)")
 
 
-
 def lex(text, python):
     if python:
         return [(t.string, t.start[0], t.start[1], t.type == tokenize.STRING) for t in tokenize.generate_tokens(io.StringIO(text).readline) if t.type not in (tokenize.COMMENT, tokenize.NL, tokenize.NEWLINE, tokenize.INDENT, tokenize.DEDENT, tokenize.ENDMARKER, tokenize.ENCODING)]

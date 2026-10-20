@@ -34,7 +34,7 @@ Therefore:
 Current emitted source-context field:
 
 ```text
-GAME_RECORD_SOURCE_CONTEXT recordRevision=159 ...
+GAME_RECORD_SOURCE_CONTEXT recordRevision=160 ...
 ```
 
 After this, each qualifying SASGameRecord commit increments `SAS_GAME_RECORD_REVISION` in `GlobalDefines_advciv_sas.xml` exactly once and adds one short latest-first entry to this file in the same commit. The revision remains a downstream-update signal; exact runtime source/build identity remains separate provenance in `GAME_RECORD_SOURCE_CONTEXT` and the DLL/build context.
@@ -77,10 +77,16 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
+### Revision 160 - SAS practical 6650
+
+- **Date:** 2026-10-20
+- **Git commit:** pending
+- **Change:** Remove one redundant blank separator in the recorder as part of the source-spacing cleanup; emitted data and recording behavior are unchanged.
+
 ### Revision 159 - SAS practical 6646
 
 - **Date:** 2026-10-19
-- **Git commit:** pending
+- **Git commit:** `61c86a8949e29f1c6f0cd0379c563c70596d54ca`
 - **Change:** Limit shared revision-marker classification to implementation/configuration roots so archive rules, local tests and general workflow-policy edits do not require recorder revisions. Recorder-specific checkers and actual source/configuration changes remain covered; emitted records are unchanged.
 
 ### Revision 158 - SAS practical 6644

@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
+(c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
+-->
 <!-- advc.008: Since the Civilopedia changes are so wordy (not the
      changes, but the copied text), I've moved them out of
      CIV4GameText_advc.xml, where the rest of the Advanced Civ game text
@@ -25,7 +29,6 @@
 	</TEXT>
 
 
-
 	<!-- advc.005e: replaced the German text with text from Wikipedia b/c the
 		 German text was talking about triremes. Could've added that text to
 		 the Trireme unit, but that unit already has a very lengthy background 
@@ -40,7 +43,6 @@
 	</TEXT>
 
 
-
 	<!-- advc.005: "Asoka" renamed to "Ashoka" (English, Italian, Spanish) -->
 	<TEXT>
 		<Tag>TXT_KEY_BUILDING_BUDDHIST_CATHEDRAL_PEDIA</Tag>
@@ -52,7 +54,6 @@
 	</TEXT>
 
 
-
 	<TEXT>
 		<Tag>TXT_KEY_BUILDING_BUDDHIST_SHRINE_PEDIA</Tag>
 		<English>[TAB]Located near Patna, in Bihar state, India, the Mahabodhi is a Buddhist temple in Bodh Gaya, the place where, according to Buddhist tradition, Siddhartha Gautama gained enlightenment and became the Buddha while meditating under a Bodhi (Peepal) tree. [PARAGRAPH:2]The Emperor Ashoka constructed the "Golden Throne" sometime around 250 BC, and over time many other buildings and statues were added. In the 12th century the area was overrun by Muslims, and the temple sacked and largely destroyed. In the 16th century a Hindu monastery was established, and the monastery's abbot was given control over the temple grounds. [PARAGRAPH:2]Eventually the area came under British control. In the 1880s they began a major restoration of the temple, much against the wishes of the Hindu abbot. In the 1940s control over the site was given to the state, which manages the site with the advice of a committee containing Buddhists from the world over. [PARAGRAPH:2]A building of remarkable beauty and grandeur, the Mahabodhi is one of the oldest surviving brick buildings in India. Standing on the ruins of an even older "stupa," the temple consists of a high central tower surrounded by four smaller towers. The central tower rises some 60 feet in height. The edifice is covered by ornate and colorful molding, pilasters (pseudo columns), and arches, many of which contain bas relief sculptures. Inside sits a very large gilded statue of the Buddha. The statue sits where, legend has it, the Buddha was sitting when he achieved enlightenment. [PARAGRAPH:2]Near to the building stands a mighty Bodhi tree, a descendant of the one under which Buddha found enlightenment. The temple stands within an extensive complex of smaller temples, statues, and pathways running through beautiful parklands and alongside peaceful lakes. The temple and its surroundings remain a focus of Buddhist worship, and people from across the world come every year to honor the Buddha and to marvel at the beauty of the Mahabodhi.</English>
@@ -61,7 +62,6 @@
 		<Italian>[TAB]Situato vicino a Patna, nello stato di Bihar in India, il Mahabodhi &#232; un tempio Buddista che si trova a Bodh Gaya, il posto nel quale, secondo la tradizione, Siddhartha Gautama raggiunse l'illuminazione e divenne Buddha mentre meditava sotto un albero Bodhi. [PARAGRAPH:2]L'Imperatore Ashoka costru&#236; il "tempio d'oro" verso il 250 a. C. e con il passare del tempo vennero aggiunti altri edifici e palazzi, finch&#233; nel XII secolo la zona non venne conquistata dai Musulmani con il tempio saccheggiato e in parte bruciato. Nel XVI secolo, venne fondato un monastero Ind&#249; e divenne compito dell'abate controllare il territorio del tempio. [PARAGRAPH:2]Successivamente, la zona pass&#242; sotto il controllo Britannico e nel 1880 vennero avviati dei lavori di ristrutturazione, la maggior parte dei quali contro la volont&#224; dell'abate Ind&#249;. Nel 1940, il controllo del luogo venne affidato allo stato con la consulenza di di un comitato Buddista. [PARAGRAPH:2]Il Mahabodhi &#232; uno degli edifici di mattoni pi&#249; antichi dell'India: situato sulle rovine di uno "stupa" precedente, il tempio &#232; formato da una grande torre circondata da altre quattro pi&#249; piccole. La torre centrale misura quasi una ventina di metri e l'intero complesso architettonico &#232; riccamente ornato, decorato con molti colori, pilastri e archi, molti dei quali ospitano sculture in bassorilievo. All'interno si trova una statua gigantesca del Budda posizionata nel punto che rappresenta l'attimo nel quale ricevette l'illuminazione. [PARAGRAPH:2]Vicino all'edificio si trova un maestoso albero Bodhi, discendente di quello sotto al quale Budda trov&#242; l'illuminazione. Il tempio si trova nel mezzo di un complesso architettonico formato da templi pi&#249; piccoli, statue e sentieri che attraversano parchi meravigliosi costeggiando placidi specchi d'acqua. Il tempio e i suoi dintorni rimangono il fulcro del Buddismo: ogni anno, fedeli da tutto il mondo accorrono per onorare Budda e osservare la magnificenza del Mahabodhi.</Italian>
 		<Spanish>[TAB]Situado cerca de Patna, en el estado de Bihar, la India, el Mahabodhi es un templo budista enclavado en Bodh Gaya, lugar donde, seg&#250;n la tradici&#243;n budista, Siddhartha Gautama fue iluminado y se convirti&#243; en el Buda mientras meditaba bajo un &#225;rbol bodhi (Peepal). [PARAGRAPH:2]El emperador Ashoka construy&#243; el "trono dorado" en torno al a&#241;o 250 a. C., y con el tiempo se le fueron a&#241;adiendo muchos otros edificios y estatuas. En el siglo XII, el &#225;rea fue conquistada por los musulmanes y el templo fue saqueado y casi destruido. En el siglo XVI se fund&#243; un monasterio hind&#250;, a cuyo abad se otorg&#243; el control de las tierras del templo. [PARAGRAPH:2]M&#225;s tarde, la zona acab&#243; bajo control brit&#225;nico. En la d&#233;cada de 1880, los brit&#225;nicos iniciaron una restauraci&#243;n general del templo, en contra de los deseos expresos del abad hind&#250;. En la d&#233;cada de los 40 se entreg&#243; el lugar al estado, que lo administra con el consejo de un comit&#233; formado por budistas de todo el mundo. [PARAGRAPH:2]Un edificio de belleza y grandeza notables, el Mahabodhi es una de las construcciones de ladrillo m&#225;s antiguas de la India. Construido sobre las ruinas de un "stupa" a&#250;n m&#225;s antiguo, este templo est&#225; formado por una gran torre central rodeada por cuatro m&#225;s peque&#241;as. La torre central mide casi veinte pies de altura. El edificio est&#225; cubierto de bonitas y coloridas pilastras (falsas columnas) y arcos, muchos de los cuales contienen bajorrelieves. En su interior hay una gran estatua dorada de Buda. La estatua se encuentra en el mismo sitio donde, seg&#250;n la leyenda, estaba Buda cuando fue iluminado. [PARAGRAPH:2]Cerca del edificio hay un poderosos &#225;rbol de bodhi descendiente de aqu&#233;l bajo cuyas ramas alcanz&#243; la sabidur&#237;a Buda. El templo se encuentra enclavado en medio de un extenso complejo de templos m&#225;s peque&#241;os, estatuas y caminos que atraviesan hermosos parques y apacibles lagos. Tanto &#233;l como sus alrededores siguen siendo un foco de la religi&#243;n budista, y todos los a&#241;os acude gente de todas partes de mundo para honrar a Buda y maravillarse ante la belleza del Mahabodhi.</Spanish>
 	</TEXT>
-
 
 
 	<TEXT>

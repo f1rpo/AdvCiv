@@ -1132,7 +1132,6 @@ def format_aip_leader_index_type_pairs(index_type_pairs):
 	return ", ".join(["%d: %s" % (iLeader, leader_type) for iLeader, leader_type in index_type_pairs])
 
 
-
 def build_aip_predump_module_lines(leaders_info_cached, leader_count_line, excluded_leader_types, leader_index_type_line, is_emoji_enabled, is_raw_xml_names, source_header_lines, b_include_file_header):
 	lines = []
 	if b_include_file_header:

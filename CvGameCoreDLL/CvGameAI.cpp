@@ -13,7 +13,6 @@
 #define CVGAME_INSTANCE_FOR_RNG (*this) // </advc.007c>
 
 
-
 CvGameAI::CvGameAI()
 {
 	m_arExclusiveRadiusWeight.resize(3);

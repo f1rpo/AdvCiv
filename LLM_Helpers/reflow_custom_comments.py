@@ -88,8 +88,6 @@ def path_is_skipped(path: Path, root: Path) -> bool:
     return False
 
 
-
-
 def display_path(path: Path, root: Path) -> str:
     try:
         return str(path.relative_to(root))

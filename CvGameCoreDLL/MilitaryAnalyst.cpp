@@ -11,7 +11,6 @@
 #include "BBAILog.h" // <!-- custom: Cached SAS_BBAI UWAI subsystem levels pre-gate inherited diagnostic work before argument/setup cost. See KI#505.3. (ChatGPT-5.6-Sol) -->
 
 
-
 // empty sets (static)
 CitySet MilitaryAnalyst::m_emptyCitySet;
 PlyrSet MilitaryAnalyst::m_emptyPlayerSet;

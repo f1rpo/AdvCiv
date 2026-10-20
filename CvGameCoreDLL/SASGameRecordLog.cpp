@@ -7496,7 +7496,6 @@ static void logSASGameRecordTeamSnapshot(TeamTypes eTeam, int iGameTurn)
 }
 
 
-
 static CvString getSASGameRecordCivicList(CvPlayer const& kPlayer)
 {
 	CvString szList;

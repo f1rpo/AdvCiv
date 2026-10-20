@@ -7695,7 +7695,6 @@ int CvPlayer::getReligionAnarchyLength(/* advc.132: */ bool ignoreGoldenAge) con
 }
 
 
-
 int CvPlayer::unitsRequiredForGoldenAge() const
 {
 	static int const iBASE_GOLDEN_AGE_UNITS = GC.getDefineINT("BASE_GOLDEN_AGE_UNITS"); // advc.opt

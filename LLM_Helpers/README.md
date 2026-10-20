@@ -22,6 +22,7 @@ Always review diffs before committing generated source changes.
 ## Menu
 
 - [Inherited map-script reference sources](#inherited-map-script-reference-sources)
+- [Source blank-line cleanup](#source-blank-line-cleanup)
 - [Custom-comment logical reflow](#custom-comment-logical-reflow)
   - [`reflow_custom_comments.py`](#reflow_custom_commentspy)
 - [Python source cleanup helpers](#python-source-cleanup-helpers)
@@ -84,6 +85,20 @@ Always review diffs before committing generated source changes.
 - Do not run formatting, lint autofixes or line-ending normalization over the corpus.
 - Ordinary player/GitHub Download ZIP archives and generated historical patches exclude it, while `make_light_source_zip.py` includes the current files for ChatGPT/code-agent archaeology.
 - Preserve upstream credits/readmes and treat hosting/authorship/licensing metadata as upstream provenance rather than AdvCiv-SAS ownership.
+
+## Source blank-line cleanup
+
+[`trim_source_blank_lines.py`](/LLM_Helpers/trim_source_blank_lines.py) previews or trims separators of three or more blank lines to two, using the source-provenance CI check's Python/C/C++/XML scope and literal/text protections.
+
+- SAS defines XML keeps its deliberate group spacing. Historical documents and context corpora are outside the source scope.
+- Preview is the default. `--apply` preserves original bytes except removed blank rows, backs up changed files outside the checkout by default, and leaves the Git index untouched.
+  - `--backup-dir PATH` selects another backup root; existing backup files are never overwritten.
+- Close Civ4 before applying changes to its Python/XML files, and wait for compilation to finish before rewriting C++ sources. Review the diff afterward; changed files may need the usual provenance headers or diagnostic revision maintenance.
+
+```powershell
+python LLM_Helpers/trim_source_blank_lines.py
+python LLM_Helpers/trim_source_blank_lines.py Assets/Python/CvUtil.py --apply
+```
 
 ## Custom-comment logical reflow
 

@@ -13432,7 +13432,6 @@ int CvCityAI::SAS_AI_directArtistCultureValuePercent() const
 }
 
 
-
 CvCityAI* CvCityAI::AI_getRouteToCity() const // advc.003u: return type was CvCity*
 {
 	return AI_getCity(m_routeToCity);
@@ -21387,7 +21386,6 @@ void CvCityAI::AI_stealPlots()
 		}
 	}
 }
-
 
 
 // original description (obsolete):

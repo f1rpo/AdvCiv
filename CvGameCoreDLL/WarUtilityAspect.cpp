@@ -176,7 +176,6 @@ char const* WarUtilityAspect::aspectName() const
 }
 
 
-
 scaled WarUtilityAspect::normalizeUtility(scaled rUtilityTeamOnTeam, TeamTypes eOther) const
 {
 	if (eOther == NO_TEAM)
