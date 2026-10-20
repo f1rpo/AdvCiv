@@ -607,6 +607,11 @@ Ordinary rows are submitted promptly through persistent read/write/delete-shared
 
 The check guards shared-sink presence, reader-sharing flags and the absence of physical-disk `FlushFileBuffers` calls or EXE-logger fallback. It does not prescribe argument lists, flag order, checkpoint statements or output-field spellings.
 
+The XML/PythonDbg modernization exposed an overly broad file-level EXE-logger ban: `logSASCiv4LegacyLogRow` shares `CvGameCoreUtils.cpp` with the owned writer but deliberately uses the inherited logger.
+
+- Only that bridge body is excluded from the EXE-call ban; the rest of the utility file and other publishers remain checked. The disk-flush ban still applies inside the bridge.
+- [Checker fixtures](tests/diagnostics/test_diagnostic_log_safety.py) cover both the allowed bridge and rejected fallbacks, including comment/string braces and malformed boundaries.
+
 - It does not execute native writes or prove bounded memory/error recovery. The local [diagnostic writer harness](/tests/README.md#diagnostic-writer) exercises the actual writer with normal and injected-failure I/O; it also checks prompt visibility and survival of final rows after abrupt process termination. Game lifecycle and autoplay performance require runtime testing.
 - Already-formatted text is written directly, so literal `%` needs no EXE-boundary doubling; producer format strings still use ordinary printf escaping (`%%` for one intended `%`).
 

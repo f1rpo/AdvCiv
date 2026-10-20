@@ -30,7 +30,7 @@ bool CvXMLLoadUtility::ReadGlobalDefines(TCHAR const* szXMLFileName, CvCacheObje
 	// advc: Handle successful read upfront
 	if (gDLL->cacheRead(cache, szXMLFileName)) // src data file name
 	{
-		logMsg("Read GlobalDefines from cache");
+		logMsg("XML_CACHE", "action=READ outcome=SUCCEEDED target=GlobalDefines");
 		return true;
 	}
 	#endif
@@ -159,7 +159,7 @@ bool CvXMLLoadUtility::ReadGlobalDefines(TCHAR const* szXMLFileName, CvCacheObje
 				sprintf(szMessage, "Failed writing to global defines cache.\nCurrent XML file is: %s", GC.getCurrentXMLFile().GetCString());
 				gDLL->MessageBox(szMessage, "XML Caching Error");
 			}
-			else logMsg("Wrote GlobalDefines to cache");
+			else logMsg("XML_CACHE", "action=WRITE outcome=SUCCEEDED target=GlobalDefines");
 			#endif
 		}
 	}
@@ -498,7 +498,7 @@ bool CvXMLLoadUtility::LoadGlobalText()
 	CvCacheObject* cache = gDLL->createGlobalTextCacheObject("GlobalText.dat");	// cache file name
 	if (gDLL->cacheRead(cache))
 	{
-		logMsg("Read GlobalText from cache");
+		logMsg("XML_CACHE", "action=READ outcome=SUCCEEDED target=GlobalText");
 		gDLL->destroyCache(cache);
 		return true;
 	}
@@ -624,7 +624,7 @@ bool CvXMLLoadUtility::LoadGlobalText()
 			gDLL->MessageBox(szMessage, "XML Caching Error");
 		}
 		if (bOk)
-			logMsg("Wrote GlobalText to cache");
+			logMsg("XML_CACHE", "action=WRITE outcome=SUCCEEDED target=GlobalText");
 	gDLL->destroyCache(cache);
 	#endif
 	return true;
@@ -946,7 +946,7 @@ bool CvXMLLoadUtility::LoadThroneRoomInfo()
 void CvXMLLoadUtility::SetGlobalStringArray(CvString **ppszString, char* szTagName, int* iNumVals, bool bUseEnum)
 {
 	PROFILE_FUNC();
-	logMsg("SetGlobalStringArray %s\n", szTagName);
+	logMsg("XML_GLOBAL_STRING_ARRAY", "tag=%s\n", szTagName);
 
 	CvString* pszString = NULL; // checked at the end of the function
 
@@ -1018,7 +1018,7 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 		(With CvActionInfo::getSubType exported from the DLL, the approach of
 		explicitly storing (sub-)type IDs can't easily be abandoned.) */
 	PROFILE_FUNC();
-	logMsg("SetGlobalActionInfo\n");
+	logMsg("XML_GLOBAL_ACTION_INFO", "action=SET\n");
 
 	/*	Originally named "iOldActionInfos". Not sure what this is for, modular loading?
 		Normally 0 (no action infos yet). */
@@ -1137,7 +1137,7 @@ void CvXMLLoadUtility::SetGlobalActionInfo()
 void CvXMLLoadUtility::SetGlobalAnimationPathInfo(CvAnimationPathInfo** ppAnimationPathInfo, char* szTagName, int* iNumVals)
 {
 	PROFILE_FUNC();
-	logMsg("SetGlobalAnimationPathInfo %s\n", szTagName);
+	logMsg("XML_GLOBAL_ANIMATION_PATH_INFO", "tag=%s\n", szTagName);
 
 	CvAnimationPathInfo * pAnimPathInfo = NULL;	// local pointer to the domain info memory
 
@@ -1211,7 +1211,7 @@ void CvXMLLoadUtility::SetGlobalAnimationPathInfo(CvAnimationPathInfo** ppAnimat
 void CvXMLLoadUtility::SetGameText(const char* szTextGroup, const char* szTagName, std::string const& sLanguageName) // K-Mod
 {
 	PROFILE_FUNC();
-	logMsg("SetGameText %s\n", szTagName);
+	logMsg("XML_GAME_TEXT", "tag=%s\n", szTagName);
 
 	if (gDLL->getXMLIFace()->LocateNode(m_pFXml, szTextGroup)) // Get the Text Group 1st
 	{
@@ -1248,7 +1248,7 @@ void CvXMLLoadUtility::SetGlobalClassInfo(std::vector<T*>& aInfos, const char* s
 	char szLog[256];
 	sprintf(szLog, "SetGlobalClassInfo (%s)", szTagName);
 	PROFILE(szLog);
-	logMsg(szLog);
+	logMsg("XML_GLOBAL_CLASS_INFO", "tag=%s pass=%d final=%d", szTagName, (bPassTwo ? 2 : 1), bFinalCall);
 
 	// locate the tag name in the xml file
 	if (!gDLL->getXMLIFace()->LocateNode(m_pFXml, szTagName))
@@ -1353,7 +1353,7 @@ void CvXMLLoadUtility::SetDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInfo
 	char szLog[256];
 	sprintf(szLog, "SetDiplomacyInfo (%s)", szTagName);
 	PROFILE(szLog);
-	logMsg(szLog);
+	logMsg("XML_DIPLOMACY_INFO", "tag=%s", szTagName);
 
 	// ocate the tag name in the xml file
 	if (!gDLL->getXMLIFace()->LocateNode(m_pFXml, szTagName))
@@ -1401,7 +1401,7 @@ void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos, const char* 
 		pCache = (gDLL->*pArgFunction)(CvString::format("%s.dat", szFileRoot));	// cache file name
 		if (gDLL->cacheRead(pCache, CvString::format("xml\\\\%s\\\\%s.xml", szFileDirectory, szFileRoot)))
 		{
-			logMsg("Read %s from cache", szFileDirectory);
+			logMsg("XML_CACHE", "action=READ outcome=SUCCEEDED target=%s", szFileDirectory);
 			bLoaded = true;
 			bWriteCache = false;
 		}
@@ -1494,7 +1494,7 @@ void CvXMLLoadUtility::LoadGlobalClassInfo(std::vector<T*>& aInfos, const char* 
 						gDLL->MessageBox(szMessage, "XML Caching Error");
 					}
 					if (bOk)
-						logMsg("Wrote %s to cache", szFileDirectory);
+						logMsg("XML_CACHE", "action=WRITE outcome=SUCCEEDED target=%s", szFileDirectory);
 				}
 			#endif
 		}
@@ -1517,7 +1517,7 @@ void CvXMLLoadUtility::LoadDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInf
 		pCache = (gDLL->*pArgFunction)(CvString::format("%s.dat", szFileRoot));	// cache file name
 		if (gDLL->cacheRead(pCache, CvString::format("xml\\\\%s\\\\%s.xml", szFileDirectory, szFileRoot)))
 		{
-			logMsg("Read %s from cache", szFileDirectory);
+			logMsg("XML_CACHE", "action=READ outcome=SUCCEEDED target=%s", szFileDirectory);
 			bLoaded = true;
 			bWriteCache = false;
 		}
@@ -1566,7 +1566,7 @@ void CvXMLLoadUtility::LoadDiplomacyInfo(std::vector<CvDiplomacyInfo*>& DiploInf
 						gDLL->MessageBox(szMessage, "XML Caching Error");
 					}
 					if (bOk)
-						logMsg("Wrote %s to cache", szFileDirectory);
+						logMsg("XML_CACHE", "action=WRITE outcome=SUCCEEDED target=%s", szFileDirectory);
 				}
 			#endif
 		}

@@ -54,6 +54,15 @@ CvString createSASUtcTimestampMilliseconds()
 	return formatSASUtcSystemTime(kUtcTime);
 }
 
+// <!-- custom: Centralize the compact UTC + record prefix for DLL-owned rows in inherited fixed-name logs; NULL szMessage becomes an empty payload.
+// Forward bEngineTimestamp unchanged to gDLL->logMsg so engine logs such as xml.log can retain the native elapsed prefix while direct PythonDbg rows can suppress it. (ChatGPT-5.6-Sol) -->
+void logSASCiv4LegacyLogRow(char const* szLogFileName, char const* szRecord, char const* szMessage, bool bEngineTimestamp)
+{
+	CvString szRow;
+	szRow.Format("utc=%s record=%s %s", createSASUtcTimestampMilliseconds().GetCString(), szRecord, (szMessage == NULL ? "" : szMessage));
+	gDLL->logMsg(szLogFileName, szRow.c_str(), false, bEngineTimestamp);
+}
+
 // <!-- custom: SAS diagnostic wall-duration fields use timeGetTime rather than calendar time so OS clock corrections cannot change elapsed durations.
 // Centralize sampling and unsigned subtraction; modulo subtraction also preserves the established single-rollover behavior of the Win32 32-bit millisecond counter. (ChatGPT-5.6-Sol) -->
 uint getSASMonotonicMilliseconds()

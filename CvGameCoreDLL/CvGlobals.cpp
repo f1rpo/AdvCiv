@@ -1,4 +1,6 @@
 // advc: Rearranged a lot of things in this file
+// <!-- custom: The precompiled header already supplies CvGameCoreUtils.h for the structured legacy-log helper.
+// A redundant direct include with its trailing rationale reproduced a fastdep access violation here; removing it, retaining only the bare include or moving the rationale above the include passed. See KI#38.5. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 #include "CvGameCoreDLL.h"
 #include "CvGlobals.h"
 #include "FVariableSystem.h"
@@ -1118,7 +1120,9 @@ void CvGlobals::handleUnknownTypeString(char const* szType, bool bHideAssert, bo
 		{
 			char const* szCurrentXMLFile = getCurrentXMLFile().GetCString();
 			szError.Format("type %s not found, Current XML file is: %s", szType, szCurrentXMLFile);
-			gDLL->logMsg("xml.log", szError);
+			CvString szLogFields;
+			szLogFields.Format("type=%s currentFile=%s", szType, szCurrentXMLFile);
+			logSASCiv4LegacyLogRow("xml.log", "XML_UNKNOWN_TYPE", szLogFields.c_str());
 		}
 		else szError.Format("type %s not found", szType); // advc.006
 		FErrorMsg(szError.c_str());

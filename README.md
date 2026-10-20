@@ -160,8 +160,8 @@ For license and reuse terms, including project-specific restrictions and express
 &emsp;[Light-source ZIP](/README.md#light-source-zip)\
 &emsp;[Repository](/README.md#repository)\
 [Logging and diagnostics](/README.md#logging-and-diagnostics)\
-&emsp;[Python diagnostic modernization](#python-diagnostic-modernization)\
-&emsp;[Logging reference](#logging-reference)\
+&emsp;[Logging inventory](#logging-inventory)\
+&emsp;[Python and engine diagnostic logs](#python-and-engine-diagnostic-logs)\
 &emsp;[DLL Logging](/README.md#dll-logging)\
 &emsp;&emsp;[Versioning](/README.md#versioning)\
 &emsp;&emsp;&emsp;[If .git does exist (dev)](#if-git-does-exist-dev)\
@@ -1167,25 +1167,9 @@ Very large/generated/binary/redundant historical payloads are summarized instead
 
 ## Logging and diagnostics
 
-### Python diagnostic modernization
+### Logging inventory
 
-The Python diagnostic modernization combines UTC timestamps, readable identities and consistent `record=` fields so messages are easier to search and correlate. For example, the same `PythonDbg.log` screen notification becomes identifiable without looking up screen number 99 (reconstructed formats using captured data):
-
-Before:
-
-```text
-99 SCREEN TURNED ON
-```
-
-After:
-
-```text
-2026-10-20T08:16:29.114Z record=SCREEN_TURNED_ON screenId=99 screenType=CvScreenEnums.MAIN_INTERFACE
-```
-
-### Logging reference
-
-The [README_Logging_Inventory.md](/_1_AdvCiv-SAS/Docs/README_Logging_Inventory.md) documents this work with matched Before/After samples, file controls and limits, including startup/EXE output that bypasses Python timestamping.
+The [README_Logging_Inventory.md](/_1_AdvCiv-SAS/Docs/README_Logging_Inventory.md) inventories Civ4 and mod logs, their purposes, controls and ownership, with matched Before/After samples of SAS changes and explicit startup/EXE limits.
 
 It also explains files such as `PythonDbg.log` (prints/debug messages), `PythonErr.log` (tracebacks), `PythonErr2.log` (including module-loading output) and `xml.log` (XML loading/errors).
 
@@ -1200,6 +1184,26 @@ Other examples covered there include:
 - `SASRuntimeStatus.json` / `SASRuntimeHistory_*.jsonl` for runtime observations, and compiler `AdvCiv.log` / `CvGameCoreDLL.dll.build.json` for build progress/results, linked to their dedicated guides and tracked example captures.
 
 It also traces outputs such as `bull.log` (BULL), `C2C.log` (Caveman2Cosmos) and `MLF.log` (modular XML loading), and marks uncertain cases such as `ResourceAllocation.log`.
+
+### Python and engine diagnostic logs
+
+UTC timestamps, readable identities and consistent `record=` fields make Python diagnostic output and DLL-written `xml.log` rows easier to search and correlate.
+
+For example, the same `PythonDbg.log` screen notification becomes identifiable without looking up screen number 99 (reconstructed formats using captured data):
+
+Before:
+
+```log
+99 SCREEN TURNED ON
+```
+
+After:
+
+```log
+2026-10-20T08:16:29.114Z record=SCREEN_TURNED_ON screenId=99 screenType=CvScreenEnums.MAIN_INTERFACE
+```
+
+DLL-written `xml.log` rows retain native elapsed timing and add UTC plus fields such as `record=XML_FILE_LOAD phase=END outcome=SUCCEEDED`. The direct C++ Starting Position Iteration notice in `PythonDbg.log` is formatted too; other EXE-written rows keep their original formats.
 
 ### DLL Logging
 
@@ -1414,7 +1418,7 @@ Brief header preview (selected fields from the same October 9, 2026 capture):
 GAME_RECORD_SAVE_LOADED seq=1 processUtc=20261009T160524Z utc=20261009T160535Z turn=0 activeCivilization=CIVILIZATION_INCA
 ```
 
-See the [full SASGameRecord header and its context](/_1_AdvCiv-SAS/Docs/README_Logging_Inventory.md#sasgamerecord-session-header-example); the reference also includes a [30-row gameplay excerpt](/_1_AdvCiv-SAS/Docs/README_Logging_Inventory.md#sasgamerecord-captured-example).
+See the [full SASGameRecord header and its context](/_1_AdvCiv-SAS/Docs/README_Logging_Inventory.md#sasgamerecord-session-header-example); the inventory also includes a [30-row gameplay excerpt](/_1_AdvCiv-SAS/Docs/README_Logging_Inventory.md#sasgamerecord-captured-example).
 
 <img src="./_1_AdvCiv-SAS/Images/LLM/SASGameRecord_example.PNG" alt="SASGameRecord_example.PNG" width="250"></img>
 

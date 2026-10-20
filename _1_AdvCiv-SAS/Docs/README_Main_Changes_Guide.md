@@ -33,6 +33,9 @@ Note: The main changes guide serves as an index that covers concisely most AdvCi
 &emsp;[System - Misc](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#system---misc)\
 &emsp;[Code/Performance optimizations](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#codeperformance-optimizations)\
 &emsp;[Logging](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#logging)\
+&emsp;&emsp;[Logging inventory](#logging-inventory)\
+&emsp;&emsp;[Runtime status and history](#runtime-status-and-history)\
+&emsp;&emsp;[Python and engine diagnostic logs](#python-and-engine-diagnostic-logs)\
 &emsp;&emsp;[Logging (Common)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#logging-common)\
 &emsp;&emsp;[BBAI log](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#bbai-log)\
 &emsp;&emsp;[SASGameRecord log](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#sasgamerecord-log)\
@@ -481,7 +484,11 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 
 ### Logging
 
-For log-file examples, INI controls and historical/mod origins, see the [root README's logging overview](/README.md#dll-logging), which links the detailed reference and Before/After samples.
+#### Logging inventory
+
+[README_Logging_Inventory.md](README_Logging_Inventory.md) covers log purposes, controls, historical/mod origins and matched Before/After samples of SAS changes. The [root README's logging inventory overview](/README.md#logging-inventory) introduces the covered files.
+
+#### Runtime status and history
 
 - (Requires AdvCiv-SAS 6642+) **Optional external-agent runtime status:** lets agents check the latest reported game/session/autoplay state without searching historical logs. `SAS_RUNTIME_STATUS_ENABLE=1` maintains `Logs/SASRuntimeStatus.json` independently from BBAI/SASGameRecord logging; the shipped default is 0.
   - Both runtime files report one compiled recorder revision, independent of SASGameRecord; its [revision history](/_1_AdvCiv-SAS/Docs/revisions/SASRuntime.md) explains the implementation changes.
@@ -525,12 +532,25 @@ For log-file examples, INI controls and historical/mod origins, see the [root RE
     - A reader that catches the tiny overwrite in progress should retry malformed/partial JSON.
   - Save filenames/paths, user names and free text are not written. Historical advisor/tab/Sevopedia/control interaction is already available through the existing level-2+ `SAS_GAME_RECORD_ACTION_TRACE_ENABLE` trace, so runtime status deliberately does not duplicate a high-volume clickstream.
 
-#### Logging (Common)
+#### Python and engine diagnostic logs
 
+- (Requires AdvCiv-SAS 6652+) **Structured DLL-written legacy diagnostics:** `xml.log` now pairs its native elapsed-time prefix with UTC timestamps and searchable `record=` fields, making XML loading, cache activity and type errors easier to identify and correlate with other logs.
+  - File-load rows identify `phase=BEGIN` or `phase=END`, the path and final outcome; other records identify setup stages and unknown XML types. The direct C++ Starting Position Iteration notice in `PythonDbg.log` also receives UTC and `record=STARTING_POSITION_ITERATION`, since it bypasses the Python stream formatter.
+  - These changes cover DLL-controlled rows. EXE-owned writers retain their formats; see [README_Logging_Inventory.md](README_Logging_Inventory.md#before-and-after-shared-python-log-timestamps) for ownership details and captured Before/After examples.
 - (Requires AdvCiv-SAS 6648+) **Python diagnostic modernization:** building on UTC timestamps and readable screen/font identities, consistent `record=` fields make messages easier to find and connect to game activity. This replaces vague notices and bare numbers with explicit record types and named values.
   - The same `PythonDbg.log` screen notification before and after the modernization (reconstructed formats using captured data):
-    - Before: `99 SCREEN TURNED ON`
-    - After: `2026-10-20T08:16:29.114Z record=SCREEN_TURNED_ON screenId=99 screenType=CvScreenEnums.MAIN_INTERFACE`
+    - Before:
+
+      ```log
+      99 SCREEN TURNED ON
+      ```
+
+    - After:
+
+      ```log
+      2026-10-20T08:16:29.114Z record=SCREEN_TURNED_ON screenId=99 screenType=CvScreenEnums.MAIN_INTERFACE
+      ```
+
   - Other records include `record=SCREEN_OFF` and `record=WB_BRUSH_SELECTED`, with the previous screen or brush mode identified.
   - Screen names come from the shared catalog in `CvScreenEnums.py`, including Sevopedia IDs moved from `SevoScreenEnums.py`; the lookup distinguishes vanilla Civilopedia and Sevopedia pages where IDs overlap. See [Code/Performance optimizations](#codeperformance-optimizations) for the consolidation.
   - Font initialization identifies religion/holy-city glyphs with XML types and character codes.
@@ -541,6 +561,9 @@ For log-file examples, INI controls and historical/mod origins, see the [root RE
   - Shared stdout/stderr formatting now adds the UTC date and milliseconds to Python-written rows in files such as `PythonDbg.log` and `PythonErr2.log`, including multiline error text passing through these streams. The DLL supplies the Windows clock because the embedded Python wall-clock readings stayed fixed during a measured game trial.
   - Existing BUG log levels and its timestamp option remain in control; blank rows and the copyable leader-cache dump are preserved. Early startup and direct EXE writes bypass the Python streams; engine logs such as `app.log` and `audio.log` keep their existing formats.
   - See the [README_Logging_Inventory.md](README_Logging_Inventory.md) for file roles, historical/mod origins, enabling conditions, runtime start/end evidence and captured per-file Before/After examples.
+
+#### Logging (Common)
+
 - (Requires AdvCiv-SAS 6641+) **Shared diagnostic-writer health:** SASGameRecord records one compact `GAME_RECORD_DIAGNOSTIC_WRITER` snapshot at completed-turn checkpoints and session finalization.
   - Reports current/peak pending text, the current blocked-file count, output failures/retries and dropped output, plus process-lifetime bytes successfully written for SASGameRecord and BBAI.
   - One health row per completed game turn helps locate when backlog, failures or loss first appear; there is no health row per BBAI message. A final snapshot is recorded at session finalization.

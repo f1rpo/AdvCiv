@@ -451,7 +451,8 @@ private:
 	};
 	static void errorMessage(char const* szMessage, XMLErrorTypes eErrType = GENERAL_XML_ERROR);
 	// </advc.006g>
-	void logMsg(char* format, ...);
+	// <!-- custom: Added szRecord so each DLL-controlled xml.log row supplies one stable XML_* record name; format and its variadic arguments retain the inherited printf-style payload contract. (ChatGPT-5.6-Sol) -->
+	void logMsg(char const* szRecord, char* format, ...);
 };
 
 // Size 20 also seems OK, 28 definitely not, causes Wine to crash.

@@ -70,6 +70,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#38.2 - (Weird DLL XML errors at launch, solved by recompiling) The exact same DLL (cosmic ray 2? Or something else maybe or whatever maybe)](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-38.2)\
 [KI#38.3 - (Improved) Parallel Debug-opt compilation used excessive CPU for a small time saving](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-38.3)\
 [KI#38.4 - (Fixed XML launch failure; confirmed the previous SAS define sentinel/guard is validated) UTF-8 BOM prevented SAS GlobalDefines from loading](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-38.4)\
+[KI#38.5 - (Fixed/Diagnosed DLL build-tooling defect) fastdep access-violated on a redundant include with a trailing custom comment](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-38.5)\
 [KI#39 - (Seemingly fixed or enhanced) Make AI workers move sooner to City B or City C or such, and vice versa, if current city is already improved enough and don't need to be over improved, while other cities are not improved enough and would much rather need it](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-39)\
 [KI#40 - (Seemingly fixed / addressed) Tremendous/Major Plot allocation improvement 2: If we are high in happiness, favour food tiles much more, and hammer tiles much less if happiness is really high (favour growth dynamically and plot allocation of these the more we can afford it), even if production is slightly reduced short term as a result, it auto corrects at high happiness, with seemingly much stronger AI and developped cities as a result (excluded if food is production (e.g. worker, settler, etc))](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-40)\
 [KI#41 - (Seemingly fixed) Beyond Tremendously Improved AI worker mobility, flexibility, and reliability, now favouring minimal big city improvement (come back to it later but don't delay improving smaller ones), quick moving to smaller ones, and spending longer to improve smaller ones as they grow fast, as well as being braver in our own cultural borders or moving to other cities needing improvements rather than being parked in current city and such other changes to increase AI efficiency reliably, and other changes if any thanks to chatgpt 5 and me too](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-41)\
@@ -3190,6 +3191,100 @@ The file then passed ordinary XML parsing and the repository launch-guard sentin
 This was an accidental file-encoding/configuration failure rather than a DLL or gameplay defect, and no DLL rebuild is needed.
 
 Fixed and documented with the help of GPT-5.6-Sol, thanks.
+
+<a id="ki-38.5"></a>
+
+## KI#38.5 - (Fixed/Diagnosed DLL build-tooling defect) fastdep access-violated on a redundant include with a trailing custom comment
+
+On 2026-10-20, while testing the DLL-controlled legacy-log modernization, Debug-opt failed before any C++ compilation. `nmake source_list` succeeded, then `nmake fastdep` crashed its old dependency scanner with Windows access-violation code `0xC0000005`; `cl.exe` never ran.
+
+This belongs near KI#38 because it initially looked like another mysterious build failure, but unlike KI#38 and KI#38.2 it became reproducible and source-layout-specific rather than remaining an unexplained transient compile/binary problem.
+
+The build report recorded no pre-existing Debug-opt target directory before the request. The local `bin\fastdep.exe` also matched the known reference binary, so stale target intermediates and executable corruption did not explain this reproduction.
+
+The captured failing Visual Studio build output is preserved verbatim below:
+
+```log
+Build started 20/10/2026 18:49:32.
+     1>Project "C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\Project\AdvCiv.vcxproj" on node 2 (build target(s)).
+     1>Build:
+         powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\Project\build_with_report.ps1" -Configuration "Debug-opt" -Request BUILD -IdeBuild
+         Since previous completed build attempt (2026-10-19T13:30:41.102Z, SUCCEEDED): 20 source/project file changes (including timestamp-only changes).
+         Build input snapshot: 362 local source/project files; external toolchain/SDK inputs excluded.
+         Build report: C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\Project\Debug-opt\CvGameCoreDLL.dll.build.json
+         Started UTC: 2026-10-20T16:49:33.173Z
+         Configuration: Debug-opt; request: BUILD; branch: main; commit: bea5602778dc62056e8a58fb2c2264f66ac4cce5
+         Temporary artifacts before request: {"directoryPresent":false,"objectCount":0,"incompleteMarkerCount":0,"pchPresent":false,"pdbPresent":false}
+         Working-tree status relative to HEAD (staged + unstaged + untracked): A  .github/workflows/tests/source/test_legacy_log_modernization.py
+          M Assets/XML/GlobalDefines_advciv_sas.xml
+         M  CvGameCoreDLL/CvGameCoreUtils.cpp
+         M  CvGameCoreDLL/CvGameCoreUtils.h
+         M  CvGameCoreDLL/CvGlobals.cpp
+         M  CvGameCoreDLL/CvXMLLoadUtility.cpp
+         M  CvGameCoreDLL/CvXMLLoadUtility.h
+         M  CvGameCoreDLL/CvXMLLoadUtilitySet.cpp
+         M  CvGameCoreDLL/StartingPositionIteration.cpp
+         M  _1_AdvCiv-SAS/Docs/README_Logging_Inventory.md
+         Command: nmake source_list /NOLOGO
+         Building source list
+         Command: nmake fastdep /NOLOGO
+         Running fastdep
+     1>NMAKE : fatal error U1077: 'bin\fastdep.exe' : return code '0xc0000005'
+         Stop.
+         During this build attempt: 362 files before, 362 after; 362 unchanged; 0 changes (including timestamp-only changes).
+         Ended UTC: 2026-10-20T16:49:36.936Z; result: FAILED; exit code: 2; duration milliseconds: 3747
+         Distinct coded diagnostic lines: warnings=0; errors=1
+         Build output log: C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\Project\Debug-opt\AdvCiv.log
+         Build details (JSON): C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\Project\Debug-opt\CvGameCoreDLL.dll.build.json
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\Microsoft.MakeFile.Targets(38,5): error MSB3073: The command "powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\Project\build_with_report.ps1" -Configuration "Debug-opt" -Request BUILD -IdeBuild" exited with code 2.
+     1>Done Building Project "C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword\Mods\AdvCiv-SAS\CvGameCoreDLL\Project\AdvCiv.vcxproj" (build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:06.51
+```
+
+Isolating the changed translation units identified `CvGlobals.cpp`. The logging candidate had added this otherwise redundant dependency explicitly:
+
+```cpp
+#include "CvGameCoreUtils.h" // <!-- custom: ... -->
+```
+
+The exact include with its trailing custom rationale reproduced the crash. Removing the line passed. Restoring only the bare include passed. Moving the same custom rationale onto the preceding comment line also passed.
+
+Therefore the observed trigger was the source layout consumed by `fastdep`, not the included header's semantics by themselves. This does not establish the scanner's internal parser defect or imply that every trailing include comment is unsafe.
+
+`CvGameCoreDLL.h` already exposes `CvGameCoreUtils.h`, so the clean resolution was to remove that redundant direct include from `CvGlobals.cpp` and the two equivalent additions in `CvXMLLoadUtility.cpp` and `StartingPositionIteration.cpp`.
+
+Only `CvGlobals.cpp` was independently isolated as a reproducer; the other two removals avoid carrying the unnecessary pattern and dependency noise. Relevant source comments link back here with `See KI#38.5.`.
+
+After those changes, the same Debug-opt path passed `source_list`, `fastdep`, full compilation and linking. The captured successful ending was:
+
+```log
+         Command: nmake source_list /NOLOGO
+         Building source list
+         Command: nmake fastdep /NOLOGO
+         Running fastdep
+         Command: nmake dll /NOLOGO
+         ...
+         Linking DLL
+            Creating library temp_files\Debug-opt\CvGameCoreDLL.lib and object temp_files\Debug-opt\CvGameCoreDLL.exp
+         COPY "temp_files\Debug-opt\CvGameCoreDLL.dll" "Debug-opt\CvGameCoreDLL.dll"
+                 1 fichier(s) copié(s).
+         During this build attempt: 362 files before, 362 after; 362 unchanged; 0 changes (including timestamp-only changes).
+         Ended UTC: 2026-10-20T17:07:08.800Z; result: SUCCEEDED; exit code: 0; duration milliseconds: 120004
+         Distinct coded diagnostic lines: warnings=0; errors=0
+
+Build succeeded.
+
+Time Elapsed 00:02:02.51
+```
+
+The practical debugging rule is therefore narrower than "replace fastdep" or "all inline include comments are dangerous": when `fastdep` itself access-violates before `cl.exe`, isolate the failing translation unit and exact source layout first.
+
+See the [DLL Compilation Guide](/_1_AdvCiv-SAS/Docs/Modding_Ressources/README_DLL_Compilation.md#dependency-scanner-access-violations) for the concise operational reminder.
+
+Diagnosed and fixed with GPT-6.1-Sol (Codex) and ChatGPT-5.6-Sol, thanks.
 
 <a id="ki-39"></a>
 

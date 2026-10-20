@@ -2,7 +2,14 @@
 
 **Authors (2026-10-19):** GPT-6.1-Sol (Codex); historical provenance research and rebase by ChatGPT-5.6-Sol. Minor review from Claude Sonnet 5.5: 2026-10-20.
 
-Use this inventory to locate diagnostic output, identify its writer or enabling conditions, and distinguish current SAS evidence from older or other-mod files.
+Use this inventory to locate diagnostic output, identify its writer or enabling conditions, distinguish current SAS evidence from older or other-mod files, and compare meaningful inherited/base behavior with current SAS behavior.
+
+**Editorial scope:** this is a canonical reference/inventory, not an iterative changelog.
+
+- Keep Before/After comparisons when they show a meaningful inherited/base/legacy -> current SAS difference or make a SAS enhancement easier to understand.
+- Treat the **After/current SAS** side as canonical; replace superseded intermediate SAS stages instead of stacking them as implementation chronology.
+- Keep step-by-step development history in Git, KIs or subsystem revision histories.
+- Retain historical details here when they explain provenance, ownership or compatibility, or help identify an older file/output someone may encounter.
 
 Dated snapshots below identify when local presence, counts, settings and file dates were inspected; they are not live status or a claim that every installation produces these files.
 
@@ -10,9 +17,11 @@ The EXE is closed source, mods can supply arbitrary filenames, and some outputs 
 
 ## Overview
 
-This inventory brings together game, AI, Python, engine and build diagnostics, including how SAS extends inherited output and adds new recorders. The file inventory and source references distinguish current writers from historical or other-mod output.
+This inventory brings together game, AI, Python, engine and build diagnostics, including what SAS changes relative to inherited output and which diagnostics SAS adds itself.
 
-- `PythonDbg.log` (debug messages), `PythonErr.log` (tracebacks), `PythonErr2.log` (including module-loading output) and `xml.log` (XML loading/errors); [Before/After samples](#before-and-after-shared-python-log-timestamps) show SAS's timestamp and readability changes, including their startup/EXE limits.
+The file inventory and source references distinguish current writers from historical or other-mod output. Matched Before/After sections show important inherited/current differences without preserving obsolete intermediate SAS stages.
+
+- `PythonDbg.log` (debug messages), `PythonErr.log` (tracebacks) and `PythonErr2.log` (including module-loading output) have captured [Before/After samples](#before-and-after-shared-python-log-timestamps); `xml.log` separately now has real pre-change and rebuilt-DLL After captures for its DLL-controlled UTC/`record=` modernization.
 - `BBAI_*.log`: [AI decision diagnostics](#bbai), including Settler behavior and formerly independent UWAI reports now merged into BBAI; explicitly covered producers include `MilitaryAnalyst`, `InvasionGraph`, `ArmamentForecast`, `WarEvaluator` and `WarUtilityAspect`.
 - SAS-created `SASGameRecord_*.log`: [gameplay/run context](#sasgamerecord), with a 30-row captured excerpt and a separate full example.
 - `RandLog` / `MessageLog` INI controls and RNG/message traces such as `MPLog.txt`, `MPLog<player>.log` and `ASyncRand.log`; `OOSLog - <player> - Turn <turn>.log` captures state after multiplayer desynchronization.
@@ -23,33 +32,33 @@ This inventory brings together game, AI, Python, engine and build diagnostics, i
 
 ## Historical lineage and ownership
 
-The files below do not belong to one logging framework. Civ4 accumulated several generations of engine, Python and mod diagnostics, and the distinction matters when deciding what SAS should modernize. Dates identify the earliest evidence established by this review, not necessarily the first private implementation.
+The files below do not belong to one logging framework. Civ4 accumulated several generations of engine, Python and mod diagnostics, and that lineage affects ownership, format and safe modernization. Dates identify the earliest documented evidence cited here, not necessarily the first private implementation.
 
 | Output / family | Producer / lineage | Established history and purpose | SAS ownership / modernization implication |
 | --- | --- | --- | --- |
-| `PythonDbg.log`, `PythonErr.log`, `PythonErr2.log` | Firaxis Civ4 Python/EXE logging | All three are documented together on 2005-10-28, during Civ4's launch period. `PythonDbg` is the general Python/debug stream; `PythonErr` carries Python exceptions; `PythonErr2` is a secondary startup/interpreter stream rather than simply another traceback file. | The EXE owns file creation and early startup output. SAS can consistently format Python-written rows after `SASPythonLogging` installs, but cannot reconstruct timestamps for earlier EXE-written rows. |
-| `app.log`, `init.log`, `initmgr.log`, `audio.log`, `resmgr.log`, `xml.log`, `LSystem.log`, `network-<port>.txt` | Firaxis engine | Native application, initialization, audio, resource, XML, LSystem and networking diagnostics. Old Civ4 troubleshooting captures already show the engine's numeric elapsed-time-style prefixes. | Treat as EXE-owned evidence: correlate/archive by run rather than attempting wholesale format changes. DLL calls may add specific rows to some files, notably `xml.log`, but SAS does not own the complete stream. |
+| `PythonDbg.log`, `PythonErr.log`, `PythonErr2.log` | Firaxis Civ4 Python/EXE logging, with occasional DLL-written `PythonDbg.log` rows | All three are documented together on 2005-10-28, during Civ4's launch period. `PythonDbg` is the general Python/debug stream; `PythonErr` carries Python exceptions; `PythonErr2` is a secondary startup/interpreter stream rather than simply another traceback file. | The EXE owns file creation and early startup output. SAS consistently formats Python-written rows after `SASPythonLogging` installs. The one current direct DLL-written Starting Position Iteration row in `PythonDbg.log` also uses SAS UTC/`record=` formatting. Earlier/direct EXE rows remain outside SAS control and cannot have their original timestamps reconstructed. |
+| `app.log`, `init.log`, `initmgr.log`, `audio.log`, `resmgr.log`, `xml.log`, `LSystem.log`, `network-<port>.txt` | Firaxis engine, with live DLL-origin rows in `xml.log` | Native application, initialization, audio, resource, XML, LSystem and networking diagnostics. Old Civ4 troubleshooting captures already show the engine's numeric elapsed-time-style prefixes. Current SAS source has live DLL writers for `xml.log`; `resmgr.log` retains only a commented-out inherited writer, and no live DLL writer was found for the other listed engine logs. | SAS adds millisecond UTC and stable `record=` fields only to the DLL-owned `xml.log` rows while preserving the native elapsed prefix. EXE-owned rows remain in their native format. Absence of a current DLL writer means SAS has no in-place row-format hook there today; it does not prove that future interception or integration would be impossible. |
 | `MPLog.txt`, optional `MPLog<player>.log`, `ASyncRand.log` | Firaxis message-control/RNG logging, later wrapped and extended by AdvCiv | The INI's message/random/synchronization logging family is old Civ4 machinery. AdvCiv introduced `CvDLLLogger` in 2019 to encapsulate the message-control log and supports per-player MP filenames; a 2020 AdvCiv fix made asynchronous RNG logging work correctly. | Preserve deterministic comparability. Session/header context can help, but wall-clock decoration must not obscure RNG or OOS comparisons. |
 | BUG Autolog | eotinb -> BUG -> K-Mod/AdvCiv/SAS | Publicly introduced on 2005-11-15 as a note-taking/gameplay journal "with succession games in mind". Its author explicitly distinguished it from Civ4's existing debug/error logs. | Preserve its human-readable journal role. It is configurable text/HTML output, not a machine diagnostic stream. |
 | BUG StatusDump | Ruff_Hi / BUG, inherited through K-Mod/AdvCiv | Current SAS loads the inherited `StatusDump` module. Ctrl+Alt+D invokes a support dump using the Autolog path and a `<player>_<year>.txt` filename. Large sections remain literal placeholders such as `Spinner stuff here`, `Player Cities here` and `AIs stuff here`; the older unused helper class still hardcodes `StatusDump.txt`. | Document as an incomplete inherited support facility, not as a dependable SAS diagnostic. Do not modernize it merely because it can emit a file. |
 | `BBAI.log` -> `BBAI_*.log` | Better BTS AI -> K-Mod -> AdvCiv -> SAS | Better BTS AI 0.82 publicly documented its AI decision logging system on 2009-11-05: the purpose was to expose major AI decisions each turn for analysis and improvement. The original file was `BBAI.log`. | SAS owns its current BBAI wrapper/filename/session improvements while preserving the log's AI-decision semantics. This is a legacy diagnostic worth modernizing, not replacing. |
 | `bull.log` | BULL, the DLL companion to BUG | BULL 1.0 was released with BUG 4.2 on 2009-11-15. Public BULL-derived sources use `bull.log` for DLL-side BUG/options diagnostics. No current SAS filename producer was found. | Treat the local file as historical/foreign evidence unless a current producer is established. |
 | `OOSLog - <player> - Turn <turn>.log` | Kek-Mod -> AdvCiv, with idea credited to Fall from Heaven 2 / Kael | Kek-Mod 0.23 (2019-03-18) included `OOSLogger`; AdvCiv merged it on 2019-03-27. Kek-Mod 0.25 (2019-07-16) then incorporated OOSLogger fixes from AdvCiv. It dumps deterministic game state when an OOS is detected. | Keep distinct from `MPLog`: OOSLog is a state snapshot for diffing after divergence, while MPLog helps trace message/RNG activity leading to divergence. |
-| `IFP_log.txt` | Inherited DLL internal profiler | Function/call timing profiler output; exact first introduction was not established by this review. | Keep numerical/data-oriented. Prefer run metadata or a header to per-row decoration. |
+| `IFP_log.txt` | Inherited DLL internal profiler | Function/call timing profiler output; earliest introduction not established. | Keep numerical/data-oriented. Prefer run metadata or a header to per-row decoration. |
 | `TSCProfile.log` | We the People profiler -> AdvCiv | AdvCiv imported Time Stamp Counter profiling code from We the People on 2019-11-05 and integrated it with Civ4 logging. | Keep profiler rows compact and machine-friendly; add provenance/header context only if needed. |
 | `StartingPos.log` | AdvCiv | AdvCiv's Starting Position Iteration work began publicly on 2020-05-27 as a fairer-start algorithm; this log traces that subsystem when enabled. | Algorithm trace, not general diagnostics. Header/run context is preferable to verbose per-line timestamps. |
 | `juggle_log.txt`, `combat.txt` | K-Mod/AdvCiv developer diagnostics | Compile-time specialist diagnostics: citizen-assignment efficiency and combat-odds verification respectively. Exact first introduction was not established here. | Preserve as experiment datasets. A small metadata header is safer than making every record verbose. |
-| `uwai<turn>.log` | AdvCiv `UWAIReport` | Separate war-evaluation reports, with Textile markup, turn-number filenames and report interval/threshold controls. Writers include `UWAIAgent`, `MilitaryAnalyst`, `InvasionGraph`, `ArmamentForecast`, `WarEvaluator` and `WarUtilityAspect`. | Historical in SAS: the standalone report files/logger were retired in favor of five independently controlled BBAI categories; see [UWAI report conversion](#uwai-report-conversion). |
+| `uwai<turn>.log` | AdvCiv `UWAIReport` | Separate war-evaluation reports, with Textile markup, turn-number filenames and report interval/threshold controls. Writers include `UWAIAgent`, `MilitaryAnalyst`, `InvasionGraph`, `ArmamentForecast`, `WarEvaluator` and `WarUtilityAspect`. | Historical in SAS: the standalone report files/logger were retired in favor of five independently controlled BBAI categories; see [UWAI diagnostics comparison](#uwai-diagnostics-standalone-advciv-reports-vs-current-bbai-records). |
 | `SASGameRecord_*.log` | AdvCiv-SAS | A new structured game record, complementing inherited BBAI decision traces with run context, periodic state, gameplay history and reproduction evidence. | Independent `SAS_GAME_RECORD_LOG_LEVEL`; its [revision history](revisions/SASGameRecord.md) documents recorder changes. |
 | `SASRuntimeStatus.json`, `SASRuntimeHistory_*.jsonl` | AdvCiv-SAS | Latest runtime observation and per-process transition history, including process/DLL identity and new/load/autoplay activity. | Independent `SAS_RUNTIME_STATUS_ENABLE`; its [revision history](revisions/SASRuntime.md) documents runtime-recorder changes. |
 
-### Modernization rule of thumb
+### Modernization principles
 
-Use ownership and purpose before changing a format:
+Format changes follow the ownership and purpose of each diagnostic family:
 
 - **SAS-controlled diagnostics:** direct timestamp, filename, session, provenance and flushing improvements are appropriate when they preserve semantics and performance.
 - **Shared Python streams:** SAS can improve rows that pass through its Python wrapper after installation, while clearly preserving the existence of EXE-written startup rows that bypass it.
-- **EXE-owned Firaxis logs:** prefer correlation, archival and run identity rather than pretending SAS controls the writer.
+- **EXE-owned Firaxis logs:** do not pretend SAS controls the writer. Modernize DLL-owned rows that deliberately share such a file, but keep EXE-owned rows and their native timing semantics explicit.
 - **RNG/OOS/profiling/experiment data:** preserve stable comparison-friendly rows; a header or sidecar is often better than per-row wall-clock text.
 - **Human journals such as Autolog:** optimize for readable gameplay notes, not grep-oriented diagnostic structure.
 - **Foreign/stale files from other mods:** identify their probable or verified origin, but do not add SAS support merely because they remain in the shared user folder.
@@ -84,7 +93,9 @@ The BBAI/SASGameRecord counts above describe timestamped files, not a requiremen
 
 ### Other diagnostic files present
 
-These files also exist, but no corresponding filename producer was found in current SAS source during this inventory. They should not be treated as evidence that SAS currently generates them; the shared Logs folder contains output from other mods and earlier runs. External-source identifications below describe matching public writers, not proof of which exact executable produced the local copy.
+These files exist locally, but no corresponding filename producer was found in current SAS source. They are not evidence that SAS currently generates them; the shared Logs folder can contain output from other mods and earlier runs.
+
+External-source identifications below describe matching public writers, not proof of which exact executable produced the local copy.
 
 | Filename | Present | Latest modified (UTC) | External lineage / interpretation |
 | --- | --- | --- | --- |
@@ -96,7 +107,7 @@ These files also exist, but no corresponding filename producer was found in curr
 | `CvTechInfo_readPass2.log` | Yes | 2026-08-13 15:58:53 | Producer not verified. The filename suggests second-pass tech-info XML diagnostics, but that interpretation must not be presented as established fact. |
 | `CvXMLLoadUtilitySetMod_MLFEnumerateFiles.log` | Yes | 2026-08-30 15:18:26 | Verified in WoC/RoM/C2C-style modular-loading source: traces directories/subdirectories while enumerating module XML files. |
 | `MLF.log` | Yes | 2026-08-30 15:18:20 | Verified Modular Loading Framework / modular-loading-control diagnostic, including module selection and load order. |
-| `ResourceAllocation.log` | Yes | 2026-06-04 08:12:21 | No trustworthy Civ4 producer was established in this review; retain as unknown foreign/historical residue. |
+| `ResourceAllocation.log` | Yes | 2026-06-04 08:12:21 | Producer unverified; retain as unknown foreign/historical residue. |
 | `XmlDependencyTypes.log` | Yes | 2026-08-13 15:58:54 | Verified in True Modular / RoM-derived XML loaders as dependency/type-resolution diagnostics. |
 | `bull.log` | Yes | 2026-09-13 08:31:55 | BULL/BUG DLL diagnostic lineage is verified in public source, but no current SAS producer was found. |
 
@@ -124,7 +135,7 @@ These are supported by current source or inherited documentation. Absence does n
 
 `debug_SPaH.log` appears only in a commented-out source statement; it is not an active output path. `Profile output.txt` likewise remains in a commented-out block in `TSCProfiler.cpp`; the active profiler writer uses `TSCProfile.log`. Obsolete commented filenames should not be presented as currently supported logs.
 
-### Outputs outside the user Logs folder
+## Outputs outside the user Logs folder
 
 | Output | Present | Meaning |
 | --- | --- | --- |
@@ -134,7 +145,7 @@ These are supported by current source or inherited documentation. Absence does n
 | `ThemeParseLog.txt` | Not inventoried in this snapshot | Historical BtS engine/theme parser diagnostic reported in the Beyond the Sword installation directory rather than the user `Logs` folder. It records `.thm` parsing/resource errors; some warnings can be benign. |
 | Crash dump files | Not inventoried here | Binary crash evidence, not a text log. `GenerateCrashDumps=1` is currently configured; actual dump location/presence needs separate inspection. |
 
-### Historical engine outputs not present in this snapshot
+## Historical engine outputs not present in this snapshot
 
 - `legacy.log` appears in old Civ4 troubleshooting captures with low-level graphics/resource compatibility messages such as legacy tree/asset use. It was not present in the inspected SAS Logs snapshot.
 - `Python.log` appears in some early Civ4 troubleshooting material, but its exact relationship to the persistent `PythonDbg.log`/error trio across versions was not established. Treat it as a historical variant, not an expected current SAS file.
@@ -162,7 +173,7 @@ At this inventory baseline, `BugUtil` added local `HH:MM:SS` prefixes to its own
 
 BBAI, SASGameRecord and runtime output already carry substantial instrumentation; timestamp/archival work should account for that existing context. Before/after comparisons should use real captured samples and distinguish timestamps emitted by a writer from observation times supplied by an external collector.
 
-## BBAI and SASGameRecord: SAS additions and modernization
+## SAS AI and game-record diagnostics
 
 BBAI and SASGameRecord answer different questions: BBAI explains detailed AI decisions and candidate calculations; SASGameRecord supplies the broader game/run history needed to interpret them. SASGameRecord is an additional SAS-created output, not a renamed inherited BBAI or UWAI report.
 
@@ -319,7 +330,7 @@ SETTLER_MISSION_DECISION turn=%d player=%d %S action=PUSH_MOVE_TO_FOUND reason=A
 
 The old line identifies only the destination. The SAS row also identifies the player/unit, turn, current and end-turn positions, selected-site value, path length, group/escort composition, danger and mission context, so it can explain how the Settler is reaching that target. Separate `SETTLER_PARKED` and `SETTLER_CITY_ESCORT_POOL` rows expose waiting and escort availability.
 
-#### UWAI report conversion
+#### UWAI diagnostics: standalone AdvCiv reports vs current BBAI records
 
 Base AdvCiv's `UWAIReport.cpp` wrote `uwai<turn>.log` through the EXE logger, with Textile-oriented headings and a conversion note. `UWAIAgent.cpp` selected report turns through `REPORT_INTERVAL` or a forced report, while utility thresholds selected additional detailed evaluation output; `DISABLE_UWAI_REPORT` was a compile-time suppression option.
 
@@ -421,6 +432,8 @@ EXE output produced before installation or written directly to its files bypasse
 
 Rows emitted before the stream wrapper is installed remain in the original log, with their text unchanged. Their exact per-row UTC times cannot be reconstructed from a later snapshot. Preserving a copy retains this evidence, but does not recover those missing timestamps.
 
+This is the boundary of the current Python interception, not a demonstrated impossibility of native interception. Capturing EXE-written startup or engine-log rows at emission would require a separate integration approach; its feasibility and cost were not established by these Python/DLL writer changes.
+
 When runtime recording is enabled, `SASRuntimeStatus.json` identifies the process through `processId` and `processStartUtc`, and the current new/load session through `sessionSerial`, `sessionKind` and `sessionStartedUtc`. `nativeReadyUtc` distinguishes session initialization from the game becoming ready.
 
 The companion `SASRuntimeHistory_*.jsonl` preserves dated transitions, including completed activity intervals and reset/exit observations. A clean shutdown publishes `PROCESS_EXIT` with `EXITED_CLEANLY`; its observation timestamp identifies the recorded shutdown boundary.
@@ -445,7 +458,7 @@ Other labelled families include `record=VICTORY_SCREEN_*` for vote-definition sc
 
 These labels describe existing diagnostics; game-end callbacks are distinct from process exit, and vote-definition scans are distinct from player choices.
 
-These message refinements concern Python-emitted output, chiefly `PythonDbg.log`. Shared stream timestamps also cover Python error output, but the engine-written `app.log` and `audio.log` retain their original formats.
+These message refinements concern chiefly Python-emitted output in `PythonDbg.log`. Shared stream timestamps also cover Python error output; the one direct C++ Starting Position Iteration row now follows the same UTC/`record=` convention. Engine-written `app.log` and `audio.log` retain their original formats, while DLL-controlled `xml.log` rows are modernized separately as described above.
 
 ## Before and after: shared Python log timestamps
 
@@ -460,13 +473,13 @@ The PythonDbg/PythonErr2 captures are from 2026-10-20 with the matching Release 
 | `PythonDbg.log` | UTC prefixes and named screen/glyph fields | [Before](#before-pythondbglog) / [After](#after-pythondbglog) |
 | `PythonErr.log` | UTC prefixes on traceback rows | [Before](#before-pythonerrlog) / [After](#after-pythonerrlog) |
 | `PythonErr2.log` | UTC prefixes on module-loading/warning rows | [Before](#before-pythonerr2log) / [After](#after-pythonerr2log) |
-| `app.log` | Currently unchanged | [Current format](#applog) |
-| `audio.log` | Currently unchanged | [Current format](#audiolog) |
-| `init.log` | Currently unchanged | [Current format](#initlog) |
-| `initmgr.log` | Currently unchanged | [Current format](#initmgrlog) |
-| `resmgr.log` | Currently unchanged | [Current format](#resmgrlog) |
-| `xml.log` | Currently unchanged | [Current format](#xmllog) |
-| `LSystem.log` | Currently unchanged | [Current format](#lsystemlog) |
+| `app.log` | Native EXE format; no live SAS/DLL writer found | [Current format](#applog) |
+| `audio.log` | Native EXE format; no live SAS/DLL writer found | [Current format](#audiolog) |
+| `init.log` | Native EXE format; no live SAS/DLL writer found | [Current format](#initlog) |
+| `initmgr.log` | Native EXE format; no live SAS/DLL writer found | [Current format](#initmgrlog) |
+| `resmgr.log` | Native format; no live writer, only a commented-out inherited DLL writer | [Current format](#resmgrlog) |
+| `xml.log` | DLL-controlled rows now use UTC + `record=` fields while preserving the native elapsed prefix | [Before](#before-xmllog) / [After](#after-xmllog) |
+| `LSystem.log` | Native EXE format; no live SAS/DLL writer found | [Current format](#lsystemlog) |
 
 ### `PythonDbg.log`
 
@@ -513,7 +526,9 @@ UnInit Python
 
 #### After: PythonDbg.log
 
-Current formatting reconstructed from captured rows, with the same selection and order:
+Current formatting reconstructed from captured rows, with the same selection and order.
+
+The rebuilt-DLL run also captured the direct C++ Starting Position row exactly as `utc=20261020T170806.389Z record=STARTING_POSITION_ITERATION phase=BEGIN source=AdvCiv`. It bypasses `SASPythonLogging`, so its compact `utc=` field is intentionally not rewritten into the Python wrapper's extended ISO prefix.
 
 ```log
 2026-10-20T08:16:11.208Z record=SCREEN_TURNED_ON screenId=200 screenType=CvScreenEnums.SevoScreenEnums.PEDIA_MAIN
@@ -688,9 +703,11 @@ Real captured rows:
 2026-10-20T08:16:03.877Z PY:OnInit
 ```
 
-### Unchanged engine logs
+### Engine-log captured formats and SAS comparisons
 
-The Python stream changes do not alter these engine-owned writers. Each file therefore has one current-format sample, rather than duplicated Before/After blocks from different runs. These samples are from the 2026-10-20 run, with up to 30 nonempty rows per file. Longer excerpts combine head/tail output as noted; shorter files are shown in full.
+The Python stream changes did not alter the native captures for `app.log`, `audio.log`, `init.log`, `initmgr.log`, `resmgr.log` and `LSystem.log`. `xml.log` now has both the real pre-change baseline and a rebuilt-DLL After capture from 2026-10-20.
+
+The native baselines below are from the earlier 2026-10-20 run. The `xml.log` After sample is from the rebuilt Debug-opt run beginning at `20261020T170755Z`. Longer excerpts combine selected head/tail or record-family rows as noted; shorter files are shown in full.
 
 #### `app.log`
 
@@ -800,7 +817,9 @@ RESMGR: Texture PlayerColor01.tga failed to load
 RESMGR: Texture PlayerColor02.tga failed to load
 ```
 
-#### `xml.log`
+#### Before: xml.log
+
+This real capture predates the DLL-row UTC/`record=` modernization described above and is retained as its matched pre-change baseline.
 
 30 of 627 nonempty rows: the first 20 and final 10.
 
@@ -836,6 +855,50 @@ RESMGR: Texture PlayerColor02.tga failed to load
 [21981.781] Load XML file xml\GameInfo/CIV4EspionageMissionInfo.xml SUCCEEDED
 [21981.781] SetGlobalClassInfo (Civ4EspionageMissionInfo/EspionageMissionInfos/EspionageMissionInfo)
 ```
+
+#### After: xml.log
+
+SAS formats the DLL-owned rows through the narrow `logSASCiv4LegacyLogRow` helper; it does not intercept or rewrite EXE-owned rows that may share the file. The structured DLL record families cover file loading, cache activity, global/info setup and unknown XML types. `XML_CACHE` and `XML_UNKNOWN_TYPE` are source-supported even when a particular startup run does not exercise them.
+
+The rebuilt Debug-opt capture also contains 627 nonempty rows. The identical observed row count is reassuring because the modernization restructures existing DLL messages rather than intentionally adding a second stream of startup rows, but it is not treated as a formal invariant across runs.
+
+The selection below keeps the first 10 rows, all 10 `XML_GLOBAL_STRING_ARRAY` rows and later action/diplomacy/end-of-load rows so the main captured record families are visible.
+
+```log
+[53871.687] utc=20261020T170755.441Z record=XML_FILE_LOAD phase=BEGIN path=xml\GameInfo/CIV4PlayerOptionInfos.xml
+[53871.703] utc=20261020T170755.447Z record=XML_FILE_LOAD phase=END outcome=SUCCEEDED path=xml\GameInfo/CIV4PlayerOptionInfos.xml
+[53871.703] utc=20261020T170755.447Z record=XML_GLOBAL_CLASS_INFO tag=Civ4PlayerOptionInfos/PlayerOptionInfos/PlayerOptionInfo pass=1 final=1
+[53871.703] utc=20261020T170755.448Z record=XML_FILE_LOAD phase=BEGIN path=xml\GameInfo/CIV4GraphicOptionInfos.xml
+[53871.703] utc=20261020T170755.449Z record=XML_FILE_LOAD phase=END outcome=SUCCEEDED path=xml\GameInfo/CIV4GraphicOptionInfos.xml
+[53871.703] utc=20261020T170755.449Z record=XML_GLOBAL_CLASS_INFO tag=Civ4GraphicOptionInfos/GraphicOptionInfos/GraphicOptionInfo pass=1 final=1
+[53872.687] utc=20261020T170756.440Z record=XML_FILE_LOAD phase=BEGIN path=xml\GlobalDefines.xml
+[53872.687] utc=20261020T170756.441Z record=XML_FILE_LOAD phase=END outcome=SUCCEEDED path=xml\GlobalDefines.xml
+[53872.703] utc=20261020T170756.444Z record=XML_FILE_LOAD phase=BEGIN path=xml\GlobalDefinesAlt.xml
+[53872.703] utc=20261020T170756.445Z record=XML_FILE_LOAD phase=END outcome=SUCCEEDED path=xml\GlobalDefinesAlt.xml
+[53873.140] utc=20261020T170756.888Z record=XML_GLOBAL_STRING_ARRAY tag=Civ4Types/AnimationOperatorTypes/AnimationOperatorType
+[53873.140] utc=20261020T170756.888Z record=XML_GLOBAL_STRING_ARRAY tag=Civ4Types/FunctionTypes/FunctionType
+[53873.140] utc=20261020T170756.888Z record=XML_GLOBAL_STRING_ARRAY tag=Civ4Types/FlavorTypes/FlavorType
+[53873.140] utc=20261020T170756.888Z record=XML_GLOBAL_STRING_ARRAY tag=Civ4Types/ArtStyleTypes/ArtStyleType
+[53873.140] utc=20261020T170756.888Z record=XML_GLOBAL_STRING_ARRAY tag=Civ4Types/CitySizeTypes/CitySizeType
+[53873.140] utc=20261020T170756.888Z record=XML_GLOBAL_STRING_ARRAY tag=Civ4Types/ContactTypes/ContactType
+[53873.140] utc=20261020T170756.888Z record=XML_GLOBAL_STRING_ARRAY tag=Civ4Types/DiplomacyPowerTypes/DiplomacyPowerType
+[53873.140] utc=20261020T170756.888Z record=XML_GLOBAL_STRING_ARRAY tag=Civ4Types/AutomateTypes/AutomateType
+[53873.140] utc=20261020T170756.888Z record=XML_GLOBAL_STRING_ARRAY tag=Civ4Types/DirectionTypes/DirectionType
+[53873.140] utc=20261020T170756.888Z record=XML_GLOBAL_STRING_ARRAY tag=Civ4Types/FootstepAudioTypes/FootstepAudioType
+[53882.109] utc=20261020T170805.863Z record=XML_GLOBAL_ACTION_INFO action=SET
+[53882.125] utc=20261020T170805.869Z record=XML_GLOBAL_CLASS_INFO tag=Civ4AttachableInfos/AttachableInfos/AttachableInfo pass=1 final=1
+[53882.125] utc=20261020T170805.870Z record=XML_FILE_LOAD phase=BEGIN path=xml\GameInfo/CIV4DiplomacyInfos.xml
+[53882.125] utc=20261020T170805.874Z record=XML_FILE_LOAD phase=END outcome=SUCCEEDED path=xml\GameInfo/CIV4DiplomacyInfos.xml
+[53882.125] utc=20261020T170805.874Z record=XML_DIPLOMACY_INFO tag=Civ4DiplomacyInfos/DiplomacyInfos/DiplomacyInfo
+[53882.141] utc=20261020T170805.884Z record=XML_FILE_LOAD phase=BEGIN path=xml\Misc/Civ4TutorialInfos.xml
+[53882.141] utc=20261020T170805.885Z record=XML_FILE_LOAD phase=END outcome=SUCCEEDED path=xml\Misc/Civ4TutorialInfos.xml
+[53882.141] utc=20261020T170805.885Z record=XML_GLOBAL_CLASS_INFO tag=Civ4TutorialInfos/TutorialInfo pass=1 final=1
+[53882.141] utc=20261020T170805.886Z record=XML_FILE_LOAD phase=BEGIN path=xml\GameInfo/CIV4EspionageMissionInfo.xml
+[53882.141] utc=20261020T170805.887Z record=XML_FILE_LOAD phase=END outcome=SUCCEEDED path=xml\GameInfo/CIV4EspionageMissionInfo.xml
+[53882.141] utc=20261020T170805.887Z record=XML_GLOBAL_CLASS_INFO tag=Civ4EspionageMissionInfo/EspionageMissionInfos/EspionageMissionInfo pass=1 final=1
+```
+
+No `XML_CACHE` or `XML_UNKNOWN_TYPE` row occurred in this successful startup capture, so neither is illustrated in the excerpt above.
 
 #### `LSystem.log`
 
@@ -880,9 +943,12 @@ building:Art/Structures/Buildings/Levee/Levee.nif does not contain a node called
 
 - [DLL logger](../../CvGameCoreDLL/CvDLLLogger.cpp), [RNG initialization](../../CvGameCoreDLL/CvGlobals.cpp), [shared filename builder](../../CvGameCoreDLL/CvGameCoreUtils.cpp).
 - [BBAI category registry and session writer](../../CvGameCoreDLL/BBAILog.cpp), [cached BBAI gates](../../CvGameCoreDLL/BBAILog.h), [Settler decision producers](../../CvGameCoreDLL/CvUnitAI.cpp), [site selection/stored values](../../CvGameCoreDLL/CvPlayerAI.cpp) and [SASGameRecord writer](../../CvGameCoreDLL/SASGameRecordLog.cpp).
-- UWAI producers: [UWAIAgent](../../CvGameCoreDLL/UWAIAgent.cpp), [MilitaryAnalyst](../../CvGameCoreDLL/MilitaryAnalyst.cpp), [InvasionGraph](../../CvGameCoreDLL/InvasionGraph.cpp), [ArmamentForecast](../../CvGameCoreDLL/ArmamentForecast.cpp), [WarEvaluator](../../CvGameCoreDLL/WarEvaluator.cpp), [WarUtilityAspect](../../CvGameCoreDLL/WarUtilityAspect.cpp); [shared nested mute state](../../CvGameCoreDLL/UWAILogMuteState.h).
+- UWAI producers and support:
+  - [UWAIAgent](../../CvGameCoreDLL/UWAIAgent.cpp), [MilitaryAnalyst](../../CvGameCoreDLL/MilitaryAnalyst.cpp), [InvasionGraph](../../CvGameCoreDLL/InvasionGraph.cpp), [ArmamentForecast](../../CvGameCoreDLL/ArmamentForecast.cpp), [WarEvaluator](../../CvGameCoreDLL/WarEvaluator.cpp) and [WarUtilityAspect](../../CvGameCoreDLL/WarUtilityAspect.cpp).
+  - [Shared nested mute state](../../CvGameCoreDLL/UWAILogMuteState.h).
 - Inherited comparison: local sibling `AdvCiv/CvGameCoreDLL/BBAILog.h`, `BBAILog.cpp`, `CvUnitAI.cpp`, `UWAIReport.cpp` and `UWAIAgent.cpp` (AdvCiv 1.14); [KI#505.3](README_Known_Issues.md#ki-505.3) preserves the SAS investigation of the retired report path.
 - [Python logging utilities](../../Assets/Python/BUG/BugUtil.py), [shared SAS Python writer](../../Assets/Python/SASPythonLogging.py), [OOS logger](../../Assets/Python/Contrib/OOSLogger.py), [Autolog](../../Assets/Python/Contrib/autolog.py).
+- [Inherited-log row formatter](../../CvGameCoreDLL/CvGameCoreUtils.cpp), [XML log producer](../../CvGameCoreDLL/CvXMLLoadUtility.cpp) and [XML setup/cache producers](../../CvGameCoreDLL/CvXMLLoadUtilitySet.cpp).
 - [StatusDump event manager](../../Assets/Python/Contrib/StatusDumpEventManager.py), [older StatusDump helper](../../Assets/Python/Contrib/StatusDump.py), [StatusDump config](../../Assets/Config/StatusDump.xml).
 - [Starting-position iteration](../../CvGameCoreDLL/StartingPositionIteration.cpp), [internal profiler](../../CvGameCoreDLL/FProfiler.cpp), [TSC profiler](../../CvGameCoreDLL/TSCProfiler.cpp).
 - [Inherited AdvCiv manual](../../_0_Common_Docs/AdvCiv_Base_Doc/manual.txt), especially message-control logging and multiplayer debugging.

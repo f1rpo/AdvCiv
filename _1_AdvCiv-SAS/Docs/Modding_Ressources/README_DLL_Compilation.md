@@ -160,6 +160,14 @@ The useful debugger commands are compact:
 
 `Civ4BeyondSword.exe.dmp` is replaced by a later crash, so preserve a valuable dump before reproducing another one. The dump, installed DLL and PDB must all belong to the same build; source-line information from a different build is not reliable.
 
+## Dependency-scanner access violations
+
+A 2026-10-20 Debug-opt build reproduced a source-layout-sensitive `fastdep.exe` access violation (`U1077` / `0xC0000005`) before `cl.exe` ran. The trigger was isolated to a redundant direct include in `CvGlobals.cpp` when its rationale was written as a trailing custom comment.
+
+The bare include and the same rationale above the include both passed. The redundant include and two counterparts were removed because `CvGameCoreDLL.h` already supplied the declaration.
+
+See [KI#38.5](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-38.5) for the verbatim failing build log, isolation evidence and successful post-fix build. If this recurs, isolate the failing translation unit and exact include/comment layout before replacing `fastdep.exe` or blaming later compiler stages.
+
 ## Transient legacy-compiler failures
 
 During the 2026-08-14 verification, the first full attempt had a silent VC2003 `cl.exe` code-1 failure at unchanged `CyGlobalContextInterface4.cpp`. The exact correctly pathed one-file diagnostic target compiled immediately afterward.

@@ -85,6 +85,11 @@ CvString createSASUtcTimestamp(const time_t kTime);
 CvString createSASUtcTimestamp();
 // <!-- custom: Sample current UTC with milliseconds for event/snapshot timestamps that benefit from sub-second ordering. (ChatGPT-5.6-Sol) -->
 CvString createSASUtcTimestampMilliseconds();
+// <!-- custom: Add one structured SAS-owned row to an inherited fixed-name Civ4 log.
+// szLogFileName selects the target, szRecord is the stable greppable record name and szMessage is the already-formatted field payload; NULL szMessage is allowed as an empty payload.
+// bEngineTimestamp defaults to true to preserve the log's native EXE elapsed prefix; false suppresses that prefix for direct DLL rows in streams such as PythonDbg.log.
+// This does not intercept or rewrite EXE-owned rows. (ChatGPT-5.6-Sol) -->
+void logSASCiv4LegacyLogRow(char const* szLogFileName, char const* szRecord, char const* szMessage, bool bEngineTimestamp = true);
 // <!-- custom: Sample the shared Win32 monotonic millisecond clock for diagnostic durations; unlike UTC, OS clock corrections do not affect it. (ChatGPT-5.6-Sol) -->
 uint getSASMonotonicMilliseconds();
 // <!-- custom: Compute elapsed diagnostic milliseconds with unsigned subtraction so the established single timeGetTime rollover remains safe. (ChatGPT-5.6-Sol) -->

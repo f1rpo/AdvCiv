@@ -1,5 +1,7 @@
 // advc.027: New file; see comment in header.
 
+// <!-- custom: CvGameCoreDLL.h already supplies CvGameCoreUtils.h for the direct PythonDbg legacy-log helper, so keep the redundant direct include removed.
+// The same include-plus-trailing-comment layout reproduced fastdep's access violation in CvGlobals.cpp; this translation unit was not independently shown to crash. See KI#38.5. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 #include "CvGameCoreDLL.h"
 #include "StartingPositionIteration.h"
 #include "CvPlayerAI.h"
@@ -1775,7 +1777,8 @@ void StartingPositionIteration::doIterations(PotentialSites& kPotentialSites)
 	/*	Just so that players can check whether SPI was used - the preconditions
 		are pretty complex. Not a Python thing, but I don't want to create a
 		separate logfile just for this one message. */
-	gDLL->logMsg("PythonDbg.log", "\nRunning Starting Position Iteration (AdvCiv mod)\n");
+	// <!-- custom: This C++ row bypasses SASPythonLogging, so give it the same UTC/searchable record style directly and suppress the EXE elapsed prefix used by gDLL::logMsg. (ChatGPT-5.6-Sol) -->
+	logSASCiv4LegacyLogRow("PythonDbg.log", "STARTING_POSITION_ITERATION", "phase=BEGIN source=AdvCiv\n", false);
 	while (iStepsConsidered < iMaxSteps)
 	{
 		vector<pair<scaled,PlayerTypes> > currSitesByOutlierVal;
