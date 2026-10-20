@@ -3,7 +3,8 @@
 
 from CvPythonExtensions import *
 import CvUtil
-from SASFontUtils import sasFontTagLabel, sasFontTagTitle, SAS_FONT_TAG_CLOSE
+# <!-- custom: Consume the surviving shared helper directly after retiring the overlapping SASUIResources dependency; avoid keeping a redundant visual-resource facade. (ChatGPT-5.6-Sol) -->
+import SASTextScale
 
 gc = CyGlobalContext()
 localText = CyTranslator()
@@ -127,7 +128,7 @@ def drawAdvisorFooterTabRows(screen, aTabRows, iActivePageID, iYLink, iZ, iColor
 			eWidget = WidgetTypes.WIDGET_GENERAL
 			iData1 = -1
 			iData2 = -1
-		screen.setText(szWidgetID, "", sasFontTagTitle + szLabel + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, iX + iWidth / 2, iYLink, iZ, FontTypes.TITLE_FONT, eWidget, iData1, iData2)
+		screen.setText(szWidgetID, "", SASTextScale.sasFontTagTitle + szLabel + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, iX + iWidth / 2, iYLink, iZ, FontTypes.TITLE_FONT, eWidget, iData1, iData2)
 		iX += iWidth
 
 def drawAdvisorFooterTabs(screen, aWidgetIDs, aLabels, aiWidths, iActivePageID, iYLink, iZ, iColorYellow, eInactiveWidget=WidgetTypes.WIDGET_GENERAL, aiInactiveData1=None, iInactiveData2=-1, iXStart=0):
@@ -227,7 +228,7 @@ def getNewConceptID(szConceptType):
 	return -1
 
 # <!-- custom: shared advisor "Legend" link helper, factored from CvInfoScreen's Score-tab pattern so any AdvCiv-SAS advisor can drop a Sevopedia legend link with one call.
-# Advisor legend links use smaller sasFontTagLabel rather than Sevopedia's footer-sized sasFontTagTitle because an in-game screen link should stay quiet.
+# Advisor legend links use smaller SASTextScale.sasFontTagLabel rather than Sevopedia's footer-sized SASTextScale.sasFontTagTitle because an in-game screen link should stay quiet.
 # Caller passes the screen object (must expose getScreen, getNextWidgetName, Z_CONTROLS), the NewConcept XML type, and the (X,Y) anchor in screen coords.
 # Skips silently when the SAS_SHOW_LEGEND_LINK GlobalDefine is off or the concept is missing.
 # setText params mirror the Score-tab call exactly: WIDGET_PEDIA_DESCRIPTION + CIVILOPEDIA_PAGE_CONCEPT_NEW + concept ID is the pedia jump that actually resolves through SevoPediaMain.pediaJump. (Claude code Opus 4.7 + GPT-5.5) -->
@@ -240,5 +241,5 @@ def placeAdvisorLegendLink(top, szConceptType, iX, iY, eJustify=None):
 	if eJustify is None:
 		eJustify = CvUtil.FONT_RIGHT_JUSTIFY
 	screen = top.getScreen()
-	szLabel = sasFontTagLabel + "Legend" + SAS_FONT_TAG_CLOSE
+	szLabel = SASTextScale.sasFontTagLabel + "Legend" + SASTextScale.SAS_FONT_TAG_CLOSE
 	screen.setText(top.getNextWidgetName(), "Background", szLabel, eJustify, iX, iY, top.Z_CONTROLS, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_PEDIA_DESCRIPTION, CivilopediaPageTypes.CIVILOPEDIA_PAGE_CONCEPT_NEW, iConcept)

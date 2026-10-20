@@ -4,9 +4,13 @@
 <!-- Copyright Firaxis Games 2005 -->
 <!-- -->
 <!-- Leader Trait Infos -->
-<!-- advc.004y: Civilopedia tags added. NB: To add a new trait and have it
-	 appear in Pedia, code needs to be added in TraitUtil.py and in
-	 Civ4NewConceptInfos.xml. -->
+<!-- custom: advc.004y added Civilopedia tags.
+AdvCiv-SAS traits use SevoPediaMain.getTraitList and WIDGET_PYTHON routing directly from CIV4TraitInfos.xml; the former CONCEPT_TRAIT_* entries in Civ4NewConceptInfos.xml are no longer required.
+Trait icons are mapped in SASVisualUtils.py, replacing TraitUtil.py. (advc.004y; ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+<!--
+AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
+(c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
+-->
 <Civ4TraitInfos xmlns="x-schema:CIV4CivilizationsSchema.xml">
 	<TraitInfos>
 		<TraitInfo> <!-- custom: TRAIT_PHILOSOPHICAL (useful for VS Code upper tree view while scrolling) -->

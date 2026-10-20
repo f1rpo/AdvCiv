@@ -6,6 +6,8 @@
 #
 
 from CvPythonExtensions import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import CvUtil
 from _sevopedia_helpers import *
 
@@ -197,19 +199,19 @@ class SevoPediaWorldSizeChart:
 		for i, (name, artKey) in enumerate(_btn_defs):
 			# Group id only affects sorting by the icon column.
 			# Reorder _btn_defs to change the icon-theme sort order.
-			btn_by_name[name] = (ArtFileMgr.getInterfaceArtInfo(artKey).getPath(), (i + 1) * 10)
+			btn_by_name[name] = (SASVisuals.InterfaceArt.getPath(artKey), (i + 1) * 10)
 
 		glyph_by_name = {}
 		# GameFont glyph icons (yields/commerce/symbols).
 		_glyph_defs = (
 			# (name, glyph_char)
-			("map",      (u"%c" % (game.getSymbolID(FontSymbols.MAP_CHAR)))),
-			("citizen",  (u"%c" % (game.getSymbolID(FontSymbols.CITIZEN_CHAR)))),
-			("prod",     (u"%c" % (gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar()))),
-			("gold",     (u"%c" % (gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar()))),
-			("research", (u"%c" % (gc.getCommerceInfo(CommerceTypes.COMMERCE_RESEARCH).getChar()))),
-			("defense",  (u"%c" % (game.getSymbolID(FontSymbols.DEFENSE_CHAR)))),
-			("unhappy",  (u"%c" % (game.getSymbolID(FontSymbols.UNHAPPY_CHAR)))),
+			("map",      (u"%s" % (SASVisuals.Font.MAP_CHAR))),
+			("citizen",  (u"%s" % (SASVisuals.Font.CITIZEN_CHAR))),
+			("prod",     (u"%s" % (SASVisuals.Yield.PRODUCTION_CHAR))),
+			("gold",     (u"%s" % (SASVisuals.Commerce.GOLD_CHAR))),
+			("research", (u"%s" % (SASVisuals.Commerce.RESEARCH_CHAR))),
+			("defense",  (u"%s" % (SASVisuals.Font.DEFENSE_CHAR))),
+			("unhappy",  (u"%s" % (SASVisuals.Font.UNHAPPY_CHAR))),
 		)
 		for name, glyph in _glyph_defs:
 			glyph_by_name[name] = glyph

@@ -16,8 +16,9 @@
 # <!-- custom: AdvCiv-SAS does not actively maintain this third-party file; changes here are minor (e.g. collapsing multiline statements to single-line for grep/readability, and similar low-risk consistency tweaks). (Claude code Opus 4.7) -->
 
 from CvPythonExtensions import *
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import BugUtil
-import FontUtil
 import PlayerUtil
 import re
 
@@ -25,9 +26,6 @@ NUM_ATTITUDES = 5
 
 DEFAULT_COLORS = ("COLOR_RED", "COLOR_CYAN", "COLOR_CLEAR", "COLOR_GREEN", "COLOR_YELLOW")
 
-ATTITUDE_KEYS = ("furious", "annoyed", "cautious", "pleased", "friendly")
-ATTITUDE_COLORS = None
-ATTITUDE_ICONS = None
 
 # These are also defaults; XML will override
 # "Show Hidden Attitudes in BULL" section starts at TXT_KEY_MISC_ATTITUDE_FIRST_IMPRESSION; TXT_KEY_MISC_ATTITUDE_LOW_RANK omitted (advc.sha: not used)
@@ -41,26 +39,10 @@ localText = CyTranslator()
 ## Initialization
 
 def init (colors=DEFAULT_COLORS, modifiers=None):
-	# Initializes this module, raising ConfigError if any problems occur.
-	#
-	# create font icons for each attitude level
-	global ATTITUDE_ICONS
-	ATTITUDE_ICONS = [FontUtil.getChar(key) for key in ATTITUDE_KEYS]
-	if len(ATTITUDE_ICONS) != NUM_ATTITUDES:
-		raise BugUtil.ConfigError("Failed to create attitude icons")
-
-	# convert colors to type IDs
-	if len(colors) != NUM_ATTITUDES:
-		raise BugUtil.ConfigError("Expected %d colors" % NUM_ATTITUDES)
-	global ATTITUDE_COLORS
-	ATTITUDE_COLORS = map(gc.getInfoTypeForString, colors)
-	invalidCount = ATTITUDE_COLORS.count(-1)
-	if invalidCount > 0:
-		invalid = []
-		for id, color in zip(ATTITUDE_COLORS, colors):
-			if id == -1:
-				invalid.append(color)
-		raise BugUtil.ConfigError("Given %d invalid colors: %s" % (invalidCount, str(invalid)))
+	# <!-- custom: Preserve the inherited init contract: this module still raises ConfigError when initialization cannot establish valid shared attitude resources. (ChatGPT-5.6-Sol) -->
+	# <!-- custom: Store the five attitude glyph/color resources in SASVisualUtils rather than rebuilding parallel module globals here.
+	# XML still owns the configurable color tuple. (ChatGPT-5.6-Sol) -->
+	SASVisuals.Attitude.configure(colors)
 
 	# init modifiers, overriding default list as necessary
 	if modifiers is not None and (isinstance(modifiers, list) or isinstance(modifiers, tuple)):
@@ -90,14 +72,14 @@ def getAttitudeColor (nPlayer, nTarget):
 	# Returns the color of the attitude nPlayer has toward nTarget.
 	iCategory = getAttitudeCategory(nPlayer, nTarget)
 	if iCategory is not None:
-		return ATTITUDE_COLORS[iCategory]
+		return SASVisuals.Attitude.getColor(iCategory)
 	return -1
 
 def getAttitudeIcon (nPlayer, nTarget):
 	# Returns the font icon of the attitude nPlayer has toward nTarget.
 	iCategory = getAttitudeCategory(nPlayer, nTarget)
 	if iCategory is not None:
-		return ATTITUDE_ICONS[iCategory]
+		return SASVisuals.Attitude.getIcon(iCategory)
 	return ""
 
 def getAttitudeCount (nPlayer, nTarget):
@@ -132,7 +114,7 @@ def getAttitudeText (nPlayer, nTarget, bNumber, bSmily, bWorstEnemy, bWarPeace, 
 	pPlayer = gc.getPlayer(nPlayer)
 	pTarget = gc.getPlayer(nTarget)
 	if bWorstEnemy and isWorstEnemy(pPlayer, pTarget):
-		szIcons += FontUtil.getChar("angrypop")
+		szIcons += SASVisuals.Font.ANGRY_POP_CHAR
 	# <advc.152>
 	bPeace = False
 	# Moved from the bWarPeace branch:
@@ -143,7 +125,7 @@ def getAttitudeText (nPlayer, nTarget, bNumber, bSmily, bWorstEnemy, bWarPeace, 
 	# </advc.152>
 	if bWarPeace:
 		if pTeam.isAtWar(nTargetTeam):
-			szIcons += FontUtil.getChar("war")
+			szIcons += SASVisuals.DynamicFont.WAR_CHAR
 		elif gc.getGame().getActiveTeam() in (nTeam, nTargetTeam):
 			bPeace = False
 			if pTeam.isForcePeace(nTargetTeam):
@@ -154,10 +136,10 @@ def getAttitudeText (nPlayer, nTarget, bNumber, bSmily, bWorstEnemy, bWarPeace, 
 						bPeace = True
 						break
 			if bPeace:
-				szIcons += FontUtil.getChar("peace")
+				szIcons += SASVisuals.DynamicFont.PEACE_CHAR
 	# <advc.152>
 	if bWarTrades and not bPeace and nTargetTeam != gc.getGame().getActiveTeam()and nTeam != gc.getGame().getActiveTeam() and nTeam != nTargetTeam and not pTeam.isAtWar(nTargetTeam) and not pTeam.isHuman() and pTeam.AI_declareWarTrade(nTargetTeam, gc.getGame().getActiveTeam()) == -1:
-		szIcons += FontUtil.getChar("occupation")
+		szIcons += SASVisuals.Font.OCCUPATION_CHAR
 	# </advc.152>
 	if szIcons:
 		szText.append(szIcons)
@@ -277,7 +259,7 @@ class Attitude:
 		if self.bHasActiveMetBoth:
 			eCategory = self.getCategory()
 			if eCategory != AttitudeTypes.NO_ATTITUDE:
-				return ATTITUDE_ICONS[int(eCategory)]
+				return SASVisuals.Attitude.getIcon(int(eCategory))
 		return ""
 
 	def getColor (self):
@@ -285,7 +267,7 @@ class Attitude:
 		if self.bHasActiveMetBoth:
 			eCategory = self.getCategory()
 			if eCategory != AttitudeTypes.NO_ATTITUDE:
-				return ATTITUDE_COLORS[int(eCategory)]
+				return SASVisuals.Attitude.getColor(int(eCategory))
 		return -1
 
 	def getText (self, bNumber, bSmily, bWorstEnemy, bWarPeace):
@@ -312,7 +294,7 @@ class Attitude:
 			pThisPlayer = gc.getPlayer(self.iThisPlayer)
 			pTargetPlayer = gc.getPlayer(self.iTargetPlayer)
 			if bWorstEnemy and isWorstEnemy(pThisPlayer, pTargetPlayer):
-				szText +=  u"%c" %(CyGame().getSymbolID(FontSymbols.ANGRY_POP_CHAR))
+				szText +=  u"%s" %(SASVisuals.Font.ANGRY_POP_CHAR)
 
 			if bWarPeace:
 				iThisTeam = pThisPlayer.getTeam()
@@ -320,7 +302,7 @@ class Attitude:
 				iTargetTeam = pTargetPlayer.getTeam()
 				pTargetTeam = gc.getTeam(iTargetTeam)
 				if pThisTeam.isAtWar(iTargetTeam):
-					szText += u"%c" % (gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar() + 25)
+					szText += SASVisuals.DynamicFont.WAR_CHAR
 				elif gc.getGame().getActiveTeam() in (iThisTeam, iTargetTeam):
 					bPeace = False
 					if pThisTeam.isForcePeace(iTargetTeam):
@@ -331,7 +313,7 @@ class Attitude:
 								bPeace = True
 								break
 					if bPeace:
-						szText += u"%c" % (gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar() + 26)
+						szText += SASVisuals.DynamicFont.PEACE_CHAR
 
 			return szText
 		return ""

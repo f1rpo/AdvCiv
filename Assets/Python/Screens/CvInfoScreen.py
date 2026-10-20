@@ -20,7 +20,8 @@ import re
 
 from PyHelpers import PyPlayer
 from SASUtils import *
-from SASFontUtils import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import SASTextScale
 # <!-- custom: AdvCiv-SAS readability pass: use LABEL as the base info-screen text tag (instead of BODY) for clearer upscaled UI text. (GPT-5.3-Codex) -->
 
@@ -29,8 +30,7 @@ import Scoreboard
 import DiplomacyUtil
 import AttitudeUtil
 import PlayerUtil
-import FontUtil
-import TraitUtil
+# <!-- custom: Remove the Score Tab's old FontUtil/local glyph cache; symbols now resolve through SASVisuals.Font/SASVisuals.DynamicFont. (ChatGPT-5.6-Sol) -->
 # <!-- custom: End - Score Tab dependencies (scoreboard visibility filters + diplomacy/attitude/player helpers). (GPT-5.3-Codex) -->
 
 # BUG - 3.17 No Espionage - start
@@ -294,13 +294,13 @@ class CvInfoScreen:
 		# K-Mod end
 
 		###### TEXT ######
-		self.SCREEN_TITLE = sasFontTagTitle.bold + localText.getText("TXT_KEY_INFO_SCREEN", ()).upper() + SAS_FONT_TAG_CLOSE
+		self.SCREEN_TITLE = SASTextScale.sasFontTagTitle.bold + localText.getText("TXT_KEY_INFO_SCREEN", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE
 
-		self.EXIT_TEXT = sasFontTagTitle + localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ()).upper() + SAS_FONT_TAG_CLOSE
+		self.EXIT_TEXT = SASTextScale.sasFontTagTitle + localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE
 
 		self.TEXT_THOUSANDS_SEPARATOR_COMMA = localText.getText("TXT_KEY_THOUSANDS_SEPARATOR_COMMA", ())
 		self.TEXT_SHOW_ALL_PLAYERS =  localText.getText("TXT_KEY_SHOW_ALL_PLAYERS", ())
-		self.TEXT_SHOW_ALL_PLAYERS_GRAY = localText.getColorText("TXT_KEY_SHOW_ALL_PLAYERS", (), getInfoTypeOrFail("COLOR_PLAYER_GRAY")).upper()
+		self.TEXT_SHOW_ALL_PLAYERS_GRAY = localText.getColorText("TXT_KEY_SHOW_ALL_PLAYERS", (), SASVisuals.Color.PLAYER_GRAY).upper()
 
 		self.TEXT_ENTIRE_TIMELINE = localText.getText("TXT_KEY_SAS_INFO_ENTIRE_TIMELINE", ())
 		self.TEXT_TIMELINE_EMPTY = localText.getText("TXT_KEY_SAS_INFO_TIMELINE_EMPTY", ())
@@ -313,19 +313,6 @@ class CvInfoScreen:
 		self.TEXT_ESPIONAGE = localText.getObjectText("TXT_KEY_ESPIONAGE_CULTURE", 0)
 
 		# <!-- custom: Score Tab shared UI constants cached once per language load. (GPT-5.3-Codex) -->
-		self.SCORETAB_COLOR_ALT_HIGHLIGHT_TEXT = getInfoTypeOrFail("COLOR_ALT_HIGHLIGHT_TEXT")
-		self.SCORETAB_COLOR_RED = getInfoTypeOrFail("COLOR_RED")
-		self.COLOR_YELLOW = getInfoTypeOrFail("COLOR_YELLOW")
-		self.COLOR_GREY = getInfoTypeOrFail("COLOR_GREY")
-		self.SCORETAB_WAR_CHAR = FontUtil.getChar(FontSymbols.WAR_CHAR)
-		self.SCORETAB_PEACE_CHAR = FontUtil.getChar(FontSymbols.PEACE_CHAR)
-		self.SCORETAB_TRADE_CHAR = FontUtil.getChar(FontSymbols.TRADE_CHAR)
-		self.SCORETAB_BORDERS_CHAR = FontUtil.getChar(FontSymbols.OPEN_BORDERS_CHAR)
-		self.SCORETAB_PACT_CHAR = FontUtil.getChar(FontSymbols.DEFENSIVE_PACT_CHAR)
-		self.SCORETAB_WORST_ENEMY_CHAR = FontUtil.getChar(FontSymbols.ANGRY_POP_CHAR)
-		self.SCORETAB_GOLDEN_AGE_CHAR = FontUtil.getChar(FontSymbols.GOLDEN_AGE_CHAR)
-		self.SCORETAB_ANARCHY_CHAR = FontUtil.getChar(FontSymbols.BAD_GOLD_CHAR)
-		self.SCORETAB_ESPIONAGE_CHAR = u"%c" % gc.getCommerceInfo(CommerceTypes.COMMERCE_ESPIONAGE).getChar()
 		self.SCORETAB_COLOR_MARKER = u"|||||"
 
 		self.TEXT_VALUE = localText.getText("TXT_KEY_DEMO_SCREEN_VALUE_TEXT", ())
@@ -345,8 +332,10 @@ class CvInfoScreen:
 		#self.TEXT_IMP_EXP = localText.getText("TXT_KEY_DEMO_SCREEN_EXPORTS_TEXT", ()) + " - " + localText.getText("TXT_KEY_DEMO_SCREEN_IMPORTS_TEXT", ())
 		# <advc.077> Replacing the above (or perhaps "Export Revenues" would be nicer?)
 		self.TEXT_EXP = localText.getText("TXT_KEY_CONCEPT_FOREIGN_TRADE", ())
+		# <!-- custom: Keep this inherited disabled code consistent with the shared visual-resource API; retain its original rationale and disabled status.
 		# Put bullet in a variable, then disable it.
-		#szBullet = (u"  %c" % CyGame().getSymbolID(FontSymbols.BULLET_CHAR))
+		#szBullet = (u"  %s" % SASVisuals.Font.char(FontSymbols.BULLET_CHAR))
+		# (GPT-6.1-Sol) -->
 		szBullet = ""
 
 		# </advc.077>
@@ -364,26 +353,26 @@ class CvInfoScreen:
 		# <!-- custom: move these up from drawTextChart as we don't need to compute them every time if i'm not mistaken, and simplified into one variable (old code deleted). -->
 		# New: Append icons, and use different text keys for economy, industry, agriculture.
 		# Add measure after a colon (and commented out below)
-		self.szEconomyTitle =  localText.getText("TXT_KEY_DEMOGRAPHICS_ECONOMY_TEXT", ()) + (u" (%c+%c)" % (gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar(), gc.getCommerceInfo(CommerceTypes.COMMERCE_RESEARCH).getChar())) + ": " + self.TEXT_ECONOMY_MEASURE
-		self.szIndustryTitle =  localText.getText("TXT_KEY_DEMOGRAPHICS_INDUSTRY_TEXT", ()) + (u" (%c)" % gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar()) + ": " + self.TEXT_INDUSTRY_MEASURE
-		self.szAgricultureTitle = localText.getText("TXT_KEY_DEMOGRAPHICS_AGRICULTURE_TEXT", ()) + (u" (%c)" % gc.getYieldInfo(YieldTypes.YIELD_FOOD).getChar()) + ": " + self.TEXT_AGRICULTURE_MEASURE
-		self.szMilitaryTitle =  self.TEXT_MILITARY + (u" (%c)" % CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR))
-		self.szHappinessTitle = self.TEXT_HAPPINESS + (u" (%c)" % CyGame().getSymbolID(FontSymbols.HAPPY_CHAR))
-		self.szHealthTitle = self.TEXT_HEALTH + (u" (%c)" % CyGame().getSymbolID(FontSymbols.HEALTHY_CHAR)) + ": " + self.TEXT_HEALTH_MEASURE
-		self.szExpTitle = self.TEXT_EXP + (u" (%c)" % CyGame().getSymbolID(FontSymbols.TRADE_CHAR)) + ": " + self.TEXT_EXP_MEASURE
+		self.szEconomyTitle =  localText.getText("TXT_KEY_DEMOGRAPHICS_ECONOMY_TEXT", ()) + (u" (%s+%s)" % (SASVisuals.Commerce.GOLD_CHAR, SASVisuals.Commerce.RESEARCH_CHAR)) + ": " + self.TEXT_ECONOMY_MEASURE
+		self.szIndustryTitle =  localText.getText("TXT_KEY_DEMOGRAPHICS_INDUSTRY_TEXT", ()) + (u" (%s)" % SASVisuals.Yield.PRODUCTION_CHAR) + ": " + self.TEXT_INDUSTRY_MEASURE
+		self.szAgricultureTitle = localText.getText("TXT_KEY_DEMOGRAPHICS_AGRICULTURE_TEXT", ()) + (u" (%s)" % SASVisuals.Yield.FOOD_CHAR) + ": " + self.TEXT_AGRICULTURE_MEASURE
+		self.szMilitaryTitle =  self.TEXT_MILITARY + (u" (%s)" % SASVisuals.Font.STRENGTH_CHAR)
+		self.szHappinessTitle = self.TEXT_HAPPINESS + (u" (%s)" % SASVisuals.Font.HAPPY_CHAR)
+		self.szHealthTitle = self.TEXT_HEALTH + (u" (%s)" % SASVisuals.Font.HEALTHY_CHAR) + ": " + self.TEXT_HEALTH_MEASURE
+		self.szExpTitle = self.TEXT_EXP + (u" (%s)" % SASVisuals.Font.TRADE_CHAR) + ": " + self.TEXT_EXP_MEASURE
 		# <!-- custom add char icons there with claude opus 4.5's help thanks. -->
-		self.szLandAreaTitle = u"%s (%c): %s" % (self.TEXT_LAND_AREA, CyGame().getSymbolID(FontSymbols.MAP_CHAR), self.TEXT_LAND_AREA_MEASURE)
-		self.szPopulationTitle = u"%s (%c)" % (self.TEXT_POPULATION, CyGame().getSymbolID(FontSymbols.CITIZEN_CHAR))
+		self.szLandAreaTitle = u"%s (%s): %s" % (self.TEXT_LAND_AREA, SASVisuals.Font.MAP_CHAR, self.TEXT_LAND_AREA_MEASURE)
+		self.szPopulationTitle = u"%s (%s)" % (self.TEXT_POPULATION, SASVisuals.Font.CITIZEN_CHAR)
 
 		# <!-- custom: rank buttons for demographics tab, added with claude opus 4.5's help thanks. -->
-		szRank1IconPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_TROPHY").getPath()  # 🏆
-		szRank2IconPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_2ND_PLACE_MEDAL").getPath()  # 🥈
-		szRank3IconPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_3RD_PLACE_MEDAL").getPath()  # 🥉
+		szRank1IconPath = SASVisuals.InterfaceArt.SAS_EMOJI_TROPHY  # 🏆
+		szRank2IconPath = SASVisuals.InterfaceArt.SAS_EMOJI_2ND_PLACE_MEDAL  # 🥈
+		szRank3IconPath = SASVisuals.InterfaceArt.SAS_EMOJI_3RD_PLACE_MEDAL  # 🥉
 
 		# <!-- custom: precompute full image tag strings for efficiency, added with claude opus 4.5's help thanks. -->
-		self.szRank1ImgTag = u"<img=%s size=%d></img>" % (szRank1IconPath, self.iRankIconSize)
-		self.szRank2ImgTag = u"<img=%s size=%d></img>" % (szRank2IconPath, self.iRankIconSize)
-		self.szRank3ImgTag = u"<img=%s size=%d></img>" % (szRank3IconPath, self.iRankIconSize)
+		self.szRank1ImgTag = SASTextScale.imageText(szRank1IconPath, self.iRankIconSize)
+		self.szRank2ImgTag = SASTextScale.imageText(szRank2IconPath, self.iRankIconSize)
+		self.szRank3ImgTag = SASTextScale.imageText(szRank3IconPath, self.iRankIconSize)
 
 		self.TEXT_TIME_PLAYED = localText.getText("TXT_KEY_INFO_SCREEN_TIME_PLAYED", ())
 		self.TEXT_CITIES_CURRENT = localText.getText("TXT_KEY_CONCEPT_CITIES", ()) # K-Mod
@@ -401,9 +390,9 @@ class CvInfoScreen:
 		self.TEXT_IMPROVEMENTS = localText.getText("TXT_KEY_CONCEPT_IMPROVEMENTS", ())
 
 #BUG: Change Graphs - start
-		self.SHOW_ALL = sasFontTagLabel + localText.getText("TXT_KEY_SHOW_ALL", ()) + SAS_FONT_TAG_CLOSE
-		self.SHOW_NONE = sasFontTagLabel + localText.getText("TXT_KEY_SHOW_NONE", ()) + SAS_FONT_TAG_CLOSE
-		self.LOG_SCALE = sasFontTagLabel + localText.getText("TXT_KEY_LOGSCALE", ()) + SAS_FONT_TAG_CLOSE
+		self.SHOW_ALL = SASTextScale.sasFontTagLabel + localText.getText("TXT_KEY_SHOW_ALL", ()) + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.SHOW_NONE = SASTextScale.sasFontTagLabel + localText.getText("TXT_KEY_SHOW_NONE", ()) + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.LOG_SCALE = SASTextScale.sasFontTagLabel + localText.getText("TXT_KEY_LOGSCALE", ()) + SASTextScale.SAS_FONT_TAG_CLOSE
 
 		sTemp1 = [""] * self.NUM_SCORES
 		sTemp2 = [""] * self.NUM_SCORES
@@ -450,35 +439,13 @@ class CvInfoScreen:
 		self.TEXT_WORLD_WONDERS = localText.getText("TXT_KEY_TOP_CITIES_SCREEN_WORLD_WONDERS", ())
 		self.TEXT_NATIONAL_WONDERS = localText.getText("TXT_KEY_TOP_CITIES_SCREEN_NATIONAL_WONDERS", ())
 		self.TEXT_PROJECTS = localText.getText("TXT_KEY_PEDIA_CATEGORY_PROJECT", ())
-		self.szWondersSpecialTitle = sasFontTagLabel.bold + localText.getText("TXT_KEY_PEDIA_SPECIAL_ABILITIES", ()) + SAS_FONT_TAG_CLOSE
+		self.szWondersSpecialTitle = SASTextScale.sasFontTagLabel.bold + localText.getText("TXT_KEY_PEDIA_SPECIAL_ABILITIES", ()) + SASTextScale.SAS_FONT_TAG_CLOSE
 
 		# <!-- custom: moved here from drawWondersList_BUG: performance optimimization: avoid redundant recomputation if i'm not mistaken. -->
 		self.sNameWonders = BugUtil.getPlainText("TXT_KEY_WONDER_NAME")
 		self.sDateWonders = BugUtil.getPlainText("TXT_KEY_WONDER_DATE")
 		self.sOwnerWonders = BugUtil.getPlainText("TXT_KEY_WONDER_OWNER")
 		self.sCityWonders = BugUtil.getPlainText("TXT_KEY_WONDER_CITY")
-
-		# world wonder / national wonder / projects icons / buttons
-		self.BUGWorldWonder_On = ArtFileMgr.getInterfaceArtInfo("BUG_WORLDWONDER_ON").getPath()
-		self.BUGWorldWonder_Off = ArtFileMgr.getInterfaceArtInfo("BUG_WORLDWONDER_OFF").getPath()
-		self.BUGNatWonder_On = ArtFileMgr.getInterfaceArtInfo("BUG_NATWONDER_ON").getPath()
-		self.BUGNatWonder_Off = ArtFileMgr.getInterfaceArtInfo("BUG_NATWONDER_OFF").getPath()
-		self.BUGProject_On = ArtFileMgr.getInterfaceArtInfo("BUG_PROJECT_ON").getPath()
-		self.BUGProject_Off = ArtFileMgr.getInterfaceArtInfo("BUG_PROJECT_OFF").getPath()
-
-		# <!-- custom: added with the help of claude opus 4.5 thanks, moved up to not recompute every time if i'm not mistaken. -->
-		self.szTimeIconStats = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_HOURGLASS_NOT_DONE").getPath()  # ⏳
-		self.szCityIconStats = ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_CITYSELECTION").getPath()
-		self.szFoundCityIconStats = "Art/Interface/Buttons/Actions/FoundCity.dds"
-		self.szRazeIconStats = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_FIRE").getPath()  # 🔥
-		self.szReligionIconStats = "Art/Interface/Buttons/General/ConvertReligion.dds"
-		self.szGoldenAgeIconStats = "Art/Interface/Buttons/Actions/GoldenAge.dds"
-
-		# <!-- custom: cache deterministic art paths/text used every render in Graph-related UI to avoid repeated lookups. (GPT-5.3-Codex) -->
-		self.ART_MAINMENU_SLIDESHOW_LOAD = ArtFileMgr.getInterfaceArtInfo("MAINMENU_SLIDESHOW_LOAD").getPath()
-		self.ART_POPUPS_BACKGROUND_TRANSPARENT = ArtFileMgr.getInterfaceArtInfo("POPUPS_BACKGROUND_TRANSPARENT").getPath()
-		self.ART_SCREEN_BG = ArtFileMgr.getInterfaceArtInfo("SCREEN_BG").getPath()
-		self.ART_INTERFACE_BUTTON_NULL = ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTON_NULL").getPath()
 
 		# <!-- custom: not strictly for text but use this to compute cheaply our sas defines once -->
 		self.IS_SAS_CV_INFO_SCREEN_TIMELINE_DBG_LOG_PRETTY_SUMMARY_BUTTON_ENABLE = (gc.getDefineINT("SAS_CV_INFO_SCREEN_TIMELINE_LOG_BUTTON_ENABLE") > 0)
@@ -577,7 +544,7 @@ class CvInfoScreen:
 		# load_module CvWBPopups
 		#
 		# load_module CvCameraControls
-		if getSASUIFontLabel() > 3:
+		if SASTextScale.getSASUIFontLabel() > 3:
 			self.W_TIMELINE_TABLE_LOG_BUTTON = 66
 			self.H_TIMELINE_TABLE_LOG_BUTTON = 32
 		else:
@@ -782,7 +749,7 @@ class CvInfoScreen:
 		self.deleteAllWidgets()
 
 		# Set the background widget and exit button
-		screen.addDDSGFC("DemographicsScreenBackground", self.ART_MAINMENU_SLIDESHOW_LOAD, 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		screen.addDDSGFC("DemographicsScreenBackground", SASVisuals.InterfaceArt.MAINMENU_SLIDESHOW_LOAD, 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 		screen.addPanel( "TechTopPanel", u"", u"", True, False, 0, 0, self.W_SCREEN, self.PANEL_HEIGHT, PanelStyles.PANEL_STYLE_TOPBAR )
 		# <!-- custom: in the foreign advisor and similar screens, too many players do not fit in one view, and the window does not use the full game window space.
 		# Make it larger like Sevopedia to reduce scrolling. Credit: Gemini 3 Pro; fixes reviewed by Claude Sonnet 4.5. (GPT-5.2-Codex (summarized)) -->
@@ -805,7 +772,7 @@ class CvInfoScreen:
 		screen.setLabel(self.szHeaderWidget, "Background", self.SCREEN_TITLE, CvUtil.FONT_CENTER_JUSTIFY, self.X_TITLE, self.Y_TITLE, self.Z_CONTROLS, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 		# Help area for tooltips
-		screen.setHelpTextArea(self.W_HELP_AREA, FontTypes.SMALL_FONT, self.X_SCREEN, self.Y_SCREEN, self.Z_HELP_AREA, 1, self.ART_POPUPS_BACKGROUND_TRANSPARENT, True, True, CvUtil.FONT_LEFT_JUSTIFY, 0 )
+		screen.setHelpTextArea(self.W_HELP_AREA, FontTypes.SMALL_FONT, self.X_SCREEN, self.Y_SCREEN, self.Z_HELP_AREA, 1, SASVisuals.InterfaceArt.POPUPS_BACKGROUND_TRANSPARENT, True, True, CvUtil.FONT_LEFT_JUSTIFY, 0 )
 
 		self.DEBUG_DROPDOWN_ID = "InfoScreenDropdownWidget"
 		self.szDropdownName = self.DEBUG_DROPDOWN_ID
@@ -865,7 +832,7 @@ class CvInfoScreen:
 		for i in range(len(self.PAGE_NAME_LIST)):
 			aszTabLabels.append(localText.getText(self.PAGE_NAME_LIST[i], ()).upper())
 			aszTabWidgetIDs.append("InfoTabButton" + str(i))
-		drawAdvisorFooterTabs(screen, aszTabWidgetIDs, aszTabLabels, self.PAGE_LINK_WIDTH, self.iActiveTab, self.Y_LINK, 0, self.COLOR_YELLOW)
+		drawAdvisorFooterTabs(screen, aszTabWidgetIDs, aszTabLabels, self.PAGE_LINK_WIDTH, self.iActiveTab, self.Y_LINK, 0, SASVisuals.Color.YELLOW)
 
 		if (self.iActiveTab >= 0 and self.iActiveTab < len(self.PAGE_NAME_LIST)):
 			self.PAGE_DRAW_LIST[self.iActiveTab]()
@@ -1065,7 +1032,7 @@ class CvInfoScreen:
 					if szCityName:
 						szText = szText.replace(szCityName, self.TEXT_TIMELINE_UNKNOWN_CITY)
 
-			szFormattedText = localText.changeTextColor(sasFontTagLabel + szEventDate + u": " + szText + SAS_FONT_TAG_CLOSE, eColor)
+			szFormattedText = localText.changeTextColor(SASTextScale.sasFontTagLabel + szEventDate + u": " + szText + SASTextScale.SAS_FONT_TAG_CLOSE, eColor)
 			entries.append(szFormattedText)
 
 		if self.IS_SAS_CV_INFO_SCREEN_TIMELINE_CACHE_ENABLE:
@@ -1084,7 +1051,7 @@ class CvInfoScreen:
 
 		if self.IS_SAS_CV_INFO_SCREEN_TIMELINE_DBG_LOG_PRETTY_SUMMARY_BUTTON_ENABLE:
 			self.szTimelineDbgLogPrettySummaryButton = self.getNextWidgetName()
-			szLabel = sasFontTagLabel + self.TEXT_TIMELINE_DBG_LOG_PRETTY_SUMMARY_BUTTON.upper() + SAS_FONT_TAG_CLOSE
+			szLabel = SASTextScale.sasFontTagLabel + self.TEXT_TIMELINE_DBG_LOG_PRETTY_SUMMARY_BUTTON.upper() + SASTextScale.SAS_FONT_TAG_CLOSE
 			screen.setButtonGFC(self.szTimelineDbgLogPrettySummaryButton, szLabel, "", self.X_TIMELINE_TABLE_LOG_BUTTON, self.Y_TIMELINE_TABLE_LOG_BUTTON, self.W_TIMELINE_TABLE_LOG_BUTTON, self.H_TIMELINE_TABLE_LOG_BUTTON, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_STANDARD)
 
 		# <!-- custom: Timeline entry caching avoids replay parsing, but rebuilding hundreds of rows was still slow.
@@ -1104,7 +1071,7 @@ class CvInfoScreen:
 		screen.setTableColumnHeader(self.szTimelineList, 0, u"", self.W_TIMELINE_TABLE)
 
 		if not aEntries:
-			szText = sasFontTagLabel + self.TEXT_TIMELINE_EMPTY + SAS_FONT_TAG_CLOSE
+			szText = SASTextScale.sasFontTagLabel + self.TEXT_TIMELINE_EMPTY + SASTextScale.SAS_FONT_TAG_CLOSE
 			iRow = screen.appendTableRow(self.szTimelineList)
 			SASTextScale.setTableTextLabel(screen, self.szTimelineList, 0, iRow, szText, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 			return
@@ -1363,9 +1330,9 @@ class CvInfoScreen:
 			szTrait1 = u""
 			szTrait2 = u""
 			if iTrait1 > -1:
-				szTrait1 = TraitUtil.getIcon(iTrait1)
+				szTrait1 = SASVisuals.Trait.getIcon(iTrait1)
 			if iTrait2 > -1:
-				szTrait2 = TraitUtil.getIcon(iTrait2)
+				szTrait2 = SASVisuals.Trait.getIcon(iTrait2)
 			SASTextScale.setTableTextLabel(screen, szTable, iColTrait1, iRow, szTrait1, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 			SASTextScale.setTableTextLabel(screen, szTable, iColTrait2, iRow, szTrait2, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 
@@ -1395,16 +1362,16 @@ class CvInfoScreen:
 			szScoreDelta = str(iScoreDelta)
 			if iScoreDelta > 0:
 				szScoreDelta = u"+%d" % iScoreDelta
-				szScoreDelta = localText.changeTextColor(szScoreDelta, self.SCORETAB_COLOR_ALT_HIGHLIGHT_TEXT)
+				szScoreDelta = localText.changeTextColor(szScoreDelta, SASVisuals.Color.ALT_HIGHLIGHT_TEXT)
 			elif iScoreDelta < 0:
-				szScoreDelta = localText.changeTextColor(szScoreDelta, self.SCORETAB_COLOR_RED)
+				szScoreDelta = localText.changeTextColor(szScoreDelta, SASVisuals.Color.RED)
 			SASTextScale.setTableIntLabel(screen, szTable, iColDelta, iRow, szScoreDelta, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_RIGHT_JUSTIFY)
 
 			szWarPeace = u""
 			if pTeam.isAtWar(eActiveTeam):
-				szWarPeace = self.SCORETAB_WAR_CHAR
+				szWarPeace = SASVisuals.DynamicFont.WAR_CHAR
 			elif pActiveTeam.isForcePeace(eTeam):
-				szWarPeace = self.SCORETAB_PEACE_CHAR
+				szWarPeace = SASVisuals.DynamicFont.PEACE_CHAR
 			SASTextScale.setTableTextLabel(screen, szTable, iColWarPeace, iRow, szWarPeace, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 
 			szPower = u""
@@ -1507,32 +1474,31 @@ class CvInfoScreen:
 
 			szEsp = u""
 			if bMet and bUseEspionage and pActivePlayer.getEspionageSpendingWeightAgainstTeam(eTeam) > 0:
-				szEsp = self.SCORETAB_ESPIONAGE_CHAR
+				szEsp = SASVisuals.Commerce.char(CommerceTypes.COMMERCE_ESPIONAGE)
 			SASTextScale.setTableTextLabel(screen, szTable, iColEspionage, iRow, szEsp, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 			szTrade = u""
 			if bMet and ePlayer != eActivePlayer and pPlayer.canTradeNetworkWith(eActivePlayer):
-				szTrade = self.SCORETAB_TRADE_CHAR
+				szTrade = SASVisuals.Font.TRADE_CHAR
 			# <!-- custom: The ordinary trade-routes widget provides the same hover without the scoreboard-only expansion side effect. See KI#388. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			SASTextScale.setTableTextLabel(screen, szTable, iColTrade, iRow, szTrade, "", WidgetTypes.WIDGET_TRADE_ROUTES, eActivePlayer, ePlayer, CvUtil.FONT_CENTER_JUSTIFY)
 
 			szBorders = u""
 			if bMet and pTeam.isOpenBorders(eActiveTeam):
-				szBorders = self.SCORETAB_BORDERS_CHAR
+				szBorders = SASVisuals.Font.OPEN_BORDERS_CHAR
 			SASTextScale.setTableTextLabel(screen, szTable, iColBorders, iRow, szBorders, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 
 			szPact = u""
 			if bMet and pTeam.isDefensivePact(eActiveTeam):
-				szPact = self.SCORETAB_PACT_CHAR
+				szPact = SASVisuals.Font.DEFENSIVE_PACT_CHAR
 			SASTextScale.setTableTextLabel(screen, szTable, iColPact, iRow, szPact, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 
 			szReligion = u""
 			eStateReligion = pPlayer.getStateReligion()
 			if bMet and eStateReligion != -1:
-				kReligion = gc.getReligionInfo(eStateReligion)
 				if pPlayer.hasHolyCity(eStateReligion):
-					szReligion = u"%c" % kReligion.getHolyCityChar()
+					szReligion = SASVisuals.Religion.holyCityChar(eStateReligion)
 				else:
-					szReligion = u"%c" % kReligion.getChar()
+					szReligion = SASVisuals.Religion.char(eStateReligion)
 			SASTextScale.setTableTextLabel(screen, szTable, iColReligion, iRow, szReligion, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 
 			# <!-- custom: note: textual attitude icon chars used to disappear when text was upscaled (label 3/4) while displaying fine at label 2 or lower; fixed by adding attitude glyph coverage in GameFont.tga (they had only existed in GameFont_75.tga). See KI#117. (Claude code Opus 4.6 + GPT-5.3-Codex) -->
@@ -1562,7 +1528,7 @@ class CvInfoScreen:
 
 			szWorstEnemy = u""
 			if bMet and AttitudeUtil.isWorstEnemy(ePlayer, eActivePlayer):
-				szWorstEnemy = self.SCORETAB_WORST_ENEMY_CHAR
+				szWorstEnemy = SASVisuals.Font.ANGRY_POP_CHAR
 			SASTextScale.setTableTextLabel(screen, szTable, iColWorstEnemy, iRow, szWorstEnemy, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 
 			szGoldenAge = u""
@@ -1570,9 +1536,9 @@ class CvInfoScreen:
 			bAnarchy = pPlayer.isAnarchy()
 			if ePlayer != eActivePlayer and (bGoldenAge or bAnarchy):
 				if bAnarchy:
-					szGoldenAge = self.SCORETAB_ANARCHY_CHAR
+					szGoldenAge = SASVisuals.Font.BAD_GOLD_CHAR
 				else:
-					szGoldenAge = self.SCORETAB_GOLDEN_AGE_CHAR
+					szGoldenAge = SASVisuals.Font.GOLDEN_AGE_CHAR
 			SASTextScale.setTableTextLabel(screen, szTable, iColGoldenAge, iRow, szGoldenAge, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 
 		# <!-- custom: refactored to the shared placeAdvisorLegendLink helper in SASUtils so AdvCiv-SAS advisors share one canonical legend-link path.
@@ -1828,11 +1794,11 @@ class CvInfoScreen:
 		screen = self.getScreen()
 
 		if (self.xSelPt != 0 or self.ySelPt != 0):
-			screen.addLineGFC(sGRAPH_CANVAS_ID, self.GRAPH_H_LINE, 0, self.ySelPt, self.W_GRAPH, self.ySelPt, self.COLOR_GREY)
-			screen.addLineGFC(sGRAPH_CANVAS_ID, self.GRAPH_V_LINE, self.xSelPt, 0, self.xSelPt, self.H_GRAPH, self.COLOR_GREY)
+			screen.addLineGFC(sGRAPH_CANVAS_ID, self.GRAPH_H_LINE, 0, self.ySelPt, self.W_GRAPH, self.ySelPt, SASVisuals.Color.GREY)
+			screen.addLineGFC(sGRAPH_CANVAS_ID, self.GRAPH_V_LINE, self.xSelPt, 0, self.xSelPt, self.H_GRAPH, SASVisuals.Color.GREY)
 		else:
-			screen.addLineGFC(sGRAPH_CANVAS_ID, self.GRAPH_H_LINE, -1, -1, -1, -1, self.COLOR_GREY)
-			screen.addLineGFC(sGRAPH_CANVAS_ID, self.GRAPH_V_LINE, -1, -1, -1, -1, self.COLOR_GREY)
+			screen.addLineGFC(sGRAPH_CANVAS_ID, self.GRAPH_H_LINE, -1, -1, -1, -1, SASVisuals.Color.GREY)
+			screen.addLineGFC(sGRAPH_CANVAS_ID, self.GRAPH_V_LINE, -1, -1, -1, -1, SASVisuals.Color.GREY)
 
 	def drawXLabel(self, screen, turn, x, just = CvUtil.FONT_CENTER_JUSTIFY):
 #BUG: Change Graphs - start
@@ -1847,9 +1813,9 @@ class CvInfoScreen:
 #BUG: Change Graphs - end
 
 		# <!-- custom: show year on first line, added with claude opus 4.5's help thanks. -->
-		screen.setLabel(self.getNextWidgetName(), "", sasFontTagLabel + self.getTurnDate(turn) + SAS_FONT_TAG_CLOSE, just, x, self.Y_LABEL, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setLabel(self.getNextWidgetName(), "", SASTextScale.sasFontTagLabel + self.getTurnDate(turn) + SASTextScale.SAS_FONT_TAG_CLOSE, just, x, self.Y_LABEL, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 		# <!-- custom: show turn number on second line below year, added with claude opus 4.5's help thanks. -->
-		screen.setLabel(self.getNextWidgetName(), "", sasFontTagLabel + (u"T%d" % turn) + SAS_FONT_TAG_CLOSE, just, x, self.Y_LABEL + self.iGraphTurnLabelYOffset, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setLabel(self.getNextWidgetName(), "", SASTextScale.sasFontTagLabel + (u"T%d" % turn) + SASTextScale.SAS_FONT_TAG_CLOSE, just, x, self.Y_LABEL + self.iGraphTurnLabelYOffset, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 	def drawGraphs(self):
 
@@ -1977,9 +1943,9 @@ class CvInfoScreen:
 
 		# Draw the graph widget
 		zsGRAPH_CANVAS_ID = self.getNextWidgetName()
-		screen.addDrawControl(zsGRAPH_CANVAS_ID, self.ART_SCREEN_BG, iX_GRAPH, iY_GRAPH, iW_GRAPH, iH_GRAPH, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.addDrawControl(zsGRAPH_CANVAS_ID, SASVisuals.InterfaceArt.SCREEN_BG, iX_GRAPH, iY_GRAPH, iW_GRAPH, iH_GRAPH, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
-		sButton = self.ART_INTERFACE_BUTTON_NULL
+		sButton = SASVisuals.InterfaceArt.INTERFACE_BUTTON_NULL
 		screen.addCheckBoxGFC(self.sGraphBGWidget[vGraphID_Locn], sButton, sButton, iX_GRAPH, iY_GRAPH, iW_GRAPH, iH_GRAPH, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_LABEL)
 
 #		self.timer.log("drawGraph - init")
@@ -2137,7 +2103,7 @@ class CvInfoScreen:
 				screen.moveToFront(self.szGraphDropdownWidget_3in1[vGraphID_Locn])
 			else:
 				screen.addPanel(self.sGraphPanelWidget[vGraphID_Locn], "", "", true, true, iX_GRAPH + 5, iY_GRAPH_TITLE, self.W_LEGEND, 25, PanelStyles.PANEL_STYLE_IN)
-				zsText = self.sGraphText[0][iGraphID]   #u"<font=3>" + localText.getColorText("TXT_KEY_INFO_GRAPH", (), getInfoTypeOrFail("COLOR_YELLOW")).upper() + u"</font>"
+				zsText = self.sGraphText[0][iGraphID]   # <!-- custom: Historical alternative formatted the graph label in COLOR_YELLOW; shared color identity now lives at SASVisuals.Color.YELLOW. (ChatGPT-5.6-Sol) -->
 				screen.setText(self.sGraphTextHeadingWidget[iGraphID], "", zsText, CvUtil.FONT_LEFT_JUSTIFY, iX_GRAPH + 10, iY_GRAPH_TITLE, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 #BUG: Change Graphs - start
 
@@ -2152,7 +2118,7 @@ class CvInfoScreen:
 		iXLegendLine = self.X_LEGEND_MARGIN
 		iXLegendText = iXLegendLine + self.W_LEGEND_LINE + 10
 		# Preferred row height: taller for upscaled fonts; capped later to available space
-		if getSASUIFontLabel() >= 3:
+		if SASTextScale.getSASUIFontLabel() >= 3:
 			iPreferRowH = 20
 		else:
 			iPreferRowH = 16
@@ -2259,8 +2225,8 @@ class CvInfoScreen:
 			strColor = u"<color=%d,%d,%d,%d>%s</color>" %(textColorR,textColorG,textColorB,textColorA,name)
 			# <!-- custom: add leader button before name using img tag, added with claude opus 4.5's help thanks. -->
 			szLeaderButton = gc.getLeaderHeadInfo(gc.getPlayer(p).getLeaderType()).getButton()
-			szLeaderImg = u"<img=%s size=%d></img>" % (szLeaderButton, iLeaderIconSize)
-			szNameWithLeader = sasFontTagLabel + (u"%s %s" % (szLeaderImg, strColor)) + SAS_FONT_TAG_CLOSE
+			szLeaderImg = SASTextScale.imageText(szLeaderButton, iLeaderIconSize)
+			szNameWithLeader = SASTextScale.sasFontTagLabel + (u"%s %s" % (szLeaderImg, strColor)) + SASTextScale.SAS_FONT_TAG_CLOSE
 
 #BUG: Change Graphs - start
 			if AdvisorOpt.isGraphs():
@@ -2297,7 +2263,7 @@ class CvInfoScreen:
 					textColorA = gc.getPlayer(p).getPlayerTextColorA()
 				# <!-- custom: avoid close to standard name like str -->
 				strColor = u"<color=%d,%d,%d,%d>%s</color>" %(textColorR,textColorG,textColorB,textColorA,name)
-				screen.setLabel(self.sPlayerTextWidget[i], "", sasFontTagLabel + strColor + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, self.X_LEGEND + iXLegendText + 2, yText, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+				screen.setLabel(self.sPlayerTextWidget[i], "", SASTextScale.sasFontTagLabel + strColor + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, self.X_LEGEND + iXLegendText + 2, yText, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 				yLine += iRowH
 				yText += iRowH
 
@@ -2911,7 +2877,7 @@ class CvInfoScreen:
 		screen.addPanel( self.szLeftPaneWidget, "", "", true, true, self.X_TOP_CITIES_LEFT_PANE, self.Y_TOP_CITIES_LEFT_PANE, self.W_TOP_CITIES_LEFT_PANE, self.H_TOP_CITIES_LEFT_PANE, PanelStyles.PANEL_STYLE_MAIN )#PanelStyles.PANEL_STYLE_DAWNTOP )
 
 		# <!-- custom: add "Top 5 Cities in the World" header (Civ3 vibe!), removed bold, added with claude opus 4.5's help thanks. -->
-		szHeaderText = sasFontTagTitle + localText.getText("TXT_KEY_TOP_5_CITIES_IN_THE_WORLD", ()) + SAS_FONT_TAG_CLOSE
+		szHeaderText = SASTextScale.sasFontTagTitle + localText.getText("TXT_KEY_TOP_5_CITIES_IN_THE_WORLD", ()) + SASTextScale.SAS_FONT_TAG_CLOSE
 		screen.setLabel(self.getNextWidgetName(), "", szHeaderText, CvUtil.FONT_CENTER_JUSTIFY, self.X_TOP_CITIES_LEFT_PANE + self.W_TOP_CITIES_LEFT_PANE / 2, self.Y_TOP_CITIES_LEFT_PANE + 12, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 		self.drawTopCities()
@@ -2934,8 +2900,8 @@ class CvInfoScreen:
 			screen.addPanel( szTextPanel, "", "", false, true, self.X_COL_1_CITIES_DESC, self.Y_ROWS_CITIES[iWidgetLoop] + self.Y_CITIES_DESC_BUFFER, self.W_CITIES_DESC, self.H_CITIES_DESC, PanelStyles.PANEL_STYLE_DAWNTOP )
 			self.szCityNameWidgets.append(self.getNextWidgetName())
 #			szProjectDesc = u"<font=3b>" + pProjectInfo.getDescription().upper() + u"</font>"
-			szCityDesc = sasFontTagTitle.bold + str(self.iCitySizes[iWidgetLoop]) + SAS_FONT_TAG_CLOSE + " - " + sasFontTagLabel.bold + self.szCityNames[iWidgetLoop] + SAS_FONT_TAG_CLOSE + "\n"
-			szCityDesc += sasFontTagLabel + self.szCityDescs[iWidgetLoop] + SAS_FONT_TAG_CLOSE
+			szCityDesc = SASTextScale.sasFontTagTitle.bold + str(self.iCitySizes[iWidgetLoop]) + SASTextScale.SAS_FONT_TAG_CLOSE + " - " + SASTextScale.sasFontTagLabel.bold + self.szCityNames[iWidgetLoop] + SASTextScale.SAS_FONT_TAG_CLOSE + "\n"
+			szCityDesc += SASTextScale.sasFontTagLabel + self.szCityDescs[iWidgetLoop] + SASTextScale.SAS_FONT_TAG_CLOSE
 			screen.addMultilineText(self.szCityNameWidgets[iWidgetLoop], szCityDesc, self.X_COL_1_CITIES_DESC + 6, self.Y_ROWS_CITIES[iWidgetLoop] + self.Y_CITIES_DESC_BUFFER + 3, self.W_CITIES_DESC - 6, self.H_CITIES_DESC - 6, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 #			screen.attachMultilineText( szTextPanel, self.szCityNameWidgets[iWidgetLoop], str(self.iCitySizes[iWidgetLoop]) + " - " + self.szCityNames[iWidgetLoop] + "\n" + self.szCityDescs[iWidgetLoop], WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
@@ -3136,22 +3102,22 @@ class CvInfoScreen:
 
 		if AdvisorOpt.isShowInfoWonders():
 			if self.szWonderDisplayMode == self.szWDM_WorldWonder:
-				sWW = self.BUGWorldWonder_On
-				sNW = self.BUGNatWonder_Off
-				sPj = self.BUGProject_Off
+				sWW = SASVisuals.InterfaceArt.BUG_WORLDWONDER_ON
+				sNW = SASVisuals.InterfaceArt.BUG_NATWONDER_OFF
+				sPj = SASVisuals.InterfaceArt.BUG_PROJECT_OFF
 				sDesc = self.TEXT_WORLD_WONDERS
 			elif self.szWonderDisplayMode == self.szWDM_NatnlWonder:
-				sWW = self.BUGWorldWonder_Off
-				sNW = self.BUGNatWonder_On
-				sPj = self.BUGProject_Off
+				sWW = SASVisuals.InterfaceArt.BUG_WORLDWONDER_OFF
+				sNW = SASVisuals.InterfaceArt.BUG_NATWONDER_ON
+				sPj = SASVisuals.InterfaceArt.BUG_PROJECT_OFF
 				sDesc = self.TEXT_NATIONAL_WONDERS
 			else:
-				sWW = self.BUGWorldWonder_Off
-				sNW = self.BUGNatWonder_Off
-				sPj = self.BUGProject_On
+				sWW = SASVisuals.InterfaceArt.BUG_WORLDWONDER_OFF
+				sNW = SASVisuals.InterfaceArt.BUG_NATWONDER_OFF
+				sPj = SASVisuals.InterfaceArt.BUG_PROJECT_ON
 				sDesc = self.TEXT_PROJECTS
 
-			sDesc = sasFontTagTitle + sDesc + SAS_FONT_TAG_CLOSE
+			sDesc = SASTextScale.sasFontTagTitle + sDesc + SASTextScale.SAS_FONT_TAG_CLOSE
 
 			screen.setImageButton(self.BUGWorldWonderWidget, sWW,  self.X_WONDERS_DROPDOWN +  0, self.Y_WONDERS_DROPDOWN, 24, 24, WidgetTypes.WIDGET_INFO_WORLD_WONDERS, -1, -1)
 			screen.setImageButton(self.BUGNatWonderWidget, sNW,  self.X_WONDERS_DROPDOWN + 30, self.Y_WONDERS_DROPDOWN, 24, 24, WidgetTypes.WIDGET_INFO_NATIONAL_WONDERS, -1, -1)
@@ -3300,7 +3266,7 @@ class CvInfoScreen:
 				pProjectInfo = gc.getProjectInfo(self.iWonderID)
 
 				# Stats panel (cont'd) - Name
-				szProjectDesc = sasFontTagLabel.bold + pProjectInfo.getDescription().upper() + SAS_FONT_TAG_CLOSE
+				szProjectDesc = SASTextScale.sasFontTagLabel.bold + pProjectInfo.getDescription().upper() + SASTextScale.SAS_FONT_TAG_CLOSE
 				szStatsText = szProjectDesc + "\n\n"
 
 				# Say whether this project is built yet or not
@@ -3323,7 +3289,7 @@ class CvInfoScreen:
 				if (pProjectInfo.getProductionCost() > 0):
 					# advc.001d: Replaced gc.getActivePlayer with self.pActivePlayer
 					szCost = localText.getText("TXT_KEY_PEDIA_COST", (self.pActivePlayer.getProjectProductionNeeded(self.iWonderID),))
-					szStatsText += szCost.upper() + (u"%c" % gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar()) + "\n"
+					szStatsText += szCost.upper() + SASVisuals.Yield.PRODUCTION_CHAR + "\n"
 
 				if (isWorldProject(self.iWonderID)):
 					iMaxInstances = gc.getProjectInfo(self.iWonderID).getMaxGlobalInstances()
@@ -3372,7 +3338,7 @@ class CvInfoScreen:
 				pWonderInfo = gc.getBuildingInfo(self.iWonderID)
 
 				# Stats panel (cont'd) - Name
-				szWonderDesc = sasFontTagLabel.bold + gc.getBuildingInfo(self.iWonderID).getDescription().upper() + SAS_FONT_TAG_CLOSE
+				szWonderDesc = SASTextScale.sasFontTagLabel.bold + gc.getBuildingInfo(self.iWonderID).getDescription().upper() + SASTextScale.SAS_FONT_TAG_CLOSE
 				szStatsText = szWonderDesc + "\n\n"
 
 				# Wonder built-in year
@@ -3404,7 +3370,7 @@ class CvInfoScreen:
 				if (pWonderInfo.getProductionCost() > 0):
 					# advc.001d: Replaced gc.getActivePlayer with self.pActivePlayer
 					szCost = localText.getText("TXT_KEY_PEDIA_COST", (self.pActivePlayer.getBuildingProductionNeeded(self.iWonderID),))
-					szStatsText += szCost.upper() + (u"%c" % gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar()) + "\n"
+					szStatsText += szCost.upper() + SASVisuals.Yield.PRODUCTION_CHAR + "\n"
 
 				for k in range(CommerceTypes.NUM_COMMERCE_TYPES):
 					if (pWonderInfo.getObsoleteSafeCommerceChange(k) != 0):
@@ -3416,28 +3382,28 @@ class CvInfoScreen:
 						szCommerce = gc.getCommerceInfo(k).getDescription() + ": "
 
 						szText1 = szCommerce.upper() + szSign + str(pWonderInfo.getObsoleteSafeCommerceChange(k))
-						szText2 = szText1 + (u"%c" % (gc.getCommerceInfo(k).getChar()))
+						szText2 = szText1 + (u"%s" % (SASVisuals.Commerce.char(k)))
 						szStatsText += szText2 + "\n"
 
 				if (pWonderInfo.getHappiness() > 0):
 					szText = localText.getText("TXT_KEY_PEDIA_HAPPY", (pWonderInfo.getHappiness(),))
-					szStatsText += szText + (u"%c" % CyGame().getSymbolID(FontSymbols.HAPPY_CHAR)) + "\n"
+					szStatsText += szText + SASVisuals.Font.HAPPY_CHAR + "\n"
 
 				elif (pWonderInfo.getHappiness() < 0):
 					szText = localText.getText("TXT_KEY_PEDIA_UNHAPPY", (-pWonderInfo.getHappiness(),))
-					szStatsText += szText + (u"%c" % CyGame().getSymbolID(FontSymbols.UNHAPPY_CHAR)) + "\n"
+					szStatsText += szText + SASVisuals.Font.UNHAPPY_CHAR + "\n"
 
 				if (pWonderInfo.getHealth() > 0):
 					szText = localText.getText("TXT_KEY_PEDIA_HEALTHY", (pWonderInfo.getHealth(),))
-					szStatsText += szText + (u"%c" % CyGame().getSymbolID(FontSymbols.HEALTHY_CHAR)) + "\n"
+					szStatsText += szText + SASVisuals.Font.HEALTHY_CHAR + "\n"
 
 				elif (pWonderInfo.getHealth() < 0):
 					szText = localText.getText("TXT_KEY_PEDIA_UNHEALTHY", (-pWonderInfo.getHealth(),))
-					szStatsText += szText + (u"%c" % CyGame().getSymbolID(FontSymbols.UNHEALTHY_CHAR)) + "\n"
+					szStatsText += szText + SASVisuals.Font.UNHEALTHY_CHAR + "\n"
 
 				if (pWonderInfo.getGreatPeopleRateChange() != 0):
 					szText = localText.getText("TXT_KEY_PEDIA_GREAT_PEOPLE", (pWonderInfo.getGreatPeopleRateChange(),))
-					szStatsText += szText + (u"%c" % CyGame().getSymbolID(FontSymbols.GREAT_PEOPLE_CHAR)) + "\n"
+					szStatsText += szText + SASVisuals.Font.GREAT_PEOPLE_CHAR + "\n"
 
 				screen.addMultilineText(self.getNextWidgetName(), szStatsText, self.X_WONDERS_STATS_PANE + 5, self.Y_WONDERS_STATS_PANE + 15, self.W_WONDERS_STATS_PANE - 10, self.H_WONDERS_STATS_PANE - 20, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 
@@ -3784,7 +3750,7 @@ class CvInfoScreen:
 				iWidget = WidgetTypes.WIDGET_PEDIA_JUMP_TO_BUILDING
 
 			szWonderName = pWonderInfo.getDescription()
-			szTurnYearBuilt = sasFontTagLabel + (u"%c" % gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar()) + SAS_FONT_TAG_CLOSE
+			szTurnYearBuilt = SASTextScale.sasFontTagLabel + SASVisuals.Yield.PRODUCTION_CHAR + SASTextScale.SAS_FONT_TAG_CLOSE
 
 			# Check to see if active player can see this city
 			# advc.001d: replaced gc.getGame().getActiveTeam with self.iActiveTeam. Check bRevealAll.
@@ -3945,7 +3911,7 @@ class CvInfoScreen:
 
 		# Leader Name
 		self.szLeaderNameWidget = self.getNextWidgetName()
-		szText = sasFontTagTitle.bold + gc.getPlayer(self.iActivePlayer).getName() + SAS_FONT_TAG_CLOSE
+		szText = SASTextScale.sasFontTagTitle.bold + gc.getPlayer(self.iActivePlayer).getName() + SASTextScale.SAS_FONT_TAG_CLOSE
 		screen.setText(self.szLeaderNameWidget, "", szText, CvUtil.FONT_LEFT_JUSTIFY, self.X_LEADER_NAME, self.Y_LEADER_NAME, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 		# Create Table
@@ -3975,7 +3941,7 @@ class CvInfoScreen:
 		# Time Played - using gear as a "game mechanics" metaphor, or add a clock emoji later
 		screen.appendTableRow(szTopChart)
 		iCol = 0
-		SASTextScale.setTableTextLabel(screen, szTopChart, iCol, iRow, self.TEXT_TIME_PLAYED, self.szTimeIconStats, statsRowWidget, statsRowId1, statsRowId2, statsRowFont)
+		SASTextScale.setTableTextLabel(screen, szTopChart, iCol, iRow, self.TEXT_TIME_PLAYED, SASVisuals.InterfaceArt.SAS_EMOJI_HOURGLASS_NOT_DONE, statsRowWidget, statsRowId1, statsRowId2, statsRowFont)
 		iCol = 1
 		SASTextScale.setTableTextLabel(screen, szTopChart, iCol, iRow, szTimeString, "", statsRowWidget, statsRowId1, statsRowId2, statsRowFont)
 
@@ -3987,7 +3953,7 @@ class CvInfoScreen:
 		iRow += 1
 		screen.appendTableRow(szTopChart)
 		iCol = 0
-		SASTextScale.setTableTextLabel(screen, szTopChart, iCol, iRow, self.TEXT_CITIES_CURRENT, self.szCityIconStats, statsRowWidget, statsRowId1, statsRowId2, statsRowFont)
+		SASTextScale.setTableTextLabel(screen, szTopChart, iCol, iRow, self.TEXT_CITIES_CURRENT, SASVisuals.InterfaceArt.INTERFACE_BUTTONS_CITYSELECTION, statsRowWidget, statsRowId1, statsRowId2, statsRowFont)
 		iCol = 1
 		SASTextScale.setTableTextLabel(screen, szTopChart, iCol, iRow, str(iNumCitiesCurrent), "", statsRowWidget, statsRowId1, statsRowId2, statsRowFont)
 		# K-Mod end
@@ -3996,7 +3962,7 @@ class CvInfoScreen:
 		iRow += 1
 		screen.appendTableRow(szTopChart)
 		iCol = 0
-		SASTextScale.setTableTextLabel(screen, szTopChart, iCol, iRow, self.TEXT_CITIES_BUILT, self.szFoundCityIconStats, statsRowWidget, statsRowId1, statsRowId2, statsRowFont)
+		SASTextScale.setTableTextLabel(screen, szTopChart, iCol, iRow, self.TEXT_CITIES_BUILT, SASVisuals.StaticArt.FOUND_CITY_BUTTON, statsRowWidget, statsRowId1, statsRowId2, statsRowFont)
 		iCol = 1
 		SASTextScale.setTableTextLabel(screen, szTopChart, iCol, iRow, str(iNumCitiesBuilt), "", statsRowWidget, statsRowId1, statsRowId2, statsRowFont)
 		# advc.004:
@@ -4004,7 +3970,7 @@ class CvInfoScreen:
 		iRow += 1
 		screen.appendTableRow(szTopChart)
 		iCol = 0
-		SASTextScale.setTableTextLabel(screen, szTopChart, iCol, iRow, self.TEXT_CITIES_RAZED, self.szRazeIconStats, statsRowWidget, statsRowId1, statsRowId2, statsRowFont)
+		SASTextScale.setTableTextLabel(screen, szTopChart, iCol, iRow, self.TEXT_CITIES_RAZED, SASVisuals.InterfaceArt.SAS_EMOJI_FIRE, statsRowWidget, statsRowId1, statsRowId2, statsRowFont)
 		iCol = 1
 		SASTextScale.setTableTextLabel(screen, szTopChart, iCol, iRow, str(iNumCitiesRazed), "", statsRowWidget, statsRowId1, statsRowId2, statsRowFont)
 		# advc.004:
@@ -4012,7 +3978,7 @@ class CvInfoScreen:
 		iRow += 1
 		screen.appendTableRow(szTopChart)
 		iCol = 0
-		SASTextScale.setTableTextLabel(screen, szTopChart, iCol, iRow, self.TEXT_NUM_RELIGIONS_FOUNDED, self.szReligionIconStats, statsRowWidget, statsRowId1, statsRowId2, statsRowFont)
+		SASTextScale.setTableTextLabel(screen, szTopChart, iCol, iRow, self.TEXT_NUM_RELIGIONS_FOUNDED, SASVisuals.StaticArt.CONVERT_RELIGION_BUTTON, statsRowWidget, statsRowId1, statsRowId2, statsRowFont)
 		iCol = 1
 		SASTextScale.setTableTextLabel(screen, szTopChart, iCol, iRow, str(iNumReligionsFounded), "", statsRowWidget, statsRowId1, statsRowId2, statsRowFont)
 
@@ -4023,7 +3989,7 @@ class CvInfoScreen:
 		iRow += 1
 		screen.appendTableRow(szTopChart)
 		iCol = 0
-		SASTextScale.setTableTextLabel(screen, szTopChart, iCol, iRow, self.TEXT_NUM_GOLDEN_AGES, self.szGoldenAgeIconStats, statsRowWidget, statsRowId1, statsRowId2, statsRowFont)
+		SASTextScale.setTableTextLabel(screen, szTopChart, iCol, iRow, self.TEXT_NUM_GOLDEN_AGES, SASVisuals.StaticArt.GOLDEN_AGE_BUTTON, statsRowWidget, statsRowId1, statsRowId2, statsRowFont)
 		iCol = 1
 		SASTextScale.setTableTextLabel(screen, szTopChart, iCol, iRow, str(iNumGoldenAges), "", statsRowWidget, statsRowId1, statsRowId2, statsRowFont)
 		# K-Mod end

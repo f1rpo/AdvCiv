@@ -732,6 +732,8 @@ It enforces these review rules introduced after repeated provenance mistakes:
 - added/modified Python and XML files carry the standard AdvCiv-SAS modification copyright header alongside inherited owners' notices; unchanged files and pure renames are excluded;
 - newly authored or substantively rewritten source comments use `<!-- custom: ... (model credit) -->`; model-authored comments need the credit, while user-authored comments may omit it. Missing model credits are advisory warnings, not helper failures; unchanged/moved inherited comments and whitespace-only reflow remain valid, while stale inherited comments may simply be removed;
 - when a nearby replacement custom comment retains identical or substantially unchanged prose, recognized existing credits in its trailing parenthesized credit list are preserved; dropping one contributor still fails even if another credit remains. Credit reordering/additions and whitespace reflow are allowed, as are whole-comment deletions and unrelated replacements;
+- parenthesized custom-comment credits reject the known misspellings `Chat-GPT` and `catgpt`, ignoring case. Prose mentions and other model names remain allowed; this is a small typo guard, not a list of approved models;
+- new or rewritten comments reject clear cascading layouts: an extra Python/C++ comment prefix introducing an appended custom explanation, two custom blocks joined on one line, or a nested XML comment. Use separate comment blocks; ordinary inline C++ annotations and marker text inside code strings remain valid. This detects structure, not whether an explanation should be split on meaning alone;
 - if an inherited comment is replaced by a nearby custom comment, known provenance markers such as `advc.xxx`, `KI#...` and `Long_Comments_... #N` are retained;
 - every added/removed/changed C/C++ `#include` or Python import has a nearby newly added custom rationale comment, including dependencies in new files; untouched inherited directives are excluded;
 - added/removed/changed literal-named Boost.Python `.def(...)` bindings have a nearby new custom rationale comment; a Python help string alone is insufficient. A coherent nearby binding group may share its explanation, and unchanged/reflowed bindings are excluded;
@@ -753,6 +755,35 @@ Or provide an explicit comparison base:
 
 ```bash
 python .github/workflows/build/source/source_change_provenance.py --base-ref <base-sha>
+```
+
+#### `build/source/python_resource_api.py`
+
+Checks consumers of `SASVisualUtils` and `SASTextScale` against their source-derived API, without importing Civ4 or maintaining one spelling guard per resource family. `checks-source.yml` runs it as **Shared Python resource API contracts**.
+
+- Reads module exports, classes, inheritance, methods, explicit instance attributes and constructor-created objects from Python syntax trees. Import aliases, from-import aliases and local-module re-exports are followed.
+- Derives dynamic member names from the providers' named tables, DLL enums, BUG symbol registrations and color/art XML. New ordinary collections and methods enter the contract through their declarations, without editing a checker-side member list.
+- Reports missing collections/members, unbound namespace roots targeting a known shared API export, missing explicit imports, calls to known non-callable values and straightforward positional/keyword argument mismatches. Strings/comments and shadowed module aliases are excluded.
+- Ordinarily validates changed runtime Python modules and their reverse import dependencies, including unchanged consumers of a changed module. Changes to the shared providers, relevant XML/configuration, `CvEnums.h` or this checker require the wider consumer check.
+  - Source trees are read to establish declarations and dependency relationships; incremental selection limits which consumers are validated, rather than claiming every unchanged file is never read.
+- Limits: this is a partial static contract checker, not a general Python type checker or an engine simulation. Arbitrary runtime-created attributes, computed return-object types, control-flow-dependent aliases, initialization order and calls using argument unpacking are not proven. Unrecognized dynamic surfaces remain opaque rather than inventing members or rejecting unknown engine behavior.
+  - The current runtime sources can be read by the modern Python AST parser used here; the separate Python 2.4 check still establishes runtime syntax compatibility.
+
+The motivating failures illustrate different gaps:
+
+- Replacing `HEALTHY_ICON` inside `UNHEALTHY_ICON` produced `UNSASVisuals.StaticArt.HEALTHY_PERSON`, causing `NameError` during BUG configuration loading. It was valid syntax; Ruff's F405 rule is excluded from the blocking gate because star imports also supply legitimate engine names.
+- F3's `CvForeignAdvisor.sasFontTagTitle` raised `AttributeError` after the advisor stopped re-exporting the former font helper. Valid module names do not establish that a requested member exists.
+- The broader scan additionally found GameFont Display calling nonexistent `Font.ordinals()`; it now searches the existing cached glyph tuple. The Traits page receives its namespace through `_sevopedia_helpers` star exports, which the resolver follows rather than reporting a false missing import.
+
+Fixing the namespace error did not repair the stale font access: a spelling guard cannot establish whether a valid module exports a requested attribute. Adding another special case for each failure would leave similar gaps in other resource families.
+
+The shared check instead compares consumers with provider declarations and resource data, so the same rules cover different collections and members. New ordinary declarations change the checked contract without requiring another error-specific pattern; dynamic behavior still has the limits listed above.
+
+`tests/source/test_python_resource_api.py` covers all current collection families, inherited and XML/enum-derived members, aliases/re-exports, incorrect calls, provider edits, false-positive boundaries and incremental dependency selection. The earlier namespace-substring and font-name ownership guards were replaced by this shared check.
+
+```bash
+python .github/workflows/build/source/python_resource_api.py --base-ref <base-sha>
+python .github/workflows/build/source/python_resource_api.py --all
 ```
 
 #### Custom-comment logical reflow

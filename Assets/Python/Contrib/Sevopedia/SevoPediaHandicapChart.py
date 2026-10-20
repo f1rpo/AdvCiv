@@ -8,6 +8,8 @@
 # <!-- custom: note: pending issue of img being left-aligned but couldn't fix it for now, i believe the advantage of being able to sort by emoji i.e. theme outweighs this downside so left as such for now. -->
 
 from CvPythonExtensions import *
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import CvUtil
 import re
 from _sevopedia_helpers import *
@@ -398,24 +400,24 @@ class SevoPediaHandicapChart:
 			for i, (name, artKey) in enumerate(_btn_defs):
 				# Group id only affects sorting by the icon column.
 				# Reorder _btn_defs to change the icon-theme sort order.
-				btn_by_name[name] = (ArtFileMgr.getInterfaceArtInfo(artKey).getPath(), (i + 1) * 10)
+				btn_by_name[name] = (SASVisuals.InterfaceArt.getPath(artKey), (i + 1) * 10)
 
 			glyph_by_name = {}
 			# GameFont glyph icons (yields/commerce/symbols).
 			_glyph_defs = (
 				# (name, glyph_char)
-				("great_people", (u"%c" % (game.getSymbolID(FontSymbols.GREAT_PEOPLE_CHAR)))),
+				("great_people", (u"%s" % (SASVisuals.Font.GREAT_PEOPLE_CHAR))),
 
-				("research",     (u"%c" % (gc.getCommerceInfo(CommerceTypes.COMMERCE_RESEARCH).getChar()))),
-				("gold",         (u"%c" % (gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar()))),
-				("culture",      (u"%c" % (gc.getCommerceInfo(CommerceTypes.COMMERCE_CULTURE).getChar()))),
+				("research",     (u"%s" % (SASVisuals.Commerce.RESEARCH_CHAR))),
+				("gold",         (u"%s" % (SASVisuals.Commerce.GOLD_CHAR))),
+				("culture",      (u"%s" % (SASVisuals.Commerce.CULTURE_CHAR))),
 
-				("happy",        (u"%c" % (game.getSymbolID(FontSymbols.HAPPY_CHAR)))),
-				("health",       (u"%c" % (game.getSymbolID(FontSymbols.HEALTHY_CHAR)))),
-				("food",         (u"%c" % (gc.getYieldInfo(YieldTypes.YIELD_FOOD).getChar()))),
-				("prod",         (u"%c" % (gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar()))),
-				("defense",      (u"%c" % (game.getSymbolID(FontSymbols.DEFENSE_CHAR)))),
-				("citizen",      (u"%c" % (game.getSymbolID(FontSymbols.CITIZEN_CHAR)))),
+				("happy",        (u"%s" % (SASVisuals.Font.HAPPY_CHAR))),
+				("health",       (u"%s" % (SASVisuals.Font.HEALTHY_CHAR))),
+				("food",         (u"%s" % (SASVisuals.Yield.FOOD_CHAR))),
+				("prod",         (u"%s" % (SASVisuals.Yield.PRODUCTION_CHAR))),
+				("defense",      (u"%s" % (SASVisuals.Font.DEFENSE_CHAR))),
+				("citizen",      (u"%s" % (SASVisuals.Font.CITIZEN_CHAR))),
 			)
 			for _name, _glyph in _glyph_defs:
 				glyph_by_name[_name] = _glyph

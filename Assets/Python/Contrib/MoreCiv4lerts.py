@@ -9,6 +9,8 @@
 # Edits here are limited to repo-wide consistency passes (e.g. getInfoTypeOrFail for fail-loud XML lookups). (Claude code Opus 4.7) -->
 
 from CvPythonExtensions import *
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 from SASUtils import getInfoTypeOrFail
 import PyHelpers
 import BugCore
@@ -227,10 +229,10 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 				if (bRevealed or PlayerUtil.canSeeCityList(iPlayer)):
 					player = gc.getPlayer(iPlayer)
 					#iColor = gc.getPlayerColorInfo(player.getPlayerColor()).getColorTypePrimary()
-					iColor = getInfoTypeOrFail("COLOR_MAGENTA")
+					iColor = SASVisuals.Color.MAGENTA
 					if (bRevealed):
 						message = localText.getText("TXT_KEY_MORECIV4LERTS_CITY_FOUNDED", (player.getName(), city.getName()))
-						self._addMessageAtCity(self.iOwner, message, "Art/Interface/Buttons/Actions/foundcity.dds", city, iColor)
+						self._addMessageAtCity(self.iOwner, message, SASVisuals.StaticArt.FOUND_CITY_BUTTON, city, iColor)
 					else:
 						message = localText.getText("TXT_KEY_MORECIV4LERTS_CITY_FOUNDED_UNSEEN", (player.getName(), city.getName()))
 						self._addMessageNoIcon(self.iOwner, message, iColor)
@@ -292,7 +294,7 @@ class MoreCiv4lertsEvent( AbstractMoreCiv4lertsEvent):
 						if (city.getCultureLevel() != gc.getNumCultureLevelInfos() - 1):
 							if ((city.getCulture(loopPlayer) + city.getCommerceRate(CommerceTypes.COMMERCE_CULTURE)) >= city.getCultureThreshold()):
 								message = localText.getText("TXT_KEY_MORECIV4LERTS_CITY_TO_EXPAND",(city.getName(),))
-								icon = "Art/Interface/Buttons/General/Warning_popup.dds"
+								icon = SASVisuals.StaticArt.WARNING_POPUP_BUTTON
 								self._addMessageAtCity(loopPlayer, message, icon, city)
 							else:
 								pass

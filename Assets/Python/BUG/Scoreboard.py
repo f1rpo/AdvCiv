@@ -17,11 +17,13 @@
 # Edits here are limited to repo-wide consistency passes (e.g. getInfoTypeOrFail for fail-loud XML lookups). (Claude code Opus 4.7) -->
 
 from CvPythonExtensions import *
+# <!-- custom: Use the shared SAS visual-resource collections for scoreboard glyph rendering; BUG dynamic/[ICON_*] symbol compatibility is centralized there too. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import BugCore
 #import BugDll # advc.004: unused now
 import BugUtil
+# <!-- custom: Scoreboard rendering no longer depends on the retired FontUtil module; ordinary and BUG-created glyphs use SASVisuals.Font/SASVisuals.DynamicFont. (ChatGPT-5.6-Sol) -->
 import DealUtil
-import FontUtil
 import CvUtil
 import re
 # <!-- custom: remove or comment out seemingly unused imports -->
@@ -118,7 +120,7 @@ def init():
 
 	global VASSAL_PREFIX, VASSAL_POSTFIX
 	VASSAL_PREFIX = smallSymbol(FontSymbols.BULLET_CHAR)
-	VASSAL_POSTFIX = smallText(u" %s" % FontUtil.getChar(FontSymbols.BULLET_CHAR))
+	VASSAL_POSTFIX = smallText(u" %s" % SASVisuals.Font.BULLET_CHAR)
 	# <advc.085>
 	global GOLDEN_AGE_ICON, ANARCHY_ICON
 	GOLDEN_AGE_ICON = smallSymbol(FontSymbols.GOLDEN_AGE_CHAR)
@@ -128,7 +130,7 @@ def smallText(text):
 	return SASTextScale.labelText(u"%s" % text)
 
 def smallSymbol(symbol):
-	return smallText(FontUtil.getChar(symbol))
+	return smallText(SASVisuals.DynamicFont.getChar(symbol))
 
 def onDealCanceled(argsList):
 	# Sets the scoreboard dirty bit so it will redraw.
@@ -258,8 +260,9 @@ class Scoreboard:
 		#	self._set(RESEARCH_TURNS, smallText(u"(%d)" % turns))
 		# <advc.085> Replacing the two lines above
 		szProgress = u" %d%%" % progress
-		# Color it green? I guess better not.
-		#szProgress = CyTranslator().changeTextColor(szProgress, getInfoTypeOrFail("COLOR_ALT_HIGHLIGHT_TEXT"))
+		# <!-- custom: Retain the inherited disabled "Color it green? I guess better not." experiment using the shared fail-loud color API.
+		# szProgress = CyTranslator().changeTextColor(szProgress, SASVisuals.Color.ALT_HIGHLIGHT_TEXT)
+		# (GPT-6.1-Sol) -->
 		self._set(RESEARCH_TURNS, smallText(szProgress)) # </advc.085>
 
 	def setEspionage(self):

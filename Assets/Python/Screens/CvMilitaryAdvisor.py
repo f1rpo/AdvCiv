@@ -12,7 +12,8 @@ import PyHelpers
 import re
 import SASBattleHistory
 import SASTextScale
-from SASFontUtils import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 from SASUtils import *
 
 PyPlayer = PyHelpers.PyPlayer
@@ -143,13 +144,6 @@ class CvMilitaryAdvisor:
 		self.iUnitCombatMountedRanged = None
 		self.iBattleTerrainPeak = None
 		self.iBattleTerrainHill = None
-		self.COLOR_YELLOW = None
-		self.COLOR_RED = None
-		self.COLOR_GREEN = None
-		self.COLOR_WHITE = None
-		self.COLOR_GREAT_PEOPLE_STORED = None
-		self.COLOR_GREAT_PEOPLE_RATE = None
-		self.COLOR_EMPTY = None
 		self.iPromoLeader = None
 		self.BATTLE_HILL_PEAK_COL_ID = None
 		self.BATTLE_TERRAIN_COL_ID = None
@@ -191,20 +185,6 @@ class CvMilitaryAdvisor:
 			self.iBattleTerrainPeak = getInfoTypeOrFail("TERRAIN_PEAK")
 		if self.iBattleTerrainHill is None:
 			self.iBattleTerrainHill = getInfoTypeOrFail("TERRAIN_HILL")
-		if self.COLOR_YELLOW is None:
-			self.COLOR_YELLOW = getInfoTypeOrFail("COLOR_YELLOW")
-		if self.COLOR_RED is None:
-			self.COLOR_RED = getInfoTypeOrFail("COLOR_RED")
-		if self.COLOR_GREEN is None:
-			self.COLOR_GREEN = getInfoTypeOrFail("COLOR_GREEN")
-		if self.COLOR_WHITE is None:
-			self.COLOR_WHITE = getInfoTypeOrFail("COLOR_WHITE")
-		if self.COLOR_GREAT_PEOPLE_STORED is None:
-			self.COLOR_GREAT_PEOPLE_STORED = getInfoTypeOrFail("COLOR_GREAT_PEOPLE_STORED")
-		if self.COLOR_GREAT_PEOPLE_RATE is None:
-			self.COLOR_GREAT_PEOPLE_RATE = getInfoTypeOrFail("COLOR_GREAT_PEOPLE_RATE")
-		if self.COLOR_EMPTY is None:
-			self.COLOR_EMPTY = getInfoTypeOrFail("COLOR_EMPTY")
 		# <!-- custom: PROMOTION_LEADER is required for the Summary tab's GG-led units row; fail loudly like other AdvCiv-SAS XML contracts instead of silently showing misleading 0 data. (Claude code Opus 4.7, GPT-5.5) -->
 		if self.iPromoLeader is None:
 			self.iPromoLeader = getInfoTypeOrFail("PROMOTION_LEADER")
@@ -230,8 +210,8 @@ class CvMilitaryAdvisor:
 		if self.iLanguageLoaded == CyGame().getCurrentLanguage():
 			return
 		self.iLanguageLoaded = CyGame().getCurrentLanguage()
-		self.EXIT_TEXT = sasFontTagTitle + localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ()).upper() + SAS_FONT_TAG_CLOSE
-		self.TITLE = sasFontTagTitle.bold + localText.getText("TXT_KEY_MILITARY_ADVISOR_TITLE", ()).upper() + SAS_FONT_TAG_CLOSE
+		self.EXIT_TEXT = SASTextScale.sasFontTagTitle + localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.TITLE = SASTextScale.sasFontTagTitle.bold + localText.getText("TXT_KEY_MILITARY_ADVISOR_TITLE", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE
 		self.TEXT_COMBAT_EXPERIENCE = localText.getText("TXT_KEY_MISC_COMBAT_EXPERIENCE", ())
 		self.TEXT_ALL_UNITS = localText.getText("TXT_KEY_PEDIA_ALL_UNITS", ()).upper()
 		self.TEXT_UNIT_TOGGLE_ON = localText.getText("TXT_KEY_MILITARY_ADVISOR_UNIT_TOGGLE_ON", ())
@@ -336,32 +316,18 @@ class CvMilitaryAdvisor:
 		self.TEXT_BATTLE_TERRAIN = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_BATTLE_TERRAIN", ())
 		self.TEXT_BATTLE_FEATURE = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_BATTLE_FEATURE", ())
 		self.TEXT_BATTLE_PLOT = localText.getText("TXT_KEY_SAS_MILITARY_ADVISOR_BATTLE_PLOT", ())
-		self.ART_MAINMENU_SLIDESHOW_LOAD = ArtFileMgr.getInterfaceArtInfo("MAINMENU_SLIDESHOW_LOAD").getPath()
-		self.ART_BUTTON_HILITE_SQUARE = ArtFileMgr.getInterfaceArtInfo("BUTTON_HILITE_SQUARE").getPath()
-		self.ART_BATTLE_PLOT_BUTTON = ArtFileMgr.getInterfaceArtInfo("INTERFACE_MINIMAP_PING").getPath()
-		self.ART_BATTLE_CITY_BUTTON = ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_CITYSELECTION").getPath()
-		self.ART_BATTLE_CITY_CAPTURED_BUTTON = ArtFileMgr.getInterfaceArtInfo("INTERFACE_RESISTANCE").getPath()
-		self.ART_BATTLE_ROLE_ATTACKER = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_CROSSED_SWORDS").getPath()
 		# <!-- custom: tried a military medal emoji but it reads as 2 half emoji with highly clashing colors; hard to read in a data-rich small column width table.
 		# Prefer the star emoji with darker variant that renders very well.
 		# Trophy seems more suited to races or competitions so not used in military context here -->
-		self.ART_BATTLE_RESULT_WON = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_WHITE_MEDIUM_STAR_2").getPath()
 		# <!-- custom: a red plain fairly uniform emoji like this one conveys very well visually the idea of lost/death and scans very fast -->
-		self.ART_BATTLE_RESULT_LOST = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_BROKEN_HEART").getPath()
 		# <!-- custom: this left arrow variant is fairly clearly distinguishable from the other 2 result emojis; it is plain and dense so fills the cell nicely for retreat.
 		# Person Running was not chosen because it is too thin and visually non-homogenous, making it harder to scan quickly. (GPT-5.5) -->
-		self.ART_BATTLE_RESULT_RETREAT = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_LEFT_ARROW_2").getPath()
 		self.RESULT_WON = 0
 		self.RESULT_LOST = 1
 		self.RESULT_RETREAT = 2
-		self.STRENGTH_CHAR = u"%c" % CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR)
 		# <!-- custom: regular gold coin via CommerceInfo.getChar() (matches Domestic Advisor gold headers).
 		# Earlier we used FontSymbols.BAD_GOLD_CHAR, the red maintenance-coin variant, which was visually wrong for normal cost subtotals.
 		# Hammer comes from YIELD_PRODUCTION. (Claude code Opus 4.7, GPT-5.5) -->
-		self.GOLD_CHAR = u"%c" % gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar()
-		self.HAMMER_CHAR = u"%c" % gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar()
-		self.GREAT_GENERAL_CHAR = u"%c" % CyGame().getSymbolID(FontSymbols.GREAT_GENERAL_CHAR)
-		self.STAR_CHAR = u"%c" % CyGame().getSymbolID(FontSymbols.STAR_CHAR)
 
 	def updateRuntimeLayout(self, screen):
 		# <!-- custom: compute runtime shell bounds/anchors through shared helpers so Military Advisor follows the same runtime layout flow as Foreign/Info/Domestic. (GPT-5.3-Codex) -->
@@ -475,7 +441,7 @@ class CvMilitaryAdvisor:
 		# <!-- custom: unlike Foreign Advisor, we must set X/Y directly or the screen stays centered. Credit: Gemini 3 Pro. (GPT-5.2-Codex (summarized)) -->
 		screen.setDimensions(self.X_SCREEN, self.Y_SCREEN, self.W_SCREEN, self.H_SCREEN)
 
-		screen.addDDSGFC(self.BACKGROUND_ID, self.ART_MAINMENU_SLIDESHOW_LOAD, 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		screen.addDDSGFC(self.BACKGROUND_ID, SASVisuals.InterfaceArt.MAINMENU_SLIDESHOW_LOAD, 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 		screen.addPanel( "TopPanel", u"", u"", True, False, 0, 0, self.W_SCREEN, 55, PanelStyles.PANEL_STYLE_TOPBAR )
 		screen.addPanel( "BottomPanel", u"", u"", True, False, 0, self.Y_BOTTOM_PANEL, self.W_SCREEN, 55, PanelStyles.PANEL_STYLE_BOTTOMBAR )
@@ -573,7 +539,7 @@ class CvMilitaryAdvisor:
 
 	def drawTabs(self):
 		screen = self.getScreen()
-		drawAdvisorFooterTabs(screen, self.PAGE_TAB_IDS, self.PAGE_NAME_LIST, self.PAGE_LINK_WIDTH, self.iActivePage, self.Y_LINK, self.Z_CONTROLS, self.COLOR_YELLOW)
+		drawAdvisorFooterTabs(screen, self.PAGE_TAB_IDS, self.PAGE_NAME_LIST, self.PAGE_LINK_WIDTH, self.iActivePage, self.Y_LINK, self.Z_CONTROLS, SASVisuals.Color.YELLOW)
 
 	def getTurnDate(self, iTurn):
 		iYear = CyGame().getTurnYear(iTurn)
@@ -601,13 +567,13 @@ class CvMilitaryAdvisor:
 			return None
 		if SASBattleHistory.isRetreatEntry(entry):
 			iResult = self.RESULT_RETREAT
-			iColor = self.COLOR_YELLOW
+			iColor = SASVisuals.Color.YELLOW
 		elif iWinner == self.iActivePlayer:
 			iResult = self.RESULT_WON
-			iColor = self.COLOR_GREEN
+			iColor = SASVisuals.Color.GREEN
 		else:
 			iResult = self.RESULT_LOST
-			iColor = self.COLOR_RED
+			iColor = SASVisuals.Color.RED
 		iAttacker = -1
 		iDefender = -1
 		if len(entry) >= 9:
@@ -701,8 +667,8 @@ class CvMilitaryAdvisor:
 			return u""
 		szText = unicode(abs(iCapturedCount))
 		if iCapturedCount > 0:
-			return localText.changeTextColor(szText, self.COLOR_GREEN)
-		return localText.changeTextColor(szText, self.COLOR_RED)
+			return localText.changeTextColor(szText, SASVisuals.Color.GREEN)
+		return localText.changeTextColor(szText, SASVisuals.Color.RED)
 
 	def getBattleCaptureUnitText(self, iCapturedCount, iCapturedUnit):
 		if iCapturedCount == 0 or iCapturedUnit < 0:
@@ -719,7 +685,7 @@ class CvMilitaryAdvisor:
 			return u""
 		szText = unicode(iXP)
 		if bGreatGeneral:
-			return localText.changeTextColor(szText, self.COLOR_YELLOW)
+			return localText.changeTextColor(szText, SASVisuals.Color.YELLOW)
 		return szText
 
 	def setBattleTerrainFeatureCell(self, screen, iRow, iCol, iInfo, bTerrain):
@@ -756,10 +722,10 @@ class CvMilitaryAdvisor:
 		if iX < 0 or iY < 0:
 			return ""
 		if SASBattleHistory.isCityContextCaptured(iCityContext):
-			return self.ART_BATTLE_CITY_CAPTURED_BUTTON
+			return SASVisuals.InterfaceArt.INTERFACE_RESISTANCE
 		if SASBattleHistory.isCityContextDefended(iCityContext):
-			return self.ART_BATTLE_CITY_BUTTON
-		return self.ART_BATTLE_PLOT_BUTTON
+			return SASVisuals.InterfaceArt.INTERFACE_BUTTONS_CITYSELECTION
+		return SASVisuals.InterfaceArt.INTERFACE_MINIMAP_PING
 
 	def getBattleCurrentStrengthText(self, iCurrentStrength, iMaxStrength):
 		szText = self.getBattleStoredStrengthText(iCurrentStrength)
@@ -769,10 +735,10 @@ class CvMilitaryAdvisor:
 		if iCurrentStrength >= iMaxStrength:
 			return szText
 		if iPct > 66:
-			return localText.changeTextColor(szText, self.COLOR_GREEN)
+			return localText.changeTextColor(szText, SASVisuals.Color.GREEN)
 		if iPct > 33:
-			return localText.changeTextColor(szText, self.COLOR_YELLOW)
-		return localText.changeTextColor(szText, self.COLOR_RED)
+			return localText.changeTextColor(szText, SASVisuals.Color.YELLOW)
+		return localText.changeTextColor(szText, SASVisuals.Color.RED)
 
 	def getBattleBaseStrengthText(self, iUnit):
 		iStrength = self.getBattleUnitStrength(iUnit)
@@ -790,16 +756,16 @@ class CvMilitaryAdvisor:
 	def getBattleRoleArt(self, iOurRole):
 		# <!-- custom: empty string (not unicode) because the szIcon arg of CyGInterfaceScreen.setTableText is bound as char const * (str); passing unicode triggers an ArgumentError. Credit: Claude code Opus 4.7. (GPT-5.5) -->
 		if iOurRole == 1:
-			return self.ART_BATTLE_ROLE_ATTACKER
+			return SASVisuals.InterfaceArt.SAS_EMOJI_CROSSED_SWORDS
 		return ""
 
 	def getBattleResultArt(self, iResult):
 		if iResult == self.RESULT_WON:
-			return self.ART_BATTLE_RESULT_WON
+			return SASVisuals.InterfaceArt.SAS_EMOJI_WHITE_MEDIUM_STAR_2
 		if iResult == self.RESULT_LOST:
-			return self.ART_BATTLE_RESULT_LOST
+			return SASVisuals.InterfaceArt.SAS_EMOJI_BROKEN_HEART
 		if iResult == self.RESULT_RETREAT:
-			return self.ART_BATTLE_RESULT_RETREAT
+			return SASVisuals.InterfaceArt.SAS_EMOJI_LEFT_ARROW_2
 		return ""
 
 	def getBattleResultLogText(self, iResult):
@@ -846,7 +812,7 @@ class CvMilitaryAdvisor:
 		aEntries = SASBattleHistory.getEntriesForPlayer(self.iActivePlayer)
 		battleTableCacheKey = self.getBattleTableCacheKey(aEntries, iTableX, iTableY, iTableW, iTableH)
 		if self.IS_SAS_CV_MILITARY_ADVISOR_BATTLES_LOG_BUTTON_ENABLE:
-			screen.setButtonGFC(self.BATTLE_LOG_BUTTON_ID, sasFontTagLabel + self.TEXT_BATTLES_LOG_BUTTON.upper() + SAS_FONT_TAG_CLOSE, "", self.X_EXIT - 110, self.Y_TITLE + 2, 64, 28, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_STANDARD)
+			screen.setButtonGFC(self.BATTLE_LOG_BUTTON_ID, SASTextScale.sasFontTagLabel + self.TEXT_BATTLES_LOG_BUTTON.upper() + SASTextScale.SAS_FONT_TAG_CLOSE, "", self.X_EXIT - 110, self.Y_TITLE + 2, 64, 28, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_STANDARD)
 		placeAdvisorLegendLink(self, "CONCEPT_SAS_MILITARY_ADVISOR_BATTLES_LEGEND", self.W_SCREEN - 12, self.Y_TITLE)
 		# <!-- custom: Late-game Battles tab opened slowly in a sample with 710+ rows.
 		# Data-layer caching and fully prepared row-payload caching were tested first and did not significantly help; preserving the built table widget makes same-open tab switches almost instant as long as the Military Advisor is not exited.
@@ -894,18 +860,18 @@ class CvMilitaryAdvisor:
 		# Our repeated civ/leader/PID are omitted because the dropdown/log PerspectivePlayer already identifies us. (GPT-5.5) -->
 		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 3, self.TEXT_BATTLE_EST_ODDS, iEstOddsColW)
 		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 4, self.TEXT_BATTLE_ROLE, iRoleColW)
-		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 5, self.STRENGTH_CHAR + u"b", iBaseColW)
-		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 6, self.STRENGTH_CHAR + u"s", iStrengthColW)
-		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 7, self.STRENGTH_CHAR + u"e", iStrengthColW)
-		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 8, self.STRENGTH_CHAR + u"m", iStrengthColW)
+		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 5, SASVisuals.Font.STRENGTH_CHAR + u"b", iBaseColW)
+		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 6, SASVisuals.Font.STRENGTH_CHAR + u"s", iStrengthColW)
+		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 7, SASVisuals.Font.STRENGTH_CHAR + u"e", iStrengthColW)
+		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 8, SASVisuals.Font.STRENGTH_CHAR + u"m", iStrengthColW)
 		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 9, self.TEXT_BATTLE_XP, iXPColW)
 		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 10, self.TEXT_BATTLE_OUR_UNIT, iUnitColW)
 		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 11, self.TEXT_BATTLE_THEIR_UNIT, iUnitColW)
 		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 12, self.TEXT_BATTLE_XP, iXPColW)
-		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 13, self.STRENGTH_CHAR + u"b", iBaseColW)
-		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 14, self.STRENGTH_CHAR + u"s", iStrengthColW)
-		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 15, self.STRENGTH_CHAR + u"e", iStrengthColW)
-		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 16, self.STRENGTH_CHAR + u"m", iStrengthColW)
+		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 13, SASVisuals.Font.STRENGTH_CHAR + u"b", iBaseColW)
+		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 14, SASVisuals.Font.STRENGTH_CHAR + u"s", iStrengthColW)
+		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 15, SASVisuals.Font.STRENGTH_CHAR + u"e", iStrengthColW)
+		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 16, SASVisuals.Font.STRENGTH_CHAR + u"m", iStrengthColW)
 		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 17, "", 35)
 		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 18, "", 35)
 		SASTextScale.setTableColumnHeaderLabel(screen, self.BATTLE_TABLE_ID, 19, self.TEXT_BATTLE_PID, iPIDColW)
@@ -953,9 +919,9 @@ class CvMilitaryAdvisor:
 		szOurUnitName = gc.getUnitInfo(iOurUnit).getDescription()
 		szTheirUnitName = gc.getUnitInfo(iTheirUnit).getDescription()
 		if bOurGG:
-			szOurUnitName = localText.changeTextColor(szOurUnitName, self.COLOR_YELLOW)
+			szOurUnitName = localText.changeTextColor(szOurUnitName, SASVisuals.Color.YELLOW)
 		if bTheirGG:
-			szTheirUnitName = localText.changeTextColor(szTheirUnitName, self.COLOR_YELLOW)
+			szTheirUnitName = localText.changeTextColor(szTheirUnitName, SASVisuals.Color.YELLOW)
 		SASTextScale.setTableTextLabel(screen, self.BATTLE_TABLE_ID, 10, iRow, szOurUnitName, gc.getUnitInfo(iOurUnit).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_UNIT, iOurUnit, -1, CvUtil.FONT_LEFT_JUSTIFY)
 		SASTextScale.setTableTextLabel(screen, self.BATTLE_TABLE_ID, 11, iRow, szTheirUnitName, gc.getUnitInfo(iTheirUnit).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_UNIT, iTheirUnit, -1, CvUtil.FONT_LEFT_JUSTIFY)
 		SASTextScale.setTableIntLabel(screen, self.BATTLE_TABLE_ID, 12, iRow, self.getBattleXPText(iTheirXP, bTheirGG), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_RIGHT_JUSTIFY)
@@ -1059,12 +1025,12 @@ class CvMilitaryAdvisor:
 		screen.setStyle(szTable, "Table_StandardCiv_Style")
 		iCountColW = 80
 		iNameColW = iW - iCountColW - 14
-		screen.setTableColumnHeader(szTable, 0, sasFontTagLabel + szTitle + SAS_FONT_TAG_CLOSE, iNameColW)
-		screen.setTableColumnHeader(szTable, 1, sasFontTagLabel + self.TEXT_COMPOSITION_COUNT + SAS_FONT_TAG_CLOSE, iCountColW)
+		screen.setTableColumnHeader(szTable, 0, SASTextScale.sasFontTagLabel + szTitle + SASTextScale.SAS_FONT_TAG_CLOSE, iNameColW)
+		screen.setTableColumnHeader(szTable, 1, SASTextScale.sasFontTagLabel + self.TEXT_COMPOSITION_COUNT + SASTextScale.SAS_FONT_TAG_CLOSE, iCountColW)
 		for iRow, (szName, szButton, iIdx, iCount) in enumerate(aRows):
 			screen.appendTableRow(szTable)
-			screen.setTableText(szTable, 0, iRow, sasFontTagLabel + szName + SAS_FONT_TAG_CLOSE, szButton, ePediaWidget, iIdx, -1, CvUtil.FONT_LEFT_JUSTIFY)
-			screen.setTableInt(szTable, 1, iRow, sasFontTagLabel + str(iCount) + SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
+			screen.setTableText(szTable, 0, iRow, SASTextScale.sasFontTagLabel + szName + SASTextScale.SAS_FONT_TAG_CLOSE, szButton, ePediaWidget, iIdx, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableInt(szTable, 1, iRow, SASTextScale.sasFontTagLabel + str(iCount) + SASTextScale.SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 
 	def collectSummaryData(self):
 		# <!-- custom: single unit-iteration pass collects everything the Summary tab needs (domain split, military/civilian split, deployment, wounded count, upgrade gold).
@@ -1565,7 +1531,7 @@ class CvMilitaryAdvisor:
 		iRowSpacing = 26
 		iZ = self.Z_CONTROLS + self.DZ
 		screen.addPanel(self.getNextWidgetName(), u"", u"", True, True, iColX, iColY, iColW, iColH, PanelStyles.PANEL_STYLE_MAIN)
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagTitle + szTitle.upper() + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, iColX + iColW / 2, iColY + iTitleMargin, iZ, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagTitle + szTitle.upper() + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, iColX + iColW / 2, iColY + iTitleMargin, iZ, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 		iRowY = iColY + iTitleMargin + 30
 		for tRow in aRows:
 			if tRow[0] is None:
@@ -1615,8 +1581,8 @@ class CvMilitaryAdvisor:
 			szValueText = szValue
 			if iValueColor >= 0:
 				szValueText = localText.changeTextColor(szValueText, iValueColor)
-			screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + szLabel + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, iLabelX, iRowY, iZ, FontTypes.GAME_FONT, eHelpWidget, iData1, iData2)
-			screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + szValueText + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, iValueTextX, iRowY, iZ, FontTypes.GAME_FONT, eHelpWidget, iData1, iData2)
+			screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + szLabel + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, iLabelX, iRowY, iZ, FontTypes.GAME_FONT, eHelpWidget, iData1, iData2)
+			screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + szValueText + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, iValueTextX, iRowY, iZ, FontTypes.GAME_FONT, eHelpWidget, iData1, iData2)
 			iRowY += iRowSpacing
 
 	def getSummaryRowIconY(self, iRowY):
@@ -1625,7 +1591,7 @@ class CvMilitaryAdvisor:
 
 	def getSummaryCostResultText(self, szFormula, iResult, iColor):
 		# <!-- custom: every caller of this helper produces a Support-column gold amount, so suffix the result with the normal gold coin; formula operands remain unitless counts, rates, and multipliers. (Claude code Opus 4.7, GPT-5.5) -->
-		return szFormula + u" = " + localText.changeTextColor(unicode(iResult) + self.GOLD_CHAR, iColor)
+		return szFormula + u" = " + localText.changeTextColor(unicode(iResult) + SASVisuals.Commerce.char(CommerceTypes.COMMERCE_GOLD), iColor)
 
 	def summaryBuildingHasMilitarySupportEffect(self, kInfo):
 		# <!-- custom: semantic Military Summary predicate: local/global XP, military/domain production, Great-General generation, unit-combat/domain XP, or a free promotion.
@@ -1801,10 +1767,10 @@ class CvMilitaryAdvisor:
 		if fHealthPct >= 100:
 			return -1
 		if fHealthPct > 66:
-			return self.COLOR_GREEN
+			return SASVisuals.Color.GREEN
 		if fHealthPct > 33:
-			return self.COLOR_YELLOW
-		return self.COLOR_RED
+			return SASVisuals.Color.YELLOW
+		return SASVisuals.Color.RED
 
 	def drawSummary(self):
 		screen = self.getScreen()
@@ -1836,8 +1802,8 @@ class CvMilitaryAdvisor:
 		# <!-- custom: Use simple burden coloring for the support math: green = 0 cost, red = positive cost. The earlier affordability coloring (yellow if the player still had nonnegative net gold/turn) made rows like `(84 x 100 x 82) / 10000 = 68` look merely cautionary even though this panel is explaining where the unit-support burden comes from. (GPT-5.5) -->
 		def _supportColor(iCost):
 			if iCost <= 0:
-				return self.COLOR_GREEN
-			return self.COLOR_RED
+				return SASVisuals.Color.GREEN
+			return SASVisuals.Color.RED
 		iUnitCostColor = _supportColor(dStats["unit_cost"])
 		iUnitSupplyColor = _supportColor(dStats["unit_supply"])
 		iTotalGold = dStats["total_gold"]
@@ -1851,7 +1817,7 @@ class CvMilitaryAdvisor:
 			szUnitSupplyLabel = u"%s (%s)" % (szUnitSupplyLabel, self.TEXT_SUMMARY_ANARCHY)
 			szTotalGoldLabel = u"%s (%s)" % (szTotalGoldLabel, self.TEXT_SUMMARY_ANARCHY)
 		szUnitCostText = self.getSummaryCostResultText(u"%d + %d + %d" % (dStats["regular_unit_cost"], dStats["military_unit_cost"], dStats["extra_unit_cost"]), dStats["raw_unit_cost"], iUnitCostColor)
-		szUnitSupplyText = unicode(dStats["raw_unit_supply"]) + self.GOLD_CHAR
+		szUnitSupplyText = unicode(dStats["raw_unit_supply"]) + SASVisuals.Commerce.char(CommerceTypes.COMMERCE_GOLD)
 		szFreeUsedCapText = u"%d/%d" % (dStats["free_used_units"], dStats["free_units"])
 		szFreeUsedMilitaryCapText = u"%d/%d" % (dStats["free_used_military_units"], dStats["free_military_units"])
 		if dStats["inflation_percent"] > 0:
@@ -1865,7 +1831,7 @@ class CvMilitaryAdvisor:
 		if dStats["base_supply_cost"] != dStats["raw_unit_supply"]:
 			# <!-- custom: AI handicap multiplies the base supply cost (CvPlayer.cpp:6301-6308).
 			# When the post-handicap value differs we show both: pre-handicap subtotal -> handicap-adjusted final, both as gold. (Claude code Opus 4.7) -->
-			szOutsideRateText = u"(%d x %d) / 100 = %d%s -> %s" % (dStats["paid_outside"], dStats["gold_per_outside_unit"], dStats["base_supply_cost"], self.GOLD_CHAR, localText.changeTextColor(unicode(dStats["raw_unit_supply"]) + self.GOLD_CHAR, iUnitSupplyColor))
+			szOutsideRateText = u"(%d x %d) / 100 = %d%s -> %s" % (dStats["paid_outside"], dStats["gold_per_outside_unit"], dStats["base_supply_cost"], SASVisuals.Commerce.char(CommerceTypes.COMMERCE_GOLD), localText.changeTextColor(unicode(dStats["raw_unit_supply"]) + SASVisuals.Commerce.char(CommerceTypes.COMMERCE_GOLD), iUnitSupplyColor))
 		# <!-- custom: rendered support tree:
 		# Total Units
 		#   Free Used/Cap / Paid / P x R x M
@@ -1896,7 +1862,7 @@ class CvMilitaryAdvisor:
 			(self.TEXT_SUMMARY_FREE_USED_CAP_SHORT, szFreeUsedMilitaryCapText, eNone, -1, -1, 2, -1),
 			(self.TEXT_SUMMARY_PAID_SHORT, unicode(dStats["paid_military_units"]), eNone, -1, -1, 2, -1),
 			(self.TEXT_SUMMARY_GOLD_PER_MIL_UNIT, self.getSummaryCostResultText(u"(%d x %d) / 100" % (dStats["paid_military_units"], dStats["gold_per_military_unit"]), dStats["military_unit_cost"], iUnitCostColor), eHelpUnitCost, self.iActivePlayer, 1, 2, -1),
-			(self.TEXT_SUMMARY_EXTRA_COST, unicode(dStats["extra_unit_cost"]) + self.GOLD_CHAR, eHelpUnitCost, self.iActivePlayer, 1, 2, iUnitCostColor),
+			(self.TEXT_SUMMARY_EXTRA_COST, unicode(dStats["extra_unit_cost"]) + SASVisuals.Commerce.char(CommerceTypes.COMMERCE_GOLD), eHelpUnitCost, self.iActivePlayer, 1, 2, iUnitCostColor),
 			(None, None, eNone, -1, -1, 0, -1),
 			(szUnitCostLabel, szUnitCostText, eHelpUnitCost, self.iActivePlayer, 1, 1, -1),
 			(None, None, eNone, -1, -1, 0, -1),
@@ -1937,19 +1903,19 @@ class CvMilitaryAdvisor:
 			elif bHasTech and iDenominator > 0:
 				szValue = u"%d / %d" % (iBuilt, iDenominator)
 			aSupport.append((szLabel, szValue, eNone, -1, -1, 1, -1, szIcon))
-		aSupport.extend([(None, None, eNone, -1, -1), (self.TEXT_SUMMARY_UNIT_PRODUCTION, u"", eNone, -1, -1, 0, -1), (self.TEXT_SUMMARY_AVG_MODIFIER, _signedPct(dStats["avg_prod_mod"]), eNone, -1, -1, 1, -1), (self.TEXT_SUMMARY_BEST_CITY, szBestProdValue, eNone, -1, -1, 1, -1), (self.TEXT_SUMMARY_AVG_NEW_XP, u"%.1f" % dStats["avg_free_xp"], eNone, -1, -1, 1, -1), (self.TEXT_SUMMARY_BEST_NEW_XP, szBestXpValue, eNone, -1, -1, 1, -1), (None, None, eNone, -1, -1), (self.TEXT_SUMMARY_ALLIED_HAMMERS, unicode(dStats["allied_hammers"]) + self.HAMMER_CHAR, eNone, -1, -1, 0, -1),])
+		aSupport.extend([(None, None, eNone, -1, -1), (self.TEXT_SUMMARY_UNIT_PRODUCTION, u"", eNone, -1, -1, 0, -1), (self.TEXT_SUMMARY_AVG_MODIFIER, _signedPct(dStats["avg_prod_mod"]), eNone, -1, -1, 1, -1), (self.TEXT_SUMMARY_BEST_CITY, szBestProdValue, eNone, -1, -1, 1, -1), (self.TEXT_SUMMARY_AVG_NEW_XP, u"%.1f" % dStats["avg_free_xp"], eNone, -1, -1, 1, -1), (self.TEXT_SUMMARY_BEST_NEW_XP, szBestXpValue, eNone, -1, -1, 1, -1), (None, None, eNone, -1, -1), (self.TEXT_SUMMARY_ALLIED_HAMMERS, unicode(dStats["allied_hammers"]) + SASVisuals.Yield.char(YieldTypes.YIELD_PRODUCTION), eNone, -1, -1, 0, -1),])
 		# <!-- custom: Defenses moved from Support to Deployment because city protection reads closer to "where my forces/cities are" than to support cost. (Claude code Opus 4.7, GPT-5.5) -->
 
 		# <!-- custom: Army column summarizes the active player's own forces: composition, strongest/costliest/power-rank callouts, quality means, Great General state, promotions, covert-unit flags, and upgrade costs. (Claude code Opus 4.7, GPT-5.5) -->
 		szStrongest = u""
 		szStrongestIcon = u""
 		if dStats["strongest_str"] >= 0:
-			szStrongest = u"%s %d%s" % (dStats["strongest_name"], dStats["strongest_str"], self.STRENGTH_CHAR)
+			szStrongest = u"%s %d%s" % (dStats["strongest_name"], dStats["strongest_str"], SASVisuals.Font.STRENGTH_CHAR)
 			szStrongestIcon = dStats["strongest_button"]
 		szHighestCost = u""
 		szHighestCostIcon = u""
 		if dStats["highest_cost"] >= 0:
-			szHighestCost = u"%s %d%s" % (dStats["highest_cost_name"], dStats["highest_cost"], self.HAMMER_CHAR)
+			szHighestCost = u"%s %d%s" % (dStats["highest_cost_name"], dStats["highest_cost"], SASVisuals.Yield.char(YieldTypes.YIELD_PRODUCTION))
 			szHighestCostIcon = dStats["highest_cost_button"]
 		# <!-- custom: integer pct; a nonzero count never shows 0% (bumped to 1) so present-but-small categories are not misread as absent. (Claude code Opus 4.7) -->
 		def _pctOf(iCount, iWhole):
@@ -1986,12 +1952,12 @@ class CvMilitaryAdvisor:
 		aMilCiv = _partPct([iMilCount, dStats["civilian"]], iMilCivTotal)
 		aDomain = _partPct([dStats["land"], dStats["sea"], dStats["air"]], iMilCount)
 		aHealthBands = _partPct([dStats["health_full"], dStats["health_high"], dStats["health_medium"], dStats["health_low"]], iMilCount)
-		szTotalHammers = unicode(dStats["total_hammers"]) + self.HAMMER_CHAR
-		szAvgHammers = (u"%.1f" % dStats["avg_hammers"]) + self.HAMMER_CHAR
+		szTotalHammers = unicode(dStats["total_hammers"]) + SASVisuals.Yield.char(YieldTypes.YIELD_PRODUCTION)
+		szAvgHammers = (u"%.1f" % dStats["avg_hammers"]) + SASVisuals.Yield.char(YieldTypes.YIELD_PRODUCTION)
 		szAvgXp = u"%.1f" % dStats["avg_xp"]
 		szAvgLevel = u"%.1f" % dStats["avg_level"]
-		szGeneralsFree = u"%d%s" % (dStats["standalone_generals"], self.GREAT_GENERAL_CHAR)
-		szLedByGeneral = u"%d%s" % (dStats["led_by_general"], self.STAR_CHAR)
+		szGeneralsFree = u"%d%s" % (dStats["standalone_generals"], SASVisuals.Font.GREAT_GENERAL_CHAR)
+		szLedByGeneral = u"%d%s" % (dStats["led_by_general"], SASVisuals.Font.STAR_CHAR)
 		szPowerRankKnown = u"%d / %d" % (dStats["known_power_rank"], dStats["known_power_players"])
 		# <!-- custom: keep total/average hammer investment near strongest/costliest and power rank; these rows frame army size/value before quality rows. (Claude code Opus 4.7, GPT-5.5) -->
 		aArmy = [
@@ -2024,7 +1990,7 @@ class CvMilitaryAdvisor:
 		# confusion.
 		# The block is short (parent + 3 rows) and its zero state is informative - it confirms there's no covert coverage in the current army. (Claude code Opus 4.7) -->
 		aArmy.extend([(None, None, eNone, -1, -1), (self.TEXT_SUMMARY_COVERT_UNITS, u"", eNone, -1, -1, 0, -1), (self.TEXT_SUMMARY_INVISIBLE, _withPct(dStats["invisible_units"], dStats["total"]), eNone, -1, -1, 1, -1), (self.TEXT_SUMMARY_SPIES, _withPct(dStats["spy_units"], dStats["total"]), eNone, -1, -1, 1, -1), (self.TEXT_SUMMARY_HIDDEN_NAT, _withPct(dStats["hidden_nat_units"], dStats["total"]), eNone, -1, -1, 1, -1),])
-		aArmy.extend([(None, None, eNone, -1, -1), (self.TEXT_SUMMARY_UPGRADEABLE, unicode(dStats["upgradeable"]), eNone, -1, -1, 0, -1), (self.TEXT_SUMMARY_UPGRADE_MIN_COST, unicode(dStats["upgrade_min"]) + self.GOLD_CHAR, eNone, -1, -1, 1, -1), (self.TEXT_SUMMARY_UPGRADE_AVG_COST, unicode(dStats["upgrade_avg"]) + self.GOLD_CHAR, eNone, -1, -1, 1, -1), (self.TEXT_SUMMARY_UPGRADE_MAX_COST, unicode(dStats["upgrade_max"]) + self.GOLD_CHAR, eNone, -1, -1, 1, -1), (self.TEXT_SUMMARY_UPGRADE_TOTAL_COST, unicode(dStats["upgrade_total"]) + self.GOLD_CHAR, eNone, -1, -1, 1, -1),])
+		aArmy.extend([(None, None, eNone, -1, -1), (self.TEXT_SUMMARY_UPGRADEABLE, unicode(dStats["upgradeable"]), eNone, -1, -1, 0, -1), (self.TEXT_SUMMARY_UPGRADE_MIN_COST, unicode(dStats["upgrade_min"]) + SASVisuals.Commerce.char(CommerceTypes.COMMERCE_GOLD), eNone, -1, -1, 1, -1), (self.TEXT_SUMMARY_UPGRADE_AVG_COST, unicode(dStats["upgrade_avg"]) + SASVisuals.Commerce.char(CommerceTypes.COMMERCE_GOLD), eNone, -1, -1, 1, -1), (self.TEXT_SUMMARY_UPGRADE_MAX_COST, unicode(dStats["upgrade_max"]) + SASVisuals.Commerce.char(CommerceTypes.COMMERCE_GOLD), eNone, -1, -1, 1, -1), (self.TEXT_SUMMARY_UPGRADE_TOTAL_COST, unicode(dStats["upgrade_total"]) + SASVisuals.Commerce.char(CommerceTypes.COMMERCE_GOLD), eNone, -1, -1, 1, -1),])
 
 		# <!-- custom: Deployment groups unit locations by strategic relation, then city defenses, health distribution, and recent battle-history summary.
 		# Wounded + health % rows reuse Battles-tab health colors for consistency. (Claude code Opus 4.7, GPT-5.5) -->
@@ -2088,21 +2054,21 @@ class CvMilitaryAdvisor:
 			aDeployment.append((self.TEXT_SUMMARY_BATTLES_TOTAL, unicode(dBattle["total"]), eNone, -1, -1))
 			# <!-- custom: reuse the Battles tab's outcome glyphs; harmonized so Won+Retreated+Lost = 100%. (Claude code Opus 4.7) -->
 			aBattleOutcome = _partPct([dBattle["wins"], dBattle["retreats"], dBattle["losses"]], dBattle["total"])
-			aDeployment.append((self.TEXT_SUMMARY_BATTLES_WON, aBattleOutcome[0], eNone, -1, -1, 1, self.COLOR_GREEN, self.ART_BATTLE_RESULT_WON))
-			aDeployment.append((self.TEXT_SUMMARY_BATTLES_RETREATED, aBattleOutcome[1], eNone, -1, -1, 1, self.COLOR_YELLOW, self.ART_BATTLE_RESULT_RETREAT))
-			aDeployment.append((self.TEXT_SUMMARY_BATTLES_LOST, aBattleOutcome[2], eNone, -1, -1, 1, self.COLOR_RED, self.ART_BATTLE_RESULT_LOST))
+			aDeployment.append((self.TEXT_SUMMARY_BATTLES_WON, aBattleOutcome[0], eNone, -1, -1, 1, SASVisuals.Color.GREEN, SASVisuals.InterfaceArt.SAS_EMOJI_WHITE_MEDIUM_STAR_2))
+			aDeployment.append((self.TEXT_SUMMARY_BATTLES_RETREATED, aBattleOutcome[1], eNone, -1, -1, 1, SASVisuals.Color.YELLOW, SASVisuals.InterfaceArt.SAS_EMOJI_LEFT_ARROW_2))
+			aDeployment.append((self.TEXT_SUMMARY_BATTLES_LOST, aBattleOutcome[2], eNone, -1, -1, 1, SASVisuals.Color.RED, SASVisuals.InterfaceArt.SAS_EMOJI_BROKEN_HEART))
 			aDeployment.append((None, None, eNone, -1, -1))
 			# <!-- custom: always show both luck rows (counts are naturally 0) so Deployment keeps a stable row set, instead of dropping Bad-Luck Losses with no losses yet. (Claude code Opus 4.7) -->
-			aDeployment.append((self.TEXT_SUMMARY_GOOD_LUCK, _withPct(dBattle["good_luck_wins"], dBattle["wins"]), eNone, -1, -1, 1, self.COLOR_GREEN))
-			aDeployment.append((self.TEXT_SUMMARY_BAD_LUCK, _withPct(dBattle["bad_luck_losses"], dBattle["losses"]), eNone, -1, -1, 1, self.COLOR_RED))
+			aDeployment.append((self.TEXT_SUMMARY_GOOD_LUCK, _withPct(dBattle["good_luck_wins"], dBattle["wins"]), eNone, -1, -1, 1, SASVisuals.Color.GREEN))
+			aDeployment.append((self.TEXT_SUMMARY_BAD_LUCK, _withPct(dBattle["bad_luck_losses"], dBattle["losses"]), eNone, -1, -1, 1, SASVisuals.Color.RED))
 			aDeployment.append((None, None, eNone, -1, -1))
 			# <!-- custom: always show Luckiest/Unluckiest too; "-" placeholder (no icons) when no qualifying battle yet, like Best Defended. (Claude code Opus 4.7) -->
 			if dBattle["luckiest_win_text"]:
-				aDeployment.append((self.TEXT_SUMMARY_LUCKIEST_WIN, dBattle["luckiest_win_text"], eNone, -1, -1, 1, self.COLOR_GREEN, dBattle["luckiest_win_our_icon"], dBattle["luckiest_win_their_icon"]))
+				aDeployment.append((self.TEXT_SUMMARY_LUCKIEST_WIN, dBattle["luckiest_win_text"], eNone, -1, -1, 1, SASVisuals.Color.GREEN, dBattle["luckiest_win_our_icon"], dBattle["luckiest_win_their_icon"]))
 			else:
 				aDeployment.append((self.TEXT_SUMMARY_LUCKIEST_WIN, u"-", eNone, -1, -1, 1, -1))
 			if dBattle["unluckiest_loss_text"]:
-				aDeployment.append((self.TEXT_SUMMARY_UNLUCKIEST_LOSS, dBattle["unluckiest_loss_text"], eNone, -1, -1, 1, self.COLOR_RED, dBattle["unluckiest_loss_our_icon"], dBattle["unluckiest_loss_their_icon"]))
+				aDeployment.append((self.TEXT_SUMMARY_UNLUCKIEST_LOSS, dBattle["unluckiest_loss_text"], eNone, -1, -1, 1, SASVisuals.Color.RED, dBattle["unluckiest_loss_our_icon"], dBattle["unluckiest_loss_their_icon"]))
 			else:
 				aDeployment.append((self.TEXT_SUMMARY_UNLUCKIEST_LOSS, u"-", eNone, -1, -1, 1, -1))
 
@@ -2135,12 +2101,12 @@ class CvMilitaryAdvisor:
 
 			screen = self.getScreen()
 			screen.addStackedBarGFC(self.GREAT_GENERAL_BAR_ID, self.X_GREAT_GENERAL_BAR, self.Y_GREAT_GENERAL_BAR, self.W_GREAT_GENERAL_BAR, self.H_GREAT_GENERAL_BAR, InfoBarTypes.NUM_INFOBAR_TYPES, WidgetTypes.WIDGET_HELP_GREAT_GENERAL, -1, -1)
-			screen.setStackedBarColors(self.GREAT_GENERAL_BAR_ID, InfoBarTypes.INFOBAR_STORED, self.COLOR_GREAT_PEOPLE_STORED)
-			screen.setStackedBarColors(self.GREAT_GENERAL_BAR_ID, InfoBarTypes.INFOBAR_RATE, self.COLOR_GREAT_PEOPLE_RATE)
-			screen.setStackedBarColors(self.GREAT_GENERAL_BAR_ID, InfoBarTypes.INFOBAR_RATE_EXTRA, self.COLOR_EMPTY)
-			screen.setStackedBarColors(self.GREAT_GENERAL_BAR_ID, InfoBarTypes.INFOBAR_EMPTY, self.COLOR_EMPTY)
+			screen.setStackedBarColors(self.GREAT_GENERAL_BAR_ID, InfoBarTypes.INFOBAR_STORED, SASVisuals.Color.GREAT_PEOPLE_STORED)
+			screen.setStackedBarColors(self.GREAT_GENERAL_BAR_ID, InfoBarTypes.INFOBAR_RATE, SASVisuals.Color.GREAT_PEOPLE_RATE)
+			screen.setStackedBarColors(self.GREAT_GENERAL_BAR_ID, InfoBarTypes.INFOBAR_RATE_EXTRA, SASVisuals.Color.EMPTY)
+			screen.setStackedBarColors(self.GREAT_GENERAL_BAR_ID, InfoBarTypes.INFOBAR_EMPTY, SASVisuals.Color.EMPTY)
 			screen.setBarPercentage(self.GREAT_GENERAL_BAR_ID, InfoBarTypes.INFOBAR_STORED, float(iExperience) / float(iGreatPeopleThreshold))
-			screen.setLabel(self.GREAT_GENERAL_LABEL_ID, "", sasFontTagLabel + self.TEXT_COMBAT_EXPERIENCE + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, self.X_GREAT_GENERAL_BAR + self.W_GREAT_GENERAL_BAR/2, self.Y_GREAT_GENERAL_BAR + 6, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_GREAT_GENERAL, -1, -1)
+			screen.setLabel(self.GREAT_GENERAL_LABEL_ID, "", SASTextScale.sasFontTagLabel + self.TEXT_COMBAT_EXPERIENCE + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, self.X_GREAT_GENERAL_BAR + self.W_GREAT_GENERAL_BAR/2, self.Y_GREAT_GENERAL_BAR + 6, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_GREAT_GENERAL, -1, -1)
 
 	# returns a unique ID for a widget in this screen
 	def getNextWidgetName(self):
@@ -2290,16 +2256,16 @@ class CvMilitaryAdvisor:
 				szButtonText = self.TEXT_UNIT_TOGGLE_ON
 			screen.setButtonGFC(self.UNIT_BUTTON_ID, u"", "", self.X_TEXT + self.PANEL_MARGIN, self.Y_TEXT + self.PANEL_MARGIN/2, 20, 20, WidgetTypes.WIDGET_GENERAL, -1, -1, iButtonStyle )
 			# <!-- custom: keep the quiet original +/- toggle placement, but make the descriptive text clickable too; a top-right action button was easier to click but visually distracting for this map/list view. (GPT-5.5) -->
-			screen.setText(self.UNIT_BUTTON_LABEL_ID, "", sasFontTagLabel + szButtonText + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, self.X_TEXT + self.PANEL_MARGIN + 22, self.Y_TEXT + self.PANEL_MARGIN/2 + 2, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.setText(self.UNIT_BUTTON_LABEL_ID, "", SASTextScale.sasFontTagLabel + szButtonText + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, self.X_TEXT + self.PANEL_MARGIN + 22, self.Y_TEXT + self.PANEL_MARGIN/2 + 2, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 		# self.unitsList[iUnit][0] is the UnitCombatGroup (e.g. Melee)
 		# self.unitsList[iUnit][1] is the unit type (e.g. Warrior)
 		# self.unitsList[iUnit][2] is a list of the active player's actual units
 		# self.unitsList[iUnit][3] is the total number of those units seen by the active player (not only his own)
 
-		iColorYellow = self.COLOR_YELLOW
-		iColorRed = self.COLOR_RED
-		iColorWhite = self.COLOR_WHITE
+		iColorYellow = SASVisuals.Color.YELLOW
+		iColorRed = SASVisuals.Color.RED
+		iColorWhite = SASVisuals.Color.WHITE
 		iWidget = WidgetTypes.WIDGET_MINIMAP_HIGHLIGHT
 		iFont = CvUtil.FONT_LEFT_JUSTIFY
 
@@ -2323,7 +2289,7 @@ class CvMilitaryAdvisor:
 		szIconGapByLevel = {0: u"  ", 1: u"", 2: u" "}
 
 		def formatListRowText(szText, szButton, iIndentLevel):
-			szLabelText = sasFontTagLabel + szText + SAS_FONT_TAG_CLOSE
+			szLabelText = SASTextScale.sasFontTagLabel + szText + SASTextScale.SAS_FONT_TAG_CLOSE
 			if self.IS_SAS_CV_MILITARY_ADVISOR_UNIT_COMBATS_UNITS_ICONS and szButton:
 				# <!-- custom: note: inline <img> icon paths are stricter than icon-slot rendering; avoid risky button filenames (spaces/parentheses) to prevent magenta icons. See KI#118. (GPT-5.3-Codex) -->
 				return u"%s<img=%s size=%d></img>%s%s" % (szIconIndentByLevel.get(iIndentLevel, u""), szButton, self.iInlineIconSize, szIconGapByLevel.get(iIndentLevel, u" "), szLabelText)
@@ -2494,7 +2460,7 @@ class CvMilitaryAdvisor:
 					szButton = gc.getCivilizationInfo(player.getCivilizationType()).getButton()
 				else:
 					szButton = gc.getLeaderHeadInfo(gc.getPlayer(iLoopPlayer).getLeaderType()).getButton()
-				screen.addCheckBoxGFC(self.getLeaderButton(iLoopPlayer), szButton, self.ART_BUTTON_HILITE_SQUARE, x, y, iButtonSize, iButtonSize, WidgetTypes.WIDGET_MINIMAP_HIGHLIGHT, 2, iLoopPlayer, ButtonStyles.BUTTON_STYLE_LABEL)
+				screen.addCheckBoxGFC(self.getLeaderButton(iLoopPlayer), szButton, SASVisuals.InterfaceArt.BUTTON_HILITE_SQUARE, x, y, iButtonSize, iButtonSize, WidgetTypes.WIDGET_MINIMAP_HIGHLIGHT, 2, iLoopPlayer, ButtonStyles.BUTTON_STYLE_LABEL)
 				screen.setState(self.getLeaderButton(iLoopPlayer), (iLoopPlayer in self.selectedPlayerList))				
 
 		self.refreshUnitSelection(bReload)

@@ -12,7 +12,8 @@ from CvPythonExtensions import CyGlobalContext
 
 import BugPath
 import BugUtil
-from SASFontUtils import getSASUIFontBody
+# <!-- custom: Consume the surviving shared helper directly after retiring the overlapping SASUIResources dependency; avoid keeping a redundant visual-resource facade. (ChatGPT-5.6-Sol) -->
+import SASTextScale
 
 gc = CyGlobalContext()
 
@@ -86,7 +87,7 @@ def _rewriteDetailManagerXML(szPath, scaledKeyLines):
 
 def apply():
 	# apply define-driven CITYBILLBOARD_SCALE keys for the active SAS_UI_FONT_BODY.
-	iFontBody = getSASUIFontBody()
+	iFontBody = SASTextScale.getSASUIFontBody()
 	iPercent = _getMultiplierPercent(iFontBody)
 
 	szModDir = BugPath.getModDir()

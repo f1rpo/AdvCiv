@@ -8,7 +8,7 @@
 from CvPythonExtensions import *
 from SASMagicNumbers import *
 import CvUtil
-from SASFontUtils import *
+# <!-- custom: Consume the surviving shared helper directly after retiring the overlapping SASUIResources dependency; avoid keeping a redundant visual-resource facade. (ChatGPT-5.6-Sol) -->
 import SASTextScale
 from SASUtils import getInfoTypeOrFail
 

@@ -15,6 +15,8 @@
 #
 
 from CvPythonExtensions import *
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 from SASMagicNumbers import *
 import CvUtil
 import ScreenInput
@@ -104,11 +106,12 @@ class SevoPediaSpecialist:
 		headerExtraHeight = 10
 		screen.addMultilineText(textName, szSpecialText, self.X_EFFECTS_PANEL + 5, self.Y_EFFECTS_PANEL - headerExtraHeight, self.W_EFFECTS_PANEL - 10, self.H_TOP_PANEL - headerExtraHeight, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
-	def _append_change_text(self, szText, iChange, iChar):
+	# <!-- custom: Accept the cached Unicode glyph rather than an ordinal because this helper only renders display text; callers now pass SASVisuals Yield/Commerce chars directly. (ChatGPT-5.6-Sol) -->
+	def _append_change_text(self, szText, iChange, szChar):
 		if iChange != 0:
 			if szText:
 				szText += u", "
-			szText += u"%+d%c" % (iChange, iChar)
+			szText += u"%+d%s" % (iChange, szChar)
 		return szText
 
 	def _format_slot_label(self, iCount, iFree):
@@ -208,7 +211,7 @@ class SevoPediaSpecialist:
 			civicInfo = gc.getCivicInfo(iCivic)
 			szText = u""
 			for k in xrange(CommerceTypes.NUM_COMMERCE_TYPES):
-				szText = self._append_change_text(szText, civicInfo.getSpecialistExtraCommerce(k), gc.getCommerceInfo(k).getChar())
+				szText = self._append_change_text(szText, civicInfo.getSpecialistExtraCommerce(k), SASVisuals.Commerce.char(k))
 			if szText:
 				entries.append((civicInfo.getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_CIVIC, iCivic, szText))
 
@@ -216,7 +219,7 @@ class SevoPediaSpecialist:
 			techInfo = gc.getTechInfo(iTech)
 			szText = u""
 			for k in xrange(CommerceTypes.NUM_COMMERCE_TYPES):
-				szText = self._append_change_text(szText, techInfo.getSpecialistExtraCommerce(k), gc.getCommerceInfo(k).getChar())
+				szText = self._append_change_text(szText, techInfo.getSpecialistExtraCommerce(k), SASVisuals.Commerce.char(k))
 			if szText:
 				entries.append((techInfo.getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iTech, szText))
 
@@ -224,11 +227,11 @@ class SevoPediaSpecialist:
 			buildingInfo = gc.getBuildingInfo(iBuilding)
 			szText = u""
 			for k in xrange(YieldTypes.NUM_YIELD_TYPES):
-				szText = self._append_change_text(szText, buildingInfo.getSpecialistYieldChange(self.iSpecialist, k), gc.getYieldInfo(k).getChar())
+				szText = self._append_change_text(szText, buildingInfo.getSpecialistYieldChange(self.iSpecialist, k), SASVisuals.Yield.char(k))
 			# <!-- custom: Building SpecialistExtraCommerce applies to every specialist, independently of the per-specialist yield map already shown here.
 			# Include both effects in the same Building row. See KI#303. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			for k in xrange(CommerceTypes.NUM_COMMERCE_TYPES):
-				szText = self._append_change_text(szText, buildingInfo.getSpecialistExtraCommerce(k), gc.getCommerceInfo(k).getChar())
+				szText = self._append_change_text(szText, buildingInfo.getSpecialistExtraCommerce(k), SASVisuals.Commerce.char(k))
 			if szText:
 				entries.append((buildingInfo.getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_BUILDING, iBuilding, szText))
 

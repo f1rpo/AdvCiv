@@ -19,7 +19,8 @@ PyPlayer = PyHelpers.PyPlayer
 
 import BugUtil
 import BugCore
-from SASFontUtils import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import SASTextScale
 PleOpt = BugCore.game.PLE
 
@@ -647,7 +648,7 @@ class PLE:
 
 	def displayHelpHover(self, sKey):
 		# <!-- custom: PLE filter/group/view hover help should scale with SAS hover-font settings instead of fixed font=2 so city-screen filter help remains readable when UI text is upscaled. (GPT-5.3-Codex) -->
-		sText = u"%s%s%s" % (sasFontTagHover, BugUtil.getPlainText(sKey), SAS_FONT_TAG_CLOSE)
+		sText = u"%s%s%s" % (SASTextScale.sasFontTagHover, BugUtil.getPlainText(sKey), SASTextScale.SAS_FONT_TAG_CLOSE)
 		self.displayInfoPane(sText)
 
 	# hides the info pane
@@ -900,10 +901,10 @@ class PLE:
 	# PLE Grouping Mode Switcher 
 	def setupPLEGroupModeButtons(self, screen):
 		if (self.nPLEGrpMode == self.PLE_GRP_UNITTYPE):
-			screen.changeImageButton(self.PLE_GRP_UNITTYPE, ArtFileMgr.getInterfaceArtInfo("PLE_GRP_UNITTYPE").getPath())
+			screen.changeImageButton(self.PLE_GRP_UNITTYPE, SASVisuals.InterfaceArt.PLE_GRP_UNITTYPE)
 			screen.setState(self.PLE_GRP_UNITTYPE, True)
 		elif (self.nPLEGrpMode == self.PLE_GRP_GROUPS):
-			screen.changeImageButton(self.PLE_GRP_UNITTYPE, ArtFileMgr.getInterfaceArtInfo("PLE_GRP_GROUPS").getPath())
+			screen.changeImageButton(self.PLE_GRP_UNITTYPE, SASVisuals.InterfaceArt.PLE_GRP_GROUPS)
 			screen.setState(self.PLE_GRP_UNITTYPE, True)
 		else:
 			screen.setState(self.PLE_GRP_UNITTYPE, False)
@@ -914,7 +915,7 @@ class PLE:
 
 	# PLE View Mode Switcher
 	def setupPLEViewModeButtons(self, screen):
-		screen.changeImageButton(self.PLE_VIEW_MODE, ArtFileMgr.getInterfaceArtInfo(self.PLE_VIEW_MODE_ART[self.sPLEMode]).getPath())
+		screen.changeImageButton(self.PLE_VIEW_MODE, SASVisuals.InterfaceArt.getPath(self.PLE_VIEW_MODE_ART[self.sPLEMode]))
 	#		screen.setState(self.PLE_MODE_STANDARD, self.sPLEMode == self.PLE_MODE_STANDARD)
 	#		screen.setState(self.PLE_MODE_MULTILINE, self.sPLEMode == self.PLE_MODE_MULTILINE)
 	#		screen.setState(self.PLE_MODE_STACK_VERT, self.sPLEMode == self.PLE_MODE_STACK_VERT)
@@ -1049,9 +1050,9 @@ class PLE:
 		iHasMovedColor = PleOpt.getHasMovedColor()
 		iNoMovementColor = PleOpt.getNoMovementColor()
 
-		szFileNamePromo = ArtFileMgr.getInterfaceArtInfo("OVERLAY_PROMOTION_FRAME").getPath()
-		szFileNameGovernor = ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_GOVERNOR").getPath()
-		szFileNameHilite = ArtFileMgr.getInterfaceArtInfo("BUTTON_HILITE_SQUARE").getPath()
+		szFileNamePromo = SASVisuals.InterfaceArt.OVERLAY_PROMOTION_FRAME
+		szFileNameGovernor = SASVisuals.InterfaceArt.INTERFACE_BUTTONS_GOVERNOR
+		szFileNameHilite = SASVisuals.InterfaceArt.BUTTON_HILITE_SQUARE
 		# <advc.092>
 		iFrameSize = (CvScreensInterface.mainInterface.plotListUnitButtonSize() - CvScreensInterface.mainInterface.plotListUnitFrameThickness()) # </advc.092>
 		for i in range( self.iMaxPlotListIcons ):
@@ -1105,90 +1106,90 @@ class PLE:
 		# place the PLE mode switches
 		nXOff += nDist
 		szString = self.PLE_VIEW_MODE
-		screen.addCheckBoxGFC( szString, ArtFileMgr.getInterfaceArtInfo("PLE_MODE_STANDARD").getPath(), "", nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
+		screen.addCheckBoxGFC( szString, SASVisuals.InterfaceArt.PLE_MODE_STANDARD, "", nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
 		screen.hide( szString )
 
 		# place the PLE grouping mode switches
 		nXOff += nDist + nGap
 		szString = self.PLE_GRP_UNITTYPE
-		screen.addCheckBoxGFC( szString, ArtFileMgr.getInterfaceArtInfo("PLE_GRP_UNITTYPE").getPath(), ArtFileMgr.getInterfaceArtInfo("PLE_BUTTON_HILITE").getPath(), nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
+		screen.addCheckBoxGFC( szString, SASVisuals.InterfaceArt.PLE_GRP_UNITTYPE, SASVisuals.InterfaceArt.PLE_BUTTON_HILITE, nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
 		screen.hide( szString )
 
 		# place the promotion and upgrades mode switches
 		nXOff += nDist
 		szString = self.PLE_GRP_PROMO
-		screen.addCheckBoxGFC( szString, ArtFileMgr.getInterfaceArtInfo("PLE_GRP_PROMO").getPath(), ArtFileMgr.getInterfaceArtInfo("PLE_BUTTON_HILITE").getPath(), nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
+		screen.addCheckBoxGFC( szString, SASVisuals.InterfaceArt.PLE_GRP_PROMO, SASVisuals.InterfaceArt.PLE_BUTTON_HILITE, nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
 		screen.hide( szString )
 
 		nXOff += nDist
 		szString = self.PLE_GRP_UPGRADE
-		screen.addCheckBoxGFC( szString, ArtFileMgr.getInterfaceArtInfo("PLE_GRP_UPGRADE").getPath(), ArtFileMgr.getInterfaceArtInfo("PLE_BUTTON_HILITE").getPath(), nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
+		screen.addCheckBoxGFC( szString, SASVisuals.InterfaceArt.PLE_GRP_UPGRADE, SASVisuals.InterfaceArt.PLE_BUTTON_HILITE, nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
 		screen.hide( szString )
 
 		# place the PLE reset filter button
 		nXOff += nDist + nGap
 		szString = self.PLE_RESET_FILTERS
-		screen.addCheckBoxGFC( szString, ArtFileMgr.getInterfaceArtInfo("PLE_RESET_FILTERS").getPath(), "", nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
+		screen.addCheckBoxGFC( szString, SASVisuals.InterfaceArt.PLE_RESET_FILTERS, "", nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
 		screen.hide( szString )
 
 		# place the PLE movement filter switches
 		nXOff += nDist + nGap
 		szString = self.PLE_FILTER_CANMOVE
-		screen.addCheckBoxGFC( szString, ArtFileMgr.getInterfaceArtInfo("PLE_FILTER_CANMOVE").getPath(), ArtFileMgr.getInterfaceArtInfo("PLE_BUTTON_HILITE").getPath(), nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
+		screen.addCheckBoxGFC( szString, SASVisuals.InterfaceArt.PLE_FILTER_CANMOVE, SASVisuals.InterfaceArt.PLE_BUTTON_HILITE, nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
 		screen.hide( szString )
 
 		nXOff += nDist
 		szString = self.PLE_FILTER_CANTMOVE
-		screen.addCheckBoxGFC( szString, ArtFileMgr.getInterfaceArtInfo("PLE_FILTER_CANTMOVE").getPath(), ArtFileMgr.getInterfaceArtInfo("PLE_BUTTON_HILITE").getPath(), nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
+		screen.addCheckBoxGFC( szString, SASVisuals.InterfaceArt.PLE_FILTER_CANTMOVE, SASVisuals.InterfaceArt.PLE_BUTTON_HILITE, nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
 		screen.hide( szString )
 
 		# place the PLE health filter switches
 		nXOff += nDist + nGap
 		szString = self.PLE_FILTER_NOTWOUND
-		screen.addCheckBoxGFC( szString, ArtFileMgr.getInterfaceArtInfo("PLE_FILTER_NOTWOUND").getPath(), ArtFileMgr.getInterfaceArtInfo("PLE_BUTTON_HILITE").getPath(), nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
+		screen.addCheckBoxGFC( szString, SASVisuals.InterfaceArt.PLE_FILTER_NOTWOUND, SASVisuals.InterfaceArt.PLE_BUTTON_HILITE, nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
 		screen.hide( szString )
 
 		nXOff += nDist
 		szString = self.PLE_FILTER_WOUND
-		screen.addCheckBoxGFC( szString, ArtFileMgr.getInterfaceArtInfo("PLE_FILTER_WOUND").getPath(), ArtFileMgr.getInterfaceArtInfo("PLE_BUTTON_HILITE").getPath(), nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
+		screen.addCheckBoxGFC( szString, SASVisuals.InterfaceArt.PLE_FILTER_WOUND, SASVisuals.InterfaceArt.PLE_BUTTON_HILITE, nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
 		screen.hide( szString )
 
 		# place the PLE domain filter switches
 		nXOff += nDist + nGap
 		szString = self.PLE_FILTER_LAND
-		screen.addCheckBoxGFC( szString, ArtFileMgr.getInterfaceArtInfo("PLE_FILTER_LAND").getPath(), ArtFileMgr.getInterfaceArtInfo("PLE_BUTTON_HILITE").getPath(), nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
+		screen.addCheckBoxGFC( szString, SASVisuals.InterfaceArt.PLE_FILTER_LAND, SASVisuals.InterfaceArt.PLE_BUTTON_HILITE, nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
 		screen.hide( szString )
 
 		nXOff += nDist
 		szString = self.PLE_FILTER_SEA
-		screen.addCheckBoxGFC( szString, ArtFileMgr.getInterfaceArtInfo("PLE_FILTER_SEA").getPath(), ArtFileMgr.getInterfaceArtInfo("PLE_BUTTON_HILITE").getPath(), nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
+		screen.addCheckBoxGFC( szString, SASVisuals.InterfaceArt.PLE_FILTER_SEA, SASVisuals.InterfaceArt.PLE_BUTTON_HILITE, nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
 		screen.hide( szString )
 
 		nXOff += nDist
 		szString = self.PLE_FILTER_AIR
-		screen.addCheckBoxGFC( szString, ArtFileMgr.getInterfaceArtInfo("PLE_FILTER_AIR").getPath(), ArtFileMgr.getInterfaceArtInfo("PLE_BUTTON_HILITE").getPath(), nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
+		screen.addCheckBoxGFC( szString, SASVisuals.InterfaceArt.PLE_FILTER_AIR, SASVisuals.InterfaceArt.PLE_BUTTON_HILITE, nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
 		screen.hide( szString )
 
 		# place the PLE civilian/military filter switches
 		nXOff += nDist + nGap
 		szString = self.PLE_FILTER_MIL
-		screen.addCheckBoxGFC( szString, ArtFileMgr.getInterfaceArtInfo("PLE_FILTER_MIL").getPath(), ArtFileMgr.getInterfaceArtInfo("PLE_BUTTON_HILITE").getPath(), nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
+		screen.addCheckBoxGFC( szString, SASVisuals.InterfaceArt.PLE_FILTER_MIL, SASVisuals.InterfaceArt.PLE_BUTTON_HILITE, nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
 		screen.hide( szString )
 
 		nXOff += nDist
 		szString = self.PLE_FILTER_DOM
-		screen.addCheckBoxGFC( szString, ArtFileMgr.getInterfaceArtInfo("PLE_FILTER_DOM").getPath(), ArtFileMgr.getInterfaceArtInfo("PLE_BUTTON_HILITE").getPath(), nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
+		screen.addCheckBoxGFC( szString, SASVisuals.InterfaceArt.PLE_FILTER_DOM, SASVisuals.InterfaceArt.PLE_BUTTON_HILITE, nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
 		screen.hide( szString )
 
 		# place the PLE owner filter switches
 		nXOff += nDist + nGap
 		szString = self.PLE_FILTER_OWN
-		screen.addCheckBoxGFC( szString, ArtFileMgr.getInterfaceArtInfo("PLE_FILTER_OWN").getPath(), ArtFileMgr.getInterfaceArtInfo("PLE_BUTTON_HILITE").getPath(), nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
+		screen.addCheckBoxGFC( szString, SASVisuals.InterfaceArt.PLE_FILTER_OWN, SASVisuals.InterfaceArt.PLE_BUTTON_HILITE, nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
 		screen.hide( szString )
 
 		nXOff += nDist
 		szString = self.PLE_FILTER_FOREIGN
-		screen.addCheckBoxGFC( szString, ArtFileMgr.getInterfaceArtInfo("PLE_FILTER_FOREIGN").getPath(), ArtFileMgr.getInterfaceArtInfo("PLE_BUTTON_HILITE").getPath(), nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
+		screen.addCheckBoxGFC( szString, SASVisuals.InterfaceArt.PLE_FILTER_FOREIGN, SASVisuals.InterfaceArt.PLE_BUTTON_HILITE, nXOff, yResolution - nYOff, nSize, nSize, WidgetTypes.WIDGET_GENERAL, 1, -1, ButtonStyles.BUTTON_STYLE_LABEL )
 		screen.hide( szString )
 
 	################ functions for normal/shift/ctrl/alt unit selection within the plot list itself #################
@@ -1774,22 +1775,22 @@ class PLE:
 		iPromo		= self.dUnitPromoList[idUnit][idPromo-1]
 
 		# promo info
-		szPromoInfo = sasFontTagLabel + mt.removeLinks(CyGameTextMgr().getPromotionHelp(iPromo, false)) + SAS_FONT_TAG_CLOSE + u"\n"
+		szPromoInfo = SASTextScale.sasFontTagLabel + mt.removeLinks(CyGameTextMgr().getPromotionHelp(iPromo, false)) + SASTextScale.SAS_FONT_TAG_CLOSE + u"\n"
 
 		# unit level 
 		iLevel = pUnit.getLevel()
 		iMaxLevel = mt.GetPossiblePromotions(pUnit.experienceNeeded(), pUnit.getExperience())
 		if iMaxLevel != iLevel:
 			# actual / available (= number of possible promotions)
-			szLevel = sasFontTagLabel + localText.getText("INTERFACE_PANE_LEVEL", ()) + u"%i / %i" % (iLevel, (iMaxLevel+iLevel)) + SAS_FONT_TAG_CLOSE + u"\n"
+			szLevel = SASTextScale.sasFontTagLabel + localText.getText("INTERFACE_PANE_LEVEL", ()) + u"%i / %i" % (iLevel, (iMaxLevel+iLevel)) + SASTextScale.SAS_FONT_TAG_CLOSE + u"\n"
 		else:
 			# actual 
-			szLevel = sasFontTagLabel + localText.getText("INTERFACE_PANE_LEVEL", ()) + u"%i" % iLevel + SAS_FONT_TAG_CLOSE + u"\n"
+			szLevel = SASTextScale.sasFontTagLabel + localText.getText("INTERFACE_PANE_LEVEL", ()) + u"%i" % iLevel + SASTextScale.SAS_FONT_TAG_CLOSE + u"\n"
 
 		# unit experience (actual / needed)
 		iExperience = pUnit.getExperience()
 		if (iExperience > 0):
-			szExperience = sasFontTagLabel + localText.getText("INTERFACE_PANE_EXPERIENCE", ()) + u": %i / %i" %(iExperience, pUnit.experienceNeeded()) + SAS_FONT_TAG_CLOSE + u"\n"
+			szExperience = SASTextScale.sasFontTagLabel + localText.getText("INTERFACE_PANE_EXPERIENCE", ()) + u": %i / %i" %(iExperience, pUnit.experienceNeeded()) + SASTextScale.SAS_FONT_TAG_CLOSE + u"\n"
 		else:
 			szExperience = u""
 
@@ -1824,8 +1825,8 @@ class PLE:
 			iStrength = pUnitTypeInfo.getAirCombat()
 		else:
 			iStrength = pUnitTypeInfo.getCombat()
-		szStrength = u"%i "%iStrength + u"%c" % CyGame().getSymbolID( FontSymbols.STRENGTH_CHAR )
-		szMovement = u", %i "%pUnitTypeInfo.getMoves()+ u"%c" % CyGame().getSymbolID(FontSymbols.MOVES_CHAR)
+		szStrength = u"%i "%iStrength + SASVisuals.Font.STRENGTH_CHAR
+		szMovement = u", %i "%pUnitTypeInfo.getMoves()+ u"%s" % SASVisuals.Font.MOVES_CHAR
 		if (pUnitTypeInfo.getAirRange() > 0):
 			szRange = u", " + localText.getText("TXT_KEY_UNIT_AIR_RANGE", ( pUnitTypeInfo.getAirRange(), ) ) + u"\n"
 		else:
@@ -1852,11 +1853,11 @@ class PLE:
 		else:
 			szUpgradePriceAll = localText.changeTextColor(u"%i"%iUpgradePriceAll, PleOpt.getUpgradePossibleColor())
 
-		szUpgradePrice = szUpgradePriceSingle + u" / " + szUpgradePricePlot + u" / " + szUpgradePriceAll+ u" %c" %  gc.getYieldInfo(YieldTypes.YIELD_COMMERCE).getChar() + u"\n"
+		szUpgradePrice = szUpgradePriceSingle + u" / " + szUpgradePricePlot + u" / " + szUpgradePriceAll+ u" %s" % SASVisuals.Yield.COMMERCE_CHAR + u"\n"
 
 		szUpgradeHelp = localText.getText("TXT_KEY_PLE_UPGRADE_HELP", () )		
 
-		szText 		= (sasFontTagLabel + szUnitName + szCombatType + szStrength + szMovement + szRange + szSpecialText + szUpgradePrice + szUpgradeHelp + SAS_FONT_TAG_CLOSE)
+		szText 		= (SASTextScale.sasFontTagLabel + szUnitName + szCombatType + szStrength + szMovement + szRange + szSpecialText + szUpgradePrice + szUpgradeHelp + SASTextScale.SAS_FONT_TAG_CLOSE)
 
 		# display the info pane
 		self.displayInfoPane(szText)
@@ -1887,12 +1888,12 @@ class PLE:
 			#szOwner = localText.changeTextColor(szOwner, pOwner.getPlayerColor())
 			# advc.069: ^Doesn't seem to be the proper use of changeTextColor. Tagging advc.001.
 			szOwner = u"<color=%d,%d,%d,%d>%s</color>" % (pOwner.getPlayerTextColorR(), pOwner.getPlayerTextColorG(), pOwner.getPlayerTextColorB(), pOwner.getPlayerTextColorA(), szOwner)
-			szOwner = sasFontTagLabel + u" [" + szOwner + u"]" + SAS_FONT_TAG_CLOSE
+			szOwner = SASTextScale.sasFontTagLabel + u" [" + szOwner + u"]" + SASTextScale.SAS_FONT_TAG_CLOSE
 		else:
 			szOwner = u""
 
 		# unit type description + unit name (if given)
-		szUnitName = sasFontTagLabel + localText.changeTextColor(pUnit.getName(), PleOpt.getUnitNameColor()) + szOwner + SAS_FONT_TAG_CLOSE + u"\n"
+		szUnitName = SASTextScale.sasFontTagLabel + localText.changeTextColor(pUnit.getName(), PleOpt.getUnitNameColor()) + szOwner + SASTextScale.SAS_FONT_TAG_CLOSE + u"\n"
 
 		# strength 
 		if (eUnitDomain == DomainTypes.DOMAIN_AIR):
@@ -1924,9 +1925,9 @@ class PLE:
 		if len(szTurnsToHeal) > 0:
 			szTurnsToHeal = "\n" + szTurnsToHeal
 		# </advc.069>
-		szStrength = sasFontTagLabel + szCurrStrength + szMaxStrength
+		szStrength = SASTextScale.sasFontTagLabel + szCurrStrength + szMaxStrength
 		# advc.069: szTurnsToHeal omitted in the middle, appended at the end after a newline.
-		szStrength += u"%c" % CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR) + szTurnsToHeal + SAS_FONT_TAG_CLOSE + u"\n"
+		szStrength += SASVisuals.Font.STRENGTH_CHAR + szTurnsToHeal + SASTextScale.SAS_FONT_TAG_CLOSE + u"\n"
 
 		# movement
 		fCurrMoves = float(pUnit.movesLeft()) / gc.getMOVE_DENOMINATOR()
@@ -1941,12 +1942,12 @@ class PLE:
 		else:
 			szCurrMoves = u" %d" % iMaxMoves
 			szMaxMoves 	= u""
-		szMovement = sasFontTagLabel + szCurrMoves + szMaxMoves + u"%c"%(CyGame().getSymbolID(FontSymbols.MOVES_CHAR)) + szAirRange + SAS_FONT_TAG_CLOSE + u"\n"
+		szMovement = SASTextScale.sasFontTagLabel + szCurrMoves + szMaxMoves + SASVisuals.Font.MOVES_CHAR + szAirRange + SASTextScale.SAS_FONT_TAG_CLOSE + u"\n"
 
 		# compressed display for standard display
-		szStrengthMovement = sasFontTagLabel + szCurrStrength + szMaxStrength
+		szStrengthMovement = SASTextScale.sasFontTagLabel + szCurrStrength + szMaxStrength
 		# advc.069: szTurnsToHeal omitted in the middle, appended at the end after a newline.
-		szStrengthMovement += (u"%c" % CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR) + ", " + szCurrMoves + szMaxMoves + u"%c"%(CyGame().getSymbolID(FontSymbols.MOVES_CHAR)) + szAirRange + szTurnsToHeal + SAS_FONT_TAG_CLOSE + u"\n")
+		szStrengthMovement += (SASVisuals.Font.STRENGTH_CHAR + ", " + szCurrMoves + szMaxMoves + SASVisuals.Font.MOVES_CHAR + szAirRange + szTurnsToHeal + SASTextScale.SAS_FONT_TAG_CLOSE + u"\n")
 
 		# civilization type
 		szCiv = u""
@@ -1962,16 +1963,16 @@ class PLE:
 		iMaxLevel = mt.GetPossiblePromotions(pUnit.experienceNeeded(), pUnit.getExperience())
 		if (iMaxLevel > 0) or (iLevel > 1):
 			if iMaxLevel != iLevel:
-				szLevel = sasFontTagLabel + localText.getText("INTERFACE_PANE_LEVEL", ()) + u" %i / %i" % (iLevel, (iMaxLevel+iLevel)) + SAS_FONT_TAG_CLOSE + u"\n"
+				szLevel = SASTextScale.sasFontTagLabel + localText.getText("INTERFACE_PANE_LEVEL", ()) + u" %i / %i" % (iLevel, (iMaxLevel+iLevel)) + SASTextScale.SAS_FONT_TAG_CLOSE + u"\n"
 			else:
-				szLevel = sasFontTagLabel + localText.getText("INTERFACE_PANE_LEVEL", ()) + u" %i" % iLevel + SAS_FONT_TAG_CLOSE + u"\n"
+				szLevel = SASTextScale.sasFontTagLabel + localText.getText("INTERFACE_PANE_LEVEL", ()) + u" %i" % iLevel + SASTextScale.SAS_FONT_TAG_CLOSE + u"\n"
 		else:
 			szLevel = u""
 
 		# unit experience (actual / needed (possible promos))
 		iExperience = pUnit.getExperience()
 		if (iExperience > 0):
-			szExperience = sasFontTagLabel + localText.getText("INTERFACE_PANE_EXPERIENCE", ()) + u": %i / %i" %(iExperience, pUnit.experienceNeeded()) + SAS_FONT_TAG_CLOSE + u"\n"
+			szExperience = SASTextScale.sasFontTagLabel + localText.getText("INTERFACE_PANE_EXPERIENCE", ()) + u": %i / %i" %(iExperience, pUnit.experienceNeeded()) + SASTextScale.SAS_FONT_TAG_CLOSE + u"\n"
 		else:
 			szExperience = u""
 
@@ -1979,7 +1980,7 @@ class PLE:
 		iCargoSpace = pUnit.cargoSpace()
 		if iCargoSpace > 0:
 			iCargo = pUnit.getCargo()
-			szCargo = sasFontTagLabel + localText.getText("TXT_KEY_UNIT_HELP_CARGO_SPACE", (iCargo, iCargoSpace ) ) + SAS_FONT_TAG_CLOSE + u"\n"
+			szCargo = SASTextScale.sasFontTagLabel + localText.getText("TXT_KEY_UNIT_HELP_CARGO_SPACE", (iCargo, iCargoSpace ) ) + SASTextScale.SAS_FONT_TAG_CLOSE + u"\n"
 		else:
 			szCargo = u""
 
@@ -1987,7 +1988,7 @@ class PLE:
 		szFortifyBonus = u"" 
 		iFortifyBonus = pUnit.fortifyModifier()
 		if iFortifyBonus > 0:
-			szFortifyBonus = sasFontTagLabel + localText.getText("TXT_KEY_UNIT_HELP_FORTIFY_BONUS", (iFortifyBonus, )) + u"\n" + SAS_FONT_TAG_CLOSE
+			szFortifyBonus = SASTextScale.sasFontTagLabel + localText.getText("TXT_KEY_UNIT_HELP_FORTIFY_BONUS", (iFortifyBonus, )) + u"\n" + SASTextScale.SAS_FONT_TAG_CLOSE
 
 		# espionage info; mimic of CvGameTextMgr::setEspionageMissionHelp()
 		szEspionage = u""
@@ -2009,7 +2010,7 @@ class PLE:
 						if 0 != iModifier:
 							szEspionage += localText.getText("TXT_KEY_ESPIONAGE_COST", (iModifier,))
 		if szEspionage:
-			szEspionage = sasFontTagLabel + szEspionage + u"\n" + SAS_FONT_TAG_CLOSE
+			szEspionage = SASTextScale.sasFontTagLabel + szEspionage + u"\n" + SASTextScale.SAS_FONT_TAG_CLOSE
 
 		# unit type specialities
 		# advc.069: Don't show this heading
@@ -2081,7 +2082,7 @@ class PLE:
 		iNormalLines = 0
 		iBulletLines = 0
 		lChapters = szText.split('\n')
-		sComp = u"%c"%CyGame().getSymbolID(FontSymbols.BULLET_CHAR)
+		sComp = u"%s"%SASVisuals.Font.BULLET_CHAR
 		for i in range(len(lChapters)):
 			iLen = len(lChapters[i])
 			iWidth = CyInterface().determineWidth(lChapters[i])/(self.CFG_INFOPANE_DX-3)+1
@@ -2116,7 +2117,7 @@ class PLE:
 		screen.addPanel(self.UNIT_INFO_PANE, u"", u"", True, True, x, y - dy, self.CFG_INFOPANE_DX, dy, PanelStyles.PANEL_STYLE_HUD_HELP)
 
 		# create shadow text
-		szTextBlack = localText.changeTextColor(mt.removeColor(szText), getInfoTypeOrFail("COLOR_BLACK"))
+		szTextBlack = localText.changeTextColor(mt.removeColor(szText), SASVisuals.Color.BLACK)
 
 		# display shadow text
 		screen.addMultilineText( self.UNIT_INFO_TEXT_SHADOW, szTextBlack, x + 5, y - dy + 5, self.CFG_INFOPANE_DX - 3, dy - 3, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
@@ -2191,7 +2192,7 @@ class PLE:
 				xOffset = -(3 * xSize) / 16
 				yOffset = -(3 * ySize) / 16
 				# </advc.092>
-		szFileNameState = ArtFileMgr.getInterfaceArtInfo(szDotState).getPath()
+		szFileNameState = SASVisuals.InterfaceArt.getPath(szDotState)
 
 		# display the colored spot icon
 		szStringIcon = szString+"Icon"
@@ -2221,7 +2222,7 @@ class PLE:
 			if (mt.checkAnyUpgrade(pLoopUnit)):
 				# place the upgrade arrow
 				szStringUpgrade = szString+"Upgrade"
-				szFileNameUpgrade = ArtFileMgr.getInterfaceArtInfo("OVERLAY_UPGRADE").getPath()	
+				szFileNameUpgrade = SASVisuals.InterfaceArt.OVERLAY_UPGRADE
 				# advc.092:
 				iBtnSize = CvScreensInterface.mainInterface.plotListUnitButtonSize()
 				screen.addDDSGFC( szStringUpgrade, szFileNameUpgrade,
@@ -2242,13 +2243,15 @@ class PLE:
 			screen.setBarPercentage( szStringHealthBar, InfoBarTypes.INFOBAR_STORED, float( pLoopUnit.currHitPoints() ) / float( pLoopUnit.maxHitPoints() ) )
 			screen.setBarPercentage( szStringHealthBar, InfoBarTypes.INFOBAR_RATE, float(1.0) )
 
+			# <!-- custom: Keep this inherited disabled code consistent with the shared visual-resource API; retain its original rationale and disabled status.
 			# EF: Colors are set by user instead
 			#if (pLoopUnit.getDamage() >= ((pLoopUnit.maxHitPoints() * 2) / 3)):
-			#	screen.setStackedBarColors(szStringHealthBar, InfoBarTypes.INFOBAR_STORED, getInfoTypeOrFail("COLOR_RED"))
+			#	screen.setStackedBarColors(szStringHealthBar, InfoBarTypes.INFOBAR_STORED, SASVisuals.Color.RED)
 			#elif (pLoopUnit.getDamage() >= (pLoopUnit.maxHitPoints() / 3)):
-			#	screen.setStackedBarColors(szStringHealthBar, InfoBarTypes.INFOBAR_STORED, getInfoTypeOrFail("COLOR_YELLOW"))
+			#	screen.setStackedBarColors(szStringHealthBar, InfoBarTypes.INFOBAR_STORED, SASVisuals.Color.YELLOW)
 			#else:
-			#	screen.setStackedBarColors(szStringHealthBar, InfoBarTypes.INFOBAR_STORED, getInfoTypeOrFail("COLOR_GREEN"))	
+			#	screen.setStackedBarColors(szStringHealthBar, InfoBarTypes.INFOBAR_STORED, SASVisuals.Color.GREEN)
+			# (GPT-6.1-Sol) -->
 
 			screen.show( szStringHealthBar )
 
@@ -2288,52 +2291,52 @@ class PLE:
 
 			# is unit on air intercept mission
 			if (eActivityType == ActivityTypes.ACTIVITY_INTERCEPT):
-				szFileNameAction = ArtFileMgr.getInterfaceArtInfo("OVERLAY_ACTION_INTERCEPT").getPath()
+				szFileNameAction = SASVisuals.InterfaceArt.OVERLAY_ACTION_INTERCEPT
 			# is unit on boat patrol coast mission
 			elif (eActivityType == ActivityTypes.ACTIVITY_PATROL):
-				szFileNameAction = ArtFileMgr.getInterfaceArtInfo("OVERLAY_ACTION_PATROL").getPath()
+				szFileNameAction = SASVisuals.InterfaceArt.OVERLAY_ACTION_PATROL
 			# is unit on boat blockade mission
 			elif (eActivityType == ActivityTypes.ACTIVITY_PLUNDER):
-				szFileNameAction = ArtFileMgr.getInterfaceArtInfo("OVERLAY_ACTION_PLUNDER").getPath()
+				szFileNameAction = SASVisuals.InterfaceArt.OVERLAY_ACTION_PLUNDER
 			# is unit fortified for healing (wake up when healed)
 			elif (eActivityType == ActivityTypes.ACTIVITY_HEAL):
-				szFileNameAction = ArtFileMgr.getInterfaceArtInfo("OVERLAY_ACTION_HEAL").getPath()
+				szFileNameAction = SASVisuals.InterfaceArt.OVERLAY_ACTION_HEAL
 			# is unit sentry (wake up when enemy in sight)
 			elif (eActivityType == ActivityTypes.ACTIVITY_SENTRY):
-				szFileNameAction = ArtFileMgr.getInterfaceArtInfo("OVERLAY_ACTION_SENTRY").getPath()
+				szFileNameAction = SASVisuals.InterfaceArt.OVERLAY_ACTION_SENTRY
 			# is the turn for this unit skipped (wake up next turn)
 			elif (eActivityType == ActivityTypes.ACTIVITY_HOLD):
-				szFileNameAction = ArtFileMgr.getInterfaceArtInfo("OVERLAY_ACTION_SKIP").getPath()
+				szFileNameAction = SASVisuals.InterfaceArt.OVERLAY_ACTION_SKIP
 			# has unit exploration mission
 			elif (eAutomationType == AutomateTypes.AUTOMATE_EXPLORE):
-				szFileNameAction = ArtFileMgr.getInterfaceArtInfo("OVERLAY_ACTION_EXPLORE").getPath()
+				szFileNameAction = SASVisuals.InterfaceArt.OVERLAY_ACTION_EXPLORE
 			# is unit automated generally (only worker units)
 			elif (eAutomationType == AutomateTypes.AUTOMATE_BUILD):
-				szFileNameAction = ArtFileMgr.getInterfaceArtInfo("OVERLAY_ACTION_AUTO_BUILD").getPath()
+				szFileNameAction = SASVisuals.InterfaceArt.OVERLAY_ACTION_AUTO_BUILD
 			# is unit automated for nearest city (only worker units)
 			elif (eAutomationType == AutomateTypes.AUTOMATE_CITY):
-				szFileNameAction = ArtFileMgr.getInterfaceArtInfo("OVERLAY_ACTION_AUTO_CITY").getPath()
+				szFileNameAction = SASVisuals.InterfaceArt.OVERLAY_ACTION_AUTO_CITY
 			# is unit automated for network (only worker units)
 			elif (eAutomationType == AutomateTypes.AUTOMATE_NETWORK):
-				szFileNameAction = ArtFileMgr.getInterfaceArtInfo("OVERLAY_ACTION_AUTO_NETWORK").getPath()
+				szFileNameAction = SASVisuals.InterfaceArt.OVERLAY_ACTION_AUTO_NETWORK
 			# is unit automated spread religion (only missionary units)
 			elif (eAutomationType == AutomateTypes.AUTOMATE_RELIGION):
-				szFileNameAction = ArtFileMgr.getInterfaceArtInfo("OVERLAY_ACTION_AUTO_RELIGION").getPath()
+				szFileNameAction = SASVisuals.InterfaceArt.OVERLAY_ACTION_AUTO_RELIGION
 			# has unit a mission
 			elif (pLoopUnit.getGroup().getLengthMissionQueue() > 0):
 				eMissionType = pLoopUnit.getGroup().getMissionType(0)
 				# is the mission to build an improvement
 				if (eMissionType == MissionTypes.MISSION_BUILD):
-					szFileNameAction = ArtFileMgr.getInterfaceArtInfo("OVERLAY_ACTION_BUILD").getPath()
+					szFileNameAction = SASVisuals.InterfaceArt.OVERLAY_ACTION_BUILD
 				# is the mission a "move to" mission
 				elif (eMissionType in UnitUtil.MOVE_TO_MISSIONS):
-					szFileNameAction = ArtFileMgr.getInterfaceArtInfo("OVERLAY_ACTION_GOTO").getPath()
+					szFileNameAction = SASVisuals.InterfaceArt.OVERLAY_ACTION_GOTO
 			# if nothing of above, but unit is waiting -> unit is fortified
 			elif (pLoopUnit.isWaiting()):
 				if (pLoopUnit.isFortifyable()):
-					szFileNameAction = ArtFileMgr.getInterfaceArtInfo("OVERLAY_ACTION_FORTIFY").getPath()
+					szFileNameAction = SASVisuals.InterfaceArt.OVERLAY_ACTION_FORTIFY
 				else:
-					szFileNameAction = ArtFileMgr.getInterfaceArtInfo("OVERLAY_ACTION_SLEEP").getPath()
+					szFileNameAction = SASVisuals.InterfaceArt.OVERLAY_ACTION_SLEEP
 
 			# display the mission icon
 			if (szFileNameAction != ""):

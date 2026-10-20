@@ -6,6 +6,9 @@
 #
 
 from CvPythonExtensions import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
+import SASTextScale
 import CvUtil
 from _sevopedia_helpers import *
 
@@ -22,7 +25,7 @@ class SevoPediaGameSpeedChart:
 		self.MARGIN = CHART_TABLE_MARGIN
 		self.ROW_H = CHART_TABLE_ROW_H
 		self.W_ICON = CHART_TABLE_W_ICON
-		iLabelFont = getSASUIFontLabel()
+		iLabelFont = SASTextScale.getSASUIFontLabel()
 		if iLabelFont <= 1:
 			self.W_FIELD = gc.getDefineINT("SAS_SEVOPEDIA_GAME_SPEED_CHART_FIELD_COL_WIDTH_FONT_1")
 		elif iLabelFont == 2:
@@ -220,22 +223,22 @@ class SevoPediaGameSpeedChart:
 
 		_btn_defs = (("dove", "SAS_EMOJI_DOVE"), ("swords", "SAS_EMOJI_CROSSED_SWORDS"), ("skull", "SAS_EMOJI_SKULL"), ("gear", "SAS_EMOJI_GEAR"), ("brain", "SAS_EMOJI_BRAIN"), ("hourglass", "SAS_EMOJI_HOURGLASS_NOT_DONE"), ("fire", "SAS_EMOJI_FIRE"), ("trophy", "SAS_EMOJI_TROPHY"),)
 		for i, (name, artKey) in enumerate(_btn_defs):
-			btn_by_name[name] = (ArtFileMgr.getInterfaceArtInfo(artKey).getPath(), (i + 1) * 10)
+			btn_by_name[name] = (SASVisuals.InterfaceArt.getPath(artKey), (i + 1) * 10)
 
 		glyph_by_name = {}
 		# GameFont glyph icons (yields/commerce/symbols).
 		_glyph_defs = (
 			# (name, glyph_char)
-			("food",         (u"%c" % (gc.getYieldInfo(YieldTypes.YIELD_FOOD).getChar()))),
-			("prod",         (u"%c" % (gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar()))),
-			("gold",         (u"%c" % (gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar()))),
-			("research",     (u"%c" % (gc.getCommerceInfo(CommerceTypes.COMMERCE_RESEARCH).getChar()))),
-			("culture",      (u"%c" % (gc.getCommerceInfo(CommerceTypes.COMMERCE_CULTURE).getChar()))),
-			("happy",        (u"%c" % (game.getSymbolID(FontSymbols.HAPPY_CHAR)))),
-			("defense",      (u"%c" % (game.getSymbolID(FontSymbols.DEFENSE_CHAR)))),
-			("citizen",      (u"%c" % (game.getSymbolID(FontSymbols.CITIZEN_CHAR)))),
-			("great_people", (u"%c" % (game.getSymbolID(FontSymbols.GREAT_PEOPLE_CHAR)))),
-			("golden_age",   (u"%c" % (game.getSymbolID(getattr(FontSymbols, "GOLDEN_AGE_CHAR", FontSymbols.GREAT_PEOPLE_CHAR))))),
+			("food",         (u"%s" % (SASVisuals.Yield.FOOD_CHAR))),
+			("prod",         (u"%s" % (SASVisuals.Yield.PRODUCTION_CHAR))),
+			("gold",         (u"%s" % (SASVisuals.Commerce.GOLD_CHAR))),
+			("research",     (u"%s" % (SASVisuals.Commerce.RESEARCH_CHAR))),
+			("culture",      (u"%s" % (SASVisuals.Commerce.CULTURE_CHAR))),
+			("happy",        (u"%s" % (SASVisuals.Font.HAPPY_CHAR))),
+			("defense",      (u"%s" % (SASVisuals.Font.DEFENSE_CHAR))),
+			("citizen",      (u"%s" % (SASVisuals.Font.CITIZEN_CHAR))),
+			("great_people", (u"%s" % (SASVisuals.Font.GREAT_PEOPLE_CHAR))),
+			("golden_age",   SASVisuals.Font.char(getattr(FontSymbols, "GOLDEN_AGE_CHAR", FontSymbols.GREAT_PEOPLE_CHAR))),
 		)
 		for i, (name, glyph) in enumerate(_glyph_defs):
 			glyph_by_name[name] = (glyph, (i + 1) * 10)

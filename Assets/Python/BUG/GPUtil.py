@@ -23,24 +23,18 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
-# <!-- custom: AdvCiv-SAS does not actively maintain this third-party BUG library file.
-# Edits here are limited to repo-wide consistency passes (e.g. getInfoTypeOrFail for fail-loud XML lookups). (Claude code Opus 4.7) -->
+# <!-- custom: AdvCiv-SAS keeps GP gameplay/progress behavior here while the complete live GP unit/icon/color inventory is centralized in SASVisualUtils.GreatPeople. (ChatGPT-5.6-Sol) -->
 
 from CvPythonExtensions import *
-from SASUtils import getInfoTypeOrFail
 import BugUtil
-import FontUtil
+import SASVisualUtils as SASVisuals
 import PlayerUtil
 import SASTextScale # <!-- custom: Measure Maximum-types candidates in the same configurable Label font used by both GP-bar callers. See KI#1066. (GPT-5.6-Sol) -->
 
 gc = CyGlobalContext()
 
-# Generic GP icon
-g_gpIcon = None
-
-# Unit Type of each great person that can gain GP points
-# MOD: specify the unit type (XML key) for each new great person (1) - e.g. add "UNIT_DOCTOR" to this tuple, keeping order in sync with the GP_* constants below
-g_gpBarList = ("UNIT_GREAT_SPY", "UNIT_GREAT_ENGINEER", "UNIT_GREAT_MERCHANT", "UNIT_GREAT_SCIENTIST", "UNIT_GREAT_ARTIST", "UNIT_GREAT_PROPHET", "UNIT_GREAT_GENERAL")
+# <!-- custom: Canonical GP unit type names/order now live in SASVisualUtils; this alias preserves GPUtil's inherited bar/progress API. (ChatGPT-5.6-Sol) -->
+g_gpBarList = SASVisuals.GREAT_PERSON_UNIT_TYPES
 
 # Named constants for each great person and total number of GP types
 # These must be in the exact same order as the list above
@@ -48,58 +42,26 @@ NUM_GP = len(g_gpBarList)
 # MOD: define a constant for each new great person in same order as above (2) - e.g. add GP_DOCTOR to this unpack
 (GP_GREAT_SPY, GP_GREAT_ENGINEER, GP_GREAT_MERCHANT, GP_GREAT_SCIENTIST, GP_GREAT_ARTIST, GP_GREAT_PROPHET, GP_GREAT_GENERAL) = range(NUM_GP)
 
-# Map each GP type to unit ID, color, and icon to show in GP Bar
-g_gpUnitTypes = None
-g_gpColors = None
-g_unitIcons = None
-
 # Information
 
 def init():
-	global g_gpIcon
-	g_gpIcon = FontUtil.getChar("greatpeople")
+	# <!-- custom: SASVisualUtils.initGameResources resolves these once before GPUtil.init; touch the tuples here too so the inherited BUG init contract remains fail-loud if initialization order changes. (ChatGPT-5.6-Sol) -->
+	SASVisuals.GreatPeople.unitTypes()
+	SASVisuals.GreatPeople.unitColors()
 
-	global g_gpUnitTypes
-	g_gpUnitTypes = [None] * NUM_GP
-	for i, s in enumerate(g_gpBarList):
-		g_gpUnitTypes[i] = getInfoTypeOrFail(s)
-
-	global g_gpColors
-	g_gpColors = [None] * NUM_GP
-	g_gpColors[GP_GREAT_SPY] = getInfoTypeOrFail("COLOR_WHITE")
-	g_gpColors[GP_GREAT_ENGINEER] = gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getColorType()
-	g_gpColors[GP_GREAT_MERCHANT] = getInfoTypeOrFail("COLOR_YELLOW")
-	g_gpColors[GP_GREAT_SCIENTIST] = getInfoTypeOrFail("COLOR_RESEARCH_STORED")
-	g_gpColors[GP_GREAT_ARTIST] = getInfoTypeOrFail("COLOR_CULTURE_STORED")
-	g_gpColors[GP_GREAT_PROPHET] = getInfoTypeOrFail("COLOR_BLUE")
-	g_gpColors[GP_GREAT_GENERAL] = getInfoTypeOrFail("COLOR_RED")
-	# MOD: specify color for each new great person (3)
-	#g_gpColors[GP_DOCTOR] = getInfoTypeOrFail("COLOR_WHITE")
-
-	global g_unitIcons
-	g_unitIcons = {}
-	g_unitIcons[g_gpUnitTypes[GP_GREAT_SPY]] = FontUtil.getChar(FontSymbols.COMMERCE_ESPIONAGE_CHAR)
-	g_unitIcons[g_gpUnitTypes[GP_GREAT_ENGINEER]] = FontUtil.getChar(FontSymbols.YIELD_PRODUCTION_CHAR)
-	g_unitIcons[g_gpUnitTypes[GP_GREAT_MERCHANT]] = FontUtil.getChar(FontSymbols.COMMERCE_GOLD_CHAR)
-	g_unitIcons[g_gpUnitTypes[GP_GREAT_SCIENTIST]] = FontUtil.getChar(FontSymbols.COMMERCE_RESEARCH_CHAR)
-	g_unitIcons[g_gpUnitTypes[GP_GREAT_ARTIST]] = FontUtil.getChar(FontSymbols.COMMERCE_CULTURE_CHAR)
-	g_unitIcons[g_gpUnitTypes[GP_GREAT_PROPHET]] = FontUtil.getChar(FontSymbols.RELIGION_CHAR)
-	g_unitIcons[g_gpUnitTypes[GP_GREAT_GENERAL]] = FontUtil.getChar(FontSymbols.GREAT_GENERAL_CHAR)
-	# MOD: specify icon (font glyph) for each new great person (4)
-	#g_unitIcons[g_gpUnitTypes[GP_DOCTOR]] = FontUtil.getChar(FontSymbols.HEALTHY_CHAR)
 
 def getUnitType(gpType):
-	return g_gpUnitTypes[gpType]
+	return SASVisuals.GreatPeople.unitTypes()[gpType]
+
 
 def getColor(gpType):
-	return g_gpColors[gpType]
+	return SASVisuals.GreatPeople.unitColors()[gpType]
+
 
 def getUnitIcon(iUnit):
-	try:
-		return g_unitIcons[iUnit]
-	except:
+	if not SASVisuals.GreatPeople.hasUnitIcon(iUnit):
 		BugUtil.warn("no GP icon for unit %d", iUnit)
-		return u"%c" % CyGame().getSymbolID(FontSymbols.GREAT_PEOPLE_CHAR)
+	return SASVisuals.GreatPeople.getUnitIcon(iUnit)
 
 # Getting Progress
 
@@ -202,7 +164,7 @@ def getHoverText(eWidgetType, iData1, iData2, bOption):
 	szText += u"\n"
 	szText += BugUtil.getText("TXT_KEY_MISC_GREAT_PERSON", (iProgress, iThreshold))
 	if (iRate > 0):
-		szText += u"\n%d%s%s " % (iRate, g_gpIcon, BugUtil.getPlainText("TXT_KEY_PER_TURN"))
+		szText += u"\n%d%s%s " % (iRate, SASVisuals.GreatPeople.getDefaultIcon(), BugUtil.getPlainText("TXT_KEY_PER_TURN"))
 		szText += BugUtil.getText("INTERFACE_CITY_TURNS", (iTurns,))
 
 	percents = calcPercentages(city)
@@ -216,7 +178,7 @@ def getHoverText(eWidgetType, iData1, iData2, bOption):
 	return szText
 
 def getGreatPeopleText(city, iGPTurns, iGPBarWidth, bGPBarTypesNone, bGPBarTypesOne, bIncludeCityName):
-	sGreatPeopleChar = u"%c" % CyGame().getSymbolID(FontSymbols.GREAT_PEOPLE_CHAR)
+	sGreatPeopleChar = SASVisuals.GreatPeople.getDefaultIcon()
 	if (not city):
 		szText = BugUtil.getText("INTERFACE_GREAT_PERSON_NONE", (sGreatPeopleChar, ))
 	elif (bGPBarTypesNone):

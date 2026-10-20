@@ -14,6 +14,8 @@
 # <!-- custom: AdvCiv-SAS does not actively maintain this third-party file; changes here are minor (e.g. collapsing multiline statements to single-line for grep/readability, and similar low-risk consistency tweaks). (Claude code Opus 4.7) -->
 
 from CvPythonExtensions import *
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import CvUtil
 import BugUtil
 import TradeUtil
@@ -216,7 +218,7 @@ class Tracker:
 		# Appends the given yield value to the table control.
 		# If bTotal is True, the heading is colored yellow and there's no + sign on the value.
 		#
-		cYield = gc.getYieldInfo(eYield).getChar()
+		cYield = SASVisuals.Yield.char(eYield)
 		screen.appendTableRow(table)
 		if bTotal:
 			heading = u"<color=205,180,55,255>%s</color>" % heading
@@ -233,13 +235,13 @@ class Tracker:
 			else:
 				value = u"%+d" % iValue
 		screen.setTableText(table, HEADING_COLUMN, self.iRow, u"<font=1>%s</font>" % (heading), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(table, VALUE_COLUMN, self.iRow, u"<font=1>%s%c</font>" % (value, cYield), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_RIGHT_JUSTIFY)
+		screen.setTableText(table, VALUE_COLUMN, self.iRow, u"<font=1>%s%s</font>" % (value, cYield), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_RIGHT_JUSTIFY)
 		self.iRow += 1
 
 	def appendTableTotal(self, screen, table, eYield, iValue):
 		# Appends the given yield total to the table control's 3rd running total column.
 		#
 		if self.iRow > 0:
-			cYield = gc.getYieldInfo(eYield).getChar()
+			cYield = SASVisuals.Yield.char(eYield)
 			value = u"<color=205,180,55,255>%d</color>" % iValue
-			screen.setTableText(table, TOTAL_COLUMN, self.iRow - 1, u"<font=1>%s%c</font>" % (value, cYield), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_RIGHT_JUSTIFY)
+			screen.setTableText(table, TOTAL_COLUMN, self.iRow - 1, u"<font=1>%s%s</font>" % (value, cYield), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_RIGHT_JUSTIFY)

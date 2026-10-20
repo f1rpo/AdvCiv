@@ -7,7 +7,8 @@ from SASMagicNumbers import *
 import CvUtil
 # <!-- custom: SevoScreenEnums.py was removed; import its unchanged page IDs from the SevoScreenEnums class in CvScreenEnums.py, keeping them distinct from vanilla Civilopedia pages. (GPT-6.1-Sol) -->
 from CvScreenEnums import SevoScreenEnums
-from SASFontUtils import *
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import SASTextScale
 
 from _sevopedia_helpers import *
@@ -58,7 +59,6 @@ class SevoPediaMusic:
 		self.H_BUTTON = 64
 		self.X_BUTTON = self.X_HEADER + self.W_HEADER - self.W_BUTTON - 10
 		self.Y_BUTTON = self.Y_HEADER + (self.H_HEADER - self.H_BUTTON) / 2
-		self.playButtonPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_PLAY_BUTTON").getPath()
 
 		self.X_HISTORY = self.X_HEADER
 		self.Y_HISTORY = self.Y_HEADER + self.H_HEADER + 10
@@ -104,11 +104,11 @@ class SevoPediaMusic:
 
 		szTitleText = ""
 		szTitleText = self.top.SAS_getMusicTitle(self.iMusic)
-		szTitle = sasFontTagTitle.bold + szTitleText.upper() + SAS_FONT_TAG_CLOSE
+		szTitle = SASTextScale.sasFontTagTitle.bold + szTitleText.upper() + SASTextScale.SAS_FONT_TAG_CLOSE
 		screen.setLabel(self.top.getNextWidgetName(), "Background", szTitle, CvUtil.FONT_LEFT_JUSTIFY, self.X_TITLE, self.Y_TITLE, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 		if self.hasMusic(self.iMusic):
-			screen.setImageButton(self.top.getNextWidgetName(), self.playButtonPath, self.X_BUTTON, self.Y_BUTTON, self.W_BUTTON, self.H_BUTTON, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_MUSIC_PLAY, self.iMusic)
+			screen.setImageButton(self.top.getNextWidgetName(), SASVisuals.InterfaceArt.SAS_EMOJI_PLAY_BUTTON, self.X_BUTTON, self.Y_BUTTON, self.W_BUTTON, self.H_BUTTON, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_MUSIC_PLAY, self.iMusic)
 
 	def placeHistory(self):
 		screen = self.top.getScreen()
@@ -609,7 +609,7 @@ class SevoPediaMusic:
 
 		# Use musical notes icon as fallback
 		if not szGroupIcon:
-			szGroupIcon = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_MUSICAL_NOTES").getPath()
+			szGroupIcon = SASVisuals.InterfaceArt.SAS_EMOJI_MUSICAL_NOTES
 
 		# Place the icon centered and square
 		if szGroupIcon:

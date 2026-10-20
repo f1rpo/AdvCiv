@@ -1185,7 +1185,7 @@ After:
 
 ### Logging reference
 
-The [logging reference](/_1_AdvCiv-SAS/Docs/README_Logging_Inventory.md) documents this work with matched Before/After samples, file controls and limits, including startup/EXE output that bypasses Python timestamping.
+The [README_Logging_Inventory.md](/_1_AdvCiv-SAS/Docs/README_Logging_Inventory.md) documents this work with matched Before/After samples, file controls and limits, including startup/EXE output that bypasses Python timestamping.
 
 It also explains files such as `PythonDbg.log` (prints/debug messages), `PythonErr.log` (tracebacks), `PythonErr2.log` (including module-loading output) and `xml.log` (XML loading/errors).
 

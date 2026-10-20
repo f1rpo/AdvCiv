@@ -28,6 +28,9 @@ jobs:
       - name: Source change provenance
         run: python .github/workflows/build/source/source_change_provenance.py --base-ref "$BASE_REF" --event-name "$EVENT_NAME"
 
+      - name: Shared Python resource API contracts
+        run: python .github/workflows/build/source/python_resource_api.py --base-ref "$BASE_REF" --event-name "$EVENT_NAME"
+
       - name: Fail-fast XML identity lookups
         run: python .github/workflows/build/source/raw_getinfotype.py
 

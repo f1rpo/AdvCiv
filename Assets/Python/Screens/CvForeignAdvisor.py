@@ -20,7 +20,9 @@ import ScreenInput
 import CvScreenEnums
 import math
 from SASUtils import *
-from SASFontUtils import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
+import SASTextScale
 # <!-- custom: AdvCiv-SAS readability pass: use LABEL as the base advisor text tag (instead of BODY) for clearer upscaled UI text. (GPT-5.3-Codex) -->
 
 ############################################
@@ -42,8 +44,8 @@ import BugUtil
 import DealUtil
 import DiplomacyUtil
 import FavoriteCivicDetector
-import FontUtil
 import TradeUtil
+# <!-- custom: Remove the advisor's old FontUtil dependency; shared immutable/dynamic glyph resources now come through SASVisualUtils. (ChatGPT-5.6-Sol) -->
 from SASTextScale import labelText, appendListBoxStringLabel, setTableTextLabel
 
 # globals
@@ -372,8 +374,8 @@ class CvForeignAdvisor:
 		self.iLanguageLoaded = CyGame().getCurrentLanguage()
 
 		# <!-- custom: precompute commonly used text strings to avoid repeated lookups (claude code sonnet 4.5) -->
-		self.EXIT_TEXT = sasFontTagTitle + localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ()).upper() + SAS_FONT_TAG_CLOSE
-		self.SCREEN_TITLE = sasFontTagTitle.bold + localText.getText("TXT_KEY_FOREIGN_TRADE_ADVISOR_TITLE", ()).upper() + SAS_FONT_TAG_CLOSE
+		self.EXIT_TEXT = SASTextScale.sasFontTagTitle + localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.SCREEN_TITLE = SASTextScale.sasFontTagTitle.bold + localText.getText("TXT_KEY_FOREIGN_TRADE_ADVISOR_TITLE", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE
 
 		# <!-- custom: precompute tab/column header texts (claude code sonnet 4.5) -->
 		self.TEXT_LEADER = localText.getText("TXT_KEY_FOREIGN_ADVISOR_LEADER", ())
@@ -403,16 +405,8 @@ class CvForeignAdvisor:
 		self.TEXT_ESPIONAGE_NO_SPY = localText.getText("TXT_KEY_ESPIONAGE_NO_SPY", ())
 		self.TEXT_MISC_THRESHOLD = localText.getText("TXT_KEY_MISC_THRESHOLD", ())
 		self.TEXT_CONCEPT_CITIES = localText.getText("TXT_KEY_CONCEPT_CITIES", ())
-		self.COLOR_WHITE = getInfoTypeOrFail("COLOR_WHITE")
-		self.COLOR_RED = getInfoTypeOrFail("COLOR_RED")
-		self.COLOR_BLUE = getInfoTypeOrFail("COLOR_BLUE")
-		self.COLOR_CITY_GREEN = getInfoTypeOrFail("COLOR_CITY_GREEN")
-		self.COLOR_YELLOW = getInfoTypeOrFail("COLOR_YELLOW")
-		self.COLOR_CYAN = getInfoTypeOrFail("COLOR_CYAN")
-		self.COLOR_LIGHT_GREY = getInfoTypeOrFail("COLOR_LIGHT_GREY")
-		self.COLOR_GREEN = getInfoTypeOrFail("COLOR_GREEN")
 
-		eDenialColor = self.COLOR_WHITE
+		eDenialColor = SASVisuals.Color.WHITE
 		self.TEXT_REJECTS = localText.getColorText("TXT_KEY_FOREIGN_ADVISOR_REJECTS", (), eDenialColor)
 		self.TEXT_WONT_CEDE = localText.getColorText("TXT_KEY_FOREIGN_ADVISOR_WONT_CEDE", (), eDenialColor)
 		# <!-- custom: messages (claude code sonnet 4.5) -->
@@ -427,25 +421,16 @@ class CvForeignAdvisor:
 		self.TEXT_PITBOSS_TEAM = localText.getText("TXT_KEY_PITBOSS_TEAM", ())
 		self.TEXT_MISC_VASSAL_SHORT = localText.getText("TXT_KEY_MISC_VASSAL_SHORT", ())
 		self.TEXT_MISC_MASTER = localText.getText("TXT_KEY_MISC_MASTER", ())
-		self.LABEL_REL_CONTACT = sasFontTagLabel + self.TEXT_REL_CONTACT + SAS_FONT_TAG_CLOSE
-		self.LABEL_CONCEPT_WAR = sasFontTagLabel + self.TEXT_CONCEPT_WAR + SAS_FONT_TAG_CLOSE
-		self.LABEL_TRADE_DEFENSIVE_PACT = sasFontTagLabel + self.TEXT_TRADE_DEFENSIVE_PACT + SAS_FONT_TAG_CLOSE
-		self.LABEL_TRADE_OPEN_BORDERS = sasFontTagLabel + self.TEXT_TRADE_OPEN_BORDERS + SAS_FONT_TAG_CLOSE
-		self.LABEL_PITBOSS_TEAM = sasFontTagLabel + self.TEXT_PITBOSS_TEAM + SAS_FONT_TAG_CLOSE
-		self.LABEL_MISC_VASSAL_SHORT = sasFontTagLabel + self.TEXT_MISC_VASSAL_SHORT + SAS_FONT_TAG_CLOSE
+		self.LABEL_REL_CONTACT = SASTextScale.sasFontTagLabel + self.TEXT_REL_CONTACT + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.LABEL_CONCEPT_WAR = SASTextScale.sasFontTagLabel + self.TEXT_CONCEPT_WAR + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.LABEL_TRADE_DEFENSIVE_PACT = SASTextScale.sasFontTagLabel + self.TEXT_TRADE_DEFENSIVE_PACT + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.LABEL_TRADE_OPEN_BORDERS = SASTextScale.sasFontTagLabel + self.TEXT_TRADE_OPEN_BORDERS + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.LABEL_PITBOSS_TEAM = SASTextScale.sasFontTagLabel + self.TEXT_PITBOSS_TEAM + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.LABEL_MISC_VASSAL_SHORT = SASTextScale.sasFontTagLabel + self.TEXT_MISC_VASSAL_SHORT + SASTextScale.SAS_FONT_TAG_CLOSE
 
 		# <!-- custom: precompute commonly used icon symbols (claude code sonnet 4.5) -->
-		self.iReligionIcon = CyGame().getSymbolID(FontSymbols.RELIGION_CHAR)
-		self.iTradeIcon = CyGame().getSymbolID(FontSymbols.TRADE_CHAR)
-		self.iCitizenIcon = CyGame().getSymbolID(FontSymbols.CITIZEN_CHAR)
-		self.iOccupationIcon = CyGame().getSymbolID(FontSymbols.OCCUPATION_CHAR)
-		self.iMapIcon = CyGame().getSymbolID(FontSymbols.MAP_CHAR)
-		self.iGoldIcon = gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar()
 
 		# <!-- custom: precompute formatted icon strings (claude code sonnet 4.5) -->
-		self.szReligionIconStr = u"%c" % self.iReligionIcon
-		self.szTradeIconStr = u"%c" % self.iTradeIcon
-		self.szTradeCommerceIconStr = u"%c%c" % (self.iTradeIcon, gc.getYieldInfo(YieldTypes.YIELD_COMMERCE).getChar())
 
 		# <!-- custom: i don't know what this is for, but since we renamed it to as of now just "Favorites:" to include favorite religions as well, may as well remove this alternative one -->
 		# if FavoriteCivicDetector.isDetectionNecessary():
@@ -456,18 +441,9 @@ class CvForeignAdvisor:
 
 		# <!-- custom: perf opt: looks like this can be moved to init entirely if i'm not mistaken. -->
 		# <!-- custom: szReligionIconStr/szTradeIconStr/szTradeCommerceIconStr are cached icon values for performance (claude code sonnet 4.5) -->
-		self.headerTexts = (BugUtil.getPlainText("TXT_KEY_FOREIGN_ADVISOR_ABBR_LEADER"), BugUtil.getPlainText("TXT_KEY_FOREIGN_ADVISOR_ABBR_ATTITUDE"), self.szReligionIconStr, self.szTradeIconStr, self.szTradeCommerceIconStr, BugUtil.getPlainText("TXT_KEY_CIVICOPTION_ABBR_GOVERNMENT"), BugUtil.getPlainText("TXT_KEY_CIVICOPTION_ABBR_LEGAL"), BugUtil.getPlainText("TXT_KEY_CIVICOPTION_ABBR_LABOR"), BugUtil.getPlainText("TXT_KEY_CIVICOPTION_ABBR_ECONOMY"), BugUtil.getPlainText("TXT_KEY_CIVICOPTION_ABBR_RELIGION"), "", BugUtil.getPlainText("TXT_KEY_PEDIA_FAVORITES"))
+		self.headerTexts = (BugUtil.getPlainText("TXT_KEY_FOREIGN_ADVISOR_ABBR_LEADER"), BugUtil.getPlainText("TXT_KEY_FOREIGN_ADVISOR_ABBR_ATTITUDE"), SASVisuals.Font.RELIGION_CHAR, SASVisuals.Font.TRADE_CHAR, SASVisuals.Font.TRADE_CHAR + SASVisuals.Yield.COMMERCE_CHAR, BugUtil.getPlainText("TXT_KEY_CIVICOPTION_ABBR_GOVERNMENT"), BugUtil.getPlainText("TXT_KEY_CIVICOPTION_ABBR_LEGAL"), BugUtil.getPlainText("TXT_KEY_CIVICOPTION_ABBR_LABOR"), BugUtil.getPlainText("TXT_KEY_CIVICOPTION_ABBR_ECONOMY"), BugUtil.getPlainText("TXT_KEY_CIVICOPTION_ABBR_RELIGION"), "", BugUtil.getPlainText("TXT_KEY_PEDIA_FAVORITES"))
 
 		# <!-- custom: cache treaty icon paths once. (GPT-5.3-Codex) -->
-		self.SAS_TRADE_ICON_OPEN_BORDERS = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_OPENBORDERS").getPath()
-		self.SAS_TRADE_ICON_DEFENSIVE_PACT = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_DEFENSIVEPACT").getPath()
-		self.SAS_TRADE_ICON_PERMANENT_ALLIANCE = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_PERMALLIANCE").getPath()
-		self.SAS_TRADE_ICON_VASSAL = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_VASSAL").getPath()
-		self.SAS_ART_SCREEN_BG_OPAQUE = ArtFileMgr.getInterfaceArtInfo("SCREEN_BG_OPAQUE").getPath()
-		self.SAS_ART_BUTTON_HILITE_SQUARE = ArtFileMgr.getInterfaceArtInfo("BUTTON_HILITE_SQUARE").getPath()
-		self.SAS_ART_WHITE_CIRCLE_40 = ArtFileMgr.getInterfaceArtInfo("WHITE_CIRCLE_40").getPath()
-		self.SAS_ART_BUTTON_PLUS = ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_PLUS").getPath()
-		self.SAS_ART_BUTTON_MINUS = ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_MINUS").getPath()
 		self.TEXT_CANT_TRADE = localText.getText("TXT_KEY_FOREIGN_ADVISOR_CANT_TRADE", ())
 
 	def updateRuntimeLayout(self, screen):
@@ -632,7 +608,7 @@ class CvForeignAdvisor:
 
 		# Set the background and exit button, and show the screen
 		screen.setDimensions(self.X_SCREEN, self.Y_SCREEN, self.W_SCREEN, self.H_SCREEN)
-		screen.addDrawControl(self.BACKGROUND_ID, self.SAS_ART_SCREEN_BG_OPAQUE, 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		screen.addDrawControl(self.BACKGROUND_ID, SASVisuals.InterfaceArt.SCREEN_BG_OPAQUE, 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 		screen.addPanel( "TopPanel", u"", u"", True, False, 0, 0, self.W_SCREEN, 55, PanelStyles.PANEL_STYLE_TOPBAR )
 		screen.addPanel( "BottomPanel", u"", u"", True, False, 0, self.Y_BOTTOM_PANEL, self.W_SCREEN, 55, PanelStyles.PANEL_STYLE_BOTTOMBAR )
 		##########################################
@@ -702,7 +678,7 @@ class CvForeignAdvisor:
 		# <!-- custom: When removing the old interdependent Foreign/Exotic Foreign setup, our first unified Foreign + Diplomacy-shell code had repeated clicks on the 2nd tab of Foreign Diplomacy Advisor (Glance) jump to the 2nd tab of Foreign Trade Advisor (Bonuses).
 		# That is not consistent with how other links behave and is unnecessary for players.
 		# Passing self.iScreen as the active page id keeps the selected label inert while inactive tabs still route through their SCREEN_DICT ids. (GPT-5.3-Codex + GPT-5.5) -->
-		drawAdvisorFooterTabs(screen, aszTabWidgetIDs, aszTabLabels, self.LABEL_WIDTH_LIST, self.iScreen, self.Y_LINK, 0, self.COLOR_YELLOW, WidgetTypes.WIDGET_FOREIGN_ADVISOR, aiInactiveData1=aiTabScreenIDs)
+		drawAdvisorFooterTabs(screen, aszTabWidgetIDs, aszTabLabels, self.LABEL_WIDTH_LIST, self.iScreen, self.Y_LINK, 0, SASVisuals.Color.YELLOW, WidgetTypes.WIDGET_FOREIGN_ADVISOR, aiInactiveData1=aiTabScreenIDs)
 
 	def drawActive (self, bInitial):
 		screen = self.getScreen()
@@ -711,29 +687,29 @@ class CvForeignAdvisor:
 		def formatTreatyTrade(tradeData, iPlayerFrom, iPlayerTo):
 			szTrade = CyGameTextMgr().getTradeString(tradeData, iPlayerFrom, iPlayerTo)
 			if tradeData.ItemType == TradeableItems.TRADE_OPEN_BORDERS:
-				return u"<img=%s size=%d></img> %s" % (self.SAS_TRADE_ICON_OPEN_BORDERS, self.SAS_TREATY_ICON_SIZE, szTrade)
+				return SASTextScale.imageText(SASVisuals.InterfaceArt.INTERFACE_TECH_OPENBORDERS, self.SAS_TREATY_ICON_SIZE, szTrade)
 			elif tradeData.ItemType == TradeableItems.TRADE_DEFENSIVE_PACT:
-				return u"<img=%s size=%d></img> %s" % (self.SAS_TRADE_ICON_DEFENSIVE_PACT, self.SAS_TREATY_ICON_SIZE, szTrade)
+				return SASTextScale.imageText(SASVisuals.InterfaceArt.INTERFACE_TECH_DEFENSIVEPACT, self.SAS_TREATY_ICON_SIZE, szTrade)
 			elif tradeData.ItemType == TradeableItems.TRADE_PERMANENT_ALLIANCE:
-				return u"<img=%s size=%d></img> %s" % (self.SAS_TRADE_ICON_PERMANENT_ALLIANCE, self.SAS_TREATY_ICON_SIZE, szTrade)
+				return SASTextScale.imageText(SASVisuals.InterfaceArt.INTERFACE_TECH_PERMALLIANCE, self.SAS_TREATY_ICON_SIZE, szTrade)
 			elif tradeData.ItemType == TradeableItems.TRADE_VASSAL or tradeData.ItemType == TradeableItems.TRADE_SURRENDER:
-				return u"<img=%s size=%d></img> %s" % (self.SAS_TRADE_ICON_VASSAL, self.SAS_TREATY_ICON_SIZE, szTrade)
+				return SASTextScale.imageText(SASVisuals.InterfaceArt.INTERFACE_TECH_VASSAL, self.SAS_TREATY_ICON_SIZE, szTrade)
 			elif tradeData.ItemType == TradeableItems.TRADE_TECHNOLOGIES:
-				return u"<img=%s size=%d></img> %s" % (gc.getTechInfo(tradeData.iData).getButton(), self.SAS_TREATY_ICON_SIZE, szTrade)
+				return SASTextScale.imageText(gc.getTechInfo(tradeData.iData).getButton(), self.SAS_TREATY_ICON_SIZE, szTrade)
 			elif tradeData.ItemType == TradeableItems.TRADE_CIVIC:
-				return u"<img=%s size=%d></img> %s" % (gc.getCivicInfo(tradeData.iData).getButton(), self.SAS_TREATY_ICON_SIZE, szTrade)
+				return SASTextScale.imageText(gc.getCivicInfo(tradeData.iData).getButton(), self.SAS_TREATY_ICON_SIZE, szTrade)
 			elif tradeData.ItemType == TradeableItems.TRADE_RELIGION:
-				return u"<img=%s size=%d></img> %s" % (gc.getReligionInfo(tradeData.iData).getButton(), self.SAS_TREATY_ICON_SIZE, szTrade)
+				return SASTextScale.imageText(gc.getReligionInfo(tradeData.iData).getButton(), self.SAS_TREATY_ICON_SIZE, szTrade)
 			# <!-- custom: Resource entries are formatted only when a visible mixed deal must disclose its complete cancellation scope; resource-only deals remain filtered below. See KI#241. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			elif tradeData.ItemType == TradeableItems.TRADE_RESOURCES:
-				return u"<img=%s size=%d></img> %s" % (gc.getBonusInfo(tradeData.iData).getButton(), self.SAS_TREATY_ICON_SIZE, szTrade)
+				return SASTextScale.imageText(gc.getBonusInfo(tradeData.iData).getButton(), self.SAS_TREATY_ICON_SIZE, szTrade)
 			elif tradeData.ItemType == TradeableItems.TRADE_GOLD or tradeData.ItemType == TradeableItems.TRADE_GOLD_PER_TURN:
-				return u"%c %s" % (self.iGoldIcon, szTrade)
+				return u"%s %s" % (SASVisuals.Commerce.GOLD_CHAR, szTrade)
 			elif tradeData.ItemType == TradeableItems.TRADE_MAPS:
 				# <!-- custom: map trading is typically one-time (not an ongoing treaty), but keep icon fallback in case mixed/custom deal text surfaces here. (GPT-5.3-Codex) -->
-				return u"%c %s" % (self.iMapIcon, szTrade)
+				return u"%s %s" % (SASVisuals.Font.MAP_CHAR, szTrade)
 			else:
-				return u"%c %s" % (self.iTradeIcon, szTrade)
+				return u"%s %s" % (SASVisuals.Font.TRADE_CHAR, szTrade)
 
 		# Get the Players
 		playerActive = gc.getPlayer(self.iActiveLeader)
@@ -846,7 +822,7 @@ class CvForeignAdvisor:
 							listTheirDealEntries = listFirstDealEntries
 							iOtherPlayer = deal.getFirstPlayer()
 						objOtherPlayer = gc.getPlayer(iOtherPlayer)
-						szOtherPlayer = u"<img=%s size=%d></img> %s" % (gc.getLeaderHeadInfo(objOtherPlayer.getLeaderType()).getButton(), self.SAS_TREATY_ICON_SIZE, objOtherPlayer.getName())
+						szOtherPlayer = SASTextScale.imageText(gc.getLeaderHeadInfo(objOtherPlayer.getLeaderType()).getButton(), self.SAS_TREATY_ICON_SIZE, objOtherPlayer.getName())
 						szOurDeal = u", ".join(listOurDealEntries)
 						szTheirDeal = u", ".join(listTheirDealEntries)
 						if len(listOurDealEntries) > 0 and len(listTheirDealEntries) > 0:
@@ -979,27 +955,27 @@ class CvForeignAdvisor:
 		y = self.Y_LEGEND + self.MARGIN_LEGEND
 		screen.setLabel(self.getNextWidgetName(), "", self.LABEL_REL_CONTACT, CvUtil.FONT_LEFT_JUSTIFY, x, y-10, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 		y += self.MARGIN_LEGEND
-		screen.addLineGFC(self.BACKGROUND_ID, self.getNextLineName(), x, y, x + self.W_LEGEND - 2*self.MARGIN_LEGEND, y, self.COLOR_WHITE)
+		screen.addLineGFC(self.BACKGROUND_ID, self.getNextLineName(), x, y, x + self.W_LEGEND - 2*self.MARGIN_LEGEND, y, SASVisuals.Color.WHITE)
 		y += 2 * self.MARGIN_LEGEND
 		screen.setLabel(self.getNextWidgetName(), "", self.LABEL_CONCEPT_WAR, CvUtil.FONT_LEFT_JUSTIFY, x, y-10, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 		y += self.MARGIN_LEGEND
-		screen.addLineGFC(self.BACKGROUND_ID, self.getNextLineName(), x, y, x + self.W_LEGEND - 2*self.MARGIN_LEGEND, y, self.COLOR_RED)
+		screen.addLineGFC(self.BACKGROUND_ID, self.getNextLineName(), x, y, x + self.W_LEGEND - 2*self.MARGIN_LEGEND, y, SASVisuals.Color.RED)
 		y += 2 * self.MARGIN_LEGEND
 		screen.setLabel(self.getNextWidgetName(), "", self.LABEL_TRADE_DEFENSIVE_PACT, CvUtil.FONT_LEFT_JUSTIFY, x, y-10, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 		y += self.MARGIN_LEGEND
-		screen.addLineGFC(self.BACKGROUND_ID, self.getNextLineName(), x, y, x + self.W_LEGEND - 2*self.MARGIN_LEGEND, y, self.COLOR_BLUE)
+		screen.addLineGFC(self.BACKGROUND_ID, self.getNextLineName(), x, y, x + self.W_LEGEND - 2*self.MARGIN_LEGEND, y, SASVisuals.Color.BLUE)
 		y += 2 * self.MARGIN_LEGEND
 		screen.setLabel(self.getNextWidgetName(), "", self.LABEL_TRADE_OPEN_BORDERS, CvUtil.FONT_LEFT_JUSTIFY, x, y-10, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 		y += self.MARGIN_LEGEND
-		screen.addLineGFC(self.BACKGROUND_ID, self.getNextLineName(), x, y, x + self.W_LEGEND - 2*self.MARGIN_LEGEND, y, self.COLOR_CITY_GREEN)
+		screen.addLineGFC(self.BACKGROUND_ID, self.getNextLineName(), x, y, x + self.W_LEGEND - 2*self.MARGIN_LEGEND, y, SASVisuals.Color.CITY_GREEN)
 		y += 2 * self.MARGIN_LEGEND
 		screen.setLabel(self.getNextWidgetName(), "", self.LABEL_PITBOSS_TEAM, CvUtil.FONT_LEFT_JUSTIFY, x, y-10, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 		y += self.MARGIN_LEGEND
-		screen.addLineGFC(self.BACKGROUND_ID, self.getNextLineName(), x, y, x + self.W_LEGEND - 2*self.MARGIN_LEGEND, y, self.COLOR_YELLOW)
+		screen.addLineGFC(self.BACKGROUND_ID, self.getNextLineName(), x, y, x + self.W_LEGEND - 2*self.MARGIN_LEGEND, y, SASVisuals.Color.YELLOW)
 		y += 2 * self.MARGIN_LEGEND
 		screen.setLabel(self.getNextWidgetName(), "", self.LABEL_MISC_VASSAL_SHORT, CvUtil.FONT_LEFT_JUSTIFY, x, y-10, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 		y += self.MARGIN_LEGEND
-		screen.addLineGFC(self.BACKGROUND_ID, self.getNextLineName(), x, y, x + self.W_LEGEND - 2*self.MARGIN_LEGEND, y, self.COLOR_CYAN)
+		screen.addLineGFC(self.BACKGROUND_ID, self.getNextLineName(), x, y, x + self.W_LEGEND - 2*self.MARGIN_LEGEND, y, SASVisuals.Color.CYAN)
 
 		# Our leader head
 
@@ -1013,13 +989,13 @@ class CvForeignAdvisor:
 		# K-Mod end
 		szLeaderHead = self.getNextWidgetName()
 		#screen.addCheckBoxGFC(szLeaderHead, gc.getLeaderHeadInfo(playerActive.getLeaderType()).getButton(), self.SAS_ART_BUTTON_HILITE_SQUARE, self.X_LEADER_CIRCLE_TOP - iLeaderWidth/2, int(fLeaderTop), iLeaderWidth, iLeaderHeight, WidgetTypes.WIDGET_LEADERHEAD, self.iActiveLeader, -1, ButtonStyles.BUTTON_STYLE_LABEL)
-		screen.addCheckBoxGFC(szLeaderHead, gc.getLeaderHeadInfo(playerActive.getLeaderType()).getButton(), self.SAS_ART_BUTTON_HILITE_SQUARE, self.X_LEADER_CIRCLE_TOP - iLeaderWidth/2, int(fLeaderTop), iLeaderWidth, iLeaderHeight, WidgetTypes.WIDGET_LEADERHEAD, self.iActiveLeader, iBaseLeader, ButtonStyles.BUTTON_STYLE_LABEL) # K-Mod
+		screen.addCheckBoxGFC(szLeaderHead, gc.getLeaderHeadInfo(playerActive.getLeaderType()).getButton(), SASVisuals.InterfaceArt.BUTTON_HILITE_SQUARE, self.X_LEADER_CIRCLE_TOP - iLeaderWidth/2, int(fLeaderTop), iLeaderWidth, iLeaderHeight, WidgetTypes.WIDGET_LEADERHEAD, self.iActiveLeader, iBaseLeader, ButtonStyles.BUTTON_STYLE_LABEL) # K-Mod
 		if (self.iActiveLeader in self.listSelectedLeaders):
 			screen.setState(szLeaderHead, True)
 		else:
 			screen.setState(szLeaderHead, False)
 		szName = self.getNextWidgetName()
-		szLeaderName = sasFontTagLabel + playerActive.getName() + SAS_FONT_TAG_CLOSE
+		szLeaderName = SASTextScale.sasFontTagLabel + playerActive.getName() + SASTextScale.SAS_FONT_TAG_CLOSE
 		screen.setLabel(szName, "", szLeaderName, CvUtil.FONT_CENTER_JUSTIFY, self.X_LEADER_CIRCLE_TOP, fLeaderTop + iLeaderHeight + 5, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 		# K-Mod. vassal / master label
@@ -1056,14 +1032,14 @@ class CvForeignAdvisor:
 			fY = int(fLeaderArcTop + fRadius * math.sin(deltaTheta * leaderMap[iPlayer]) - iLeaderHeight/2)
 
 			szLeaderHead = self.getNextWidgetName()
-			screen.addCheckBoxGFC(szLeaderHead, gc.getLeaderHeadInfo(player.getLeaderType()).getButton(), self.SAS_ART_BUTTON_HILITE_SQUARE, int(fX), int(fY), iLeaderWidth, iLeaderHeight, WidgetTypes.WIDGET_LEADERHEAD, iPlayer, iBaseLeader, ButtonStyles.BUTTON_STYLE_LABEL)
+			screen.addCheckBoxGFC(szLeaderHead, gc.getLeaderHeadInfo(player.getLeaderType()).getButton(), SASVisuals.InterfaceArt.BUTTON_HILITE_SQUARE, int(fX), int(fY), iLeaderWidth, iLeaderHeight, WidgetTypes.WIDGET_LEADERHEAD, iPlayer, iBaseLeader, ButtonStyles.BUTTON_STYLE_LABEL)
 			if (iPlayer in self.listSelectedLeaders):
 				screen.setState(szLeaderHead, True)
 			else:
 				screen.setState(szLeaderHead, False)
 
 			szName = self.getNextWidgetName()
-			szText = sasFontTagLabel + player.getName() + SAS_FONT_TAG_CLOSE
+			szText = SASTextScale.sasFontTagLabel + player.getName() + SASTextScale.SAS_FONT_TAG_CLOSE
 			screen.setLabel(szName, "", szText, CvUtil.FONT_CENTER_JUSTIFY, fX + iLeaderWidth/2, fY + iLeaderHeight + 5, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 			# Leader attitude towards active player. (rewritten by K-Mod)
@@ -1105,14 +1081,14 @@ class CvForeignAdvisor:
 					if (iSelectedLeader != iPlayer):
 						if (player.getTeam() == gc.getPlayer(iSelectedLeader).getTeam()):
 							szName = self.getNextLineName()
-							screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), int(fX), int(fY), self.COLOR_YELLOW )						
+							screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), int(fX), int(fY), SASVisuals.Color.YELLOW )
 						elif (gc.getTeam(player.getTeam()).isVassal(gc.getPlayer(iSelectedLeader).getTeam()) or gc.getTeam(gc.getPlayer(iSelectedLeader).getTeam()).isVassal(player.getTeam())):
 							szName = self.getNextLineName()
-							screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), int(fX), int(fY), self.COLOR_CYAN )						
+							screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), int(fX), int(fY), SASVisuals.Color.CYAN )
 						elif (gc.getTeam(player.getTeam()).isHasMet(gc.getPlayer(iSelectedLeader).getTeam())):
 							if (gc.getTeam(player.getTeam()).isAtWar(gc.getPlayer(iSelectedLeader).getTeam())):
 								szName = self.getNextLineName()
-								screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), int(fX), int(fY), self.COLOR_RED )
+								screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), int(fX), int(fY), SASVisuals.Color.RED )
 							else:
 								bJustPeace = True
 								if (gc.getTeam(player.getTeam()).isOpenBorders(gc.getPlayer(iSelectedLeader).getTeam())):
@@ -1126,27 +1102,27 @@ class CvForeignAdvisor:
 									fSecondLineOffsetY = self.LINE_WIDTH * math.cos(fTheta)
 									fSecondLineOffsetX = -self.LINE_WIDTH * math.sin(fTheta)
 									szName = self.getNextLineName()
-									screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected + fSecondLineOffsetX), int(fYSelected + fSecondLineOffsetY), int(fX + fSecondLineOffsetX), int(fY + fSecondLineOffsetY), self.COLOR_CITY_GREEN )
+									screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected + fSecondLineOffsetX), int(fYSelected + fSecondLineOffsetY), int(fX + fSecondLineOffsetX), int(fY + fSecondLineOffsetY), SASVisuals.Color.CITY_GREEN )
 									bJustPeace = False
 								if (gc.getTeam(player.getTeam()).isDefensivePact(gc.getPlayer(iSelectedLeader).getTeam())):
 									szName = self.getNextLineName()
-									screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), int(fX), int(fY), self.COLOR_BLUE )
+									screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), int(fX), int(fY), SASVisuals.Color.BLUE )
 									bJustPeace = False
 								if (bJustPeace):
 									szName = self.getNextLineName()
-									screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), int(fX), int(fY), self.COLOR_WHITE )
+									screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), int(fX), int(fY), SASVisuals.Color.WHITE )
 
 				player = gc.getPlayer(self.iActiveLeader)
 				if (player.getTeam() == gc.getPlayer(iSelectedLeader).getTeam()):
 					szName = self.getNextLineName()
-					screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), self.X_LEADER_CIRCLE_TOP, fLeaderTop + iLeaderHeight/2, self.COLOR_YELLOW )
+					screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), self.X_LEADER_CIRCLE_TOP, fLeaderTop + iLeaderHeight/2, SASVisuals.Color.YELLOW )
 				elif (gc.getTeam(player.getTeam()).isVassal(gc.getPlayer(iSelectedLeader).getTeam()) or gc.getTeam(gc.getPlayer(iSelectedLeader).getTeam()).isVassal(player.getTeam())):
 					szName = self.getNextLineName()
-					screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), self.X_LEADER_CIRCLE_TOP, fLeaderTop + iLeaderHeight/2, self.COLOR_CYAN )
+					screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), self.X_LEADER_CIRCLE_TOP, fLeaderTop + iLeaderHeight/2, SASVisuals.Color.CYAN )
 				elif (gc.getTeam(player.getTeam()).isHasMet(gc.getPlayer(iSelectedLeader).getTeam())):
 					if (gc.getTeam(player.getTeam()).isAtWar(gc.getPlayer(iSelectedLeader).getTeam())):
 						szName = self.getNextLineName()
-						screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), self.X_LEADER_CIRCLE_TOP, fLeaderTop + iLeaderHeight/2, self.COLOR_RED )
+						screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), self.X_LEADER_CIRCLE_TOP, fLeaderTop + iLeaderHeight/2, SASVisuals.Color.RED )
 					else:
 						bJustPeace = True
 						if (gc.getTeam(player.getTeam()).isOpenBorders(gc.getPlayer(iSelectedLeader).getTeam())):
@@ -1160,15 +1136,15 @@ class CvForeignAdvisor:
 							fSecondLineOffsetY = self.LINE_WIDTH * math.cos(fTheta)
 							fSecondLineOffsetX = -self.LINE_WIDTH * math.sin(fTheta)
 							szName = self.getNextLineName()
-							screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected + fSecondLineOffsetX), int(fYSelected + fSecondLineOffsetY), int(self.X_LEADER_CIRCLE_TOP + fSecondLineOffsetX), int(fLeaderTop + iLeaderHeight/2 + fSecondLineOffsetY), self.COLOR_CITY_GREEN )
+							screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected + fSecondLineOffsetX), int(fYSelected + fSecondLineOffsetY), int(self.X_LEADER_CIRCLE_TOP + fSecondLineOffsetX), int(fLeaderTop + iLeaderHeight/2 + fSecondLineOffsetY), SASVisuals.Color.CITY_GREEN )
 							bJustPeace = False
 						if (gc.getTeam(player.getTeam()).isDefensivePact(gc.getPlayer(iSelectedLeader).getTeam())):
 							szName = self.getNextLineName()
-							screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), int(self.X_LEADER_CIRCLE_TOP), int(fLeaderTop + iLeaderHeight/2), self.COLOR_BLUE )
+							screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), int(self.X_LEADER_CIRCLE_TOP), int(fLeaderTop + iLeaderHeight/2), SASVisuals.Color.BLUE )
 							bJustPeace = False
 						if (bJustPeace):
 							szName = self.getNextLineName()
-							screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), int(self.X_LEADER_CIRCLE_TOP), int(fLeaderTop + iLeaderHeight/2), self.COLOR_WHITE )
+							screen.addLineGFC(self.BACKGROUND_ID, szName, int(fXSelected), int(fYSelected), int(self.X_LEADER_CIRCLE_TOP), int(fLeaderTop + iLeaderHeight/2), SASVisuals.Color.WHITE )
 
 	def getNextWidgetName(self):
 		szName = self.WIDGET_ID + str(self.nWidgetCount * NUM_FOREIGN_SCREENS + self.iScreen)
@@ -1293,9 +1269,9 @@ class CvForeignAdvisor:
 				if (nPlayerReligion != -1):
 
 					if (objLoopPlayer.hasHolyCity (nPlayerReligion)):
-						szPlayerReligion = u"%c" %(objReligion.getHolyCityChar())
+						szPlayerReligion = SASVisuals.Religion.holyCityChar(nPlayerReligion)
 					elif objReligion:
-						szPlayerReligion = u"%c" %(objReligion.getChar())
+						szPlayerReligion = SASVisuals.Religion.char(nPlayerReligion)
 
 				screen.attachTextGFC(infoPanelName, "", labelText(szPlayerReligion), FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 				# advc.004: BULL widget help enabled
@@ -1433,7 +1409,7 @@ class CvForeignAdvisor:
 			# Attitude
 			itemName = self.getNextWidgetName()
 			if (not bIsActivePlayer):
-				szAttStr = sasFontTagLabel + objAttitude.getText(True, True, False, False) + SAS_FONT_TAG_CLOSE
+				szAttStr = SASTextScale.sasFontTagLabel + objAttitude.getText(True, True, False, False) + SASTextScale.SAS_FONT_TAG_CLOSE
 			else:
 				szAttStr = ""
 			# advc.004: BULL widget help enabled
@@ -1449,9 +1425,9 @@ class CvForeignAdvisor:
 				objReligion = gc.getReligionInfo (nReligion)
 
 				if (objLoopPlayer.hasHolyCity (nReligion)):
-					szPlayerReligion = u"%c" %(objReligion.getHolyCityChar())
+					szPlayerReligion = SASVisuals.Religion.holyCityChar(nReligion)
 				elif objReligion:
-					szPlayerReligion = u"%c" %(objReligion.getChar())
+					szPlayerReligion = SASVisuals.Religion.char(nReligion)
 
 				if (not bIsActivePlayer):
 					iDiploModifier = 0
@@ -1465,7 +1441,7 @@ class CvForeignAdvisor:
 						else:
 							szColor = "COLOR_RED"
 						szPlayerReligion = localText.changeTextColor(szPlayerReligion + " [%+d]" % (iDiploModifier), getInfoTypeOrFail(szColor))
-				szPlayerReligion = sasFontTagLabel + szPlayerReligion + SAS_FONT_TAG_CLOSE
+				szPlayerReligion = SASTextScale.sasFontTagLabel + szPlayerReligion + SASTextScale.SAS_FONT_TAG_CLOSE
 			else:
 				szPlayerReligion = ""
 			# advc.004: BULL widget help enabled
@@ -1480,7 +1456,7 @@ class CvForeignAdvisor:
 				# advc.001: Commented out (cf. TradeUtil.py)
 				#if TradeUtil.isFractionalTrade():
 				#	iTradeCommerce //= 100
-				szTradeYield = u"%d %c" % (iTradeCommerce, gc.getYieldInfo(YieldTypes.YIELD_COMMERCE).getChar())
+				szTradeYield = u"%d %s" % (iTradeCommerce, SASVisuals.Yield.COMMERCE_CHAR)
 				szTradeRoutes = u"%d" % (iTradeRoutes)
 			else:
 				szTradeYield = u"-"
@@ -1538,7 +1514,7 @@ class CvForeignAdvisor:
 								szColor = "COLOR_GREEN"
 							else:
 								szColor = "COLOR_RED"
-							szDiplo = sasFontTagLabel + localText.changeTextColor(" [%+d]" % (iDiploModifier), getInfoTypeOrFail(szColor)) + SAS_FONT_TAG_CLOSE
+							szDiplo = SASTextScale.sasFontTagLabel + localText.changeTextColor(" [%+d]" % (iDiploModifier), getInfoTypeOrFail(szColor)) + SASTextScale.SAS_FONT_TAG_CLOSE
 						else:
 							szDiplo = ""
 						itemName = self.getNextWidgetName()
@@ -1647,7 +1623,7 @@ class CvForeignAdvisor:
 			# <!-- custom: hoist for performance optimization quite similarly to how gemini 3 pro proposed in a related solution -->
 			currentPlayer = gc.getPlayer(iLoopPlayer)
 			szName = self.getNextWidgetName()
-			screen.addCheckBoxGFCAt(panelName, szName, gc.getLeaderHeadInfo(currentPlayer.getLeaderType()).getButton(), self.SAS_ART_BUTTON_HILITE_SQUARE, self.X_GLANCE_OFFSET + (self.X_Spread * nCount), self.Y_GLANCE_OFFSET, self.GLANCE_BUTTON_SIZE, self.GLANCE_BUTTON_SIZE, WidgetTypes.WIDGET_LEADERHEAD, iLoopPlayer, self.iActiveLeader, ButtonStyles.BUTTON_STYLE_LABEL, False)
+			screen.addCheckBoxGFCAt(panelName, szName, gc.getLeaderHeadInfo(currentPlayer.getLeaderType()).getButton(), SASVisuals.InterfaceArt.BUTTON_HILITE_SQUARE, self.X_GLANCE_OFFSET + (self.X_Spread * nCount), self.Y_GLANCE_OFFSET, self.GLANCE_BUTTON_SIZE, self.GLANCE_BUTTON_SIZE, WidgetTypes.WIDGET_LEADERHEAD, iLoopPlayer, self.iActiveLeader, ButtonStyles.BUTTON_STYLE_LABEL, False)
 			if (self.iSelectedLeader == iLoopPlayer):
 				screen.setState(szName, True)
 			else:
@@ -1787,7 +1763,7 @@ class CvForeignAdvisor:
 								iTrailingIconCount = len(szTail)
 								if bHasPlainTrailingIcons and iTrailingIconCount >= 2:
 									szHead = szText[:iLastSpace]
-									iLabelFont = getSASUIFontLabel()
+									iLabelFont = SASTextScale.getSASUIFontLabel()
 									if szHead:
 										szDisplayText = u"<font=%d>%s</font> <font=2>%s</font>" % (iLabelFont, szHead, szTail)
 									else:
@@ -1876,7 +1852,7 @@ class CvForeignAdvisor:
 		# was surplusCol
 		self.resIconGrid.setHeader( self.willImportCol, labelText(self.TEXT_WILL_IMPORT) )
 		# Moved up
-		self.resIconGrid.setHeader( self.canPayCol, labelText(u"%c" % gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar()) )
+		self.resIconGrid.setHeader( self.canPayCol, labelText(u"%s" % SASVisuals.Commerce.GOLD_CHAR) )
 		self.resIconGrid.setTextColWidth(self.canPayCol, self.RES_GOLD_COL_WIDTH)
 		# Replaced with noNeedCol below
 		#self.resIconGrid.setHeader( self.usedCol, localText.getText("TXT_KEY_FOREIGN_ADVISOR_WILL_NOT_IMPORT", ()) )
@@ -1893,7 +1869,7 @@ class CvForeignAdvisor:
 			self.resIconGrid.setHeader( self.activeExportCol, labelText(self.TEXT_IMPORTING) )
 			# advc.073: was TXT_KEY_FOREIGN_ADVISOR_IMPORT
 			self.resIconGrid.setHeader( self.activeImportCol, labelText(self.TEXT_EXPORTING) )
-			self.resIconGrid.setHeader( self.payingCol, labelText(u"%c" % gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar()) )
+			self.resIconGrid.setHeader( self.payingCol, labelText(u"%s" % SASVisuals.Commerce.GOLD_CHAR) )
 			self.resIconGrid.setTextColWidth(self.payingCol, self.RES_GOLD_COL_WIDTH)
 
 		if (self.RES_SHOW_IMPORT_EXPORT_HEADER):
@@ -1993,7 +1969,7 @@ class CvForeignAdvisor:
 				# Can't do the same for the amounts, so don't do this after all:
 				#if iIndex > maxIconsPerRow:
 				#	circleY += self.RESOURCE_ICON_SIZE
-				screen.addDDSGFC( self.availableTable + "Circle" + str(iIndex), self.SAS_ART_WHITE_CIRCLE_40, self.SURPLUS_CIRCLE_X_START + iIndex * self.RESOURCE_ICON_SIZE, circleY, 16, 16, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+				screen.addDDSGFC( self.availableTable + "Circle" + str(iIndex), SASVisuals.InterfaceArt.WHITE_CIRCLE_40, self.SURPLUS_CIRCLE_X_START + iIndex * self.RESOURCE_ICON_SIZE, circleY, 16, 16, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 		# add the table showing the amounts
 		screen.addTableControlGFC( self.availableTable, len(listSurplus), self.SURPLUS_TABLE_X, self.SURPLUS_TABLE_Y, len(listSurplus) * self.RESOURCE_ICON_SIZE, self.TABLE_CONTROL_HEIGHT, False, False, 16, 16, TableStyles.TABLE_STYLE_EMPTY )
@@ -2010,9 +1986,9 @@ class CvForeignAdvisor:
 				amount = amount - 1
 
 			if (self.RES_SHOW_SURPLUS_AMOUNT_ON_TOP):
-				amountStr = sasFontTagLabel + localText.changeTextColor(str(amount), self.COLOR_YELLOW) + SAS_FONT_TAG_CLOSE
+				amountStr = SASTextScale.sasFontTagLabel + localText.changeTextColor(str(amount), SASVisuals.Color.YELLOW) + SASTextScale.SAS_FONT_TAG_CLOSE
 			else:
-				amountStr = sasFontTagLabel + str(amount) + SAS_FONT_TAG_CLOSE
+				amountStr = SASTextScale.sasFontTagLabel + str(amount) + SASTextScale.SAS_FONT_TAG_CLOSE
 			screen.setTableText( self.availableTable, iIndex, 0, amountStr, "", WidgetTypes.WIDGET_GENERAL, -1, -1, 0 )
 		# <advc.073>
 		for iIndex in range(len(listNonSurplus)):
@@ -2307,7 +2283,7 @@ class CvForeignAdvisor:
 		# advc.004g: was TXT_KEY_FOREIGN_ADVISOR_CANT_TRADE
 		self.techIconGrid.setHeader( iTechColCantYou, labelText(self.TEXT_CANT_RECEIVE) )
 		self.techIconGrid.setHeader( iTechColResearch, labelText(self.TEXT_CAN_RESEARCH) )
-		self.techIconGrid.setHeader( iTechColGold, labelText(u"%c" % gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar()) )
+		self.techIconGrid.setHeader( iTechColGold, labelText(u"%s" % SASVisuals.Commerce.GOLD_CHAR) )
 		self.techIconGrid.setTextColWidth( iTechColGold, self.TECH_GOLD_COL_WIDTH )
 
 		self.techIconGrid.setHeader( iTechColWill, labelText(self.TEXT_FOR_TRADE) )
@@ -2366,7 +2342,7 @@ class CvForeignAdvisor:
 		iconGrid.setTextColWidth(iCityColWontCede, iCityColWidth)
 
 		iconGrid.setHeader(iCityColWants, labelText(self.TEXT_WANTS))
-		eDenialColor = self.COLOR_WHITE
+		eDenialColor = SASVisuals.Color.WHITE
 		iconGrid.setHeader(iCityColRejects, labelText(localText.getColorText("TXT_KEY_FOREIGN_ADVISOR_REJECTS", (), eDenialColor)))
 		iconGrid.setHeader(iCityColWillCede, labelText(self.TEXT_WILL_CEDE))
 		iconGrid.setHeader(iCityColWontCede, labelText(localText.getColorText("TXT_KEY_FOREIGN_ADVISOR_WONT_CEDE", (), eDenialColor)))
@@ -2394,7 +2370,6 @@ class CvForeignAdvisor:
 
 	def drawCityDeals(self, bInitial): # Based on drawTechDeals
 		screen = self.getScreen()
-		self.eDenialColor = self.COLOR_LIGHT_GREY
 
 		iconGrid, PANEL_X, PANEL_Y = self.initCityTable()
 		PANEL_WIDTH = self.W_SCREEN - 2 * PANEL_X
@@ -2513,14 +2488,15 @@ class CvForeignAdvisor:
 		#if not bShort:
 			#r += " [" + str(city.getPopulation()) + "]"
 		if bGrayOut:
-			r = localText.changeTextColor(r, self.eDenialColor)
+			r = localText.changeTextColor(r, SASVisuals.Color.LIGHT_GREY)
+		# <!-- custom: Keep this inherited disabled code consistent with the shared visual-resource API; retain its original rationale and disabled status.
 		# With a citizen icon, the population counts look even worse.
 		#if not bShort:
-		#	r += " " + (u"%c" % CyGame().getSymbolID(FontSymbols.CITIZEN_CHAR))
-			# <!-- custom: use cached icon value for performance (claude code sonnet 4.5) -->
+		#	r += " " + (u"%s" % SASVisuals.Font.char(FontSymbols.CITIZEN_CHAR))
 		#	r += str(city.getPopulation())
+		# (Claude code Sonnet 4.5 + GPT-6.1-Sol) -->
 		if bLiberate:
-			r += " " + (u"%c" % self.iOccupationIcon)
+			r += " " + (u"%s" % SASVisuals.Font.OCCUPATION_CHAR)
 		return r
 	# </advc.ctr>
 
@@ -2668,24 +2644,24 @@ class CvForeignAdvisor:
 		if (self.ESP_iTargetPlayer != -1):
 
 			self.ESP_szCitiesTitleText = "CitiesTitle"
-			szText = sasFontTagTitle + self.TEXT_CONCEPT_CITIES + SAS_FONT_TAG_CLOSE
+			szText = SASTextScale.sasFontTagTitle + self.TEXT_CONCEPT_CITIES + SASTextScale.SAS_FONT_TAG_CLOSE
 			screen.setLabel(self.ESP_szCitiesTitleText, "Background", szText, CvUtil.FONT_LEFT_JUSTIFY, self.ESP_X_CITY_LIST, self.ESP_Y_CITY_LIST - 40, self.ESP_Z_CONTROLS, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 			self.ESP_szEffectsTitleText = "EffectsTitle"
-			szText = sasFontTagTitle + self.TEXT_ESPIONAGE_PASSIVE_EFFECTS + SAS_FONT_TAG_CLOSE
+			szText = SASTextScale.sasFontTagTitle + self.TEXT_ESPIONAGE_PASSIVE_EFFECTS + SASTextScale.SAS_FONT_TAG_CLOSE
 			screen.setLabel(self.ESP_szEffectsTitleText, "Background", szText, CvUtil.FONT_LEFT_JUSTIFY, self.ESP_X_EFFECTS_LIST, self.ESP_Y_EFFECTS_LIST - 40, self.ESP_Z_CONTROLS, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 			self.ESP_szMissionsTitleText = "MissionsTitle"
-			szText = sasFontTagTitle + self.TEXT_ESPIONAGE_MISSIONS + SAS_FONT_TAG_CLOSE
+			szText = SASTextScale.sasFontTagTitle + self.TEXT_ESPIONAGE_MISSIONS + SASTextScale.SAS_FONT_TAG_CLOSE
 			screen.setLabel(self.ESP_szMissionsTitleText, "Background", szText, CvUtil.FONT_LEFT_JUSTIFY, self.ESP_X_MISSIONS_LIST, self.ESP_Y_MISSIONS_LIST - 40, self.ESP_Z_CONTROLS, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 			# advc.120d: was TXT_KEY_ESPIONAGE_SCREEN_COST
 			self.ESP_szEffectsCostTitleText = "EffectsCostTitle"
-			szText = sasFontTagTitle + self.TEXT_MISC_THRESHOLD + SAS_FONT_TAG_CLOSE
+			szText = SASTextScale.sasFontTagTitle + self.TEXT_MISC_THRESHOLD + SASTextScale.SAS_FONT_TAG_CLOSE
 			# advc.120d: Subtract 40 from horizontal position
 			screen.setLabel(self.ESP_szEffectsCostTitleText, "Background", szText, CvUtil.FONT_LEFT_JUSTIFY, self.ESP_X_EFFECTS_COSTS_LIST-40, self.ESP_Y_EFFECTS_COSTS_LIST - 40, self.ESP_Z_CONTROLS, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 			self.ESP_szMissionsCostTitleText = "MissionsCostTitle"
-			szText = sasFontTagTitle + self.TEXT_ESPIONAGE_COST + SAS_FONT_TAG_CLOSE
+			szText = SASTextScale.sasFontTagTitle + self.TEXT_ESPIONAGE_COST + SASTextScale.SAS_FONT_TAG_CLOSE
 			screen.setLabel(self.ESP_szMissionsCostTitleText, "Background", szText, CvUtil.FONT_LEFT_JUSTIFY, self.ESP_X_MISSIONS_COSTS_LIST, self.ESP_Y_MISSIONS_COSTS_LIST - 40, self.ESP_Z_CONTROLS, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 			############################
@@ -2715,9 +2691,9 @@ class CvForeignAdvisor:
 				self.ESP_iLeaderImagesID = 456
 				szName = "LeaderImage%d" %(iPlayerID)
 				if bCompactLeaderRows:
-					screen.addCheckBoxGFCAt(attach, szName, gc.getLeaderHeadInfo(gc.getPlayer(iPlayerID).getLeaderType()).getButton(), self.SAS_ART_BUTTON_HILITE_SQUARE, self.ESP_COMPACT_ROW_X_ICON, 2, self.ESP_COMPACT_LEADER_ICON_SIZE, self.ESP_COMPACT_LEADER_ICON_SIZE, WidgetTypes.WIDGET_GENERAL, self.ESP_iLeaderImagesID, iPlayerID, ButtonStyles.BUTTON_STYLE_LABEL, False)
+					screen.addCheckBoxGFCAt(attach, szName, gc.getLeaderHeadInfo(gc.getPlayer(iPlayerID).getLeaderType()).getButton(), SASVisuals.InterfaceArt.BUTTON_HILITE_SQUARE, self.ESP_COMPACT_ROW_X_ICON, 2, self.ESP_COMPACT_LEADER_ICON_SIZE, self.ESP_COMPACT_LEADER_ICON_SIZE, WidgetTypes.WIDGET_GENERAL, self.ESP_iLeaderImagesID, iPlayerID, ButtonStyles.BUTTON_STYLE_LABEL, False)
 				else:
-					screen.addCheckBoxGFCAt(attach, szName, gc.getLeaderHeadInfo(gc.getPlayer(iPlayerID).getLeaderType()).getButton(), self.SAS_ART_BUTTON_HILITE_SQUARE, self.ESP_ROW_X_LEADER_ICON, self.ESP_ROW_Y_LEADER_ICON, self.ESP_ROW_LEADER_ICON_SIZE, self.ESP_ROW_LEADER_ICON_SIZE, WidgetTypes.WIDGET_GENERAL, self.ESP_iLeaderImagesID, iPlayerID, ButtonStyles.BUTTON_STYLE_LABEL, False)
+					screen.addCheckBoxGFCAt(attach, szName, gc.getLeaderHeadInfo(gc.getPlayer(iPlayerID).getLeaderType()).getButton(), SASVisuals.InterfaceArt.BUTTON_HILITE_SQUARE, self.ESP_ROW_X_LEADER_ICON, self.ESP_ROW_Y_LEADER_ICON, self.ESP_ROW_LEADER_ICON_SIZE, self.ESP_ROW_LEADER_ICON_SIZE, WidgetTypes.WIDGET_GENERAL, self.ESP_iLeaderImagesID, iPlayerID, ButtonStyles.BUTTON_STYLE_LABEL, False)
 				if (self.ESP_iTargetPlayer == iPlayerID):
 					screen.setState(szName, true)
 
@@ -2727,14 +2703,14 @@ class CvForeignAdvisor:
 
 				szName = "NameText%d" %(iPlayerID)
 				szTempBuffer = u"<color=%d,%d,%d,%d>%s (%s)</color>" %(pTargetPlayer.getPlayerTextColorR(), pTargetPlayer.getPlayerTextColorG(), pTargetPlayer.getPlayerTextColorB(), pTargetPlayer.getPlayerTextColorA(), pTargetPlayer.getName(), self.getEspionageMultiplierAgainstTarget(iPlayerID, bCompactLeaderRows))
-				szText = sasFontTagLabel + szTempBuffer + SAS_FONT_TAG_CLOSE
+				szText = SASTextScale.sasFontTagLabel + szTempBuffer + SASTextScale.SAS_FONT_TAG_CLOSE
 				if bCompactLeaderRows:
 					screen.setLabelAt( szName, attach, szText, CvUtil.FONT_LEFT_JUSTIFY, self.ESP_COMPACT_ROW_X_NAME, self.ESP_COMPACT_ROW_Y_TEXT, self.ESP_Z_CONTROLS, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 				else:
 					screen.setLabelAt( szName, attach, szText, 0, iX + self.ESP_ROW_X_NAME, iY + self.ESP_ROW_Y_TOP, self.ESP_Z_CONTROLS, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 				szName = "PointsText%d" %(iPlayerID)
-				szText = sasFontTagLabel + localText.getText("TXT_KEY_ESPIONAGE_NUM_EPS", (pActiveTeam.getEspionagePointsAgainstTeam(iTargetTeam), )) + SAS_FONT_TAG_CLOSE
+				szText = SASTextScale.sasFontTagLabel + localText.getText("TXT_KEY_ESPIONAGE_NUM_EPS", (pActiveTeam.getEspionagePointsAgainstTeam(iTargetTeam), )) + SASTextScale.SAS_FONT_TAG_CLOSE
 				if bCompactLeaderRows:
 					screen.setLabelAt( szName, attach, szText, CvUtil.FONT_RIGHT_JUSTIFY, iCompactXPoints, self.ESP_COMPACT_ROW_Y_TEXT, self.ESP_Z_CONTROLS, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 				else:
@@ -2742,10 +2718,10 @@ class CvForeignAdvisor:
 
 				szName = "SpendingText%d" %(iPlayerID)
 				if bCompactLeaderRows:
-					szText = sasFontTagLabel + (u"%d" %(pActivePlayer.getEspionageSpendingWeightAgainstTeam(iTargetTeam))) + SAS_FONT_TAG_CLOSE
+					szText = SASTextScale.sasFontTagLabel + (u"%d" %(pActivePlayer.getEspionageSpendingWeightAgainstTeam(iTargetTeam))) + SASTextScale.SAS_FONT_TAG_CLOSE
 					screen.setLabelAt( szName, attach, szText, CvUtil.FONT_RIGHT_JUSTIFY, iCompactXWeight, self.ESP_COMPACT_ROW_Y_TEXT, self.ESP_Z_CONTROLS, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 				else:
-					szText = sasFontTagLabel + (u"%s: %d" %(self.TEXT_ESPIONAGE_WEIGHT, pActivePlayer.getEspionageSpendingWeightAgainstTeam(iTargetTeam))) + SAS_FONT_TAG_CLOSE
+					szText = SASTextScale.sasFontTagLabel + (u"%s: %d" %(self.TEXT_ESPIONAGE_WEIGHT, pActivePlayer.getEspionageSpendingWeightAgainstTeam(iTargetTeam))) + SASTextScale.SAS_FONT_TAG_CLOSE
 					screen.setLabelAt( szName, attach, szText, 0, self.ESP_ROW_X_WEIGHT, iY + self.ESP_ROW_Y_WEIGHT, self.ESP_Z_CONTROLS, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 				szName = "AmountText%d" %(iPlayerID)
@@ -2761,15 +2737,15 @@ class CvForeignAdvisor:
 				szName = "IncreaseButton%d" %(iPlayerID)
 				if bCompactLeaderRows:
 					iSize = self.ESP_COMPACT_BUTTON_SIZE
-					screen.setImageButtonAt( szName, attach, self.SAS_ART_BUTTON_PLUS, self.ESP_COMPACT_ROW_X_BUTTON_PLUS, self.ESP_COMPACT_ROW_Y_BUTTON, iSize, iSize, WidgetTypes.WIDGET_GENERAL, self.ESP_iIncreaseButtonID, iPlayerID )
+					screen.setImageButtonAt( szName, attach, SASVisuals.InterfaceArt.INTERFACE_BUTTONS_PLUS, self.ESP_COMPACT_ROW_X_BUTTON_PLUS, self.ESP_COMPACT_ROW_Y_BUTTON, iSize, iSize, WidgetTypes.WIDGET_GENERAL, self.ESP_iIncreaseButtonID, iPlayerID )
 				else:
-					screen.setImageButtonAt( szName, attach, self.SAS_ART_BUTTON_PLUS, self.ESP_ROW_X_BUTTON_PLUS, iY + self.ESP_ROW_Y_BUTTON, iSize, iSize, WidgetTypes.WIDGET_GENERAL, self.ESP_iIncreaseButtonID, iPlayerID )
+					screen.setImageButtonAt( szName, attach, SASVisuals.InterfaceArt.INTERFACE_BUTTONS_PLUS, self.ESP_ROW_X_BUTTON_PLUS, iY + self.ESP_ROW_Y_BUTTON, iSize, iSize, WidgetTypes.WIDGET_GENERAL, self.ESP_iIncreaseButtonID, iPlayerID )
 				self.ESP_iDecreaseButtonID = 556
 				szName = "DecreaseButton%d" %(iPlayerID)
 				if bCompactLeaderRows:
-					screen.setImageButtonAt( szName, attach, self.SAS_ART_BUTTON_MINUS, self.ESP_COMPACT_ROW_X_BUTTON_MINUS, self.ESP_COMPACT_ROW_Y_BUTTON, iSize, iSize, WidgetTypes.WIDGET_GENERAL, self.ESP_iDecreaseButtonID, iPlayerID )
+					screen.setImageButtonAt( szName, attach, SASVisuals.InterfaceArt.INTERFACE_BUTTONS_MINUS, self.ESP_COMPACT_ROW_X_BUTTON_MINUS, self.ESP_COMPACT_ROW_Y_BUTTON, iSize, iSize, WidgetTypes.WIDGET_GENERAL, self.ESP_iDecreaseButtonID, iPlayerID )
 				else:
-					screen.setImageButtonAt( szName, attach, self.SAS_ART_BUTTON_MINUS, self.ESP_ROW_X_BUTTON_MINUS, iY + self.ESP_ROW_Y_BUTTON, iSize, iSize, WidgetTypes.WIDGET_GENERAL, self.ESP_iDecreaseButtonID, iPlayerID )
+					screen.setImageButtonAt( szName, attach, SASVisuals.InterfaceArt.INTERFACE_BUTTONS_MINUS, self.ESP_ROW_X_BUTTON_MINUS, iY + self.ESP_ROW_Y_BUTTON, iSize, iSize, WidgetTypes.WIDGET_GENERAL, self.ESP_iDecreaseButtonID, iPlayerID )
 
 			for iPlayerID in self.ESP_aiUnknownPlayers:
 				attach = "EmptyLeaderContainer%d" % (iPlayerID)
@@ -2806,8 +2782,8 @@ class CvForeignAdvisor:
 		# <!-- custom: centralize the repeated EPs-per-turn formatting; compact rows still use the normal translated text because the widened left pane has enough room and the full label is clearer. (GPT-5.5-Thinking + GPT-5.5?) -->
 		szPerTurn = localText.getText("TXT_KEY_ESPIONAGE_NUM_EPS_PER_TURN", (iEspionagePerTurn, ))
 		if iEspionagePerTurn > 0:
-			return sasFontTagLabel + (u"<color=0,255,0,0>%s</color>" %(szPerTurn)) + SAS_FONT_TAG_CLOSE
-		return sasFontTagLabel + (u"<color=192,0,0,0>%s</color>" %(szPerTurn)) + SAS_FONT_TAG_CLOSE
+			return SASTextScale.sasFontTagLabel + (u"<color=0,255,0,0>%s</color>" %(szPerTurn)) + SASTextScale.SAS_FONT_TAG_CLOSE
+		return SASTextScale.sasFontTagLabel + (u"<color=192,0,0,0>%s</color>" %(szPerTurn)) + SASTextScale.SAS_FONT_TAG_CLOSE
 
 	def useCompactEspionageRows(self):
 		if self.SAS_CV_FOREIGN_ADVISOR_ESPIONAGE_COMPACT_ROWS_THRESHOLD is None:
@@ -2857,10 +2833,10 @@ class CvForeignAdvisor:
 				szName = "SpendingText%d" %(iPlayerID)
 				screen.deleteWidget(szName)
 				if bCompactLeaderRows:
-					szText = sasFontTagLabel + u"%d" %(pActivePlayer.getEspionageSpendingWeightAgainstTeam(iTargetTeam)) + SAS_FONT_TAG_CLOSE
+					szText = SASTextScale.sasFontTagLabel + u"%d" %(pActivePlayer.getEspionageSpendingWeightAgainstTeam(iTargetTeam)) + SASTextScale.SAS_FONT_TAG_CLOSE
 					screen.setLabelAt( szName, attach, szText, CvUtil.FONT_RIGHT_JUSTIFY, iCompactXWeight, self.ESP_COMPACT_ROW_Y_TEXT, self.ESP_Z_CONTROLS, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 				else:
-					szText = sasFontTagLabel + self.TEXT_ESPIONAGE_WEIGHT + ": %d" %(pActivePlayer.getEspionageSpendingWeightAgainstTeam(iTargetTeam)) + SAS_FONT_TAG_CLOSE
+					szText = SASTextScale.sasFontTagLabel + self.TEXT_ESPIONAGE_WEIGHT + ": %d" %(pActivePlayer.getEspionageSpendingWeightAgainstTeam(iTargetTeam)) + SASTextScale.SAS_FONT_TAG_CLOSE
 					screen.setLabelAt( szName, attach, szText, 0, self.ESP_ROW_X_WEIGHT, iY + self.ESP_ROW_Y_WEIGHT, self.ESP_Z_CONTROLS, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 				szName = "AmountText%d" %(iPlayerID)
@@ -2974,7 +2950,7 @@ class CvForeignAdvisor:
 								# <advc.120d>
 								costStr = str(iCost)
 								if pActivePlayer.canDoEspionageMission(iMissionLoop, self.ESP_iTargetPlayer, pPlot, 0):
-									costStr = localText.changeTextColor(costStr, self.COLOR_GREEN)
+									costStr = localText.changeTextColor(costStr, SASVisuals.Color.GREEN)
 								# </advc.120d>
 								iRow = screen.appendTableRow(szEffectsTable)
 								setTableTextLabel(screen, szEffectsTable, 0, iRow, szText, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
@@ -3018,7 +2994,7 @@ class CvForeignAdvisor:
 							if iCost > 0:
 								costStr = str(iCost)
 								if pActiveTeam.getEspionagePointsAgainstTeam(iTargetTeam) >= iCost:
-									costStr = localText.changeTextColor(costStr, self.COLOR_GREEN)
+									costStr = localText.changeTextColor(costStr, SASVisuals.Color.GREEN)
 							# Secret costs
 							if pMission.getBuyTechCostFactor() > 0 and not pActivePlayer.canSeeTech(self.ESP_iTargetPlayer):
 								# This can't happen so long as Alphabet enables both Spies and tech trading
@@ -3173,23 +3149,23 @@ class CvForeignAdvisor:
 		iCommercePercentChangeIncrements = gc.getDefineINT("COMMERCE_PERCENT_CHANGE_INCREMENTS")
 		screen.setButtonGFC("plusButton", u"", "", x + self.ESP_TEXT_MARGIN, y + self.ESP_TEXT_MARGIN, 20, 20, WidgetTypes.WIDGET_CHANGE_PERCENT, eCommerce, iCommercePercentChangeIncrements, ButtonStyles.BUTTON_STYLE_CITY_PLUS )
 		screen.setButtonGFC("minusButton", u"", "", x + self.ESP_TEXT_MARGIN + 24, y + self.ESP_TEXT_MARGIN, 20, 20, WidgetTypes.WIDGET_CHANGE_PERCENT, eCommerce, -iCommercePercentChangeIncrements, ButtonStyles.BUTTON_STYLE_CITY_MINUS )
-		szText = sasFontTagLabel + gc.getCommerceInfo(eCommerce).getDescription() + u" (" + unicode(pActivePlayer.getCommercePercent(eCommerce)) + u"%)" + SAS_FONT_TAG_CLOSE
+		szText = SASTextScale.sasFontTagLabel + gc.getCommerceInfo(eCommerce).getDescription() + u" (" + unicode(pActivePlayer.getCommercePercent(eCommerce)) + u"%)" + SASTextScale.SAS_FONT_TAG_CLOSE
 		screen.setLabel("espRateLabel", "Background",  szText, CvUtil.FONT_LEFT_JUSTIFY, x + self.ESP_TEXT_MARGIN + 50, y + self.ESP_TEXT_MARGIN, self.ESP_Z_CONTROLS + self.ESP_DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
-		szRate = sasFontTagLabel + unicode(pActivePlayer.getCommerceRate(CommerceTypes(eCommerce))) + SAS_FONT_TAG_CLOSE
+		szRate = SASTextScale.sasFontTagLabel + unicode(pActivePlayer.getCommerceRate(CommerceTypes(eCommerce))) + SASTextScale.SAS_FONT_TAG_CLOSE
 		screen.setLabel("espRate", "Background", szRate, CvUtil.FONT_RIGHT_JUSTIFY, x + self.ESP_PANE_WIDTH - self.ESP_TEXT_MARGIN, y + self.ESP_TEXT_MARGIN, self.ESP_Z_CONTROLS + self.ESP_DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 		# Update labels
 		screen.deleteWidget("espRateLabel")
 		screen.deleteWidget("espRate")
 		# Same code as above, except for the buttons
 		eCommerce = CommerceTypes.COMMERCE_ESPIONAGE
-		szText = sasFontTagLabel + gc.getCommerceInfo(eCommerce).getDescription() + u" (" + unicode(pActivePlayer.getCommercePercent(eCommerce)) + u"%)" + SAS_FONT_TAG_CLOSE
+		szText = SASTextScale.sasFontTagLabel + gc.getCommerceInfo(eCommerce).getDescription() + u" (" + unicode(pActivePlayer.getCommercePercent(eCommerce)) + u"%)" + SASTextScale.SAS_FONT_TAG_CLOSE
 		screen.setLabel("espRateLabel", "Background",  szText, CvUtil.FONT_LEFT_JUSTIFY, x + self.ESP_TEXT_MARGIN + 50, y + self.ESP_TEXT_MARGIN, self.ESP_Z_CONTROLS + self.ESP_DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
-		szRate = sasFontTagLabel + (u"<color=0,255,0,0>%s</color>" %(localText.getText("TXT_KEY_ESPIONAGE_NUM_EPS_PER_TURN", (pActivePlayer.getCommerceRate(CommerceTypes(eCommerce)), )))) + SAS_FONT_TAG_CLOSE
+		szRate = SASTextScale.sasFontTagLabel + (u"<color=0,255,0,0>%s</color>" %(localText.getText("TXT_KEY_ESPIONAGE_NUM_EPS_PER_TURN", (pActivePlayer.getCommerceRate(CommerceTypes(eCommerce)), )))) + SASTextScale.SAS_FONT_TAG_CLOSE
 		screen.setLabel("espRate", "Background", szRate, CvUtil.FONT_RIGHT_JUSTIFY, x + self.ESP_PANE_WIDTH + self.ESP_TEXT_MARGIN, y + self.ESP_TEXT_MARGIN, self.ESP_Z_CONTROLS + self.ESP_DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 	# </advc.120c>
 
 def smallText(text):
-	return sasFontTagLabel + text + SAS_FONT_TAG_CLOSE
+	return SASTextScale.sasFontTagLabel + text + SASTextScale.SAS_FONT_TAG_CLOSE
 
 def smallSymbol(symbol):
-	return smallText(FontUtil.getChar(symbol))
+	return smallText(SASVisuals.DynamicFont.getChar(symbol))

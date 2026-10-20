@@ -1,6 +1,12 @@
 ## Sid Meier's Civilization 4
 ## Copyright Firaxis Games 2005
+
+# AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
+# (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
+
 from CvPythonExtensions import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import CvUtil
 import ScreenInput
 import CvScreenEnums
@@ -11,7 +17,7 @@ ArtFileMgr = CyArtFileMgr()
 localText = CyTranslator()
 
 class CvPediaBonus:
-	"Civilopedia Screen for Bonus Resources"
+	"Civilopedia Screen for SASVisuals.Bonus Resources"
 
 	def __init__(self, main):
 		self.iBonus = -1
@@ -141,7 +147,7 @@ class CvPediaBonus:
 					sign = ""
 
 				szYield = (u"%s: %s%i " % (gc.getYieldInfo(k).getDescription(), sign, iYieldChange))
-				screen.appendListBoxString(panelName, u"<font=4>" + szYield.upper() + (u"%c" % gc.getYieldInfo(k).getChar()) + u"</font>", WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
+				screen.appendListBoxString(panelName, u"<font=4>" + szYield.upper() + SASVisuals.Yield.char(k) + u"</font>", WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
 
 	def placeYield(self):
 
@@ -172,7 +178,7 @@ class CvPediaBonus:
 					else:
 						sign = ""
 
-					szYield += (u"%s%i%c" % (sign, iYieldChange, gc.getYieldInfo(k).getChar()))
+					szYield += (u"%s%i%s" % (sign, iYieldChange, SASVisuals.Yield.char(k)))
 			if (bEffect):
 				childPanelName = self.top.getNextWidgetName()
 				screen.attachPanel(panelName, childPanelName, "", "", False, False, PanelStyles.PANEL_STYLE_EMPTY)

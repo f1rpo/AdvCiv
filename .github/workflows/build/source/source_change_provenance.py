@@ -308,6 +308,40 @@ def comments(text: str, suffix: str) -> list[CommentBlock]:
     return []
 
 
+# <!-- custom: Appending a new marked explanation to disabled code left two comment prefixes on one line, obscuring which text was code and which was rationale.
+# Check actual comment tokens already extracted for provenance, and only newly added/rewritten blocks, so strings and unchanged inherited formatting do not become failures.
+# Recognize clear appended-prefix/same-line-block cases rather than guessing whether ordinary prose should be split; XML also forbids nested comment openers. (GPT-6.1-Sol) -->
+def cascading_comment_errors(path: str, block: CommentBlock, suffix: str) -> list[str]:
+    errors = []
+    if suffix in XML_SUFFIXES:
+        if block.raw.count("<!--") > 1:
+            errors.append("%s:%d: nested XML comment; close the existing comment and put the new explanation in a separate block" % (path, block.start))
+        return errors
+    prefix = "#" if suffix in PY_SUFFIXES else "//"
+    for offset, line in enumerate(block.raw.splitlines()):
+        payload = line.lstrip()
+        if payload.startswith(prefix):
+            payload = payload[len(prefix):]
+        appended = re.search(re.escape(prefix) + r"\s*<!-- custom:", payload)
+        # <!-- custom: Doubled prefixes alone also occur in BUG headers and whole disabled blocks; only an earlier payload makes the second prefix an appended explanation. (GPT-6.1-Sol) -->
+        appended_payload = appended and payload[:appended.start()].strip(" 	#/")
+        same_line = re.search(r"-->\s*(?:(?:#|//)\s*)?<!-- custom:", payload)
+        if appended_payload or same_line:
+            errors.append("%s:%d: cascading comment; put the appended custom explanation in a separate comment block" % (path, block.start + offset))
+    return errors
+
+
+# <!-- custom: Reject only known misspellings in the parenthesized credit before a custom block closes; names mentioned in prose and arbitrary other model names are outside this spelling check.
+# Case-insensitive matching catches the same typo regardless of capitalization, without an allowlist that would reject future models. (GPT-6.1-Sol) -->
+def credit_spelling_errors(path: str, block: CommentBlock) -> list[str]:
+    errors = []
+    for credit in re.finditer(r"\(([^()]*)\)\s*-->", block.raw):
+        for typo in re.finditer(r"\b(?:chat-gpt|catgpt)\b", credit.group(1), re.IGNORECASE):
+            line = block.start + block.raw.count("\n", 0, credit.start())
+            errors.append("%s:%d: misspelled model credit '%s'; use ChatGPT" % (path, line, typo.group(0)))
+    return errors
+
+
 def exempt_new_comment(block: CommentBlock) -> bool:
     payload = normalize_comment_text(block.text)
     if not payload:
@@ -480,8 +514,6 @@ def matching_paren(text: str, open_pos: int) -> int | None:
             if depth == 0:
                 return index
     return None
-
-
 
 
 def cpp_params_look_declarative(params: str) -> bool:
@@ -722,6 +754,9 @@ def check_change(path: str, old_text: str | None, new_text: str | None, warnings
     removed_legacy, added_legacy = unmatched_blocks(old_comments, new_comments, custom=False)
     removed_custom, added_custom = unmatched_blocks(old_comments, new_comments, custom=True)
 
+    for block in added_legacy + added_custom:
+        errors.extend(cascading_comment_errors(path, block, suffix))
+
     for block in added_legacy:
         if exempt_new_comment(block):
             continue
@@ -730,6 +765,7 @@ def check_change(path: str, old_text: str | None, new_text: str | None, warnings
             "or use '<!-- custom: ... (model credit) -->'" % (path, block.start)
         )
     for block in added_custom:
+        errors.extend(credit_spelling_errors(path, block))
         if not block.credited and warnings is not None:
             warnings.append(
                 "%s:%d: new/rewritten custom comment has no recognized model credit near its closing '-->'"

@@ -15,16 +15,17 @@
 # <!-- custom: Long_Comments_py.txt #3 -->
 
 from CvPythonExtensions import *
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import CvUtil
 import ScreenInput
 # <!-- custom: SevoScreenEnums.py was removed; import its unchanged page IDs from the SevoScreenEnums class in CvScreenEnums.py, keeping them distinct from vanilla Civilopedia pages. (GPT-6.1-Sol) -->
 from CvScreenEnums import SevoScreenEnums
 import SASTextScale
-from SASFontUtils import sasFontTagLabel
+# <!-- custom: Font-tag sizing moved from SASFontUtils into SASTextScale; visual resources are kept separately in SASVisualUtils. (ChatGPT-5.6-Sol) -->
 from SASMagicNumbers import *
 from _sevopedia_helpers import *
 # <!-- custom: import to display chars before Traits -->
-import TraitUtil
 
 # <!-- custom: AI personality cache/value computation moved to a dedicated module to keep this file lean. (ChatGPT-5.2 Thinking) -->
 import SevoPediaLeaderAIPValues as _SAS_LeaderAIPValues
@@ -74,11 +75,11 @@ class SevoPediaLeader:
 		self.attitudeButtonLabelCache[AttitudeTypes.ATTITUDE_PLEASED] = (u"pl", u"PL")
 		self.attitudeButtonLabelCache[AttitudeTypes.ATTITUDE_FRIENDLY] = (u"fr", u"FR")
 		self.attitudeSelectedEmojiPathByAttitude = {}
-		self.attitudeSelectedEmojiPathByAttitude[AttitudeTypes.ATTITUDE_FURIOUS] = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_ATTITUDE_FURIOUS").getPath()
-		self.attitudeSelectedEmojiPathByAttitude[AttitudeTypes.ATTITUDE_ANNOYED] = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_ATTITUDE_ANNOYED").getPath()
-		self.attitudeSelectedEmojiPathByAttitude[AttitudeTypes.ATTITUDE_CAUTIOUS] = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_ATTITUDE_CAUTIOUS").getPath()
-		self.attitudeSelectedEmojiPathByAttitude[AttitudeTypes.ATTITUDE_PLEASED] = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_ATTITUDE_PLEASED").getPath()
-		self.attitudeSelectedEmojiPathByAttitude[AttitudeTypes.ATTITUDE_FRIENDLY] = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_ATTITUDE_FRIENDLY").getPath()
+		self.attitudeSelectedEmojiPathByAttitude[AttitudeTypes.ATTITUDE_FURIOUS] = SASVisuals.InterfaceArt.SAS_EMOJI_ATTITUDE_FURIOUS
+		self.attitudeSelectedEmojiPathByAttitude[AttitudeTypes.ATTITUDE_ANNOYED] = SASVisuals.InterfaceArt.SAS_EMOJI_ATTITUDE_ANNOYED
+		self.attitudeSelectedEmojiPathByAttitude[AttitudeTypes.ATTITUDE_CAUTIOUS] = SASVisuals.InterfaceArt.SAS_EMOJI_ATTITUDE_CAUTIOUS
+		self.attitudeSelectedEmojiPathByAttitude[AttitudeTypes.ATTITUDE_PLEASED] = SASVisuals.InterfaceArt.SAS_EMOJI_ATTITUDE_PLEASED
+		self.attitudeSelectedEmojiPathByAttitude[AttitudeTypes.ATTITUDE_FRIENDLY] = SASVisuals.InterfaceArt.SAS_EMOJI_ATTITUDE_FRIENDLY
 		self.ATTITUDES_PANEL_ID = "SevoPediaLeaderAttitudesPanel"
 		self.ATTITUDE_BUTTON_WIDGET_BY_ATTITUDE = {}
 		for iAttitude in SAS_LEADER_ATTITUDE_PREVIEW_ORDER:
@@ -92,7 +93,6 @@ class SevoPediaLeader:
 		self.ERA_BUTTON_WIDGET_BY_ERA = {}
 		for iEra in xrange(gc.getNumEraInfos()):
 			self.ERA_BUTTON_WIDGET_BY_ERA[iEra] = "SevoPediaLeaderEraBtn%d" % iEra
-		self.eraDefaultIconPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_LOCKED_2").getPath()
 		self.eraIconPathByEra = {}
 		for iEra in xrange(gc.getNumEraInfos()):
 			self.eraIconPathByEra[iEra] = gc.getEraInfo(iEra).getButton()
@@ -110,7 +110,7 @@ class SevoPediaLeader:
 		iLeaderItemsWidthFont2 = gc.getDefineINT("SAS_SEVOPEDIA_LEADER_ITEMS_WIDTH_FONT_2")
 		if iLeaderItemsWidthFont2 <= 0:
 			iLeaderItemsWidthFont2 = self.top.SAS_W_ITEMS_BASE
-		iLabelFont = getSASUIFontLabel()
+		iLabelFont = SASTextScale.getSASUIFontLabel()
 		if iLabelFont <= 1:
 			iLeaderItemsWidthCurrentForGain = gc.getDefineINT("SAS_SEVOPEDIA_LEADER_ITEMS_WIDTH_FONT_1")
 		elif iLabelFont == 2:
@@ -183,7 +183,6 @@ class SevoPediaLeader:
 		self.Y_ATTITUDES = self.Y_FAVORITES
 		self.W_ATTITUDES = self.X_MUSIC - self.X_ATTITUDES - SMALL_MARGIN
 		self.H_ATTITUDES = self.H_FAVORITES
-		self.playButtonPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_PLAY_BUTTON").getPath()
 
 		# <!-- custom: the rest of the coordinates here, as it is dependent on other coordinates we need first that (i.e. before being able to add these) -->
 		self.X_AI_PERSONALITY = self.top.R_PEDIA_PAGE - self.W_AI_PERSONALITY 
@@ -290,9 +289,9 @@ class SevoPediaLeader:
 		# <!-- custom: redirect to leader's peace music entry in Sevopedia Music category -->
 		iMusicKey = self.top.SAS_getLeaderPeaceMusicKey(self.iLeader)
 		if iMusicKey != -1:
-			screen.setImageButtonAt(self.top.getNextWidgetName(), panelName, self.playButtonPath, buttonX, buttonY, buttonSize, buttonSize, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_MUSIC_ENTRY, iMusicKey)
+			screen.setImageButtonAt(self.top.getNextWidgetName(), panelName, SASVisuals.InterfaceArt.SAS_EMOJI_PLAY_BUTTON, buttonX, buttonY, buttonSize, buttonSize, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_MUSIC_ENTRY, iMusicKey)
 		else:
-			screen.setImageButtonAt(self.top.getNextWidgetName(), panelName, self.playButtonPath, buttonX, buttonY, buttonSize, buttonSize, WidgetTypes.WIDGET_PEDIA_MAIN, SevoScreenEnums.PEDIA_MUSIC, -1)
+			screen.setImageButtonAt(self.top.getNextWidgetName(), panelName, SASVisuals.InterfaceArt.SAS_EMOJI_PLAY_BUTTON, buttonX, buttonY, buttonSize, buttonSize, WidgetTypes.WIDGET_PEDIA_MAIN, SevoScreenEnums.PEDIA_MUSIC, -1)
 
 	def placeAttitudes(self):
 		if self.W_ATTITUDES <= 0:
@@ -346,7 +345,7 @@ class SevoPediaLeader:
 				iEmojiSize = iUnselectedEmojiSize
 				if iAttitude == self.iSelectedAttitude:
 					iEmojiSize = iSelectedEmojiSize
-				szLabel = u"<img=%s size=%d></img>" % (szEmojiPath, iEmojiSize)
+				szLabel = SASTextScale.imageText(szEmojiPath, iEmojiSize)
 				screen.setButtonGFC(szWidget, szLabel, "", iAttitudeX, iAttitudeY, iAttitudeButtonW, iButtonH, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_LEADER_ATTITUDE, iAttitude, ButtonStyles.BUTTON_STYLE_STANDARD)
 			else:
 				szLabel = SASTextScale.labelText(self.getAttitudeButtonLabel(iAttitude))
@@ -431,7 +430,7 @@ class SevoPediaLeader:
 		iDrawX = iX + (iW - iTotalW) / 2
 
 		if self.iSelectedEra < 0:
-			szDefaultLabel = u"<img=%s size=%d></img>" % (self.eraDefaultIconPath, self.ERA_ICON_SIZE)
+			szDefaultLabel = SASTextScale.imageText(SASVisuals.InterfaceArt.SAS_EMOJI_LOCKED_2, self.ERA_ICON_SIZE)
 		else:
 			szDefaultLabel = SASTextScale.labelText(u"d")
 		if named:
@@ -443,7 +442,7 @@ class SevoPediaLeader:
 
 		for iEra, _ in leaderEraArts:
 			if self.iSelectedEra == iEra:
-				szEraLabel = u"<img=%s size=%d></img>" % (self.eraIconPathByEra[iEra], self.ERA_ICON_SIZE)
+				szEraLabel = SASTextScale.imageText(self.eraIconPathByEra[iEra], self.ERA_ICON_SIZE)
 			else:
 				szEraLabel = SASTextScale.labelText(u"%d" % iEra)
 			if named:
@@ -501,7 +500,7 @@ class SevoPediaLeader:
 				iEmojiSize = self.ATTITUDE_UNSELECTED_EMOJI_SIZE
 				if iAttitude == self.iSelectedAttitude:
 					iEmojiSize = self.ATTITUDE_SELECTED_EMOJI_SIZE
-				szLabel = u"<img=%s size=%d></img>" % (self.attitudeSelectedEmojiPathByAttitude[iAttitude], iEmojiSize)
+				szLabel = SASTextScale.imageText(self.attitudeSelectedEmojiPathByAttitude[iAttitude], iEmojiSize)
 			else:
 				szLabel = SASTextScale.labelText(self.getAttitudeButtonLabel(iAttitude))
 			screen.setButtonGFC(self.top.getNextWidgetName(), szLabel, "", iAttitudeX, iAttitudeY, iAttitudeButtonW, iButtonH, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_LEADER_ATTITUDE, iAttitude, ButtonStyles.BUTTON_STYLE_STANDARD)
@@ -563,7 +562,7 @@ class SevoPediaLeader:
 				if leader.hasTrait(iTrait):
 					traitDesc = gc.getTraitInfo(iTrait).getDescription()
 					traitLink = make_pedia_link(traitDesc)
-					traitIcon = TraitUtil.getIcon(iTrait)
+					traitIcon = SASVisuals.Trait.getIcon(iTrait)
 					# <!-- custom: prefer replacing the linked trait label; if traits are plain text, replace the first matching trait name only. (GPT-5.2-Codex) -->
 					szReplaced = szSpecialText.replace(traitLink, traitIcon + u" " + traitLink)
 					if szReplaced == szSpecialText:
@@ -588,7 +587,7 @@ class SevoPediaLeader:
 
 	def fillAITableRow(self, screen, label, value, scale, xLabel, xValue, xScale, y):
 		labelText = SASTextScale.labelText(label)
-		valueText = SASTextScale.applyFontTag(u"%d" % value, sasFontTagLabel.bold)
+		valueText = SASTextScale.applyFontTag(u"%d" % value, SASTextScale.sasFontTagLabel.bold)
 		scaleText = SASTextScale.labelText(scale)
 
 		screen.setText(self.top.getNextWidgetName(), "", labelText, CvUtil.FONT_LEFT_JUSTIFY, xLabel, y, 0, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
@@ -607,7 +606,7 @@ class SevoPediaLeader:
 			# AI Category Header Line
 			if ai_category_header_line is not None:
 				xOffsetButton = xLabel + ai_category_x_offset
-				screen.setText(self.top.getNextWidgetName(), "", SASTextScale.applyFontTag(ai_category_header_line, sasFontTagLabel.bold), CvUtil.FONT_LEFT_JUSTIFY, xOffsetButton, y, 0, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+				screen.setText(self.top.getNextWidgetName(), "", SASTextScale.applyFontTag(ai_category_header_line, SASTextScale.sasFontTagLabel.bold), CvUtil.FONT_LEFT_JUSTIFY, xOffsetButton, y, 0, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 				y += self.H_AI_LINE_HEIGHT
 
 			# <!-- custom: AI Category items in their predefined order -->
@@ -636,7 +635,7 @@ class SevoPediaLeader:
 				header_text = get_header_text(header_key_or_text)
 				if IS_SAS_SEVOPEDIA_LEADER_AI_PERSONALITY_PANEL_SHOW_EMOJI and icon_button_art_key:
 					button_size = 16
-					line_button_txt = u"<img=%s size=%s></img>" % (ArtFileMgr.getInterfaceArtInfo(icon_button_art_key).getPath(), str(button_size))
+					line_button_txt = u"<img=%s size=%s></img>" % (SASVisuals.InterfaceArt.getPath(icon_button_art_key), str(button_size))
 					ai_category_header_line = u"%s %s" % (line_button_txt, header_text)
 					# <!-- custom: keep a small negative header offset so emoji+title rows align with table body and waste less horizontal room. (GPT-5.3-Codex) -->
 					ai_category_x_offset = -7

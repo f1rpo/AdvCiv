@@ -75,6 +75,10 @@ __version__ = "$Revision: 1.2 $"
 
 from CvPythonExtensions import *
 from SASUtils import getInfoTypeOrFail
+# <!-- custom: Reuse centralized immutable UI-art paths instead of maintaining alert-local copies of the same DDS resources.
+# Match entire former icon identifiers when converting uses: replacing HEALTHY_ICON within UNHEALTHY_ICON produced UNSASVisuals and failed during BUG configuration loading; no alert-local assignments to shared art are needed. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import AttitudeUtil
 import BugCore
 import BugUtil
@@ -86,14 +90,6 @@ import TradeUtil
 # BUG - Mac Support - start
 BugUtil.fixSets(globals())
 # BUG - Mac Support - end
-
-# Must set alerts to "not immediate" to have icons show up
-# Need a healthy person icon
-HEALTHY_ICON = "Art/Interface/Buttons/General/unhealthy_person.dds"
-UNHEALTHY_ICON = "Art/Interface/Buttons/General/unhealthy_person.dds"
-
-HAPPY_ICON = "Art/Interface/Buttons/General/happy_person.dds"
-UNHAPPY_ICON = "Art/Interface/mainscreen/cityscreen/angry_citizen.dds"
 
 ### Globals
 
@@ -183,6 +179,7 @@ def addMessage(iPlayer, szString, szIcon, iFlashX=-1, iFlashY=-1, bOffArrow=Fals
 	# advc.106c: Reduced time from LONG to normal
 	# advc.106: Set bForce to False
 	eventMessageTime = gc.getDefineINT("EVENT_MESSAGE_TIME")
+	# <!-- custom: Retain the inherited icon-delivery requirement: alerts must be "not immediate" for their icons to show up. (GPT-6.1-Sol) -->
 	CyInterface().addMessage(iPlayer, False, eventMessageTime, szString, None, InterfaceMessageTypes.MESSAGE_TYPE_INFO, szIcon, ColorTypes(-1), iFlashX, iFlashY, bOffArrow, bOnArrow)
 
 ## Base Alert Class
@@ -461,11 +458,11 @@ class CityPendingGrowth(AbstractCityAlert):
 			if (CityUtil.willGrowThisTurn(city)):
 				if Civ4lertsOpt.isShowPendingPositive(): # advc.106d
 					message = localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_PENDING_GROWTH", (city.getName(), city.getPopulation() + 1))
-					icon = "Art/Interface/Symbols/Food/food05.dds"
+					icon = SASVisuals.StaticArt.FOOD_SYMBOL
 					addMessageAtCity(iPlayer, message, icon, city)
 			elif (CityUtil.willShrinkThisTurn(city)):
 				message = localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_PENDING_SHRINKAGE", (city.getName(), city.getPopulation() - 1))
-				icon = "Art/Interface/Symbols/Food/food05.dds"
+				icon = SASVisuals.StaticArt.FOOD_SYMBOL
 				addMessageAtCity(iPlayer, message, icon, city)
 
 class CityGrowth(AbstractCityAlert):
@@ -493,11 +490,11 @@ class CityGrowth(AbstractCityAlert):
 			if (Civ4lertsOpt.isShowCityGrowthAlert()):
 				if (iPop > iOldPop):
 					message = localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_GROWTH", (city.getName(), iPop))
-					icon = "Art/Interface/Symbols/Food/food05.dds"
+					icon = SASVisuals.StaticArt.FOOD_SYMBOL
 					addMessageAtCity(iPlayer, message, icon, city)
 				elif iPop < iOldPop and not bWhipOrDraft:
 					message = localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_SHRINKAGE", (city.getName(), iPop))
-					icon = "Art/Interface/Symbols/Food/food05.dds"
+					icon = SASVisuals.StaticArt.FOOD_SYMBOL
 					addMessageAtCity(iPlayer, message, icon, city)
 
 			self.populations[cityId] = iPop
@@ -575,18 +572,18 @@ class CityHappiness(AbstractCityTestAlert):
 
 	def _getAlertMessageIcon(self, city, passes):
 		if (passes):
-			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_UNHAPPY", (city.getName(), )), UNHAPPY_ICON)
+			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_UNHAPPY", (city.getName(), )), SASVisuals.StaticArt.UNHAPPY_PERSON)
 		else:
-			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_HAPPY", (city.getName(), )), HAPPY_ICON)
+			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_HAPPY", (city.getName(), )), SASVisuals.StaticArt.HAPPY_PERSON)
 
 	def _isShowPendingAlert(self, passes):
 		return Civ4lertsOpt.isShowCityPendingHappinessAlert()
 
 	def _getPendingAlertMessageIcon(self, city, passes):
 		if (passes):
-			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_PENDING_UNHAPPY", (city.getName(), )), UNHAPPY_ICON)
+			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_PENDING_UNHAPPY", (city.getName(), )), SASVisuals.StaticArt.UNHAPPY_PERSON)
 		else:
-			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_PENDING_HAPPY", (city.getName(), )), HAPPY_ICON)
+			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_PENDING_HAPPY", (city.getName(), )), SASVisuals.StaticArt.HAPPY_PERSON)
 
 class CityHealthiness(AbstractCityTestAlert):
 	# Displays an event when a city goes from healthy to sick or vice versa.
@@ -617,18 +614,18 @@ class CityHealthiness(AbstractCityTestAlert):
 
 	def _getAlertMessageIcon(self, city, passes):
 		if (passes):
-			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_UNHEALTHY", (city.getName(), )), UNHEALTHY_ICON)
+			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_UNHEALTHY", (city.getName(), )), SASVisuals.StaticArt.UNHEALTHY_PERSON)
 		else:
-			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_HEALTHY", (city.getName(), )), HEALTHY_ICON)
+			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_HEALTHY", (city.getName(), )), SASVisuals.StaticArt.HEALTHY_PERSON)
 
 	def _isShowPendingAlert(self, passes):
 		return Civ4lertsOpt.isShowCityPendingHealthinessAlert()
 
 	def _getPendingAlertMessageIcon(self, city, passes):
 		if (passes):
-			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_PENDING_UNHEALTHY", (city.getName(), )), UNHEALTHY_ICON)
+			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_PENDING_UNHEALTHY", (city.getName(), )), SASVisuals.StaticArt.UNHEALTHY_PERSON)
 		else:
-			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_PENDING_HEALTHY", (city.getName(), )), HEALTHY_ICON)
+			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_PENDING_HEALTHY", (city.getName(), )), SASVisuals.StaticArt.HEALTHY_PERSON)
 
 # Occupation
 
@@ -654,7 +651,7 @@ class CityOccupation(AbstractCityTestAlert):
 			BugUtil.debug("%s passed occupation test, ignoring", city.getName())
 			return (None, None)
 		else:
-			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_PACIFIED", (city.getName(), )), HAPPY_ICON)
+			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_PACIFIED", (city.getName(), )), SASVisuals.StaticArt.HAPPY_PERSON)
 
 	def _isShowPendingAlert(self, passes):
 		return False #Civ4lertsOpt.isShowCityPendingOccupationAlert() # advc.106d: Disabled
@@ -664,7 +661,7 @@ class CityOccupation(AbstractCityTestAlert):
 			BugUtil.warn("%s passed pending occupation test, ignoring", city.getName())
 			return (None, None)
 		else:
-			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_PENDING_PACIFIED", (city.getName(), )), HAPPY_ICON)
+			return (localText.getText("TXT_KEY_CIV4LERTS_ON_CITY_PENDING_PACIFIED", (city.getName(), )), SASVisuals.StaticArt.HAPPY_PERSON)
 
 	# <advc.106d> The default implementation suppresses messages about cities in occupation. Obv. don't want that here.
 	# (Untested b/c the occupation alert is permanently disabled.)

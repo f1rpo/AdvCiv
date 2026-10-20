@@ -13,6 +13,8 @@
 #
 
 from CvPythonExtensions import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 from SASMagicNumbers import *
 import CvUtil
 import ScreenInput
@@ -61,7 +63,6 @@ class SevoPediaReligion:
 
 		self.W_REQUIRES = get_panel_width_for_buttons(1, MULTILIST_BUTTON_SIZE, HYPOTHESIZED_NON_MULTILIST_PANEL_EDGE_PADDING, HYPOTHESIZED_NON_MULTILIST_PANEL_INTER_BUTTON_SPACING)
 		self.W_MOVIE = get_panel_width_for_buttons(1, MULTILIST_BUTTON_SIZE, HYPOTHESIZED_NON_MULTILIST_PANEL_EDGE_PADDING, HYPOTHESIZED_NON_MULTILIST_PANEL_INTER_BUTTON_SPACING)
-		self.playButtonPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_PLAY_BUTTON").getPath()
 
 		self.X_UNITS = self.X_BUILDINGS
 		self.Y_UNITS = self.Y_BUILDINGS + self.H_BUILDINGS + SMALL_MARGIN
@@ -98,7 +99,7 @@ class SevoPediaReligion:
 		self.placeMovie()
 		self.placeUnit()
 		self.placeRequires()
-		# <!-- custom: no V.Source panel on Religion page: vote sources with religion-yield/religion-commerce effects are global systems (UN/AP-level) and not specific to one religion entry, so showing them per-religion would be misleading. (GPT-5.3-Codex) -->
+		# <!-- custom: no V.Source panel on SASVisuals.Religion page: vote sources with religion-yield/religion-commerce effects are global systems (UN/AP-level) and not specific to one religion entry, so showing them per-religion would be misleading. (GPT-5.3-Codex) -->
 		self.placeSpecial()
 		self.placeHistory()
 
@@ -197,7 +198,7 @@ class SevoPediaReligion:
 			# Y: Must be set to 10 (not calculated from panelHeaderHeight) - empirically determined positioning fix. (Claude code Sonnet 4.5) -->
 			buttonX = (self.W_MOVIE - buttonSize) / 2
 			buttonY = 10
-			screen.setImageButtonAt(self.top.getNextWidgetName(), panelName, self.playButtonPath, buttonX, buttonY, buttonSize, buttonSize, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_MOVIE_ENTRY, iPackedMovie)
+			screen.setImageButtonAt(self.top.getNextWidgetName(), panelName, SASVisuals.InterfaceArt.SAS_EMOJI_PLAY_BUTTON, buttonX, buttonY, buttonSize, buttonSize, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_MOVIE_ENTRY, iPackedMovie)
 		else:
 			draw_none_text(screen, self.top, self.X_MOVIE, self.Y_MOVIE, self.W_MOVIE, self.H_MOVIE)
 

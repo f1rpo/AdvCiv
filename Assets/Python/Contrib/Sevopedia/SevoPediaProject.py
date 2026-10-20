@@ -13,6 +13,8 @@
 #
 
 from CvPythonExtensions import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 from SASMagicNumbers import *
 import CvUtil
 import ScreenInput
@@ -41,7 +43,6 @@ class SevoPediaProject:
 		self.X_MOVIE = self.X_REQUIRES - self.W_MOVIE - 10
 		self.Y_MOVIE = self.Y_REQUIRES
 		self.H_MOVIE = self.H_REQUIRES
-		self.playButtonPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_PLAY_BUTTON").getPath()
 
 		self.X_PROJECT_PANE = self.top.X_PEDIA_PAGE
 		self.Y_PROJECT_PANE = self.top.Y_PEDIA_PAGE
@@ -121,7 +122,7 @@ class SevoPediaProject:
 				szCost = (projectInfo.getProductionCost() * self.iPROJECT_PRODUCTION_PERCENT) / 100
 			else:
 				szCost = gc.getActivePlayer().getProjectProductionNeeded(self.iProject)
-			szTextHammerYield = u"%c %d" % (gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar(), szCost)
+			szTextHammerYield = u"%s %d" % (SASVisuals.Yield.PRODUCTION_CHAR, szCost)
 			screen.appendListBoxString(panelName, SASTextScale.titleText(szTextHammerYield), WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
 
 	def placeRequires(self):
@@ -151,7 +152,7 @@ class SevoPediaProject:
 			# Y: Must be set to 10 (not calculated from panelHeaderHeight) - empirically determined positioning fix. (Claude code Sonnet 4.5) -->
 			buttonX = (self.W_MOVIE - buttonSize) / 2
 			buttonY = 10
-			screen.setImageButtonAt(self.top.getNextWidgetName(), panelName, self.playButtonPath, buttonX, buttonY, buttonSize, buttonSize, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_MOVIE_ENTRY, iPackedMovie)
+			screen.setImageButtonAt(self.top.getNextWidgetName(), panelName, SASVisuals.InterfaceArt.SAS_EMOJI_PLAY_BUTTON, buttonX, buttonY, buttonSize, buttonSize, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_MOVIE_ENTRY, iPackedMovie)
 		else:
 			draw_none_text(screen, self.top, self.X_MOVIE, self.Y_MOVIE, self.W_MOVIE, self.H_MOVIE)
 

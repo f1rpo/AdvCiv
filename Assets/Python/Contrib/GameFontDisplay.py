@@ -1,4 +1,10 @@
+
+# AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
+# (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
+
 from CvPythonExtensions import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import CvUtil
 import ScreenInput
 import CvScreenEnums
@@ -31,7 +37,7 @@ class GameFontDisplay:
 		screen.setTableColumnHeader( szTableName, 3, "<font=2>Button</font>", 56)
 		screen.setTableColumnHeader( szTableName, 4, "<font=2>Type</font>", 500)
 
-		iMax = FontSymbols.MAX_NUM_SYMBOLS + CyGame().getSymbolID(FontSymbols.HAPPY_CHAR) - 8193 + 49 # advc: was 8483+10
+		iMax = FontSymbols.MAX_NUM_SYMBOLS + SASVisuals.Font.ordinal(FontSymbols.HAPPY_CHAR) - 8193 + 49 # advc: was 8483+10
 		for iLine in range(iMax):
 			# <advc> Include letters. Their ID go up to the mid 250s; far lower than the icon IDs.
 			iID = iLine
@@ -49,32 +55,34 @@ class GameFontDisplay:
 					screen.setTableInt(szTableName, 4, iLine, "<font=2>" + infoPointer + "<font/>", "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 				else:
 					szButton = infoPointer.getButton()
-					if szButton != "" and szButton != "Art/Interface/Buttons/Buildings/BombShelters.dds":
+					if szButton != "" and szButton != SASVisuals.StaticArt.BOMB_SHELTERS_BUTTON:
 						screen.setTableRowHeight(szTableName, iLine, iButtonSize)
 						screen.setTableText(szTableName, 3, iLine, "", szButton, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 					screen.setTableInt(szTableName, 4, iLine, "<font=2>" + infoPointer.getType() + "<font/>", "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY )
 
 	def getInfoPointerFromGameFont(self, iIndex):
-		for iLoopIndex in range(gc.getNumReligionInfos()):
-			infoPointer = gc.getReligionInfo(iLoopIndex)
-			if infoPointer.getChar() == iIndex:
-				return infoPointer
-
-		for iLoopIndex in range(gc.getNumCorporationInfos()):
-			infoPointer = gc.getCorporationInfo(iLoopIndex)
-			if infoPointer.getChar() == iIndex:
-				return infoPointer
-
-		for iLoopIndex in range(gc.getNumBonusInfos()):
-			infoPointer = gc.getBonusInfo(iLoopIndex)
-			if infoPointer.getChar() == iIndex:
-				return infoPointer
+		try:
+			iLoopIndex = SASVisuals.Religion.ordinals().index(iIndex)
+			return gc.getReligionInfo(iLoopIndex)
+		except ValueError:
+			pass
+		try:
+			iLoopIndex = SASVisuals.Corporation.ordinals().index(iIndex)
+			return gc.getCorporationInfo(iLoopIndex)
+		except ValueError:
+			pass
+		try:
+			iLoopIndex = SASVisuals.Bonus.ordinals().index(iIndex)
+			return gc.getBonusInfo(iLoopIndex)
+		except ValueError:
+			pass
 		# advc.002f: BULL symbols (CITIZEN, GREAT_GENERAL, AIRPORT) added
-		if iIndex >= CyGame().getSymbolID(FontSymbols.HAPPY_CHAR) and iIndex <= (CyGame().getSymbolID(FontSymbols.AIRPORT_CHAR)):
-
-				list = ["HAPPY_CHAR", "UNHAPPY_CHAR", "HEALTHY_CHAR", "UNHEALTHY_CHAR", "BULLET_CHAR", "STRENGTH_CHAR", "MOVES_CHAR", "RELIGION_CHAR", "STAR_CHAR", "SILVER_STAR_CHAR", "TRADE_CHAR", "DEFENSE_CHAR", "GREAT_PEOPLE_CHAR", "BAD_GOLD_CHAR", "BAD_FOOD_CHAR", "EATEN_FOOD_CHAR", "GOLDEN_AGE_CHAR", "ANGRY_POP_CHAR", "OPEN_BORDERS_CHAR", "DEFENSIVE_PACT_CHAR", "MAP_CHAR", "OCCUPATION_CHAR", "POWER_CHAR", "CITIZEN_CHAR", "GREAT_GENERAL_CHAR", "AIRPORT_CHAR"]
-
-				return list[iIndex - CyGame().getSymbolID(FontSymbols.HAPPY_CHAR)]
+		try:
+			# <!-- custom: Font exposes its cached glyph tuple, not the indexed XML collections' ordinals() method; search that existing tuple using the requested character. (GPT-6.1-Sol) -->
+			iSymbol = SASVisuals.Font.chars().index(unichr(iIndex))
+			return SASVisuals.BUILTIN_FONT_SYMBOL_NAMES[iSymbol]
+		except ValueError:
+			pass
 
 		return None
 

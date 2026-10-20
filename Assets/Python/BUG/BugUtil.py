@@ -139,6 +139,8 @@
 #
 # <!-- custom: AdvCiv-SAS does not actively maintain this third-party file; changes here are minor (e.g. collapsing multiline statements to single-line for grep/readability, and similar low-risk consistency tweaks). (Claude code Opus 4.7) -->
 
+# <!-- custom: The inherited BUG header above still names FontUtil in its historical docs/TODO; live symbol replacement now routes through SASVisualUtils because FontUtil is retired by the centralized visual-resource refactor. (ChatGPT-5.6-Sol) -->
+
 from CvPythonExtensions import *
 # <!-- custom: SASPythonLogging owns stdout/stderr row timestamps; importing the leaf helper here also covers callers that load BUG before CvUtil. (GPT-6.1-Sol) -->
 import SASPythonLogging
@@ -183,8 +185,9 @@ def getText(key, values=(), default=None, replaceFontTags=True):
 	text = localText.getText(key, values)
 	if (text and text != key):
 		if replaceFontTags:
-			import FontUtil
-			text = FontUtil.replaceSymbols(text)
+			# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+			import SASVisualUtils as SASVisuals
+			text = SASVisuals.replaceSymbols(text)
 		return text
 	else:
 		if default is not None:

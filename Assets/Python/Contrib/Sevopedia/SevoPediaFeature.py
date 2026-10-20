@@ -9,7 +9,8 @@ import CvUtil
 import ScreenInput
 # <!-- custom: Removed the unused SevoScreenEnums import after its constants moved from SevoScreenEnums.py to the SevoScreenEnums class in CvScreenEnums.py.
 # This page uses none of those IDs, and the removed constants-only module had no initialization side effects. (GPT-6.1-Sol) -->
-from SASFontUtils import *
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import SASTextScale
 from SASUtils import getInfoTypeOrFail
 
@@ -198,7 +199,7 @@ class SevoPediaFeature:
 				szSign = ""
 				if iYieldChange > 0:
 					szSign = "+"
-				szText += (u"%s%d%c  " % (szSign, iYieldChange, gc.getYieldInfo(iYield).getChar()))
+				szText += (u"%s%d%s  " % (szSign, iYieldChange, SASVisuals.Yield.char(iYield)))
 
 		screen.appendListBoxString(panel, SASTextScale.titleText(szText), WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
 

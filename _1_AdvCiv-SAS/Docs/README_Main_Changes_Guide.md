@@ -314,6 +314,8 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 
 ### Code/Performance optimizations
 
+- (Requires AdvCiv-SAS 6649+) **Shared Python visual resources:** [`SASVisualUtils.py`](/Assets/Python/SASVisualUtils.py) gives UI callers one cached source for font/dynamic symbols, yield/commerce glyphs, colors, art and trait/Great Person/specialist icons, replacing scattered lookups and overlapping caches.
+  - Retires `FontUtil.py`, `TraitUtil.py` and `GGUtil.py`; `GPUtil.py` keeps Great Person gameplay/progress logic. Text-scale helpers formerly in `SASFontUtils.py` move to `SASTextScale.py`, while screen-dependent presentation stays with the caller.
 - (Requires AdvCiv-SAS 6648+) **Centralized Python screen IDs:** [CvScreenEnums.py](/Assets/Python/Screens/CvScreenEnums.py) now contains general screens, vanilla Civilopedia pages and Sevopedia pages, making their definitions easier to browse and maintain together.
   - The separate `SevoScreenEnums.py` was removed; its definitions now live in class `SevoScreenEnums` within `CvScreenEnums.py`, and callers import that class. Existing numeric IDs and page navigation are preserved.
   - Vanilla Civilopedia and Sevopedia reuse some numbers for different pages, so their definitions stay distinct within the shared catalog; a reusable name lookup selects the active encyclopedia.
@@ -530,19 +532,15 @@ For log-file examples, INI controls and historical/mod origins, see the [root RE
     - Before: `99 SCREEN TURNED ON`
     - After: `2026-10-20T08:16:29.114Z record=SCREEN_TURNED_ON screenId=99 screenType=CvScreenEnums.MAIN_INTERFACE`
   - Other records include `record=SCREEN_OFF` and `record=WB_BRUSH_SELECTED`, with the previous screen or brush mode identified.
-  - See the [logging reference](README_Logging_Inventory.md) for the broader modernization, matched Before/After samples and each file's controls and limits.
+  - Screen names come from the shared catalog in `CvScreenEnums.py`, including Sevopedia IDs moved from `SevoScreenEnums.py`; the lookup distinguishes vanilla Civilopedia and Sevopedia pages where IDs overlap. See [Code/Performance optimizations](#codeperformance-optimizations) for the consolidation.
+  - Font initialization identifies religion/holy-city glyphs with XML types and character codes.
+  - See the [README_Logging_Inventory.md](README_Logging_Inventory.md) for the broader modernization, matched Before/After samples and each file's controls and limits.
   - Victory-screen prints such as bare vote numbers, `votesource` and `secgen` now identify the vote definition being inspected through `record=VICTORY_SCREEN_*` records; tally rows name required votes, predicted support and the candidate's own votes. These are display diagnostics, not player election-choice records.
   - Diplomacy debug messages, mod-network/game-end callbacks and Sevopedia initialization notices use the same convention. Existing debug gates remain in place; these changes label diagnostic output without adding game-state lookups.
-- (Requires AdvCiv-SAS 6648+) **Readable Python diagnostic identities:** screen notifications now include canonical names alongside IDs, and font initialization distinguishes religion/holy-city glyphs with XML types and character codes.
-  - Previously, screen IDs were split between `CvScreenEnums.py` and `SevoScreenEnums.py`. Sevopedia's IDs now live in class `SevoScreenEnums` in `CvScreenEnums.py`, where a shared lookup supplies the names missing from numeric-only screen notifications.
-  - Real `PythonDbg.log` rows from runs before and after the change identify the same main-interface screen:
-    - Before: `2026-10-19T16:07:20.293Z 99 SCREEN TURNED ON`
-    - After: `2026-10-20T08:16:29.114Z SCREEN TURNED ON screenId=99 screenType=CvScreenEnums.MAIN_INTERFACE`
-  - The lookup distinguishes vanilla Civilopedia and Sevopedia pages where their IDs overlap; see [Code/Performance optimizations](#codeperformance-optimizations) for the catalog consolidation.
 - (Requires AdvCiv-SAS 6647+) **UTC Python diagnostic timestamps:** ordinary Python prints and module-loading messages often had no timestamp, while BUG messages used only local `HH:MM:SS`. This made it harder to establish when output occurred or correlate it with game/runtime activity, especially across runs and time zones.
   - Shared stdout/stderr formatting now adds the UTC date and milliseconds to Python-written rows in files such as `PythonDbg.log` and `PythonErr2.log`, including multiline error text passing through these streams. The DLL supplies the Windows clock because the embedded Python wall-clock readings stayed fixed during a measured game trial.
   - Existing BUG log levels and its timestamp option remain in control; blank rows and the copyable leader-cache dump are preserved. Early startup and direct EXE writes bypass the Python streams; engine logs such as `app.log` and `audio.log` keep their existing formats.
-  - See the [Civ4 / AdvCiv-SAS logging reference](README_Logging_Inventory.md) for file roles, historical/mod origins, enabling conditions, runtime start/end evidence and captured per-file Before/After examples.
+  - See the [README_Logging_Inventory.md](README_Logging_Inventory.md) for file roles, historical/mod origins, enabling conditions, runtime start/end evidence and captured per-file Before/After examples.
 - (Requires AdvCiv-SAS 6641+) **Shared diagnostic-writer health:** SASGameRecord records one compact `GAME_RECORD_DIAGNOSTIC_WRITER` snapshot at completed-turn checkpoints and session finalization.
   - Reports current/peak pending text, the current blocked-file count, output failures/retries and dropped output, plus process-lifetime bytes successfully written for SASGameRecord and BBAI.
   - One health row per completed game turn helps locate when backlog, failures or loss first appear; there is no health row per BBAI message. A final snapshot is recorded at session finalization.
@@ -3103,7 +3101,7 @@ Note: The shipped stable example [`handicap_infos_compared.md`](/_1_AdvCiv-SAS/D
   - See in-game Sevopedia → Traits for current effects (+x culture / +x hammer / +x commerce as listed there).
 - **Removed Trait — Expansive:** In AdvCiv-SAS, **Protective** is broadened from "just city defense" to an empire-wide protection theme: it now also covers health and no anarchy (political stability), and with **Imperialist** already handling expansion (settler discount + now also trade-route–scaled yields), **Expansive** no longer had a distinct role, was overlapping with the former, and was weak/volatile to balance → removed.
 - **Expansive Trait clean-up:** Removed its building modifiers (**Granary**, **Harbor**)—too generic/OP and no balanced replacements.
-- **Trait icons (UI) & cleanup:** Updated the Sevopedia "char" (glyph/logo) for **Imperialist** and **Organized** Traits; commented out the obsolete **Expansive** Trait entries now that the Trait is removed. Implemented in [/Assets/Python/BUG/TraitUtil.py](/Assets/Python/BUG/TraitUtil.py).
+- **Trait icons (UI) & cleanup:** Updated the Sevopedia "char" (glyph/logo) for **Imperialist** and **Organized** Traits; commented out the obsolete **Expansive** Trait entries now that the Trait is removed. Implemented in [`SASVisualUtils.Trait`](/Assets/Python/SASVisualUtils.py), which now owns the centralized trait visual mapping.
 
 ## Civics
 

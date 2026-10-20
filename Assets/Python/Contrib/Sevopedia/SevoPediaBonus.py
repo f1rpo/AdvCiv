@@ -18,7 +18,8 @@ import CvUtil
 import ScreenInput
 # <!-- custom: SevoScreenEnums.py was removed; import its unchanged page IDs from the SevoScreenEnums class in CvScreenEnums.py, keeping them distinct from vanilla Civilopedia pages. (GPT-6.1-Sol) -->
 from CvScreenEnums import SevoScreenEnums
-from SASFontUtils import *
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import SASTextScale
 
 from _sevopedia_helpers import *
@@ -188,7 +189,7 @@ class SevoPediaBonus:
 				#szYield = (u"%s: %s%i" % (gc.getYieldInfo(k).getDescription(), sign, iYieldChange))
 				szYield = (u"%s%i" % (sign, iYieldChange))
 				# <!-- custom: add information about the precise type of yield it is, which can be otherwise very confusing -->
-				szText1 = (u"%c  " % gc.getYieldInfo(k).getChar()) + szYield
+				szText1 = (SASVisuals.Yield.char(k) + u"  ") + szYield
 				szText2 = SASTextScale.titleText(szText1 + u"\n")
 				screen.appendListBoxString(panelName, szText2, WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
 
@@ -235,7 +236,7 @@ class SevoPediaBonus:
 						sign = "+"
 					else:
 						sign = ""
-					szYield += SASTextScale.titleText(u"%c%s%i" % (gc.getYieldInfo(k).getChar(), sign, iYieldChange))
+					szYield += SASTextScale.titleText(u"%s%s%i" % (SASVisuals.Yield.char(k), sign, iYieldChange))
 
 			if bEffect:
 				# Add horizontal spacing if not the first button

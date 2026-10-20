@@ -40,7 +40,7 @@
     - [Verifying accessor semantics](#verifying-accessor-semantics)
   - [Python (Civ4)](#python-civ4)
     - [Runtime compatibility](#runtime-compatibility)
-    - [UI fonts](#ui-fonts)
+    - [Visual resources and UI fonts](#visual-resources-and-ui-fonts)
     - [Syntax checks and linting](#syntax-checks-and-linting)
     - [UI identifiers and display text](#ui-identifiers-and-display-text)
     - [XML lookup, caching and validation](#xml-lookup-caching-and-validation)
@@ -173,7 +173,7 @@ C2C mod also uses `WidgetTypes.WIDGET_PYTHON`.
 
 You can find Civ4 local user folder here "C:\Users\PC\Documents\My Games\beyond the sword".
 
-For examples such as `PythonErr.log` tracebacks, `xml.log` errors, `RandLog`/`MPLog.txt` RNG tracing, and older files such as `bull.log`/`MLF.log`, see the [logging reference](/_1_AdvCiv-SAS/Docs/README_Logging_Inventory.md), including their controls, source references and Before/After samples.
+For examples such as `PythonErr.log` tracebacks, `xml.log` errors, `RandLog`/`MPLog.txt` RNG tracing, and older files such as `bull.log`/`MLF.log`, see the [README_Logging_Inventory.md](/_1_AdvCiv-SAS/Docs/README_Logging_Inventory.md), including their controls, source references and Before/After samples.
 
 In particular but not only, these are usually helpful:
 
@@ -332,6 +332,7 @@ If you find yourself stuck like for audio stopping issues, feel free to ask the 
   - If a replacement custom comment supersedes an inherited comment that carries a provenance marker such as `advc.xxx`, `KI#...`, or `Long_Comments_... #N`, retain that reference in the new custom comment.
 - Keep distinct adjacent comments distinct, especially an untagged/base/upstream comment followed by an AdvCiv-SAS `<!-- custom: ... -->` comment; adjacency does not make them one comment.
 - Across languages, keep explanatory comments above the code they explain. Hoist an existing comment when relevant; otherwise add or adjust a comment as needed.
+- When replacing a stale or incorrect coding pattern, update relevant commented-out code too, across languages, so searches do not keep finding obsolete and now inconsistent usage. Preserve its rationale and disabled status.
 - For AdvCiv-SAS `<!-- custom: ... -->` prose comments, physical lines follow logical sentences/clauses rather than character count. Wrap only at natural logical boundaries when needed (normally complete sentences or independent clauses), and do not arbitrarily split one sentence across `//`, `#`, or XML-comment lines.
   - A reasonably readable long sentence can stay on one physical line; do not strand a short ending, `See KI#...`, or the model credit on its own line just to meet a width target.
   - Do not normally place two substantial complete sentences on one physical custom-comment line. Put them on separate comment lines instead. If two short, closely related independent clauses read naturally together, prefer a semicolon on one line (e.g. `A is true; B follows.`); if that combined thought becomes clearly long, prefer a period and a new logical line.
@@ -381,6 +382,7 @@ These are general guidelines, not irrevocable requirements; adjust based on task
 
 #### Code layout and collapsing
 
+- Avoid redundant blank-line runs in edited code and documentation; keep spacing that serves the language or structure, such as two blank lines between top-level Python definitions.
 - Note: for the collapse multiline to singleline bullets below, such a refactor would be extensive, so if we need to, do it as we go rather than all in one-go throughout our whole codebase.
   - It's a low-priority nicety — don't go out of your way for it during unrelated tasks; only apply it to code you're already editing, or if it seems relevant/related to your current task, or when explicitly asked to do a collapse pass.
 - Try to make one liner code whenever possible, for example a line like `draw_expandable_text_panel(screen, self.top, szTitle, self.X_HISTORY, self.Y_HISTORY, self.W_HISTORY, self.H_HISTORY, szText, self.bHistoryExpanded, SAS_MAGIC_PEDIA_PYTHON_HISTORY_EXPAND)` is much easier to scan or grep through/compare throughout our codebase than a multiline mostly needlessly stylized version of it.
@@ -410,6 +412,8 @@ These are general guidelines, not irrevocable requirements; adjust based on task
 
 #### Naming, diagnostics and text encoding
 
+- When consolidating an established subsystem, preserve its recognizable name when practical so history and search remain useful; for example, `CvScreenEnums.SevoScreenEnums`.
+- Prefer distinctive namespaces for shared APIs, such as `import SASVisualUtils as SASVisuals`, without restricting ordinary short local variables.
 - Use specific asset names whenever possibly to avoid likely reuse of an unknown BTS one that may not be listed in our mod's files. Example: `TXT_KEY_PEDIA_STATISTICS` to `TXT_KEY_PEDIA_SAS_STATISTICS`.
 - For machine-readable diagnostics/provenance of static C++ enums that have no `CvInfo` type string, prefer one shared `getSAS*Type(...)` helper in `CvGameCoreUtils` over duplicated switches or preprocessor stringification.
   - Keep translated/friendly UI labels separate when they serve presentation rather than canonical raw identity.
@@ -441,10 +445,12 @@ These are general guidelines, not irrevocable requirements; adjust based on task
 
 - Assume Python 2.4 constraints: avoid closures and ternary operators, define variables before use, and prefer tabs for indentation.
 
-#### UI fonts
+#### Visual resources and UI fonts
 
-- For UI text, do not hardcode font tags like `<font=2/3/4>`; use `SASFontUtils` (`sasFontTag*`/ `sasFontTag*.bold` / `SAS_FONT_TAG_CLOSE` / `getSASUIFont*`) so XML defines control scaling globally.
-  - Example good: `sasFontTagLabel + szText + SAS_FONT_TAG_CLOSE` or `sasFontTagTitle.bold + szText + SAS_FONT_TAG_CLOSE`; avoid: `u"<font=3>%s</font>" % szText` or `u"<font=4b>%s</font>" % szText`.
+- Share reusable glyphs, colors and art through `import SASVisualUtils as SASVisuals`, keeping text scaling in `SASTextScale` and screen-dependent presentation with its caller. Reuse cached chars for display and ordinals where an API or calculation requires an integer.
+  - Collections notably cover Font/DynamicFont, Yield/Commerce, Religion/Corporation/Bonus, Color/art, Trait/GreatPeople, Specialist and CityEmphasis. They replace `FontUtil`, `TraitUtil` and `GGUtil`, and centralize visual resources formerly held by helpers such as `GPUtil`; `GPUtil` retains its gameplay/progress logic.
+- For UI text, do not hardcode font tags like `<font=2/3/4>`; use `SASTextScale` (`sasFontTag*` / `sasFontTag*.bold` / `SAS_FONT_TAG_CLOSE` / `getSASUIFont*`) so XML defines control scaling globally.
+  - Example good: `SASTextScale.sasFontTagLabel + szText + SASTextScale.SAS_FONT_TAG_CLOSE` or `SASTextScale.sasFontTagTitle.bold + szText + SASTextScale.SAS_FONT_TAG_CLOSE`; avoid: `u"<font=3>%s</font>" % szText` or `u"<font=4b>%s</font>" % szText`.
 - Some rare exceptions exist where hard coded font size is necessary (e.g., as of now Foreign Advisor's Glance tab's diplomacy icons (else the cell's text clips horizontally)), some places where font size was not necessary to increase empirically to achieve the wanted result, or some places where upscaling was not implemented yet due to it being not possible (EXE-controlled or such) or not supported in AdvCiv-SAS (e.g., as of now Chat log, etc.).
 
 #### Syntax checks and linting

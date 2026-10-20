@@ -93,10 +93,15 @@
 ##
 ## Author: EmperorFool
 
+
+# AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
+# (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
+
 from CvPythonExtensions import *
 
 import BugUtil
-import FontUtil
+# <!-- custom: Religious-building/unit glyphs now use code-native shared SAS visual collections rather than BUG string aliases. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 
 ## Globals
 
@@ -326,14 +331,14 @@ def getPlayerHolyReligions(player):
 ## Initialization
 
 def init():
-	BuildingType("Temple", FontUtil.getChar("happy"), isTemple)
-	BuildingType("Cathedral", FontUtil.getChar("commerce culture"), isCathedral)
-	BuildingType("Monastery", FontUtil.getChar("commerce research"), isMonastery)
-	BuildingType("Shrine", FontUtil.getChar("commerce gold"), isShrine)
+	BuildingType("Temple", SASVisuals.Font.HAPPY_CHAR, isTemple)
+	BuildingType("Cathedral", SASVisuals.Commerce.CULTURE_CHAR, isCathedral)
+	BuildingType("Monastery", SASVisuals.Commerce.RESEARCH_CHAR, isMonastery)
+	BuildingType("Shrine", SASVisuals.Commerce.GOLD_CHAR, isShrine)
 # MOD: Add a BuildingType() call for each new religious building type you define
 #	BuildingType("Inquisition Office", FontUtil.getChar("cancel"), isInquisitionOffice)
 
-	UnitType("Missionary", FontUtil.getChar("religion"), isMissionary)
+	UnitType("Missionary", SASVisuals.Font.RELIGION_CHAR, isMissionary)
 # MOD: Add a BuildingType() call for each new religious unit type you define
 #	UnitType("Inquisitor", FontUtil.getChar("religion"), isInquisitor)
 

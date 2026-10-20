@@ -15,9 +15,9 @@ import ScreenInput
 from CvScreenEnums import *
 import CvReplayScreen
 import CvScreensInterface
-from SASFontUtils import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import SASTextScale
-import TraitUtil
 import re
 
 # globals
@@ -142,24 +142,24 @@ class CvHallOfFameScreen:
 			self.iMultiplayerFilter = 0
 		self.iSortBy = SORT_BY_NORMALIZED_SCORE
 
-		self.EXIT_TEXT = sasFontTagTitle + localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ()).upper() + SAS_FONT_TAG_CLOSE
-		# <!-- custom: initialize TraitUtil here because doing it in __init__ broke Civ startup;
-		# by the time Hall of Fame opens, the game/font symbols are ready and trait icons render correctly. (GPT-5.5) -->
-		TraitUtil.init()
+		self.EXIT_TEXT = SASTextScale.sasFontTagTitle + localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE
+		# <!-- custom: initialize the shared trait visuals here because doing it in __init__ broke Civ startup;
+		# by the time Hall of Fame opens, the game/font symbols are ready and trait icons render correctly. (GPT-5.5 + ChatGPT-5.6-Sol) -->
+		SASVisuals.Trait.init()
 
 		self.hallOfFame = CyHallOfFameInfo()
 		self.hallOfFame.loadReplays()
 
 		# Set the background widget and exit button
 		screen.setDimensions(0, 0, self.W_SCREEN, self.H_SCREEN)
-		screen.addDDSGFC(self.BACKGROUND_ID, ArtFileMgr.getInterfaceArtInfo("SCREEN_BG_OPAQUE").getPath(), 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		screen.addDDSGFC(self.BACKGROUND_ID, SASVisuals.InterfaceArt.SCREEN_BG_OPAQUE, 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 		screen.addPanel( "TechTopPanel", u"", u"", True, False, 0, 0, self.W_SCREEN, self.TOP_BOTTOM_PANEL_H, PanelStyles.PANEL_STYLE_TOPBAR )
 		screen.addPanel( "TechBottomPanel", u"", u"", True, False, 0, self.H_SCREEN - self.TOP_BOTTOM_PANEL_H, self.W_SCREEN, self.TOP_BOTTOM_PANEL_H, PanelStyles.PANEL_STYLE_BOTTOMBAR )
 		screen.showWindowBackground(False)
 		screen.setText(self.EXIT_ID, "", self.EXIT_TEXT, CvUtil.FONT_RIGHT_JUSTIFY, self.X_EXIT, self.Y_EXIT, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 		# Header...
-		screen.setLabel(self.HEADER_ID, "Background", sasFontTagTitle.bold + localText.getText("TXT_KEY_HALL_OF_FAME_SCREEN_TITLE", ()).upper() + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, self.X_SCREEN, self.Y_TITLE, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		screen.setLabel(self.HEADER_ID, "Background", SASTextScale.sasFontTagTitle.bold + localText.getText("TXT_KEY_HALL_OF_FAME_SCREEN_TITLE", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, self.X_SCREEN, self.Y_TITLE, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 		xDropDown, yDropDown = self.getDropdownPos(0)
 		iNumDropDowns = 0
@@ -292,9 +292,9 @@ class CvHallOfFameScreen:
 			for iTrait in range(gc.getNumTraitInfos()):
 				if leaderInfo.hasTrait(iTrait):
 					if szTrait1 == u"":
-						szTrait1 = TraitUtil.getIcon(iTrait)
+						szTrait1 = SASVisuals.Trait.getIcon(iTrait)
 					elif szTrait2 == u"":
-						szTrait2 = TraitUtil.getIcon(iTrait)
+						szTrait2 = SASVisuals.Trait.getIcon(iTrait)
 						break
 		return szTrait1, szTrait2
 

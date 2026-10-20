@@ -13,6 +13,8 @@
 #
 
 from CvPythonExtensions import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 from SASMagicNumbers import *
 import CvUtil
 import ScreenInput
@@ -64,7 +66,6 @@ class SevoPediaCorporation:
 		self.X_MOVIE = self.top.R_PEDIA_PAGE - self.W_MOVIE
 		self.Y_MOVIE = self.Y_COMPETES
 		self.H_MOVIE = self.H_TOP_ROW
-		self.playButtonPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_PLAY_BUTTON").getPath()
 
 		self.X_BONUSES_GENERATED = self.X_BONUSES_CONSUMED
 		self.Y_BONUSES_GENERATED = self.Y_BONUSES_CONSUMED + self.H_TOP_ROW + SMALL_MARGIN
@@ -194,7 +195,7 @@ class SevoPediaCorporation:
 			buttonSize = 64
 			buttonX = (self.W_MOVIE - buttonSize) / 2
 			buttonY = 10
-			screen.setImageButtonAt(self.top.getNextWidgetName(), panelName, self.playButtonPath, buttonX, buttonY, buttonSize, buttonSize, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_MOVIE_ENTRY, iPackedMovie)
+			screen.setImageButtonAt(self.top.getNextWidgetName(), panelName, SASVisuals.InterfaceArt.SAS_EMOJI_PLAY_BUTTON, buttonX, buttonY, buttonSize, buttonSize, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_MOVIE_ENTRY, iPackedMovie)
 		else:
 			draw_none_text(screen, self.top, self.X_MOVIE, self.Y_MOVIE, self.W_MOVIE, self.H_MOVIE)
 

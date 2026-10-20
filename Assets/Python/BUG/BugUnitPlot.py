@@ -13,6 +13,8 @@
 # Edits here are limited to repo-wide consistency passes (e.g. getInfoTypeOrFail for fail-loud XML lookups). (Claude code Opus 4.7) -->
 
 from CvPythonExtensions import *
+# <!-- custom: Resolve interface-art paths through SASVisualUtils so immutable art defines share one lazy cache instead of querying CyArtFileMgr per caller. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 from SASUtils import getInfoTypeOrFail
 import MonkeyTools as mt
 import BugUtil
@@ -628,5 +630,5 @@ class BupUnit:
 #		self.iMoves = pUnit.getMoves()
 
 def getArt(sArt):
-	return ArtFileMgr.getInterfaceArtInfo(sArt).getPath()
+	return SASVisuals.InterfaceArt.getPath(sArt)
 

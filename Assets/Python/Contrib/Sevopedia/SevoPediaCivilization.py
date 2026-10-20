@@ -18,7 +18,8 @@ import CvUtil
 import ScreenInput
 # <!-- custom: SevoScreenEnums.py was removed; import its unchanged page IDs from the SevoScreenEnums class in CvScreenEnums.py, keeping them distinct from vanilla Civilopedia pages. (GPT-6.1-Sol) -->
 from CvScreenEnums import SevoScreenEnums
-from SASFontUtils import *
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import SASTextScale
 from _sevopedia_helpers import *
 
@@ -33,7 +34,6 @@ class SevoPediaCivilization:
 		self.bHistoryExpanded = False
 		self.top = main
 
-		self.playButtonPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_PLAY_BUTTON").getPath()
 
 		self.X_CIVILIZATION_PANE = self.top.X_PEDIA_PAGE
 		self.Y_CIVILIZATION_PANE = self.top.Y_PEDIA_PAGE
@@ -104,7 +104,7 @@ class SevoPediaCivilization:
 		screen.addPanel(self.top.getNextWidgetName(), "", "", False, False, self.X_CIVILIZATION_PANE, self.Y_CIVILIZATION_PANE, self.W_CIVILIZATION_PANE, self.H_CIVILIZATION_PANE, PanelStyles.PANEL_STYLE_BLUE50)
 		# <!-- custom: was PanelStyles.PANEL_STYLE_MAIN -->
 		screen.addPanel(self.top.getNextWidgetName(), "", "", False, False, self.X_ICON, self.Y_ICON, self.W_ICON, self.H_ICON, PanelStyles.PANEL_STYLE_EMPTY)
-		screen.addDDSGFC(self.top.getNextWidgetName(), ArtFileMgr.getCivilizationArtInfo(gc.getCivilizationInfo(self.iCivilization).getArtDefineTag()).getButton(), self.X_ICON + self.W_ICON/2 - PANE_ICON_SIZE/2, self.Y_ICON + self.H_ICON/2 - PANE_ICON_SIZE/2, PANE_ICON_SIZE, PANE_ICON_SIZE, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.addDDSGFC(self.top.getNextWidgetName(), SASVisuals.CivilizationArt.button(self.iCivilization), self.X_ICON + self.W_ICON/2 - PANE_ICON_SIZE/2, self.Y_ICON + self.H_ICON/2 - PANE_ICON_SIZE/2, PANE_ICON_SIZE, PANE_ICON_SIZE, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 	# <!-- custom: based on Middle-earth's mod's Platypedia Civilization -->
 	def placeCities(self):
@@ -135,9 +135,9 @@ class SevoPediaCivilization:
 		# <!-- custom: redirect to the first civ-specific sound entry in Sevopedia Music. (GPT-5.2-Codex (summarized)) -->
 		iMusicKey = self.top.SAS_getFirstCivMusicKey(self.iCivilization)
 		if iMusicKey != -1:
-			screen.setImageButtonAt(self.top.getNextWidgetName(), panelName, self.playButtonPath, buttonX, buttonY, buttonSize, buttonSize, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_MUSIC_ENTRY, iMusicKey)
+			screen.setImageButtonAt(self.top.getNextWidgetName(), panelName, SASVisuals.InterfaceArt.SAS_EMOJI_PLAY_BUTTON, buttonX, buttonY, buttonSize, buttonSize, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_MUSIC_ENTRY, iMusicKey)
 		else:
-			screen.setImageButtonAt(self.top.getNextWidgetName(), panelName, self.playButtonPath, buttonX, buttonY, buttonSize, buttonSize, WidgetTypes.WIDGET_PEDIA_MAIN, SevoScreenEnums.PEDIA_MUSIC, -1)
+			screen.setImageButtonAt(self.top.getNextWidgetName(), panelName, SASVisuals.InterfaceArt.SAS_EMOJI_PLAY_BUTTON, buttonX, buttonY, buttonSize, buttonSize, WidgetTypes.WIDGET_PEDIA_MAIN, SevoScreenEnums.PEDIA_MUSIC, -1)
 
 	def placeTech(self):
 		screen = self.top.getScreen()

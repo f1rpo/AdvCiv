@@ -16,6 +16,8 @@
 #
 
 from CvPythonExtensions import *
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 from SASMagicNumbers import *
 import CvUtil
 import CvPediaScreen
@@ -23,7 +25,7 @@ import ScreenInput
 # <!-- custom: Removed the unused SevoScreenEnums import after its constants moved from SevoScreenEnums.py to the SevoScreenEnums class in CvScreenEnums.py.
 # This page uses none of those IDs, and the removed constants-only module had no initialization side effects. (GPT-6.1-Sol) -->
 import SASTextScale
-from SASFontUtils import sasFontTagLabel
+# <!-- custom: Font-tag sizing moved from SASFontUtils into SASTextScale; visual resources are kept separately in SASVisualUtils. (ChatGPT-5.6-Sol) -->
 
 from _sevopedia_helpers import *
 
@@ -234,8 +236,6 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 		self.W_MUSIC = get_panel_width_for_buttons(1, MULTILIST_BUTTON_SIZE, HYPOTHESIZED_NON_MULTILIST_PANEL_EDGE_PADDING, HYPOTHESIZED_NON_MULTILIST_PANEL_INTER_BUTTON_SPACING)
 		self.H_MUSIC = self.H_ROW
 		self.X_MUSIC = self.top.R_PEDIA_PAGE - self.W_MUSIC
-		self.playButtonPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_PLAY_BUTTON").getPath()
-		self.noEntryButtonPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_NO_ENTRY").getPath()
 
 		self.Y_OBSOLETES = self.Y_FIRST_TO_DISCOVER
 		self.X_OBSOLETES = self.X_TRADEABLE + self.W_TRADEABLE + MEDIUM_MARGIN
@@ -333,7 +333,7 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 		techCost = techInfo.getResearchCost()
 		if (self.top.iActivePlayer != -1):
 			techCost = gc.getTeam(gc.getGame().getActiveTeam()).getResearchCost(self.iTech)
-		szCostText = u"%c %s" % (gc.getCommerceInfo(CommerceTypes.COMMERCE_RESEARCH).getChar(), localText.getText("TXT_KEY_PEDIA_COST_CUSTOM", (techCost,)))
+		szCostText = u"%s %s" % (SASVisuals.Commerce.RESEARCH_CHAR, localText.getText("TXT_KEY_PEDIA_COST_CUSTOM", (techCost,)))
 
 		screen.addListBoxGFC(listBoxName, "", self.X_TECH_PANE + 92, self.Y_TECH_PANE + 14, self.W_TECH_PANE, self.H_TECH_PANE, TableStyles.TABLE_STYLE_EMPTY)
 		screen.enableSelect(listBoxName, False)
@@ -361,7 +361,7 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 			# Y: Must be set to 10 (not calculated from panelHeaderHeight) - empirically determined positioning fix. (Claude code Sonnet 4.5) -->
 			buttonX = (self.W_MUSIC - buttonSize) / 2
 			buttonY = 10
-			screen.setImageButtonAt(self.top.getNextWidgetName(), panelName, self.playButtonPath, buttonX, buttonY, buttonSize, buttonSize, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_MUSIC_ENTRY, iPackedMusic)
+			screen.setImageButtonAt(self.top.getNextWidgetName(), panelName, SASVisuals.InterfaceArt.SAS_EMOJI_PLAY_BUTTON, buttonX, buttonY, buttonSize, buttonSize, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_MUSIC_ENTRY, iPackedMusic)
 		else:
 			draw_none_text(screen, self.top, self.X_MUSIC, self.Y_MUSIC, self.W_MUSIC, self.H_MUSIC)
 
@@ -421,7 +421,7 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 
 		# Free tech for first discoverer
 		if techInfo.getFirstFreeTechs() > 0:
-			szButton = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_FREETECH").getPath()
+			szButton = SASVisuals.InterfaceArt.INTERFACE_TECH_FREETECH
 			# <!-- custom: similarly, as of now upscale the smaller button to 46 px not more -->
 			screen.attachImageButton(panelName, "", szButton, GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_FREE_TECH, self.iTech, -1, False)
 			bButtonFound = True
@@ -451,7 +451,7 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 			buttonSize = 64
 			buttonX = (self.W_TRADEABLE - buttonSize) / 2
 			buttonY = 10
-			screen.setImageButtonAt(self.top.getNextWidgetName(), panelName, self.noEntryButtonPath, buttonX, buttonY, buttonSize, buttonSize, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.setImageButtonAt(self.top.getNextWidgetName(), panelName, SASVisuals.InterfaceArt.SAS_EMOJI_NO_ENTRY, buttonX, buttonY, buttonSize, buttonSize, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 	# <!-- custom: new obsoletes panel showing buildings, bonuses, special buildings, and units obsoleted by this tech with red X overlay (Claude code Sonnet 4.5) -->
 	def placeObsoletes(self):
@@ -758,34 +758,34 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 		# unintended but beneficial side effect: the smaller size helps visually distinguish these "ability" icons from the 64px game object buttons above (Claude code Opus 4.5) -->
 		for iRoute in range(gc.getNumRouteInfos()):
 			if gc.getRouteInfo(iRoute).getTechMovementChange(self.iTech) != 0:
-				screen.attachImageButton(panelName, "", ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_MOVE_BONUS").getPath(), GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_MOVE_BONUS, self.iTech, -1, False)
+				screen.attachImageButton(panelName, "", SASVisuals.InterfaceArt.INTERFACE_TECH_MOVE_BONUS, GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_MOVE_BONUS, self.iTech, -1, False)
 				bButtonFound = True
 				break  # Only show once even if multiple routes affected
 
 		# Bridge Building
 		if techInfo.isBridgeBuilding():
-			screen.attachImageButton(panelName, "", ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_BRIDGEBUILDING").getPath(), GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_BUILD_BRIDGE, self.iTech, -1, False)
+			screen.attachImageButton(panelName, "", SASVisuals.InterfaceArt.INTERFACE_TECH_BRIDGEBUILDING, GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_BUILD_BRIDGE, self.iTech, -1, False)
 			bButtonFound = True
 
 		# Irrigation
 		if techInfo.isIrrigation():
-			screen.attachImageButton(panelName, "", ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_IRRIGATION").getPath(), GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_IRRIGATION, self.iTech, -1, False)
+			screen.attachImageButton(panelName, "", SASVisuals.InterfaceArt.INTERFACE_TECH_IRRIGATION, GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_IRRIGATION, self.iTech, -1, False)
 			bButtonFound = True
 
 		# Ignore Irrigation (farms spread without fresh water)
 		if techInfo.isIgnoreIrrigation():
-			screen.attachImageButton(panelName, "", ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_NOIRRIGATION").getPath(), GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_IGNORE_IRRIGATION, self.iTech, -1, False)
+			screen.attachImageButton(panelName, "", SASVisuals.InterfaceArt.INTERFACE_TECH_NOIRRIGATION, GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_IGNORE_IRRIGATION, self.iTech, -1, False)
 			bButtonFound = True
 
 		# Water Work (coastal work)
 		if techInfo.isWaterWork():
-			screen.attachImageButton(panelName, "", ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_WATERWORK").getPath(), GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_WATER_WORK, self.iTech, -1, False)
+			screen.attachImageButton(panelName, "", SASVisuals.InterfaceArt.INTERFACE_TECH_WATERWORK, GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_WATER_WORK, self.iTech, -1, False)
 			bButtonFound = True
 
 		# Domain Extra Moves (e.g. extra naval movement)
 		for iDomain in range(DomainTypes.NUM_DOMAIN_TYPES):
 			if techInfo.getDomainExtraMoves(iDomain) != 0:
-				screen.attachImageButton(panelName, "", ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_WATERMOVES").getPath(), GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_DOMAIN_EXTRA_MOVES, self.iTech, iDomain, False)
+				screen.attachImageButton(panelName, "", SASVisuals.InterfaceArt.INTERFACE_TECH_WATERMOVES, GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_DOMAIN_EXTRA_MOVES, self.iTech, iDomain, False)
 				bButtonFound = True
 
 		# Terrain trade routes (coastal/ocean trade)
@@ -796,74 +796,74 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 				szArtInfoType = "INTERFACE_TECH_WATERTRADE"
 				if iTerrain == self.iDEEP_WATER_TERRAIN:
 					szArtInfoType = "INTERFACE_TECH_DEEPWATERTRADE"
-				screen.attachImageButton(panelName, "", ArtFileMgr.getInterfaceArtInfo(szArtInfoType).getPath(), GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_TERRAIN_TRADE, self.iTech, iTerrain, False)
+				screen.attachImageButton(panelName, "", SASVisuals.InterfaceArt.getPath(szArtInfoType), GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_TERRAIN_TRADE, self.iTech, iTerrain, False)
 				bButtonFound = True
 
 		# River trade
 		if techInfo.isRiverTrade():
-			screen.attachImageButton(panelName, "", ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_RIVERTRADE").getPath(), GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_TERRAIN_TRADE, self.iTech, gc.getNumTerrainInfos(), False)
+			screen.attachImageButton(panelName, "", SASVisuals.InterfaceArt.INTERFACE_TECH_RIVERTRADE, GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_TERRAIN_TRADE, self.iTech, gc.getNumTerrainInfos(), False)
 			bButtonFound = True
 
 		# Commerce slider adjustments (culture, espionage sliders)
 		for iCommerce in range(CommerceTypes.NUM_COMMERCE_TYPES):
 			if techInfo.isCommerceFlexible(iCommerce):
 				if iCommerce == CommerceTypes.COMMERCE_CULTURE:
-					szFileName = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_CULTURE").getPath()
+					szFileName = SASVisuals.InterfaceArt.INTERFACE_TECH_CULTURE
 				elif iCommerce == CommerceTypes.COMMERCE_ESPIONAGE:
-					szFileName = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_ESPIONAGE").getPath()
+					szFileName = SASVisuals.InterfaceArt.INTERFACE_TECH_ESPIONAGE
 				else:
-					szFileName = ArtFileMgr.getInterfaceArtInfo("INTERFACE_GENERAL_QUESTIONMARK").getPath()
+					szFileName = SASVisuals.InterfaceArt.INTERFACE_GENERAL_QUESTIONMARK
 				screen.attachImageButton(panelName, "", szFileName, GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_ADJUST, self.iTech, iCommerce, False)
 				bButtonFound = True
 
 		# Map Trading
 		if techInfo.isMapTrading():
-			screen.attachImageButton(panelName, "", ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_MAPTRADING").getPath(), GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_MAP_TRADE, self.iTech, -1, False)
+			screen.attachImageButton(panelName, "", SASVisuals.InterfaceArt.INTERFACE_TECH_MAPTRADING, GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_MAP_TRADE, self.iTech, -1, False)
 			bButtonFound = True
 
 		# Tech Trading
 		if techInfo.isTechTrading():
-			screen.attachImageButton(panelName, "", ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_TECHTRADING").getPath(), GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_TECH_TRADE, self.iTech, -1, False)
+			screen.attachImageButton(panelName, "", SASVisuals.InterfaceArt.INTERFACE_TECH_TECHTRADING, GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_TECH_TRADE, self.iTech, -1, False)
 			bButtonFound = True
 
 		# Gold Trading
 		if techInfo.isGoldTrading():
-			screen.attachImageButton(panelName, "", ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_GOLDTRADING").getPath(), GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_GOLD_TRADE, self.iTech, -1, False)
+			screen.attachImageButton(panelName, "", SASVisuals.InterfaceArt.INTERFACE_TECH_GOLDTRADING, GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_GOLD_TRADE, self.iTech, -1, False)
 			bButtonFound = True
 
 		# Open Borders
 		if techInfo.isOpenBordersTrading():
-			screen.attachImageButton(panelName, "", ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_OPENBORDERS").getPath(), GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_OPEN_BORDERS, self.iTech, -1, False)
+			screen.attachImageButton(panelName, "", SASVisuals.InterfaceArt.INTERFACE_TECH_OPENBORDERS, GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_OPEN_BORDERS, self.iTech, -1, False)
 			bButtonFound = True
 
 		# Defensive Pact
 		if techInfo.isDefensivePactTrading():
-			screen.attachImageButton(panelName, "", ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_DEFENSIVEPACT").getPath(), GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_DEFENSIVE_PACT, self.iTech, -1, False)
+			screen.attachImageButton(panelName, "", SASVisuals.InterfaceArt.INTERFACE_TECH_DEFENSIVEPACT, GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_DEFENSIVE_PACT, self.iTech, -1, False)
 			bButtonFound = True
 
 		# Permanent Alliance
 		if techInfo.isPermanentAllianceTrading():
-			screen.attachImageButton(panelName, "", ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_PERMALLIANCE").getPath(), GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_PERMANENT_ALLIANCE, self.iTech, -1, False)
+			screen.attachImageButton(panelName, "", SASVisuals.InterfaceArt.INTERFACE_TECH_PERMALLIANCE, GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_PERMANENT_ALLIANCE, self.iTech, -1, False)
 			bButtonFound = True
 
 		# Vassal States
 		if techInfo.isVassalStateTrading():
-			screen.attachImageButton(panelName, "", ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_VASSAL").getPath(), GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_VASSAL_STATE, self.iTech, -1, False)
+			screen.attachImageButton(panelName, "", SASVisuals.InterfaceArt.INTERFACE_TECH_VASSAL, GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_VASSAL_STATE, self.iTech, -1, False)
 			bButtonFound = True
 
 		# Extra LOS (line of sight) from water
 		if techInfo.isExtraWaterSeeFrom():
-			screen.attachImageButton(panelName, "", ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_LOS").getPath(), GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_LOS_BONUS, self.iTech, -1, False)
+			screen.attachImageButton(panelName, "", SASVisuals.InterfaceArt.INTERFACE_TECH_LOS, GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_LOS_BONUS, self.iTech, -1, False)
 			bButtonFound = True
 
 		# Map centering
 		if techInfo.isMapCentering():
-			screen.attachImageButton(panelName, "", ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_MAPCENTER").getPath(), GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_MAP_CENTER, self.iTech, -1, False)
+			screen.attachImageButton(panelName, "", SASVisuals.InterfaceArt.INTERFACE_TECH_MAPCENTER, GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_MAP_CENTER, self.iTech, -1, False)
 			bButtonFound = True
 
 		# Map reveal
 		if techInfo.isMapVisible():
-			screen.attachImageButton(panelName, "", ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_MAPREVEAL").getPath(), GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_MAP_REVEAL, self.iTech, -1, False)
+			screen.attachImageButton(panelName, "", SASVisuals.InterfaceArt.INTERFACE_TECH_MAPREVEAL, GenericButtonSizes.BUTTON_SIZE_46, WidgetTypes.WIDGET_HELP_MAP_REVEAL, self.iTech, -1, False)
 			bButtonFound = True
 
 		if not bButtonFound:
@@ -930,16 +930,16 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 		screen.enableSort(tableName)
 
 		# Column headers: "Starting Tech" in first column (implicit panel title)
-		SASTextScale.setTableColumnHeaderScaled(screen, tableName, 0, localText.getText("TXT_KEY_PEDIA_SAS_STARTING_TECH_HEADER", ()), colTechW, sasFontTagLabel)
-		SASTextScale.setTableColumnHeaderScaled(screen, tableName, 1, localText.getText("TXT_KEY_PEDIA_SAS_TOTAL_COUNT", ()), colCountW, sasFontTagLabel)
+		SASTextScale.setTableColumnHeaderScaled(screen, tableName, 0, localText.getText("TXT_KEY_PEDIA_SAS_STARTING_TECH_HEADER", ()), colTechW, SASTextScale.sasFontTagLabel)
+		SASTextScale.setTableColumnHeaderScaled(screen, tableName, 1, localText.getText("TXT_KEY_PEDIA_SAS_TOTAL_COUNT", ()), colCountW, SASTextScale.sasFontTagLabel)
 		inchart_set_icon_column_headers(screen, tableName, 2, maxCivs, civColW)
 
 		for iTech, civCount, civIds in startingTechData:
 			iRow = screen.appendTableRow(tableName)
 			techInfo = gc.getTechInfo(iTech)
 
-			SASTextScale.setTableTextScaled(screen, tableName, 0, iRow, techInfo.getDescription(), techInfo.getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iTech, -1, CvUtil.FONT_LEFT_JUSTIFY, sasFontTagLabel)
-			SASTextScale.setTableTextScaled(screen, tableName, 1, iRow, u"%d" % civCount, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY, sasFontTagLabel)
+			SASTextScale.setTableTextScaled(screen, tableName, 0, iRow, techInfo.getDescription(), techInfo.getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, iTech, -1, CvUtil.FONT_LEFT_JUSTIFY, SASTextScale.sasFontTagLabel)
+			SASTextScale.setTableTextScaled(screen, tableName, 1, iRow, u"%d" % civCount, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY, SASTextScale.sasFontTagLabel)
 
 			inchart_set_icon_cells(screen, tableName, iRow, civIds, 2, maxCivs, INCHART_ICON_TYPE_CIV)
 
@@ -982,9 +982,9 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 		screen.enableSort(tableName)
 
 		# Column headers: "Untradeable" | "Count" | "All" | tech buttons...
-		SASTextScale.setTableColumnHeaderScaled(screen, tableName, 0, localText.getText("TXT_KEY_PEDIA_SAS_UNTRADEABLE_HEADER", ()), colEraW, sasFontTagLabel)
-		SASTextScale.setTableColumnHeaderScaled(screen, tableName, 1, localText.getText("TXT_KEY_PEDIA_SAS_COUNT", ()), colCountW, sasFontTagLabel)
-		SASTextScale.setTableColumnHeaderScaled(screen, tableName, 2, localText.getText("TXT_KEY_PEDIA_SAS_ALL", ()), colAllW, sasFontTagLabel)
+		SASTextScale.setTableColumnHeaderScaled(screen, tableName, 0, localText.getText("TXT_KEY_PEDIA_SAS_UNTRADEABLE_HEADER", ()), colEraW, SASTextScale.sasFontTagLabel)
+		SASTextScale.setTableColumnHeaderScaled(screen, tableName, 1, localText.getText("TXT_KEY_PEDIA_SAS_COUNT", ()), colCountW, SASTextScale.sasFontTagLabel)
+		SASTextScale.setTableColumnHeaderScaled(screen, tableName, 2, localText.getText("TXT_KEY_PEDIA_SAS_ALL", ()), colAllW, SASTextScale.sasFontTagLabel)
 		inchart_set_icon_column_headers(screen, tableName, 3, maxTechs, techColW)
 
 		numEras = gc.getNumEraInfos()
@@ -1001,14 +1001,14 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 			# Navigation widgets only work with setImageButtonAt, not table cells.
 			# To make this clickable, would need to restructure from table to individual buttons. (Claude code Sonnet 4.5) -->
 			eraButtonPath = eraInfo.getButton()
-			SASTextScale.setTableTextScaled(screen, tableName, 0, iRow, eraInfo.getDescription(), eraButtonPath, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY, sasFontTagLabel)
+			SASTextScale.setTableTextScaled(screen, tableName, 0, iRow, eraInfo.getDescription(), eraButtonPath, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY, SASTextScale.sasFontTagLabel)
 
 			# Untradeable tech count column
-			SASTextScale.setTableTextScaled(screen, tableName, 1, iRow, u"%d" % techCount, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY, sasFontTagLabel)
+			SASTextScale.setTableTextScaled(screen, tableName, 1, iRow, u"%d" % techCount, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY, SASTextScale.sasFontTagLabel)
 
 			# All techs in era column
 			totalInEra = totalTechsByEra.get(iEra, 0)
-			SASTextScale.setTableTextScaled(screen, tableName, 2, iRow, u"%d" % totalInEra, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY, sasFontTagLabel)
+			SASTextScale.setTableTextScaled(screen, tableName, 2, iRow, u"%d" % totalInEra, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY, SASTextScale.sasFontTagLabel)
 
 			# Tech button columns (starting at column 3)
 			inchart_set_icon_cells(screen, tableName, iRow, techIds, 3, maxTechs, INCHART_ICON_TYPE_TECH)
@@ -1050,10 +1050,10 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 		screen.addTableControlGFC(tableName, 4 + maxCivsRight, tableX, tableY, tableW, tableH, True, False, self.STATS_ROW_H, self.STATS_ROW_H, CHART_TABLE_STYLE)
 		screen.enableSort(tableName)
 
-		SASTextScale.setTableColumnHeaderScaled(screen, tableName, 0, u"Tech 1", colTech1W, sasFontTagLabel)
-		SASTextScale.setTableColumnHeaderScaled(screen, tableName, 1, u"Tech 2", colTech2W, sasFontTagLabel)
-		SASTextScale.setTableColumnHeaderScaled(screen, tableName, 2, localText.getText("TXT_KEY_PEDIA_SAS_TOTAL_COUNT", ()), colCountW, sasFontTagLabel)
-		SASTextScale.setTableColumnHeaderScaled(screen, tableName, 3, localText.getText("TXT_KEY_PEDIA_SAS_RANKING", ()), colRankW, sasFontTagLabel)
+		SASTextScale.setTableColumnHeaderScaled(screen, tableName, 0, u"Tech 1", colTech1W, SASTextScale.sasFontTagLabel)
+		SASTextScale.setTableColumnHeaderScaled(screen, tableName, 1, u"Tech 2", colTech2W, SASTextScale.sasFontTagLabel)
+		SASTextScale.setTableColumnHeaderScaled(screen, tableName, 2, localText.getText("TXT_KEY_PEDIA_SAS_TOTAL_COUNT", ()), colCountW, SASTextScale.sasFontTagLabel)
+		SASTextScale.setTableColumnHeaderScaled(screen, tableName, 3, localText.getText("TXT_KEY_PEDIA_SAS_RANKING", ()), colRankW, SASTextScale.sasFontTagLabel)
 		inchart_set_icon_column_headers(screen, tableName, 4, maxCivsRight, TECH_STATS_RIGHT_ICON_COL_W)
 
 		minCount, maxCount = combosMinMax
@@ -1063,15 +1063,15 @@ class SevoPediaTech(CvPediaScreen.CvPediaScreen):
 			tech1Info = gc.getTechInfo(tech1)
 			tech2Info = gc.getTechInfo(tech2)
 
-			SASTextScale.setTableTextScaled(screen, tableName, 0, iRow, tech1Info.getDescription(), tech1Info.getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, tech1, -1, CvUtil.FONT_LEFT_JUSTIFY, sasFontTagLabel)
-			SASTextScale.setTableTextScaled(screen, tableName, 1, iRow, tech2Info.getDescription(), tech2Info.getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, tech2, -1, CvUtil.FONT_LEFT_JUSTIFY, sasFontTagLabel)
+			SASTextScale.setTableTextScaled(screen, tableName, 0, iRow, tech1Info.getDescription(), tech1Info.getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, tech1, -1, CvUtil.FONT_LEFT_JUSTIFY, SASTextScale.sasFontTagLabel)
+			SASTextScale.setTableTextScaled(screen, tableName, 1, iRow, tech2Info.getDescription(), tech2Info.getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, tech2, -1, CvUtil.FONT_LEFT_JUSTIFY, SASTextScale.sasFontTagLabel)
 
 			# Count
-			SASTextScale.setTableTextScaled(screen, tableName, 2, iRow, u"%d" % civCount, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY, sasFontTagLabel)
+			SASTextScale.setTableTextScaled(screen, tableName, 2, iRow, u"%d" % civCount, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY, SASTextScale.sasFontTagLabel)
 
 			# Ranking bar using centralized helper
 			rankingBar = inchart_calc_ranking_bar(civCount, minCount, maxCount)
-			SASTextScale.setTableTextScaled(screen, tableName, 3, iRow, rankingBar, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY, sasFontTagLabel)
+			SASTextScale.setTableTextScaled(screen, tableName, 3, iRow, rankingBar, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY, SASTextScale.sasFontTagLabel)
 
 			# Civ icons using centralized helper
 			inchart_set_icon_cells(screen, tableName, iRow, civIds, 4, maxCivsRight, INCHART_ICON_TYPE_CIV)

@@ -27,6 +27,8 @@
 # Minor edits here are limited to repo-wide consistency passes (e.g. getInfoTypeOrFail for fail-loud XML lookups). (Claude code Opus 4.7) -->
 
 from CvPythonExtensions import *
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 from SASUtils import getInfoTypeOrFail
 import CvUtil
 import PyHelpers
@@ -186,7 +188,6 @@ class CvMilitaryAdvisor:
 		self.TABLE_CONTROL_HEIGHT = 0
 #		self.RESOURCE_ICON_SIZE = 34
 
-		self.szMaybeButton = ArtFileMgr.getInterfaceArtInfo("QUESTION_MARK").getPath()
 
 	def getScreen(self):
 		return CyGInterfaceScreen(self.SCREEN_NAME, self.screenId)
@@ -226,7 +227,7 @@ class CvMilitaryAdvisor:
 			self.iScreen = UNIT_LOCATION_SCREEN
 
 		# Set the background widget and exit button
-		screen.addDDSGFC(self.BACKGROUND_ID, ArtFileMgr.getInterfaceArtInfo("MAINMENU_SLIDESHOW_LOAD").getPath(), 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		screen.addDDSGFC(self.BACKGROUND_ID, SASVisuals.InterfaceArt.MAINMENU_SLIDESHOW_LOAD, 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 		screen.addPanel( "TechTopPanel", u"", u"", True, False, 0, 0, self.W_SCREEN, 55, PanelStyles.PANEL_STYLE_TOPBAR )
 		screen.addPanel( "TechBottomPanel", u"", u"", True, False, 0, 713, self.W_SCREEN, 55, PanelStyles.PANEL_STYLE_BOTTOMBAR )
 		screen.showWindowBackground( False )
@@ -256,7 +257,7 @@ class CvMilitaryAdvisor:
 		if (self.iScreen != UNIT_LOCATION_SCREEN):
 			szText = u"<font=4>" + localText.getText("TXT_KEY_MILITARY_UNIT_LOCATION", ()).upper() + "</font>"
 		else:
-			szText = u"<font=4>" + localText.getColorText("TXT_KEY_MILITARY_UNIT_LOCATION", (), getInfoTypeOrFail("COLOR_YELLOW")).upper() + "</font>"
+			szText = u"<font=4>" + localText.getColorText("TXT_KEY_MILITARY_UNIT_LOCATION", (), SASVisuals.Color.YELLOW).upper() + "</font>"
 		screen.setText(self.UNIT_LOC_TAB_ID, "", szText, CvUtil.FONT_CENTER_JUSTIFY, xLink, self.Y_LINK, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 		#xLink += CyInterface().determineWidth(szText) + self.SPACING
 		xLink += self.DX_LINK #K-Mod
@@ -264,7 +265,7 @@ class CvMilitaryAdvisor:
 		if (self.iScreen != SITUATION_REPORT_SCREEN):
 			szText = u"<font=4>" + localText.getText("TXT_KEY_MILITARY_SITUATION_REPORT", ()).upper() + "</font>"
 		else:
-			szText = u"<font=4>" + localText.getColorText("TXT_KEY_MILITARY_SITUATION_REPORT", (), getInfoTypeOrFail("COLOR_YELLOW")).upper() + "</font>"
+			szText = u"<font=4>" + localText.getColorText("TXT_KEY_MILITARY_SITUATION_REPORT", (), SASVisuals.Color.YELLOW).upper() + "</font>"
 		screen.setText(self.SIT_REP_TAB_ID, "", szText, CvUtil.FONT_CENTER_JUSTIFY, xLink, self.Y_LINK, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 		#xLink += CyInterface().determineWidth(szText) + self.SPACING
 		xLink += self.DX_LINK #K-Mod
@@ -272,7 +273,7 @@ class CvMilitaryAdvisor:
 		if (self.iScreen != STRATEGIC_ADVANTAGES_SCREEN):
 			szText = u"<font=4>" + localText.getText("TXT_KEY_MILITARY_STRATEGIC_ADVANTAGES", ()).upper() + "</font>"
 		else:
-			szText = u"<font=4>" + localText.getColorText("TXT_KEY_MILITARY_STRATEGIC_ADVANTAGES", (), getInfoTypeOrFail("COLOR_YELLOW")).upper() + "</font>"
+			szText = u"<font=4>" + localText.getColorText("TXT_KEY_MILITARY_STRATEGIC_ADVANTAGES", (), SASVisuals.Color.YELLOW).upper() + "</font>"
 		screen.setText(self.STRAT_ADV_TAB_ID, "", szText, CvUtil.FONT_CENTER_JUSTIFY, xLink, self.Y_LINK, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 #### Situation Report Tab ####
@@ -362,16 +363,18 @@ class CvMilitaryAdvisor:
 				for pLoopPlayer in pPossibleWars:
 					# advc.004: BULL widget help enabled
 					self.iconGrid.addIcon(iRow, self.Col_WillDeclareOn, gc.getLeaderHeadInfo (pLoopPlayer.getLeaderType()).getButton(), 32, WidgetTypes.WIDGET_LEADERHEAD_RELATIONS, iLoopPlayer, pLoopPlayer.getID())
+				# <!-- custom: Keep this inherited disabled code consistent with the shared visual-resource API; retain its original rationale and disabled status.
 				# show WHEOOH
 				# if bWHEOOH:
-					# sWHEOOH = u" %c" % CyGame().getSymbolID(FontSymbols.OCCUPATION_CHAR)
+					# sWHEOOH = u" %s" % SASVisuals.Font.char(FontSymbols.OCCUPATION_CHAR)
 				# else:
 					# sWHEOOH = ""
 				# K-Mod
+				# (GPT-6.1-Sol) -->
 				if bWHEOOH and not bCurrentWar:
 					# which symbol for Col_Curr_Wars? using QUESTION_MARK; alternatives tried: "Art/Interface/Buttons/Civilizations/Barbarian.dds" or ArtFileMgr.getInterfaceArtInfo("INTERFACE_RESISTANCE").getPath()
-					self.iconGrid.addIcon(iRow, self.Col_Curr_Wars, ArtFileMgr.getInterfaceArtInfo("QUESTION_MARK").getPath(), 32, WidgetTypes.WIDGET_GENERAL, -1)
-					self.iconGrid.addIcon(iRow, self.Col_WillDeclareOn, ArtFileMgr.getInterfaceArtInfo("QUESTION_MARK").getPath(), 32, WidgetTypes.WIDGET_GENERAL, -1)
+					self.iconGrid.addIcon(iRow, self.Col_Curr_Wars, SASVisuals.InterfaceArt.QUESTION_MARK, 32, WidgetTypes.WIDGET_GENERAL, -1)
+					self.iconGrid.addIcon(iRow, self.Col_WillDeclareOn, SASVisuals.InterfaceArt.QUESTION_MARK, 32, WidgetTypes.WIDGET_GENERAL, -1)
 				# K-Mod end
 
 				# show possible trade embargos
@@ -696,7 +699,7 @@ class CvMilitaryAdvisor:
 			self.addStratAdvBonusIcons(iRow, self.SA_Col_Bonus_Them, theirs)
 		else:
 			self.iRivalBonuses = None
-			szButton = ArtFileMgr.getInterfaceArtInfo("QUESTION_MARK").getPath()
+			szButton = SASVisuals.InterfaceArt.QUESTION_MARK
 			self.iconGrid.addIcon(iRow, self.SA_Col_Bonus_Us, szButton, 32, WidgetTypes.WIDGET_GENERAL, -1)
 			self.iconGrid.addIcon(iRow, self.SA_Col_Bonus_Them, szButton, 32, WidgetTypes.WIDGET_GENERAL, -1)
 
@@ -707,7 +710,7 @@ class CvMilitaryAdvisor:
 
 	def addStratAdvUnits(self, activePlayer, player, iRow):
 		if (not gc.getTeam(activePlayer.getTeam()).isTechTrading() and not gc.getTeam(player.getTeam()).isTechTrading()):
-			szButton = ArtFileMgr.getInterfaceArtInfo("QUESTION_MARK").getPath()
+			szButton = SASVisuals.InterfaceArt.QUESTION_MARK
 			self.iconGrid.addIcon(iRow, self.SA_Col_Unit_Us_Yes, szButton, 32, WidgetTypes.WIDGET_GENERAL, -1)
 			self.iconGrid.addIcon(iRow, self.SA_Col_Unit_Them_Yes, szButton, 32, WidgetTypes.WIDGET_GENERAL, -1)
 			return
@@ -885,7 +888,7 @@ class CvMilitaryAdvisor:
 					szButton = gc.getLeaderHeadInfo(gc.getPlayer(iLoopPlayer).getLeaderType()).getButton()
 
 				szLeaderButton = self.getLeaderButtonWidget(iLoopPlayer)              #self.getNextWidgetName()
-				screen.addCheckBoxGFC(szLeaderButton, szButton, ArtFileMgr.getInterfaceArtInfo("BUTTON_HILITE_SQUARE").getPath(), x, y, iButtonSize, iButtonSize, WidgetTypes.WIDGET_MINIMAP_HIGHLIGHT, 2, iLoopPlayer, ButtonStyles.BUTTON_STYLE_LABEL)
+				screen.addCheckBoxGFC(szLeaderButton, szButton, SASVisuals.InterfaceArt.BUTTON_HILITE_SQUARE, x, y, iButtonSize, iButtonSize, WidgetTypes.WIDGET_MINIMAP_HIGHLIGHT, 2, iLoopPlayer, ButtonStyles.BUTTON_STYLE_LABEL)
 				screen.setState(szLeaderButton, (iLoopPlayer in self.selectedLeaders))				
 
 		self.UL_refreshUnitSelection(bReload, bRedraw)
@@ -929,7 +932,7 @@ class CvMilitaryAdvisor:
 		szText = localText.getText("TXT_KEY_PEDIA_ALL_UNITS", ()).upper()
 		bAllSelected = iGroupID in self.selectedGroups
 		if (bAllSelected):
-			szText = localText.changeTextColor(u"<u>" + szText + u"</u>", getInfoTypeOrFail("COLOR_YELLOW"))
+			szText = localText.changeTextColor(u"<u>" + szText + u"</u>", SASVisuals.Color.YELLOW)
 		if (bRedraw):
 			screen.addListBoxGFC(self.UNIT_LIST_ID, "", self.X_TEXT + self.MAP_MARGIN, self.Y_TEXT + self.MAP_MARGIN + 15, self.W_TEXT - 2 * self.MAP_MARGIN, self.H_TEXT - 2 * self.MAP_MARGIN - 15, TableStyles.TABLE_STYLE_STANDARD)
 			screen.enableSelect(self.UNIT_LIST_ID, False)
@@ -942,9 +945,9 @@ class CvMilitaryAdvisor:
 #			for group in grouping.itergroups():
 #				BugUtil.debug("%s / %s : %d (%d)" % (grouping.grouping.title, group.group.title, group.size(), group.isEmpty()))
 
-		eYellow = getInfoTypeOrFail("COLOR_YELLOW")
-		eRed = getInfoTypeOrFail("COLOR_RED")
-		eWhite = getInfoTypeOrFail("COLOR_WHITE")
+		eYellow = SASVisuals.Color.YELLOW
+		eRed = SASVisuals.Color.RED
+		eWhite = SASVisuals.Color.WHITE
 		grouping1 = self.stats.getGrouping(self.groupingKeys[0])
 		grouping2 = self.stats.getGrouping(self.groupingKeys[1])
 		BugUtil.debug("Grouping 1 is %s" % grouping1.grouping.title)
@@ -1082,10 +1085,10 @@ class CvMilitaryAdvisor:
 			szGGTxt_ID = self.getNextWidgetName()
 
 			screen.addStackedBarGFC(szGGBar_ID, self.X_GREAT_GENERAL_BAR, self.Y_GREAT_GENERAL_BAR, self.W_GREAT_GENERAL_BAR, self.H_GREAT_GENERAL_BAR, InfoBarTypes.NUM_INFOBAR_TYPES, WidgetTypes.WIDGET_HELP_GREAT_GENERAL, -1, -1)
-			screen.setStackedBarColors(szGGBar_ID, InfoBarTypes.INFOBAR_STORED, getInfoTypeOrFail("COLOR_GREAT_PEOPLE_STORED"))
-			screen.setStackedBarColors(szGGBar_ID, InfoBarTypes.INFOBAR_RATE, getInfoTypeOrFail("COLOR_GREAT_PEOPLE_RATE"))
-			screen.setStackedBarColors(szGGBar_ID, InfoBarTypes.INFOBAR_RATE_EXTRA, getInfoTypeOrFail("COLOR_EMPTY"))
-			screen.setStackedBarColors(szGGBar_ID, InfoBarTypes.INFOBAR_EMPTY, getInfoTypeOrFail("COLOR_EMPTY"))
+			screen.setStackedBarColors(szGGBar_ID, InfoBarTypes.INFOBAR_STORED, SASVisuals.Color.GREAT_PEOPLE_STORED)
+			screen.setStackedBarColors(szGGBar_ID, InfoBarTypes.INFOBAR_RATE, SASVisuals.Color.GREAT_PEOPLE_RATE)
+			screen.setStackedBarColors(szGGBar_ID, InfoBarTypes.INFOBAR_RATE_EXTRA, SASVisuals.Color.EMPTY)
+			screen.setStackedBarColors(szGGBar_ID, InfoBarTypes.INFOBAR_EMPTY, SASVisuals.Color.EMPTY)
 			screen.setBarPercentage(szGGBar_ID, InfoBarTypes.INFOBAR_STORED, float(iExperience) / float(gc.getPlayer(self.iActivePlayer).greatPeopleThreshold(true)))
 
 			screen.setLabel(szGGTxt_ID, "", localText.getText("TXT_KEY_MISC_COMBAT_EXPERIENCE", ()), CvUtil.FONT_CENTER_JUSTIFY, self.X_GREAT_GENERAL_BAR + self.W_GREAT_GENERAL_BAR/2, self.Y_GREAT_GENERAL_BAR + 6, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_GREAT_GENERAL, -1, -1)

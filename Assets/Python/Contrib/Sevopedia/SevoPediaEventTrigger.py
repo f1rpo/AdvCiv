@@ -4,6 +4,8 @@
 # <!-- custom: The page treats the trigger as the dominant entity (matches player's mental model: the trigger is "what happens", events are "the choices when it fires"). (Claude code Opus 4.7) -->
 
 from CvPythonExtensions import *
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 from SASMagicNumbers import *
 import CvUtil
 # <!-- custom: Removed the unused SevoScreenEnums import after its constants moved from SevoScreenEnums.py to the SevoScreenEnums class in CvScreenEnums.py.
@@ -80,20 +82,8 @@ class SevoPediaEventTrigger:
 
 		self.EVENT_CARD_PANEL_HEADER_H = 28
 
-		self.BULLET_PREFIX = u"%c " % CyGame().getSymbolID(FontSymbols.BULLET_CHAR)
 
-		self.COMMERCE_CHARS = []
-		for iCommerce in range(CommerceTypes.NUM_COMMERCE_TYPES):
-			self.COMMERCE_CHARS.append(gc.getCommerceInfo(iCommerce).getChar())
-		self.YIELD_CHARS = []
-		for iYield in range(YieldTypes.NUM_YIELD_TYPES):
-			self.YIELD_CHARS.append(gc.getYieldInfo(iYield).getChar())
-		self.HAPPY_CHAR = u"%c" % CyGame().getSymbolID(FontSymbols.HAPPY_CHAR)
-		self.UNHAPPY_CHAR = u"%c" % CyGame().getSymbolID(FontSymbols.UNHAPPY_CHAR)
-		self.HEALTHY_CHAR = u"%c" % CyGame().getSymbolID(FontSymbols.HEALTHY_CHAR)
-		self.UNHEALTHY_CHAR = u"%c" % CyGame().getSymbolID(FontSymbols.UNHEALTHY_CHAR)
-		self.GOLDEN_AGE_CHAR = u"%c" % CyGame().getSymbolID(FontSymbols.GOLDEN_AGE_CHAR)
-		self.STAR_CHAR = u"%c" % CyGame().getSymbolID(FontSymbols.STAR_CHAR)
+		# <!-- custom: Yield/commerce glyph ordinals are shared by SASVisualUtils; do not rebuild per-page copies here. (ChatGPT-5.6-Sol) -->
 
 	def interfaceScreen(self, iTrigger):
 		bTriggerChanged = (self.iTrigger != iTrigger)
@@ -140,7 +130,7 @@ class SevoPediaEventTrigger:
 		szType = ""
 		if info:
 			szType = info.getType()
-		szLine = self.BULLET_PREFIX + szDisplayName
+		szLine = SASVisuals.Font.BULLET_CHAR + u" " + szDisplayName
 		if szType:
 			szLine = szLine + u"  (" + szType + u")"
 		screen.addMultilineText(self.top.getNextWidgetName(), SASTextScale.labelText(szLine), self.X_NAME + 14, self.Y_NAME + 30, self.W_NAME - 28, self.H_NAME - 36, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
@@ -153,8 +143,8 @@ class SevoPediaEventTrigger:
 		info = self._getTriggerInfo()
 		lines = []
 		if info:
-			lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_IWEIGHT", ()) + u": %d" % info.getProbability())
-			lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_ACTIVE_GAMES", ()) + u": %d%%" % info.getPercentGamesActive())
+			lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_IWEIGHT", ()) + u": %d" % info.getProbability())
+			lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_ACTIVE_GAMES", ()) + u": %d%%" % info.getPercentGamesActive())
 			listFlags = []
 			if info.isRecurring():
 				listFlags.append(localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_FLAG_RECURRING", ()))
@@ -168,7 +158,7 @@ class SevoPediaEventTrigger:
 				szFlags = u", ".join(listFlags)
 			else:
 				szFlags = localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_NONE", ())
-			lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_FLAGS", ()) + u": " + szFlags)
+			lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_FLAGS", ()) + u": " + szFlags)
 
 		if lines:
 			szText = u"\n".join(lines)
@@ -187,45 +177,45 @@ class SevoPediaEventTrigger:
 			# <!-- custom: only non-linkable numeric thresholds live here as text.
 			# All linkable prereqs (direct techs, civic, obsolete techs, OtherPlayerHasTech, required buildings/units/religions/corporations) are icon buttons in the Requires-Buttons panel below, which avoids duplicating every asset name as both an icon and a text line. (Claude code Opus 4.7) -->
 			if info.getMinPopulation() > 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_MIN_POP", ()) + u": %d" % info.getMinPopulation())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_MIN_POP", ()) + u": %d" % info.getMinPopulation())
 			if info.getMaxPopulation() > 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_MAX_POP", ()) + u": %d" % info.getMaxPopulation())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_MAX_POP", ()) + u": %d" % info.getMaxPopulation())
 			if info.getMinTreasury() > 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_MIN_TREASURY", ()) + u": %d" % info.getMinTreasury())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_MIN_TREASURY", ()) + u": %d" % info.getMinTreasury())
 			if info.getNumUnits() > 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_CITY_UNITS", ()) + u": %d" % info.getNumUnits())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_CITY_UNITS", ()) + u": %d" % info.getNumUnits())
 			if info.getNumBuildings() > 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_CITY_BUILDINGS", ()) + u": %d" % info.getNumBuildings())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_CITY_BUILDINGS", ()) + u": %d" % info.getNumBuildings())
 			if info.getNumUnitsGlobal() > 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_GLOBAL_UNITS", ()) + u": %d" % info.getNumUnitsGlobal())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_GLOBAL_UNITS", ()) + u": %d" % info.getNumUnitsGlobal())
 			if info.getNumBuildingsGlobal() > 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_GLOBAL_BUILDINGS", ()) + u": %d" % info.getNumBuildingsGlobal())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_GLOBAL_BUILDINGS", ()) + u": %d" % info.getNumBuildingsGlobal())
 			if info.getMinDifficulty() >= 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_MIN_DIFFICULTY", ()) + u": " + gc.getHandicapInfo(info.getMinDifficulty()).getDescription())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_MIN_DIFFICULTY", ()) + u": " + gc.getHandicapInfo(info.getMinDifficulty()).getDescription())
 			if info.getAngry() > 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_ANGRY", ()) + u": %d" % info.getAngry())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_ANGRY", ()) + u": %d" % info.getAngry())
 			if info.getUnhealthy() > 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_UNHEALTHY", ()) + u": %d" % info.getUnhealthy())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_UNHEALTHY", ()) + u": %d" % info.getUnhealthy())
 			if info.getMinMapLandmass() > 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_MIN_MAP_LANDMASS", ()) + u": %d" % info.getMinMapLandmass())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_MIN_MAP_LANDMASS", ()) + u": %d" % info.getMinMapLandmass())
 			if info.getMinOurLandmass() > 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_MIN_OUR_LANDMASS", ()) + u": %d" % info.getMinOurLandmass())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_MIN_OUR_LANDMASS", ()) + u": %d" % info.getMinOurLandmass())
 			if info.getMaxOurLandmass() >= 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_MAX_OUR_LANDMASS", ()) + u": %d" % info.getMaxOurLandmass())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_MAX_OUR_LANDMASS", ()) + u": %d" % info.getMaxOurLandmass())
 			if info.getNumPlotsRequired() > 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_PLOTS_REQUIRED", ()) + u": %d" % info.getNumPlotsRequired())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_PLOTS_REQUIRED", ()) + u": %d" % info.getNumPlotsRequired())
 			if info.isOwnPlot():
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_OWN_PLOT", ()))
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_OWN_PLOT", ()))
 			if info.getPlotsType() >= 0:
 				iPlotType = info.getPlotsType()
 				if iPlotType < len(self.PLOT_TYPE_LABELS):
-					lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_PLOT_TYPE", ()) + u": " + self.PLOT_TYPE_LABELS[iPlotType])
+					lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_PLOT_TYPE", ()) + u": " + self.PLOT_TYPE_LABELS[iPlotType])
 				else:
-					lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_PLOT_TYPE", ()) + u": %d" % iPlotType)
+					lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_PLOT_TYPE", ()) + u": %d" % iPlotType)
 			if info.getNumReligions() > 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_NUM_RELIGIONS", ()) + u": %d" % info.getNumReligions())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_NUM_RELIGIONS", ()) + u": %d" % info.getNumReligions())
 			if info.getNumCorporations() > 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_NUM_CORPORATIONS", ()) + u": %d" % info.getNumCorporations())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_NUM_CORPORATIONS", ()) + u": %d" % info.getNumCorporations())
 			listFlagKeys = []
 			if info.isPickReligion():
 				listFlagKeys.append("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_PICK_RELIGION")
@@ -262,17 +252,17 @@ class SevoPediaEventTrigger:
 			if info.isProbabilityBuildingMultiply():
 				listFlagKeys.append("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_IWEIGHT_BUILDING_MULTIPLY")
 			for szKey in listFlagKeys:
-				lines.append(self.BULLET_PREFIX + localText.getText(szKey, ()))
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText(szKey, ()))
 			if info.getOtherPlayerShareBorders() > 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_OTHER_PLAYER_SHARE_BORDERS", ()) + u": %d" % info.getOtherPlayerShareBorders())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_OTHER_PLAYER_SHARE_BORDERS", ()) + u": %d" % info.getOtherPlayerShareBorders())
 			if info.getCityFoodWeight() != 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_CITY_FOOD_WEIGHT", ()) + u": %d" % info.getCityFoodWeight())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_CITY_FOOD_WEIGHT", ()) + u": %d" % info.getCityFoodWeight())
 			if info.getUnitDamagedWeight() != 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_UNIT_DAMAGED_WEIGHT", ()) + u": %d" % info.getUnitDamagedWeight())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_UNIT_DAMAGED_WEIGHT", ()) + u": %d" % info.getUnitDamagedWeight())
 			if info.getUnitDistanceWeight() != 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_UNIT_DISTANCE_WEIGHT", ()) + u": %d" % info.getUnitDistanceWeight())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_UNIT_DISTANCE_WEIGHT", ()) + u": %d" % info.getUnitDistanceWeight())
 			if info.getUnitExperienceWeight() != 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_UNIT_EXPERIENCE_WEIGHT", ()) + u": %d" % info.getUnitExperienceWeight())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_UNIT_EXPERIENCE_WEIGHT", ()) + u": %d" % info.getUnitExperienceWeight())
 			listRoutes = []
 			for i in range(info.getNumRoutesRequired()):
 				iRoute = info.getRouteRequired(i)
@@ -281,7 +271,7 @@ class SevoPediaEventTrigger:
 					if routeInfo:
 						listRoutes.append(routeInfo.getDescription())
 			if listRoutes:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_REQUIRED_ROUTES", ()) + u": " + localText.getText("TXT_KEY_OR", ()).join([u" " + szRoute + u" " for szRoute in listRoutes]).strip())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_REQUIRED_ROUTES", ()) + u": " + localText.getText("TXT_KEY_OR", ()).join([u" " + szRoute + u" " for szRoute in listRoutes]).strip())
 			listPython = []
 			if info.getPythonCanDo() and len(info.getPythonCanDo().strip()) > 0:
 				listPython.append(info.getPythonCanDo())
@@ -290,7 +280,7 @@ class SevoPediaEventTrigger:
 			if info.getPythonCanDoUnit() and len(info.getPythonCanDoUnit().strip()) > 0:
 				listPython.append(info.getPythonCanDoUnit())
 			if listPython:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_PYTHON_GATES", ()) + u": " + u", ".join(listPython))
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_TRIGGER_PYTHON_GATES", ()) + u": " + u", ".join(listPython))
 
 		if lines:
 			szText = u"\n".join(lines)
@@ -316,25 +306,25 @@ class SevoPediaEventTrigger:
 				szGoldKey = "TXT_KEY_PEDIA_SAS_EVENT_EFFECT_GOLD_TO_PLAYER"
 			else:
 				szGoldKey = "TXT_KEY_PEDIA_SAS_EVENT_EFFECT_GOLD"
-			parts.append(localText.getText(szGoldKey, ()) + u": %+d %c" % (eventInfo.getGold(), self.COMMERCE_CHARS[CommerceTypes.COMMERCE_GOLD]))
+			parts.append(localText.getText(szGoldKey, ()) + u": %+d %s" % (eventInfo.getGold(), SASVisuals.Commerce.GOLD_CHAR))
 		if eventInfo.getRandomGold() != 0:
-			parts.append(localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_RANDOM_GOLD", ()) + u": %+d %c" % (eventInfo.getRandomGold(), self.COMMERCE_CHARS[CommerceTypes.COMMERCE_GOLD]))
+			parts.append(localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_RANDOM_GOLD", ()) + u": %+d %s" % (eventInfo.getRandomGold(), SASVisuals.Commerce.GOLD_CHAR))
 		if eventInfo.getCulture() != 0:
-			parts.append(localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_CULTURE", ()) + u": %+d %c" % (eventInfo.getCulture(), self.COMMERCE_CHARS[CommerceTypes.COMMERCE_CULTURE]))
+			parts.append(localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_CULTURE", ()) + u": %+d %s" % (eventInfo.getCulture(), SASVisuals.Commerce.CULTURE_CHAR))
 		if eventInfo.getEspionagePoints() != 0:
-			parts.append(localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_ESPIONAGE", ()) + u": %+d %c" % (eventInfo.getEspionagePoints(), self.COMMERCE_CHARS[CommerceTypes.COMMERCE_ESPIONAGE]))
+			parts.append(localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_ESPIONAGE", ()) + u": %+d %s" % (eventInfo.getEspionagePoints(), SASVisuals.Commerce.ESPIONAGE_CHAR))
 
 		# Happiness / health (flat + turn-based).
 		if eventInfo.getHappy() != 0:
-			parts.append(localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_HAPPY", ()) + u": %+d %s" % (eventInfo.getHappy(), self.HAPPY_CHAR))
+			parts.append(localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_HAPPY", ()) + u": %+d %s" % (eventInfo.getHappy(), SASVisuals.Font.HAPPY_CHAR))
 		if eventInfo.getHappyTurns() != 0:
-			parts.append(localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_HAPPY_TURNS", ()) + u": %d %s" % (eventInfo.getHappyTurns(), self.HAPPY_CHAR))
+			parts.append(localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_HAPPY_TURNS", ()) + u": %d %s" % (eventInfo.getHappyTurns(), SASVisuals.Font.HAPPY_CHAR))
 		if eventInfo.getHealth() != 0:
 			# Health can be negative (unhealthy) or positive — use the sign of the value to pick the appropriate Civ4 icon rather than having two separate fields.
 			if eventInfo.getHealth() > 0:
-				szHealthChar = self.HEALTHY_CHAR
+				szHealthChar = SASVisuals.Font.HEALTHY_CHAR
 			else:
-				szHealthChar = self.UNHEALTHY_CHAR
+				szHealthChar = SASVisuals.Font.UNHEALTHY_CHAR
 			parts.append(localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_HEALTH", ()) + u": %+d %s" % (eventInfo.getHealth(), szHealthChar))
 
 		# City / population changes.
@@ -359,7 +349,7 @@ class SevoPediaEventTrigger:
 		if eventInfo.isGraphicalOnly():
 			parts.append(localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_GRAPHICAL_ONLY", ()))
 		if eventInfo.isGoldenAge():
-			parts.append(self.GOLDEN_AGE_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_GOLDEN_AGE", ()))
+			parts.append(SASVisuals.Font.GOLDEN_AGE_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_GOLDEN_AGE", ()))
 		if eventInfo.isDeclareWar():
 			parts.append(localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_DECLARE_WAR", ()))
 		if eventInfo.isDisbandUnit():
@@ -435,7 +425,7 @@ class SevoPediaEventTrigger:
 		if iFreePromotion >= 0:
 			promoInfo = gc.getPromotionInfo(iFreePromotion)
 			if promoInfo:
-				parts.append(self.STAR_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_FREE_PROMOTION", ()) + u": " + make_pedia_link(promoInfo.getDescription()))
+				parts.append(SASVisuals.Font.STAR_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_FREE_PROMOTION", ()) + u": " + make_pedia_link(promoInfo.getDescription()))
 
 		# Plot / terrain / feature changes.
 		iFeature = eventInfo.getFeature()
@@ -483,7 +473,7 @@ class SevoPediaEventTrigger:
 			parts.append(localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_OTHER_PLAYER_RESPONDS", ()))
 
 		# <!-- custom: per-BuildingClass extras — <BuildingExtraHappies>, <...Healths>, <BuildingExtraCommerces>, <BuildingExtraYields>.
-		# These are list-structs in XML and are queried via scalar accessors that take a BuildingClass index (plus a Commerce/Yield index for those two).
+		# These are list-structs in XML and are queried via scalar accessors that take a BuildingClass index (plus a SASVisuals.Commerce/SASVisuals.Yield index for those two).
 		# Scanning all classes is the only way to surface them since there's no getNum... method.
 		# This is what finally makes events like Antimonarchists (Palace +3 happy, Cathedrals +2 gold each) show their actual effect instead of falling through to "No direct effect". (Claude code Opus 4.7) -->
 		iNumBuildingClass = gc.getNumBuildingClassInfos()
@@ -503,22 +493,22 @@ class SevoPediaEventTrigger:
 			szLinkedBCName = make_pedia_link(szBCName)
 			iHappyBC = eventInfo.getBuildingHappyChange(iBC)
 			if iHappyBC != 0:
-				parts.append(szLinkedBCName + u": %+d %s" % (iHappyBC, self.HAPPY_CHAR))
+				parts.append(szLinkedBCName + u": %+d %s" % (iHappyBC, SASVisuals.Font.HAPPY_CHAR))
 			iHealthBC = eventInfo.getBuildingHealthChange(iBC)
 			if iHealthBC != 0:
 				if iHealthBC > 0:
-					szHealthBCChar = self.HEALTHY_CHAR
+					szHealthBCChar = SASVisuals.Font.HEALTHY_CHAR
 				else:
-					szHealthBCChar = self.UNHEALTHY_CHAR
+					szHealthBCChar = SASVisuals.Font.UNHEALTHY_CHAR
 				parts.append(szLinkedBCName + u": %+d %s" % (iHealthBC, szHealthBCChar))
 			for iC in range(iNumCommerce):
 				iVal = eventInfo.getBuildingCommerceChange(iBC, iC)
 				if iVal != 0:
-					parts.append(szLinkedBCName + u": %+d %c" % (iVal, self.COMMERCE_CHARS[iC]))
+					parts.append(szLinkedBCName + u": %+d %s" % (iVal, SASVisuals.Commerce.char(iC)))
 			for iY in range(iNumYield):
 				iVal = eventInfo.getBuildingYieldChange(iBC, iY)
 				if iVal != 0:
-					parts.append(szLinkedBCName + u": %+d %c" % (iVal, self.YIELD_CHARS[iY]))
+					parts.append(szLinkedBCName + u": %+d %s" % (iVal, SASVisuals.Yield.char(iY)))
 
 		# <!-- custom: per-UnitClass and per-UnitCombat promotion grants.
 		# Same list-struct pattern as the per-BuildingClass extras: the XML tags <UnitClassPromotions> and <UnitCombatPromotions> are probed via scalar accessors that take the class/combat index and return -1 for "no promotion".
@@ -529,16 +519,16 @@ class SevoPediaEventTrigger:
 				unitClassInfo = gc.getUnitClassInfo(iUC)
 				promoInfo = gc.getPromotionInfo(iPromo)
 				if unitClassInfo and promoInfo:
-					parts.append(self.STAR_CHAR + u" " + make_pedia_link(unitClassInfo.getDescription()) + u": " + make_pedia_link(promoInfo.getDescription()))
+					parts.append(SASVisuals.Font.STAR_CHAR + u" " + make_pedia_link(unitClassInfo.getDescription()) + u": " + make_pedia_link(promoInfo.getDescription()))
 		for iComb in range(gc.getNumUnitCombatInfos()):
 			iPromo = eventInfo.getUnitCombatPromotion(iComb)
 			if iPromo >= 0:
 				combatInfo = gc.getUnitCombatInfo(iComb)
 				promoInfo = gc.getPromotionInfo(iPromo)
 				if combatInfo and promoInfo:
-					parts.append(self.STAR_CHAR + u" " + make_pedia_link(combatInfo.getDescription()) + u": " + make_pedia_link(promoInfo.getDescription()))
+					parts.append(SASVisuals.Font.STAR_CHAR + u" " + make_pedia_link(combatInfo.getDescription()) + u": " + make_pedia_link(promoInfo.getDescription()))
 
-		# <!-- custom: <FreeSpecialistCounts> — grants N free specialists of a given type in the target city (e.g. Noble Knights Done_3: +1 Great Priest). Probed per Specialist index, same pattern as UnitClass above. (Claude code Opus 4.7) -->
+		# <!-- custom: <FreeSpecialistCounts> — grants N free specialists of a given type in the target city (e.g. Noble Knights Done_3: +1 Great Priest). Probed per SASVisuals.Specialist index, same pattern as UnitClass above. (Claude code Opus 4.7) -->
 		for iSp in range(gc.getNumSpecialistInfos()):
 			iCount = eventInfo.getFreeSpecialistCount(iSp)
 			if iCount != 0:
@@ -589,11 +579,11 @@ class SevoPediaEventTrigger:
 				szPillageCount = u"%d-%d" % (iMinPillage, iMaxPillage)
 			parts.append(localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_PILLAGE_IMPROVEMENTS", ()) + u": " + szPillageCount)
 
-		# <!-- custom: <PlotExtraYields> — permanent yield bonus on the target plot, indexed by Yield type. Same list-struct probe pattern as the per-BuildingClass extras. Useful for events like "The Volcano has fertilized this plot: +2 food". (Claude code Opus 4.7) -->
+		# <!-- custom: <PlotExtraYields> — permanent yield bonus on the target plot, indexed by SASVisuals.Yield type. Same list-struct probe pattern as the per-BuildingClass extras. Useful for events like "The Volcano has fertilized this plot: +2 food". (Claude code Opus 4.7) -->
 		for iY in range(YieldTypes.NUM_YIELD_TYPES):
 			iExtra = eventInfo.getPlotExtraYield(iY)
 			if iExtra != 0:
-				parts.append(localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_PLOT_EXTRA_YIELD", ()) + u": %+d %c" % (iExtra, self.YIELD_CHARS[iY]))
+				parts.append(localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_PLOT_EXTRA_YIELD", ()) + u": %+d %s" % (iExtra, SASVisuals.Yield.char(iY)))
 
 		# <!-- custom: <AdditionalEvents> — follow-up events that may fire after this one, each with a %chance and a turn delay. Probed per event index (same pattern as the BuildingClass scan). Surfaces event chains like "This opens a quest that will resolve in N turns". (Claude code Opus 4.7) -->
 		for iOtherEvent in range(gc.getNumEventInfos()):
@@ -639,8 +629,8 @@ class SevoPediaEventTrigger:
 			parts.append(localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_QUEST_FAIL_TEXT", ()) + u": " + localText.getText(str(szQuestFailKey), ()))
 
 		if not parts:
-			return self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_NO_DIRECT", ())
-		return u"\n".join([self.BULLET_PREFIX + p for p in parts])
+			return SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_EVENT_EFFECT_NO_DIRECT", ())
+		return u"\n".join([SASVisuals.Font.BULLET_CHAR + u" " + p for p in parts])
 
 	def _getEventDisplayName(self, iEvent):
 		eventInfo = gc.getEventInfo(iEvent)
@@ -688,9 +678,9 @@ class SevoPediaEventTrigger:
 		for szResolved in order:
 			iCount = counts[szResolved]
 			if iCount > 1:
-				lines.append(self.BULLET_PREFIX + szResolved + u" (x%d)" % iCount)
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + szResolved + u" (x%d)" % iCount)
 			else:
-				lines.append(self.BULLET_PREFIX + szResolved)
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + szResolved)
 
 		if lines:
 			szBody = u"\n".join(lines)

@@ -2,6 +2,8 @@
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 
 from CvPythonExtensions import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 from SASMagicNumbers import *
 import CvUtil
 # <!-- custom: Removed the unused SevoScreenEnums import after its constants moved from SevoScreenEnums.py to the SevoScreenEnums class in CvScreenEnums.py.
@@ -81,14 +83,7 @@ class SevoPediaVote:
 		self.W_HISTORY = self.top.R_PEDIA_PAGE - self.X_VOTE_PANE
 		self.H_HISTORY = self.top.B_PEDIA_PAGE - self.Y_HISTORY
 
-		self.BULLET_PREFIX = u"%c " % CyGame().getSymbolID(FontSymbols.BULLET_CHAR)
-		self.TRADE_CHAR = u"%c" % CyGame().getSymbolID(FontSymbols.TRADE_CHAR)
-		self.YIELD_CHARS = []
-		for iYield in range(YieldTypes.NUM_YIELD_TYPES):
-			self.YIELD_CHARS.append(gc.getYieldInfo(iYield).getChar())
-		self.COMMERCE_CHARS = []
-		for iCommerce in range(CommerceTypes.NUM_COMMERCE_TYPES):
-			self.COMMERCE_CHARS.append(gc.getCommerceInfo(iCommerce).getChar())
+		# <!-- custom: Yield/commerce glyph ordinals are shared by SASVisualUtils; do not rebuild per-page copies here. (ChatGPT-5.6-Sol) -->
 
 	def interfaceScreen(self, iVote):
 		self.iVote = iVote
@@ -159,11 +154,11 @@ class SevoPediaVote:
 		voteInfo = gc.getVoteInfo(self.iVote)
 		lines = []
 		if voteInfo:
-			lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_POPULATION_THRESHOLD", ()) + u": %d%%" % voteInfo.getPopulationThreshold())
-			lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_MIN_VOTERS", ()) + u": %d" % voteInfo.getMinVoters())
+			lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_POPULATION_THRESHOLD", ()) + u": %d%%" % voteInfo.getPopulationThreshold())
+			lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_MIN_VOTERS", ()) + u": %d" % voteInfo.getMinVoters())
 			iStateRelPct = voteInfo.getStateReligionVotePercent()
 			if iStateRelPct > 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_STATE_RELIGION_VOTE", ()) + u": %d%%" % iStateRelPct)
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_STATE_RELIGION_VOTE", ()) + u": %d%%" % iStateRelPct)
 
 		textName = self.top.getNextWidgetName()
 		if lines:
@@ -184,33 +179,33 @@ class SevoPediaVote:
 			srcInfo = gc.getVoteSourceInfo(iVoteSource)
 			if srcInfo:
 				szNone = localText.getText("TXT_KEY_PEDIA_SAS_NO_BUTTON_FOUND_NONE", ())
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_SOURCE_INTERVAL", ()) + u": %d" % srcInfo.getVoteInterval())
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_SOURCE_INTERVAL", ()) + u": %d" % srcInfo.getVoteInterval())
 				szSecretaryText = srcInfo.getSecretaryGeneralText()
 				if not szSecretaryText:
 					szSecretaryText = szNone
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_SOURCE_SECRETARY_GENERAL_TEXT", ()) + u": " + szSecretaryText)
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_SOURCE_SECRETARY_GENERAL_TEXT", ()) + u": " + szSecretaryText)
 
 				listYieldParts = []
 				for iYield in range(YieldTypes.NUM_YIELD_TYPES):
 					iChange = srcInfo.getReligionYield(iYield)
 					if iChange != 0:
-						listYieldParts.append(u"%+d%c" % (iChange, self.YIELD_CHARS[iYield]))
+						listYieldParts.append(u"%+d%s" % (iChange, SASVisuals.Yield.char(iYield)))
 				if len(listYieldParts) == 0:
 					szYields = szNone
 				else:
 					szYields = u", ".join(listYieldParts)
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_SOURCE_RELIGION_YIELDS", ()) + u": " + szYields)
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_SOURCE_RELIGION_YIELDS", ()) + u": " + szYields)
 
 				listCommerceParts = []
 				for iCommerce in range(CommerceTypes.NUM_COMMERCE_TYPES):
 					iChange = srcInfo.getReligionCommerce(iCommerce)
 					if iChange != 0:
-						listCommerceParts.append(u"%+d%c" % (iChange, self.COMMERCE_CHARS[iCommerce]))
+						listCommerceParts.append(u"%+d%s" % (iChange, SASVisuals.Commerce.char(iCommerce)))
 				if len(listCommerceParts) == 0:
 					szCommerces = szNone
 				else:
 					szCommerces = u", ".join(listCommerceParts)
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_SOURCE_RELIGION_COMMERCES", ()) + u": " + szCommerces)
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_SOURCE_RELIGION_COMMERCES", ()) + u": " + szCommerces)
 
 		textName = self.top.getNextWidgetName()
 		if lines:
@@ -279,7 +274,7 @@ class SevoPediaVote:
 		if voteInfo:
 			szVoteName = voteInfo.getDescription()
 		textName = self.top.getNextWidgetName()
-		screen.addMultilineText(textName, SASTextScale.labelText(self.BULLET_PREFIX + szVoteName), self.X_VOTE_NAME + 14, self.Y_VOTE_NAME + 34, self.W_VOTE_NAME - 28, self.H_VOTE_NAME - 40, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		screen.addMultilineText(textName, SASTextScale.labelText(SASVisuals.Font.BULLET_CHAR + u" " + szVoteName), self.X_VOTE_NAME + 14, self.Y_VOTE_NAME + 34, self.W_VOTE_NAME - 28, self.H_VOTE_NAME - 40, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
 	def placeSpecial(self):
 		screen = self.top.getScreen()
@@ -291,41 +286,41 @@ class SevoPediaVote:
 		if voteInfo:
 			# Effect flags — emit one line per enabled flag. Keys reused where possible.
 			if voteInfo.isCityVoting():
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_CITY_VOTING", ()))
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_CITY_VOTING", ()))
 			if voteInfo.isCivVoting():
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_CIV_VOTING", ()))
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_CIV_VOTING", ()))
 			if voteInfo.isSecretaryGeneral():
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_SECRETARY_GENERAL", ()))
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_SECRETARY_GENERAL", ()))
 			if voteInfo.isVictory():
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_VICTORY", ()))
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_VICTORY", ()))
 			if voteInfo.isFreeTrade():
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_FREE_TRADE", ()))
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_FREE_TRADE", ()))
 			if voteInfo.isNoNukes():
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_NO_NUKES", ()))
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_NO_NUKES", ()))
 			if voteInfo.isDefensivePact():
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_DEFENSIVE_PACT", ()))
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_DEFENSIVE_PACT", ()))
 			if voteInfo.isOpenBorders():
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_OPEN_BORDERS", ()))
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_OPEN_BORDERS", ()))
 			if voteInfo.isForcePeace():
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_FORCE_PEACE", ()))
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_FORCE_PEACE", ()))
 			if voteInfo.isForceNoTrade():
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_FORCE_NO_TRADE", ()))
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_FORCE_NO_TRADE", ()))
 			if voteInfo.isForceWar():
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_FORCE_WAR", ()))
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_FORCE_WAR", ()))
 			if voteInfo.isAssignCity():
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_ASSIGN_CITY", ()))
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_ASSIGN_CITY", ()))
 			# <!-- custom: CvGame::processVote applies getTradeRoutes globally when the resolution passes; it is an effect, not a prerequisite.
 			# Keeping it only here prevents Single Currency from showing the same trade-route reward under both Requirements and Effects. See KI#227. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 			iTradeRoutesEffect = voteInfo.getTradeRoutes()
 			if iTradeRoutesEffect != 0:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_TRADE_ROUTES_ALL_CITIES", ()) + u": %+d%s" % (iTradeRoutesEffect, self.TRADE_CHAR))
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_TRADE_ROUTES_ALL_CITIES", ()) + u": %+d%s" % (iTradeRoutesEffect, SASVisuals.Font.TRADE_CHAR))
 			bHasForcedCivic = False
 			for iCivic in range(gc.getNumCivicInfos()):
 				if voteInfo.isForceCivic(iCivic):
 					bHasForcedCivic = True
 					break
 			if bHasForcedCivic:
-				lines.append(self.BULLET_PREFIX + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_FORCE_CIVICS_SEE_PANEL", ()))
+				lines.append(SASVisuals.Font.BULLET_CHAR + u" " + localText.getText("TXT_KEY_PEDIA_SAS_VOTE_EFFECT_FORCE_CIVICS_SEE_PANEL", ()))
 
 		listName = self.top.getNextWidgetName()
 		if lines:

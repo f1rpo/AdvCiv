@@ -7,7 +7,13 @@
 # <!-- custom: remove or comment out seemingly unused imports -->
 #import string
 
+
+# AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
+# (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
+
 from CvPythonExtensions import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 
 import CvUtil
 
@@ -498,10 +504,10 @@ class UnitUpgradesGraph:
 	def drawArrow(self, posFrom, posTo, dummyFrom, dummyTo):
 		screen = self.pediaScreen.getScreen()
 
-		LINE_ARROW = ArtFileMgr.getInterfaceArtInfo("LINE_ARROW").getPath()
-		LINE_TLBR = ArtFileMgr.getInterfaceArtInfo("LINE_TLBR").getPath()
-		LINE_BLTR = ArtFileMgr.getInterfaceArtInfo("LINE_BLTR").getPath()
-		LINE_STRAIT = ArtFileMgr.getInterfaceArtInfo("LINE_STRAIT").getPath()
+		LINE_ARROW = SASVisuals.InterfaceArt.LINE_ARROW
+		LINE_TLBR = SASVisuals.InterfaceArt.LINE_TLBR
+		LINE_BLTR = SASVisuals.InterfaceArt.LINE_BLTR
+		LINE_STRAIT = SASVisuals.InterfaceArt.LINE_STRAIT
 
 		if (dummyFrom):
 			xFrom = posFrom[0] + self.buttonSize / 2

@@ -16,7 +16,7 @@
 
 	<!-- Utility Modules -->
 
-	<init module="FontUtil" immediate="True"/>
+	<init module="SASVisualUtils" immediate="True"/>
 	<symbol id="war" from="COMMERCE_GOLD" offset="25"/>
 	<symbol id="peace"/>
 	<symbol id="space"/>  <!-- blank symbol the same size as other standard symbols -->
@@ -116,12 +116,11 @@
 	<extend how="after" module="DiplomacyUtil" function="handleAIComment" to="CvDiplomacyInterface" as="beginDiplomacy"/>
 	<extend how="after" module="DiplomacyUtil" function="handleUserResponse" to="CvDiplomacyInterface" as="handleUserResponse"/>
 
-	<init module="GGUtil"/>
+	<init module="SASVisualUtils" function="initGameResources"/>
 	<init module="GPUtil"/>
 	<init module="ReligionUtil"/>
 	<init module="TechUtil"/>
 	<init module="TradeUtil"/>
-	<init module="TraitUtil"/>
 	<init module="UnitUtil"/>
     <gameutils module="WidgetUtil" handler="getWidgetHelp"/>
 

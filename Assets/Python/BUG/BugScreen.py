@@ -68,6 +68,8 @@
 
 #import BugUtil
 from CvPythonExtensions import *
+# <!-- custom: Resolve interface-art paths through SASVisualUtils so immutable art defines share one lazy cache instead of querying CyArtFileMgr per caller. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 from SASUtils import getInfoTypeOrFail
 #from PyHelpers import PyPlayer
 import CvUtil
@@ -114,9 +116,9 @@ class BugTab:
 			szText += localText.getText(self.txt_key, ())
 		szText += u"</font>"
 		if not self.enabled:
-			szText = localText.changeTextColor(szText, getInfoTypeOrFail("COLOR_GREY"))
+			szText = localText.changeTextColor(szText, SASVisuals.Color.GREY)
 		elif self.active:
-			szText = localText.changeTextColor(szText, getInfoTypeOrFail("COLOR_YELLOW"))
+			szText = localText.changeTextColor(szText, SASVisuals.Color.YELLOW)
 		return szText
 
 class BugScreen:
@@ -191,7 +193,7 @@ class BugScreen:
 	def draw(self):
 		self.screen.setDimensions(self.screen.centerX(0), self.screen.centerY(0), self.width, self.height)
 
-		self.screen.addDDSGFC(self.BGwidget_Id, ArtFileMgr.getInterfaceArtInfo(self.BGkey).getPath(), 0, 0, self.width, self.height, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		self.screen.addDDSGFC(self.BGwidget_Id, SASVisuals.InterfaceArt.getPath(self.BGkey), 0, 0, self.width, self.height, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 		self.screen.addPanel(self.widget_id + "TopPanel", u"", u"", True, False, 0, 0, self.width, 55, PanelStyles.PANEL_STYLE_TOPBAR )
 		self.screen.addPanel(self.widget_id + "BottomPanel", u"", u"", True, False, 0, 713, self.width, 55, PanelStyles.PANEL_STYLE_BOTTOMBAR )
 

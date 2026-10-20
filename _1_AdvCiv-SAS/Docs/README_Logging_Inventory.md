@@ -1,16 +1,16 @@
-# Civ4 / AdvCiv-SAS logging reference
+# Civ4 / AdvCiv-SAS logging inventory
 
-**Authors:** GPT-6.1-Sol (Codex), 2026-10-19; historical provenance research and rebase by ChatGPT-5.6-Sol, 2026-10-19.
+**Authors (2026-10-19):** GPT-6.1-Sol (Codex); historical provenance research and rebase by ChatGPT-5.6-Sol. Minor review from Claude Sonnet 5.5: 2026-10-20.
 
-Use this reference to locate diagnostic output, identify its writer or enabling conditions, and distinguish current SAS evidence from older or other-mod files.
+Use this inventory to locate diagnostic output, identify its writer or enabling conditions, and distinguish current SAS evidence from older or other-mod files.
 
-**Initial inventory: 2026-10-19.** Dated snapshots below identify when local presence, counts, settings and file dates were inspected; they are not live status or a claim that every installation produces these files.
+Dated snapshots below identify when local presence, counts, settings and file dates were inspected; they are not live status or a claim that every installation produces these files.
 
 The EXE is closed source, mods can supply arbitrary filenames, and some outputs require particular situations or compile options. Consequently, an exhaustive universal filename list is unavailable. The tables distinguish observed files from source-supported possibilities.
 
 ## Overview
 
-This reference brings together game, AI, Python, engine and build diagnostics, including how SAS extends inherited output and adds new recorders. The file inventory and source references distinguish current writers from historical or other-mod output.
+This inventory brings together game, AI, Python, engine and build diagnostics, including how SAS extends inherited output and adds new recorders. The file inventory and source references distinguish current writers from historical or other-mod output.
 
 - `PythonDbg.log` (debug messages), `PythonErr.log` (tracebacks), `PythonErr2.log` (including module-loading output) and `xml.log` (XML loading/errors); [Before/After samples](#before-and-after-shared-python-log-timestamps) show SAS's timestamp and readability changes, including their startup/EXE limits.
 - `BBAI_*.log`: [AI decision diagnostics](#bbai), including Settler behavior and formerly independent UWAI reports now merged into BBAI; explicitly covered producers include `MilitaryAnalyst`, `InvasionGraph`, `ArmamentForecast`, `WarEvaluator` and `WarUtilityAspect`.
@@ -34,7 +34,7 @@ The files below do not belong to one logging framework. Civ4 accumulated several
 | BUG StatusDump | Ruff_Hi / BUG, inherited through K-Mod/AdvCiv | Current SAS loads the inherited `StatusDump` module. Ctrl+Alt+D invokes a support dump using the Autolog path and a `<player>_<year>.txt` filename. Large sections remain literal placeholders such as `Spinner stuff here`, `Player Cities here` and `AIs stuff here`; the older unused helper class still hardcodes `StatusDump.txt`. | Document as an incomplete inherited support facility, not as a dependable SAS diagnostic. Do not modernize it merely because it can emit a file. |
 | `BBAI.log` -> `BBAI_*.log` | Better BTS AI -> K-Mod -> AdvCiv -> SAS | Better BTS AI 0.82 publicly documented its AI decision logging system on 2009-11-05: the purpose was to expose major AI decisions each turn for analysis and improvement. The original file was `BBAI.log`. | SAS owns its current BBAI wrapper/filename/session improvements while preserving the log's AI-decision semantics. This is a legacy diagnostic worth modernizing, not replacing. |
 | `bull.log` | BULL, the DLL companion to BUG | BULL 1.0 was released with BUG 4.2 on 2009-11-15. Public BULL-derived sources use `bull.log` for DLL-side BUG/options diagnostics. No current SAS filename producer was found. | Treat the local file as historical/foreign evidence unless a current producer is established. |
-| `OOSLog - <player> - Turn <turn>.log` | Kek-Mod -> AdvCiv, with idea credited to Fall from Heaven 2 / Kael | Kek-Mod 0.25 on 2019-07-16 included `OOSLogger`; AdvCiv merged the Kek-Mod implementation in 2019. It dumps deterministic game state when an OOS is detected. | Keep distinct from `MPLog`: OOSLog is a state snapshot for diffing after divergence, while MPLog helps trace message/RNG activity leading to divergence. |
+| `OOSLog - <player> - Turn <turn>.log` | Kek-Mod -> AdvCiv, with idea credited to Fall from Heaven 2 / Kael | Kek-Mod 0.23 (2019-03-18) included `OOSLogger`; AdvCiv merged it on 2019-03-27. Kek-Mod 0.25 (2019-07-16) then incorporated OOSLogger fixes from AdvCiv. It dumps deterministic game state when an OOS is detected. | Keep distinct from `MPLog`: OOSLog is a state snapshot for diffing after divergence, while MPLog helps trace message/RNG activity leading to divergence. |
 | `IFP_log.txt` | Inherited DLL internal profiler | Function/call timing profiler output; exact first introduction was not established by this review. | Keep numerical/data-oriented. Prefer run metadata or a header to per-row decoration. |
 | `TSCProfile.log` | We the People profiler -> AdvCiv | AdvCiv imported Time Stamp Counter profiling code from We the People on 2019-11-05 and integrated it with Civ4 logging. | Keep profiler rows compact and machine-friendly; add provenance/header context only if needed. |
 | `StartingPos.log` | AdvCiv | AdvCiv's Starting Position Iteration work began publicly on 2020-05-27 as a fairer-start algorithm; this log traces that subsystem when enabled. | Algorithm trace, not general diagnostics. Header/run context is preferable to verbose per-line timestamps. |
@@ -453,7 +453,7 @@ Each pair shows the same captured messages in the same order. **Before** rows re
 
 PythonDbg **After** rows reconstruct the current `record=` fields and vote labels from captured data; PythonErr/PythonErr2 After rows remain direct captures. Only formatting and diagnostic fields change, not the recorded screen visits, glyphs or timestamps.
 
-The PythonDbg/PythonErr2 captures are from 2026-10-20 with the matching Release DLL and the in-progress Python UI-resource draft loaded. The controlled PythonErr traceback was captured on 2026-10-19. Excerpts may omit intervening rows, but their order and message data are preserved.
+The PythonDbg/PythonErr2 captures are from 2026-10-20 with the matching Release DLL and the in-progress Python UI-resource draft loaded. The PythonErr startup-failure excerpt comes from a later run on 2026-10-20, before correcting the visual-resource import order. Excerpts may omit intervening rows, but their order and message data are preserved.
 
 | File | Change | Examples |
 | --- | --- | --- |
@@ -550,34 +550,64 @@ UnInit Python
 
 ### `PythonErr.log`
 
-The 2026-10-20 run left this file empty. To illustrate multiline error formatting, both sides below use the same deliberate caught exception from process 45732 on 2026-10-19; its temporary trigger was removed afterward.
+This real startup failure was captured on 2026-10-20 while testing the visual-resource refactor: `SASVisualUtils` imported `BugConfig` first, leading through `BugCore` to `BugOptions` before `BugConfig.Handler` existed. The sample preserves that pre-fix traceback, including its original file/line references.
+
+Direct EXE `ERR:` messages interleaved with the timestamped traceback. This excerpt retains the first three and omits subsequent repetitions; the exception's final fragments remain separate instead of being joined into a reconstructed exception row. It illustrates that direct EXE rows bypass the Python wrapper, rather than implying every error row receives a timestamp.
 
 #### Before: PythonErr.log
 
-Reconstructed by removing only the UTC prefixes:
+Reconstructed by removing only the UTC prefixes from the same selected rows:
 
 ```log
 Traceback (most recent call last):
-
-  File "CvScreensInterface", line 75, in showBugOptionsScreen
-
-  File "CvScreensInterface", line 64, in _sasRaiseErrorTimestampTrial
-
-RuntimeError: SAS_LOG_TIMESTAMP_TRIAL: deliberate caught exception; game state unchanged
+ERR: Call function onEvent failed. Can't find module CvEventInterface
+  File "<string>", line 1, in ?
+ERR: Call function onEvent failed. Can't find module CvEventInterface
+ERR: Call function onEvent failed. Can't find module CvEventInterface
+  File "<string>", line 52, in load_module
+  File "CvEventInterface", line 16, in ?
+  File "<string>", line 52, in load_module
+  File "BugEventManager", line 109, in ?
+  File "<string>", line 52, in load_module
+  File "SASVisualUtils", line 13, in ?
+  File "<string>", line 52, in load_module
+  File "BugConfig", line 33, in ?
+  File "<string>", line 52, in load_module
+  File "BugCore", line 12, in ?
+  File "<string>", line 52, in load_module
+  File "BugOptions", line 1270, in ?
+AttributeError
+:
+'module' object has no attribute 'Handler'
+Failed to load python module CvEventInterface.
 ```
 
 #### After: PythonErr.log
 
-Real captured traceback:
+Real captured rows, in their original order:
 
 ```log
-2026-10-19T15:58:02.556Z Traceback (most recent call last):
-
-2026-10-19T15:58:02.556Z   File "CvScreensInterface", line 75, in showBugOptionsScreen
-
-2026-10-19T15:58:02.556Z   File "CvScreensInterface", line 64, in _sasRaiseErrorTimestampTrial
-
-2026-10-19T15:58:02.556Z RuntimeError: SAS_LOG_TIMESTAMP_TRIAL: deliberate caught exception; game state unchanged
+2026-10-20T13:57:18.566Z Traceback (most recent call last):
+ERR: Call function onEvent failed. Can't find module CvEventInterface
+2026-10-20T13:57:24.356Z   File "<string>", line 1, in ?
+ERR: Call function onEvent failed. Can't find module CvEventInterface
+ERR: Call function onEvent failed. Can't find module CvEventInterface
+2026-10-20T13:57:25.138Z   File "<string>", line 52, in load_module
+2026-10-20T13:57:25.529Z   File "CvEventInterface", line 16, in ?
+2026-10-20T13:57:25.921Z   File "<string>", line 52, in load_module
+2026-10-20T13:57:26.106Z   File "BugEventManager", line 109, in ?
+2026-10-20T13:57:26.283Z   File "<string>", line 52, in load_module
+2026-10-20T13:57:26.434Z   File "SASVisualUtils", line 13, in ?
+2026-10-20T13:57:26.595Z   File "<string>", line 52, in load_module
+2026-10-20T13:57:26.762Z   File "BugConfig", line 33, in ?
+2026-10-20T13:57:26.920Z   File "<string>", line 52, in load_module
+2026-10-20T13:57:27.098Z   File "BugCore", line 12, in ?
+2026-10-20T13:57:27.257Z   File "<string>", line 52, in load_module
+2026-10-20T13:57:27.433Z   File "BugOptions", line 1270, in ?
+2026-10-20T13:57:27.609Z AttributeError
+:
+'module' object has no attribute 'Handler'
+Failed to load python module CvEventInterface.
 ```
 
 ### `PythonErr2.log`
@@ -863,9 +893,9 @@ building:Art/Structures/Buildings/Levee/Levee.nif does not contain a node called
 - CivFanatics, 2005-11-15 onward: [eotinb's original Autolog thread](https://forums.civfanatics.com/threads/mod-log-changes.141164/), explicitly describing a succession-game/note-taking journal and distinguishing it from debug/error logs.
 - CivFanatics, 2009-11-05: [Better BTS AI 0.82 decision-logging documentation](https://forums.civfanatics.com/threads/bts-in-game-debug-mode.279903/), including `BBAI.log`, `/DLOG_AI` and interpretation of its timing prefix.
 - CivFanatics, 2009-11-15: [BUG 4.2 / BULL 1.0 release](https://forums.civfanatics.com/threads/download-bug-and-bat-here.274636/).
-- CivFanatics, 2019-07-16: [Kek-Mod 0.25 release](https://forums.civfanatics.com/threads/modmod-kek-mod.563377/) adding OOSLogger and crediting the idea to Fall from Heaven 2 by Kael.
-- AdvCiv Git, 2019-08-27: [`CvDLLLogger` introduction](https://github.com/f1rpo/AdvCiv/commit/553b1a0f8d92b00f09f64f2ee1ecb4d696ebe43e), encapsulating the message-control log.
+- CivFanatics, 2019-03-18: [Kek-Mod 0.23 release](https://forums.civfanatics.com/threads/modmod-kek-mod.563377/) included OOSLogger and credited the idea to Fall from Heaven 2 by Kael. The same changelog lists OOSLogger fixes from AdvCiv in 0.25 (2019-07-16).
 - AdvCiv Git, 2019-03-27: [OOSLogger merge from Kek-Mod](https://github.com/f1rpo/AdvCiv/commit/81c89a9e0511aa58630f7821fdc9287ecffa8edf).
+- AdvCiv Git, 2019-08-27: [`CvDLLLogger` introduction](https://github.com/f1rpo/AdvCiv/commit/553b1a0f8d92b00f09f64f2ee1ecb4d696ebe43e), encapsulating the message-control log.
 - AdvCiv Git, 2019-11-05: [TSC profiler import from We the People](https://github.com/f1rpo/AdvCiv/commit/031365f32f6d71519e2fd09c6f6e963ecbef4bd3).
 - AdvCiv Git, 2020-05-27: [initial Starting Position Iteration implementation](https://github.com/f1rpo/AdvCiv/commit/a70e4ce3a1db01c51da7fa370a706d8784191b38).
 - AdvCiv Git, 2020-11-18: [AsyncRand logging fix](https://github.com/f1rpo/AdvCiv/commit/64e3335495dcd86aebf5068bf8903c0a1f83c508).

@@ -12,10 +12,10 @@ import CvUtil
 import ScreenInput
 # <!-- custom: Removed the unused SevoScreenEnums import after its constants moved from SevoScreenEnums.py to the SevoScreenEnums class in CvScreenEnums.py.
 # This page uses none of those IDs, and the removed constants-only module had no initialization side effects. (GPT-6.1-Sol) -->
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
 import SASTextScale
 
 import re
-import TraitUtil
 from _sevopedia_helpers import *
 
 gc = CyGlobalContext()
@@ -291,7 +291,7 @@ class SevoPediaTrait:
 				iRow = screen.appendTableRow(leftTableName)
 				otherTraitInfo = gc.getTraitInfo(otherTrait)
 
-				traitText = SASTextScale.labelText(u"%c %s" % (TraitUtil.getIcon(otherTrait), otherTraitInfo.getDescription()))
+				traitText = SASTextScale.labelText(u"%s %s" % (SASVisuals.Trait.getIcon(otherTrait), otherTraitInfo.getDescription()))
 				screen.setTableText(leftTableName, 0, iRow, traitText, "", WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_TRAIT, otherTrait, CvUtil.FONT_LEFT_JUSTIFY)
 				screen.setTableText(leftTableName, 1, iRow, SASTextScale.labelText(u"%d" % pairCount), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 				screen.setTableText(leftTableName, 2, iRow, SASTextScale.labelText(u"%d" % totalCount), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
@@ -322,8 +322,8 @@ class SevoPediaTrait:
 
 				trait1Info = gc.getTraitInfo(trait1)
 				trait2Info = gc.getTraitInfo(trait2)
-				trait1Text = SASTextScale.labelText(u"%c %s" % (TraitUtil.getIcon(trait1), trait1Info.getDescription()))
-				trait2Text = SASTextScale.labelText(u"%c %s" % (TraitUtil.getIcon(trait2), trait2Info.getDescription()))
+				trait1Text = SASTextScale.labelText(u"%s %s" % (SASVisuals.Trait.getIcon(trait1), trait1Info.getDescription()))
+				trait2Text = SASTextScale.labelText(u"%s %s" % (SASVisuals.Trait.getIcon(trait2), trait2Info.getDescription()))
 				screen.setTableText(rightTableName, 0, iRow, trait1Text, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 				screen.setTableText(rightTableName, 1, iRow, trait2Text, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 				screen.setTableText(rightTableName, 2, iRow, SASTextScale.labelText(u"%d" % pairCount), "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)

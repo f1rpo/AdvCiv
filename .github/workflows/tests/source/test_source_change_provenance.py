@@ -59,6 +59,46 @@ class SourceChangeProvenanceTests(unittest.TestCase):
                 self.assertTrue(checker.modification_header_errors(path, source))
         self.assertEqual(checker.modification_header_errors("CvGameCoreDLL/Test.cpp", "int value;\n"), [])
 
+    # <!-- custom: Exercise the appended-comment failures in Python/C++/XML alongside legal separate blocks, inline C++ annotations, literal examples and unchanged inherited comments; CI must distinguish comment structure from code strings. (GPT-6.1-Sol) -->
+    def test_cascading_comments_fail_only_when_introduced(self):
+        bad_cases = (
+            ("LLM_Helpers/test.py", "#disabled() # <!-- custom: Explain it. (GPT-6.1-Sol) -->\n"),
+            ("CvGameCoreDLL/Test.cpp", "//disabled(); // <!-- custom: Explain it. (GPT-6.1-Sol) -->\n"),
+            ("LLM_Helpers/test.py", "# <!-- custom: First. (GPT-6.1-Sol) --> <!-- custom: Second. (GPT-6.1-Sol) -->\n"),
+            ("CvGameCoreDLL/Test.cpp", "/* <!-- custom: First. (GPT-6.1-Sol) --> <!-- custom: Second. (GPT-6.1-Sol) --> */\n"),
+            ("Assets/XML/Test.xml", "<!-- Existing explanation. <!-- custom: Explain it. (GPT-6.1-Sol) --> -->\n"),
+        )
+        for path, source in bad_cases:
+            with self.subTest(path=path, source=source):
+                self.assertTrue(any("cascading comment" in error or "nested XML comment" in error for error in self.errors(path, "", source)))
+                self.assertEqual(self.errors(path, source, source), [])
+        good_cases = (
+            ("LLM_Helpers/test.py", '## <!-- custom: BUG-style header. (GPT-6.1-Sol) -->\n'),
+            ("CvGameCoreDLL/Test.cpp", '// \t// <!-- custom: Disabled-block annotation. (GPT-6.1-Sol) -->\n'),
+            ("LLM_Helpers/test.py", '# <!-- custom: Explain disabled code. (GPT-6.1-Sol) -->\n#disabled()\n'),
+            ("CvGameCoreDLL/Test.cpp", '// <!-- custom: Explain disabled code. (GPT-6.1-Sol) -->\n//disabled();\n'),
+            ("CvGameCoreDLL/Test.cpp", 'int value; // <!-- custom: Explain this field. (GPT-6.1-Sol) -->\n'),
+            ("Assets/XML/Test.xml", '<!-- custom: First. (GPT-6.1-Sol) -->\n<!-- custom: Second. (GPT-6.1-Sol) -->\n<root/>\n'),
+            ("LLM_Helpers/test.py", 'example = "#disabled() # <!-- custom: Example. -->"\n'),
+            ("CvGameCoreDLL/Test.cpp", 'const char* example = "//disabled(); // <!-- custom: Example. -->";\n'),
+        )
+        for path, source in good_cases:
+            with self.subTest(path=path, source=source):
+                errors = self.errors(path, "", source)
+                self.assertFalse(any("cascading comment" in error or "nested XML comment" in error for error in errors), errors)
+
+    # <!-- custom: Known credit typos must block changed comments in each supported language, while prose mentions, correct names, unknown future models and unchanged credits remain legal. (GPT-6.1-Sol) -->
+    def test_known_model_credit_misspellings(self):
+        for path, prefix in (("LLM_Helpers/test.py", "# "), ("CvGameCoreDLL/Test.cpp", "// "), ("Assets/XML/Test.xml", "")):
+            for name in ("Chat-GPT", "chat-gpt", "catgpt", "CaTgPt"):
+                with self.subTest(path=path, name=name):
+                    source = prefix + "<!-- custom: Explain this. (" + name + "-5.6-Sol + GPT-6.1-Sol) -->\n"
+                    self.assertTrue(any("misspelled model credit" in error for error in self.errors(path, "", source)))
+                    self.assertEqual(self.errors(path, source, source), [])
+            for name in ("ChatGPT-5.6-Sol", "GPT-6.1-Sol", "FutureModel-9000"):
+                source = prefix + "<!-- custom: Mention catgpt and Chat-GPT as examples. (" + name + ") -->\n"
+                self.assertFalse(any("misspelled model credit" in error for error in self.errors(path, "", source)))
+
     def test_new_noncustom_comment_fails_but_credentialed_custom_passes(self):
         old = "int value = 1;\n"
         bad = "// New explanation.\nint value = 1;\n"

@@ -13,7 +13,9 @@ import ScreenInput
 # <!-- custom: SevoScreenEnums.py was removed; import its unchanged page IDs from the SevoScreenEnums class in CvScreenEnums.py, keeping them distinct from vanilla Civilopedia pages. (GPT-6.1-Sol) -->
 from CvScreenEnums import SevoScreenEnums
 import BugUtil
-from SASFontUtils import *
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
+import SASTextScale
 from _sevopedia_helpers import place_new_concept_legend_link
 
 gc = CyGlobalContext()
@@ -110,14 +112,14 @@ class SevoPediaIndex:
 		for item in projectList:
 			list.append([item[0],"Project",item])
 		for item in specialistList:
-			list.append([item[0],"Specialist",item])
+			list.append([item[0],"SASVisuals.Specialist",item])
 
 		for item in terrainList:
 			list.append([item[0],"Terrain",item])
 		for item in featureList:
 			list.append([item[0],"Feature",item])
 		for item in bonusList:
-			list.append([item[0],"Bonus",item])
+			list.append([item[0],"SASVisuals.Bonus",item])
 		for item in improvementList:
 			list.append([item[0],"Improv",item])
 
@@ -127,10 +129,10 @@ class SevoPediaIndex:
 			list.append([item[0],"Leader",item])
 		# <!-- custom: traitList entries have a 2-char leading icon prefix unrelated to TXT_KEY/"The"; keep this strip. (Claude code Opus 4.7 + GPT-5.5) -->
 		for item in traitList:
-			list.append([item[0][2:],"Trait",item])
+			list.append([item[0][2:],"SASVisuals.Trait",item])
 
 		for item in religionList:
-			list.append([item[0],"Religion",item])
+			list.append([item[0],"SASVisuals.Religion",item])
 		for item in civicList:
 			list.append([item[0],"Civic",item])
 
@@ -147,7 +149,7 @@ class SevoPediaIndex:
 
 	def placeIndex(self):
 		screen = self.top.getScreen()
-		CONCEPT_CHAR = gc.getYieldInfo(YieldTypes.YIELD_COMMERCE).getChar()
+		CONCEPT_CHAR = SASVisuals.Yield.COMMERCE_CHAR
 		place_new_concept_legend_link(self.top, "CONCEPT_SAS_SEVOPEDIA_CATEGORIES_LEGEND")
 
 		if self.SAS_indexWidgetNames:
@@ -205,11 +207,11 @@ class SevoPediaIndex:
 				sLetter = name[:1]
 				screen.appendTableRow(self.tableName)
 				iRow += 1
-				screen.setTableText(self.tableName, 1, iRow, sasFontTagTitle + u"- " + sLetter + u" -" + SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
+				screen.setTableText(self.tableName, 1, iRow, SASTextScale.sasFontTagTitle + u"- " + sLetter + u" -" + SASTextScale.SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 				screen.appendTableRow(self.tableName)
 				# create letter button
 				textName = self.top.getNextWidgetName()
-				letterText = sasFontTagTitle + sLetter + SAS_FONT_TAG_CLOSE
+				letterText = SASTextScale.sasFontTagTitle + sLetter + SASTextScale.SAS_FONT_TAG_CLOSE
 				screen.setText(textName, "Background", letterText, CvUtil.FONT_CENTER_JUSTIFY, iX, iLetterY, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, iRow, -1)
 				self.letterTextIDs[textName] = iRow
 				self.SAS_indexWidgetNames.append(textName)
@@ -224,7 +226,7 @@ class SevoPediaIndex:
 					iColumn = 0
 
 			# <!-- custom: refactor, since sText was defined in existing code, it seems we can reuse it instead of hardcoding it again at each call; this also fixes ruff warning and according to chatgpt; similarly removed unused lines `sButton = ""` and `eWidget = None` and as for lines `iData1 = item[1]` and `iData2 = 1` also using them as variables similarly instead of hardcoding them each time (assuming they are not actually useful/executed instructions) -->
-			sText = sasFontTagLabel + item[0] + SAS_FONT_TAG_CLOSE
+			sText = SASTextScale.sasFontTagLabel + item[0] + SASTextScale.SAS_FONT_TAG_CLOSE
 			iData1 = item[1]
 			iData2 = 1
 			# <!-- custom: setTableText calls now go through _SAS_indexPlaceCell so cell args are also recorded for arrow-key cursor re-render. (Claude code Opus 4.7) -->
@@ -243,14 +245,14 @@ class SevoPediaIndex:
 				self._SAS_indexPlaceCell(screen, iRow, iColumn, sText, gc.getBuildingInfo(iData1).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_BUILDING, iData1, iData2)
 			elif (type == "Project"):
 				self._SAS_indexPlaceCell(screen, iRow, iColumn, sText, gc.getProjectInfo(iData1).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_PROJECT, iData1, iData2)
-			elif (type == "Specialist"):
+			elif (type == "SASVisuals.Specialist"):
 				self._SAS_indexPlaceCell(screen, iRow, iColumn, sText, gc.getSpecialistInfo(iData1).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_SPECIALIST, iData1, iData2)
 
 			elif (type == "Terrain"):
 				self._SAS_indexPlaceCell(screen, iRow, iColumn, sText, gc.getTerrainInfo(iData1).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_TERRAIN, iData1, iData2)
 			elif (type == "Feature"):
 				self._SAS_indexPlaceCell(screen, iRow, iColumn, sText, gc.getFeatureInfo(iData1).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_FEATURE, iData1, iData2)
-			elif (type == "Bonus"):
+			elif (type == "SASVisuals.Bonus"):
 				self._SAS_indexPlaceCell(screen, iRow, iColumn, sText, gc.getBonusInfo(iData1).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, iData1, iData2)
 			elif (type == "Improv"):
 				self._SAS_indexPlaceCell(screen, iRow, iColumn, sText, gc.getImprovementInfo(iData1).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_IMPROVEMENT, iData1, iData2)
@@ -264,23 +266,23 @@ class SevoPediaIndex:
 				self._SAS_indexPlaceCell(screen, iRow, iColumn, sText, gc.getCivilizationInfo(iData1).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_CIV, iData1, iData2)
 			elif (type == "Leader"):
 				self._SAS_indexPlaceCell(screen, iRow, iColumn, sText, gc.getLeaderHeadInfo(iData1).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_LEADER, iData1, iData2)
-			# <!-- custom: Trait rows use WIDGET_GENERAL and row-to-trait mapping like Builds. (Claude Opus 4.5) -->
-			elif (type == "Trait"):
+			# <!-- custom: SASVisuals.Trait rows use WIDGET_GENERAL and row-to-trait mapping like Builds. (Claude Opus 4.5) -->
+			elif (type == "SASVisuals.Trait"):
 				self._SAS_indexPlaceCell(screen, iRow, iColumn, sText, gc.getTraitInfo(iData1).getButton(), WidgetTypes.WIDGET_GENERAL, -1, -1)
 				self.SAS_rowToTrait[iRow] = iData1
 
 			elif (type == "Civic"):
 				self._SAS_indexPlaceCell(screen, iRow, iColumn, sText, gc.getCivicInfo(iData1).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_CIVIC, iData1, iData2)
-			elif (type == "Religion"):
+			elif (type == "SASVisuals.Religion"):
 				self._SAS_indexPlaceCell(screen, iRow, iColumn, sText, gc.getReligionInfo(iData1).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_RELIGION, iData1, iData2)
 			# <!-- custom: base AdvCiv bugfix GPT-5.2-Codex found thanks, was gc.getReligionInfo(iData1).getButton() -->
-			elif (type == "Corporation"):
+			elif (type == "SASVisuals.Corporation"):
 				self._SAS_indexPlaceCell(screen, iRow, iColumn, sText, gc.getCorporationInfo(iData1).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_CORPORATION, iData1, iData2)
 
 			elif (type == "Concept"):
-				self._SAS_indexPlaceCell(screen, iRow, iColumn, sasFontTagLabel + (u"%c %s" % (CONCEPT_CHAR, item[0])) + SAS_FONT_TAG_CLOSE, gc.getConceptInfo(iData1).getButton(), WidgetTypes.WIDGET_PEDIA_DESCRIPTION, CivilopediaPageTypes.CIVILOPEDIA_PAGE_CONCEPT, iData1)
+				self._SAS_indexPlaceCell(screen, iRow, iColumn, SASTextScale.sasFontTagLabel + (u"%s %s" % (CONCEPT_CHAR, item[0])) + SASTextScale.SAS_FONT_TAG_CLOSE, gc.getConceptInfo(iData1).getButton(), WidgetTypes.WIDGET_PEDIA_DESCRIPTION, CivilopediaPageTypes.CIVILOPEDIA_PAGE_CONCEPT, iData1)
 			elif (type == "NewConcept"):
-				self._SAS_indexPlaceCell(screen, iRow, iColumn, sasFontTagLabel + (u"%c %s" % (CONCEPT_CHAR, item[0])) + SAS_FONT_TAG_CLOSE, gc.getConceptInfo(iData1).getButton(), WidgetTypes.WIDGET_PEDIA_DESCRIPTION, CivilopediaPageTypes.CIVILOPEDIA_PAGE_CONCEPT_NEW, iData1)
+				self._SAS_indexPlaceCell(screen, iRow, iColumn, SASTextScale.sasFontTagLabel + (u"%s %s" % (CONCEPT_CHAR, item[0])) + SASTextScale.SAS_FONT_TAG_CLOSE, gc.getConceptInfo(iData1).getButton(), WidgetTypes.WIDGET_PEDIA_DESCRIPTION, CivilopediaPageTypes.CIVILOPEDIA_PAGE_CONCEPT_NEW, iData1)
 
 		self.iLastRow = iRow
 

@@ -8,8 +8,10 @@
 # and modified or not for AdvCiv-SAS -->
 
 from CvPythonExtensions import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
+import SASTextScale
 import CvUtil
-from SASFontUtils import getSASUIFontLabel
 from SASUtils import getInfoTypeOrFail
 
 from _sevopedia_helpers import *
@@ -82,11 +84,11 @@ class SevoPediaUnitChart:
 		screen.enableSort(table)
 
 		szName = chart_get_info_display_name(gc.getUnitCombatInfo(self.iGroup))
-		szStrength = u"%c" % CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR)
+		szStrength = u"%s" % SASVisuals.Font.STRENGTH_CHAR
 
 		# <!-- custom: display the icon instead of text -->
 		#szMove = "Moves"
-		szMove = u"%c" % CyGame().getSymbolID(FontSymbols.MOVES_CHAR)
+		szMove = u"%s" % SASVisuals.Font.MOVES_CHAR
 
 		# <!-- custom: display more potentially useful information, useful in AdvCiv-SAS or maybe other mods as well, also so that i don't have to maintain it everytime i make a micro (or big) change, more versatile and flexible this way too. -->
 		#if self.iGroup == getInfoTypeOrFail("UNITCOMBAT_AIR") or self.iGroup == getInfoTypeOrFail("UNITCOMBAT_NAVAL") or self.iGroup == getInfoTypeOrFail("UNITCOMBAT_SIEGE"):
@@ -96,17 +98,17 @@ class SevoPediaUnitChart:
 		#	szSpecial = "1st Strike"
 		# <!-- custom: Chance first strikes now make this a minimum-to-maximum range rather than a guaranteed count alone. See KI#323. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		szFirstStrike = u"1st Strike Range"
-		szBombard = u"%c" % CyGame().getSymbolID(FontSymbols.DEFENSE_CHAR)
+		szBombard = u"%s" % SASVisuals.Font.DEFENSE_CHAR
 		szCollateral = u"Collateral"
 
-		szCost = u"%c" % gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar()
+		szCost = u"%s" % SASVisuals.Yield.PRODUCTION_CHAR
 
 		# <!-- custom: trick (to center the headers text too) taught to me by ChatGPT, quoting it: "screen.setTableColumnHeader(...)
 		# don't use FONT_*_JUSTIFY like the cell contents, but there's a workaround."
 		# + "Workaround: Pad the header label string manually" thanks, that i adjusted too or not for advciv-sas. -->
 		# <!-- custom: table headers do not honor text-justify in this widget.
 		# Keep per-header legacy spacing (worked well at font 2), then reduce spaces gradually when label font > 2 to avoid right-shift at larger scales. (GPT-5.3-Codex) -->
-		iLabelFont = getSASUIFontLabel()
+		iLabelFont = SASTextScale.getSASUIFontLabel()
 		iShrink = 0
 		if iLabelFont > 2:
 			iShrink = (iLabelFont - 2) * 3

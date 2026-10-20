@@ -7,7 +7,8 @@
 from CvPythonExtensions import *
 from SASMagicNumbers import *
 import CvUtil
-from SASFontUtils import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import SASTextScale
 from SASUtils import getInfoTypeOrFail
 
@@ -139,14 +140,14 @@ class SevoPediaTerrain:
 		screen.appendListBoxString(panel, SASTextScale.labelText(localText.getText(txtKeyTerrainPlotTypeLabel, ())), WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
 
 		if self.iTerrain == self.I_TERRAIN_HILL:
-			szStats = (u"%d%c  " % (-1, gc.getYieldInfo(YieldTypes.YIELD_FOOD).getChar()))
-			szStats += (u"+%d%c  " % (1, gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar()))
+			szStats = (u"%d%s  " % (-1, SASVisuals.Yield.FOOD_CHAR))
+			szStats += (u"+%d%s  " % (1, SASVisuals.Yield.PRODUCTION_CHAR))
 		else:
 			szStats = u""
 			for iYield in xrange(YieldTypes.NUM_YIELD_TYPES):
 				iYieldChange = info.getYield(iYield)
 				if iYieldChange != 0:
-					szStats += (u"%d%c  " % (iYieldChange, gc.getYieldInfo(iYield).getChar()))
+					szStats += (u"%d%s  " % (iYieldChange, SASVisuals.Yield.char(iYield)))
 
 		screen.appendListBoxString(panel, SASTextScale.titleText(szStats), WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
 

@@ -7,7 +7,13 @@
 ##
 ## Author: Ruff_Hi
 
+
+# AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
+# (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
+
 from CvPythonExtensions import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import BugUtil
 
 # Constants
@@ -35,7 +41,6 @@ class ProgressBar:
 
 #		BugUtil.info("drawTickMarks: %s %i %i %i %i %s %i %s", id, x, y, w, h, color, marks, forward)
 
-		self.BG = ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTON_NULL").getPath()
 
 		if self.marks == SOLID_MARKS:
 			self.m_y1 = 4
@@ -92,7 +97,7 @@ class ProgressBar:
 
 		self._deleteCanvas(screen)
 
-		screen.addDrawControl(self.id, self.BG, self.x, self.y, self.w, self.h, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.addDrawControl(self.id, SASVisuals.InterfaceArt.INTERFACE_BUTTON_NULL, self.x, self.y, self.w, self.h, WidgetTypes.WIDGET_GENERAL, -1, -1)
 		self._setVisible(True)
 
 		if self.forward:

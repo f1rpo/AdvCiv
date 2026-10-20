@@ -54,8 +54,7 @@
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
-# <!-- custom: AdvCiv-SAS does not actively maintain this BUG screen.
-# Edits here are limited to repo-wide consistency passes (e.g. getInfoTypeOrFail for fail-loud XML lookups) and small hoists/caches. (Claude code Opus 4.7) -->
+# <!-- custom: AdvCiv-SAS retains this inherited BUG screen while applying repo-wide fail-loud/consistency cleanup; immutable glyph caches previously rebuilt per advisor instance now delegate to SASVisualUtils. (Claude code Opus 4.7 + ChatGPT-5.6-Sol) -->
 
 from CvPythonExtensions import *
 from SASUtils import getInfoTypeOrFail
@@ -63,7 +62,9 @@ from SASUtils import getInfoTypeOrFail
 import PyHelpers
 import CvUtil
 import CvScreenEnums
-from SASFontUtils import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
+import SASTextScale
 # <!-- custom: AdvCiv-SAS readability pass: use LABEL as the base text tag (instead of BODY) in upscaled customizable-domestic UI text where feasible. (GPT-5.3-Codex) -->
 import CvEventInterface
 import Popup as PyPopup
@@ -72,8 +73,8 @@ import BugConfigTracker
 import BugCore
 import BugPath
 import BugUtil
-import FontUtil
 import GameUtil
+# <!-- custom: Remove this screen's old FontUtil dependency and per-instance symbol caches; dynamic BUG glyphs now come from SASVisuals.DynamicFont at their use sites. (ChatGPT-5.6-Sol) -->
 
 # BUG - Mac Support - start
 BugUtil.fixSets(globals())
@@ -221,73 +222,73 @@ class CvCustomizableDomesticAdvisor:
 				("ADVISE_CULTURE",			150,	"text",	None,					None,					0,									self.advise,							"Culture",					"localText.getText(\"TXT_KEY_CONCEPT_CULTURE\", ()).upper()"),
 				("ADVISE_MILITARY",			150,	"text",	None,					None,					0,									self.advise,							"Military",					"localText.getText(\"TXT_KEY_ADVISOR_MILITARY\", ()).upper()"),
 				("ADVISE_NUTTY",			150,	"text",	None,					None,					0,									self.advise,							"Nutty",					"u\"NUTTY\""),
-				("ADVISE_RELIGION",			150,	"text",	None,					None,					0,									self.advise,							"Religion",					"localText.getText(\"TXT_KEY_CONCEPT_RELIGION\", ()).upper()"),
+				("ADVISE_RELIGION",			150,	"text",	None,					None,					0,									self.advise,							"SASVisuals.Religion",					"localText.getText(\"TXT_KEY_CONCEPT_RELIGION\", ()).upper()"),
 				("ADVISE_RESEARCH",			150,	"text",	None,					None,					0,									self.advise,							"Research",					"localText.getText(\"TXT_KEY_COMMERCE_RESEARCH\", ()).upper()"),
 				("ADVISE_SPACESHIP",		150,	"text",	None,					None,					0,									self.advise,							"Spaceship",				"localText.getText(\"TXT_KEY_CONCEPT_SPACESHIP\", ()).upper()"),
 				("AUTOMATION",				80,		"text",	None,					None,					0,									self.calculateAutomation,				None,						"u\"AUTO\""),
-				("BASE_COMMERCE",			38,		"int",	None,					CyCity.getBaseYieldRate, YieldTypes.YIELD_COMMERCE,			None,									None,						"u\"B\" + self.commerceIcon"),
-				("BASE_FOOD",				38,		"int",	None,					CyCity.getBaseYieldRate, YieldTypes.YIELD_FOOD,				None,									None,						"u\"B\" + self.foodIcon"),
-				("BASE_PRODUCTION",			38,		"int",	None,					CyCity.getBaseYieldRate, YieldTypes.YIELD_PRODUCTION,		None,									None,						"u\"B\" + self.hammerIcon"),
-				("CONSCRIPT_ANGER",			38,		"int",	None,					None,					0,									self.calculateConscriptAnger,			None,						"u\"D\" + self.unhappyIcon"),
+				("BASE_COMMERCE",			38,		"int",	None,					CyCity.getBaseYieldRate, YieldTypes.YIELD_COMMERCE,			None,									None,						"u\"B\" + SASVisuals.Yield.COMMERCE_CHAR"),
+				("BASE_FOOD",				38,		"int",	None,					CyCity.getBaseYieldRate, YieldTypes.YIELD_FOOD,				None,									None,						"u\"B\" + SASVisuals.Yield.FOOD_CHAR"),
+				("BASE_PRODUCTION",			38,		"int",	None,					CyCity.getBaseYieldRate, YieldTypes.YIELD_PRODUCTION,		None,									None,						"u\"B\" + SASVisuals.Yield.PRODUCTION_CHAR"),
+				("CONSCRIPT_ANGER",			38,		"int",	None,					None,					0,									self.calculateConscriptAnger,			None,						"u\"D\" + SASVisuals.Font.UNHAPPY_CHAR"),
 				("CONSCRIPT_UNIT",			90,		"text",	None,					None,					0,									self.calculateConscriptUnit,			None,						"localText.getText(\"TXT_KEY_CONCEPT_DRAFT\", ()).upper()"),
 				("COULD_CONSCRIPT_UNIT",	90,		"text",	None,					None,					0,									self.calculatePotentialConscriptUnit,	None,						"localText.getText(\"TXT_KEY_CONCEPT_DRAFT\", ()).upper() + u\"#\""),
 				("CORPORATIONS",			90,		"text",	None,					None,					0,									self.calculateCorporations,				None,						"localText.getText(\"TXT_KEY_CONCEPT_CORPORATIONS\", ()).upper()"),
-				("CULTURE",					53,		"int",	None,					None,					0,									self.calculateTotalCulture,				None,						"self.cultureIcon"),
-				("CULTURE_RATE",			38,		"int",	None,					CyCity.getCommerceRate, CommerceTypes.COMMERCE_CULTURE,		None,									None,						"self.cultureIcon + u\"R\""),
-				("CULTURE_TURNS",			38,		"int",	None,					None,					None,								self.calculateCultureTurns,				None,						"self.cultureIcon + u\"T\""),
-				("DEFENSE",					60,		"int",	None,					None,					0,									self.calculateDefense,					None,						"self.defenseIcon"),
-				("ESPIONAGE",			    38,		"int",	None,					CyCity.getCommerceRate, CommerceTypes.COMMERCE_ESPIONAGE,	None,									None,						"self.espionageIcon"),
-				("ESPIONAGE_DEF",			60,		"int",	CyCity.getEspionageDefenseModifier,	None,		0,									self.calculateEspionageDefense,			None,						"self.espionageIcon + u\"%\""),
+				("CULTURE",					53,		"int",	None,					None,					0,									self.calculateTotalCulture,				None,						"SASVisuals.Commerce.CULTURE_CHAR"),
+				("CULTURE_RATE",			38,		"int",	None,					CyCity.getCommerceRate, CommerceTypes.COMMERCE_CULTURE,		None,									None,						"SASVisuals.Commerce.CULTURE_CHAR + u\"R\""),
+				("CULTURE_TURNS",			38,		"int",	None,					None,					None,								self.calculateCultureTurns,				None,						"SASVisuals.Commerce.CULTURE_CHAR + u\"T\""),
+				("DEFENSE",					60,		"int",	None,					None,					0,									self.calculateDefense,					None,						"SASVisuals.Font.DEFENSE_CHAR"),
+				("ESPIONAGE",			    38,		"int",	None,					CyCity.getCommerceRate, CommerceTypes.COMMERCE_ESPIONAGE,	None,									None,						"SASVisuals.Commerce.ESPIONAGE_CHAR"),
+				("ESPIONAGE_DEF",			60,		"int",	CyCity.getEspionageDefenseModifier,	None,		0,									self.calculateEspionageDefense,			None,						"SASVisuals.Commerce.ESPIONAGE_CHAR + u\"%\""),
 				("FEATURES",				106,	"text",	None,					None,					0,									self.calculateFeatures,					None,						"localText.getText(\"TXT_KEY_MISC_FEATURES\", ())"),
-				("FOOD",					35,		"int",	None,					None,					0,									self.calculateFood,						None,						"self.foodIcon"),
+				("FOOD",					35,		"int",	None,					None,					0,									self.calculateFood,						None,						"SASVisuals.Yield.FOOD_CHAR"),
 				("FOUNDED",					80,		"date",	None,					None,					0,									self.calculateFounded,					None,						"localText.getText(\"TXT_KEY_DOMESTIC_ADVISOR_FOUNDED\", ()).upper()"),
-				("FREE_EXPERIENCE_LAND",	30,		"int",	None,					None,					0,									self.calculateFreeExperience,			"L",						"self.landIcon"),
-				("FREE_EXPERIENCE_SEA",		30,		"int",	None,					None,					0,									self.calculateFreeExperience,			"S",						"self.seaIcon"),
-				("FREE_EXPERIENCE_AIR",		30,		"int",	None,					None,					0,									self.calculateFreeExperience,			"A",						"self.airIcon"),
-				("GARRISON",				30,		"int",	CyCity.getMilitaryHappinessUnits,	None,		0,									None,									None,						"self.militaryIcon"),
-				("GOLD",					38,		"int",	None,					CyCity.getCommerceRate, CommerceTypes.COMMERCE_GOLD,		None,									None,						"self.goldIcon"),
-				("GREATPEOPLE",				45,		"int",	CyCity.getGreatPeopleProgress,	None,			0,									None,									None,						"self.figureheadIcon"),
-				("GREATPEOPLE_RATE",		38,		"int",	CyCity.getGreatPeopleRate,		None,			0,									None,									None,						"self.figureheadIcon + u\"R\""),
-				("GREATPEOPLE_TURNS",		38,		"int",	None,					None,					None,								self.calculateGreatPeopleTurns,			None,						"self.figureheadIcon + u\"T\""),
-				("GROWTH",					35,		"int",	None,					None,					0,									self.calculateGrowth,					None,						"self.redfoodIcon"),
-				("HAPPY",					30,		"int",	None,					None,					0,									self.calculateNetHappiness,				None,						"self.happyIcon"),
-				("HEALTH",					30,		"int",	None,					None,					0,									self.calculateNetHealth,				None,						"self.healthIcon"),
-				("HURRY_GOLD",				38,		"int",	None,					None,					0,									self.calculateHurryGoldCost,			None,						"u\"H\" + self.goldIcon"),
-				("HURRY_POP",				38,		"int",	None,					None,					0,									self.calculateWhipPopulation,			None,						"u\"H\" + self.angryIcon"),
-				("HURRY_POP_EXTRA",			38,		"int",	None,					None,					0,									self.calculateWhipOverflowProduction,	None,						"u\"H\" + self.hammerIcon"),
-				("HURRY_POP_GOLD",			38,		"int",	None,					None,					0,									self.calculateWhipOverflowGold,			None,						"u\"H\" + self.goldIcon"),
-				("HURRY_POP_ANGER",			38,		"int",	None,					None,					0,									self.calculateWhipAnger,				None,						"u\"H\" + self.unhappyIcon"),
-				("LIBERATE",				35,		"int",	None,					None,					0,									self.canLiberate,						None,						"self.fistIcon"),
+				("FREE_EXPERIENCE_LAND",	30,		"int",	None,					None,					0,									self.calculateFreeExperience,			"L",						"SASVisuals.DynamicFont.DOMAIN_LAND_CHAR"),
+				("FREE_EXPERIENCE_SEA",		30,		"int",	None,					None,					0,									self.calculateFreeExperience,			"S",						"SASVisuals.DynamicFont.DOMAIN_SEA_CHAR"),
+				("FREE_EXPERIENCE_AIR",		30,		"int",	None,					None,					0,									self.calculateFreeExperience,			"A",						"SASVisuals.DynamicFont.DOMAIN_AIR_CHAR"),
+				("GARRISON",				30,		"int",	CyCity.getMilitaryHappinessUnits,	None,		0,									None,									None,						"SASVisuals.Font.STRENGTH_CHAR"),
+				("GOLD",					38,		"int",	None,					CyCity.getCommerceRate, CommerceTypes.COMMERCE_GOLD,		None,									None,						"SASVisuals.Commerce.GOLD_CHAR"),
+				("GREATPEOPLE",				45,		"int",	CyCity.getGreatPeopleProgress,	None,			0,									None,									None,						"SASVisuals.Font.GREAT_PEOPLE_CHAR"),
+				("GREATPEOPLE_RATE",		38,		"int",	CyCity.getGreatPeopleRate,		None,			0,									None,									None,						"SASVisuals.Font.GREAT_PEOPLE_CHAR + u\"R\""),
+				("GREATPEOPLE_TURNS",		38,		"int",	None,					None,					None,								self.calculateGreatPeopleTurns,			None,						"SASVisuals.Font.GREAT_PEOPLE_CHAR + u\"T\""),
+				("GROWTH",					35,		"int",	None,					None,					0,									self.calculateGrowth,					None,						"SASVisuals.Font.BAD_FOOD_CHAR"),
+				("HAPPY",					30,		"int",	None,					None,					0,									self.calculateNetHappiness,				None,						"SASVisuals.Font.HAPPY_CHAR"),
+				("HEALTH",					30,		"int",	None,					None,					0,									self.calculateNetHealth,				None,						"SASVisuals.Font.HEALTHY_CHAR"),
+				("HURRY_GOLD",				38,		"int",	None,					None,					0,									self.calculateHurryGoldCost,			None,						"u\"H\" + SASVisuals.Commerce.GOLD_CHAR"),
+				("HURRY_POP",				38,		"int",	None,					None,					0,									self.calculateWhipPopulation,			None,						"u\"H\" + SASVisuals.Font.ANGRY_POP_CHAR"),
+				("HURRY_POP_EXTRA",			38,		"int",	None,					None,					0,									self.calculateWhipOverflowProduction,	None,						"u\"H\" + SASVisuals.Yield.PRODUCTION_CHAR"),
+				("HURRY_POP_GOLD",			38,		"int",	None,					None,					0,									self.calculateWhipOverflowGold,			None,						"u\"H\" + SASVisuals.Commerce.GOLD_CHAR"),
+				("HURRY_POP_ANGER",			38,		"int",	None,					None,					0,									self.calculateWhipAnger,				None,						"u\"H\" + SASVisuals.Font.UNHAPPY_CHAR"),
+				("LIBERATE",				35,		"int",	None,					None,					0,									self.canLiberate,						None,						"SASVisuals.Font.OCCUPATION_CHAR"),
 				# advc.004: Wrap CyCity.getX/Y into self.getX/Y
 				("LOCATION_X",				50,		"int",	None,					None,					0,									self.getX,								None,						"u\"X\""),
 				("LOCATION_Y",				50,		"int",	None,					None,					0,									self.getY,								None,						"u\"Y\""),
-				("MAINTENANCE",				30,		"int",	CyCity.getMaintenance,	None,					0,									None,									None,						"self.redGoldIcon"),
-				("NRANK_BASE_COMMERCE",		42,		"int",	None,					CyCity.findBaseYieldRateRank, YieldTypes.YIELD_COMMERCE,	None,									None,						"u\"B\" + self.commerceIcon + u\"n\""),
-				("NRANK_BASE_FOOD",			42,		"int",	None,					CyCity.findBaseYieldRateRank, YieldTypes.YIELD_FOOD,		None,									None,						"u\"B\" + self.foodIcon + u\"n\""),
-				("NRANK_BASE_PRODUCTION",	42,		"int",	None,					CyCity.findBaseYieldRateRank, YieldTypes.YIELD_PRODUCTION,	None,									None,						"u\"B\" + self.hammerIcon + u\"n\""),
-				("NRANK_COMMERCE",			38,		"int",	None,					CyCity.findYieldRateRank, YieldTypes.YIELD_COMMERCE,		None,									None,						"self.commerceIcon + u\"n\""),
-				("NRANK_FOOD",				38,		"int",	None,					CyCity.findYieldRateRank, YieldTypes.YIELD_FOOD,			None,									None,						"self.foodIcon + u\"n\""),
-				("NRANK_PRODUCTION",		38,		"int",	None,					CyCity.findYieldRateRank, YieldTypes.YIELD_PRODUCTION,		None,									None,						"self.hammerIcon + u\"n\""),
-				("NRANK_CULTURE",			38,		"int",	None,					CyCity.findCommerceRateRank, CommerceTypes.COMMERCE_CULTURE,	None,								None,						"self.cultureIcon + u\"n\""),
-				("NRANK_GOLD",				38,		"int",	None,					CyCity.findCommerceRateRank, CommerceTypes.COMMERCE_GOLD,	None,									None,						"self.goldIcon + u\"n\""),
-				("NRANK_RESEARCH",			38,		"int",	None,					CyCity.findCommerceRateRank, CommerceTypes.COMMERCE_RESEARCH,	None,								None,						"self.researchIcon + u\"n\""),
-				("NUM_SPECIALIST_GG",		30,		"int",	None,					None,					0,									self.countFreeSpecialists,				"GREAT_GENERAL",			"self.milInstructorIcon"),
+				("MAINTENANCE",				30,		"int",	CyCity.getMaintenance,	None,					0,									None,									None,						"SASVisuals.Font.BAD_GOLD_CHAR"),
+				("NRANK_BASE_COMMERCE",		42,		"int",	None,					CyCity.findBaseYieldRateRank, YieldTypes.YIELD_COMMERCE,	None,									None,						"u\"B\" + SASVisuals.Yield.COMMERCE_CHAR + u\"n\""),
+				("NRANK_BASE_FOOD",			42,		"int",	None,					CyCity.findBaseYieldRateRank, YieldTypes.YIELD_FOOD,		None,									None,						"u\"B\" + SASVisuals.Yield.FOOD_CHAR + u\"n\""),
+				("NRANK_BASE_PRODUCTION",	42,		"int",	None,					CyCity.findBaseYieldRateRank, YieldTypes.YIELD_PRODUCTION,	None,									None,						"u\"B\" + SASVisuals.Yield.PRODUCTION_CHAR + u\"n\""),
+				("NRANK_COMMERCE",			38,		"int",	None,					CyCity.findYieldRateRank, YieldTypes.YIELD_COMMERCE,		None,									None,						"SASVisuals.Yield.COMMERCE_CHAR + u\"n\""),
+				("NRANK_FOOD",				38,		"int",	None,					CyCity.findYieldRateRank, YieldTypes.YIELD_FOOD,			None,									None,						"SASVisuals.Yield.FOOD_CHAR + u\"n\""),
+				("NRANK_PRODUCTION",		38,		"int",	None,					CyCity.findYieldRateRank, YieldTypes.YIELD_PRODUCTION,		None,									None,						"SASVisuals.Yield.PRODUCTION_CHAR + u\"n\""),
+				("NRANK_CULTURE",			38,		"int",	None,					CyCity.findCommerceRateRank, CommerceTypes.COMMERCE_CULTURE,	None,								None,						"SASVisuals.Commerce.CULTURE_CHAR + u\"n\""),
+				("NRANK_GOLD",				38,		"int",	None,					CyCity.findCommerceRateRank, CommerceTypes.COMMERCE_GOLD,	None,									None,						"SASVisuals.Commerce.GOLD_CHAR + u\"n\""),
+				("NRANK_RESEARCH",			38,		"int",	None,					CyCity.findCommerceRateRank, CommerceTypes.COMMERCE_RESEARCH,	None,								None,						"SASVisuals.Commerce.RESEARCH_CHAR + u\"n\""),
+				("NUM_SPECIALIST_GG",		30,		"int",	None,					None,					0,									self.countFreeSpecialists,				"GREAT_GENERAL",			"SASVisuals.DynamicFont.MILITARY_INSTRUCTOR_CHAR"),
 				("POPULATION",				35,		"int",	CyCity.getPopulation,	None,					0,									None,									None,						"localText.getText(\"TXT_KEY_POPULATION\", ()).upper()"),
 				("POPULATION_REAL",			65,		"int",	CyCity.getRealPopulation,	None,				0,									None,									None,						"localText.getText(\"TXT_KEY_POPULATION\", ()).upper() + u\"#\""),
-				("POWER",					50,		"text",	None,					None,					0,									self.calculatePower,					None,						"self.powerIcon"),
+				("POWER",					50,		"text",	None,					None,					0,									self.calculatePower,					None,						"SASVisuals.Font.POWER_CHAR"),
 				("PRODUCING",				90,		"text",	None,					None,					0,									self.calculateProducing,				None,						"localText.getText(\"TXT_KEY_DOMESTIC_ADVISOR_PRODUCING\", ())"),
-				("PRODUCING_TURNS",			33,		"int",	None,					None,					0,									self.calculateProducingTurns,			None,						"self.hammerIcon + u\"T\""),
-				("PRODUCTION",				38,		"int",	None,					None,					0,									self.calculateProduction,				None,						"self.hammerIcon"),
+				("PRODUCING_TURNS",			33,		"int",	None,					None,					0,									self.calculateProducingTurns,			None,						"SASVisuals.Yield.PRODUCTION_CHAR + u\"T\""),
+				("PRODUCTION",				38,		"int",	None,					None,					0,									self.calculateProduction,				None,						"SASVisuals.Yield.PRODUCTION_CHAR"),
 				("RELIGIONS",				90,		"text",	None,					None,					0,									self.calculateReligions,				None,						"localText.getText(\"TXT_KEY_ADVISOR_RELIGION\", ()).upper()"),
-				("RESEARCH",				38,		"int",	None,					CyCity.getCommerceRate, CommerceTypes.COMMERCE_RESEARCH,	None,									None,						"self.researchIcon"),
+				("RESEARCH",				38,		"int",	None,					CyCity.getCommerceRate, CommerceTypes.COMMERCE_RESEARCH,	None,									None,						"SASVisuals.Commerce.RESEARCH_CHAR"),
 				("SPECIALISTS",				209,	"text",	None,					None,					0,									self.calculateSpecialists,				None,						"localText.getText(\"TXT_KEY_CONCEPT_SPECIALISTS\", ()).upper()"),
 				("THREATS",					60,		"text",	None,					None,					0,									self.calculateThreats,					None,						"u\"Threats\""),
-				("TRADE",					30,		"int",	None,					None,					0,									self.calculateTrade,					None,						"self.tradeIcon"),
-				("TRADE_DOMESTIC",			30,		"int",	None,					None,					0,									self.calculateTrade,					"D",						"u\"D\" + self.tradeIcon"),
-				("TRADE_FOREIGN",			30,		"int",	None,					None,					0,									self.calculateTrade,					"F",						"u\"F\" + self.tradeIcon"),
-				("TRADE_ROUTES",			30,		"int",	None,					None,					0,									self.countTradeRoutes,					None,						"u\"#\" + self.tradeIcon"),
-				("TRADE_ROUTES_DOMESTIC",	30,		"int",	None,					None,					0,									self.countTradeRoutes,					"D",						"u\"D#\" + self.tradeIcon"),
-				("TRADE_ROUTES_FOREIGN",	30,		"int",	None,					None,					0,									self.countTradeRoutes,					"F",						"u\"F#\" + self.tradeIcon"),
+				("TRADE",					30,		"int",	None,					None,					0,									self.calculateTrade,					None,						"SASVisuals.Font.TRADE_CHAR"),
+				("TRADE_DOMESTIC",			30,		"int",	None,					None,					0,									self.calculateTrade,					"D",						"u\"D\" + SASVisuals.Font.TRADE_CHAR"),
+				("TRADE_FOREIGN",			30,		"int",	None,					None,					0,									self.calculateTrade,					"F",						"u\"F\" + SASVisuals.Font.TRADE_CHAR"),
+				("TRADE_ROUTES",			30,		"int",	None,					None,					0,									self.countTradeRoutes,					None,						"u\"#\" + SASVisuals.Font.TRADE_CHAR"),
+				("TRADE_ROUTES_DOMESTIC",	30,		"int",	None,					None,					0,									self.countTradeRoutes,					"D",						"u\"D#\" + SASVisuals.Font.TRADE_CHAR"),
+				("TRADE_ROUTES_FOREIGN",	30,		"int",	None,					None,					0,									self.countTradeRoutes,					"F",						"u\"F#\" + SASVisuals.Font.TRADE_CHAR"),
 			]
 
 		# Values to check to see if we need to color the number as a problem
@@ -356,8 +357,6 @@ class CvCustomizableDomesticAdvisor:
 			}
 
 		self.HEADER_DICT = None
-		self.SPECIALIST_ICON_DICT = None
-		self.AUTOMATION_ICON_DICT = None
 		self.COLOR_DICT = None
 # BUG - Production Grouping - start
 		self.PROD_COLOR_DICT = None
@@ -407,63 +406,19 @@ class CvCustomizableDomesticAdvisor:
 		self.PROCESS_CULTURE = getInfoTypeOrFail("PROCESS_CULTURE")
 		self.YIELD_PRODUCTION = getInfoTypeOrFail("YIELD_PRODUCTION")
 
-		self.angryIcon = u"%c" % CyGame().getSymbolID(FontSymbols.ANGRY_POP_CHAR)
-		self.commerceIcon = u"%c" %(gc.getYieldInfo(YieldTypes.YIELD_COMMERCE).getChar())
-		self.cultureIcon = u"%c" %(gc.getCommerceInfo(CommerceTypes.COMMERCE_CULTURE).getChar())
-		self.defenseIcon = u"%c" % CyGame().getSymbolID(FontSymbols.DEFENSE_CHAR)
-		self.espionageIcon = u"%c" %(gc.getCommerceInfo(CommerceTypes.COMMERCE_ESPIONAGE).getChar())
-		self.fistIcon = u"%c" % CyGame().getSymbolID(FontSymbols.OCCUPATION_CHAR)
-		self.foodIcon = u"%c" %(gc.getYieldInfo(YieldTypes.YIELD_FOOD).getChar())
-		self.footIcon = u"%c" % CyGame().getSymbolID(FontSymbols.MOVES_CHAR)
-		self.goldIcon = u"%c" %(gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar())
-		self.redGoldIcon = u"%c" % CyGame().getSymbolID(FontSymbols.BAD_GOLD_CHAR)
-		self.figureheadIcon = u"%c" % CyGame().getSymbolID(FontSymbols.GREAT_PEOPLE_CHAR)
-		self.hammerIcon = u"%c" %(gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar())
-		self.happyIcon = u"%c" % CyGame().getSymbolID(FontSymbols.HAPPY_CHAR)
-		self.healthIcon = u"%c" % CyGame().getSymbolID(FontSymbols.HEALTHY_CHAR)
-		self.lawIcon = u"%c" % CyGame().getSymbolID(FontSymbols.DEFENSIVE_PACT_CHAR)
-		self.militaryIcon = u"%c" % CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR)
-		self.powerIcon = u"%c" % CyGame().getSymbolID(FontSymbols.POWER_CHAR)
-		self.redfoodIcon = u"%c" % CyGame().getSymbolID(FontSymbols.BAD_FOOD_CHAR)
-		self.religionIcon = u"%c" % CyGame().getSymbolID(FontSymbols.RELIGION_CHAR)
-		self.researchIcon = u"%c" %(gc.getCommerceInfo(CommerceTypes.COMMERCE_RESEARCH).getChar())
-		self.sickIcon = u"%c" % CyGame().getSymbolID(FontSymbols.UNHEALTHY_CHAR)
-		self.tradeIcon = u"%c" % CyGame().getSymbolID(FontSymbols.TRADE_CHAR)
-		self.unhappyIcon = u"%c" % CyGame().getSymbolID(FontSymbols.UNHAPPY_CHAR)
-
-		self.yieldIcons = {}
-		for eYieldType in range(YieldTypes.NUM_YIELD_TYPES):
-			info = gc.getYieldInfo(eYieldType)
-			self.yieldIcons[eYieldType] = u"%c" % info.getChar()
-
-		self.commerceIcons = {}
-		for eCommerceType in range(CommerceTypes.NUM_COMMERCE_TYPES):
-			info = gc.getCommerceInfo(eCommerceType)
-			self.commerceIcons[eCommerceType] = u"%c" % info.getChar()
-
-		self.starIcon = u"%c" % CyGame().getSymbolID(FontSymbols.STAR_CHAR)
-		self.silverStarIcon = u"%c" % CyGame().getSymbolID(FontSymbols.SILVER_STAR_CHAR)
-		self.bulletIcon = u"%c" % CyGame().getSymbolID(FontSymbols.BULLET_CHAR)
-
-		self.milInstructorIcon = FontUtil.getChar(FontSymbols.MILITARY_INSTRUCTOR_CHAR)
-		self.landIcon = FontUtil.getChar(FontSymbols.DOMAIN_LAND_CHAR)
-		self.seaIcon = FontUtil.getChar(FontSymbols.DOMAIN_SEA_CHAR)
-		self.airIcon = FontUtil.getChar(FontSymbols.DOMAIN_AIR_CHAR)
-		self.cancelIcon = FontUtil.getChar(FontSymbols.CANCEL_CHAR)
 
 		# Special symbols for building, wonder and project views
 		self.objectIsPresent = "x"
 		self.objectIsNotPresent = "-"
 		self.objectCanBeBuild = "o"
-		self.objectUnderConstruction = self.hammerIcon
 
 		# add the colors dependant on the statuses
-		self.objectHave = localText.changeTextColor (self.objectIsPresent, getInfoTypeOrFail("COLOR_GREEN")) #"x"
-		self.objectNotPossible = localText.changeTextColor (self.objectIsNotPresent, getInfoTypeOrFail("COLOR_RED")) #"-"
-		self.objectPossible = localText.changeTextColor (self.objectCanBeBuild, getInfoTypeOrFail("COLOR_BLUE")) #"o"
-		self.objectHaveObsolete = localText.changeTextColor (self.objectIsPresent, getInfoTypeOrFail("COLOR_WHITE")) #"x"
-		self.objectNotPossibleConcurrent = localText.changeTextColor (self.objectIsNotPresent, getInfoTypeOrFail("COLOR_YELLOW")) #"-"
-		self.objectPossibleConcurrent = localText.changeTextColor (self.objectCanBeBuild, getInfoTypeOrFail("COLOR_YELLOW")) #"o"		
+		self.objectHave = localText.changeTextColor (self.objectIsPresent, SASVisuals.Color.GREEN) #"x"
+		self.objectNotPossible = localText.changeTextColor (self.objectIsNotPresent, SASVisuals.Color.RED) #"-"
+		self.objectPossible = localText.changeTextColor (self.objectCanBeBuild, SASVisuals.Color.BLUE) #"o"
+		self.objectHaveObsolete = localText.changeTextColor (self.objectIsPresent, SASVisuals.Color.WHITE) #"x"
+		self.objectNotPossibleConcurrent = localText.changeTextColor (self.objectIsNotPresent, SASVisuals.Color.YELLOW) #"-"
+		self.objectPossibleConcurrent = localText.changeTextColor (self.objectCanBeBuild, SASVisuals.Color.YELLOW) #"o"
 
 		# Corporation Yield and Commerce values by Bonus
 		# Maps are { bonus -> { yield/commerce -> { corporation -> value } } }
@@ -513,18 +468,18 @@ class CvCustomizableDomesticAdvisor:
 			icon = u""
 
 			if info.isCapital() > 0:
-				icon += self.starIcon
+				icon += SASVisuals.Font.STAR_CHAR
 			elif info.isGovernmentCenter() > 0:
-				icon += self.silverStarIcon
+				icon += SASVisuals.Font.SILVER_STAR_CHAR
 
 			if info.getReligionType() != -1:
 				if info.getHolyCity() != -1:
-					icon += u"%c" %(gc.getReligionInfo(info.getReligionType()).getHolyCityChar())
+					icon += SASVisuals.Religion.holyCityChar(info.getReligionType())
 				else:
-					icon += u"%c" %(gc.getReligionInfo(info.getReligionType()).getChar())
+					icon += SASVisuals.Religion.char(info.getReligionType())
 
 			if info.getFoodKept() > 0 or info.getSeaPlotYieldChange(YieldTypes.YIELD_FOOD) > 0:
-				icon += self.foodIcon
+				icon += SASVisuals.Yield.FOOD_CHAR
 
 			if info.getFreeExperience() > 0 or \
 				info.getFreePromotion() != -1 or \
@@ -532,60 +487,60 @@ class CvCustomizableDomesticAdvisor:
 				info.getDomainFreeExperience(DomainTypes.DOMAIN_LAND) > 0 or \
 				info.getDomainFreeExperience(DomainTypes.DOMAIN_SEA) > 0 or \
 				info.getDomainFreeExperience(DomainTypes.DOMAIN_AIR) > 0:
-				icon += self.militaryIcon
+				icon += SASVisuals.Font.STRENGTH_CHAR
 
 			if info.getDefenseModifier() > 0 or \
 				info.getAllCityDefenseModifier() > 0 or \
 				info.getNukeModifier() < 0 or \
 				info.getAirModifier() < 0:
-				icon += self.defenseIcon
+				icon += SASVisuals.Font.DEFENSE_CHAR
 
 			if info.isPower() or info.isDirtyPower() or info.isAreaCleanPower():
-				icon += self.powerIcon
+				icon += SASVisuals.Font.POWER_CHAR
 
 			if info.getWarWearinessModifier() < 0 or info.getAnarchyModifier() > 0 or info.getGlobalWarWearinessModifier() < 0:
-				icon += "[" + self.angryIcon + "]"
+				icon += "[" + SASVisuals.Font.ANGRY_POP_CHAR + "]"
 
 			if info.getCommerceModifier(CommerceTypes.COMMERCE_CULTURE) > 0:
-				icon += self.cultureIcon
+				icon += SASVisuals.Commerce.CULTURE_CHAR
 
 			if info.getCommerceModifier(CommerceTypes.COMMERCE_GOLD) > 0:
-				icon += self.goldIcon
+				icon += SASVisuals.Commerce.GOLD_CHAR
 
 			if info.getCommerceModifier(CommerceTypes.COMMERCE_RESEARCH) > 0:
-				icon += self.researchIcon
+				icon += SASVisuals.Commerce.RESEARCH_CHAR
 
 			if info.getCommerceModifier(CommerceTypes.COMMERCE_ESPIONAGE) > 0:
-				icon += self.espionageIcon
+				icon += SASVisuals.Commerce.ESPIONAGE_CHAR
 
 			if info.getSpaceProductionModifier() > 0 \
 				or info.getDomainProductionModifier(DomainTypes.DOMAIN_LAND) > 0 \
 				or info.getDomainProductionModifier(DomainTypes.DOMAIN_SEA) > 0 \
 				or info.getDomainProductionModifier(DomainTypes.DOMAIN_AIR) > 0 \
 				or info.getYieldChange(YieldTypes.YIELD_PRODUCTION) > 0:
-				icon += self.hammerIcon
+				icon += SASVisuals.Yield.PRODUCTION_CHAR
 			# advc.310: iGlobalTradeRoutes renamed to iAreaTradeRoutes
 			if info.getTradeRouteModifier() > 0 or info.getTradeRoutes() > 0 or info.getCoastalTradeRoutes() > 0 \
 			or info.getAreaTradeRoutes() > 0 or info.getForeignTradeRouteModifier() > 0:
-				icon += self.tradeIcon
+				icon += SASVisuals.Font.TRADE_CHAR
 
 			if info.getMaintenanceModifier() < 0:
-				icon += self.commerceIcon
+				icon += SASVisuals.Yield.COMMERCE_CHAR
 
 			if info.isNoUnhappiness():
-				icon += self.happyIcon
+				icon += SASVisuals.Font.HAPPY_CHAR
 
 			if info.isBuildingOnlyHealthy():
-				icon += self.healthIcon
+				icon += SASVisuals.Font.HEALTHY_CHAR
 
 			if info.getHealth() < 0 or info.getGlobalHealth() < 0:
-				icon += self.sickIcon
+				icon += SASVisuals.Font.UNHEALTHY_CHAR
 
 			if info.getGreatPeopleRateChange() > 0 or info.getGreatPeopleRateModifier() > 0:
-				icon += self.figureheadIcon
+				icon += SASVisuals.Font.GREAT_PEOPLE_CHAR
 
 			if info.getMovie():
-				icon += self.starIcon
+				icon += SASVisuals.Font.STAR_CHAR
 
 			self.COLUMNS_LIST.append((key, 50 + 15 * len(icon), "text", None, None, 0, self.calculateValue, None, u"u\"" + desc + u"\""))
 			self.BUILDING_ICONS_DICT[key] = icon
@@ -613,17 +568,17 @@ class CvCustomizableDomesticAdvisor:
 
 		# Hurry types
 		for i in range(gc.getNumHurryInfos()):
-			header = "self.hammerIcon"
+			header = "SASVisuals.Yield.PRODUCTION_CHAR"
 			name = "CAN_HURRY_"
 			info = gc.getHurryInfo(i)
 			if info.getGoldPerProduction() > 0:
-				header += " + self.goldIcon"
+				header += " + SASVisuals.Commerce.GOLD_CHAR"
 				name += "GOLD"
 			if info.getProductionPerPopulation() > 0 and info.isAnger():
-				header += " + self.angryIcon"
+				header += " + SASVisuals.Font.ANGRY_POP_CHAR"
 				name += "WHIP"
 			elif info.getProductionPerPopulation() > 0:
-				header += " + self.happyIcon"
+				header += " + SASVisuals.Font.HAPPY_CHAR"
 				name += "VOLUNTEERS"
 
 			self.COLUMNS_LIST.append((name, 50, "text", None, None, 0, self.canHurry, i, header))
@@ -631,7 +586,7 @@ class CvCustomizableDomesticAdvisor:
 		# Resources ("bonuses") -- presence
 		for i in range(gc.getNumBonusInfos()):
 			info = gc.getBonusInfo(i)
-			desc = u"%c" % info.getChar()
+			desc = SASVisuals.Bonus.char(i)
 			key = "HAS_" + self.getBonusKey(i)
 
 			self.COLUMNS_LIST.append((key, 24, "bonus", None, None, 0, self.calculateHasBonus, i, "u\"" + desc + "\""))
@@ -639,7 +594,7 @@ class CvCustomizableDomesticAdvisor:
 		# Resources ("bonuses") -- effects
 		for i in range(gc.getNumBonusInfos()):
 			info = gc.getBonusInfo(i)
-			desc = u"%c" % info.getChar()
+			desc = SASVisuals.Bonus.char(i)
 			key = self.getBonusKey(i)
 
 			self.COLUMNS_LIST.append((key, 50, "text", None, None, 0, self.calculateBonus, i, "u\"" + desc + "\""))
@@ -651,38 +606,15 @@ class CvCustomizableDomesticAdvisor:
 			self.COLUMNS_INDEX[column[0]] = i
 			self.HEADER_DICT[column[0]] = eval(column[8], globals(), locals())
 
-		if self.SPECIALIST_ICON_DICT is None:
-			# Specialist Icon Information (Must be here, because C++ functions aren't
-			# available upon startup of CIV)
-			self.SPECIALIST_ICON_DICT = {
-				0 : self.bulletIcon, # Citizen
-				1 : self.happyIcon, # Priest
-				2 : self.cultureIcon, # Artist
-				3 : self.researchIcon, # Scientist
-				4 : self.goldIcon, # Merchant
-				5 : self.hammerIcon, # Engineer
-				6 : self.espionageIcon, # Engineer
-				}
-
-		if self.AUTOMATION_ICON_DICT is None:
-			# Automation Information (Must be here, because C++ functions aren't
-			# available upon startup of CIV)
-			self.AUTOMATION_ICON_DICT = {
-				0 : self.foodIcon, # Emphasize Food
-				1 : self.hammerIcon, # Emphasize Production
-				2 : self.goldIcon, # Emphasize Gold?
-				3 : self.researchIcon, # Emphasize Research
-				4 : self.figureheadIcon, # Emphasize GP
-				5 : self.redfoodIcon, # Emphasize Avoid Growth
-				}
+		# <!-- custom: Specialist and city-emphasis glyph tuples are now resolved once in SASVisualUtils instead of cached again on each advisor instance. (ChatGPT-5.6-Sol) -->
 
 		if self.COLOR_DICT is None:
 			# Colors to highlight with for each type of number (Must be here,
 			#  because C++ functions aren't available upon startup of CIV)
 			self.COLOR_DICT = {
-				"PROBLEM": getInfoTypeOrFail("COLOR_RED"),
-				"NEUTRAL": getInfoTypeOrFail("COLOR_YELLOW"),
-				"GREAT": getInfoTypeOrFail("COLOR_GREEN"),
+				"PROBLEM": SASVisuals.Color.RED,
+				"NEUTRAL": SASVisuals.Color.YELLOW,
+				"GREAT": SASVisuals.Color.GREEN,
 				}
 
 # BUG - Production Grouping - start
@@ -690,15 +622,15 @@ class CvCustomizableDomesticAdvisor:
 			# Colors to use for color-coding of production items.
 			# ["DEFAULT"] is used if color-coding is off.
 			self.PROD_COLOR_DICT = {
-				"DEFAULT": getInfoTypeOrFail("COLOR_WHITE"),
-				"NOTHING": getInfoTypeOrFail("COLOR_RED"),
-				"BUILDING": getInfoTypeOrFail("COLOR_WHITE"),
-				"WONDER": getInfoTypeOrFail("COLOR_CYAN"),
-				"WEALTH": getInfoTypeOrFail("COLOR_YELLOW"),
-				"RESEARCH": getInfoTypeOrFail("COLOR_GREEN"),
-				"CULTURE": getInfoTypeOrFail("COLOR_MAGENTA"),
-				"PROJECT": getInfoTypeOrFail("COLOR_CYAN"),
-				"UNIT": getInfoTypeOrFail("COLOR_YIELD_FOOD"),
+				"DEFAULT": SASVisuals.Color.WHITE,
+				"NOTHING": SASVisuals.Color.RED,
+				"BUILDING": SASVisuals.Color.WHITE,
+				"WONDER": SASVisuals.Color.CYAN,
+				"WEALTH": SASVisuals.Color.YELLOW,
+				"RESEARCH": SASVisuals.Color.GREEN,
+				"CULTURE": SASVisuals.Color.MAGENTA,
+				"PROJECT": SASVisuals.Color.CYAN,
+				"UNIT": SASVisuals.Color.YIELD_FOOD,
 				}
 # BUG - Production Grouping - end
 
@@ -834,16 +766,12 @@ class CvCustomizableDomesticAdvisor:
 
 	def getNumSpecialistInfos (self):
 		# Get the number of specialist types (that WE deal with).
-		#
-		try:
-			return len (self.SPECIALIST_ICON_DICT)
-		except TypeError:
-			return 0
+		return len(SASVisuals.Specialist.cityIcons())
 
 	def getNumEmphasizeInfos (self):
 		# Get the number of emphasis types (that WE deal with).
 		#
-		return len (self.AUTOMATION_ICON_DICT)
+		return len(SASVisuals.CityEmphasis.icons())
 
 	def interfaceScreen(self):
 		# Screen construction function.
@@ -901,9 +829,9 @@ class CvCustomizableDomesticAdvisor:
 
 		# Text Buttons
 		screen.setText(self.EXIT_NAME, "Background",
-				sasFontTagTitle + # advc.193
+				SASTextScale.sasFontTagTitle + # advc.193
 				localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ()).upper()
-				+ SAS_FONT_TAG_CLOSE, # advc.193
+				+ SASTextScale.SAS_FONT_TAG_CLOSE, # advc.193
 				CvUtil.FONT_RIGHT_JUSTIFY,
 				self.X_EXIT, self.Y_EXIT, self.Z_TEXT,
 				FontTypes.TITLE_FONT,
@@ -912,32 +840,32 @@ class CvCustomizableDomesticAdvisor:
 		x = self.X_SPECIAL + self.PAGES_DD_W + 10
 
 		# Buttons to switch screens
-		screen.setImageButton( self.PREV_PAGE_NAME, ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_LEFT").getPath(), x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_PREV_PAGE, -1, -1 )
+		screen.setImageButton( self.PREV_PAGE_NAME, SASVisuals.InterfaceArt.INTERFACE_BUTTONS_LEFT, x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_PREV_PAGE, -1, -1 )
 		x += self.nControlSize + 2
-		screen.setImageButton( self.NEXT_PAGE_NAME, ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_RIGHT").getPath(), x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_NEXT_PAGE, -1, -1 )
+		screen.setImageButton( self.NEXT_PAGE_NAME, SASVisuals.InterfaceArt.INTERFACE_BUTTONS_RIGHT, x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_NEXT_PAGE, -1, -1 )
 		x += self.nControlSize + 12
-		screen.addCheckBoxGFC(self.START_CUSTOMIZING_NAME, ArtFileMgr.getInterfaceArtInfo("INTERFACE_BTN_FOREIGN").getPath(), ArtFileMgr.getInterfaceArtInfo("BUTTON_HILITE_SQUARE").getPath(), x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_EDIT_PAGE, -1, -1, ButtonStyles.BUTTON_STYLE_IMAGE )
+		screen.addCheckBoxGFC(self.START_CUSTOMIZING_NAME, SASVisuals.InterfaceArt.INTERFACE_BTN_FOREIGN, SASVisuals.InterfaceArt.BUTTON_HILITE_SQUARE, x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_EDIT_PAGE, -1, -1, ButtonStyles.BUTTON_STYLE_IMAGE )
 		x += self.nControlSize + 2
-		screen.setImageButton( self.RENAME_PAGE_NAME, ArtFileMgr.getInterfaceArtInfo("INTERFACE_BTN_EVENT_LOG").getPath(), x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_RENAME_PAGE, -1, -1 )
+		screen.setImageButton( self.RENAME_PAGE_NAME, SASVisuals.InterfaceArt.INTERFACE_BTN_EVENT_LOG, x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_RENAME_PAGE, -1, -1 )
 		x += self.nControlSize + 2
 		info = gc.getSpecialistInfo(getInfoTypeOrFail("SPECIALIST_CITIZEN"))
-		screen.addCheckBoxGFC(self.TOGGLE_SPECS_NAME, info.getTexture(), ArtFileMgr.getInterfaceArtInfo("BUTTON_HILITE_SQUARE").getPath(), x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_TOGGLE_SPECIALISTS, -1, -1, ButtonStyles.BUTTON_STYLE_IMAGE )
+		screen.addCheckBoxGFC(self.TOGGLE_SPECS_NAME, info.getTexture(), SASVisuals.InterfaceArt.BUTTON_HILITE_SQUARE, x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_TOGGLE_SPECIALISTS, -1, -1, ButtonStyles.BUTTON_STYLE_IMAGE )
 		x += self.nControlSize + 2
-		screen.setImageButton( self.ADD_PAGE_NAME, ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_PLUS").getPath(), x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_ADD_PAGE, -1, -1 )
+		screen.setImageButton( self.ADD_PAGE_NAME, SASVisuals.InterfaceArt.INTERFACE_BUTTONS_PLUS, x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_ADD_PAGE, -1, -1 )
 		x += self.nControlSize + 2
-		screen.setImageButton( self.DEL_PAGE_NAME, ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_MINUS").getPath(), x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_REMOVE_PAGE, -1, -1 )
+		screen.setImageButton( self.DEL_PAGE_NAME, SASVisuals.InterfaceArt.INTERFACE_BUTTONS_MINUS, x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_REMOVE_PAGE, -1, -1 )
 		x += self.nControlSize + 2
-		screen.setImageButton( self.PAGE_UP_NAME, ArtFileMgr.getInterfaceArtInfo("INTERFACE_GENERAL_UPARROW").getPath(), x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_MOVE_PAGE_UP, -1, -1 )
+		screen.setImageButton( self.PAGE_UP_NAME, SASVisuals.InterfaceArt.INTERFACE_GENERAL_UPARROW, x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_MOVE_PAGE_UP, -1, -1 )
 		x += self.nControlSize + 2
-		screen.setImageButton( self.PAGE_DOWN_NAME, ArtFileMgr.getInterfaceArtInfo("INTERFACE_GENERAL_DOWNARROW").getPath(), x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_MOVE_PAGE_DOWN, -1, -1 )
+		screen.setImageButton( self.PAGE_DOWN_NAME, SASVisuals.InterfaceArt.INTERFACE_GENERAL_DOWNARROW, x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_MOVE_PAGE_DOWN, -1, -1 )
 		x += self.nControlSize + 12
-		screen.setImageButton( self.SAVE_NAME, ArtFileMgr.getInterfaceArtInfo("INTERFACE_GENERAL_MENU_ICON").getPath(), x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_SAVE, -1, -1 )
+		screen.setImageButton( self.SAVE_NAME, SASVisuals.InterfaceArt.INTERFACE_GENERAL_MENU_ICON, x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_SAVE, -1, -1 )
 		x += self.nControlSize + 2
-		screen.setImageButton( self.RELOAD_PAGES_NAME, ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_CANCEL").getPath(), x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_RELOAD, -1, -1 )
+		screen.setImageButton( self.RELOAD_PAGES_NAME, SASVisuals.InterfaceArt.INTERFACE_BUTTONS_CANCEL, x, self.Y_SPECIAL, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_RELOAD, -1, -1 )
 		x += self.nControlSize + 2
 
 		# Cultural Levels Text
-		screen.setText (self.CULTURE_TEXT_NAME, "Background", self.cultureIcon, CvUtil.FONT_LEFT_JUSTIFY, self.nCultureLevelX, self.nCultureLevelY, self.Z_TEXT, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setText (self.CULTURE_TEXT_NAME, "Background", SASVisuals.Commerce.CULTURE_CHAR, CvUtil.FONT_LEFT_JUSTIFY, self.nCultureLevelX, self.nCultureLevelY, self.Z_TEXT, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 		# Start with 2 because we need it farther from the icon.
 		iCount = 2
@@ -949,9 +877,9 @@ class CvCustomizableDomesticAdvisor:
 			# Only show non-zero levels
 			if (nValue != 0):
 				# Set text
-				screen.setText (self.CULTURE_TEXT_NAME + str(i), "Background", sasFontTagLabel + pCultureLevel.getText() + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, self.nCultureLevelX, self.nCultureLevelY + (self.nCultureLevelDistance * iCount), self.Z_TEXT, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+				screen.setText (self.CULTURE_TEXT_NAME + str(i), "Background", SASTextScale.sasFontTagLabel + pCultureLevel.getText() + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, self.nCultureLevelX, self.nCultureLevelY + (self.nCultureLevelDistance * iCount), self.Z_TEXT, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 				# Set value
-				screen.setText (self.CULTURE_TEXT_NAME + self.NUMBER_TEXT + str(i), "Background", sasFontTagLabel + str(nValue) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, self.nCultureLevelX + self.nCultureLevelTextOffset, self.nCultureLevelY + (self.nCultureLevelDistance * iCount), self.Z_TEXT, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+				screen.setText (self.CULTURE_TEXT_NAME + self.NUMBER_TEXT + str(i), "Background", SASTextScale.sasFontTagLabel + str(nValue) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, self.nCultureLevelX + self.nCultureLevelTextOffset, self.nCultureLevelY + (self.nCultureLevelDistance * iCount), self.Z_TEXT, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 				# Increment counter
 				iCount += 1
 
@@ -959,8 +887,8 @@ class CvCustomizableDomesticAdvisor:
 		iPlayer = PyPlayer(CyGame().getActivePlayer())
 
 		# GP Level Text
-		screen.setText (self.GP_TEXT_NAME, "Background", self.figureheadIcon, CvUtil.FONT_RIGHT_JUSTIFY, self.nGPLevelX, self.nGPLevelY, self.Z_TEXT, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
-		screen.setText (self.GP_TEXT_NAME + self.NUMBER_TEXT, "Background", sasFontTagLabel + str (iPlayer.player.greatPeopleThreshold(false)) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, self.nGPLevelX, self.nGPLevelY + self.nGPLevelDistance, self.Z_TEXT, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setText (self.GP_TEXT_NAME, "Background", SASVisuals.Font.GREAT_PEOPLE_CHAR, CvUtil.FONT_RIGHT_JUSTIFY, self.nGPLevelX, self.nGPLevelY, self.Z_TEXT, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setText (self.GP_TEXT_NAME + self.NUMBER_TEXT, "Background", SASTextScale.sasFontTagLabel + str (iPlayer.player.greatPeopleThreshold(false)) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, self.nGPLevelX, self.nGPLevelY + self.nGPLevelDistance, self.Z_TEXT, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 		# Header...
 		#szText = sasFontTagTitle + localText.getText("TXT_KEY_DOMESTIC_ADVISOR_TITLE", ()).upper() + SAS_FONT_TAG_CLOSE
@@ -1033,7 +961,7 @@ class CvCustomizableDomesticAdvisor:
 
 				# Show all the specialist text
 				szName = self.SPECIALIST_TEXT_NAME + str(i)
-				screen.setText (szName, "Background", str (city.getSpecialistCount(i)) + "/" + str (city.getMaxSpecialistCount(i)) + u" %c" % self.SPECIALIST_ICON_DICT[i], CvUtil.FONT_LEFT_JUSTIFY, self.nFirstSpecialistX + (self.nSpecialistDistance * i) + self.nSpecTextOffsetX, self.nSpecialistY + self.nSpecTextOffsetY, self.Z_TEXT, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+				screen.setText (szName, "Background", str (city.getSpecialistCount(i)) + "/" + str (city.getMaxSpecialistCount(i)) + u" %s" % SASVisuals.Specialist.cityIcons()[i], CvUtil.FONT_LEFT_JUSTIFY, self.nFirstSpecialistX + (self.nSpecialistDistance * i) + self.nSpecTextOffsetX, self.nSpecialistY + self.nSpecTextOffsetY, self.Z_TEXT, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 				screen.show (szName)
 
 				# If the specialist is valid and we can increase it
@@ -1098,17 +1026,17 @@ class CvCustomizableDomesticAdvisor:
 		screen = self.getScreen()
 
 		x = self.nTableX + self.nHalfTableWidth - self.nControlSize
-		screen.setImageButton( self.COLUMNDN_NAME, ArtFileMgr.getInterfaceArtInfo("INTERFACE_GENERAL_DOWNARROW").getPath(), x, self.nCustomizeControlY, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_MOVE_COLUMN_DOWN, -1, -1 )
+		screen.setImageButton( self.COLUMNDN_NAME, SASVisuals.InterfaceArt.INTERFACE_GENERAL_DOWNARROW, x, self.nCustomizeControlY, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_MOVE_COLUMN_DOWN, -1, -1 )
 		x -= self.nControlSize + 2
-		screen.setImageButton( self.COLUMNUP_NAME, ArtFileMgr.getInterfaceArtInfo("INTERFACE_GENERAL_UPARROW").getPath(), x, self.nCustomizeControlY, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_MOVE_COLUMN_UP, -1, -1 )
+		screen.setImageButton( self.COLUMNUP_NAME, SASVisuals.InterfaceArt.INTERFACE_GENERAL_UPARROW, x, self.nCustomizeControlY, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_MOVE_COLUMN_UP, -1, -1 )
 		x -= self.nControlSize + 2
-		screen.setImageButton( self.DELCOLUMN_NAME, ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_MINUS").getPath(), x, self.nCustomizeControlY, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_REMOVE_COLUMN, -1, -1 )
+		screen.setImageButton( self.DELCOLUMN_NAME, SASVisuals.InterfaceArt.INTERFACE_BUTTONS_MINUS, x, self.nCustomizeControlY, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_REMOVE_COLUMN, -1, -1 )
 		x -= self.nControlSize + 2
-		screen.setImageButton( self.ADDCOLUMN_NAME, ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_PLUS").getPath(), x, self.nCustomizeControlY, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_ADD_COLUMN, -1, -1 )
+		screen.setImageButton( self.ADDCOLUMN_NAME, SASVisuals.InterfaceArt.INTERFACE_BUTTONS_PLUS, x, self.nCustomizeControlY, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_ADD_COLUMN, -1, -1 )
 		x -= self.nControlSize + 2
-		screen.setImageButton( self.COLUMN_WIDEN_NAME, ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_RIGHT").getPath(), x, self.nCustomizeControlY, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_EXPAND_COLUMN, -1, -1 )
+		screen.setImageButton( self.COLUMN_WIDEN_NAME, SASVisuals.InterfaceArt.INTERFACE_BUTTONS_RIGHT, x, self.nCustomizeControlY, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_EXPAND_COLUMN, -1, -1 )
 		x -= self.nControlSize + 2
-		screen.setImageButton( self.COLUMN_SHRINK_NAME, ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_LEFT").getPath(), x, self.nCustomizeControlY, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_SHRINK_COLUMN, -1, -1 )
+		screen.setImageButton( self.COLUMN_SHRINK_NAME, SASVisuals.InterfaceArt.INTERFACE_BUTTONS_LEFT, x, self.nCustomizeControlY, self.nControlSize, self.nControlSize, WidgetTypes.WIDGET_CDA_SHRINK_COLUMN, -1, -1 )
 
 		self.hideCustomizationControls()
 
@@ -1212,9 +1140,9 @@ class CvCustomizableDomesticAdvisor:
 			# And distinguish between the Capital and the others (Forbidden Palace
 			# and Versailles)
 			if city.isCapital():
-				szReturn += self.starIcon
+				szReturn += SASVisuals.Font.STAR_CHAR
 			else:
-				szReturn += self.silverStarIcon
+				szReturn += SASVisuals.Font.SILVER_STAR_CHAR
 
 		# add National Wonders
 		for i in range(gc.getNumBuildingInfos()):
@@ -1222,19 +1150,19 @@ class CvCustomizableDomesticAdvisor:
 			classInfo = gc.getBuildingClassInfo(info.getBuildingClassType())
 			if classInfo.getMaxGlobalInstances() == -1 and classInfo.getMaxPlayerInstances() == 1 and city.getNumBuilding(i) > 0 and not info.isCapital():
 				# Use bullets as markers for National Wonders
-				szReturn += self.bulletIcon
+				szReturn += SASVisuals.Font.BULLET_CHAR
 
 		if city.isDisorder():
 
 			if city.isOccupation():
-				szOccu = u"%c" % CyGame().getSymbolID(FontSymbols.OCCUPATION_CHAR)
+				szOccu = u"%s" % SASVisuals.Font.OCCUPATION_CHAR
 				szReturn += szOccu +":"+unicode(city.getOccupationTimer())
 			else:
-				szReturn += self.angryIcon
+				szReturn += SASVisuals.Font.ANGRY_POP_CHAR
 
 		pTradeCity = city.getTradeCity(0)
 		if (pTradeCity and pTradeCity.getOwner() >= 0):
-			szReturn += self.tradeIcon
+			szReturn += SASVisuals.Font.TRADE_CHAR
 
 		return szReturn
 
@@ -1253,7 +1181,7 @@ class CvCustomizableDomesticAdvisor:
 		for i in range(gc.getMAX_PLAYERS()):
 			if player.getTeam().isAtWar(gc.getPlayer(i).getTeam()):
 				if city.isVisible(gc.getPlayer(i).getTeam(), False):
-					szReturn = self.angryIcon
+					szReturn = SASVisuals.Font.ANGRY_POP_CHAR
 					break
 
 		return szReturn
@@ -1393,53 +1321,45 @@ class CvCustomizableDomesticAdvisor:
 # BUG - Production Grouping - start
 			if (bProdColors or bProdIcons):
 				szColorKey = "DEFAULT"
-				szIcon = self.hammerIcon
+				szIcon = SASVisuals.Yield.PRODUCTION_CHAR
 				if city.isProductionBuilding():
 					szColorKey = "WONDER"
 					pInfo = gc.getBuildingClassInfo(gc.getBuildingInfo(city.getProductionBuilding()).getBuildingClassType())
 					if pInfo.getMaxGlobalInstances() != -1:
-						szIcon = self.starIcon
+						szIcon = SASVisuals.Font.STAR_CHAR
 					elif pInfo.getMaxTeamInstances() != -1:
-						szIcon = self.silverStarIcon
+						szIcon = SASVisuals.Font.SILVER_STAR_CHAR
 					elif pInfo.getMaxPlayerInstances() != -1:
-						szIcon = self.silverStarIcon
+						szIcon = SASVisuals.Font.SILVER_STAR_CHAR
 					else:
 						szColorKey = "BUILDING"
 				elif city.isProductionProcess():
 					iType = city.getProductionProcess()
 					if iType == self.PROCESS_WEALTH:
 						szColorKey = "WEALTH"
-						szIcon = self.goldIcon
+						szIcon = SASVisuals.Commerce.GOLD_CHAR
 					elif iType == self.PROCESS_RESEARCH:
 						szColorKey = "RESEARCH"
-						szIcon = self.researchIcon
+						szIcon = SASVisuals.Commerce.RESEARCH_CHAR
 					elif iType == self.PROCESS_CULTURE:
 						szColorKey = "CULTURE"
-						szIcon = self.cultureIcon
+						szIcon = SASVisuals.Commerce.CULTURE_CHAR
 				elif city.isProductionProject():
 					szColorKey = "PROJECT"
 					pInfo = gc.getProjectInfo(city.getProductionProject())
 					if pInfo.getMaxGlobalInstances() != -1:
-						szIcon = self.starIcon
+						szIcon = SASVisuals.Font.STAR_CHAR
 					elif pInfo.getMaxTeamInstances() != -1:
-						szIcon = self.silverStarIcon
+						szIcon = SASVisuals.Font.SILVER_STAR_CHAR
 				elif city.isProductionUnit():
 					szColorKey = "UNIT"
 					iUnit = city.getProductionUnit()
 					pInfo = gc.getUnitInfo(iUnit)
 					iType = pInfo.getDomainType()
 					if pInfo.getUnitCombatType() != UnitCombatTypes.NO_UNITCOMBAT:
-						szIcon = self.militaryIcon
-	#						if iType == DomainTypes.DOMAIN_SEA:
-	#							szIcon = self.seaIcon
-	#						elif iType == DomainTypes.DOMAIN_LAND:
-	#							szIcon = self.landIcon
-	#						elif iType == DomainTypes.DOMAIN_AIR:
-	#							szIcon = self.airIcon
-	#						elif iType == DomainTypes.DOMAIN_IMMOBILE:
-	#							szIcon = self.airIcon
+						szIcon = SASVisuals.Font.STRENGTH_CHAR
 					else:
-						szIcon = self.footIcon
+						szIcon = SASVisuals.Font.MOVES_CHAR
 				if bProdIcons:
 					szReturn = szIcon + szReturn
 				if bProdColors:
@@ -1451,7 +1371,7 @@ class CvCustomizableDomesticAdvisor:
 			szReturn = u"-"
 # BUG - Production Grouping - start
 			if bProdIcons:
-				szReturn = self.cancelIcon + szReturn
+				szReturn = SASVisuals.DynamicFont.CANCEL_CHAR + szReturn
 			if bProdColors:
 				szReturn = localText.changeTextColor (szReturn, self.PROD_COLOR_DICT["NOTHING"])
 # BUG - Production Grouping - end
@@ -1547,10 +1467,10 @@ class CvCustomizableDomesticAdvisor:
 				lReligions.append(i)
 
 		for i in range(len(lHolyCity)):
-			szReturn += u"%c" %(gc.getReligionInfo(lHolyCity[i]).getHolyCityChar())
+			szReturn += SASVisuals.Religion.holyCityChar(lHolyCity[i])
 
 		for i in range(len(lReligions)):
-			szReturn += u"%c" %(gc.getReligionInfo(lReligions[i]).getChar())
+			szReturn += u"%s" %(SASVisuals.Religion.char(lReligions[i]))
 
 		return szReturn
 
@@ -1567,16 +1487,16 @@ class CvCustomizableDomesticAdvisor:
 				lCorps.append(i)
 
 		for i in range(len(lHeadquarters)):
-			szReturn += u"%c" %(gc.getCorporationInfo(lHeadquarters[i]).getHeadquarterChar())
+			szReturn += SASVisuals.Corporation.headquarterChar(lHeadquarters[i])
 
 		for i in range(len(lCorps)):
-			szReturn += u"%c" %(gc.getCorporationInfo(lCorps[i]).getChar())
+			szReturn += u"%s" %(SASVisuals.Corporation.char(lCorps[i]))
 
 		return szReturn
 
 	def calculateSpecialists (self, city, szKey, arg):
 
-		szReturn = sasFontTagTiny
+		szReturn = SASTextScale.sasFontTagTiny
 
 		# For each specialist type
 		for i in range( self.getNumSpecialistInfos() ):
@@ -1584,17 +1504,17 @@ class CvCustomizableDomesticAdvisor:
 			nCount = city.getSpecialistCount (i)
 			# If more than one specialist
 			if (nCount > 1):
-				szReturn += self.SPECIALIST_ICON_DICT[i] + "x" + str(nCount) + " "
+				szReturn += SASVisuals.Specialist.cityIcons()[i] + "x" + str(nCount) + " "
 			elif (nCount == 1):
-				szReturn += self.SPECIALIST_ICON_DICT[i] + " "
+				szReturn += SASVisuals.Specialist.cityIcons()[i] + " "
 
-		szReturn += SAS_FONT_TAG_CLOSE
+		szReturn += SASTextScale.SAS_FONT_TAG_CLOSE
 
 		return szReturn
 
 	def calculateAutomation (self, city, szKey, arg):
 
-		szReturn = sasFontTagTiny
+		szReturn = SASTextScale.sasFontTagTiny
 
 		nNumEmphasize = self.getNumEmphasizeInfos()
 		if city.isCitizensAutomated():
@@ -1604,9 +1524,9 @@ class CvCustomizableDomesticAdvisor:
 		for i in range( nNumEmphasize ):
 			nNum = nNumEmphasize - i - 1
 			if (city.AI_isEmphasize (nNum)):
-				szReturn += self.AUTOMATION_ICON_DICT[nNum]
+				szReturn += SASVisuals.CityEmphasis.getIcon(nNum)
 
-		szReturn += SAS_FONT_TAG_CLOSE
+		szReturn += SASTextScale.SAS_FONT_TAG_CLOSE
 
 		return szReturn
 
@@ -1615,7 +1535,7 @@ class CvCustomizableDomesticAdvisor:
 		szReturn = u""
 
 		if city.isPower():
-			szReturn += self.powerIcon
+			szReturn += SASVisuals.Font.POWER_CHAR
 
 		return szReturn
 
@@ -1683,8 +1603,8 @@ class CvCustomizableDomesticAdvisor:
 
 				# Indicate bonus military production if applicable
 				if info.getMilitaryProductionModifier() > 0 and city.isProductionUnit() and gc.getUnitInfo(city.getProductionUnit()).isMilitaryProduction():
-					if szReturn.find(self.hammerIcon) == -1:
-						szReturn += self.hammerIcon
+					if szReturn.find(SASVisuals.Yield.PRODUCTION_CHAR) == -1:
+						szReturn += SASVisuals.Yield.PRODUCTION_CHAR
 
 				# Calculate health and happiness effects - including that from resources.
 				iHealth = city.getBuildingHealth(buildingNumber)
@@ -1696,26 +1616,26 @@ class CvCustomizableDomesticAdvisor:
 						iHappiness += info.getBonusHappinessChanges(i)
 
 				if iHealth > 0:
-					szReturn = self.stripStr(szReturn, self.healthIcon)
-					szReturn += u"%d%c" %(iHealth, self.healthIcon)
+					szReturn = self.stripStr(szReturn, SASVisuals.Font.HEALTHY_CHAR)
+					szReturn += u"%d%s" %(iHealth, SASVisuals.Font.HEALTHY_CHAR)
 				elif iHealth < 0:
-					szReturn = self.stripStr(szReturn, self.sickIcon)
-					szReturn += u"%d%c" %( -(iHealth), self.sickIcon )
+					szReturn = self.stripStr(szReturn, SASVisuals.Font.UNHEALTHY_CHAR)
+					szReturn += u"%d%s" %( -(iHealth), SASVisuals.Font.UNHEALTHY_CHAR )
 
 				# Happiness
 
 				if iHappiness > 0:
-					szReturn = self.stripStr(szReturn, self.happyIcon)
-					szReturn += u"%d%c" %(iHappiness, self.happyIcon)
+					szReturn = self.stripStr(szReturn, SASVisuals.Font.HAPPY_CHAR)
+					szReturn += u"%d%s" %(iHappiness, SASVisuals.Font.HAPPY_CHAR)
 				elif iHappiness < 0:
-					szReturn = self.stripStr(szReturn, self.unhappyIcon)
-					szReturn += u"%d%c" %( -(iHappiness), self.unhappyIcon )
+					szReturn = self.stripStr(szReturn, SASVisuals.Font.UNHAPPY_CHAR)
+					szReturn += u"%d%s" %( -(iHappiness), SASVisuals.Font.UNHAPPY_CHAR )
 
 				# Commerce
 				for i in range(CommerceTypes.NUM_COMMERCE_TYPES):
 					iCommerce = city.getBuildingCommerceByBuilding(i, buildingNumber) 
 					if iCommerce > 0:
-						szReturn += u"%d%c" %( iCommerce, gc.getCommerceInfo(i).getChar() )
+						szReturn += u"%d%s" %( iCommerce, SASVisuals.Commerce.char(i) )
 
 				if szReturn == "":
 					szReturn = "+"
@@ -1724,9 +1644,9 @@ class CvCustomizableDomesticAdvisor:
 					szReturn = "(" + szReturn + ")"
 
 			elif city.getNumBuilding(self.BUILDING_DICT[szKey]) > 0: # Obsolete buildings
-				if self.BUILDING_ICONS_DICT[szKey].find(self.cultureIcon):
-					szReturn = self.stripStr(szReturn, self.cultureIcon)
-					szReturn += self.cultureIcon
+				if self.BUILDING_ICONS_DICT[szKey].find(SASVisuals.Commerce.CULTURE_CHAR):
+					szReturn = self.stripStr(szReturn, SASVisuals.Commerce.CULTURE_CHAR)
+					szReturn += SASVisuals.Commerce.CULTURE_CHAR
 				else:
 					szReturn += u"X"
 
@@ -1754,7 +1674,7 @@ class CvCustomizableDomesticAdvisor:
 			else:
 				return self.objectHaveObsolete
 		elif city.getFirstBuildingOrder(arg) != -1:
-			return self.objectUnderConstruction
+			return SASVisuals.Yield.PRODUCTION_CHAR
 		elif city.canConstruct(arg, False, False, False):
 			return self.objectPossible
 		elif city.canConstruct(arg, True, False, False):
@@ -1779,26 +1699,24 @@ class CvCustomizableDomesticAdvisor:
 		szEffects = u""
 		iEffect = city.getBonusHappiness(arg)
 		if (iEffect == 1):
-			szEffects += u"%s " % (self.happyIcon)
+			szEffects += u"%s " % (SASVisuals.Font.HAPPY_CHAR)
 		elif (iEffect > 1):
-			szEffects += u"%d%s " % (iEffect, self.happyIcon)
+			szEffects += u"%d%s " % (iEffect, SASVisuals.Font.HAPPY_CHAR)
 		elif (iEffect < 0):
-			szEffects += u"%d%s " % (-iEffect, self.unhappyIcon)
+			szEffects += u"%d%s " % (-iEffect, SASVisuals.Font.UNHAPPY_CHAR)
 
 		iEffect = city.getBonusHealth(arg)
 		if (iEffect == 1):
-			szEffects += u"%s " % (self.healthIcon)
+			szEffects += u"%s " % (SASVisuals.Font.HEALTHY_CHAR)
 		elif (iEffect > 1):
-			szEffects += u"%d%s " % (iEffect, self.healthIcon)
+			szEffects += u"%d%s " % (iEffect, SASVisuals.Font.HEALTHY_CHAR)
 		elif (iEffect < 0):
-			szEffects += u"%d%s " % (-iEffect, self.sickIcon)
+			szEffects += u"%d%s " % (-iEffect, SASVisuals.Font.UNHEALTHY_CHAR)
 
 		for eYieldType in range(YieldTypes.NUM_YIELD_TYPES):
 			iEffect = city.getBonusYieldRateModifier(eYieldType, arg)
 			if (iEffect > 0):
-				szEffects += u"%s " % self.yieldIcons[eYieldType]
-#			elif (iEffect > 1 or iEffect < 0):
-#				szEffects += u"%d%s " % (iEffect, self.yieldIcons[eYieldType])
+				szEffects += u"%s " % SASVisuals.Yield.char(eYieldType)
 
 		iNumBonuses = city.getNumBonuses(arg)
 		if (self.bonusCorpYields.has_key(arg)):
@@ -1811,9 +1729,9 @@ class CvCustomizableDomesticAdvisor:
 							iEffect += iValue * iNumBonuses * self.corpMaintPercent / 100
 					iEffect = (iEffect + 99) / 100
 					if (iEffect == 1):
-						szEffects += u"%s " % self.yieldIcons[eYield]
+						szEffects += u"%s " % SASVisuals.Yield.char(eYield)
 					elif (iEffect > 1 or iEffect < 0):
-						szEffects += u"%d%s " % (iEffect, self.yieldIcons[eYield])
+						szEffects += u"%d%s " % (iEffect, SASVisuals.Yield.char(eYield))
 
 		if (self.bonusCorpCommerces.has_key(arg)):
 			commerces = self.bonusCorpCommerces[arg]
@@ -1825,45 +1743,15 @@ class CvCustomizableDomesticAdvisor:
 							iEffect += iValue * iNumBonuses * self.corpMaintPercent / 100
 					iEffect = (iEffect + 99) / 100
 					if (iEffect == 1):
-						szEffects += u"%s " % self.commerceIcons[eCommerce]
+						szEffects += u"%s " % SASVisuals.Commerce.char(eCommerce)
 					elif (iEffect > 1 or iEffect < 0):
-						szEffects += u"%d%s " % (iEffect, self.commerceIcons[eCommerce])
-
-#		for eYieldType in range(YieldTypes.NUM_YIELD_TYPES):
-#			if (city.getCorporationYield(eYieldType) > 0):
-#				iEffect = 0
-#				for eCorporation in range(gc.getNumCorporationInfos()):
-#					if (city.isActiveCorporation(eCorporation)):
-#						info = gc.getCorporationInfo(eCorporation)
-#						for i in range(gc.getNUM_CORPORATION_PREREQ_BONUSES()):
-#							if (info.getPrereqBonus(i) == arg):
-#								iEffect += info.getYieldProduced(eYieldType) * city.getNumBonuses(arg) * self.corpMaintPercent / 100
-#				iEffect = (iEffect + 99) / 100
-#				if (iEffect == 1):
-#					szEffects += u"%s " % self.yieldIcons[eYieldType]
-#				elif (iEffect > 1 or iEffect < 0):
-#					szEffects += u"%d%s " % (iEffect, self.yieldIcons[eYieldType])
-#		
-#		for eCommerceType in range(CommerceTypes.NUM_COMMERCE_TYPES):
-#			if (city.getCorporationCommerce(eCommerceType) > 0):
-#				iEffect = 0
-#				for eCorporation in range(gc.getNumCorporationInfos()):
-#					if (city.isActiveCorporation(eCorporation)):
-#						info = gc.getCorporationInfo(eCorporation)
-#						for i in range(gc.getNUM_CORPORATION_PREREQ_BONUSES()):
-#							if (info.getPrereqBonus(i) == arg):
-#								iEffect += info.getCommerceProduced(eCommerceType) * city.getNumBonuses(arg) * self.corpMaintPercent / 100
-#				iEffect = (iEffect + 99) / 100
-#				if (iEffect == 1):
-#					szEffects += u"%s " % self.commerceIcons[eCommerceType]
-#				elif (iEffect > 1 or iEffect < 0):
-#					szEffects += u"%d%s " % (iEffect, self.commerceIcons[eCommerceType])
+						szEffects += u"%d%s " % (iEffect, SASVisuals.Commerce.char(eCommerce))
 
 		iEffect = city.getBonusPower(arg, False) + city.getBonusPower(arg, True)
 		if (iEffect == 1):
-			szEffects += u"%s " % (self.powerIcon)
+			szEffects += u"%s " % (SASVisuals.Font.POWER_CHAR)
 		elif (iEffect > 1):
-			szEffects += u"%d%s " % (iEffect, self.powerIcon)
+			szEffects += u"%d%s " % (iEffect, SASVisuals.Font.POWER_CHAR)
 
 		if (szEffects == u""):
 			return self.objectHave
@@ -2017,7 +1905,7 @@ class CvCustomizableDomesticAdvisor:
 						if value > bestData:
 							bestOrder = bldg
 							bestData = value
-					elif type == "Religion":
+					elif type == "SASVisuals.Religion":
 						bestOrder = -1
 					elif type == "Research":
 						value = info.getCommerceModifier(CommerceTypes.COMMERCE_RESEARCH) / float(info.getProductionCost())
@@ -2082,7 +1970,7 @@ class CvCustomizableDomesticAdvisor:
 
 					elif type == "Nutty":
 						bestOrder = -1
-					elif type == "Religion":
+					elif type == "SASVisuals.Religion":
 						bestOrder = -1
 					elif type == "Research":
 						value = info.getCommerceModifier(CommerceTypes.COMMERCE_GOLD) / float(info.getProductionCost())
@@ -2109,7 +1997,7 @@ class CvCustomizableDomesticAdvisor:
 			# If we don't have a plain integer
 			if (re.search ("[-+]", nValue)):
 				# Color it red and return it
-				return localText.changeTextColor (nValue, getInfoTypeOrFail("COLOR_RED"))
+				return localText.changeTextColor (nValue, SASVisuals.Color.RED)
 			# For each type of comparison
 			for szCompareType, clDict in self.COLOR_DICT_DICT.iteritems():
 				# Get the color we will use.
@@ -2237,7 +2125,7 @@ class CvCustomizableDomesticAdvisor:
 
 			cityRange = range(len(cityList))
 
-			zoomArt = ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_CITYSELECTION").getPath()
+			zoomArt = SASVisuals.InterfaceArt.INTERFACE_BUTTONS_CITYSELECTION
 
 			# Add a blank header for the "zoom" column
 			screen.setTableColumnHeader (page, 0, "", 30 )
@@ -2278,7 +2166,7 @@ class CvCustomizableDomesticAdvisor:
 				iCellFontSize = 3
 			# (The three uses of these tags in the code below aren't tagged w/ comments)
 			szFontTagOpen = u"<font=" + unicode(iCellFontSize) + u">"
-			szFontTagClose = SAS_FONT_TAG_CLOSE
+			szFontTagClose = SASTextScale.SAS_FONT_TAG_CLOSE
 			# </advc.193>
 
 			# Loop through the columns first. This is unintuitive, but faster.

@@ -7,7 +7,8 @@
 from CvPythonExtensions import *
 import CvUtil
 from SASUtils import *
-from SASFontUtils import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import SASTextScale
 
 gc = CyGlobalContext()
@@ -129,11 +130,8 @@ class CvWorldAdvisorScreen:
 			return
 		self.iLanguageLoaded = CyGame().getCurrentLanguage()
 
-		self.SCREEN_TITLE = sasFontTagTitle.bold + localText.getText("TXT_KEY_WORLD_ADVISOR_TITLE", ()).upper() + SAS_FONT_TAG_CLOSE
-		self.EXIT_TEXT = sasFontTagTitle + localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ()).upper() + SAS_FONT_TAG_CLOSE
-		self.ART_MAINMENU_SLIDESHOW_LOAD = ArtFileMgr.getInterfaceArtInfo("MAINMENU_SLIDESHOW_LOAD").getPath()
-		self.ART_POPUPS_BACKGROUND_TRANSPARENT = ArtFileMgr.getInterfaceArtInfo("POPUPS_BACKGROUND_TRANSPARENT").getPath()
-		self.ART_CITY_SELECTION_BUTTON = ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_CITYSELECTION").getPath()
+		self.SCREEN_TITLE = SASTextScale.sasFontTagTitle.bold + localText.getText("TXT_KEY_WORLD_ADVISOR_TITLE", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.EXIT_TEXT = SASTextScale.sasFontTagTitle + localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE
 		self.iTerrainPeak = getInfoTypeOrFail("TERRAIN_PEAK")
 		self.iTerrainHill = getInfoTypeOrFail("TERRAIN_HILL")
 		self.BUTTON_TERRAIN_PEAK = gc.getTerrainInfo(self.iTerrainPeak).getButton()
@@ -141,7 +139,6 @@ class CvWorldAdvisorScreen:
 		# <!-- custom: River has no terrain type (it's a plot-edge property), so reuse the WorldBuilder river-placement art.
 		# Lake intentionally stays text-only because BTS represents lakes as coast-type water plots and TERRAIN_COAST's icon is already used for Coast, making the Lake column misleading.
 		# Coastal Land has no canonical art so it stays text-only like Land/Water/Flat. (Claude code Opus 4.7; summarized GPT-5.5) -->
-		self.BUTTON_RIVER = ArtFileMgr.getInterfaceArtInfo("WORLDBUILDER_RIVER_PLACEMENT").getPath()
 
 		# Shared (used across multiple tabs)
 		self.TEXT_TOTAL = localText.getText("TXT_KEY_TOTAL", ())
@@ -154,9 +151,6 @@ class CvWorldAdvisorScreen:
 		self.TEXT_RIVER = localText.getText("TXT_KEY_WORLD_ADVISOR_BFC_RIVER", ())
 		self.TEXT_LAKE = localText.getText("TXT_KEY_WORLD_ADVISOR_BFC_LAKE", ())
 		self.TEXT_COASTAL = localText.getText("TXT_KEY_WORLD_ADVISOR_BFC_COASTAL", ())
-		self.COLOR_GREEN = getInfoTypeOrFail("COLOR_GREEN")
-		self.COLOR_YELLOW = getInfoTypeOrFail("COLOR_YELLOW")
-		self.COLOR_RED = getInfoTypeOrFail("COLOR_RED")
 
 		# BFC 1
 		self.TEXT_POP = localText.getText("TXT_KEY_WORLD_ADVISOR_BFC1_POP", ())
@@ -191,9 +185,9 @@ class CvWorldAdvisorScreen:
 		self.TEXT_ENV_EXPECTED_EVENTS = localText.getText("TXT_KEY_ENVIRONMENT_EXPECTED_EVENTS", ())
 		self.TEXT_ENV_EVENT_TALLY = localText.getText("TXT_KEY_ENVIRONMENT_EVENT_TALLY", ())
 		self.TEXT_ENV_LOCAL_ANGER_LEVEL = localText.getText("TXT_KEY_ENVIRONMENT_LOCAL_ANGER_LEVEL", ())
-		self.LABEL_ENV_DOMESTIC = sasFontTagLabel + localText.getText("TXT_KEY_ENVIRONMENT_DOMESTIC", ()).upper() + SAS_FONT_TAG_CLOSE
-		self.LABEL_ENV_GLOBAL = sasFontTagLabel + localText.getText("TXT_KEY_ENVIRONMENT_GLOBAL", ()).upper() + SAS_FONT_TAG_CLOSE
-		self.LABEL_ENV_EFFECTS = sasFontTagLabel + localText.getText("TXT_KEY_ENVIRONMENT_EFFECTS", ()).upper() + SAS_FONT_TAG_CLOSE
+		self.LABEL_ENV_DOMESTIC = SASTextScale.sasFontTagLabel + localText.getText("TXT_KEY_ENVIRONMENT_DOMESTIC", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.LABEL_ENV_GLOBAL = SASTextScale.sasFontTagLabel + localText.getText("TXT_KEY_ENVIRONMENT_GLOBAL", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.LABEL_ENV_EFFECTS = SASTextScale.sasFontTagLabel + localText.getText("TXT_KEY_ENVIRONMENT_EFFECTS", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE
 
 	def showScreen(self):
 		screen = self.getScreen()
@@ -208,7 +202,7 @@ class CvWorldAdvisorScreen:
 		self.reset()
 		self.deleteAllWidgets()
 
-		screen.addDDSGFC("WorldAdvisorBackground", self.ART_MAINMENU_SLIDESHOW_LOAD, 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.addDDSGFC("WorldAdvisorBackground", SASVisuals.InterfaceArt.MAINMENU_SLIDESHOW_LOAD, 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1)
 		screen.addPanel("WorldAdvisorTopPanel", u"", u"", True, False, 0, 0, self.W_SCREEN, self.PANEL_HEIGHT, PanelStyles.PANEL_STYLE_TOPBAR)
 		screen.addPanel("WorldAdvisorBottomPanel", u"", u"", True, False, 0, self.H_SCREEN - self.PANEL_HEIGHT, self.W_SCREEN, self.PANEL_HEIGHT, PanelStyles.PANEL_STYLE_BOTTOMBAR)
 		screen.showWindowBackground(False)
@@ -220,7 +214,7 @@ class CvWorldAdvisorScreen:
 		self.szHeaderWidget = self.getNextWidgetName()
 		screen.setLabel(self.szHeaderWidget, "Background", self.SCREEN_TITLE, CvUtil.FONT_CENTER_JUSTIFY, self.X_TITLE, self.Y_TITLE, self.Z_CONTROLS, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
-		screen.setHelpTextArea(self.W_HELP_AREA, FontTypes.SMALL_FONT, self.X_SCREEN, self.Y_SCREEN, self.Z_HELP_AREA, 1, self.ART_POPUPS_BACKGROUND_TRANSPARENT, True, True, CvUtil.FONT_LEFT_JUSTIFY, 0)
+		screen.setHelpTextArea(self.W_HELP_AREA, FontTypes.SMALL_FONT, self.X_SCREEN, self.Y_SCREEN, self.Z_HELP_AREA, 1, SASVisuals.InterfaceArt.POPUPS_BACKGROUND_TRANSPARENT, True, True, CvUtil.FONT_LEFT_JUSTIFY, 0)
 
 		addAdvisorDebugDropdown(screen, self.DEBUG_DROPDOWN_ID, self.iActivePlayer, bAllowVassalPerspective=True)
 
@@ -238,7 +232,7 @@ class CvWorldAdvisorScreen:
 		for iPage in range(len(self.PAGE_NAME_LIST)):
 			aszTabLabels.append(localText.getText(self.PAGE_NAME_LIST[iPage], ()).upper())
 			aszTabWidgetIDs.append("WorldAdvisorTabButton" + str(iPage))
-		drawAdvisorFooterTabs(screen, aszTabWidgetIDs, aszTabLabels, self.PAGE_LINK_WIDTH, self.iActiveTab, self.Y_LINK, 0, self.COLOR_YELLOW, iXStart=self.X_MARGIN)
+		drawAdvisorFooterTabs(screen, aszTabWidgetIDs, aszTabLabels, self.PAGE_LINK_WIDTH, self.iActiveTab, self.Y_LINK, 0, SASVisuals.Color.YELLOW, iXStart=self.X_MARGIN)
 
 		if self.iActiveTab == self.iBFC1ID:
 			self.drawBFC1Tab()
@@ -320,18 +314,18 @@ class CvWorldAdvisorScreen:
 		iCityW = self.BFC_CITY_COL_WIDTH
 		iDataW = (self.BFC_W_TABLE - self.BFC_ZOOM_COL_WIDTH - iCityW) / (iNumCols - 2)
 		screen.setTableColumnHeader(szTable, 0, "", self.BFC_ZOOM_COL_WIDTH)
-		screen.setTableColumnHeader(szTable, 1, sasFontTagLabel + self.TEXT_CITY + SAS_FONT_TAG_CLOSE, iCityW)
-		screen.setTableColumnHeader(szTable, 2, sasFontTagLabel + self.TEXT_POP + SAS_FONT_TAG_CLOSE, iDataW)
-		screen.setTableColumnHeader(szTable, 3, sasFontTagLabel + self.TEXT_YEAR + SAS_FONT_TAG_CLOSE, iDataW)
-		screen.setTableColumnHeader(szTable, 4, sasFontTagLabel + self.TEXT_BFC + SAS_FONT_TAG_CLOSE, iDataW)
-		screen.setTableColumnHeader(szTable, 5, sasFontTagLabel + self.TEXT_WATER + SAS_FONT_TAG_CLOSE, iDataW)
+		screen.setTableColumnHeader(szTable, 1, SASTextScale.sasFontTagLabel + self.TEXT_CITY + SASTextScale.SAS_FONT_TAG_CLOSE, iCityW)
+		screen.setTableColumnHeader(szTable, 2, SASTextScale.sasFontTagLabel + self.TEXT_POP + SASTextScale.SAS_FONT_TAG_CLOSE, iDataW)
+		screen.setTableColumnHeader(szTable, 3, SASTextScale.sasFontTagLabel + self.TEXT_YEAR + SASTextScale.SAS_FONT_TAG_CLOSE, iDataW)
+		screen.setTableColumnHeader(szTable, 4, SASTextScale.sasFontTagLabel + self.TEXT_BFC + SASTextScale.SAS_FONT_TAG_CLOSE, iDataW)
+		screen.setTableColumnHeader(szTable, 5, SASTextScale.sasFontTagLabel + self.TEXT_WATER + SASTextScale.SAS_FONT_TAG_CLOSE, iDataW)
 		# <!-- custom: Plot-type columns have room for icon + text; Peak and Hill buttons are visually similar, so labels avoid ambiguity. (GPT-5.5) -->
 		screen.setTableColumnHeader(szTable, 6, SASTextScale.labelImageText(self.BUTTON_TERRAIN_PEAK, self.BFC_ICON_SIZE, self.TEXT_PEAK), iDataW)
 		screen.setTableColumnHeader(szTable, 7, SASTextScale.labelImageText(self.BUTTON_TERRAIN_HILL, self.BFC_ICON_SIZE, self.TEXT_HILL), iDataW)
-		screen.setTableColumnHeader(szTable, 8, sasFontTagLabel + self.TEXT_FLAT + SAS_FONT_TAG_CLOSE, iDataW)
-		screen.setTableColumnHeader(szTable, 9, SASTextScale.labelImageText(self.BUTTON_RIVER, self.BFC_ICON_SIZE, self.TEXT_RIVER), iDataW)
-		screen.setTableColumnHeader(szTable, 10, sasFontTagLabel + self.TEXT_LAKE + SAS_FONT_TAG_CLOSE, iDataW)
-		screen.setTableColumnHeader(szTable, 11, sasFontTagLabel + self.TEXT_COASTAL + SAS_FONT_TAG_CLOSE, iDataW)
+		screen.setTableColumnHeader(szTable, 8, SASTextScale.sasFontTagLabel + self.TEXT_FLAT + SASTextScale.SAS_FONT_TAG_CLOSE, iDataW)
+		screen.setTableColumnHeader(szTable, 9, SASTextScale.labelImageText(SASVisuals.InterfaceArt.WORLDBUILDER_RIVER_PLACEMENT, self.BFC_ICON_SIZE, self.TEXT_RIVER), iDataW)
+		screen.setTableColumnHeader(szTable, 10, SASTextScale.sasFontTagLabel + self.TEXT_LAKE + SASTextScale.SAS_FONT_TAG_CLOSE, iDataW)
+		screen.setTableColumnHeader(szTable, 11, SASTextScale.sasFontTagLabel + self.TEXT_COASTAL + SASTextScale.SAS_FONT_TAG_CLOSE, iDataW)
 
 		for iRow in range(len(aszRows)):
 			self.appendBFC1PlotRow(screen, szTable, iRow, aszRows[iRow][0], aszRows[iRow][1], aszRows[iRow][2], aszRows[iRow][3], aszRows[iRow][4], aszRows[iRow][5])
@@ -344,18 +338,18 @@ class CvWorldAdvisorScreen:
 	def appendBFC1PlotRow(self, screen, szTable, iRow, szCityName, iOwner, iCityID, iPopulation, iFoundYear, aiPlotCounts):
 		screen.appendTableRow(szTable)
 		if iOwner >= 0:
-			screen.setTableText(szTable, 0, iRow, "", self.ART_CITY_SELECTION_BUTTON, WidgetTypes.WIDGET_ZOOM_CITY, iOwner, iCityID, CvUtil.FONT_LEFT_JUSTIFY)
-			screen.setTableText(szTable, 1, iRow, sasFontTagLabel + szCityName + SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, 0, iRow, "", SASVisuals.InterfaceArt.INTERFACE_BUTTONS_CITYSELECTION, WidgetTypes.WIDGET_ZOOM_CITY, iOwner, iCityID, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, 1, iRow, SASTextScale.sasFontTagLabel + szCityName + SASTextScale.SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 		else:
 			screen.setTableText(szTable, 0, iRow, u"", "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-			screen.setTableText(szTable, 1, iRow, sasFontTagLabel + szCityName + SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableInt(szTable, 2, iRow, sasFontTagLabel + str(iPopulation) + SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
+			screen.setTableText(szTable, 1, iRow, SASTextScale.sasFontTagLabel + szCityName + SASTextScale.SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		screen.setTableInt(szTable, 2, iRow, SASTextScale.sasFontTagLabel + str(iPopulation) + SASTextScale.SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 		if iOwner >= 0:
 			SASTextScale.setTableIntLabel(screen, szTable, 3, iRow, iFoundYear, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 		else:
 			screen.setTableText(szTable, 3, iRow, u"", "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 		for iCol in range(len(aiPlotCounts)):
-			screen.setTableInt(szTable, iCol + 4, iRow, sasFontTagLabel + str(aiPlotCounts[iCol]) + SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
+			screen.setTableInt(szTable, iCol + 4, iRow, SASTextScale.sasFontTagLabel + str(aiPlotCounts[iCol]) + SASTextScale.SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 
 	def drawBFC1TerrainFeatureTable(self, aszRows, aaiTerrainTotals, aaiFeatureTotals, aiTerrainColumns, aiFeatureColumns):
 		screen = self.getScreen()
@@ -368,7 +362,7 @@ class CvWorldAdvisorScreen:
 		if iNumDataCols > 0:
 			iDataW = (self.BFC_W_TABLE - self.BFC_ZOOM_COL_WIDTH - self.BFC_CITY_COL_WIDTH) / iNumDataCols
 		screen.setTableColumnHeader(szTable, 0, "", self.BFC_ZOOM_COL_WIDTH)
-		screen.setTableColumnHeader(szTable, 1, sasFontTagLabel + self.TEXT_CITY + SAS_FONT_TAG_CLOSE, self.BFC_CITY_COL_WIDTH)
+		screen.setTableColumnHeader(szTable, 1, SASTextScale.sasFontTagLabel + self.TEXT_CITY + SASTextScale.SAS_FONT_TAG_CLOSE, self.BFC_CITY_COL_WIDTH)
 		iCol = 2
 		for iTerrain in aiTerrainColumns:
 			screen.setTableColumnHeader(szTable, iCol, SASTextScale.labelImageText(gc.getTerrainInfo(iTerrain).getButton(), self.BFC_ICON_SIZE), iDataW)
@@ -395,11 +389,11 @@ class CvWorldAdvisorScreen:
 		iOwner = rowData[1]
 		iCityID = rowData[2]
 		if iOwner >= 0:
-			screen.setTableText(szTable, 0, iRow, "", self.ART_CITY_SELECTION_BUTTON, WidgetTypes.WIDGET_ZOOM_CITY, iOwner, iCityID, CvUtil.FONT_LEFT_JUSTIFY)
-			screen.setTableText(szTable, 1, iRow, sasFontTagLabel + szCityName + SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, 0, iRow, "", SASVisuals.InterfaceArt.INTERFACE_BUTTONS_CITYSELECTION, WidgetTypes.WIDGET_ZOOM_CITY, iOwner, iCityID, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, 1, iRow, SASTextScale.sasFontTagLabel + szCityName + SASTextScale.SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 		else:
 			screen.setTableText(szTable, 0, iRow, u"", "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-			screen.setTableText(szTable, 1, iRow, sasFontTagLabel + szCityName + SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, 1, iRow, SASTextScale.sasFontTagLabel + szCityName + SASTextScale.SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 		iCol = 2
 		for iTerrain in aiTerrainColumns:
 			self.setBFCCountCell(screen, szTable, iCol, iRow, rowData[6][iTerrain])
@@ -464,7 +458,7 @@ class CvWorldAdvisorScreen:
 		if iNumDataCols > 0:
 			iDataW = (self.BFC_W_TABLE - self.BFC_ZOOM_COL_WIDTH - self.BFC_CITY_COL_WIDTH) / iNumDataCols
 		screen.setTableColumnHeader(szTable, 0, "", self.BFC_ZOOM_COL_WIDTH)
-		screen.setTableColumnHeader(szTable, 1, sasFontTagLabel + self.TEXT_CITY + SAS_FONT_TAG_CLOSE, self.BFC_CITY_COL_WIDTH)
+		screen.setTableColumnHeader(szTable, 1, SASTextScale.sasFontTagLabel + self.TEXT_CITY + SASTextScale.SAS_FONT_TAG_CLOSE, self.BFC_CITY_COL_WIDTH)
 		iColIdx = 2
 		for aiColumns, fnGetInfo, aaiCounts in aoGroups:
 			for iType in aiColumns:
@@ -482,11 +476,11 @@ class CvWorldAdvisorScreen:
 		iOwner = rowData[1]
 		iCityID = rowData[2]
 		if iOwner >= 0:
-			screen.setTableText(szTable, 0, iRow, "", self.ART_CITY_SELECTION_BUTTON, WidgetTypes.WIDGET_ZOOM_CITY, iOwner, iCityID, CvUtil.FONT_LEFT_JUSTIFY)
-			screen.setTableText(szTable, 1, iRow, sasFontTagLabel + szCityName + SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, 0, iRow, "", SASVisuals.InterfaceArt.INTERFACE_BUTTONS_CITYSELECTION, WidgetTypes.WIDGET_ZOOM_CITY, iOwner, iCityID, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, 1, iRow, SASTextScale.sasFontTagLabel + szCityName + SASTextScale.SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 		else:
 			screen.setTableText(szTable, 0, iRow, u"", "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-			screen.setTableText(szTable, 1, iRow, sasFontTagLabel + szCityName + SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, 1, iRow, SASTextScale.sasFontTagLabel + szCityName + SASTextScale.SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 		iColIdx = 2
 		for aiColumns, fnGetInfo, aaiCounts in aoGroups:
 			for iType in aiColumns:
@@ -589,7 +583,7 @@ class CvWorldAdvisorScreen:
 			[self.TEXT_PEAK, self.BUTTON_TERRAIN_PEAK, WidgetTypes.WIDGET_GENERAL, -1, aiPlotCounts[2][0], aiPlotCounts[2][1]],
 			[self.TEXT_HILL, self.BUTTON_TERRAIN_HILL, WidgetTypes.WIDGET_GENERAL, -1, aiPlotCounts[3][0], aiPlotCounts[3][1]],
 			[self.TEXT_FLAT, "", WidgetTypes.WIDGET_GENERAL, -1, aiPlotCounts[4][0], aiPlotCounts[4][1]],
-			[self.TEXT_RIVER, self.BUTTON_RIVER, WidgetTypes.WIDGET_GENERAL, -1, aiPlotCounts[5][0], aiPlotCounts[5][1]],
+			[self.TEXT_RIVER, SASVisuals.InterfaceArt.WORLDBUILDER_RIVER_PLACEMENT, WidgetTypes.WIDGET_GENERAL, -1, aiPlotCounts[5][0], aiPlotCounts[5][1]],
 			[self.TEXT_LAKE, "", WidgetTypes.WIDGET_GENERAL, -1, aiPlotCounts[6][0], aiPlotCounts[6][1]],
 			[self.TEXT_COASTAL, "", WidgetTypes.WIDGET_GENERAL, -1, aiPlotCounts[7][0], aiPlotCounts[7][1]],
 			[self.TEXT_TOTAL, "", WidgetTypes.WIDGET_GENERAL, -1, aiPlotCounts[0][0], aiPlotCounts[0][1]],
@@ -644,14 +638,14 @@ class CvWorldAdvisorScreen:
 		screen.enableSort(szTable)
 		iCountW = 60
 		iNameW = iW - 3 * iCountW
-		screen.setTableColumnHeader(szTable, 0, sasFontTagLabel + szTitle + SAS_FONT_TAG_CLOSE, iNameW)
-		screen.setTableColumnHeader(szTable, 1, sasFontTagLabel + self.TEXT_BFC + SAS_FONT_TAG_CLOSE, iCountW)
-		screen.setTableColumnHeader(szTable, 2, sasFontTagLabel + self.TEXT_TERRITORY_SUBURBS + SAS_FONT_TAG_CLOSE, iCountW)
-		screen.setTableColumnHeader(szTable, 3, sasFontTagLabel + self.TEXT_TERRITORY_TOTAL_ABBR + SAS_FONT_TAG_CLOSE, iCountW)
+		screen.setTableColumnHeader(szTable, 0, SASTextScale.sasFontTagLabel + szTitle + SASTextScale.SAS_FONT_TAG_CLOSE, iNameW)
+		screen.setTableColumnHeader(szTable, 1, SASTextScale.sasFontTagLabel + self.TEXT_BFC + SASTextScale.SAS_FONT_TAG_CLOSE, iCountW)
+		screen.setTableColumnHeader(szTable, 2, SASTextScale.sasFontTagLabel + self.TEXT_TERRITORY_SUBURBS + SASTextScale.SAS_FONT_TAG_CLOSE, iCountW)
+		screen.setTableColumnHeader(szTable, 3, SASTextScale.sasFontTagLabel + self.TEXT_TERRITORY_TOTAL_ABBR + SASTextScale.SAS_FONT_TAG_CLOSE, iCountW)
 		for iRow in range(len(aRows)):
 			screen.appendTableRow(szTable)
 			row = aRows[iRow]
-			screen.setTableText(szTable, 0, iRow, sasFontTagLabel + row[0] + SAS_FONT_TAG_CLOSE, row[1], row[2], row[3], -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, 0, iRow, SASTextScale.sasFontTagLabel + row[0] + SASTextScale.SAS_FONT_TAG_CLOSE, row[1], row[2], row[3], -1, CvUtil.FONT_LEFT_JUSTIFY)
 			self.setBFCCountCell(screen, szTable, 1, iRow, row[4])
 			self.setBFCCountCell(screen, szTable, 2, iRow, row[5])
 			self.setBFCCountCell(screen, szTable, 3, iRow, row[4] + row[5])
@@ -668,7 +662,7 @@ class CvWorldAdvisorScreen:
 				iTotalSub += row[5]
 			iTotalRow = len(aRows)
 			screen.appendTableRow(szTable)
-			screen.setTableText(szTable, 0, iTotalRow, sasFontTagLabel + self.TEXT_TOTAL + SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.setTableText(szTable, 0, iTotalRow, SASTextScale.sasFontTagLabel + self.TEXT_TOTAL + SASTextScale.SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 			self.setBFCCountCell(screen, szTable, 1, iTotalRow, iTotalBFC)
 			self.setBFCCountCell(screen, szTable, 2, iTotalRow, iTotalSub)
 			self.setBFCCountCell(screen, szTable, 3, iTotalRow, iTotalBFC + iTotalSub)
@@ -677,7 +671,7 @@ class CvWorldAdvisorScreen:
 		if iCount == 0:
 			screen.setTableText(szTable, iCol, iRow, u"", "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 		else:
-			screen.setTableInt(szTable, iCol, iRow, sasFontTagLabel + str(iCount) + SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
+			screen.setTableInt(szTable, iCol, iRow, SASTextScale.sasFontTagLabel + str(iCount) + SASTextScale.SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 
 	# ENVIRONMENT
 	def drawEnvironmentTab(self):
@@ -707,14 +701,14 @@ class CvWorldAdvisorScreen:
 		szText = self.TEXT_GW_SEVERITY_RATING + ": "
 		# advc.137: Better use separate keys
 		if iSeverityRating < 30:
-			szText += localText.getColorText("TXT_KEY_LOW", (), self.COLOR_GREEN).upper()
+			szText += localText.getColorText("TXT_KEY_LOW", (), SASVisuals.Color.GREEN).upper()
 		elif iSeverityRating < 75:
-			szText += localText.getColorText("TXT_KEY_MEDIUM", (), self.COLOR_YELLOW).upper()
+			szText += localText.getColorText("TXT_KEY_MEDIUM", (), SASVisuals.Color.YELLOW).upper()
 		else:
-			szText += localText.getColorText("TXT_KEY_HIGH", (), self.COLOR_RED).upper()
+			szText += localText.getColorText("TXT_KEY_HIGH", (), SASVisuals.Color.RED).upper()
 		if CyGame().isDebugMode():
 			szText += u" (%d)" % iSeverityRating
-		screen.setLabel(self.getNextWidgetName(), szTopPanel, sasFontTagTitle + szText + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, (X_LEFT_PANEL + PANE_WIDTH + X_RIGHT_PANEL) / 2, Y_TOP_PANEL + H_TOP_PANEL / 2 - Y_SPACING / 2, self.Z_CONTROLS + self.DZ, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setLabel(self.getNextWidgetName(), szTopPanel, SASTextScale.sasFontTagTitle + szText + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, (X_LEFT_PANEL + PANE_WIDTH + X_RIGHT_PANEL) / 2, Y_TOP_PANEL + H_TOP_PANEL / 2 - Y_SPACING / 2, self.Z_CONTROLS + self.DZ, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 		szLeftPanel = self.getNextWidgetName()
 		screen.addPanel(szLeftPanel, u"", "", True, True, X_LEFT_PANEL, Y_LOCATION, PANE_WIDTH, PANE_HEIGHT, PanelStyles.PANEL_STYLE_MAIN)
@@ -740,37 +734,37 @@ class CvWorldAdvisorScreen:
 		iLocalDefence = game.calculateGwLandDefence(self.iActivePlayer)
 
 		yLocation += 1.5 * Y_SPACING
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + self.TEXT_ENV_POLLUTION + ":" + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_LEFT_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, iPollutionTypes, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + self.TEXT_ENV_POLLUTION + ":" + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_LEFT_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, iPollutionTypes, -1)
 
 		if iPopulation != 0:
 			yLocation += Y_SPACING
-			screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + self.TEXT_ENV_POPULATION + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_LEFT_PANEL + 2 * TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, PollutionTypes.POLLUTION_POPULATION, -1)
-			screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + unicode(iPopulation) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_LEFT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, PollutionTypes.POLLUTION_POPULATION, -1)
+			screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + self.TEXT_ENV_POPULATION + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_LEFT_PANEL + 2 * TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, PollutionTypes.POLLUTION_POPULATION, -1)
+			screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + unicode(iPopulation) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_LEFT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, PollutionTypes.POLLUTION_POPULATION, -1)
 		if iBuildings != 0:
 			yLocation += Y_SPACING
-			screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + self.TEXT_ENV_BUILDINGS + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_LEFT_PANEL + 2 * TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, PollutionTypes.POLLUTION_BUILDINGS, -1)
-			screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + unicode(iBuildings) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_LEFT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, PollutionTypes.POLLUTION_BUILDINGS, -1)
+			screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + self.TEXT_ENV_BUILDINGS + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_LEFT_PANEL + 2 * TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, PollutionTypes.POLLUTION_BUILDINGS, -1)
+			screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + unicode(iBuildings) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_LEFT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, PollutionTypes.POLLUTION_BUILDINGS, -1)
 		if iResources != 0:
 			yLocation += Y_SPACING
-			screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + self.TEXT_ENV_RESOURCES + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_LEFT_PANEL + 2 * TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, PollutionTypes.POLLUTION_BONUSES, -1)
-			screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + unicode(iResources) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_LEFT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, PollutionTypes.POLLUTION_BONUSES, -1)
+			screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + self.TEXT_ENV_RESOURCES + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_LEFT_PANEL + 2 * TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, PollutionTypes.POLLUTION_BONUSES, -1)
+			screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + unicode(iResources) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_LEFT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, PollutionTypes.POLLUTION_BONUSES, -1)
 		if iPower != 0:
 			yLocation += Y_SPACING
-			screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + self.TEXT_ENV_ELECTRICITY + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_LEFT_PANEL + 2 * TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, PollutionTypes.POLLUTION_POWER, -1)
-			screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + unicode(iPower) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_LEFT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, PollutionTypes.POLLUTION_POWER, -1)
+			screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + self.TEXT_ENV_ELECTRICITY + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_LEFT_PANEL + 2 * TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, PollutionTypes.POLLUTION_POWER, -1)
+			screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + unicode(iPower) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_LEFT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, PollutionTypes.POLLUTION_POWER, -1)
 
 		yLocation += Y_SPACING
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + self.TEXT_ENV_TOTAL + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_LEFT_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, iPollutionTypes, -1)
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + unicode(iLocalPollution) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_LEFT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, iPollutionTypes, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + self.TEXT_ENV_TOTAL + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_LEFT_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, iPollutionTypes, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + unicode(iLocalPollution) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_LEFT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, iPollutionTypes, -1)
 		yLocation += 1.5 * Y_SPACING
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + self.TEXT_ENV_TOTAL_OFFSETS + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_LEFT_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_OFFSETS, -1, -1)
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + unicode(-iLocalDefence) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_LEFT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_OFFSETS, -1, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + self.TEXT_ENV_TOTAL_OFFSETS + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_LEFT_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_OFFSETS, -1, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + unicode(-iLocalDefence) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_LEFT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_OFFSETS, -1, -1)
 		yLocation += 1.5 * Y_SPACING
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + self.TEXT_ENV_TOTAL_IMPACT + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_LEFT_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + unicode(iLocalPollution - iLocalDefence) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_LEFT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + self.TEXT_ENV_TOTAL_IMPACT + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_LEFT_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + unicode(iLocalPollution - iLocalDefence) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_LEFT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 		yLocation += 1.5 * Y_SPACING
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + self.TEXT_ENV_LOCAL_THRESHOLD + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_LEFT_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_SUSTAINABILITY_THRESHOLD, -1, -1)
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + unicode(iLocalThreshold) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_LEFT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_SUSTAINABILITY_THRESHOLD, -1, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + self.TEXT_ENV_LOCAL_THRESHOLD + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_LEFT_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_SUSTAINABILITY_THRESHOLD, -1, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + unicode(iLocalThreshold) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_LEFT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_SUSTAINABILITY_THRESHOLD, -1, -1)
 
 		# Middle panel: Global
 		yLocation = Y_LOCATION
@@ -783,17 +777,17 @@ class CvWorldAdvisorScreen:
 		iChangeRate = iGlobalPollution - iGlobalDefence - iThreshold - iGlobalWarmingIndex * self.iGLOBAL_WARMING_RESTORATION_RATE / 100
 
 		yLocation += 1.5 * Y_SPACING
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + self.TEXT_ENV_TOTAL_POLLUTION + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_MIDDLE_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, PollutionTypes.POLLUTION_ALL, -1)
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + unicode(iGlobalPollution) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_MIDDLE_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, PollutionTypes.POLLUTION_ALL, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + self.TEXT_ENV_TOTAL_POLLUTION + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_MIDDLE_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, PollutionTypes.POLLUTION_ALL, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + unicode(iGlobalPollution) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_MIDDLE_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_SOURCE, PollutionTypes.POLLUTION_ALL, -1)
 		yLocation += 1.5 * Y_SPACING
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + self.TEXT_ENV_TOTAL_OFFSETS + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_MIDDLE_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_OFFSETS, -1, -1)
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + unicode(-iGlobalDefence) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_MIDDLE_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_OFFSETS, -1, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + self.TEXT_ENV_TOTAL_OFFSETS + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_MIDDLE_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_OFFSETS, -1, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + unicode(-iGlobalDefence) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_MIDDLE_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_POLLUTION_OFFSETS, -1, -1)
 		yLocation += 1.5 * Y_SPACING
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + self.TEXT_ENV_THRESHOLD + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_MIDDLE_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_SUSTAINABILITY_THRESHOLD, -1, -1)
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + unicode(iThreshold) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_MIDDLE_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_SUSTAINABILITY_THRESHOLD, -1, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + self.TEXT_ENV_THRESHOLD + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_MIDDLE_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_SUSTAINABILITY_THRESHOLD, -1, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + unicode(iThreshold) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_MIDDLE_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_SUSTAINABILITY_THRESHOLD, -1, -1)
 		yLocation += 1.5 * Y_SPACING
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + self.TEXT_ENV_GW_CHANGE_RATE + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_MIDDLE_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + unicode(max(0, iChangeRate)) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_MIDDLE_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + self.TEXT_ENV_GW_CHANGE_RATE + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_MIDDLE_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + unicode(max(0, iChangeRate)) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_MIDDLE_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 		iResponsibility = 100 * (iLocalPollution - iLocalDefence)
 		iResponsibility /= max(1, iLocalThreshold)
@@ -801,31 +795,31 @@ class CvWorldAdvisorScreen:
 		iResponsibility /= max(1, iGlobalPollution - iGlobalDefence)
 		if iGwEventTally >= 0 or CyGame().isDebugMode():
 			yLocation += 1.5 * Y_SPACING
-			screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + self.TEXT_ENV_RELATIVE_CONTRIBUTION + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_MIDDLE_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_GW_RELATIVE_CONTRIBUTION, -1, -1)
-			screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + unicode(iResponsibility) + u"%" + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_MIDDLE_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_GW_RELATIVE_CONTRIBUTION, -1, -1)
+			screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + self.TEXT_ENV_RELATIVE_CONTRIBUTION + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_MIDDLE_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_GW_RELATIVE_CONTRIBUTION, -1, -1)
+			screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + unicode(iResponsibility) + u"%" + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_MIDDLE_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_GW_RELATIVE_CONTRIBUTION, -1, -1)
 
 		# Right panel: Effects
 		yLocation = Y_LOCATION
 		yLocation += 1.5 * Y_SPACING
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + self.TEXT_ENV_GW_INDEX + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_RIGHT_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_GW_INDEX, -1, -1)
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + unicode(iGlobalWarmingIndex) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_RIGHT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_GW_INDEX, -1, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + self.TEXT_ENV_GW_INDEX + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_RIGHT_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_GW_INDEX, -1, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + unicode(iGlobalWarmingIndex) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_RIGHT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_GW_INDEX, -1, -1)
 		yLocation += 1.5 * Y_SPACING
 		fExpectedEvents = 1.0 * iGlobalWarmingChances * self.iGLOBAL_WARMING_PROB / (10.0 * gc.getGameSpeedInfo(game.getGameSpeedType()).getVictoryDelayPercent())
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + self.TEXT_ENV_EXPECTED_EVENTS + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_RIGHT_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
-		screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + u"%0.1f" % fExpectedEvents + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_RIGHT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + self.TEXT_ENV_EXPECTED_EVENTS + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_RIGHT_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + u"%0.1f" % fExpectedEvents + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_RIGHT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 		if iGwEventTally >= 0:
 			yLocation += 1.5 * Y_SPACING
-			screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + self.TEXT_ENV_EVENT_TALLY + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_RIGHT_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
-			screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + unicode(iGwEventTally) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_RIGHT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + self.TEXT_ENV_EVENT_TALLY + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_RIGHT_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + unicode(iGwEventTally) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_RIGHT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 		iGwPercentAnger = player.getGwPercentAnger()
 		if iGwPercentAnger >= 2:
 			yLocation += 1.5 * Y_SPACING
-			screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + self.TEXT_ENV_LOCAL_ANGER_LEVEL + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_RIGHT_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_GW_UNHAPPY, -1, -1)
-			screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + unicode(iGwPercentAnger) + u"%" + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_RIGHT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_GW_UNHAPPY, -1, -1)
+			screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + self.TEXT_ENV_LOCAL_ANGER_LEVEL + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_RIGHT_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_GW_UNHAPPY, -1, -1)
+			screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + unicode(iGwPercentAnger) + u"%" + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_RIGHT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_HELP_GW_UNHAPPY, -1, -1)
 		if CyGame().isDebugMode():
 			yLocation += 1.5 * Y_SPACING
-			screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + self.TEXT_ENV_CHANCES + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_RIGHT_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
-			screen.setLabel(self.getNextWidgetName(), "Background", sasFontTagLabel + unicode(game.getGlobalWarmingChances()) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_RIGHT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + self.TEXT_ENV_CHANCES + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, X_RIGHT_PANEL + TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.setLabel(self.getNextWidgetName(), "Background", SASTextScale.sasFontTagLabel + unicode(game.getGlobalWarmingChances()) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, X_RIGHT_PANEL + PANE_WIDTH - TEXT_MARGIN, yLocation + TEXT_MARGIN, self.Z_CONTROLS + self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 	def getNextWidgetName(self):
 		szName = self.WIDGET_ID + str(self.nWidgetCount)

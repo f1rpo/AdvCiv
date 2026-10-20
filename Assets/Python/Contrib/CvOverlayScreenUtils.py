@@ -6,7 +6,13 @@
 ##
 ## Author: Del69, EmperorFool
 
+
+# AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
+# (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
+
 from CvPythonExtensions import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import CvDotMapOverlayScreen
 import BugUtil
 import CvUtil
@@ -163,8 +169,6 @@ class OverlaySign:
 		self.text = text
 		self.playerType = None
 		self.plot = None
-		self.WAR_ICON = u"%c" % (gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar() + 25)
-		self.PEACE_ICON = u"%c" % (gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar() + 26)
 		self.isAdded = False
 		global g_bEventDefined
 		if not g_bEventDefined:
@@ -187,17 +191,17 @@ class OverlaySign:
 	def addBonusIcon(self, bonusIndex):
 		# Adds a bonus icon to the signs string
 		#
-		self.text += u"%c" % gc.getBonusInfo(bonusIndex).getChar()
+		self.text += u"%s" % SASVisuals.Bonus.char(bonusIndex)
 
 	def addSymbolIcon(self, symbolIndex):
 		# Adds a symbol icon to the sign
 		#
-		self.text += u"%c" % gc.getGame().getSymbolID(symbolIndex)
+		self.text += SASVisuals.Font.char(symbolIndex)
 
 	def addCommerceIcon(self, commerceIndex):
 		# Adds a Commerce Icon to the sign
 		#
-		self.text += u"%c" % gc.getCommerceInfo(commerceIndex).getChar()
+		self.text += u"%s" % SASVisuals.Commerce.char(commerceIndex)
 
 	def addSign(self):
 		# Puts sign down on game interface

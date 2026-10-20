@@ -15,6 +15,7 @@ import sys
 from CvPythonExtensions import *
 # <!-- custom: Install shared row timestamps before UI imports emit startup diagnostics; SASPythonLogging avoids importing CvUtil/BUG so this early hook has no dependency cycle. (GPT-6.1-Sol) -->
 import SASPythonLogging
+# <!-- custom: CvUtil keeps text scaling in SASTextScale while its former shared visual-cache dependency is retired; legacy getIcon/initDynamicFontIcons now forward lazily to SASVisualUtils. (ChatGPT-5.6-Sol) -->
 import SASTextScale
 
 # For exception handling
@@ -26,7 +27,6 @@ true=True
 
 # globals
 gc = CyGlobalContext()
-FontIconMap = {}
 localText = CyTranslator()
 
 #
@@ -243,14 +243,12 @@ def AdjustBuilding(add, all, BuildingIdx, pCity): # adds/removes buildings from 
 			pCity.setNumRealBuildingIdx(BuildingIdx,add)
 	return 0
 
-def getIcon(iconEntry):						# returns Font Icons
-	global FontIconMap
-
-	iconEntry = iconEntry.lower()
-	if (FontIconMap.has_key(iconEntry)):
-		return 	FontIconMap.get(iconEntry)
-	else:
-		return (u"%c" %(191,))
+def getIcon(iconEntry):
+	# <!-- custom: Preserve CvUtil's inherited public API while keeping the actual description-keyed icon cache in the single SAS visual-resource boundary.
+	# Import lazily because CvUtil is loaded before BUG configuration. (ChatGPT-5.6-Sol) -->
+	# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+	import SASVisualUtils as SASVisuals
+	return SASVisuals.getLegacyIcon(iconEntry)
 
 # advc: Helper for combatDetailMessageBuilder
 def addCombatMessageScaled(ePlayer, szText):
@@ -320,71 +318,10 @@ def combatMessageBuilder(cdAttacker, cdDefender, iCombatOdds):
 	combatDetailMessageBuilder(cdDefender,cdDefender.eOwner,1)
 
 def initDynamicFontIcons():
-	global FontIconMap
-
-	info = ""
-	desc = ""
-	# <!-- custom: Supply the glyph role and XML type to addIconToMap so startup diagnostics identify commerce/yield icons and distinguish religion from holy-city icons with the same description.
-	# The getters and description keys still select the same icons; the extra fields explain the existing font character codes. (GPT-6.1-Sol) -->
-	# add Commerce Icons
-	for i in range(CommerceTypes.NUM_COMMERCE_TYPES):
-		info = gc.getCommerceInfo(i)
-		desc = info.getDescription().lower()
-		addIconToMap(info.getChar, desc, "commerce", info.getType())
-	# add Yield Icons
-	for i in range(YieldTypes.NUM_YIELD_TYPES):
-		info = gc.getYieldInfo(i)
-		desc = info.getDescription().lower()
-		addIconToMap(info.getChar, desc, "yield", info.getType())
-	# add Religion & Holy City Icons
-	for i in range(gc.getNumReligionInfos()):
-		info = gc.getReligionInfo(i)
-		desc = info.getDescription().lower()
-		szType = info.getType()
-		addIconToMap(info.getChar, desc, "religion", szType)
-		addIconToMap(info.getHolyCityChar, desc, "holy-city", szType)
-	for key in OtherFontIcons.keys():
-		#print key
-		FontIconMap[key] = (u"%c" % CyGame().getSymbolID(OtherFontIcons.get(key)))
-
-	#print FontIconMap
-
-# <!-- custom: Replace the inherited "character code - description" diagnostic with named role/XML-type fields so different glyphs sharing a description are distinguishable.
-# Read the glyph getter once for both logging and insertion; retain the description-keyed map, including the holy-city overwrite, so richer logging does not change icon selection. (GPT-6.1-Sol) -->
-# <!-- custom: Use record=FONT_ICON so this row kind is searchable with the same key=value convention as its glyph fields. (GPT-6.1-Sol) -->
-def addIconToMap(infoChar, desc, szRole, szType):
-	global FontIconMap
-	desc = convertToStr(desc)
-	uc = infoChar()
-	print("record=FONT_ICON role=%s type=%s charCode=%d description=%s" % (szRole, szType, uc, desc))
-	if (uc>=0):
-		FontIconMap[desc] = u"%c" %(uc,)
-# advc (note): Don't add to this list; it seems that BUG's FontUtil.py handles the values of the FontSymbols enum in the DLL (so long as they're exposed to Python). Adding to the IconMap in CvTranslator.py also seems moot.
-# <!-- custom: note: i didn't add anything, but it looks like some chars like FontSymbols.CITIZEN_CHAR are missing here, yet calling them for example from CvVictoryScreen.py works successfully ingame to display said char (for example as of now in the Victories tab, so maybe fine as such (i don't know too much about these, check if accurate). -->
-OtherFontIcons = { 'happy' : FontSymbols.HAPPY_CHAR,
-				'unhappy' : FontSymbols.UNHAPPY_CHAR,
-				'healthy' : FontSymbols.HEALTHY_CHAR,
-				'unhealthy' : FontSymbols.UNHEALTHY_CHAR,
-				'bullet' : FontSymbols.BULLET_CHAR,
-				'strength' : FontSymbols.STRENGTH_CHAR,
-				'moves' : FontSymbols.MOVES_CHAR,
-				'religion' : FontSymbols.RELIGION_CHAR,
-				'star' : FontSymbols.STAR_CHAR,
-				'silver star' : FontSymbols.SILVER_STAR_CHAR,
-				'trade' : FontSymbols.TRADE_CHAR,
-				'defense' : FontSymbols.DEFENSE_CHAR,
-				'greatpeople' : FontSymbols.GREAT_PEOPLE_CHAR,
-				'badgold' : FontSymbols.BAD_GOLD_CHAR,
-				'badfood' : FontSymbols.BAD_FOOD_CHAR,
-				'eatenfood' : FontSymbols.EATEN_FOOD_CHAR,
-				'goldenage' : FontSymbols.GOLDEN_AGE_CHAR,
-				'angrypop' : FontSymbols.ANGRY_POP_CHAR,
-				'openBorders' : FontSymbols.OPEN_BORDERS_CHAR,
-				'defensivePact' : FontSymbols.DEFENSIVE_PACT_CHAR,
-				'map' : FontSymbols.MAP_CHAR,
-				'occupation' : FontSymbols.OCCUPATION_CHAR,
-				'power' : FontSymbols.POWER_CHAR,
-				}
+	# <!-- custom: Civ4's CvAppInterface.preGameStart calls this exact CvUtil entry point.
+	# Keep the API, but let SASVisualUtils own/populate the compatibility map and its cached glyphs. (ChatGPT-5.6-Sol) -->
+	import SASVisualUtils as SASVisuals
+	SASVisuals.initLegacyIconMap()
 
 GlobalInfosMap = {	'bonus': {'NUM': gc.getNumBonusInfos, 'GET': gc.getBonusInfo},
 					'improvement': {'NUM': gc.getNumImprovementInfos, 'GET': gc.getImprovementInfo},

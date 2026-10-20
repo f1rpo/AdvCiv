@@ -105,6 +105,8 @@
 # <!-- custom: AdvCiv-SAS does not actively maintain this third-party file; changes here are minor (e.g. collapsing multiline statements to single-line for grep/readability, and similar low-risk consistency tweaks). (Claude code Opus 4.7) -->
 
 from CvPythonExtensions import *
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import CvEventManager
 import BugData
 import BugUtil
@@ -557,7 +559,7 @@ class BugEventManager(CvEventManager.CvEventManager):
 	def onUnitUpgraded(self, argsList):
 		# Called when a unit is upgraded.
 		pOldUnit, pNewUnit, iPrice = argsList
-		BugUtil.debug("%s upgraded to %s for %d%c", pOldUnit.getName(), pNewUnit.getName(), iPrice, gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar())
+		BugUtil.debug("%s upgraded to %s for %d%s", pOldUnit.getName(), pNewUnit.getName(), iPrice, SASVisuals.Commerce.GOLD_CHAR)
 
 	def onUnitCaptured(self, argsList):
 		# Called when a unit is captured.

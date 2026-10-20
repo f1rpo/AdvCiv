@@ -5,6 +5,8 @@
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 #
 from CvPythonExtensions import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import PyHelpers
 import CvUtil
 import ScreenInput
@@ -71,7 +73,7 @@ class CvWonderMovieScreen:
 		if self.iMovieType == MOVIE_SCREEN_PROJECT:
 			szArtDef = gc.getProjectInfo(iMovieItem).getMovieArtDef()
 			if (len(szArtDef) > 0):
-				self.szMovieFile = CyArtFileMgr().getMovieArtInfo(szArtDef).getPath()
+				self.szMovieFile = SASVisuals.MovieArt.getPath(szArtDef)
 		elif self.iMovieType == MOVIE_SCREEN_WONDER:
 			self.szMovieFile = gc.getBuildingInfo(iMovieItem).getMovie()
 		elif self.iMovieType == MOVIE_SCREEN_RELIGION:

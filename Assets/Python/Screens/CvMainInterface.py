@@ -15,7 +15,10 @@ del globals()["gSetScaleFactors"]
 import CvUtil
 import ScreenInput
 import CvScreenEnums
-from SASFontUtils import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
+import SASTextScale
 from SASUtils import formatExactHundredths, getInfoTypeOrFail
 # <!-- custom: in main interface, use LABEL as the base text font instead of BODY because it is more readable. (GPT-5.3-Codex) -->
 import CvEventInterface
@@ -49,7 +52,7 @@ localText = CyTranslator()
 PleOpt = BugCore.game.PLE # BUG - PLE
 import GameUtil # BUG - 3.17 No Espionage
 import ReminderEventManager # BUG - Reminders
-import GGUtil # BUG - Great General Bar
+# <!-- custom: GGUtil is retired because Great-General visual/text resources now share SASVisualUtils.GreatPeople; GPUtil remains for GP progress behavior. (ChatGPT-5.6-Sol) -->
 import GPUtil # BUG - Great Person Bar
 import ProgressBarUtil # BUG - Progress Bar
 import PLE # PLE Code
@@ -71,7 +74,7 @@ WIDGET_ANNOTATIONS_TOGGLE = WidgetUtil.createWidget("WIDGET_ANNOTATIONS_TOGGLE")
 WIDGET_CITY_BREAKDOWNS = WidgetUtil.createWidget("WIDGET_CITY_BREAKDOWNS")
 g_szCityBreakdownsHelp = u""
 def _scoreHelp(szText):
-	return lambda *_: sasFontTagHover + szText + SAS_FONT_TAG_CLOSE
+	return lambda *_: SASTextScale.sasFontTagHover + szText + SASTextScale.SAS_FONT_TAG_CLOSE
 def _cityBreakdownsHelp(*_):
 	return g_szCityBreakdownsHelp
 WidgetUtil.setWidgetHelpFunction(WIDGET_SCORE_SCROLL_UP, _scoreHelp(u"Scroll scoreboard up"))
@@ -206,8 +209,8 @@ class CvMainInterface:
 
 	def _appendSelectedInfoPaneTextRow(self, screen, szTable, iRow, szLeftBuffer, szRightBuffer, szButton="", iData1=-1):
 		screen.appendTableRow(szTable)
-		screen.setTableText(szTable, 0, iRow, sasFontTagLabel + szLeftBuffer + SAS_FONT_TAG_CLOSE, szButton, WidgetTypes.WIDGET_HELP_SELECTED, iData1, -1, CvUtil.FONT_LEFT_JUSTIFY)
-		screen.setTableText(szTable, 1, iRow, sasFontTagLabel + szRightBuffer + SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_HELP_SELECTED, iData1, -1, CvUtil.FONT_RIGHT_JUSTIFY)
+		screen.setTableText(szTable, 0, iRow, SASTextScale.sasFontTagLabel + szLeftBuffer + SASTextScale.SAS_FONT_TAG_CLOSE, szButton, WidgetTypes.WIDGET_HELP_SELECTED, iData1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		screen.setTableText(szTable, 1, iRow, SASTextScale.sasFontTagLabel + szRightBuffer + SASTextScale.SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_HELP_SELECTED, iData1, -1, CvUtil.FONT_RIGHT_JUSTIFY)
 		screen.show(szTable)
 		screen.show("SelectedUnitPanel")
 		return iRow + 1
@@ -317,17 +320,17 @@ class CvMainInterface:
 				pass
 		# <!-- custom: rebuild city-screen stacked bars after rect moves so the bars follow the new positions. (GPT-5.2-Codex) -->
 		self.addStackedBar("GreatPeopleBar", WidgetTypes.WIDGET_HELP_GREAT_PEOPLE)
-		screen.setStackedBarColors("GreatPeopleBar", InfoBarTypes.INFOBAR_STORED, self.colorGreatPeopleStored)
-		screen.setStackedBarColors("GreatPeopleBar", InfoBarTypes.INFOBAR_RATE, self.colorGreatPeopleRate)
-		screen.setStackedBarColors("GreatPeopleBar", InfoBarTypes.INFOBAR_RATE_EXTRA, self.colorEmpty)
-		screen.setStackedBarColors("GreatPeopleBar", InfoBarTypes.INFOBAR_EMPTY, self.colorEmpty)
+		screen.setStackedBarColors("GreatPeopleBar", InfoBarTypes.INFOBAR_STORED, SASVisuals.Color.GREAT_PEOPLE_STORED)
+		screen.setStackedBarColors("GreatPeopleBar", InfoBarTypes.INFOBAR_RATE, SASVisuals.Color.GREAT_PEOPLE_RATE)
+		screen.setStackedBarColors("GreatPeopleBar", InfoBarTypes.INFOBAR_RATE_EXTRA, SASVisuals.Color.EMPTY)
+		screen.setStackedBarColors("GreatPeopleBar", InfoBarTypes.INFOBAR_EMPTY, SASVisuals.Color.EMPTY)
 		screen.hide("GreatPeopleBar")
 
 		self.addStackedBar("CultureBar", WidgetTypes.WIDGET_HELP_CULTURE)
-		screen.setStackedBarColors("CultureBar", InfoBarTypes.INFOBAR_STORED, self.colorGreatCultureStored)
-		screen.setStackedBarColors("CultureBar", InfoBarTypes.INFOBAR_RATE, self.colorGreatCultureRate)
-		screen.setStackedBarColors("CultureBar", InfoBarTypes.INFOBAR_RATE_EXTRA, self.colorEmpty)
-		screen.setStackedBarColors("CultureBar", InfoBarTypes.INFOBAR_EMPTY, self.colorEmpty)
+		screen.setStackedBarColors("CultureBar", InfoBarTypes.INFOBAR_STORED, SASVisuals.Color.CULTURE_STORED)
+		screen.setStackedBarColors("CultureBar", InfoBarTypes.INFOBAR_RATE, SASVisuals.Color.CULTURE_RATE)
+		screen.setStackedBarColors("CultureBar", InfoBarTypes.INFOBAR_RATE_EXTRA, SASVisuals.Color.EMPTY)
+		screen.setStackedBarColors("CultureBar", InfoBarTypes.INFOBAR_EMPTY, SASVisuals.Color.EMPTY)
 		screen.hide("CultureBar")
 
 		self.addStackedBar("NationalityBar", WidgetTypes.WIDGET_HELP_NATIONALITY)
@@ -349,7 +352,7 @@ class CvMainInterface:
 			eWidgetType = WidgetTypes.WIDGET_GENERAL
 		lRect = gRect(szName)
 		if isinstance(textureInfo, basestring):
-			szTexture = ArtFileMgr.getInterfaceArtInfo(textureInfo).getPath()
+			szTexture = SASVisuals.InterfaceArt.getPath(textureInfo)
 		else:
 			szTexture = textureInfo.getButton()
 		if szAttachTo:
@@ -395,7 +398,7 @@ class CvMainInterface:
 	# Path or InterfaceArtInfo key
 	def setImageButton(self, szName, szTexture, eWidgetType = None, iData1 = -1, iData2 = -1, szAttachTo = None):
 		if CvMainInterface._isInterfaceArtKey(szTexture):
-			szTexture = ArtFileMgr.getInterfaceArtInfo(szTexture).getPath()
+			szTexture = SASVisuals.InterfaceArt.getPath(szTexture)
 		self._setStyledImageButton(szName, szAttachTo, szTexture, None, eWidgetType, iData1, iData2)
 	def setImageButtonAt(self, szName, szAttachTo, szTexture, eWidgetType = None, iData1 = -1, iData2 = -1):
 		self.setImageButton(szName, szTexture, eWidgetType, iData1, iData2, szAttachTo)
@@ -405,9 +408,9 @@ class CvMainInterface:
 			eWidgetType = WidgetTypes.WIDGET_GENERAL
 		lRect = gRect(szName)
 		if CvMainInterface._isInterfaceArtKey(szTexture):
-			szTexture = ArtFileMgr.getInterfaceArtInfo(szTexture).getPath()
+			szTexture = SASVisuals.InterfaceArt.getPath(szTexture)
 		if CvMainInterface._isInterfaceArtKey(szHLTexture):
-			szHLTexture = ArtFileMgr.getInterfaceArtInfo(szHLTexture).getPath()
+			szHLTexture = SASVisuals.InterfaceArt.getPath(szHLTexture)
 		if szAttachTo:
 			lParent = gRect(szAttachTo)
 			self.screen.addCheckBoxGFCAt(szAttachTo, szName, szTexture, szHLTexture, lRect.x() - lParent.x(), lRect.y() - lParent.y(), lRect.width(), lRect.height(), eWidgetType, iData1, iData2, eStyle, True)
@@ -727,47 +730,12 @@ class CvMainInterface:
 		self.xResolution = screen.getXResolution()
 		self.yResolution = screen.getYResolution()
 
-		# <!-- custom: cache for perf opt with the help of ChatGPT-5.2 Thinking thanks.
-		# Note: putting them in init function causes python errors, putting them here in initState seemingly solves them. -->
-		self.colorResearchStored = getInfoTypeOrFail("COLOR_RESEARCH_STORED")
-		self.colorResearchRate = getInfoTypeOrFail("COLOR_RESEARCH_RATE")
-		self.colorEmpty = getInfoTypeOrFail("COLOR_EMPTY")
-		self.colorNegativeRate = getInfoTypeOrFail("COLOR_NEGATIVE_RATE")
-		self.colorGreatPeopleStored = getInfoTypeOrFail("COLOR_GREAT_PEOPLE_STORED")
-		self.colorGreatPeopleRate = getInfoTypeOrFail("COLOR_GREAT_PEOPLE_RATE")
-		self.colorGreatCultureStored = getInfoTypeOrFail("COLOR_CULTURE_STORED")
-		self.colorGreatCultureRate = getInfoTypeOrFail("COLOR_CULTURE_RATE")
-		self.colorRed = getInfoTypeOrFail("COLOR_RED")
-		self.colorYellow = getInfoTypeOrFail("COLOR_YELLOW")
-		self.colorGreen = getInfoTypeOrFail("COLOR_GREEN")
-		self.colorAltHighlightText = getInfoTypeOrFail("COLOR_ALT_HIGHLIGHT_TEXT")
-		self.colorBuildingText = getInfoTypeOrFail("COLOR_BUILDING_TEXT")
 		#
 		self.hurryPopulation = getInfoTypeOrFail("HURRY_POPULATION")
 		self.hurryGold = getInfoTypeOrFail("HURRY_GOLD")
 		#
-		self.overlayFortifyPath = ArtFileMgr.getInterfaceArtInfo("OVERLAY_FORTIFY").getPath()
-		self.overlayHasmovedPath = ArtFileMgr.getInterfaceArtInfo("OVERLAY_HASMOVED").getPath()
-		self.overlayMovePath = ArtFileMgr.getInterfaceArtInfo("OVERLAY_MOVE").getPath()
-		self.overlayNomovePath = ArtFileMgr.getInterfaceArtInfo("OVERLAY_NOMOVE").getPath()
-		self.backgroundTransparentPath = ArtFileMgr.getInterfaceArtInfo("POPUPS_BACKGROUND_TRANSPARENT").getPath()
-		self.buttonsCreategroupPath = ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_CREATEGROUP").getPath()
-		self.buttonsSplitgroupPath = ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_SPLITGROUP").getPath()
-		self.szScoreExpandTogglePath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_LOCKED_2").getPath()
-		self.szScoreExpandToggleOffPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_UNLOCKED_2").getPath()
-		self.szScoreScrollCenterActivePlayerPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_DIRECT_HIT_3").getPath()
 		# <!-- custom: since it is yellowish like the toggle locked/unlocked scroll emojis as of now next to it, it helps making it less distracting and smoother to scan visually for the player perhaps. -->
-		self.szScoreScrollAutocenterActivePlayerPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_COMPASS_3").getPath()
-		self.szScoreScrollAutocenterActivePlayerOffPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_COMPASS_2").getPath()
 		# <!-- custom: building filter button art paths using BUG icons (moved here from updateCityScreen for perf). (Claude Opus 4.5) -->
-		self.buildFilterAllBuildingsOn = ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_CITYSELECTION").getPath()
-		self.buildFilterAllBuildingsOff = ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_CITYSELECTION").getPath()
-		self.buildFilterRegularBuildingsOn = ArtFileMgr.getInterfaceArtInfo("OVERLAY_ACTION_BUILD").getPath()
-		self.buildFilterRegularBuildingsOff = ArtFileMgr.getInterfaceArtInfo("OVERLAY_ACTION_BUILD").getPath()
-		self.buildFilterNatWonderOn = ArtFileMgr.getInterfaceArtInfo("BUG_NATWONDER_OFF").getPath()
-		self.buildFilterNatWonderOff = ArtFileMgr.getInterfaceArtInfo("BUG_NATWONDER_OFF").getPath()
-		self.buildFilterWorldWonderOn = ArtFileMgr.getInterfaceArtInfo("BUG_WORLDWONDER_OFF").getPath()
-		self.buildFilterWorldWonderOff = ArtFileMgr.getInterfaceArtInfo("BUG_WORLDWONDER_OFF").getPath()
 		# <!-- custom: building filter tooltip XML keys precomputed for efficiency. (Claude code Sonnet 4.5) -->
 		self.szBuildFilterTooltipAll = "TXT_KEY_BUILDING_FILTER_ALL"
 		self.szBuildFilterTooltipRegular = "TXT_KEY_BUILDING_FILTER_REGULAR"
@@ -1046,10 +1014,10 @@ class CvMainInterface:
 		self.pOneLineResearchBar.addBarItem("ResearchText")
 		self.pOneLineResearchBar.addBarItem("ResearchIconText")
 		# BUG - Bars on single line for higher resolution screens - end
-		self.pBarPopulationBar = self.createProgressBar("PopulationBar", gc.getYieldInfo(YieldTypes.YIELD_FOOD).getColorType(), ProgressBarUtil.SOLID_MARKS, True)
+		self.pBarPopulationBar = self.createProgressBar("PopulationBar", SASVisuals.Yield.color(YieldTypes.YIELD_FOOD), ProgressBarUtil.SOLID_MARKS, True)
 		self.pBarPopulationBar.addBarItem("PopulationBar")
 		self.pBarPopulationBar.addBarItem("PopulationText")
-		self.pBarProductionBar = self.createProgressBar("ProductionBar", gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getColorType(), ProgressBarUtil.TICK_MARKS, True)
+		self.pBarProductionBar = self.createProgressBar("ProductionBar", SASVisuals.Yield.color(YieldTypes.YIELD_PRODUCTION), ProgressBarUtil.TICK_MARKS, True)
 		self.pBarProductionBar.addBarItem("ProductionBar")
 		self.pBarProductionBar.addBarItem("ProductionText")
 		self.pBarProductionBar.addBarItem("ProductionIconText")
@@ -1057,7 +1025,7 @@ class CvMainInterface:
 		self.pBarProductionBar_Whip.addBarItem("ProductionBar")
 		self.pBarProductionBar_Whip.addBarItem("ProductionText")
 		self.pBarProductionBar_Whip.addBarItem("ProductionIconText")
-# BUG - Progress Bar - Tick Marks - end
+# <!-- custom: Preserve inherited BUG section marker: Progress Bar - Tick Marks - end. (ChatGPT-5.6-Sol) -->
 
 		# Helper rects for uniform widget placement inside the side panels
 		# <!-- custom: note: old CityOrgArea code removed since we don't put religions and corporations in the right side panel anymore -->
@@ -1113,40 +1081,6 @@ class CvMainInterface:
 		self.setPromoButtonRects()
 		# (BUG - unit plot draw method - advc.092: Moved into interfaceScreen method)
 
-		# <!-- custom: precompute commonly used icon chars, strings, and constants for performance (claude opus 4.5) -->
-		g = CyGame()
-		# Integer icon codes (needed for localText.getText() calls and offset calculations)
-		self.iDefenseIcon = g.getSymbolID(FontSymbols.DEFENSE_CHAR)
-		self.iGreatPeopleIcon = g.getSymbolID(FontSymbols.GREAT_PEOPLE_CHAR)
-		self.iWorstAttitudeIcon = g.getSymbolID(FontSymbols.WORST_ATTITUDE_CHAR)
-		# Precomputed unicode icon strings (eliminates repeated u"%c" % formatting)
-		self.szStarIcon = u"%c" % g.getSymbolID(FontSymbols.STAR_CHAR)
-		self.szSilverStarIcon = u"%c" % g.getSymbolID(FontSymbols.SILVER_STAR_CHAR)
-		self.szPowerIcon = u"%c" % g.getSymbolID(FontSymbols.POWER_CHAR)
-		self.szOccupationIcon = u"%c" % g.getSymbolID(FontSymbols.OCCUPATION_CHAR)
-		self.szEatenFoodIcon = u"%c" % g.getSymbolID(FontSymbols.EATEN_FOOD_CHAR)
-		self.szAngryPopIcon = u"%c" % g.getSymbolID(FontSymbols.ANGRY_POP_CHAR)
-		self.szHappyIcon = u"%c" % g.getSymbolID(FontSymbols.HAPPY_CHAR)
-		self.szUnhappyIcon = u"%c" % g.getSymbolID(FontSymbols.UNHAPPY_CHAR)
-		self.szHealthyIcon = u"%c" % g.getSymbolID(FontSymbols.HEALTHY_CHAR)
-		self.szUnhealthyIcon = u"%c" % g.getSymbolID(FontSymbols.UNHEALTHY_CHAR)
-		self.szGreatPeopleIcon = u"%c" % self.iGreatPeopleIcon
-		self.szDefenseIcon = u"%c" % self.iDefenseIcon
-		self.szMapIcon = u"%c" % g.getSymbolID(FontSymbols.MAP_CHAR)
-		self.szReligionIcon = u"%c" % g.getSymbolID(FontSymbols.RELIGION_CHAR)
-		self.szCitizenIcon = u"%c" % g.getSymbolID(FontSymbols.CITIZEN_CHAR)
-		self.szMovesIcon = u"%c" % g.getSymbolID(FontSymbols.MOVES_CHAR)
-		self.szStrengthIcon = u"%c" % g.getSymbolID(FontSymbols.STRENGTH_CHAR)
-		self.szTradeIcon = u"%c" % g.getSymbolID(FontSymbols.TRADE_CHAR)
-		self.szOpenBordersIcon = u"%c" % g.getSymbolID(FontSymbols.OPEN_BORDERS_CHAR)
-		self.szDefensivePactIcon = u"%c" % g.getSymbolID(FontSymbols.DEFENSIVE_PACT_CHAR)
-		# Precomputed yield/commerce icon strings (frequently used in city screen)
-		self.szFoodIcon = u"%c" % gc.getYieldInfo(YieldTypes.YIELD_FOOD).getChar()
-		self.szProductionIcon = u"%c" % gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar()
-		self.szCultureIcon = u"%c" % gc.getCommerceInfo(CommerceTypes.COMMERCE_CULTURE).getChar()
-		self.szGoldIcon = u"%c" % gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar()
-		self.szEspionageIcon = u"%c" % gc.getCommerceInfo(CommerceTypes.COMMERCE_ESPIONAGE).getChar()
-		# Precomputed constants
 		self.iMoveDenominator = gc.getMOVE_DENOMINATOR()
 		# <!-- custom: K-Mod/Base AdvCiv already key Info and Foreign Advisor text caches by language, and SAS correctly retained/extended that pattern in other advisor initText paths.
 		# These Main Interface translations were instead cached only when initState ran, so changing language during a game left them in the previous language.
@@ -1170,9 +1104,9 @@ class CvMainInterface:
 		self.szTextMaintenance = localText.getText("INTERFACE_CITY_MAINTENANCE", ())
 		self.szTextDeadCiv = localText.getText("TXT_KEY_BUG_DEAD_CIV", ())
 		# <!-- custom: KI#307's live-language refresh omitted four other persistent Main Interface translations; keep their cached lookup under the same language guard; preserve the Label wrappers added for waiting-state readability. See KI#1062. (GPT-5.6-Sol) -->
-		self.szTextWaiting = sasFontTagLabel + localText.getText("SYSTEM_WAITING", ()) + SAS_FONT_TAG_CLOSE
+		self.szTextWaiting = SASTextScale.sasFontTagLabel + localText.getText("SYSTEM_WAITING", ()) + SASTextScale.SAS_FONT_TAG_CLOSE
 		self.szTextEndTurn = localText.getText("SYSTEM_END_TURN", ())
-		self.szTextWaitingForYou = sasFontTagLabel + localText.getText("SYSTEM_WAITING_FOR_YOU", ()) + SAS_FONT_TAG_CLOSE
+		self.szTextWaitingForYou = SASTextScale.sasFontTagLabel + localText.getText("SYSTEM_WAITING_FOR_YOU", ()) + SASTextScale.SAS_FONT_TAG_CLOSE
 		self.sFieldOfView_Text = localText.getText("TXT_KEY_BUG_OPT_MAININTERFACE__FIELDOFVIEW_TEXT", ())
 
 	def setMiniMapRects(self):
@@ -1267,7 +1201,7 @@ class CvMainInterface:
 
 	def setAdvisorButtonRects(self):
 		iSize = BTNSZ(28)
-		# <!-- custom: advisor button order follows active shortcuts (F1/F2/F3...); Religion/Corporation buttons removed, and World Advisor uses F7. (GPT-5.5) -->
+		# <!-- custom: advisor button order follows active shortcuts (F1/F2/F3...); SASVisuals.Religion/SASVisuals.Corporation buttons removed, and World Advisor uses F7. (GPT-5.5) -->
 		advisorNames = [ "Domestic", "Policy", "ForeignDiplomacy", "Foreign", "Military", "Tech", "World", "Info", "Victory" ]
 		if GameUtil.isEspionage():
 			advisorNames.append("Espionage")
@@ -1919,48 +1853,48 @@ class CvMainInterface:
 		szGameDataList = []
 
 		self.addStackedBar("TwoLineResearchBar", WidgetTypes.WIDGET_RESEARCH)
-		screen.setStackedBarColors("TwoLineResearchBar", InfoBarTypes.INFOBAR_STORED, self.colorResearchStored)
-		screen.setStackedBarColors("TwoLineResearchBar", InfoBarTypes.INFOBAR_RATE, self.colorResearchRate)
-		screen.setStackedBarColors("TwoLineResearchBar", InfoBarTypes.INFOBAR_RATE_EXTRA, self.colorEmpty)
-		screen.setStackedBarColors("TwoLineResearchBar", InfoBarTypes.INFOBAR_EMPTY, self.colorEmpty)
+		screen.setStackedBarColors("TwoLineResearchBar", InfoBarTypes.INFOBAR_STORED, SASVisuals.Color.RESEARCH_STORED)
+		screen.setStackedBarColors("TwoLineResearchBar", InfoBarTypes.INFOBAR_RATE, SASVisuals.Color.RESEARCH_RATE)
+		screen.setStackedBarColors("TwoLineResearchBar", InfoBarTypes.INFOBAR_RATE_EXTRA, SASVisuals.Color.EMPTY)
+		screen.setStackedBarColors("TwoLineResearchBar", InfoBarTypes.INFOBAR_EMPTY, SASVisuals.Color.EMPTY)
 		screen.hide("TwoLineResearchBar")
 # BUG - Great General Bar - start
 		self.addStackedBar("TwoLineGGBar", WidgetTypes.WIDGET_HELP_GREAT_GENERAL)
-		screen.setStackedBarColors("TwoLineGGBar", InfoBarTypes.INFOBAR_STORED, self.colorNegativeRate)
-		screen.setStackedBarColors("TwoLineGGBar", InfoBarTypes.INFOBAR_RATE, self.colorEmpty)
-		screen.setStackedBarColors("TwoLineGGBar", InfoBarTypes.INFOBAR_RATE_EXTRA, self.colorEmpty)
-		screen.setStackedBarColors("TwoLineGGBar", InfoBarTypes.INFOBAR_EMPTY, self.colorEmpty)
+		screen.setStackedBarColors("TwoLineGGBar", InfoBarTypes.INFOBAR_STORED, SASVisuals.Color.NEGATIVE_RATE)
+		screen.setStackedBarColors("TwoLineGGBar", InfoBarTypes.INFOBAR_RATE, SASVisuals.Color.EMPTY)
+		screen.setStackedBarColors("TwoLineGGBar", InfoBarTypes.INFOBAR_RATE_EXTRA, SASVisuals.Color.EMPTY)
+		screen.setStackedBarColors("TwoLineGGBar", InfoBarTypes.INFOBAR_EMPTY, SASVisuals.Color.EMPTY)
 		screen.hide("TwoLineGGBar")
 # BUG - Great General Bar - end
 # BUG - Great Person Bar - start
 		self.addStackedBar("TwoLineGPBar", WidgetTypes.WIDGET_GP_PROGRESS_BAR)
-		screen.setStackedBarColors("TwoLineGPBar", InfoBarTypes.INFOBAR_STORED, self.colorGreatPeopleStored)
-		screen.setStackedBarColors("TwoLineGPBar", InfoBarTypes.INFOBAR_RATE, self.colorGreatPeopleRate)
-		screen.setStackedBarColors("TwoLineGPBar", InfoBarTypes.INFOBAR_RATE_EXTRA, self.colorEmpty)
-		screen.setStackedBarColors("TwoLineGPBar", InfoBarTypes.INFOBAR_EMPTY, self.colorEmpty)
+		screen.setStackedBarColors("TwoLineGPBar", InfoBarTypes.INFOBAR_STORED, SASVisuals.Color.GREAT_PEOPLE_STORED)
+		screen.setStackedBarColors("TwoLineGPBar", InfoBarTypes.INFOBAR_RATE, SASVisuals.Color.GREAT_PEOPLE_RATE)
+		screen.setStackedBarColors("TwoLineGPBar", InfoBarTypes.INFOBAR_RATE_EXTRA, SASVisuals.Color.EMPTY)
+		screen.setStackedBarColors("TwoLineGPBar", InfoBarTypes.INFOBAR_EMPTY, SASVisuals.Color.EMPTY)
 		screen.hide("TwoLineGPBar")
 # BUG - Great Person Bar - end
 # BUG - Bars on single line for higher resolution screens - start
 		self.addStackedBar("OneLineGGBar", WidgetTypes.WIDGET_HELP_GREAT_GENERAL)
-		#self.colorGreatPeopleStored)
-		screen.setStackedBarColors("OneLineGGBar", InfoBarTypes.INFOBAR_STORED, self.colorNegativeRate)
-		screen.setStackedBarColors("OneLineGGBar", InfoBarTypes.INFOBAR_RATE, self.colorEmpty)
-		screen.setStackedBarColors("OneLineGGBar", InfoBarTypes.INFOBAR_RATE_EXTRA, self.colorEmpty)
-		screen.setStackedBarColors("OneLineGGBar", InfoBarTypes.INFOBAR_EMPTY, self.colorEmpty)
+
+		screen.setStackedBarColors("OneLineGGBar", InfoBarTypes.INFOBAR_STORED, SASVisuals.Color.NEGATIVE_RATE)
+		screen.setStackedBarColors("OneLineGGBar", InfoBarTypes.INFOBAR_RATE, SASVisuals.Color.EMPTY)
+		screen.setStackedBarColors("OneLineGGBar", InfoBarTypes.INFOBAR_RATE_EXTRA, SASVisuals.Color.EMPTY)
+		screen.setStackedBarColors("OneLineGGBar", InfoBarTypes.INFOBAR_EMPTY, SASVisuals.Color.EMPTY)
 		screen.hide("OneLineGGBar")
 
 		self.addStackedBar("OneLineResearchBar", WidgetTypes.WIDGET_RESEARCH)
-		screen.setStackedBarColors("OneLineResearchBar", InfoBarTypes.INFOBAR_STORED, self.colorResearchStored)
-		screen.setStackedBarColors("OneLineResearchBar", InfoBarTypes.INFOBAR_RATE, self.colorResearchRate)
-		screen.setStackedBarColors("OneLineResearchBar", InfoBarTypes.INFOBAR_RATE_EXTRA, self.colorEmpty)
-		screen.setStackedBarColors("OneLineResearchBar", InfoBarTypes.INFOBAR_EMPTY, self.colorEmpty)
+		screen.setStackedBarColors("OneLineResearchBar", InfoBarTypes.INFOBAR_STORED, SASVisuals.Color.RESEARCH_STORED)
+		screen.setStackedBarColors("OneLineResearchBar", InfoBarTypes.INFOBAR_RATE, SASVisuals.Color.RESEARCH_RATE)
+		screen.setStackedBarColors("OneLineResearchBar", InfoBarTypes.INFOBAR_RATE_EXTRA, SASVisuals.Color.EMPTY)
+		screen.setStackedBarColors("OneLineResearchBar", InfoBarTypes.INFOBAR_EMPTY, SASVisuals.Color.EMPTY)
 		screen.hide("OneLineResearchBar")
 
 		self.addStackedBar("OneLineGPBar", WidgetTypes.WIDGET_GP_PROGRESS_BAR)
-		screen.setStackedBarColors("OneLineGPBar", InfoBarTypes.INFOBAR_STORED, self.colorGreatPeopleStored)
-		screen.setStackedBarColors("OneLineGPBar", InfoBarTypes.INFOBAR_RATE, self.colorGreatPeopleRate)
-		screen.setStackedBarColors("OneLineGPBar", InfoBarTypes.INFOBAR_RATE_EXTRA, self.colorEmpty)
-		screen.setStackedBarColors("OneLineGPBar", InfoBarTypes.INFOBAR_EMPTY, self.colorEmpty)
+		screen.setStackedBarColors("OneLineGPBar", InfoBarTypes.INFOBAR_STORED, SASVisuals.Color.GREAT_PEOPLE_STORED)
+		screen.setStackedBarColors("OneLineGPBar", InfoBarTypes.INFOBAR_RATE, SASVisuals.Color.GREAT_PEOPLE_RATE)
+		screen.setStackedBarColors("OneLineGPBar", InfoBarTypes.INFOBAR_RATE_EXTRA, SASVisuals.Color.EMPTY)
+		screen.setStackedBarColors("OneLineGPBar", InfoBarTypes.INFOBAR_EMPTY, SASVisuals.Color.EMPTY)
 		screen.hide("OneLineGPBar")
 # BUG - Bars on single line for higher resolution screens - end
 
@@ -1971,31 +1905,31 @@ class CvMainInterface:
 		szHideSelectionDataList = []
 
 		self.addStackedBar("PopulationBar", WidgetTypes.WIDGET_HELP_POPULATION)
-		screen.setStackedBarColors("PopulationBar", InfoBarTypes.INFOBAR_STORED, gc.getYieldInfo(YieldTypes.YIELD_FOOD).getColorType())
-		screen.setStackedBarColorsAlpha("PopulationBar", InfoBarTypes.INFOBAR_RATE, gc.getYieldInfo(YieldTypes.YIELD_FOOD).getColorType(), 0.8)
-		screen.setStackedBarColors("PopulationBar", InfoBarTypes.INFOBAR_RATE_EXTRA, self.colorNegativeRate)
-		screen.setStackedBarColors("PopulationBar", InfoBarTypes.INFOBAR_EMPTY, self.colorEmpty)
+		screen.setStackedBarColors("PopulationBar", InfoBarTypes.INFOBAR_STORED, SASVisuals.Yield.color(YieldTypes.YIELD_FOOD))
+		screen.setStackedBarColorsAlpha("PopulationBar", InfoBarTypes.INFOBAR_RATE, SASVisuals.Yield.color(YieldTypes.YIELD_FOOD), 0.8)
+		screen.setStackedBarColors("PopulationBar", InfoBarTypes.INFOBAR_RATE_EXTRA, SASVisuals.Color.NEGATIVE_RATE)
+		screen.setStackedBarColors("PopulationBar", InfoBarTypes.INFOBAR_EMPTY, SASVisuals.Color.EMPTY)
 		screen.hide("PopulationBar")
 
 		self.addStackedBar("ProductionBar", WidgetTypes.WIDGET_HELP_PRODUCTION)
-		screen.setStackedBarColors("ProductionBar", InfoBarTypes.INFOBAR_STORED, gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getColorType())
-		screen.setStackedBarColorsAlpha("ProductionBar", InfoBarTypes.INFOBAR_RATE, gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getColorType(), 0.8)
-		screen.setStackedBarColors("ProductionBar", InfoBarTypes.INFOBAR_RATE_EXTRA, gc.getYieldInfo(YieldTypes.YIELD_FOOD).getColorType())
-		screen.setStackedBarColors("ProductionBar", InfoBarTypes.INFOBAR_EMPTY, self.colorEmpty)
+		screen.setStackedBarColors("ProductionBar", InfoBarTypes.INFOBAR_STORED, SASVisuals.Yield.color(YieldTypes.YIELD_PRODUCTION))
+		screen.setStackedBarColorsAlpha("ProductionBar", InfoBarTypes.INFOBAR_RATE, SASVisuals.Yield.color(YieldTypes.YIELD_PRODUCTION), 0.8)
+		screen.setStackedBarColors("ProductionBar", InfoBarTypes.INFOBAR_RATE_EXTRA, SASVisuals.Yield.color(YieldTypes.YIELD_FOOD))
+		screen.setStackedBarColors("ProductionBar", InfoBarTypes.INFOBAR_EMPTY, SASVisuals.Color.EMPTY)
 		screen.hide("ProductionBar")
 
 		self.addStackedBar("GreatPeopleBar", WidgetTypes.WIDGET_HELP_GREAT_PEOPLE)
-		screen.setStackedBarColors("GreatPeopleBar", InfoBarTypes.INFOBAR_STORED, self.colorGreatPeopleStored)
-		screen.setStackedBarColors("GreatPeopleBar", InfoBarTypes.INFOBAR_RATE, self.colorGreatPeopleRate)
-		screen.setStackedBarColors("GreatPeopleBar", InfoBarTypes.INFOBAR_RATE_EXTRA, self.colorEmpty)
-		screen.setStackedBarColors("GreatPeopleBar", InfoBarTypes.INFOBAR_EMPTY, self.colorEmpty)
+		screen.setStackedBarColors("GreatPeopleBar", InfoBarTypes.INFOBAR_STORED, SASVisuals.Color.GREAT_PEOPLE_STORED)
+		screen.setStackedBarColors("GreatPeopleBar", InfoBarTypes.INFOBAR_RATE, SASVisuals.Color.GREAT_PEOPLE_RATE)
+		screen.setStackedBarColors("GreatPeopleBar", InfoBarTypes.INFOBAR_RATE_EXTRA, SASVisuals.Color.EMPTY)
+		screen.setStackedBarColors("GreatPeopleBar", InfoBarTypes.INFOBAR_EMPTY, SASVisuals.Color.EMPTY)
 		screen.hide("GreatPeopleBar")
 
 		self.addStackedBar("CultureBar", WidgetTypes.WIDGET_HELP_CULTURE)
-		screen.setStackedBarColors("CultureBar", InfoBarTypes.INFOBAR_STORED, self.colorGreatCultureStored)
-		screen.setStackedBarColors("CultureBar", InfoBarTypes.INFOBAR_RATE, self.colorGreatCultureRate)
-		screen.setStackedBarColors("CultureBar", InfoBarTypes.INFOBAR_RATE_EXTRA, self.colorEmpty)
-		screen.setStackedBarColors("CultureBar", InfoBarTypes.INFOBAR_EMPTY, self.colorEmpty)
+		screen.setStackedBarColors("CultureBar", InfoBarTypes.INFOBAR_STORED, SASVisuals.Color.CULTURE_STORED)
+		screen.setStackedBarColors("CultureBar", InfoBarTypes.INFOBAR_RATE, SASVisuals.Color.CULTURE_RATE)
+		screen.setStackedBarColors("CultureBar", InfoBarTypes.INFOBAR_RATE_EXTRA, SASVisuals.Color.EMPTY)
+		screen.setStackedBarColors("CultureBar", InfoBarTypes.INFOBAR_EMPTY, SASVisuals.Color.EMPTY)
 		screen.hide("CultureBar")
 
 		# (BUG - Limit/Extra Religions: Removed BtS code for adding ReligionHolyCityDDS, CorporationHeadquarterDDS to screen)
@@ -2016,12 +1950,12 @@ class CvMainInterface:
 		self.setStyledButton("ScoreBgStyle", ButtonStyles.BUTTON_STYLE_STANDARD, WIDGET_SCORE_BG_STYLE, -1, -1)
 		screen.hide("ScoreBgStyle")
 		# <!-- custom: always-expand toggle; resolve SAS emoji path explicitly (addCheckBox only auto-resolves INTERFACE_/BUTTON_/RAW_YIELDS_/PLE_ prefixes). (Claude code Sonnet 4.6) -->
-		self.addCheckBox("ScoreExpandToggle", self.szScoreExpandTogglePath, self.szScoreExpandTogglePath, ButtonStyles.BUTTON_STYLE_IMAGE, WIDGET_SCORE_EXPAND_TOGGLE)
+		self.addCheckBox("ScoreExpandToggle", SASVisuals.InterfaceArt.SAS_EMOJI_LOCKED_2, SASVisuals.InterfaceArt.SAS_EMOJI_LOCKED_2, ButtonStyles.BUTTON_STYLE_IMAGE, WIDGET_SCORE_EXPAND_TOGGLE)
 		screen.setState("ScoreExpandToggle", False)
 		screen.hide("ScoreExpandToggle")
-		self.setImageButton("ScoreScrollCenterActivePlayer", self.szScoreScrollCenterActivePlayerPath, WIDGET_SCORE_SCROLL_CENTER_ACTIVE_PLAYER, -1, -1)
+		self.setImageButton("ScoreScrollCenterActivePlayer", SASVisuals.InterfaceArt.SAS_EMOJI_DIRECT_HIT_3, WIDGET_SCORE_SCROLL_CENTER_ACTIVE_PLAYER, -1, -1)
 		screen.hide("ScoreScrollCenterActivePlayer")
-		self.addCheckBox("ScoreScrollAutocenterActivePlayerToggle", self.szScoreScrollAutocenterActivePlayerPath, self.szScoreScrollAutocenterActivePlayerPath, ButtonStyles.BUTTON_STYLE_IMAGE, WIDGET_SCORE_SCROLL_AUTOCENTER_ACTIVE_PLAYER_TOGGLE)
+		self.addCheckBox("ScoreScrollAutocenterActivePlayerToggle", SASVisuals.InterfaceArt.SAS_EMOJI_COMPASS_3, SASVisuals.InterfaceArt.SAS_EMOJI_COMPASS_3, ButtonStyles.BUTTON_STYLE_IMAGE, WIDGET_SCORE_SCROLL_AUTOCENTER_ACTIVE_PLAYER_TOGGLE)
 		screen.setState("ScoreScrollAutocenterActivePlayerToggle", False)
 		screen.hide("ScoreScrollAutocenterActivePlayerToggle")
 		self.setStyledButton("CityScrollMinus", ButtonStyles.BUTTON_STYLE_ARROW_LEFT, WidgetTypes.WIDGET_CITY_SCROLL, -1)
@@ -2457,7 +2391,7 @@ class CvMainInterface:
 			#else:
 			#	screen.hide("EraText") # advc.067
 			self.updateTimeText()
-			self.setLabel("TimeText", "Background", sasFontTagLabel + g_szTimeText + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, FontTypes.GAME_FONT, -0.3)
+			self.setLabel("TimeText", "Background", SASTextScale.sasFontTagLabel + g_szTimeText + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, FontTypes.GAME_FONT, -0.3)
 			screen.show("TimeText")
 
 		else:
@@ -3198,14 +3132,14 @@ class CvMainInterface:
 						# </advc.069>
 						bShowMoveOverlay = (bSimultaneousTurns or pLoopUnit.getOwner() == gc.getGame().getActivePlayer() or (bWoundedIndicator and pLoopUnit.isHurt()) or (bGGIndicator and pLoopUnit.getLeaderUnitType() >= 0))
 						if ((pLoopUnit.getTeam() != gc.getGame().getActiveTeam()) or pLoopUnit.isWaiting()):
-							szFileName = self.overlayFortifyPath
+							szFileName = SASVisuals.InterfaceArt.OVERLAY_FORTIFY
 						elif (pLoopUnit.canMove()):
 							if (pLoopUnit.hasMoved()):
-								szFileName = self.overlayHasmovedPath
+								szFileName = SASVisuals.InterfaceArt.OVERLAY_HASMOVED
 							else:
-								szFileName = self.overlayMovePath
+								szFileName = SASVisuals.InterfaceArt.OVERLAY_MOVE
 						else:
-							szFileName = self.overlayNomovePath
+							szFileName = SASVisuals.InterfaceArt.OVERLAY_NOMOVE
 						szString = "PlotListButton" + str(iCount)
 						#screen.changeImageButton(szString, gc.getUnitInfo(pLoopUnit.getUnitType()).getButton())
 						# advc.003l: Replacing the above
@@ -3234,11 +3168,11 @@ class CvMainInterface:
 							szStringHealth = szString + "Health"
 							screen.setBarPercentage(szStringHealth, InfoBarTypes.INFOBAR_STORED, float(pLoopUnit.currHitPoints()) / float(pLoopUnit.maxHitPoints()))
 							if (pLoopUnit.getDamage() >= ((pLoopUnit.maxHitPoints() * 2) / 3)):
-								screen.setStackedBarColors(szStringHealth, InfoBarTypes.INFOBAR_STORED, self.colorRed)
+								screen.setStackedBarColors(szStringHealth, InfoBarTypes.INFOBAR_STORED, SASVisuals.Color.RED)
 							elif (pLoopUnit.getDamage() >= (pLoopUnit.maxHitPoints() / 3)):
-								screen.setStackedBarColors(szStringHealth, InfoBarTypes.INFOBAR_STORED, self.colorYellow)
+								screen.setStackedBarColors(szStringHealth, InfoBarTypes.INFOBAR_STORED, SASVisuals.Color.YELLOW)
 							else:
-								screen.setStackedBarColors(szStringHealth, InfoBarTypes.INFOBAR_STORED, self.colorGreen)
+								screen.setStackedBarColors(szStringHealth, InfoBarTypes.INFOBAR_STORED, SASVisuals.Color.GREEN)
 							screen.show(szStringHealth)
 
 						# Adds the overlay first
@@ -3413,13 +3347,13 @@ class CvMainInterface:
 					screen.hide(szName)
 
 				# <!-- custom: building list filter buttons using BUG art (paths cached in initState). (GPT-5.2-Codex, Claude Opus 4.5) -->
-				self.addCheckBox(self.buildFilterBtnAll, self.buildFilterAllBuildingsOn, self.buildFilterAllBuildingsOff, ButtonStyles.BUTTON_STYLE_IMAGE, WidgetTypes.WIDGET_GENERAL, 0, -1)
+				self.addCheckBox(self.buildFilterBtnAll, SASVisuals.InterfaceArt.INTERFACE_BUTTONS_CITYSELECTION, SASVisuals.InterfaceArt.INTERFACE_BUTTONS_CITYSELECTION, ButtonStyles.BUTTON_STYLE_IMAGE, WidgetTypes.WIDGET_GENERAL, 0, -1)
 				screen.hide(self.buildFilterBtnAll)
-				self.addCheckBox(self.buildFilterBtnBuildings, self.buildFilterRegularBuildingsOn, self.buildFilterRegularBuildingsOff, ButtonStyles.BUTTON_STYLE_IMAGE, WidgetTypes.WIDGET_GENERAL, 1, -1)
+				self.addCheckBox(self.buildFilterBtnBuildings, SASVisuals.InterfaceArt.OVERLAY_ACTION_BUILD, SASVisuals.InterfaceArt.OVERLAY_ACTION_BUILD, ButtonStyles.BUTTON_STYLE_IMAGE, WidgetTypes.WIDGET_GENERAL, 1, -1)
 				screen.hide(self.buildFilterBtnBuildings)
-				self.addCheckBox(self.buildFilterBtnNational, self.buildFilterNatWonderOn, self.buildFilterNatWonderOff, ButtonStyles.BUTTON_STYLE_IMAGE, WidgetTypes.WIDGET_GENERAL, 2, -1)
+				self.addCheckBox(self.buildFilterBtnNational, SASVisuals.InterfaceArt.BUG_NATWONDER_OFF, SASVisuals.InterfaceArt.BUG_NATWONDER_OFF, ButtonStyles.BUTTON_STYLE_IMAGE, WidgetTypes.WIDGET_GENERAL, 2, -1)
 				screen.hide(self.buildFilterBtnNational)
-				self.addCheckBox(self.buildFilterBtnWorld, self.buildFilterWorldWonderOn, self.buildFilterWorldWonderOff, ButtonStyles.BUTTON_STYLE_IMAGE, WidgetTypes.WIDGET_GENERAL, 3, -1)
+				self.addCheckBox(self.buildFilterBtnWorld, SASVisuals.InterfaceArt.BUG_WORLDWONDER_OFF, SASVisuals.InterfaceArt.BUG_WORLDWONDER_OFF, ButtonStyles.BUTTON_STYLE_IMAGE, WidgetTypes.WIDGET_GENERAL, 3, -1)
 				screen.hide(self.buildFilterBtnWorld)
 
 				self.addCheckBox("AutomateProduction", "", "", ButtonStyles.BUTTON_STYLE_STANDARD, WidgetTypes.WIDGET_AUTOMATE_PRODUCTION)
@@ -3704,10 +3638,10 @@ class CvMainInterface:
 	def appendGroupBottomButtons(self):
 		iAppended = 0
 		if CyInterface().canCreateGroup():
-			self.screen.appendMultiListButton("BottomButtonList", self.buttonsCreategroupPath, 0, WidgetTypes.WIDGET_CREATE_GROUP, -1, -1, False)
+			self.screen.appendMultiListButton("BottomButtonList", SASVisuals.InterfaceArt.INTERFACE_BUTTONS_CREATEGROUP, 0, WidgetTypes.WIDGET_CREATE_GROUP, -1, -1, False)
 			iAppended += 1
 		if CyInterface().canDeleteGroup():
-			self.screen.appendMultiListButton("BottomButtonList", self.buttonsSplitgroupPath, 0, WidgetTypes.WIDGET_DELETE_GROUP, -1, -1, False)
+			self.screen.appendMultiListButton("BottomButtonList", SASVisuals.InterfaceArt.INTERFACE_BUTTONS_SPLITGROUP, 0, WidgetTypes.WIDGET_DELETE_GROUP, -1, -1, False)
 			iAppended += 1
 		return iAppended
 
@@ -3732,7 +3666,7 @@ class CvMainInterface:
 				szOverlay = "OVERLAY_HASMOVED"
 			else:
 				szOverlay = "OVERLAY_MOVE"
-			self.showUnitCycleButtonGFC("UnitCycle", pNextUnit, lButtons.next(), False, False, ArtFileMgr.getInterfaceArtInfo(szOverlay).getPath())
+			self.showUnitCycleButtonGFC("UnitCycle", pNextUnit, lButtons.next(), False, False, SASVisuals.InterfaceArt.getPath(szOverlay))
 			if (not MainOpt.isSingleUnitCyclingButton() and not pNextUnit.isWorker()):
 				pNextWorker = gc.getGame().getNextUnitInCycle(True, True)
 				if pNextWorker and pNextWorker.getID() != pNextUnit.getID():
@@ -3740,14 +3674,14 @@ class CvMainInterface:
 						szOverlay = "OVERLAY_HASMOVED"
 					else:
 						szOverlay = "OVERLAY_MOVE"
-					self.showUnitCycleButtonGFC("WorkerCycle", pNextWorker, lButtons.next(), True, False, ArtFileMgr.getInterfaceArtInfo(szOverlay).getPath())
+					self.showUnitCycleButtonGFC("WorkerCycle", pNextWorker, lButtons.next(), True, False, SASVisuals.InterfaceArt.getPath(szOverlay))
 		# If selected unit is not expecting orders, show unselect button (advc.088).
 		elif (pHeadSelectedUnit and (pHeadSelectedUnit.isWaiting() or not pHeadSelectedUnit.canMove())):
 			if pHeadSelectedUnit.canMove():
 				szOverlay = "OVERLAY_FORTIFY"
 			else:
 				szOverlay = "OVERLAY_NOMOVE"
-			self.showUnitCycleButtonGFC("Unselect", pHeadSelectedUnit, lButtons.next(), False, True, ArtFileMgr.getInterfaceArtInfo(szOverlay).getPath())
+			self.showUnitCycleButtonGFC("Unselect", pHeadSelectedUnit, lButtons.next(), False, True, SASVisuals.InterfaceArt.getPath(szOverlay))
 
 	def showUnitCycleButtonGFC(self, szName, kUnit, lRect, bWorkers, bUnselect, szOverlayPath):
 		iWidgetData2 = -1
@@ -4169,20 +4103,20 @@ class CvMainInterface:
 				#if (gc.getPlayer(ePlayer).isCommerceFlexible(eCommerce) or (CyInterface().isCityScreenUp() and (eCommerce == CommerceTypes.COMMERCE_GOLD))):
 				if not self.showCommercePercent(eCommerce, ePlayer): # K-Mod
 					continue
-				szOutText = sasFontTagLabel + u"%c:%d%%" %(gc.getCommerceInfo(eCommerce).getChar(), pPlayer.getCommercePercent(eCommerce)) + SAS_FONT_TAG_CLOSE
+				szOutText = SASTextScale.sasFontTagLabel + u"%s:%d%%" %(SASVisuals.Commerce.char(eCommerce), pPlayer.getCommercePercent(eCommerce)) + SASTextScale.SAS_FONT_TAG_CLOSE
 				szString = "PercentText" + str(iCount)
 				self.setLabel(szString, "Background", szOutText, CvUtil.FONT_LEFT_JUSTIFY, FontTypes.SMALL_FONT, -0.1)
 				screen.show(szString)
 				# <advc.004p>
 				# </advc.004p>
 				if (not bCityScreen and (eCommerce != CommerceTypes.COMMERCE_CULTURE or MainOpt.isShowTotalCultureRate())):
-					szOutText = sasFontTagLabel + localText.getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", (pPlayer.getCommerceRate(CommerceTypes(eCommerce)),))
-					szOutText += SAS_FONT_TAG_CLOSE
+					szOutText = SASTextScale.sasFontTagLabel + localText.getText("TXT_KEY_MISC_POS_GOLD_PER_TURN", (pPlayer.getCommerceRate(CommerceTypes(eCommerce)),))
+					szOutText += SASTextScale.SAS_FONT_TAG_CLOSE
 					# <!-- custom: BUG Min/Max buttons add two extra commerce button columns in map view, so the green commerce-rate values (e.g. +297/Turn) overflow off the right edge or under expanded advisors.
 					# Keep the useful percent text and +/- controls visible; collapse the rate values into one compact row below the sliders.
 					# The compact row omits ": " so all visible commerce rates are more likely to fit on one line, especially in late-game 4-5 digit cases; city screen keeps the regular per-row rate labels. (GPT-5.5) -->
 					if bUseCompactCommerceRates:
-						aCommerceRateSummary.append(u"%c%d" %(gc.getCommerceInfo(eCommerce).getChar(), pPlayer.getCommerceRate(CommerceTypes(eCommerce))))
+						aCommerceRateSummary.append(u"%s%d" %(SASVisuals.Commerce.char(eCommerce), pPlayer.getCommerceRate(CommerceTypes(eCommerce))))
 						iCount += 1
 						continue
 					szString = "RateText" + str(iCount)
@@ -4198,10 +4132,10 @@ class CvMainInterface:
 					screen.show(szString)
 				iCount += 1
 			if bUseCompactCommerceRates and aCommerceRateSummary:
-				self.setLabel("CommerceRateSummaryText", "Background", sasFontTagLabel + u"; ".join(aCommerceRateSummary) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, FontTypes.SMALL_FONT, -0.1)
+				self.setLabel("CommerceRateSummaryText", "Background", SASTextScale.sasFontTagLabel + u"; ".join(aCommerceRateSummary) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, FontTypes.SMALL_FONT, -0.1)
 				screen.show("CommerceRateSummaryText")
 		self.updateTimeText()
-		self.setLabel("TimeText", "Background", sasFontTagLabel + g_szTimeText + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, FontTypes.GAME_FONT, -0.3)
+		self.setLabel("TimeText", "Background", SASTextScale.sasFontTagLabel + g_szTimeText + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, FontTypes.GAME_FONT, -0.3)
 		screen.show("TimeText")
 		# advc.103: Don't show gold rate and current research when investigating
 		if (not pPlayer.isAlive() or (ePlayer != kGame.getActivePlayer() and not kGame.isDebugMode())):
@@ -4246,7 +4180,7 @@ class CvMainInterface:
 		#if not MainOpt.isGoldRateWarning():
 		#	szText = CyGameTextMgr().getGoldStr(ePlayer)
 # BUG - Gold Rate Warning - end
-		self.setLabel("GoldText", "Background", sasFontTagLabel + szText + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, FontTypes.GAME_FONT, -0.3)
+		self.setLabel("GoldText", "Background", SASTextScale.sasFontTagLabel + szText + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, FontTypes.GAME_FONT, -0.3)
 		screen.show("GoldText")
 
 		if ((iGoldRate != 0 and not pPlayer.isAnarchy()) or pPlayer.getGold() != 0):
@@ -4266,7 +4200,7 @@ class CvMainInterface:
 				iEraColor = ClockOpt.getEraColor(gc.getEraInfo(iEra).getType())
 				if iEraColor >= 0:
 					szText = localText.changeTextColor(szText, iEraColor)
-			self.setLabel("EraText", "Background", sasFontTagLabel + szText + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, FontTypes.GAME_FONT, -0.3)
+			self.setLabel("EraText", "Background", SASTextScale.sasFontTagLabel + szText + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, FontTypes.GAME_FONT, -0.3)
 			screen.show("EraText")
 # BUG - NJAGC - end
 # BUG - Bars on single line for higher resolution screens - start
@@ -4301,7 +4235,7 @@ class CvMainInterface:
 			else:
 				szText = CyGameTextMgr().getResearchStr(ePlayer)
 		if szText:
-			szText = sasFontTagLabel + szText + SAS_FONT_TAG_CLOSE
+			szText = SASTextScale.sasFontTagLabel + szText + SASTextScale.SAS_FONT_TAG_CLOSE
 			if (self.IS_SAS_CV_MAIN_INTERFACE_PRODUCTION_QUEUE_BUTTONS and not bAnarchy and iTech != -1 and szTechBtn):
 				# <!-- custom: setImageButton pins its top-left to the given Y, unlike <img> tags which the engine centers automatically.
 				# Offset so the icon's center matches the bar's center rather than sitting pinned near the bar's top edge. (Claude code Sonnet 4.6) -->
@@ -4365,7 +4299,7 @@ class CvMainInterface:
 		gOffSetPoint("GreatPersonBarText", szGPBar, RectLayout.CENTER, self.stackBarDefaultTextOffset())
 		pGPCity, iGPTurns = GPUtil.getDisplayCity()
 		szText = GPUtil.getGreatPeopleText(pGPCity, iGPTurns, gRect(szGPBar).width(), MainOpt.isGPBarTypesNone(), MainOpt.isGPBarTypesOne(), True)
-		szText = sasFontTagLabel + u"%s" % (szText) + SAS_FONT_TAG_CLOSE
+		szText = SASTextScale.sasFontTagLabel + u"%s" % (szText) + SASTextScale.SAS_FONT_TAG_CLOSE
 		if pGPCity:
 			iCityID = pGPCity.getID()
 		else:
@@ -4405,7 +4339,7 @@ class CvMainInterface:
 		iCombatExp = pPlayer.getCombatExperience()
 		iThresholdExp = pPlayer.greatPeopleThreshold(True)
 		iNeededExp = iThresholdExp - iCombatExp
-		szText = sasFontTagLabel + u"%s" %(GGUtil.getGreatGeneralText(iNeededExp)) + SAS_FONT_TAG_CLOSE
+		szText = SASTextScale.sasFontTagLabel + u"%s" %(SASVisuals.GreatPeople.getGreatGeneralText(iNeededExp)) + SASTextScale.SAS_FONT_TAG_CLOSE
 # BUG - Bars on single line for higher resolution screens - start
 		self.setLabel("GreatGeneralBarText", "Background", szText, CvUtil.FONT_CENTER_JUSTIFY, FontTypes.GAME_FONT, -0.4, WidgetTypes.WIDGET_HELP_GREAT_GENERAL)
 		screen.show("GreatGeneralBarText")
@@ -4725,21 +4659,21 @@ class CvMainInterface:
 				screen.show("CityScrollMinus")
 				screen.show("CityScrollPlus")
 
-		screen.setHelpTextArea(HLEN(390), FontTypes.SMALL_FONT, 0, 0, -2.2, True, self.backgroundTransparentPath, True, True, CvUtil.FONT_LEFT_JUSTIFY, 0)
+		screen.setHelpTextArea(HLEN(390), FontTypes.SMALL_FONT, 0, 0, -2.2, True, SASVisuals.InterfaceArt.POPUPS_BACKGROUND_TRANSPARENT, True, True, CvUtil.FONT_LEFT_JUSTIFY, 0)
 
 		iFoodDifference = pHeadSelectedCity.foodDifference(True)
 		iProductionDiffNoFood = pHeadSelectedCity.getCurrentProductionDifference(True, True)
 		iProductionDiffJustFood = (pHeadSelectedCity.getCurrentProductionDifference(False, True) - iProductionDiffNoFood)
 
-		szBuffer = sasFontTagTitle
+		szBuffer = SASTextScale.sasFontTagTitle
 
 		if (pHeadSelectedCity.isCapital()):
-			szBuffer += self.szStarIcon
+			szBuffer += SASVisuals.Font.STAR_CHAR
 		elif (pHeadSelectedCity.isGovernmentCenter()):
-			szBuffer += self.szSilverStarIcon
+			szBuffer += SASVisuals.Font.SILVER_STAR_CHAR
 
 		if (pHeadSelectedCity.isPower()):
-			szBuffer += self.szPowerIcon
+			szBuffer += SASVisuals.Font.POWER_CHAR
 
 		iPop = pHeadSelectedCity.getPopulation()
 		iCultureTotal = pHeadSelectedCity.getCulture(pHeadSelectedCity.getOwner())
@@ -4749,17 +4683,17 @@ class CvMainInterface:
 		szBuffer += u"%s: %d - %d (%s)" % (pHeadSelectedCity.getName(), iPop, iCultureTotal, szFoundYear)
 
 		if (pHeadSelectedCity.isOccupation()):
-			szBuffer += u" (%s:%d)" %(self.szOccupationIcon, pHeadSelectedCity.getOccupationTimer())
+			szBuffer += u" (%s:%d)" %(SASVisuals.Font.OCCUPATION_CHAR, pHeadSelectedCity.getOccupationTimer())
 
 		iDefenseModifier = pHeadSelectedCity.getDefenseModifier(False)
 		if (iDefenseModifier != 0):
-			szDefBuffer = localText.getText("TXT_KEY_MAIN_CITY_DEFENSE", (self.iDefenseIcon, iDefenseModifier))
+			szDefBuffer = localText.getText("TXT_KEY_MAIN_CITY_DEFENSE", (SASVisuals.Font.ordinal(FontSymbols.DEFENSE_CHAR), iDefenseModifier))
 			if (pHeadSelectedCity.getDefenseDamage() > 0):
 				szTempBuffer = u" (%d%%)" %(((gc.getMAX_CITY_DEFENSE_DAMAGE() - pHeadSelectedCity.getDefenseDamage()) * 100) / gc.getMAX_CITY_DEFENSE_DAMAGE())
 				szDefBuffer = szDefBuffer + szTempBuffer
 			szBuffer += u"  " + szDefBuffer
 
-		szBuffer += SAS_FONT_TAG_CLOSE
+		szBuffer += SASTextScale.SAS_FONT_TAG_CLOSE
 
 		self.setText("CityNameText", "Background", szBuffer, CvUtil.FONT_CENTER_JUSTIFY, FontTypes.GAME_FONT, -0.3, WidgetTypes.WIDGET_CITY_NAME)
 		screen.setStyle("CityNameText", "Button_Stone_Style")
@@ -4791,7 +4725,7 @@ class CvMainInterface:
 			else:
 				szBuffer = "Stagnant - %d / %d" % (iFoodNow, iFoodThresh)
 
-			self.setLabel("PopulationText", "Background", sasFontTagLabel + szBuffer + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, FontTypes.GAME_FONT, -1.3)
+			self.setLabel("PopulationText", "Background", SASTextScale.sasFontTagLabel + szBuffer + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, FontTypes.GAME_FONT, -1.3)
 			screen.setHitTest("PopulationText", HitTestTypes.HITTEST_NOHIT)
 			screen.show("PopulationText")
 
@@ -4807,15 +4741,15 @@ class CvMainInterface:
 				else:
 					szBuffer = localText.getText("INTERFACE_CITY_FOOD_SHRINK", (iFoodYield, iFoodEaten, iFoodYield - iFoodEaten))
 			else:
-				szBuffer = u"%d%s - %d%s" %(pHeadSelectedCity.getYieldRate(YieldTypes.YIELD_FOOD), self.szFoodIcon, pHeadSelectedCity.foodConsumption(False, 0), self.szEatenFoodIcon)
+				szBuffer = u"%d%s - %d%s" %(pHeadSelectedCity.getYieldRate(YieldTypes.YIELD_FOOD), SASVisuals.Yield.char(YieldTypes.YIELD_FOOD), pHeadSelectedCity.foodConsumption(False, 0), SASVisuals.Font.EATEN_FOOD_CHAR)
 # BUG - Food Assist - end
 # BUG - Food Rate Hover - start
 			# draw label below
 		else:
-			szBuffer = u"%d%s" %(iFoodDifference, self.szFoodIcon)
+			szBuffer = u"%d%s" %(iFoodDifference, SASVisuals.Yield.char(YieldTypes.YIELD_FOOD))
 			# draw label below
 		# advc.004: BULL widget help enabled
-		self.setLabel("PopulationInputText", "Background", sasFontTagLabel + szBuffer + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, FontTypes.GAME_FONT, -0.3, WidgetTypes.WIDGET_FOOD_MOD_HELP)
+		self.setLabel("PopulationInputText", "Background", SASTextScale.sasFontTagLabel + szBuffer + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, FontTypes.GAME_FONT, -0.3, WidgetTypes.WIDGET_FOOD_MOD_HELP)
 		screen.show("PopulationInputText")
 # BUG - Food Rate Hover - end
 		if (pHeadSelectedCity.badHealth(False) > 0 or pHeadSelectedCity.goodHealth() >= 0):
@@ -4825,7 +4759,7 @@ class CvMainInterface:
 				szBuffer = localText.getText("INTERFACE_CITY_HEALTH_GOOD", (pHeadSelectedCity.goodHealth(), pHeadSelectedCity.badHealth(False)))
 			else:
 				szBuffer = localText.getText("INTERFACE_CITY_HEALTH_GOOD_NO_BAD", (pHeadSelectedCity.goodHealth(),))
-			self.setLabel("HealthText", "Background", sasFontTagLabel + szBuffer + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, FontTypes.GAME_FONT, -0.3, WidgetTypes.WIDGET_HELP_HEALTH)
+			self.setLabel("HealthText", "Background", SASTextScale.sasFontTagLabel + szBuffer + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, FontTypes.GAME_FONT, -0.3, WidgetTypes.WIDGET_HELP_HEALTH)
 			screen.show("HealthText")
 		if (iFoodDifference < 0):
 			if (pHeadSelectedCity.getFood() + iFoodDifference > 0):
@@ -4875,12 +4809,12 @@ class CvMainInterface:
 					bCountCurrentOverflow = CityScreenOpt.isWhipAssistOverflowCountCurrentProduction()
 					iOverflow = pHeadSelectedCity.getHurryOverflow(HURRY_WHIP, True, bCountCurrentOverflow)
 					iOverflowGold = pHeadSelectedCity.getHurryOverflow(HURRY_WHIP, False, bCountCurrentOverflow)
-					szBuffer = "%s   %d%s %d%s" % (szProdBase, iHurryPop, self.szAngryPopIcon, iOverflow, self.szProductionIcon)
+					szBuffer = "%s   %d%s %d%s" % (szProdBase, iHurryPop, SASVisuals.Font.ANGRY_POP_CHAR, iOverflow, SASVisuals.Yield.char(YieldTypes.YIELD_PRODUCTION))
 					if iOverflowGold > 0: # </advc.064>
-						szBuffer += " %d%s" % (iOverflowGold, self.szGoldIcon)
+						szBuffer += " %d%s" % (iOverflowGold, SASVisuals.Commerce.char(CommerceTypes.COMMERCE_GOLD))
 				elif (CityScreenOpt.isShowWhipAssist() and pHeadSelectedCity.canHurry(HURRY_BUY, False)):
 					iHurryCost = pHeadSelectedCity.hurryGold(HURRY_BUY)
-					szBuffer = "%s   -%d%s" % (szProdBase, iHurryCost, self.szGoldIcon)
+					szBuffer = "%s   -%d%s" % (szProdBase, iHurryCost, SASVisuals.Commerce.char(CommerceTypes.COMMERCE_GOLD))
 				else:
 					# <advc.004x>
 					if iProductionTurns <= 0:
@@ -4910,25 +4844,25 @@ class CvMainInterface:
 				iProductionTextOffset = self.stackBarDefaultTextOffset()
 				iProductionIconYDownlift = VSPACE(1)
 				iProductionIconYOffset = (gRect("ProductionBar").height() - iImgSize) / 2 - iProductionTextOffset + iProductionIconYDownlift
-				szProdText = sasFontTagLabel + szBuffer + SAS_FONT_TAG_CLOSE
+				szProdText = SASTextScale.sasFontTagLabel + szBuffer + SASTextScale.SAS_FONT_TAG_CLOSE
 				self.setSASCenteredImageButtonAtLeftOfTextRow("ProductionText", "ProductionIconText", "Background", szProdText, szProdBtn, iImgSize, None, gPoint("ProductionText").y(), HSPACE(2), "ProductionBar", 0, iProductionIconYOffset, FontTypes.GAME_FONT, -1.3, WidgetTypes.WIDGET_GENERAL)
 				screen.show("ProductionIconText")
 			else:
-				self.setLabel("ProductionText", "Background", sasFontTagLabel + szBuffer + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, FontTypes.GAME_FONT, -1.3, WidgetTypes.WIDGET_GENERAL)
+				self.setLabel("ProductionText", "Background", SASTextScale.sasFontTagLabel + szBuffer + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, FontTypes.GAME_FONT, -1.3, WidgetTypes.WIDGET_GENERAL)
 				screen.hide("ProductionIconText")
 			screen.setHitTest("ProductionText", HitTestTypes.HITTEST_NOHIT)
 			screen.show("ProductionText")
 		if (pHeadSelectedCity.isProductionProcess()):
-			szBuffer = u"%d%s" %(pHeadSelectedCity.getYieldRate(YieldTypes.YIELD_PRODUCTION), self.szProductionIcon)
+			szBuffer = u"%d%s" %(pHeadSelectedCity.getYieldRate(YieldTypes.YIELD_PRODUCTION), SASVisuals.Yield.char(YieldTypes.YIELD_PRODUCTION))
 		elif (pHeadSelectedCity.isFoodProduction() and iProductionDiffJustFood > 0):
-			szBuffer = u"%d%s + %d%s" %(iProductionDiffJustFood, self.szFoodIcon, iProductionDiffNoFood, self.szProductionIcon)
+			szBuffer = u"%d%s + %d%s" %(iProductionDiffJustFood, SASVisuals.Yield.char(YieldTypes.YIELD_FOOD), iProductionDiffNoFood, SASVisuals.Yield.char(YieldTypes.YIELD_PRODUCTION))
 		else:
-			szBuffer = u"%d%s" %(iProductionDiffNoFood, self.szProductionIcon)
-		self.setLabel("ProductionInputText", "Background", sasFontTagLabel + szBuffer + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, FontTypes.GAME_FONT, -0.3, WidgetTypes.WIDGET_PRODUCTION_MOD_HELP)
+			szBuffer = u"%d%s" %(iProductionDiffNoFood, SASVisuals.Yield.char(YieldTypes.YIELD_PRODUCTION))
+		self.setLabel("ProductionInputText", "Background", SASTextScale.sasFontTagLabel + szBuffer + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, FontTypes.GAME_FONT, -0.3, WidgetTypes.WIDGET_PRODUCTION_MOD_HELP)
 		screen.show("ProductionInputText")
 		if (pHeadSelectedCity.happyLevel() >= 0 or pHeadSelectedCity.unhappyLevel(0) > 0):
 			if (pHeadSelectedCity.isDisorder()):
-				szBuffer = u"%d%s" %(pHeadSelectedCity.angryPopulation(0), self.szAngryPopIcon)
+				szBuffer = u"%d%s" %(pHeadSelectedCity.angryPopulation(0), SASVisuals.Font.ANGRY_POP_CHAR)
 			elif (pHeadSelectedCity.angryPopulation(0) > 0):
 				szBuffer = localText.getText("INTERFACE_CITY_UNHAPPY", (pHeadSelectedCity.happyLevel(), pHeadSelectedCity.unhappyLevel(0), pHeadSelectedCity.angryPopulation(0)))
 			elif (pHeadSelectedCity.unhappyLevel(0) > 0):
@@ -4945,7 +4879,7 @@ class CvMainInterface:
 				if iAngerTimer > 0:
 					szBuffer += u" (%i)" % iAngerTimer
 # BUG - Anger Display - end
-			self.setLabel("HappinessText", "Background", sasFontTagLabel + szBuffer + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, FontTypes.GAME_FONT, -0.3, WidgetTypes.WIDGET_HELP_HAPPINESS)
+			self.setLabel("HappinessText", "Background", SASTextScale.sasFontTagLabel + szBuffer + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, FontTypes.GAME_FONT, -0.3, WidgetTypes.WIDGET_HELP_HAPPINESS)
 			screen.show("HappinessText")
 		if (not pHeadSelectedCity.isProductionProcess()):
 			# advc.064: Moved up
@@ -4989,16 +4923,16 @@ class CvMainInterface:
 			eCommerce = (i + 1) % CommerceTypes.NUM_COMMERCE_TYPES
 			#if ((gc.getPlayer(pHeadSelectedCity.getOwner()).isCommerceFlexible(eCommerce)) or (eCommerce == CommerceTypes.COMMERCE_GOLD)):
 			if self.showCommercePercent(eCommerce, pHeadSelectedCity.getOwner()): # K-Mod
-				szBuffer = u"%d.%02d %c" %(pHeadSelectedCity.getCommerceRate(eCommerce), pHeadSelectedCity.getCommerceRateTimes100(eCommerce)%100, gc.getCommerceInfo(eCommerce).getChar())
+				szBuffer = u"%d.%02d %s" %(pHeadSelectedCity.getCommerceRate(eCommerce), pHeadSelectedCity.getCommerceRateTimes100(eCommerce)%100, SASVisuals.Commerce.char(eCommerce))
 				iHappiness = pHeadSelectedCity.getCommerceHappinessByType(eCommerce)
 				if (iHappiness != 0):
 					if (iHappiness > 0):
-						szTempBuffer = u", %d%s" %(iHappiness, self.szHappyIcon)
+						szTempBuffer = u", %d%s" %(iHappiness, SASVisuals.Font.HAPPY_CHAR)
 					else:
-						szTempBuffer = u", %d%s" %(-iHappiness, self.szUnhappyIcon)
+						szTempBuffer = u", %d%s" %(-iHappiness, SASVisuals.Font.UNHAPPY_CHAR)
 					szBuffer = szBuffer + szTempBuffer
 				szName = "CityPercentText" + str(iCount)
-				self.setLabel(szName, "Background", sasFontTagLabel + szBuffer + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, FontTypes.SMALL_FONT, -0.3, WidgetTypes.WIDGET_COMMERCE_MOD_HELP, eCommerce)
+				self.setLabel(szName, "Background", SASTextScale.sasFontTagLabel + szBuffer + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, FontTypes.SMALL_FONT, -0.3, WidgetTypes.WIDGET_COMMERCE_MOD_HELP, eCommerce)
 				screen.show(szName)
 				iCount += 1
 		# <advc.092>
@@ -5006,13 +4940,13 @@ class CvMainInterface:
 		# This means that the city screen uses size 1 only for the BUG yield breakdowns ("Raw Yields").
 		if self.bScaleHUD and gRect("Top").height() > 900:
 			# <!-- custom: use LABEL (not BODY) for city building/trade tables so label-font upscaling applies consistently when SAS_UI_FONT_LABEL is raised. (GPT-5.4) -->
-			self.bldgFontTag = sasFontTagLabel
-			self.trFontTag = sasFontTagLabel
+			self.bldgFontTag = SASTextScale.sasFontTagLabel
+			self.trFontTag = SASTextScale.sasFontTagLabel
 			# Table rows don't or barely get higher, so the button size shouldn't be increased here.
 			iBldgBtnSize = None
 		else: # </advc.092>
-			self.bldgFontTag = sasFontTagTiny
-			self.trFontTag = sasFontTagTiny
+			self.bldgFontTag = SASTextScale.sasFontTagTiny
+			self.trFontTag = SASTextScale.sasFontTagTiny
 			iBldgBtnSize = None
 		self.addTable("BuildingListTable", 3, "Table_City_Style", iBldgBtnSize)
 # BUG - Raw Yields - start
@@ -5149,10 +5083,10 @@ class CvMainInterface:
 						else:
 							bFirst = False
 						if iHappiness > 0:
-							szTempBuffer = u"+%d%s" %(iHappiness, self.szHappyIcon)
+							szTempBuffer = u"+%d%s" %(iHappiness, SASVisuals.Font.HAPPY_CHAR)
 							szRightBuffer = szRightBuffer + szTempBuffer
 						else:
-							szTempBuffer = u"+%d%s" %(-iHappiness, self.szUnhappyIcon)
+							szTempBuffer = u"+%d%s" %(-iHappiness, SASVisuals.Font.UNHAPPY_CHAR)
 							szRightBuffer = szRightBuffer + szTempBuffer
 					iHealth = pHeadSelectedCity.getBuildingHealth(iBuilding)
 					if iHealth != 0:
@@ -5161,10 +5095,10 @@ class CvMainInterface:
 						else:
 							bFirst = False
 						if iHealth > 0:
-							szTempBuffer = u"+%d%s" %(iHealth, self.szHealthyIcon)
+							szTempBuffer = u"+%d%s" %(iHealth, SASVisuals.Font.HEALTHY_CHAR)
 							szRightBuffer = szRightBuffer + szTempBuffer
 						else:
-							szTempBuffer = u"+%d%s" %(-iHealth, self.szUnhealthyIcon)
+							szTempBuffer = u"+%d%s" %(-iHealth, SASVisuals.Font.UNHEALTHY_CHAR)
 							szRightBuffer = szRightBuffer + szTempBuffer
 					# K-Mod end
 					for iYield in range(YieldTypes.NUM_YIELD_TYPES):
@@ -5177,10 +5111,10 @@ class CvMainInterface:
 						else:
 							bFirst = False
 						if iChange > 0:
-							szTempBuffer = u"%s%d%c" %("+", iChange, gc.getYieldInfo(iYield).getChar())
+							szTempBuffer = u"%s%d%s" %("+", iChange, SASVisuals.Yield.char(iYield))
 							szRightBuffer = szRightBuffer + szTempBuffer
 						else:
-							szTempBuffer = u"%s%d%c" %("", iChange, gc.getYieldInfo(iYield).getChar())
+							szTempBuffer = u"%s%d%s" %("", iChange, SASVisuals.Yield.char(iYield))
 							szRightBuffer = szRightBuffer + szTempBuffer
 						self.yields.addBuilding(iYield, iChange) # BUG - Raw Yields
 
@@ -5196,7 +5130,7 @@ class CvMainInterface:
 						szRightBuffer = szRightBuffer + ", "
 					else:
 						bFirst = False
-					szRightBuffer = szRightBuffer + u"+%d%s" % (iGPRate, self.szGreatPeopleIcon)
+					szRightBuffer = szRightBuffer + u"+%d%s" % (iGPRate, SASVisuals.Font.GREAT_PEOPLE_CHAR)
 				for iCommerce in range(CommerceTypes.NUM_COMMERCE_TYPES):
 					iChange = pHeadSelectedCity.getBuildingCommerceByBuilding(iCommerce, iBuilding)
 					iChange /= pHeadSelectedCity.getNumBuilding(iBuilding)
@@ -5207,10 +5141,10 @@ class CvMainInterface:
 					else:
 						bFirst = False
 					if iChange > 0:
-						szTempBuffer = u"%s%d%c" %("+", iChange, gc.getCommerceInfo(iCommerce).getChar())
+						szTempBuffer = u"%s%d%s" %("+", iChange, SASVisuals.Commerce.char(iCommerce))
 						szRightBuffer = szRightBuffer + szTempBuffer
 					else:
-						szTempBuffer = u"%s%d%c" %("", iChange, gc.getCommerceInfo(iCommerce).getChar())
+						szTempBuffer = u"%s%d%s" %("", iChange, SASVisuals.Commerce.char(iCommerce))
 						szRightBuffer = szRightBuffer + szTempBuffer
 				#szBuffer = szLeftBuffer + "  " + szRightBuffer # advc: unused
 				# <advc.097>
@@ -5220,8 +5154,8 @@ class CvMainInterface:
 					szIcon = gc.getBuildingInfo(iBuilding).getButton() # from BAT mod
 				# </advc.097>
 				szFontStart = self.bldgFontTag # advc.092
-				screen.setTableText("BuildingListTable", 0, iNumBuildings, szFontStart + szLeftBuffer + SAS_FONT_TAG_CLOSE, szIcon, WidgetTypes.WIDGET_HELP_BUILDING, iBuilding, -1, CvUtil.FONT_LEFT_JUSTIFY)
-				screen.setTableText("BuildingListTable", 1, iNumBuildings, szFontStart + szRightBuffer + SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_HELP_BUILDING, iBuilding, -1, CvUtil.FONT_RIGHT_JUSTIFY)
+				screen.setTableText("BuildingListTable", 0, iNumBuildings, szFontStart + szLeftBuffer + SASTextScale.SAS_FONT_TAG_CLOSE, szIcon, WidgetTypes.WIDGET_HELP_BUILDING, iBuilding, -1, CvUtil.FONT_LEFT_JUSTIFY)
+				screen.setTableText("BuildingListTable", 1, iNumBuildings, szFontStart + szRightBuffer + SASTextScale.SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_HELP_BUILDING, iBuilding, -1, CvUtil.FONT_RIGHT_JUSTIFY)
 				iNumBuildings = iNumBuildings + 1
 		# advc: unused
 		#if (iNumBuildings > g_iNumBuildings):
@@ -5242,15 +5176,15 @@ class CvMainInterface:
 					if (iTradeProfit != 0):
 						if (iTradeProfit > 0):
 							if TradeUtil.isFractionalTrade():
-								szTempBuffer = u"%s%d.%02d%c" %("+", iTradeProfit // 100, iTradeProfit % 100, gc.getYieldInfo(j).getChar())
+								szTempBuffer = u"%s%d.%02d%s" %("+", iTradeProfit // 100, iTradeProfit % 100, SASVisuals.Yield.char(j))
 							else:
-								szTempBuffer = u"%s%d%c" %("+", iTradeProfit, gc.getYieldInfo(j).getChar())
+								szTempBuffer = u"%s%d%s" %("+", iTradeProfit, SASVisuals.Yield.char(j))
 							szRightBuffer = szRightBuffer + szTempBuffer
 						else:
 							if TradeUtil.isFractionalTrade():
-								szTempBuffer = u"%s%d.%02d%c" %("", iTradeProfit // 100, iTradeProfit % 100, gc.getYieldInfo(j).getChar())
+								szTempBuffer = u"%s%d.%02d%s" %("", iTradeProfit // 100, iTradeProfit % 100, SASVisuals.Yield.char(j))
 							else:
-								szTempBuffer = u"%s%d%c" %("", iTradeProfit, gc.getYieldInfo(j).getChar())
+								szTempBuffer = u"%s%d%s" %("", iTradeProfit, SASVisuals.Yield.char(j))
 							szRightBuffer = szRightBuffer + szTempBuffer
 # BUG - Fractional Trade - end
 # BUG - Raw Yields - start
@@ -5263,14 +5197,14 @@ class CvMainInterface:
 				iTradeCultureTimes100 = pLoopCity.getTradeCultureRateTimes100(pHeadSelectedCity.getCultureLevel())
 				# advc.125:
 				if (iTradeCultureTimes100 >= 20 and self.IS_USE_KMOD_TRADE_CULTURE):
-					szTradeCultureBuffer = u"%s%.1f%c" %("+", iTradeCultureTimes100/100.0, gc.getCommerceInfo(CommerceTypes.COMMERCE_CULTURE).getChar())
+					szTradeCultureBuffer = u"%s%.1f%s" %("+", iTradeCultureTimes100/100.0, SASVisuals.Commerce.CULTURE_CHAR)
 					szRightBuffer = szRightBuffer + szTradeCultureBuffer
 # K-Mod: Trade culture end
 				if not bShowRawYields:
 					screen.appendTableRow("TradeRouteTable")
 					szFontStart = self.trFontTag # advc.092
-					screen.setTableText("TradeRouteTable", 0, iNumTradeRoutes, szFontStart + szLeftBuffer + SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_HELP_TRADE_ROUTE_CITY, i, -1, CvUtil.FONT_LEFT_JUSTIFY)
-					screen.setTableText("TradeRouteTable", 1, iNumTradeRoutes, szFontStart + szRightBuffer + SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_HELP_TRADE_ROUTE_CITY, i, -1, CvUtil.FONT_RIGHT_JUSTIFY)
+					screen.setTableText("TradeRouteTable", 0, iNumTradeRoutes, szFontStart + szLeftBuffer + SASTextScale.SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_HELP_TRADE_ROUTE_CITY, i, -1, CvUtil.FONT_LEFT_JUSTIFY)
+					screen.setTableText("TradeRouteTable", 1, iNumTradeRoutes, szFontStart + szRightBuffer + SASTextScale.SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_HELP_TRADE_ROUTE_CITY, i, -1, CvUtil.FONT_RIGHT_JUSTIFY)
 # BUG - Raw Yields - end
 				iNumTradeRoutes = iNumTradeRoutes + 1
 		# advc: unused
@@ -5311,9 +5245,9 @@ class CvMainInterface:
 		# <advc.092>
 		# <!-- custom: The old button fallback used total XML bonus count, which made AdvCiv-SAS fall back to small font icons even when the selected city's actual bonus rows fit. Check the selected city's per-column row counts instead; use the preferred 40px-ish buttons when they fit, shrink in explicit 5px-ish DDS steps only for real selected-city overflow, and keep text glyphs as legacy/debug mode or last-resort overflow fallback. Mode 0 forces at least label-size text so bonus glyphs are not tinier than nearby UI, but does not hardcode font=4 because that also enlarges amount/effect text; testing showed even font=4 text glyphs remain much smaller than image-button rendering, so larger bonus icons need mode 1 or 2. (GPT-5.5) -->
 		if (bUseCityBonusButtons or gRect("Top").height() > 900 + max(0, gc.getNumBonusInfos() - 35) * 12) or self.SAS_CV_MAIN_INTERFACE_CITY_BONUS_ICON_MODE == 0:
-			szFontStart = sasFontTagLabel
+			szFontStart = SASTextScale.sasFontTagLabel
 		else:
-			szFontStart = sasFontTagTiny # (2 doesn't really increase the size of icons)
+			szFontStart = SASTextScale.sasFontTagTiny # (2 doesn't really increase the size of icons)
 		# </advc.092>
 		iLeftCount = 0
 		iCenterCount = 0
@@ -5326,23 +5260,23 @@ class CvMainInterface:
 			iHappiness = pHeadSelectedCity.getBonusHappiness(iBonus)
 			szBuffer = u""
 			szLeadBuffer = u""
-			szTempBuffer = szFontStart + (u"%c" %(gc.getBonusInfo(iBonus).getChar()))
+			szTempBuffer = szFontStart + (u"%s" %(SASVisuals.Bonus.char(iBonus)))
 			szLeadBuffer = szLeadBuffer + szTempBuffer
 			iAmount = pHeadSelectedCity.getNumBonuses(iBonus)
 			if iAmount > 1:
 				szTempBuffer = u"(%d)" %(iAmount)
 				szLeadBuffer = szLeadBuffer + szTempBuffer
-			szLeadBuffer = szLeadBuffer + SAS_FONT_TAG_CLOSE
+			szLeadBuffer = szLeadBuffer + SASTextScale.SAS_FONT_TAG_CLOSE
 			iVSpace = VSPACE(4)
 			iRowHeight = BTNSZ(22) # advc.002b: 20 in BtS
 			# advc.002b: Removed the plus signs and commas before the amounts of (bad) health and (un-)happiness
 			if iHappiness != 0:
 				if iHappiness > 0:
-					szTempBuffer = szFontStart + (u"%d%s</font>" %(iHappiness, self.szHappyIcon))
+					szTempBuffer = szFontStart + (u"%d%s</font>" %(iHappiness, SASVisuals.Font.HAPPY_CHAR))
 				else:
-					szTempBuffer = szFontStart + (u"%d%s</font>" %(-iHappiness, self.szUnhappyIcon))
+					szTempBuffer = szFontStart + (u"%d%s</font>" %(-iHappiness, SASVisuals.Font.UNHAPPY_CHAR))
 				if iHealth > 0:
-					szTempBuffer += szFontStart + (u" %d%s</font>" %(iHealth, self.szHealthyIcon))
+					szTempBuffer += szFontStart + (u" %d%s</font>" %(iHealth, SASVisuals.Font.HEALTHY_CHAR))
 				# <advc.092>
 				if bUseCityBonusButtons:
 					self.fillCityBonusRow(2, iRightCount, iBonus, iAmount, szTempBuffer)
@@ -5355,9 +5289,9 @@ class CvMainInterface:
 				bHandled = True
 			if iHealth != 0 and (not bHandled):
 				if iHealth > 0:
-					szTempBuffer = szFontStart + (u"%d%s</font>" %(iHealth, self.szHealthyIcon))
+					szTempBuffer = szFontStart + (u"%d%s</font>" %(iHealth, SASVisuals.Font.HEALTHY_CHAR))
 				else:
-					szTempBuffer = szFontStart + (u"%d%s</font>" %(-iHealth, self.szUnhealthyIcon))
+					szTempBuffer = szFontStart + (u"%d%s</font>" %(-iHealth, SASVisuals.Font.UNHEALTHY_CHAR))
 				# <advc.092>
 				if bUseCityBonusButtons:
 					self.fillCityBonusRow(1, iCenterCount, iBonus, iAmount, szTempBuffer)
@@ -5386,10 +5320,10 @@ class CvMainInterface:
 		iMaintenance *= 100 + gc.getPlayer(pHeadSelectedCity.getOwner()).calculateInflationRate()
 		iMaintenance /= 100 # </K-Mod>
 		szBuffer = self.szTextMaintenance
-		self.setLabel("MaintenanceText", "Background", sasFontTagLabel + szBuffer + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, FontTypes.SMALL_FONT, -0.3, WidgetTypes.WIDGET_HELP_MAINTENANCE)
+		self.setLabel("MaintenanceText", "Background", SASTextScale.sasFontTagLabel + szBuffer + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, FontTypes.SMALL_FONT, -0.3, WidgetTypes.WIDGET_HELP_MAINTENANCE)
 		screen.show("MaintenanceText")
-		szBuffer = u"-%d.%02d %c" %(iMaintenance/100, iMaintenance%100, gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar())
-		self.setLabel("MaintenanceAmountText", "Background", sasFontTagLabel + szBuffer + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, FontTypes.SMALL_FONT, -0.3, WidgetTypes.WIDGET_HELP_MAINTENANCE)
+		szBuffer = u"-%d.%02d %s" %(iMaintenance/100, iMaintenance%100, SASVisuals.Commerce.GOLD_CHAR)
+		self.setLabel("MaintenanceAmountText", "Background", SASTextScale.sasFontTagLabel + szBuffer + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, FontTypes.SMALL_FONT, -0.3, WidgetTypes.WIDGET_HELP_MAINTENANCE)
 		screen.show("MaintenanceAmountText")
 # BUG - Raw Yields - start
 		if bShowRawYields:
@@ -5449,30 +5383,32 @@ class CvMainInterface:
 						#szTempBuffer = u"%c" %(gc.getReligionInfo(iReligion).getHolyCityChar())
 						szName = "ReligionHolyCityDDS" + str(iReligion)
 						screen.show(szName)
+					# <!-- custom: Keep this inherited disabled code consistent with the shared visual-resource API; retain its original rationale and disabled status.
 					# </advc> szBuffer code commented out (see advc comment above)
 					#
 					# else:
-					# 	szTempBuffer = u"%c" %(gc.getReligionInfo(iReligion).getChar())
+					# 	szTempBuffer = u"%s" %(SASVisuals.Religion.char(iReligion))
 					# szBuffer = szBuffer + szTempBuffer
 					# for iCommerce in range(CommerceTypes.NUM_COMMERCE_TYPES):
 					# 	iRate = pHeadSelectedCity.getReligionCommerceByReligion(iCommerce, iReligion)
 					# 	if iRate != 0:
 					# 		if iRate > 0:
-					# 			szTempBuffer = u",%s%d%c" %("+", iRate, gc.getCommerceInfo(iCommerce).getChar())
+					# 			szTempBuffer = u",%s%d%s" %("+", iRate, SASVisuals.Commerce.char(iCommerce))
 					# 			szBuffer = szBuffer + szTempBuffer
 					# 		else:
-					# 			szTempBuffer = u",%s%d%c" %("", iRate, gc.getCommerceInfo(iCommerce).getChar())
+					# 			szTempBuffer = u",%s%d%s" %("", iRate, SASVisuals.Commerce.char(iCommerce))
 					# 			szBuffer = szBuffer + szTempBuffer
 					# iHappiness = pHeadSelectedCity.getReligionHappiness(iReligion)
 					# if (iHappiness != 0):
 					# 	if (iHappiness > 0):
-					# 		szTempBuffer = u",+%d%c" %(iHappiness, CyGame().getSymbolID(FontSymbols.HAPPY_CHAR))
+					# 		szTempBuffer = u",+%d%s" %(iHappiness, SASVisuals.Font.char(FontSymbols.HAPPY_CHAR))
 					# 		szBuffer = szBuffer + szTempBuffer
 					# 	else:
-					# 		szTempBuffer = u",+%d%c" %(-(iHappiness), CyGame().getSymbolID(FontSymbols.UNHAPPY_CHAR))
+					# 		szTempBuffer = u",+%d%s" %(-(iHappiness), SASVisuals.Font.char(FontSymbols.UNHAPPY_CHAR))
 					# 		szBuffer = szBuffer + szTempBuffer
 					# szBuffer = szBuffer + " "
 					#
+					# (GPT-6.1-Sol) -->
 					szButton = gc.getReligionInfo(iReligion).getButton()
 				else:
 					bEnable = False
@@ -5506,6 +5442,7 @@ class CvMainInterface:
 				lCorporations = None
 			for i in range(len(aCorporations)):
 				iCorp = aCorporations[i]
+				# <!-- custom: Keep this inherited disabled code consistent with the shared visual-resource API; retain its original rationale and disabled status.
 				# advc: szBuffer code commented out (see advc comment above)
 				#
 				# if pHeadSelectedCity.isHeadquartersByType(iCorp):
@@ -5513,28 +5450,29 @@ class CvMainInterface:
 				# 	szName = "CorporationHeadquarterDDS" + str(iCorp)
 				# 	screen.show(szName)
 				# else:
-				# 	szTempBuffer = u"%c" %(gc.getCorporationInfo(iCorp).getChar())
+				# 	szTempBuffer = u"%s" %(SASVisuals.Corporation.char(iCorp))
 				# szBuffer = szBuffer + szTempBuffer
 				# for iYield in range(YieldTypes.NUM_YIELD_TYPES):
 				# 	iRate = pHeadSelectedCity.getCorporationYieldByCorporation(iYield, iCorp)
 				# 	if iRate != 0:
 				# 		if iRate > 0:
-				# 			szTempBuffer = u",%s%d%c" %("+", iRate, gc.getYieldInfo(iYield).getChar())
+				# 			szTempBuffer = u",%s%d%s" %("+", iRate, SASVisuals.Yield.char(iYield))
 				# 			szBuffer = szBuffer + szTempBuffer
 				# 		else:
-				# 			szTempBuffer = u",%s%d%c" %("", iRate, gc.getYieldInfo(iYield).getChar())
+				# 			szTempBuffer = u",%s%d%s" %("", iRate, SASVisuals.Yield.char(iYield))
 				# 			szBuffer = szBuffer + szTempBuffer
 				# for iCommerce in range(CommerceTypes.NUM_COMMERCE_TYPES):
 				# 	iRate = pHeadSelectedCity.getCorporationCommerceByCorporation(iCommerce, iCorp)
 				# 	if iRate != 0:
 				# 		if iRate > 0:
-				# 			szTempBuffer = u",%s%d%c" %("+", iRate, gc.getCommerceInfo(iCommerce).getChar())
+				# 			szTempBuffer = u",%s%d%s" %("+", iRate, SASVisuals.Commerce.char(iCommerce))
 				# 			szBuffer = szBuffer + szTempBuffer
 				# 		else:
-				# 			szTempBuffer = u",%s%d%c" %("", iRate, gc.getCommerceInfo(iCommerce).getChar())
+				# 			szTempBuffer = u",%s%d%s" %("", iRate, SASVisuals.Commerce.char(iCommerce))
 				# 			szBuffer = szBuffer + szTempBuffer
 				# szBuffer += " "
 				#
+				# (GPT-6.1-Sol) -->
 				szButton = gc.getCorporationInfo(iCorp).getButton()
 				szName = "CorporationDDS" + str(iCorp)
 				lCorp = lCorporations.next()
@@ -5566,31 +5504,33 @@ class CvMainInterface:
 						#szTempBuffer = u"%c" %(gc.getCorporationInfo(iCorp).getHeadquarterChar())
 						szName = "CorporationHeadquarterDDS" + str(iCorp)
 						screen.show(szName)
+					# <!-- custom: Keep this inherited disabled code consistent with the shared visual-resource API; retain its original rationale and disabled status.
 					# </advc> szBuffer code commented out (see advc comment above)
 					#
 					# else:
-					# 	szTempBuffer = u"%c" %(gc.getCorporationInfo(iCorp).getChar())
+					# 	szTempBuffer = u"%s" %(SASVisuals.Corporation.char(iCorp))
 					# szBuffer = szBuffer + szTempBuffer
 					# for iYield in range(YieldTypes.NUM_YIELD_TYPES):
 					# 	iRate = pHeadSelectedCity.getCorporationYieldByCorporation(iYield, iCorp)
 					# 	if iRate != 0:
 					# 		if iRate > 0:
-					# 			szTempBuffer = u",%s%d%c" %("+", iRate, gc.getYieldInfo(iYield).getChar())
+					# 			szTempBuffer = u",%s%d%s" %("+", iRate, SASVisuals.Yield.char(iYield))
 					# 			szBuffer = szBuffer + szTempBuffer
 					# 		else:
-					# 			szTempBuffer = u",%s%d%c" %("", iRate, gc.getYieldInfo(iYield).getChar())
+					# 			szTempBuffer = u",%s%d%s" %("", iRate, SASVisuals.Yield.char(iYield))
 					# 			szBuffer = szBuffer + szTempBuffer
 					# for iCommerce in range(CommerceTypes.NUM_COMMERCE_TYPES):
 					# 	iRate = pHeadSelectedCity.getCorporationCommerceByCorporation(iCommerce, iCorp)
 					# 	if iRate != 0:
 					# 		if iRate > 0:
-					# 			szTempBuffer = u",%s%d%c" %("+", iRate, gc.getCommerceInfo(iCommerce).getChar())
+					# 			szTempBuffer = u",%s%d%s" %("+", iRate, SASVisuals.Commerce.char(iCommerce))
 					# 			szBuffer = szBuffer + szTempBuffer
 					# 		else:
-					# 			szTempBuffer = u",%s%d%c" %("", iRate, gc.getCommerceInfo(iCommerce).getChar())
+					# 			szTempBuffer = u",%s%d%s" %("", iRate, SASVisuals.Commerce.char(iCommerce))
 					# 			szBuffer = szBuffer + szTempBuffer
 					# szBuffer += " "
 					#
+					# (GPT-6.1-Sol) -->
 					szButton = gc.getCorporationInfo(iCorp).getButton()
 				else:
 					bEnable = False
@@ -5609,7 +5549,7 @@ class CvMainInterface:
 					screen.show(szName)
 # BUG - Limit/Extra Corporations - end
 		szBuffer = u"%d%% %s" %(pHeadSelectedCity.plot().calculateCulturePercent(pHeadSelectedCity.getOwner()), gc.getPlayer(pHeadSelectedCity.getOwner()).getCivilizationAdjective(0))
-		self.setLabel("NationalityText", "Background", sasFontTagLabel + szBuffer + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, FontTypes.SMALL_FONT, -0.3)
+		self.setLabel("NationalityText", "Background", SASTextScale.sasFontTagLabel + szBuffer + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, FontTypes.SMALL_FONT, -0.3)
 		screen.setHitTest("NationalityText", HitTestTypes.HITTEST_NOHIT)
 		screen.show("NationalityText")
 		iRemainder = 100
@@ -5640,10 +5580,10 @@ class CvMainInterface:
 		if (pHeadSelectedCity.getCultureLevel() != CultureLevelTypes.NO_CULTURELEVEL):
 			iRate = pHeadSelectedCity.getCommerceRateTimes100(CommerceTypes.COMMERCE_CULTURE)
 			if (iRate%100 == 0):
-				szBuffer = localText.getText("INTERFACE_CITY_COMMERCE_RATE", (gc.getCommerceInfo(CommerceTypes.COMMERCE_CULTURE).getChar(), gc.getCultureLevelInfo(pHeadSelectedCity.getCultureLevel()).getTextKey(), iRate/100))
+				szBuffer = localText.getText("INTERFACE_CITY_COMMERCE_RATE", (SASVisuals.Commerce.ordinal(CommerceTypes.COMMERCE_CULTURE), gc.getCultureLevelInfo(pHeadSelectedCity.getCultureLevel()).getTextKey(), iRate/100))
 			else:
 				szRate = u"+%d.%02d" % (iRate/100, iRate%100)
-				szBuffer = localText.getText("INTERFACE_CITY_COMMERCE_RATE_FLOAT", (gc.getCommerceInfo(CommerceTypes.COMMERCE_CULTURE).getChar(), gc.getCultureLevelInfo(pHeadSelectedCity.getCultureLevel()).getTextKey(), szRate))
+				szBuffer = localText.getText("INTERFACE_CITY_COMMERCE_RATE_FLOAT", (SASVisuals.Commerce.ordinal(CommerceTypes.COMMERCE_CULTURE), gc.getCultureLevelInfo(pHeadSelectedCity.getCultureLevel()).getTextKey(), szRate))
 # BUG - Culture Turns - start
 			#if CityScreenOpt.isShowCultureTurns() and iRate > 0:
 			if iRate > 0: # advc.065: No longer optional
@@ -5653,7 +5593,7 @@ class CvMainInterface:
 				if iCultureLeftTimes100 > 0:
 					szBuffer += u" " + localText.getText("INTERFACE_CITY_TURNS", (((iCultureLeftTimes100 + iRate - 1) / iRate),))
 # BUG - Culture Turns - end
-			self.setLabel("CultureText", "Background", sasFontTagLabel + szBuffer + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, FontTypes.GAME_FONT, -1.3)
+			self.setLabel("CultureText", "Background", SASTextScale.sasFontTagLabel + szBuffer + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, FontTypes.GAME_FONT, -1.3)
 			screen.setHitTest("CultureText", HitTestTypes.HITTEST_NOHIT)
 			screen.show("CultureText")
 		if (pHeadSelectedCity.getGreatPeopleProgress() > 0 or pHeadSelectedCity.getGreatPeopleRate() > 0):
@@ -5665,12 +5605,12 @@ class CvMainInterface:
 				# Pass the actual bar width like the map GP bar. See KI#237.2. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 				szBuffer = GPUtil.getGreatPeopleText(pHeadSelectedCity, iGPTurns, gRect("GreatPeopleBar").width(), MainOpt.isGPBarTypesNone(), MainOpt.isGPBarTypesOne(), False)
 			else:
-				szBuffer = localText.getText("INTERFACE_CITY_GREATPEOPLE_RATE", (self.iGreatPeopleIcon, pHeadSelectedCity.getGreatPeopleRate()))
+				szBuffer = localText.getText("INTERFACE_CITY_GREATPEOPLE_RATE", (SASVisuals.Font.ordinal(FontSymbols.GREAT_PEOPLE_CHAR), pHeadSelectedCity.getGreatPeopleRate()))
 				if CityScreenOpt.isShowGreatPersonTurns() and iRate > 0:
 					iGPTurns = GPUtil.getCityTurns(pHeadSelectedCity)
 					szBuffer += u" " + localText.getText("INTERFACE_CITY_TURNS", (iGPTurns,))
 # BUG - Great Person Turns - end
-			self.setLabel("GreatPeopleText", "Background", sasFontTagLabel + szBuffer + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, FontTypes.GAME_FONT, -1.3)
+			self.setLabel("GreatPeopleText", "Background", SASTextScale.sasFontTagLabel + szBuffer + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, FontTypes.GAME_FONT, -1.3)
 			screen.setHitTest("GreatPeopleText", HitTestTypes.HITTEST_NOHIT)
 			screen.show("GreatPeopleText")
 			# <advc> Refactored a bit
@@ -5740,22 +5680,22 @@ class CvMainInterface:
 				szTurns = u"(-)"
 
 			# 3. Construct ROW 1 (Top Line): "(5 [Map] 3 [Cit]) +25% [GP]"
-			szRow1 = sasFontTagLabel + u"(%d%s %d%s)" % (iBldgRaw, self.szMapIcon, iSpecRaw, self.szCitizenIcon)
+			szRow1 = SASTextScale.sasFontTagLabel + u"(%d%s %d%s)" % (iBldgRaw, SASVisuals.Font.MAP_CHAR, iSpecRaw, SASVisuals.Font.CITIZEN_CHAR)
 			if iModPercent != 0:
 				szRow1 += u" %+d%%" % (iModPercent)
-			szRow1 += SAS_FONT_TAG_CLOSE
+			szRow1 += SASTextScale.SAS_FONT_TAG_CLOSE
 
 			# 4. Construct ROW 2 (Bottom Line): "10 [GP]: 109/249 (14)"
-			szRow2 = sasFontTagLabel + u"%d%s: %d/%d %s" % (iTotalRate, self.szGreatPeopleIcon, iProgress, iThreshold, szTurns) + SAS_FONT_TAG_CLOSE
+			szRow2 = SASTextScale.sasFontTagLabel + u"%d%s: %d/%d %s" % (iTotalRate, SASVisuals.Font.GREAT_PEOPLE_CHAR, iProgress, iThreshold, szTurns) + SASTextScale.SAS_FONT_TAG_CLOSE
 			# <!-- custom: The compact glyph-only breakdown is hard to interpret without already knowing its legend.
 			# Give both rendered rows the same live hover with matching glyphs, named sources, colored key results, modifier, rate, progress and turn estimate. (GPT-5.6-Sol) -->
-			szSpecHoverTitle = localText.changeTextColor(u"Great Person Points breakdown", self.colorYellow)
-			szSpecHoverModifier = localText.changeTextColor(u"%+d%%" % iModPercent, self.colorGreen)
-			szSpecHoverRate = localText.changeTextColor(u"%d%s" % (iTotalRate, self.szGreatPeopleIcon), self.colorGreen)
+			szSpecHoverTitle = localText.changeTextColor(u"Great Person Points breakdown", SASVisuals.Color.YELLOW)
+			szSpecHoverModifier = localText.changeTextColor(u"%+d%%" % iModPercent, SASVisuals.Color.GREEN)
+			szSpecHoverRate = localText.changeTextColor(u"%d%s" % (iTotalRate, SASVisuals.Font.GREAT_PEOPLE_CHAR), SASVisuals.Color.GREEN)
 			# <!-- custom: Keep the exact progress fraction and add an at-a-glance percentage rounded to the nearest hundredth; fixed one-decimal formatting would discard useful precision. (GPT-5.6-Sol) -->
 			iSpecProgressPercentTimes100 = (iProgress * 10000 + iThreshold / 2) / iThreshold
-			szSpecHoverProgress = localText.changeTextColor(u"%d/%d (%s%%)" % (iProgress, iThreshold, formatExactHundredths(iSpecProgressPercentTimes100)), self.colorYellow)
-			szSpecHoverSources = u"Buildings: %d%s\nSpecialists: %d%s" % (iBldgRaw, self.szMapIcon, iSpecRaw, self.szCitizenIcon)
+			szSpecHoverProgress = localText.changeTextColor(u"%d/%d (%s%%)" % (iProgress, iThreshold, formatExactHundredths(iSpecProgressPercentTimes100)), SASVisuals.Color.YELLOW)
+			szSpecHoverSources = u"Buildings: %d%s\nSpecialists: %d%s" % (iBldgRaw, SASVisuals.Font.MAP_CHAR, iSpecRaw, SASVisuals.Font.CITIZEN_CHAR)
 			szSpecHoverResult = u"Modifier: %s\nRate: %s per turn\nProgress: %s\nTurns: %s" % (szSpecHoverModifier, szSpecHoverRate, szSpecHoverProgress, szTurns.strip(u"()"))
 			szSpecialistBreakdownHelp = u"%s\n%s\n%s" % (szSpecHoverTitle, szSpecHoverSources, szSpecHoverResult)
 
@@ -5827,10 +5767,10 @@ class CvMainInterface:
 					iEspionageTransferTimes100 = iTotalCultureRateTimes100 - iModifiedBaseCultureTimes100 - iProcessCultureTimes100
 
 				# <!-- custom: Match the adjacent Great Person legend by using MAP_CHAR for building-derived points, leaving the Production glyph to identify Build Culture unambiguously. See KI#1063. (GPT-5.6-Sol) -->
-				szRow1 = sasFontTagLabel + u"(%s%s %d%s %d%s %d%s %d%s %d%s)" % (formatExactHundredths(iSliderCultureTimes100), self.szCultureIcon, iRelCulture, self.szReligionIcon, iCorpCulture, self.szTradeIcon, iBldgCulture, self.szMapIcon, iTraitCulture, self.szStarIcon, iSpecCulture, self.szCitizenIcon)
+				szRow1 = SASTextScale.sasFontTagLabel + u"(%s%s %d%s %d%s %d%s %d%s %d%s)" % (formatExactHundredths(iSliderCultureTimes100), SASVisuals.Commerce.char(CommerceTypes.COMMERCE_CULTURE), iRelCulture, SASVisuals.Font.RELIGION_CHAR, iCorpCulture, SASVisuals.Font.TRADE_CHAR, iBldgCulture, SASVisuals.Font.MAP_CHAR, iTraitCulture, SASVisuals.Font.STAR_CHAR, iSpecCulture, SASVisuals.Font.CITIZEN_CHAR)
 				if iModPercent != 0:
 					szRow1 += u" %+d%%" % (iModPercent)
-				szRow1 += SAS_FONT_TAG_CLOSE
+				szRow1 += SASTextScale.SAS_FONT_TAG_CLOSE
 
 				iCultureProgressTimes100 = pHeadSelectedCity.getCultureTimes100(pHeadSelectedCity.getOwner())
 				iCultureThreshold = pHeadSelectedCity.getCultureThreshold()
@@ -5845,23 +5785,23 @@ class CvMainInterface:
 				# <!-- custom: The Culture modifier above applies only to the upper-row base sources.
 				# Placing both post-modifier additions on this roomier lower row mirrors the native formula and keeps the legend stable: Build Culture is added afterward, while No Espionage transfers an already-calculated Espionage rate without applying the Culture modifier again. See KI#1063. (GPT-5.6-Sol) -->
 				# <!-- custom: When label text is upscaled above its base font size 3 at widths below the usual 2560px of 1440p, remove only spacing/punctuation from this longer row; retain every value, and keep the complete named breakdown in the combined hover. (GPT-5.6-Sol) -->
-				if xResolution < 2560 and getSASUIFontLabel() > 3:
-					szRow2 = sasFontTagLabel + u"%s%s%s%s|%s%s:%s/%d%s" % (formatExactHundredths(iProcessCultureTimes100), self.szProductionIcon, formatExactHundredths(iEspionageTransferTimes100), self.szEspionageIcon, szRate, self.szCultureIcon, szProgress, iCultureThreshold, szTurns) + SAS_FONT_TAG_CLOSE
+				if xResolution < 2560 and SASTextScale.getSASUIFontLabel() > 3:
+					szRow2 = SASTextScale.sasFontTagLabel + u"%s%s%s%s|%s%s:%s/%d%s" % (formatExactHundredths(iProcessCultureTimes100), SASVisuals.Yield.char(YieldTypes.YIELD_PRODUCTION), formatExactHundredths(iEspionageTransferTimes100), SASVisuals.Commerce.char(CommerceTypes.COMMERCE_ESPIONAGE), szRate, SASVisuals.Commerce.char(CommerceTypes.COMMERCE_CULTURE), szProgress, iCultureThreshold, szTurns) + SASTextScale.SAS_FONT_TAG_CLOSE
 				else:
-					szPostModifierSources = u"+%s%s +%s%s = " % (formatExactHundredths(iProcessCultureTimes100), self.szProductionIcon, formatExactHundredths(iEspionageTransferTimes100), self.szEspionageIcon)
-					szRow2 = sasFontTagLabel + u"%s%s%s: %s/%d %s" % (szPostModifierSources, szRate, self.szCultureIcon, szProgress, iCultureThreshold, szTurns) + SAS_FONT_TAG_CLOSE
+					szPostModifierSources = u"+%s%s +%s%s = " % (formatExactHundredths(iProcessCultureTimes100), SASVisuals.Yield.char(YieldTypes.YIELD_PRODUCTION), formatExactHundredths(iEspionageTransferTimes100), SASVisuals.Commerce.char(CommerceTypes.COMMERCE_ESPIONAGE))
+					szRow2 = SASTextScale.sasFontTagLabel + u"%s%s%s: %s/%d %s" % (szPostModifierSources, szRate, SASVisuals.Commerce.char(CommerceTypes.COMMERCE_CULTURE), szProgress, iCultureThreshold, szTurns) + SASTextScale.SAS_FONT_TAG_CLOSE
 				# <!-- custom: Name every compact Culture glyph in a live hover, reuse those glyphs for direct visual matching, and preserve the native calculation order: base sources, Culture modifier, then Build Culture and No Espionage's transferred Espionage. See KI#1063. (GPT-5.6-Sol) -->
-				szCultureHoverTitle = localText.changeTextColor(u"Culture breakdown", self.colorYellow)
-				szCultureHoverModifier = localText.changeTextColor(u"%+d%%" % iModPercent, self.colorGreen)
-				szCultureHoverRate = localText.changeTextColor(u"%s%s" % (szRate, self.szCultureIcon), self.colorGreen)
+				szCultureHoverTitle = localText.changeTextColor(u"Culture breakdown", SASVisuals.Color.YELLOW)
+				szCultureHoverModifier = localText.changeTextColor(u"%+d%%" % iModPercent, SASVisuals.Color.GREEN)
+				szCultureHoverRate = localText.changeTextColor(u"%s%s" % (szRate, SASVisuals.Commerce.char(CommerceTypes.COMMERCE_CULTURE)), SASVisuals.Color.GREEN)
 				iCultureProgressPercentTimes100 = (iCultureProgressTimes100 * 100 + iCultureThreshold / 2) / iCultureThreshold
-				szCultureHoverProgress = localText.changeTextColor(u"%s/%d (%s%%)" % (szProgress, iCultureThreshold, formatExactHundredths(iCultureProgressPercentTimes100)), self.colorYellow)
-				szCultureHoverSources = u"Slider: %s%s\nReligions: %d%s\nCorporations: %d%s\nBuildings: %d%s\nTraits: %d%s\nSpecialists: %d%s" % (formatExactHundredths(iSliderCultureTimes100), self.szCultureIcon, iRelCulture, self.szReligionIcon, iCorpCulture, self.szTradeIcon, iBldgCulture, self.szMapIcon, iTraitCulture, self.szStarIcon, iSpecCulture, self.szCitizenIcon)
-				szCultureHoverPostModifier = u"Build Culture: %s%s\nNo Espionage transfer: %s%s" % (formatExactHundredths(iProcessCultureTimes100), self.szProductionIcon, formatExactHundredths(iEspionageTransferTimes100), self.szEspionageIcon)
+				szCultureHoverProgress = localText.changeTextColor(u"%s/%d (%s%%)" % (szProgress, iCultureThreshold, formatExactHundredths(iCultureProgressPercentTimes100)), SASVisuals.Color.YELLOW)
+				szCultureHoverSources = u"Slider: %s%s\nReligions: %d%s\nCorporations: %d%s\nBuildings: %d%s\nTraits: %d%s\nSpecialists: %d%s" % (formatExactHundredths(iSliderCultureTimes100), SASVisuals.Commerce.char(CommerceTypes.COMMERCE_CULTURE), iRelCulture, SASVisuals.Font.RELIGION_CHAR, iCorpCulture, SASVisuals.Font.TRADE_CHAR, iBldgCulture, SASVisuals.Font.MAP_CHAR, iTraitCulture, SASVisuals.Font.STAR_CHAR, iSpecCulture, SASVisuals.Font.CITIZEN_CHAR)
+				szCultureHoverPostModifier = u"Build Culture: %s%s\nNo Espionage transfer: %s%s" % (formatExactHundredths(iProcessCultureTimes100), SASVisuals.Yield.char(YieldTypes.YIELD_PRODUCTION), formatExactHundredths(iEspionageTransferTimes100), SASVisuals.Commerce.char(CommerceTypes.COMMERCE_ESPIONAGE))
 				szCultureHoverResult = u"Modifier: %s\n%s\nRate: %s per turn\nProgress: %s\nTurns: %s" % (szCultureHoverModifier, szCultureHoverPostModifier, szCultureHoverRate, szCultureHoverProgress, szTurns.strip(u"()"))
 				szCultureBreakdownHelp = u"%s\n%s\n%s" % (szCultureHoverTitle, szCultureHoverSources, szCultureHoverResult)
 				# <!-- custom: Hovering either compact breakdown shows both related city-output summaries, avoiding mouse movement (aims to reduce user tedium) between adjacent rows while retaining separate readable sections. (GPT-5.6-Sol) -->
-				g_szCityBreakdownsHelp = sasFontTagHover + szSpecialistBreakdownHelp + u"\n\n" + szCultureBreakdownHelp + SAS_FONT_TAG_CLOSE
+				g_szCityBreakdownsHelp = SASTextScale.sasFontTagHover + szSpecialistBreakdownHelp + u"\n\n" + szCultureBreakdownHelp + SASTextScale.SAS_FONT_TAG_CLOSE
 
 				iXRight = iX
 				iY2 = gRect("GreatPeopleBar").y() - 22
@@ -5884,7 +5824,7 @@ class CvMainInterface:
 			self.setImageButton(szButtonName, gc.getBonusInfo(iBonus).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS_TRADE, iBonus, -1)
 		if iAmount > 1:
 			self.addDDS("CityBonusCircle" + szIndex, "WHITE_CIRCLE_40", WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, iBonus)
-			szAmount = (sasFontTagLabel + localText.changeTextColor(str(iAmount), self.colorYellow) + SAS_FONT_TAG_CLOSE)
+			szAmount = (SASTextScale.sasFontTagLabel + localText.changeTextColor(str(iAmount), SASVisuals.Color.YELLOW) + SASTextScale.SAS_FONT_TAG_CLOSE)
 			self.setLabel("CityBonusAmount" + szIndex, "BonusBack0", szAmount, CvUtil.FONT_CENTER_JUSTIFY, FontTypes.SMALL_FONT, -0.1, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, iBonus)
 		if szEffect:
 			self.setLabel("CityBonusEffect" + szIndex, "BonusBack" + str(iColumn), szEffect, CvUtil.FONT_RIGHT_JUSTIFY, FontTypes.SMALL_FONT, -0.1, WidgetTypes.WIDGET_PEDIA_JUMP_TO_BONUS, iBonus)
@@ -6051,13 +5991,13 @@ class CvMainInterface:
 							iMinMoves = iLoopMoves
 				if (iMinMoves == iMaxMoves):
 					fMinMoves = float(iMinMoves) / self.iMoveDenominator
-					szBuffer += u" %.1f%s" % (fMinMoves, self.szMovesIcon)
+					szBuffer += u" %.1f%s" % (fMinMoves, SASVisuals.Font.MOVES_CHAR)
 				else:
 					fMinMoves = float(iMinMoves) / self.iMoveDenominator
 					fMaxMoves = float(iMaxMoves) / self.iMoveDenominator
-					szBuffer += u" %.1f - %.1f%s" % (fMinMoves, fMaxMoves, self.szMovesIcon)
+					szBuffer += u" %.1f - %.1f%s" % (fMinMoves, fMaxMoves, SASVisuals.Font.MOVES_CHAR)
 			if (szBuffer.find("<font=") == -1):
-				szBuffer = sasFontTagLabel + szBuffer + SAS_FONT_TAG_CLOSE
+				szBuffer = SASTextScale.sasFontTagLabel + szBuffer + SASTextScale.SAS_FONT_TAG_CLOSE
 			self.setText("SelectedUnitLabel", "Background", szBuffer, CvUtil.FONT_LEFT_JUSTIFY, FontTypes.SMALL_FONT, -0.1, WidgetTypes.WIDGET_UNIT_NAME)
 # BUG - Stack Movement Display - end
 # BUG - Stack Promotions - start
@@ -6088,7 +6028,7 @@ class CvMainInterface:
 							screen.moveToFront(szName)
 							screen.show(szName)
 							szName = "PromotionButtonCount" + str(iPromotionCount)
-							szText = sasFontTagLabel + u"%d" % iCount + SAS_FONT_TAG_CLOSE
+							szText = SASTextScale.sasFontTagLabel + u"%d" % iCount + SASTextScale.SAS_FONT_TAG_CLOSE
 							if iCount == iNumUnits:
 								szText = BugUtil.colorText(szText, iSPColorAll)
 							else:
@@ -6120,9 +6060,9 @@ class CvMainInterface:
 			else:
 				szBuffer = localText.getText("INTERFACE_PANE_UNIT_NAME_HOT_KEY", (pHeadSelectedUnit.getHotKeyNumber(), pHeadSelectedUnit.getName()))
 			if (len(szBuffer) > 60):
-				szBuffer = sasFontTagLabel + szBuffer + SAS_FONT_TAG_CLOSE
+				szBuffer = SASTextScale.sasFontTagLabel + szBuffer + SASTextScale.SAS_FONT_TAG_CLOSE
 			if (szBuffer.find("<font=") == -1):
-				szBuffer = sasFontTagLabel + szBuffer + SAS_FONT_TAG_CLOSE
+				szBuffer = SASTextScale.sasFontTagLabel + szBuffer + SASTextScale.SAS_FONT_TAG_CLOSE
 			self.setText("SelectedUnitLabel", "Background", szBuffer, CvUtil.FONT_LEFT_JUSTIFY, FontTypes.SMALL_FONT, -0.1, WidgetTypes.WIDGET_UNIT_NAME)
 			if ((pSelectedGroup == 0) or (pSelectedGroup.getLengthMissionQueue() <= 1)):
 				screen.show("SelectedUnitText")
@@ -6134,24 +6074,24 @@ class CvMainInterface:
 					if (pHeadSelectedUnit.airBaseCombatStr() > 0):
 						szLeftBuffer = self.szTextAirStrength
 						if (pHeadSelectedUnit.isFighting()):
-							szRightBuffer = u"?/%d%s" %(pHeadSelectedUnit.airBaseCombatStr(), self.szStrengthIcon)
+							szRightBuffer = u"?/%d%s" %(pHeadSelectedUnit.airBaseCombatStr(), SASVisuals.Font.STRENGTH_CHAR)
 						elif (pHeadSelectedUnit.isHurt()):
 							# <advc.004> Replacing Python implementation
 							szRightBuffer = u"%s" %(CyGameTextMgr().getHurtUnitStrength(pHeadSelectedUnit))
 							# </advc.004>
 						else:
-							szRightBuffer = u"%d%s" %(pHeadSelectedUnit.airBaseCombatStr(), self.szStrengthIcon)
+							szRightBuffer = u"%d%s" %(pHeadSelectedUnit.airBaseCombatStr(), SASVisuals.Font.STRENGTH_CHAR)
 				else:
 					if (pHeadSelectedUnit.canFight()):
 						szLeftBuffer = self.szTextStrength
 						if (pHeadSelectedUnit.isFighting()):
-							szRightBuffer = u"?/%d%s" %(pHeadSelectedUnit.baseCombatStr(), self.szStrengthIcon)
+							szRightBuffer = u"?/%d%s" %(pHeadSelectedUnit.baseCombatStr(), SASVisuals.Font.STRENGTH_CHAR)
 						elif (pHeadSelectedUnit.isHurt()):
 							# <advc.004> Replacing Python implementation
 							szRightBuffer = u"%s" %(CyGameTextMgr().getHurtUnitStrength(pHeadSelectedUnit))
 							# </advc.004>
 						else:
-							szRightBuffer = u"%d%s" %(pHeadSelectedUnit.baseCombatStr(), self.szStrengthIcon)
+							szRightBuffer = u"%d%s" %(pHeadSelectedUnit.baseCombatStr(), SASVisuals.Font.STRENGTH_CHAR)
 				szBuffer = szLeftBuffer + szRightBuffer
 				if (szBuffer):
 					iRow = self._appendSelectedInfoPaneTextRow(screen, "SelectedUnitText", iRow, szLeftBuffer, szRightBuffer)
@@ -6167,7 +6107,7 @@ class CvMainInterface:
 # BUG - Unit Movement Fraction - start
 					szLeftBuffer = self.szTextMovement
 					if MainOpt.isShowUnitMovementPointsFraction():
-						szRightBuffer = u"%d%s" %(pHeadSelectedUnit.baseMoves(), self.szMovesIcon)
+						szRightBuffer = u"%d%s" %(pHeadSelectedUnit.baseMoves(), SASVisuals.Font.MOVES_CHAR)
 						if (pHeadSelectedUnit.movesLeft() == 0):
 							szRightBuffer = u"0/" + szRightBuffer
 						elif (pHeadSelectedUnit.movesLeft() == pHeadSelectedUnit.baseMoves() * self.iMoveDenominator):
@@ -6183,9 +6123,9 @@ class CvMainInterface:
 							iDenom = 0
 						iCurrMoves = ((pHeadSelectedUnit.movesLeft() / self.iMoveDenominator) + iDenom)
 						if (pHeadSelectedUnit.baseMoves() == iCurrMoves or eDomain == DomainTypes.DOMAIN_AIR):
-							szRightBuffer = u"%d%s" %(pHeadSelectedUnit.baseMoves(), self.szMovesIcon)
+							szRightBuffer = u"%d%s" %(pHeadSelectedUnit.baseMoves(), SASVisuals.Font.MOVES_CHAR)
 						else:
-							szRightBuffer = u"%d/%d%s" %(iCurrMoves, pHeadSelectedUnit.baseMoves(), self.szMovesIcon)
+							szRightBuffer = u"%d/%d%s" %(iCurrMoves, pHeadSelectedUnit.baseMoves(), SASVisuals.Font.MOVES_CHAR)
 # BUG - Unit Movement Fraction - end
 				iRow = self._appendSelectedInfoPaneTextRow(screen, "SelectedUnitText", iRow, szLeftBuffer, szRightBuffer)
 				# advc.004w
@@ -6326,9 +6266,9 @@ class CvMainInterface:
 		screen.setState("ScoreExpandToggle", self.bScoreAlwaysExpand)
 		# <!-- custom: swap emoji per state. (Claude code Opus 4.7) -->
 		if self.bScoreAlwaysExpand:
-			screen.changeImageButton("ScoreExpandToggle", self.szScoreExpandTogglePath)
+			screen.changeImageButton("ScoreExpandToggle", SASVisuals.InterfaceArt.SAS_EMOJI_LOCKED_2)
 		else:
-			screen.changeImageButton("ScoreExpandToggle", self.szScoreExpandToggleOffPath)
+			screen.changeImageButton("ScoreExpandToggle", SASVisuals.InterfaceArt.SAS_EMOJI_UNLOCKED_2)
 		screen.show("ScoreExpandToggle")
 		# <!-- custom: seed the scoreboard scroll autocenter default once.
 		# The in-game toggle controls runtime behavior afterward; manual scroll buttons turn it off. (ChatGPT-5.5) -->
@@ -6338,9 +6278,9 @@ class CvMainInterface:
 			self.bScoreScrollAutocenterActivePlayer = (self.iSAS_SCOREBOARD_SCROLL_AUTOCENTER_ACTIVE_PLAYER_DEFAULT_ENABLED > 0)
 		screen.setState("ScoreScrollAutocenterActivePlayerToggle", self.bScoreScrollAutocenterActivePlayer)
 		if self.bScoreScrollAutocenterActivePlayer:
-			screen.changeImageButton("ScoreScrollAutocenterActivePlayerToggle", self.szScoreScrollAutocenterActivePlayerPath)
+			screen.changeImageButton("ScoreScrollAutocenterActivePlayerToggle", SASVisuals.InterfaceArt.SAS_EMOJI_COMPASS_3)
 		else:
-			screen.changeImageButton("ScoreScrollAutocenterActivePlayerToggle", self.szScoreScrollAutocenterActivePlayerOffPath)
+			screen.changeImageButton("ScoreScrollAutocenterActivePlayerToggle", SASVisuals.InterfaceArt.SAS_EMOJI_COMPASS_2)
 		screen.show("ScoreBgStyle")
 # BUG - Align Icons - start
 		bAlignIcons = ScoreOpt.isAlignIcons()
@@ -6371,7 +6311,7 @@ class CvMainInterface:
 			aeVisibleSlice = aeVisiblePlayers[self.iScoreScrollOffset : self.iScoreScrollOffset + iMaxRows]
 			iCount = 0
 			for ePlayer in aeVisibleSlice:
-				szBuffer = sasFontTagLabel + self.playerScoreString(ePlayer, None, False) + SAS_FONT_TAG_CLOSE
+				szBuffer = SASTextScale.sasFontTagLabel + self.playerScoreString(ePlayer, None, False) + SASTextScale.SAS_FONT_TAG_CLOSE
 				iTextW = CyInterface().determineWidth(szBuffer)
 				if iTextW > iWidth:
 					iWidth = iTextW
@@ -6442,7 +6382,7 @@ class CvMainInterface:
 			bConcealCiv = pPlayer.wasCivRandomlyChosen()
 			bConcealLeader = pPlayer.wasLeaderRandomlyChosen()
 			if bConcealCiv:
-				kGPColor = gc.getColorInfo(self.colorGreatPeopleStored)
+				kGPColor = gc.getColorInfo(SASVisuals.Color.GREAT_PEOPLE_STORED)
 				rgba = kGPColor.getColor()
 				iUnmetR = int(255 * rgba.r)
 				iUnmetG = int(255 * rgba.g)
@@ -6499,9 +6439,9 @@ class CvMainInterface:
 				if iScoreDelta != 0:
 					if iScoreDelta > 0:
 						# advc.085: To match the color I (might) use for tech progress. Was just GREEN.
-						iColorType = self.colorAltHighlightText
+						iColorType = SASVisuals.Color.ALT_HIGHLIGHT_TEXT
 					elif iScoreDelta < 0:
-						iColorType = self.colorRed
+						iColorType = SASVisuals.Color.RED
 					szScoreDelta = "%+d" % iScoreDelta
 					if iColorType >= 0:
 						szScoreDelta = localText.changeTextColor(szScoreDelta, iColorType)
@@ -6555,7 +6495,7 @@ class CvMainInterface:
 			# K-Mod end
 				if pTeam.isAtWar(eActiveTeam):
 					szBuffer += "("
-					szBuffer += localText.getColorText("TXT_KEY_CONCEPT_WAR", (), self.colorRed).upper()
+					szBuffer += localText.getColorText("TXT_KEY_CONCEPT_WAR", (), SASVisuals.Color.RED).upper()
 					szBuffer += ")"
 					if bAlignIcons:
 						scores.setWar()
@@ -6569,30 +6509,30 @@ class CvMainInterface:
 								scores.setPeace()
 							break
 				if (pPlayer.canTradeNetworkWith(eActivePlayer) and ePlayer != eActivePlayer):
-					szBuffer = szBuffer + self.szTradeIcon
+					szBuffer = szBuffer + SASVisuals.Font.TRADE_CHAR
 					if bAlignIcons:
 						scores.setTrade()
 				if pTeam.isOpenBorders(eActiveTeam):
-					szBuffer = szBuffer + self.szOpenBordersIcon
+					szBuffer = szBuffer + SASVisuals.Font.OPEN_BORDERS_CHAR
 					if bAlignIcons:
 						scores.setBorders()
 				if pTeam.isDefensivePact(eActiveTeam):
-					szBuffer = szBuffer + self.szDefensivePactIcon
+					szBuffer = szBuffer + SASVisuals.Font.DEFENSIVE_PACT_CHAR
 					if bAlignIcons:
 						scores.setPact()
 				eStateReligion = pPlayer.getStateReligion()
 				if eStateReligion != -1:
 					if pPlayer.hasHolyCity(eStateReligion):
-						szTempBuffer = u"%c" %(gc.getReligionInfo(eStateReligion).getHolyCityChar())
+						szTempBuffer = SASVisuals.Religion.holyCityChar(eStateReligion)
 					else:
-						szTempBuffer = u"%c" %(gc.getReligionInfo(eStateReligion).getChar())
+						szTempBuffer = u"%s" %(SASVisuals.Religion.char(eStateReligion))
 					szBuffer = szBuffer + szTempBuffer
 					if bAlignIcons:
 						scores.setReligion(szTempBuffer)
 				# BUG - 3.17: isEspionage check
 				# advc.120h: Second condition was pTeam.getEspionagePointsAgainstTeam(eActiveTeam) < pActiveTeam.getEspionagePointsAgainstTeam(eTeam)
 				if (GameUtil.isEspionage() and pActivePlayer.getEspionageSpendingWeightAgainstTeam(eTeam) > 0):
-					szTempBuffer = u"%c" %(gc.getCommerceInfo(CommerceTypes.COMMERCE_ESPIONAGE).getChar())
+					szTempBuffer = u"%s" %(SASVisuals.Commerce.ESPIONAGE_CHAR)
 					szBuffer = szBuffer + szTempBuffer
 					if bAlignIcons:
 						scores.setEspionage()
@@ -6648,7 +6588,7 @@ class CvMainInterface:
 						else:
 							fPowerRatio = 999.0
 					szTempBuffer = BugUtil.formatFloat(fPowerRatio, ScoreOpt.getPowerDecimals())
-					szTempBuffer += self.szStrengthIcon
+					szTempBuffer += SASVisuals.Font.STRENGTH_CHAR
 					# <advc.085> Don't color the power ratios of teammates
 					bAlly = (eTeam == eActiveTeam)
 					iColor = 0 # Want to pass that to widget help </advc.085>
@@ -6667,9 +6607,11 @@ class CvMainInterface:
 			if ScoreOpt.isShowAttitude():
 				if not pPlayer.isHuman() and eActivePlayer != ePlayer:
 					iAtt = pPlayer.AI_getAttitude(eActivePlayer)
-					#cAtt = unichr(ord(unichr(g.getSymbolID(FontSymbols.POWER_CHAR) + 4)) + iAtt)
+					# <!-- custom: Keep this inherited disabled code consistent with the shared visual-resource API; retain its original rationale and disabled status.
+					#cAtt = unichr(ord(unichr(SASVisuals.Font.ordinal(FontSymbols.POWER_CHAR) + 4)) + iAtt)
 					# advc.187: I've added the airport icon as a GameFont_75 symbol and that breaks the offset used above. No cells are left for further insertions, so, I guess, at this point, the offset from POWER_CHAR can't break again - but let's do it a bit more cleanly anyway by exposing the leftmost attitude char to Python.
-					cAtt = unichr(ord(unichr(self.iWorstAttitudeIcon + iAtt)))
+					# (GPT-6.1-Sol) -->
+					cAtt = unichr(ord(unichr(SASVisuals.Font.ordinal(FontSymbols.WORST_ATTITUDE_CHAR) + iAtt)))
 					szBuffer += cAtt
 					if bAlignIcons:
 						scores.setAttitude(cAtt)
@@ -6684,7 +6626,7 @@ class CvMainInterface:
 # BUG - Worst Enemy - start
 			if ScoreOpt.isShowWorstEnemy():
 				if AttitudeUtil.isWorstEnemy(ePlayer, eActivePlayer):
-					szBuffer += self.szAngryPopIcon
+					szBuffer += SASVisuals.Font.ANGRY_POP_CHAR
 					if bAlignIcons:
 						scores.setWorstEnemy()
 # BUG - Worst Enemy - end
@@ -6693,7 +6635,7 @@ class CvMainInterface:
 			# advc.104: Enable iff UWAI is disabled. But the icon still won't show up unless it gets added to the scoreboard string.
 			if CyGame().useKModAI():
 				if PlayerUtil.isWHEOOH(ePlayer, PlayerUtil.getActivePlayerID()):
-					szBuffer = szBuffer + self.szOccupationIcon
+					szBuffer = szBuffer + SASVisuals.Font.OCCUPATION_CHAR
 					if bAlignIcons:
 						scores.setWHEOOH()
 # BUG - WHEOOH - end
@@ -6710,7 +6652,7 @@ class CvMainInterface:
 					szTempBuffer = u"%d" % PlayerUtil.getNumRevealedCities(ePlayer)
 				# K-Mod end
 				# advc.085: Make city counts gray
-				szTempBuffer = localText.changeTextColor(szTempBuffer, self.colorBuildingText)
+				szTempBuffer = localText.changeTextColor(szTempBuffer, SASVisuals.Color.BUILDING_TEXT)
 				szBuffer = szBuffer + " " + szTempBuffer
 				if bAlignIcons:
 					scores.setNumCities(szTempBuffer)
@@ -6736,9 +6678,9 @@ class CvMainInterface:
 		else:
 			szHelpText = CyInterface().getHelpString()
 			if (szHelpText.find("<font=") == -1):
-				szTag = sasFontTagHover._build()
+				szTag = SASTextScale.sasFontTagHover._build()
 				if szTag:
-					szHelpText = szTag + szHelpText + SAS_FONT_TAG_CLOSE
+					szHelpText = szTag + szHelpText + SASTextScale.SAS_FONT_TAG_CLOSE
 			screen.setHelpTextString(szHelpText)
 		return 0
 

@@ -2,9 +2,10 @@
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
 
 from CvPythonExtensions import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import CvUtil
 import SASTextScale
-from SASFontUtils import sasFontTagLabel, SAS_FONT_TAG_CLOSE
 
 gc = CyGlobalContext()
 ArtFileMgr = CyArtFileMgr()
@@ -43,12 +44,6 @@ class SevoPediaMediaPlayer:
 		self.isOpen = False
 		self.soundId = None
 		self.is3DSound = False
-		self.exitButtonPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_EJECT_BUTTON").getPath()
-		self.replayButtonPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_PLAY_BUTTON").getPath()
-		self.prevButtonPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_LAST_TRACK_BUTTON").getPath()
-		self.nextButtonPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_NEXT_TRACK_BUTTON").getPath()
-		self.prevGroupButtonPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_FAST_UP_BUTTON").getPath()
-		self.nextGroupButtonPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_FAST_DOWN_BUTTON").getPath()
 		self.replayCallback = None
 		self.prevCallback = None
 		self.nextCallback = None
@@ -105,7 +100,7 @@ class SevoPediaMediaPlayer:
 	def placeExitButton(self, screen, iScreenW, iScreenH):
 		iSize, iGap, iBaseY = self._getTransportLayout(iScreenW, iScreenH)
 		iExitX = self._getTransportButtonX(iScreenW, 4)
-		screen.setImageButton(self.exitId, self.exitButtonPath, iExitX, iBaseY, iSize, iSize, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setImageButton(self.exitId, SASVisuals.InterfaceArt.SAS_EMOJI_EJECT_BUTTON, iExitX, iBaseY, iSize, iSize, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 		# <!-- custom: (ChatGPT-5.2 Thinking) -->
 		try:
@@ -122,21 +117,21 @@ class SevoPediaMediaPlayer:
 	def placeReplayButton(self, screen, iScreenW, iScreenH):
 		iSize, iGap, iBaseY = self._getTransportLayout(iScreenW, iScreenH)
 		iReplayX = self._getTransportButtonX(iScreenW, 2)
-		screen.setImageButton(self.replayId, self.replayButtonPath, iReplayX, iBaseY, iSize, iSize, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setImageButton(self.replayId, SASVisuals.InterfaceArt.SAS_EMOJI_PLAY_BUTTON, iReplayX, iBaseY, iSize, iSize, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 	def placePrevNextButtons(self, screen, iScreenW, iScreenH):
 		iSize, iGap, iBaseY = self._getTransportLayout(iScreenW, iScreenH)
 		iPrevX = self._getTransportButtonX(iScreenW, 1)
 		iNextX = self._getTransportButtonX(iScreenW, 5)
-		screen.setImageButton(self.prevId, self.prevButtonPath, iPrevX, iBaseY, iSize, iSize, WidgetTypes.WIDGET_GENERAL, -1, -1)
-		screen.setImageButton(self.nextId, self.nextButtonPath, iNextX, iBaseY, iSize, iSize, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setImageButton(self.prevId, SASVisuals.InterfaceArt.SAS_EMOJI_LAST_TRACK_BUTTON, iPrevX, iBaseY, iSize, iSize, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setImageButton(self.nextId, SASVisuals.InterfaceArt.SAS_EMOJI_NEXT_TRACK_BUTTON, iNextX, iBaseY, iSize, iSize, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 	def placeGroupSkipButtons(self, screen, iScreenW, iScreenH):
 		iSize, iGap, iBaseY = self._getTransportLayout(iScreenW, iScreenH)
 		iPrevGroupX = self._getTransportButtonX(iScreenW, 0)
 		iNextGroupX = self._getTransportButtonX(iScreenW, 6)
-		screen.setImageButton(self.prevGroupId, self.prevGroupButtonPath, iPrevGroupX, iBaseY, iSize, iSize, WidgetTypes.WIDGET_GENERAL, -1, -1)
-		screen.setImageButton(self.nextGroupId, self.nextGroupButtonPath, iNextGroupX, iBaseY, iSize, iSize, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setImageButton(self.prevGroupId, SASVisuals.InterfaceArt.SAS_EMOJI_FAST_UP_BUTTON, iPrevGroupX, iBaseY, iSize, iSize, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setImageButton(self.nextGroupId, SASVisuals.InterfaceArt.SAS_EMOJI_FAST_DOWN_BUTTON, iNextGroupX, iBaseY, iSize, iSize, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 	def placeToggleButton(self, screen, iScreenW, iScreenH):
 		if not self.toggleButtonPath:
@@ -247,7 +242,7 @@ class SevoPediaMediaPlayer:
 			if i == currentIndex:
 				# <!-- custom: keep selected queue row visually distinct (bold), not only prefixed by ">", so active media is easy to track while browsing groups. (GPT-5.3-Codex) -->
 				szLabel = u"> " + szLabel
-				szLabel = sasFontTagLabel.bold + szLabel + SAS_FONT_TAG_CLOSE
+				szLabel = SASTextScale.sasFontTagLabel.bold + szLabel + SASTextScale.SAS_FONT_TAG_CLOSE
 			else:
 				szLabel = SASTextScale.labelText(szLabel)
 			szButton = ""
@@ -361,7 +356,7 @@ class SevoPediaMediaPlayer:
 		self.nextGroupCallback = nextGroupCallback
 
 	def setToggleButton(self, szArtInfoType):
-		self.toggleButtonPath = ArtFileMgr.getInterfaceArtInfo(szArtInfoType).getPath()
+		self.toggleButtonPath = SASVisuals.InterfaceArt.getPath(szArtInfoType)
 
 	def setToggleCallback(self, toggleCallback):
 		self.toggleCallback = toggleCallback

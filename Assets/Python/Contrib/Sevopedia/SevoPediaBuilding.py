@@ -20,7 +20,8 @@ import CvUtil
 import ScreenInput
 # <!-- custom: Removed the unused SevoScreenEnums import after its constants moved from SevoScreenEnums.py to the SevoScreenEnums class in CvScreenEnums.py.
 # This page uses none of those IDs, and the removed constants-only module had no initialization side effects. (GPT-6.1-Sol) -->
-from SASFontUtils import *
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import SASTextScale
 
 from _sevopedia_helpers import *
@@ -79,8 +80,6 @@ class SevoPediaBuilding:
 
 		self.X_MOVIE = self.X_REQUIRES + self.W_REQUIRES + MEDIUM_MARGIN
 		self.Y_MOVIE = self.Y_REQUIRES
-		self.playButtonPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_PLAY_BUTTON").getPath()
-		self.powerButtonPath = ArtFileMgr.getInterfaceArtInfo("SAS_POWER").getPath()
 
 		self.X_REQUIRED_FOR = self.X_BUILDING_PANE
 		self.Y_REQUIRED_FOR = self.Y_REQUIRES + self.H_REQUIRES + SMALL_MARGIN
@@ -221,11 +220,11 @@ class SevoPediaBuilding:
 				buildingCost = gc.getPlayer(self.top.iActivePlayer).getBuildingProductionNeeded(self.iBuilding)
 
 			szCost = localText.getText("TXT_KEY_PEDIA_COST_CUSTOM", (buildingCost,))
-			szText2 = u"%c  %s" % (gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar(), szCost)
+			szText2 = u"%s  %s" % (SASVisuals.Yield.PRODUCTION_CHAR, szCost)
 			self.fillStatsCell(screen, szText2, x, y)
 			x, y, rowItemId = self.getStatsNextItemCoordinates(x, y, rowItemId, columnWidth)
 
-		# <!-- custom: 2 Direct Yield Changes (like Food, Production, Gold), and Yield Modifiers (Food +x%, Production +x%, Gold +x%) with power breakdown added thanks to Claude AI and my prompts or tweaks/adjustments or not or yes or and but or not but or and(2) -->
+		# <!-- custom: 2 Direct SASVisuals.Yield Changes (like Food, Production, Gold), and SASVisuals.Yield Modifiers (Food +x%, Production +x%, Gold +x%) with power breakdown added thanks to Claude AI and my prompts or tweaks/adjustments or not or yes or and but or not but or and(2) -->
 		for k in range(YieldTypes.NUM_YIELD_TYPES):
 			iYieldChange = buildingInfo.getYieldChange(k)
 
@@ -235,7 +234,7 @@ class SevoPediaBuilding:
 				else:
 					szSign = ""
 				szText1 = szSign + str(iYieldChange)
-				szText2 = u"%c  %s" % (gc.getYieldInfo(k).getChar(), szText1)
+				szText2 = u"%s  %s" % (SASVisuals.Yield.char(k), szText1)
 				self.fillStatsCell(screen, szText2, x, y)
 				x, y, rowItemId = self.getStatsNextItemCoordinates(x, y, rowItemId, columnWidth)
 
@@ -269,10 +268,10 @@ class SevoPediaBuilding:
 
 					# Add power button
 					buttonSize = 24
-					szButtonText = u"<img=%s size=%s></img>" % (self.powerButtonPath, str(buttonSize))
+					szButtonText = u"<img=%s size=%s></img>" % (SASVisuals.InterfaceArt.SAS_POWER, str(buttonSize))
 					szText1 += szButtonText
 
-				szText2 = u"%c  %s" % (gc.getYieldInfo(k).getChar(), szText1)
+				szText2 = u"%s  %s" % (SASVisuals.Yield.char(k), szText1)
 				self.fillStatsCell(screen, szText2, x, y)
 				x, y, rowItemId = self.getStatsNextItemCoordinates(x, y, rowItemId, columnWidth)
 
@@ -285,7 +284,7 @@ class SevoPediaBuilding:
 				else:
 					szSign = ""
 				szText1 = szSign + str(iTotalCommerce)
-				szText2 = u"%c  %s" % (gc.getCommerceInfo(k).getChar(), szText1)
+				szText2 = u"%s  %s" % (SASVisuals.Commerce.char(k), szText1)
 				self.fillStatsCell(screen, szText2, x, y)
 				x, y, rowItemId = self.getStatsNextItemCoordinates(x, y, rowItemId, columnWidth)
 
@@ -316,7 +315,7 @@ class SevoPediaBuilding:
 						szText += ", "
 					szText += "x2(" + str(iCommerceDoubleTime) + "Y)"
 
-				szText2 = u"%c  %s" % (gc.getCommerceInfo(k).getChar(), szText)
+				szText2 = u"%s  %s" % (SASVisuals.Commerce.char(k), szText)
 				self.fillStatsCell(screen, szText2, x, y)
 				x, y, rowItemId = self.getStatsNextItemCoordinates(x, y, rowItemId, columnWidth)
 
@@ -328,12 +327,12 @@ class SevoPediaBuilding:
 
 		if iHappiness > 0:
 			szText = localText.getText("TXT_KEY_PEDIA_HAPPY_CUSTOM", (iHappiness,))
-			szText2 = u"%c  %s" % (CyGame().getSymbolID(FontSymbols.HAPPY_CHAR), szText)
+			szText2 = u"%s  %s" % (SASVisuals.Font.HAPPY_CHAR, szText)
 			self.fillStatsCell(screen, szText2, x, y)
 			x, y, rowItemId = self.getStatsNextItemCoordinates(x, y, rowItemId, columnWidth)
 		elif iHappiness < 0:
 			szText = localText.getText("TXT_KEY_PEDIA_UNHAPPY_CUSTOM", (-iHappiness,))
-			szText2 = u"%c  %s" % (CyGame().getSymbolID(FontSymbols.UNHAPPY_CHAR), szText)
+			szText2 = u"%s  %s" % (SASVisuals.Font.UNHAPPY_CHAR, szText)
 			self.fillStatsCell(screen, szText2, x, y)
 			x, y, rowItemId = self.getStatsNextItemCoordinates(x, y, rowItemId, columnWidth)
 
@@ -345,12 +344,12 @@ class SevoPediaBuilding:
 
 		if iHealth > 0:
 			szText = localText.getText("TXT_KEY_PEDIA_HEALTHY_CUSTOM", (iHealth,))
-			szText2 = u"%c  %s" % (CyGame().getSymbolID(FontSymbols.HEALTHY_CHAR), szText)
+			szText2 = u"%s  %s" % (SASVisuals.Font.HEALTHY_CHAR, szText)
 			self.fillStatsCell(screen, szText2, x, y)
 			x, y, rowItemId = self.getStatsNextItemCoordinates(x, y, rowItemId, columnWidth)
 		elif iHealth < 0:
 			szText = localText.getText("TXT_KEY_PEDIA_UNHEALTHY_CUSTOM", (-iHealth,))
-			szText2 = u"%c  %s" % (CyGame().getSymbolID(FontSymbols.UNHEALTHY_CHAR), szText)
+			szText2 = u"%s  %s" % (SASVisuals.Font.UNHEALTHY_CHAR, szText)
 			self.fillStatsCell(screen, szText2, x, y)
 			x, y, rowItemId = self.getStatsNextItemCoordinates(x, y, rowItemId, columnWidth)
 
@@ -360,7 +359,7 @@ class SevoPediaBuilding:
 			szText = localText.getText("TXT_KEY_PEDIA_GREAT_PEOPLE_CUSTOM", (buildingInfo.getGreatPeopleRateChange(),))
 
 			# Format with the great people character
-			szText2 = u"%c  %s" % (CyGame().getSymbolID(FontSymbols.GREAT_PEOPLE_CHAR), szText)
+			szText2 = u"%s  %s" % (SASVisuals.Font.GREAT_PEOPLE_CHAR, szText)
 
 			# Display the text
 			self.fillStatsCell(screen, szText2, x, y)
@@ -397,7 +396,7 @@ class SevoPediaBuilding:
 					szGlobalSign = ""
 				szText1 += szGlobalSign + str(iGlobalGreatPeopleModifier) + "% (Global)"
 
-			szText2 = u"%c  %s" % (CyGame().getSymbolID(FontSymbols.GREAT_PEOPLE_CHAR), szText1)
+			szText2 = u"%s  %s" % (SASVisuals.Font.GREAT_PEOPLE_CHAR, szText1)
 			self.fillStatsCell(screen, szText2, x, y)
 			x, y, rowItemId = self.getStatsNextItemCoordinates(x, y, rowItemId, columnWidth)
 
@@ -613,7 +612,7 @@ class SevoPediaBuilding:
 			# Y: Must be set to 10 (not calculated from panelHeaderHeight) - empirically determined positioning fix. (Claude code Sonnet 4.5) -->
 			buttonX = (self.W_MOVIE - buttonSize) / 2
 			buttonY = 10
-			screen.setImageButtonAt(self.top.getNextWidgetName(), panelName, self.playButtonPath, buttonX, buttonY, buttonSize, buttonSize, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_MOVIE_ENTRY, iPackedMovie)
+			screen.setImageButtonAt(self.top.getNextWidgetName(), panelName, SASVisuals.InterfaceArt.SAS_EMOJI_PLAY_BUTTON, buttonX, buttonY, buttonSize, buttonSize, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_MOVIE_ENTRY, iPackedMovie)
 		else:
 			draw_none_text(screen, self.top, self.X_MOVIE, self.Y_MOVIE, self.W_MOVIE, self.H_MOVIE)
 

@@ -8,7 +8,9 @@ from CvPythonExtensions import *
 import CvUtil
 import ScreenInput
 import CvScreenEnums
-from SASFontUtils import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
+import SASTextScale
 from SASUtils import *
 from SASMagicNumbers import *
 # <!-- custom: AdvCiv-SAS readability pass: use LABEL as the base tech-chooser text tag (instead of BODY) for clearer upscaled UI text. (GPT-5.3-Codex) -->
@@ -178,51 +180,12 @@ class CvTechChooser:
 			self.TEXT_WB_AS_ADD_TECH = localText.getText("TXT_KEY_WB_AS_ADD_TECH", ())
 			self.TEXT_TECH_CHOOSER_TITLE = localText.getText("TXT_KEY_TECH_CHOOSER_TITLE", ()).upper()
 			self.TEXT_PEDIA_SCREEN_EXIT = localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ()).upper()
-			self.TEXT_TECH_CHOOSER_EXIT = sasFontTagTitle + self.TEXT_PEDIA_SCREEN_EXIT + SAS_FONT_TAG_CLOSE
-			self.TEXT_TECH_CHOOSER_TITLE_FMT = sasFontTagTitle.bold + self.TEXT_TECH_CHOOSER_TITLE + SAS_FONT_TAG_CLOSE
+			self.TEXT_TECH_CHOOSER_EXIT = SASTextScale.sasFontTagTitle + self.TEXT_PEDIA_SCREEN_EXIT + SASTextScale.SAS_FONT_TAG_CLOSE
+			self.TEXT_TECH_CHOOSER_TITLE_FMT = SASTextScale.sasFontTagTitle.bold + self.TEXT_TECH_CHOOSER_TITLE + SASTextScale.SAS_FONT_TAG_CLOSE
 
 		if self.bTechChooserArtCached:
 			return
 		self.bTechChooserArtCached = True
-		# BUG - GP Tech Prefs - start
-		self.NO_TECH_ART = ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_CANCEL").getPath()
-		# BUG - GP Tech Prefs - end
-		self.ART_SCREEN_BG_OPAQUE = ArtFileMgr.getInterfaceArtInfo("SCREEN_BG_OPAQUE").getPath()
-		self.ART_RED_X = ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_RED_X").getPath()
-		self.ART_TECH_MOVE_BONUS = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_MOVE_BONUS").getPath()
-		self.ART_TECH_FEATURE_PRODUCTION = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_FEATURE_PRODUCTION").getPath()
-		self.ART_TECH_WORKER_SPEED = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_WORKER_SPEED").getPath()
-		self.ART_TECH_TRADE_ROUTES = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_TRADE_ROUTES").getPath()
-		self.ART_TECH_HEALTH = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_HEALTH").getPath()
-		self.ART_TECH_HAPPINESS = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_HAPPINESS").getPath()
-		self.ART_TECH_CULTURE = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_CULTURE").getPath()
-		self.ART_TECH_ESPIONAGE = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_ESPIONAGE").getPath()
-		self.ART_GENERAL_QUESTIONMARK = ArtFileMgr.getInterfaceArtInfo("INTERFACE_GENERAL_QUESTIONMARK").getPath()
-		self.ART_TECH_FREETECH = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_FREETECH").getPath()
-		self.ART_TECH_LOS = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_LOS").getPath()
-		self.ART_TECH_MAPCENTER = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_MAPCENTER").getPath()
-		self.ART_TECH_MAPREVEAL = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_MAPREVEAL").getPath()
-		self.ART_TECH_MAPTRADING = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_MAPTRADING").getPath()
-		self.ART_TECH_TECHTRADING = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_TECHTRADING").getPath()
-		self.ART_TECH_GOLDTRADING = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_GOLDTRADING").getPath()
-		self.ART_TECH_OPENBORDERS = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_OPENBORDERS").getPath()
-		self.ART_TECH_DEFENSIVEPACT = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_DEFENSIVEPACT").getPath()
-		self.ART_TECH_PERMALLIANCE = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_PERMALLIANCE").getPath()
-		self.ART_TECH_VASSAL = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_VASSAL").getPath()
-		self.ART_TECH_BRIDGEBUILDING = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_BRIDGEBUILDING").getPath()
-		self.ART_TECH_IRRIGATION = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_IRRIGATION").getPath()
-		self.ART_TECH_NOIRRIGATION = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_NOIRRIGATION").getPath()
-		self.ART_TECH_WATERWORK = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_WATERWORK").getPath()
-		self.ART_TECH_WATERMOVES = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_WATERMOVES").getPath()
-		self.ART_TECH_RIVERTRADE = ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_RIVERTRADE").getPath()
-		self.ART_POPUPBUTTON_RELIGION = ArtFileMgr.getInterfaceArtInfo("INTERFACE_POPUPBUTTON_RELIGION").getPath()
-		self.ARROW_X = ArtFileMgr.getInterfaceArtInfo("ARROW_X").getPath()
-		self.ARROW_Y = ArtFileMgr.getInterfaceArtInfo("ARROW_Y").getPath()
-		self.ARROW_MXMY = ArtFileMgr.getInterfaceArtInfo("ARROW_MXMY").getPath()
-		self.ARROW_XY = ArtFileMgr.getInterfaceArtInfo("ARROW_XY").getPath()
-		self.ARROW_MXY = ArtFileMgr.getInterfaceArtInfo("ARROW_MXY").getPath()
-		self.ARROW_XMY = ArtFileMgr.getInterfaceArtInfo("ARROW_XMY").getPath()
-		self.ARROW_HEAD = ArtFileMgr.getInterfaceArtInfo("ARROW_HEAD").getPath()
 
 	def getScreen(self):
 		return CyGInterfaceScreen( "TechChooser", CvScreenEnums.TECH_CHOOSER )
@@ -337,7 +300,7 @@ class CvTechChooser:
 # BUG - Tech Screen Resolution - end
 
 		screen.addPanel( "TechTopPanel", u"", u"", True, False, 0, 0, xPanelWidth, 55, PanelStyles.PANEL_STYLE_TOPBAR )
-		screen.addDDSGFC("TechBG", self.ART_SCREEN_BG_OPAQUE, 0, 51, xPanelWidth, yPanelHeight - 96, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		screen.addDDSGFC("TechBG", SASVisuals.InterfaceArt.SCREEN_BG_OPAQUE, 0, 51, xPanelWidth, yPanelHeight - 96, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 		screen.addPanel( "TechBottomPanel", u"", u"", True, False, 0, yPanelHeight - 55, xPanelWidth, 55, PanelStyles.PANEL_STYLE_BOTTOMBAR )
 		screen.setText( "TechChooserExit", "Background", self.TEXT_TECH_CHOOSER_EXIT, CvUtil.FONT_RIGHT_JUSTIFY, xPanelWidth - 30, yPanelHeight - 42, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_CLOSE_SCREEN, -1, -1 )
 		screen.setActivation( "TechChooserExit", ActivationTypes.ACTIVATE_MIMICPARENTFOCUS )
@@ -523,7 +486,7 @@ class CvTechChooser:
 
 			if bTechName:
 				szTechID = sPanelWidget + "TechID" + str(i)
-				szTechString = sasFontTagLabel # advc.002b: was 1
+				szTechString = SASTextScale.sasFontTagLabel # advc.002b: was 1
 				if ( gc.getPlayer(self.iCivSelected).isResearchingTech(i) ):
 					szTechString = szTechString + str(gc.getPlayer(self.iCivSelected).getQueuePosition(i)) + ". "
 				szTechString += gc.getTechInfo(i).getDescription()
@@ -533,7 +496,7 @@ class CvTechChooser:
 					if iTurnsLeft > 0:
 						# <!-- custom: minor tweak only: keep "(N)" append as one formatted string for readability; no behavior change relative to the timer/clipping fix. (GPT-5.3-Codex) -->
 						szTechString += " (%d)" % iTurnsLeft
-				szTechString = szTechString + SAS_FONT_TAG_CLOSE
+				szTechString = szTechString + SASTextScale.SAS_FONT_TAG_CLOSE
 				# <!-- custom: anchor tech labels to the scroll panel (same as updateTechRecords) instead of the tech panel child so first-draw and refresh rendering paths stay consistent. See KI#114. (GPT-5.3-Codex) -->
 				screen.setTextAt( szTechID, sPanel, szTechString, CvUtil.FONT_LEFT_JUSTIFY, iTechX + 6 + X_INCREMENT, iTechY + 6, -0.1, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_TECH_TREE, i, -1 )
 				screen.setActivation( szTechID, ActivationTypes.ACTIVATE_MIMICPARENTFOCUS )
@@ -615,7 +578,7 @@ class CvTechChooser:
 					szObsoleteButton = self.getNextWidgetName("Obsolete")
 					szObsoleteX = self.getNextWidgetName("ObsoleteX")
 					screen.addDDSGFCAt( szObsoleteButton, szTechRecord, gc.getBuildingInfo(eLoopBuilding).getButton(), iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_OBSOLETE, eLoopBuilding, -1, False )
-					screen.addDDSGFCAt( szObsoleteX, szTechRecord, self.ART_RED_X, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_OBSOLETE, eLoopBuilding, -1, False )
+					screen.addDDSGFCAt( szObsoleteX, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_BUTTONS_RED_X, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_OBSOLETE, eLoopBuilding, -1, False )
 					fX += X_INCREMENT
 
 		j = 0
@@ -628,7 +591,7 @@ class CvTechChooser:
 				szObsoleteButton = self.getNextWidgetName("ObsoleteBonus")
 				szObsoleteX = self.getNextWidgetName("ObsoleteXBonus")
 				screen.addDDSGFCAt( szObsoleteButton, szTechRecord, gc.getBonusInfo(j).getButton(), iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_OBSOLETE_BONUS, j, -1, False )
-				screen.addDDSGFCAt( szObsoleteX, szTechRecord, self.ART_RED_X, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_OBSOLETE_BONUS, j, -1, False )
+				screen.addDDSGFCAt( szObsoleteX, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_BUTTONS_RED_X, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_OBSOLETE_BONUS, j, -1, False )
 				fX += X_INCREMENT
 
 		j = 0
@@ -641,7 +604,7 @@ class CvTechChooser:
 					szObsoleteSpecialButton = self.getNextWidgetName("ObsoleteSpecial")
 					szObsoleteSpecialX = self.getNextWidgetName("ObsoleteSpecialX")
 					screen.addDDSGFCAt( szObsoleteSpecialButton, szTechRecord, gc.getSpecialBuildingInfo(j).getButton(), iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_OBSOLETE_SPECIAL, j, -1, False )
-					screen.addDDSGFCAt( szObsoleteSpecialX, szTechRecord, self.ART_RED_X, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_OBSOLETE_SPECIAL, j, -1, False )
+					screen.addDDSGFCAt( szObsoleteSpecialX, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_BUTTONS_RED_X, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_OBSOLETE_SPECIAL, j, -1, False )
 					fX += X_INCREMENT
 
 		j = 0
@@ -651,7 +614,7 @@ class CvTechChooser:
 		for j in range(gc.getNumRouteInfos()):
 			if ( gc.getRouteInfo(j).getTechMovementChange(i) != 0 ):
 				szMoveButton = self.getNextWidgetName("Move")
-				screen.addDDSGFCAt( szMoveButton, szTechRecord, self.ART_TECH_MOVE_BONUS, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_MOVE_BONUS, i, -1, False )
+				screen.addDDSGFCAt( szMoveButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_MOVE_BONUS, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_MOVE_BONUS, i, -1, False )
 				fX += X_INCREMENT
 
 		j = 0
@@ -685,7 +648,7 @@ class CvTechChooser:
 		# Feature production modifier
 		if ( gc.getTechInfo(i).getFeatureProductionModifier() != 0 ):
 			szFeatureProductionButton = self.getNextWidgetName("FeatureProduction")
-			screen.addDDSGFCAt( szFeatureProductionButton, szTechRecord, self.ART_TECH_FEATURE_PRODUCTION, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_FEATURE_PRODUCTION, i, -1, False )
+			screen.addDDSGFCAt( szFeatureProductionButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_FEATURE_PRODUCTION, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_FEATURE_PRODUCTION, i, -1, False )
 			fX += X_INCREMENT
 
 		j = 0
@@ -694,7 +657,7 @@ class CvTechChooser:
 		# Worker speed
 		if ( gc.getTechInfo(i).getWorkerSpeedModifier() != 0 ):
 			szWorkerModifierButton = self.getNextWidgetName("Worker")
-			screen.addDDSGFCAt( szWorkerModifierButton, szTechRecord, self.ART_TECH_WORKER_SPEED, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_WORKER_RATE, i, -1, False )
+			screen.addDDSGFCAt( szWorkerModifierButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_WORKER_SPEED, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_WORKER_RATE, i, -1, False )
 			fX += X_INCREMENT
 
 		j = 0
@@ -703,7 +666,7 @@ class CvTechChooser:
 		# Trade Routes per City change
 		if ( gc.getTechInfo(i).getTradeRoutes() != 0 ):
 			szTradeRouteButton = self.getNextWidgetName("TradeRoutes")
-			screen.addDDSGFCAt( szTradeRouteButton, szTechRecord, self.ART_TECH_TRADE_ROUTES, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_TRADE_ROUTES, i, -1, False )
+			screen.addDDSGFCAt( szTradeRouteButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_TRADE_ROUTES, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_TRADE_ROUTES, i, -1, False )
 			fX += X_INCREMENT
 
 		j = 0
@@ -712,7 +675,7 @@ class CvTechChooser:
 		# Health Rate bonus from this tech...
 		if ( gc.getTechInfo(i).getHealth() != 0 ):
 			szHealthRateButton = self.getNextWidgetName("HealthRate")
-			screen.addDDSGFCAt( szHealthRateButton, szTechRecord, self.ART_TECH_HEALTH, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_HEALTH_RATE, i, -1, False )
+			screen.addDDSGFCAt( szHealthRateButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_HEALTH, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_HEALTH_RATE, i, -1, False )
 			fX += X_INCREMENT
 
 		j = 0
@@ -721,7 +684,7 @@ class CvTechChooser:
 		# Happiness Rate bonus from this tech...
 		if ( gc.getTechInfo(i).getHappiness() != 0 ):
 			szHappinessRateButton = self.getNextWidgetName("HappinessRate")
-			screen.addDDSGFCAt( szHappinessRateButton, szTechRecord, self.ART_TECH_HAPPINESS, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_HAPPINESS_RATE, i, -1, False )
+			screen.addDDSGFCAt( szHappinessRateButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_HAPPINESS, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_HAPPINESS_RATE, i, -1, False )
 			fX += X_INCREMENT
 
 		j = 0
@@ -733,11 +696,11 @@ class CvTechChooser:
 			if (gc.getTechInfo(i).isCommerceFlexible(j) and (not gc.getPlayer(self.iCivSelected).isCommerceFlexible(j) or gc.getTeam(gc.getPlayer(self.iCivSelected).getTeam()).isCommerceFlexible(j))):
 				szAdjustButton = self.getNextWidgetName("AdjustButton")
 				if ( j == CommerceTypes.COMMERCE_CULTURE ):
-					szFileName = self.ART_TECH_CULTURE
+					szFileName = SASVisuals.InterfaceArt.INTERFACE_TECH_CULTURE
 				elif ( j == CommerceTypes.COMMERCE_ESPIONAGE ):
-					szFileName = self.ART_TECH_ESPIONAGE
+					szFileName = SASVisuals.InterfaceArt.INTERFACE_TECH_ESPIONAGE
 				else:
-					szFileName = self.ART_GENERAL_QUESTIONMARK
+					szFileName = SASVisuals.InterfaceArt.INTERFACE_GENERAL_QUESTIONMARK
 				screen.addDDSGFCAt( szAdjustButton, szTechRecord, szFileName, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_ADJUST, i, j, False )
 				fX += X_INCREMENT
 
@@ -747,7 +710,7 @@ class CvTechChooser:
 		# Free Techs
 		if ( gc.getTechInfo(i).getFirstFreeTechs() > 0 ):
 			szFreeTechButton = self.getNextWidgetName("FreeTech")
-			screen.addDDSGFCAt( szFreeTechButton, szTechRecord, self.ART_TECH_FREETECH, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_FREE_TECH, i, -1, False )
+			screen.addDDSGFCAt( szFreeTechButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_FREETECH, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_FREE_TECH, i, -1, False )
 			fX += X_INCREMENT
 
 		j = 0
@@ -761,7 +724,7 @@ class CvTechChooser:
 		# Line of Sight bonus...
 		if ( gc.getTechInfo(i).isExtraWaterSeeFrom() ):
 			szLOSButton = self.getNextWidgetName("LOS")
-			screen.addDDSGFCAt( szLOSButton, szTechRecord, self.ART_TECH_LOS, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_LOS_BONUS, i, -1, False )
+			screen.addDDSGFCAt( szLOSButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_LOS, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_LOS_BONUS, i, -1, False )
 			fX += X_INCREMENT
 
 		j = 0
@@ -770,7 +733,7 @@ class CvTechChooser:
 		# Map Center Bonus...
 		if ( gc.getTechInfo(i).isMapCentering() ):
 			szMapCenterButton = self.getNextWidgetName("MapCenter")
-			screen.addDDSGFCAt( szMapCenterButton, szTechRecord, self.ART_TECH_MAPCENTER, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_MAP_CENTER, i, -1, False )
+			screen.addDDSGFCAt( szMapCenterButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_MAPCENTER, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_MAP_CENTER, i, -1, False )
 			fX += X_INCREMENT
 
 		j = 0
@@ -779,7 +742,7 @@ class CvTechChooser:
 		# Map Reveal...
 		if ( gc.getTechInfo(i).isMapVisible() ):
 			szMapRevealButton = self.getNextWidgetName("MapReveal")
-			screen.addDDSGFCAt( szMapRevealButton, szTechRecord, self.ART_TECH_MAPREVEAL, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_MAP_REVEAL, i, -1, False )
+			screen.addDDSGFCAt( szMapRevealButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_MAPREVEAL, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_MAP_REVEAL, i, -1, False )
 			fX += X_INCREMENT
 
 		j = 0
@@ -788,7 +751,7 @@ class CvTechChooser:
 		# Map Trading
 		if (gc.getTechInfo(i).isMapTrading()):
 			szMapTradeButton = self.getNextWidgetName("MapTrade")
-			screen.addDDSGFCAt( szMapTradeButton, szTechRecord, self.ART_TECH_MAPTRADING, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_MAP_TRADE, i, -1, False )
+			screen.addDDSGFCAt( szMapTradeButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_MAPTRADING, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_MAP_TRADE, i, -1, False )
 			fX += X_INCREMENT
 
 		j = 0
@@ -797,7 +760,7 @@ class CvTechChooser:
 		# Tech Trading
 		if ( gc.getTechInfo(i).isTechTrading() ):
 			szTechTradeButton = self.getNextWidgetName("TechTrade")
-			screen.addDDSGFCAt( szTechTradeButton, szTechRecord, self.ART_TECH_TECHTRADING, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_TECH_TRADE, i, -1, False )
+			screen.addDDSGFCAt( szTechTradeButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_TECHTRADING, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_TECH_TRADE, i, -1, False )
 			fX += X_INCREMENT
 
 		j = 0
@@ -806,7 +769,7 @@ class CvTechChooser:
 		# Gold Trading
 		if ( gc.getTechInfo(i).isGoldTrading() ):
 			szGoldTradeButton = self.getNextWidgetName("GoldTrade")
-			screen.addDDSGFCAt( szGoldTradeButton, szTechRecord, self.ART_TECH_GOLDTRADING, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_GOLD_TRADE, i, -1, False )
+			screen.addDDSGFCAt( szGoldTradeButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_GOLDTRADING, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_GOLD_TRADE, i, -1, False )
 			fX += X_INCREMENT
 
 		j = 0
@@ -815,7 +778,7 @@ class CvTechChooser:
 		# Open Borders
 		if ( gc.getTechInfo(i).isOpenBordersTrading() ):
 			szOpenBordersButton = self.getNextWidgetName("OpenBorders")
-			screen.addDDSGFCAt( szOpenBordersButton, szTechRecord, self.ART_TECH_OPENBORDERS, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_OPEN_BORDERS, i, -1, False )
+			screen.addDDSGFCAt( szOpenBordersButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_OPENBORDERS, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_OPEN_BORDERS, i, -1, False )
 			fX += X_INCREMENT
 
 		j = 0
@@ -824,7 +787,7 @@ class CvTechChooser:
 		# Defensive Pact
 		if ( gc.getTechInfo(i).isDefensivePactTrading() ):
 			szDefensivePactButton = self.getNextWidgetName("DefensivePact")
-			screen.addDDSGFCAt( szDefensivePactButton, szTechRecord, self.ART_TECH_DEFENSIVEPACT, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_DEFENSIVE_PACT, i, -1, False )
+			screen.addDDSGFCAt( szDefensivePactButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_DEFENSIVEPACT, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_DEFENSIVE_PACT, i, -1, False )
 			fX += X_INCREMENT
 
 		j = 0
@@ -833,7 +796,7 @@ class CvTechChooser:
 		# Permanent Alliance
 		if ( gc.getTechInfo(i).isPermanentAllianceTrading() ):
 			szPermanentAllianceButton = self.getNextWidgetName("PermanentAlliance")
-			screen.addDDSGFCAt( szPermanentAllianceButton, szTechRecord, self.ART_TECH_PERMALLIANCE, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_PERMANENT_ALLIANCE, i, -1, False )
+			screen.addDDSGFCAt( szPermanentAllianceButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_PERMALLIANCE, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_PERMANENT_ALLIANCE, i, -1, False )
 			fX += X_INCREMENT
 
 		j = 0
@@ -842,7 +805,7 @@ class CvTechChooser:
 		# Vassal States
 		if ( gc.getTechInfo(i).isVassalStateTrading() ):
 			szVassalStateButton = self.getNextWidgetName("VassalState")
-			screen.addDDSGFCAt( szVassalStateButton, szTechRecord, self.ART_TECH_VASSAL, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_VASSAL_STATE, i, -1, False )
+			screen.addDDSGFCAt( szVassalStateButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_VASSAL, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_VASSAL_STATE, i, -1, False )
 			fX += X_INCREMENT
 
 		j = 0
@@ -851,7 +814,7 @@ class CvTechChooser:
 		# Bridge Building
 		if ( gc.getTechInfo(i).isBridgeBuilding() ):
 			szBuildBridgeButton = self.getNextWidgetName("BuildBridge")
-			screen.addDDSGFCAt( szBuildBridgeButton, szTechRecord, self.ART_TECH_BRIDGEBUILDING, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_BUILD_BRIDGE, i, -1, False )
+			screen.addDDSGFCAt( szBuildBridgeButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_BRIDGEBUILDING, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_BUILD_BRIDGE, i, -1, False )
 			fX += X_INCREMENT
 
 		j = 0
@@ -860,7 +823,7 @@ class CvTechChooser:
 		# Irrigation unlocked...
 		if ( gc.getTechInfo(i).isIrrigation() ):
 			szIrrigationButton = self.getNextWidgetName("Irrigation")
-			screen.addDDSGFCAt( szIrrigationButton, szTechRecord, self.ART_TECH_IRRIGATION, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_IRRIGATION, i, -1, False )
+			screen.addDDSGFCAt( szIrrigationButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_IRRIGATION, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_IRRIGATION, i, -1, False )
 			fX += X_INCREMENT
 
 		j = 0
@@ -869,7 +832,7 @@ class CvTechChooser:
 		# Ignore Irrigation unlocked...
 		if ( gc.getTechInfo(i).isIgnoreIrrigation() ):
 			szIgnoreIrrigationButton = self.getNextWidgetName("IgnoreIrrigation")
-			screen.addDDSGFCAt( szIgnoreIrrigationButton, szTechRecord, self.ART_TECH_NOIRRIGATION, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_IGNORE_IRRIGATION, i, -1, False )
+			screen.addDDSGFCAt( szIgnoreIrrigationButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_NOIRRIGATION, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_IGNORE_IRRIGATION, i, -1, False )
 			fX += X_INCREMENT
 
 		j = 0
@@ -878,7 +841,7 @@ class CvTechChooser:
 		# Coastal Work unlocked...
 		if ( gc.getTechInfo(i).isWaterWork() ):
 			szWaterWorkButton = self.getNextWidgetName("WaterWork")
-			screen.addDDSGFCAt( szWaterWorkButton, szTechRecord, self.ART_TECH_WATERWORK, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_WATER_WORK, i, -1, False )
+			screen.addDDSGFCAt( szWaterWorkButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_WATERWORK, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_WATER_WORK, i, -1, False )
 			fX += X_INCREMENT
 
 		j = 0
@@ -915,7 +878,7 @@ class CvTechChooser:
 		for j in range( DomainTypes.NUM_DOMAIN_TYPES ):
 			if (gc.getTechInfo(i).getDomainExtraMoves(j) != 0):
 				szDomainExtraMovesButton = self.getNextWidgetName("DomainExtraMoves")
-				screen.addDDSGFCAt( szDomainExtraMovesButton, szTechRecord, self.ART_TECH_WATERMOVES, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_DOMAIN_EXTRA_MOVES, i, j, False )
+				screen.addDDSGFCAt( szDomainExtraMovesButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_WATERMOVES, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_DOMAIN_EXTRA_MOVES, i, j, False )
 				fX += X_INCREMENT
 
 		j = 0
@@ -968,7 +931,7 @@ class CvTechChooser:
 				if j == self.iDEEP_WATER_TERRAIN:
 					szArtInfoType = "INTERFACE_TECH_DEEPWATERTRADE"
 				# </advc.002d>
-				screen.addDDSGFCAt( szTerrainTradeButton, szTechRecord, ArtFileMgr.getInterfaceArtInfo(szArtInfoType).getPath(), iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_TERRAIN_TRADE, i, j, False )
+				screen.addDDSGFCAt( szTerrainTradeButton, szTechRecord, SASVisuals.InterfaceArt.getPath(szArtInfoType), iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_TERRAIN_TRADE, i, j, False )
 				fX += X_INCREMENT
 
 		j = gc.getNumTerrainInfos()	
@@ -976,7 +939,7 @@ class CvTechChooser:
 			# advc.124: Ability not used currently, but still, for consistency:
 			#and not (gc.getTeam(gc.getPlayer(self.iCivSelected).getTeam()).isRiverTrade()):
 			szTerrainTradeButton = self.getNextWidgetName("TerrainTradeButton")
-			screen.addDDSGFCAt( szTerrainTradeButton, szTechRecord, self.ART_TECH_RIVERTRADE, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_TERRAIN_TRADE, i, j, False )
+			screen.addDDSGFCAt( szTerrainTradeButton, szTechRecord, SASVisuals.InterfaceArt.INTERFACE_TECH_RIVERTRADE, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_TERRAIN_TRADE, i, j, False )
 			fX += X_INCREMENT
 
 		j = 0
@@ -1051,7 +1014,7 @@ class CvTechChooser:
 			if ( gc.getReligionInfo(j).getTechPrereq() == i ):
 				szFoundReligion = self.getNextWidgetName("FoundReligionButton")
 				if gc.getGame().isOption(GameOptionTypes.GAMEOPTION_PICK_RELIGION):
-					szButton = self.ART_POPUPBUTTON_RELIGION
+					szButton = SASVisuals.InterfaceArt.INTERFACE_POPUPBUTTON_RELIGION
 				else:
 					szButton = gc.getReligionInfo(j).getButton()
 				screen.addDDSGFCAt( szFoundReligion, szTechRecord, szButton, iX + fX, iY + Y_ROW, TEXTURE_SIZE, TEXTURE_SIZE, WidgetTypes.WIDGET_HELP_FOUND_RELIGION, i, j, False )
@@ -1122,7 +1085,7 @@ class CvTechChooser:
 				# Create and place a tech in its proper location
 				szTechRecord = "TechRecord" + str(i)
 				szTechID = "TechID" + str(i)
-				szTechString = sasFontTagLabel # advc.002b: was 1
+				szTechString = SASTextScale.sasFontTagLabel # advc.002b: was 1
 
 				if ( gc.getPlayer(self.iCivSelected).isResearchingTech(i) ):
 					szTechString = szTechString + unicode(gc.getPlayer(self.iCivSelected).getQueuePosition(i)) + ". "
@@ -1136,7 +1099,7 @@ class CvTechChooser:
 						iTurnsLeft = gc.getPlayer(self.iCivSelected).getResearchTurnsLeft(i, ( gc.getPlayer(self.iCivSelected).getCurrentResearch() == i ))
 						if iTurnsLeft > 0: # advc.004x: Don't show turns left during anarchy
 							szTechString += " (%d)" % iTurnsLeft
-					szTechString = szTechString + SAS_FONT_TAG_CLOSE
+					szTechString = szTechString + SASTextScale.SAS_FONT_TAG_CLOSE
 					screen.setTextAt( szTechID, sPanel, szTechString, CvUtil.FONT_LEFT_JUSTIFY, iX + 6 + X_INCREMENT, iY + 6, -0.1, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_TECH_TREE, i, -1 )
 					screen.setActivation( szTechID, ActivationTypes.ACTIVATE_MIMICPARENTFOCUS )
 
@@ -1173,13 +1136,13 @@ class CvTechChooser:
 
 		iLoop = 0
 
-		ARROW_X = self.ARROW_X
-		ARROW_Y = self.ARROW_Y
-		ARROW_MXMY = self.ARROW_MXMY
-		ARROW_XY = self.ARROW_XY
-		ARROW_MXY = self.ARROW_MXY
-		ARROW_XMY = self.ARROW_XMY
-		ARROW_HEAD = self.ARROW_HEAD
+		ARROW_X = SASVisuals.InterfaceArt.ARROW_X
+		ARROW_Y = SASVisuals.InterfaceArt.ARROW_Y
+		ARROW_MXMY = SASVisuals.InterfaceArt.ARROW_MXMY
+		ARROW_XY = SASVisuals.InterfaceArt.ARROW_XY
+		ARROW_MXY = SASVisuals.InterfaceArt.ARROW_MXY
+		ARROW_XMY = SASVisuals.InterfaceArt.ARROW_XMY
+		ARROW_HEAD = SASVisuals.InterfaceArt.ARROW_HEAD
 
 		for i in range(gc.getNumTechInfos()):
 			bFirst = 1
@@ -1312,7 +1275,7 @@ class CvTechChooser:
 			#iX = self.PREF_ICON_LEFT + 5 * PREF_ICON_SIZE / 4 - iIconSize / 2
 			#iY = PREF_ICON_TOP - iIconSize - 40
 			# advc.004a: WIDGET added
-			screen.addDDSGFC( "GreatPersonHeading", ArtFileMgr.getInterfaceArtInfo("DISCOVER_TECHNOLOGY_BUTTON").getPath(), iX, iY-iIconSize/5, iIconSize, iIconSize, WidgetTypes.WIDGET_TECH_PREFS_HEADING, -1, -1 )
+			screen.addDDSGFC( "GreatPersonHeading", SASVisuals.InterfaceArt.DISCOVER_TECHNOLOGY_BUTTON, iX, iY-iIconSize/5, iIconSize, iIconSize, WidgetTypes.WIDGET_TECH_PREFS_HEADING, -1, -1 )
 			iX += 3 * PREF_ICON_SIZE # advc.004a: Continue to the right
 
 		# advc.004a: Merged into the code below
@@ -1352,7 +1315,7 @@ class CvTechChooser:
 			if (pTech):
 				screen.addDDSGFC( szButtonName, pTech.getInfo().getButton(), iX, iY, PREF_ICON_SIZE, PREF_ICON_SIZE, WidgetTypes.WIDGET_TECH_PREFS_CURRENT, f, pTech.getID() ) # advc.004a: Pass pTech to widget
 			else:
-				screen.addDDSGFC( szButtonName, self.NO_TECH_ART, iX, iY, PREF_ICON_SIZE, PREF_ICON_SIZE, WidgetTypes.WIDGET_TECH_PREFS_CURRENT, f, -1 )
+				screen.addDDSGFC( szButtonName, SASVisuals.InterfaceArt.INTERFACE_BUTTONS_CANCEL, iX, iY, PREF_ICON_SIZE, PREF_ICON_SIZE, WidgetTypes.WIDGET_TECH_PREFS_CURRENT, f, -1 )
 			screen.show( szButtonName )
 			iX += PREF_ICON_SIZE  # advc.004a
 			# Tech GP will pop once selected techs are researched
@@ -1514,14 +1477,14 @@ class CvTechChooser:
 			iCost = gc.getPlayer(CyGame().getActivePlayer()).getAdvancedStartTechCost(self.m_iSelectedTech, true)
 
 		if iCost > 0:
-			szText = sasFontTagTitle + localText.getText("TXT_KEY_WB_AS_SELECTED_TECH_COST", (iCost, pPlayer.getAdvancedStartPoints())) + SAS_FONT_TAG_CLOSE
+			szText = SASTextScale.sasFontTagTitle + localText.getText("TXT_KEY_WB_AS_SELECTED_TECH_COST", (iCost, pPlayer.getAdvancedStartPoints())) + SASTextScale.SAS_FONT_TAG_CLOSE
 			screen.setLabel( "ASPointsLabel", "Background", szText, CvUtil.FONT_LEFT_JUSTIFY, self.X_ADVANCED_START_TEXT, self.Y_ADD_TECH_BUTTON + 3, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 		else:
 			screen.hide("ASPointsLabel")
 
-		szText = sasFontTagTitle
+		szText = SASTextScale.sasFontTagTitle
 		szText += localText.getText("TXT_KEY_WB_AS_SELECTED_TECH", (szName,))
-		szText += SAS_FONT_TAG_CLOSE
+		szText += SASTextScale.SAS_FONT_TAG_CLOSE
 		screen.setLabel( "SelectedTechLabel", "Background", szText, CvUtil.FONT_LEFT_JUSTIFY, self.X_ADVANCED_START_TEXT + 250, self.Y_ADD_TECH_BUTTON + 3, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 		# Want to add

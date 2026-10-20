@@ -3,11 +3,17 @@
 #
 # CIV Python Tools Code
 #
+
+# AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
+# (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
+
 import CvUtil
 import PyHelpers
 import Popup as PyPopup
 import CvScreenEnums
 from CvPythonExtensions import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 
 PyPlayer = PyHelpers.PyPlayer
 PyGame = PyHelpers.PyGame
@@ -319,7 +325,7 @@ class CvDebugTools:
 			szMovieFile = None
 			szArtDef = gc.getProjectInfo(i).getMovieArtDef()
 			if (len(szArtDef) > 0):
-				szMovieFile = CyArtFileMgr().getMovieArtInfo(szArtDef).getPath()
+				szMovieFile = SASVisuals.MovieArt.getPath(szArtDef)
 			if ((szMovieFile is not None) and len(szMovieFile) > 0):
 				popup.addPullDownString( gc.getProjectInfo(i).getDescription(), gc.getNumBuildingInfos() + i )
 

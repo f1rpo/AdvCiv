@@ -32,7 +32,7 @@
 		<config tag="events" parents="mod" module="BugConfig" class="EventsHandler"/>
 		<config tag="event" parents="mod" module="BugConfig" class="EventHandler"/>
 
-		<config tag="symbol" parents="mod" module="FontUtil" class="SymbolHandler"/>
+		<config tag="symbol" parents="mod" module="SASVisualUtils" class="SymbolHandler"/>
 		<config tag="shortcut" parents="mod" module="InputUtil" class="ShortcutHandler"/>
 		<config tag="widget" parents="mod" module="WidgetUtil" class="WidgetHandler"/>
 

@@ -6,6 +6,8 @@
 # Edits here are limited to repo-wide consistency passes (e.g. getInfoTypeOrFail for fail-loud XML lookups). (Claude code Opus 4.7) -->
 
 from CvPythonExtensions import *
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 from SASUtils import getInfoTypeOrFail
 import CvUtil
 import ScreenInput
@@ -667,14 +669,14 @@ class IconGrid_BUG:
 		self.scrollBottomArrow = self.getNextWidgetName()
 		x = self.xStart + self.width - self.scrollArrowSize
 		y = self.firstRowY
-		self.screen.setImageButton( self.scrollTopArrow, ArtFileMgr.getInterfaceArtInfo("SCROLL_TOP_ARROW").getPath(), x, y, self.scrollArrowSize, self.scrollArrowSize, WidgetTypes.WIDGET_GENERAL, self.SCROLL_TOP, -1 )
-		self.screen.setImageButton( self.pageUpArrow, ArtFileMgr.getInterfaceArtInfo("SCROLL_PAGE_UP_ARROW").getPath(), x, y + self.scrollArrowSize + 4, self.scrollArrowSize, self.scrollArrowSize, WidgetTypes.WIDGET_GENERAL, self.SCROLL_PAGE_UP, -1 )
-		self.screen.setImageButton( self.scrollUpArrow, ArtFileMgr.getInterfaceArtInfo("SCROLL_UP_ARROW").getPath(), x, y + 2 * (self.scrollArrowSize + 4), self.scrollArrowSize, self.scrollArrowSize, WidgetTypes.WIDGET_GENERAL, self.SCROLL_UP, -1 )
+		self.screen.setImageButton( self.scrollTopArrow, SASVisuals.InterfaceArt.SCROLL_TOP_ARROW, x, y, self.scrollArrowSize, self.scrollArrowSize, WidgetTypes.WIDGET_GENERAL, self.SCROLL_TOP, -1 )
+		self.screen.setImageButton( self.pageUpArrow, SASVisuals.InterfaceArt.SCROLL_PAGE_UP_ARROW, x, y + self.scrollArrowSize + 4, self.scrollArrowSize, self.scrollArrowSize, WidgetTypes.WIDGET_GENERAL, self.SCROLL_PAGE_UP, -1 )
+		self.screen.setImageButton( self.scrollUpArrow, SASVisuals.InterfaceArt.SCROLL_UP_ARROW, x, y + 2 * (self.scrollArrowSize + 4), self.scrollArrowSize, self.scrollArrowSize, WidgetTypes.WIDGET_GENERAL, self.SCROLL_UP, -1 )
 
 		y = self.yStart + self.height - self.scrollArrowSize
-		self.screen.setImageButton( self.scrollDownArrow, ArtFileMgr.getInterfaceArtInfo("SCROLL_DOWN_ARROW").getPath(), x, y - 2 * (self.scrollArrowSize + 4), self.scrollArrowSize, self.scrollArrowSize, WidgetTypes.WIDGET_GENERAL, self.SCROLL_DOWN, -1 )
-		self.screen.setImageButton( self.pageDownArrow, ArtFileMgr.getInterfaceArtInfo("SCROLL_PAGE_DOWN_ARROW").getPath(), x, y - (self.scrollArrowSize + 4), self.scrollArrowSize, self.scrollArrowSize, WidgetTypes.WIDGET_GENERAL, self.SCROLL_PAGE_DOWN, -1 )
-		self.screen.setImageButton( self.scrollBottomArrow, ArtFileMgr.getInterfaceArtInfo("SCROLL_BOTTOM_ARROW").getPath(), x, y, self.scrollArrowSize, self.scrollArrowSize, WidgetTypes.WIDGET_GENERAL, self.SCROLL_BOTTOM, -1 )
+		self.screen.setImageButton( self.scrollDownArrow, SASVisuals.InterfaceArt.SCROLL_DOWN_ARROW, x, y - 2 * (self.scrollArrowSize + 4), self.scrollArrowSize, self.scrollArrowSize, WidgetTypes.WIDGET_GENERAL, self.SCROLL_DOWN, -1 )
+		self.screen.setImageButton( self.pageDownArrow, SASVisuals.InterfaceArt.SCROLL_PAGE_DOWN_ARROW, x, y - (self.scrollArrowSize + 4), self.scrollArrowSize, self.scrollArrowSize, WidgetTypes.WIDGET_GENERAL, self.SCROLL_PAGE_DOWN, -1 )
+		self.screen.setImageButton( self.scrollBottomArrow, SASVisuals.InterfaceArt.SCROLL_BOTTOM_ARROW, x, y, self.scrollArrowSize, self.scrollArrowSize, WidgetTypes.WIDGET_GENERAL, self.SCROLL_BOTTOM, -1 )
 
 	def addGroups(self):
 		self.groupPanelName = self.getNextWidgetName()

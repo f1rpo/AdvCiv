@@ -18,7 +18,8 @@ import CvUtil
 import ScreenInput
 # <!-- custom: Removed the unused SevoScreenEnums import after its constants moved from SevoScreenEnums.py to the SevoScreenEnums class in CvScreenEnums.py.
 # This page uses none of those IDs, and the removed constants-only module had no initialization side effects. (GPT-6.1-Sol) -->
-from SASFontUtils import *
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import SASTextScale
 from SASUtils import getInfoTypeOrFail
 
@@ -227,7 +228,7 @@ class SevoPediaImprovement:
 					sign = "+"
 				else:
 					sign = ""
-				s += (u"%s%i%c " % (sign, iYieldChange, gc.getYieldInfo(k).getChar()))
+				s += (u"%s%i%s " % (sign, iYieldChange, SASVisuals.Yield.char(k)))
 				nCount += 1
 
 		if nCount > 0:
@@ -280,7 +281,7 @@ class SevoPediaImprovement:
 						sign = u"+"
 					else:
 						sign = u""
-					szYield += (u"%s%i%c" % (sign, iYieldChange, gc.getYieldInfo(k).getChar()))
+					szYield += (u"%s%i%s" % (sign, iYieldChange, SASVisuals.Yield.char(k)))
 			if bEffect:
 				childPanelName = self.top.getNextWidgetName()
 				screen.attachPanel(panelName, childPanelName, "", "", False, False, PanelStyles.PANEL_STYLE_EMPTY)
@@ -339,16 +340,16 @@ class SevoPediaImprovement:
 		for k in xrange(YieldTypes.NUM_YIELD_TYPES):
 			iYieldChange = Info.getIrrigatedYieldChange(k)
 			if iYieldChange != 0:
-				sText += u"%+d%c" % (iYieldChange, gc.getYieldInfo(k).getChar())
+				sText += u"%+d%s" % (iYieldChange, SASVisuals.Yield.char(k))
 		if len(sText) > 0:
-			attach_button_label_row(screen, self.top, panelName, ArtFileMgr.getInterfaceArtInfo("INTERFACE_TECH_IRRIGATION").getPath(), WidgetTypes.WIDGET_PEDIA_DESCRIPTION, CivilopediaPageTypes.CIVILOPEDIA_PAGE_CONCEPT, self.I_CONCEPT_IRRIGATION, sText)
+			attach_button_label_row(screen, self.top, panelName, SASVisuals.InterfaceArt.INTERFACE_TECH_IRRIGATION, WidgetTypes.WIDGET_PEDIA_DESCRIPTION, CivilopediaPageTypes.CIVILOPEDIA_PAGE_CONCEPT, self.I_CONCEPT_IRRIGATION, sText)
 
 		# Hills yield changes
 		sText = ""
 		for k in xrange(YieldTypes.NUM_YIELD_TYPES):
 			iYieldChange = Info.getHillsYieldChange(k)
 			if iYieldChange != 0:
-				sText += u"%+d%c" % (iYieldChange, gc.getYieldInfo(k).getChar())
+				sText += u"%+d%s" % (iYieldChange, SASVisuals.Yield.char(k))
 		if len(sText) > 0:
 			iHill = self.I_TERRAIN_HILL
 			attach_button_label_row(screen, self.top, panelName, gc.getTerrainInfo(iHill).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_TERRAIN, iHill, 1, sText)
@@ -358,7 +359,7 @@ class SevoPediaImprovement:
 		for k in xrange(YieldTypes.NUM_YIELD_TYPES):
 			iYieldChange = Info.getRiverSideYieldChange(k)
 			if iYieldChange != 0:
-				sText += u"%+d%c" % (iYieldChange, gc.getYieldInfo(k).getChar())
+				sText += u"%+d%s" % (iYieldChange, SASVisuals.Yield.char(k))
 		if len(sText) > 0:
 			# <!-- custom: unlike in m-e mod or so it seems, we don't use WidgetTypes.WIDGET_PYTHON (in this placeMostYields method) and id 6783 neither, so go for a simpler implementation, that matches how we redirect using concepts in sevopedia unit as of now to the concept_cities for example, we now have a new concept_rivers to redirect to now in advciv-sas, use that rather; done with the help of gemini ai thanks -->
 			# This button now links to the Civilopedia concept for Rivers.
@@ -366,7 +367,7 @@ class SevoPediaImprovement:
 			# Ensure 'CONCEPT_RIVERS' is defined in your Civilopedia XML.
 			riversConceptID = get_concept_id("CONCEPT_RIVERS")
 			widgetType, widgetID1, widgetID2 = get_concept_widgetType_widgetID1_widgetID2(riversConceptID, WidgetTypes, CivilopediaPageTypes)
-			attach_button_label_row(screen, self.top, panelName, ArtFileMgr.getInterfaceArtInfo("WORLDBUILDER_RIVER_PLACEMENT").getPath(), widgetType, widgetID1, widgetID2, sText)
+			attach_button_label_row(screen, self.top, panelName, SASVisuals.InterfaceArt.WORLDBUILDER_RIVER_PLACEMENT, widgetType, widgetID1, widgetID2, sText)
 
 		# Tech yield changes
 		for item in xrange(gc.getNumTechInfos()):
@@ -374,7 +375,7 @@ class SevoPediaImprovement:
 			for k in xrange(YieldTypes.NUM_YIELD_TYPES):
 				iYieldChange = Info.getTechYieldChanges(item, k)
 				if iYieldChange != 0:
-					sText += u"%+d%c" % (iYieldChange, gc.getYieldInfo(k).getChar())
+					sText += u"%+d%s" % (iYieldChange, SASVisuals.Yield.char(k))
 			if len(sText):
 				attach_button_label_row(screen, self.top, panelName, gc.getTechInfo(item).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_TECH, item, 1, sText)
 
@@ -384,7 +385,7 @@ class SevoPediaImprovement:
 			for k in xrange(YieldTypes.NUM_YIELD_TYPES):
 				iYieldChange = gc.getCivicInfo(item).getImprovementYieldChanges(self.iImprovement, k)
 				if iYieldChange != 0:
-					sText += u"%+d%c" % (iYieldChange, gc.getYieldInfo(k).getChar())
+					sText += u"%+d%s" % (iYieldChange, SASVisuals.Yield.char(k))
 			if len(sText):
 				attach_button_label_row(screen, self.top, panelName, gc.getCivicInfo(item).getButton(), WidgetTypes.WIDGET_PEDIA_JUMP_TO_CIVIC, item, 1, sText)
 
@@ -394,7 +395,7 @@ class SevoPediaImprovement:
 			for k in xrange(YieldTypes.NUM_YIELD_TYPES):
 				iYieldChange = Info.getRouteYieldChanges(item, k)
 				if iYieldChange != 0:
-					sText += u"%+d%c" % (iYieldChange, gc.getYieldInfo(k).getChar())
+					sText += u"%+d%s" % (iYieldChange, SASVisuals.Yield.char(k))
 			if len(sText):
 				# <!-- custom: link route yield changes to the real Build entries (road/railroad) now that Builds are a category.
 				# This removes the old concept route hack and keeps behavior consistent with other Build links. Credit: Claude Opus 4.5 + GPT-5.2-Codex. (GPT-5.2-Codex (summarized)) -->

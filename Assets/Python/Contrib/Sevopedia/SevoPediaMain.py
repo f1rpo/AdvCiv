@@ -50,10 +50,10 @@ import SevoPediaMusic
 import SevoPediaIndex
 
 import UnitUpgradesGraph
-import TraitUtil
 import BugCore
 import BugUtil
-from SASFontUtils import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import SASTextScale
 from SASUtils import getInfoTypeOrFail
 from SASMagicNumbers import *
@@ -70,7 +70,6 @@ localText = CyTranslator()
 
 AdvisorOpt = BugCore.game.Advisors
 
-g_TraitUtilInitDone = False
 
 class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 
@@ -155,7 +154,7 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		# Update: increased for upscaled text. -->
 		# <!-- custom: keep categories narrower at default font, but widen when UI label font is upscaled so text doesn't clip (GPT-5.3-Codex); Long_Comments_py.txt #16. -->
 		iCategoryWidth = 124
-		if getSASUIFontLabel() > 3:
+		if SASTextScale.getSASUIFontLabel() > 3:
 			iCategoryWidth = 166
 		self.W_CATEGORIES = iCategoryWidth
 		# <advc.004y>
@@ -295,19 +294,19 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		# This makes category edits safer (one-row change), easier to review, and less error-prone, while keeping the same runtime behavior and allowing explicit per-category icons without fallback/group logic.
 		# Icons are computed once here and embedded in the tuple, so they are not global state and don't depend on later setup.
 		# To add or reorder, edit SAS_CATEGORY_DEFS only; maps, list generators, and PEDIA_MAIN links update automatically. (GPT-5.2-Codex (summarized)) -->
-		iconCommerceResearch = u"%c  " % (gc.getCommerceInfo(CommerceTypes.COMMERCE_RESEARCH).getChar())
-		iconStrength = u"%c  " % (CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR))
-		iconSilverStar = u"%c  " % (CyGame().getSymbolID(FontSymbols.SILVER_STAR_CHAR))
-		iconYieldProduction = u"%c  " % (gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar())
-		iconYieldFood = u"%c  " % (gc.getYieldInfo(YieldTypes.YIELD_FOOD).getChar())
-		iconGreatPeople = u"%c  " % (CyGame().getSymbolID(FontSymbols.GREAT_PEOPLE_CHAR))
-		iconCitizen = u"%c  " % (CyGame().getSymbolID(FontSymbols.CITIZEN_CHAR))
-		iconMap = u"%c  " % (CyGame().getSymbolID(FontSymbols.MAP_CHAR))
-		iconCommerceCulture = u"%c  " % (gc.getCommerceInfo(CommerceTypes.COMMERCE_CULTURE).getChar())
-		iconYieldCommerce = u"%c  " % (gc.getYieldInfo(YieldTypes.YIELD_COMMERCE).getChar())
-		iconDefense = u"%c  " % (CyGame().getSymbolID(FontSymbols.DEFENSE_CHAR))
-		iconGreatGeneral = u"%c  " % (CyGame().getSymbolID(FontSymbols.GREAT_GENERAL_CHAR))
-		iconOccupation = u"%c  " % (CyGame().getSymbolID(FontSymbols.OCCUPATION_CHAR))
+		iconCommerceResearch = u"%s  " % (SASVisuals.Commerce.RESEARCH_CHAR)
+		iconStrength = u"%s  " % (SASVisuals.Font.STRENGTH_CHAR)
+		iconSilverStar = u"%s  " % (SASVisuals.Font.SILVER_STAR_CHAR)
+		iconYieldProduction = u"%s  " % (SASVisuals.Yield.PRODUCTION_CHAR)
+		iconYieldFood = u"%s  " % (SASVisuals.Yield.FOOD_CHAR)
+		iconGreatPeople = u"%s  " % (SASVisuals.Font.GREAT_PEOPLE_CHAR)
+		iconCitizen = u"%s  " % (SASVisuals.Font.CITIZEN_CHAR)
+		iconMap = u"%s  " % (SASVisuals.Font.MAP_CHAR)
+		iconCommerceCulture = u"%s  " % (SASVisuals.Commerce.CULTURE_CHAR)
+		iconYieldCommerce = u"%s  " % (SASVisuals.Yield.COMMERCE_CHAR)
+		iconDefense = u"%s  " % (SASVisuals.Font.DEFENSE_CHAR)
+		iconGreatGeneral = u"%s  " % (SASVisuals.Font.GREAT_GENERAL_CHAR)
+		iconOccupation = u"%s  " % (SASVisuals.Font.OCCUPATION_CHAR)
 
 		# <!-- custom: Central category wiring for list generators, screen handlers, and PEDIA_MAIN links; page IDs come from class SevoScreenEnums in CvScreenEnums.py.
 		# To add a category, insert one row in SAS_CATEGORY_DEFS: (PEDIA_ENUM, TXT_KEY, icon, listMethodName, screenClassOrInstance, PEDIA_MAIN_LINK_KEY or None).
@@ -364,8 +363,7 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 			if szLinkKey:
 				self.SAS_mainLinkToCategory[szLinkKey] = iEnum
 
-		# <!-- custom: add highlight text for sevopedia sorting needs as we added, here fetched once for performance optimization or such -->
-		self.COLOR_HIGHLIGHT_TEXT = getInfoTypeOrFail("COLOR_HIGHLIGHT_TEXT")
+		# <!-- custom: Cache Sevopedia grouping/layout defines on screen construction; shared highlight colors are resolved by SASVisualUtils instead of a screen-owned color cache. (GPT-6.1-Sol) -->
 		self.IS_SAS_SEVOPEDIA_MAIN_CIVICS_GROUP_BY_CIVIC_TYPES = (gc.getDefineINT("SAS_SEVOPEDIA_MAIN_CIVICS_GROUP_BY_CIVIC_TYPES") > 0)
 		self.IS_SAS_SEVOPEDIA_MAIN_TECHS_GROUP_BY_ERA = (gc.getDefineINT("SAS_SEVOPEDIA_MAIN_TECHS_GROUP_BY_ERA") > 0)
 		self.IS_SAS_SEVOPEDIA_MAIN_BUILDINGS_GROUP_BY_ERA = (gc.getDefineINT("SAS_SEVOPEDIA_MAIN_BUILDINGS_GROUP_BY_ERA") > 0)
@@ -736,10 +734,7 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 
 	def pediaShow(self):
 		SASDefineGuard.verify_or_raise("SevoPediaMain.pediaShow")
-		global g_TraitUtilInitDone
-		if not g_TraitUtilInitDone:
-			TraitUtil.init()
-			g_TraitUtilInitDone = True
+		SASVisuals.Trait.init()
 		self.iActivePlayer = gc.getGame().getActivePlayer()
 		self.iCategory = -1
 		if self.SAS_lastPediaJump is not None:
@@ -979,14 +974,14 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 
 	def setPediaCommonWidgets(self):
 		# advc.004y: was TXT_KEY_SEVOPEDIA_TITLE
-		self.HEAD_TEXT = sasFontTagTitle.bold + localText.getText("TXT_KEY_CIVILOPEDIA_TITLE",      ())         + SAS_FONT_TAG_CLOSE
+		self.HEAD_TEXT = SASTextScale.sasFontTagTitle.bold + localText.getText("TXT_KEY_CIVILOPEDIA_TITLE",      ())         + SASTextScale.SAS_FONT_TAG_CLOSE
 		self.BACK_TEXT = SASTextScale.titleText(localText.getText("TXT_KEY_PEDIA_SCREEN_BACK",    ()).upper())
 		self.NEXT_TEXT = SASTextScale.titleText(localText.getText("TXT_KEY_PEDIA_SCREEN_FORWARD", ()).upper())
 		self.SAS_CLEAR_TEXT = SASTextScale.titleText(localText.getText("TXT_KEY_PEDIA_SAS_CLEAR", ()).upper())
 		self.EXIT_TEXT = SASTextScale.titleText(localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT",    ()).upper())
 		# <!-- custom: build grey labels for global footer controls that stay visible but may be inactive.
 		# Page-specific Legend links still appear only when applicable: no Legend means no page legend, not an inactive global command. See KI#126. (GPT-5.5) -->
-		eLightGrey = getInfoTypeOrFail("COLOR_LIGHT_GREY")
+		eLightGrey = SASVisuals.Color.LIGHT_GREY
 		self.SAS_eFooterDisabledColor = eLightGrey
 		self.BACK_TEXT_DISABLED = SASTextScale.titleText(localText.changeTextColor(localText.getText("TXT_KEY_PEDIA_SCREEN_BACK", ()).upper(), eLightGrey))
 		self.NEXT_TEXT_DISABLED = SASTextScale.titleText(localText.changeTextColor(localText.getText("TXT_KEY_PEDIA_SCREEN_FORWARD", ()).upper(), eLightGrey))
@@ -997,7 +992,7 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 
 		self.TOC_TEXT = SASTextScale.titleText(localText.getText("TXT_KEY_PEDIA_SCREEN_CONTENTS", ()).upper())
 		self.INDEX_TEXT = SASTextScale.titleText(localText.getText("TXT_KEY_PEDIA_SCREEN_INDEX",  ()).upper())
-		eYellow = getInfoTypeOrFail("COLOR_YELLOW")
+		eYellow = SASVisuals.Color.YELLOW
 		self.TOC_ACTIVE_TEXT = SASTextScale.titleText(localText.getColorText("TXT_KEY_PEDIA_SCREEN_CONTENTS", (), eYellow).upper())
 		self.INDEX_ACTIVE_TEXT = SASTextScale.titleText(localText.getColorText("TXT_KEY_PEDIA_SCREEN_INDEX",  (), eYellow).upper())
 
@@ -1046,7 +1041,7 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		screen.setScreenGroup(1)
 		screen.showScreen(PopupStates.POPUPSTATE_IMMEDIATE, False)
 		# advc.001: Was getInterfaceArtInfo("SCREEN_BG_OPAQUE"), meaning that self.INTERFACE_ART_INFO was ignored. The original Civilopedia has the same bug fwiw.
-		screen.addDDSGFC(self.BACKGROUND_ID, ArtFileMgr.getInterfaceArtInfo(self.INTERFACE_ART_INFO).getPath(), 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.addDDSGFC(self.BACKGROUND_ID, SASVisuals.InterfaceArt.getPath(self.INTERFACE_ART_INFO), 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1)
 		screen.addPanel(self.TOP_PANEL_ID, u"", u"", True, False, self.X_TOP_PANEL, self.Y_TOP_PANEL, self.W_TOP_PANEL, self.H_TOP_PANEL, PanelStyles.PANEL_STYLE_TOPBAR)
 		screen.addPanel(self.BOT_PANEL_ID, u"", u"", True, False, self.X_BOT_PANEL, self.Y_BOT_PANEL, self.W_BOT_PANEL, self.H_BOT_PANEL, PanelStyles.PANEL_STYLE_BOTTOMBAR)
 		# <advc.004y>
@@ -1650,7 +1645,7 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 			if info:
 				# Store (raw_description_for_sorting, display_description_with_icon, id)
 				rawDesc = info.getDescription()
-				displayDesc = u"%c %s" % (TraitUtil.getIcon(iTrait), rawDesc)
+				displayDesc = u"%s %s" % (SASVisuals.Trait.getIcon(iTrait), rawDesc)
 				traitList.append((rawDesc, displayDesc, iTrait))
 		if self.isSortLists():
 			traitList.sort(key=lambda x: x[0])  # Sort by raw description
@@ -1667,7 +1662,7 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 				self.traitInfo = traitInfo
 				self.eTrait = eTrait
 			def getDescription(self):
-				return u"%c %s" % (TraitUtil.getIcon(self.eTrait), self.traitInfo.getDescription())
+				return u"%s %s" % (SASVisuals.Trait.getIcon(self.eTrait), self.traitInfo.getDescription())
 			def getButton(self):
 				return self.traitInfo.getButton()
 			def isGraphicalOnly(self):
@@ -2344,7 +2339,7 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 				# In Builds, data1 is repurposed to tech prereq for WIDGET_HELP_IMPROVEMENT; removable builds use <PrereqTech>NONE</PrereqTech>, so data1 becomes -1 even though they are real entries.
 				# If we check data1 here, those entries are misclassified as headers, their button/icon is cleared, and they appear without icons in Sevopedia Builds; the index remains fine because it uses a different list path. See also KI#113. (GPT-5.3-Codex) -->
 				if item[1] == -1:
-					sTitlePlaceItems = CyTranslator().changeTextColor(item[0], self.COLOR_HIGHLIGHT_TEXT)
+					sTitlePlaceItems = CyTranslator().changeTextColor(item[0], SASVisuals.Color.HIGHLIGHT_TEXT)
 					widgetPlaceItems = WidgetTypes.WIDGET_GENERAL
 					szButtonPlaceItems = szCustomHeaderButtonPlaceItems
 					data2 = 1
@@ -2365,7 +2360,7 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 				# <!-- custom: (That is basically the DoC approach, adapted to your variable names.).
 				# After this, your item lists can safely contain (..., -1) headers and blank separators. (ChatGPT-5.2) -->
 				if item[1] == -1:
-					sTitlePlaceItems = CyTranslator().changeTextColor(item[0], self.COLOR_HIGHLIGHT_TEXT)
+					sTitlePlaceItems = CyTranslator().changeTextColor(item[0], SASVisuals.Color.HIGHLIGHT_TEXT)
 					widgetPlaceItems = WidgetTypes.WIDGET_GENERAL
 					szButtonPlaceItems = szCustomHeaderButtonPlaceItems
 
@@ -2728,7 +2723,7 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		if (self.SAS_SEVOPEDIA_LEADER_ITEMS_NO_REDUCE_MIN_WIDTH > 0) and (self.getScreen().getXResolution() >= self.SAS_SEVOPEDIA_LEADER_ITEMS_NO_REDUCE_MIN_WIDTH):
 			return self.SAS_W_ITEMS_BASE
 
-		iLabelFont = getSASUIFontLabel()
+		iLabelFont = SASTextScale.getSASUIFontLabel()
 		if iLabelFont <= 1:
 			iWidth = self.SAS_SEVOPEDIA_LEADER_ITEMS_WIDTH_FONT_1
 		elif iLabelFont == 2:

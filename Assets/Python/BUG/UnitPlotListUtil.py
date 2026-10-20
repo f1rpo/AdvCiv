@@ -13,6 +13,8 @@
 # Edits here are limited to repo-wide consistency passes (e.g. getInfoTypeOrFail for fail-loud XML lookups). (Claude code Opus 4.7) -->
 
 from CvPythonExtensions import *
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 from SASUtils import getInfoTypeOrFail
 import MonkeyTools as mt
 import BugUtil
@@ -23,7 +25,6 @@ ArtFileMgr = CyArtFileMgr()
 localText = CyTranslator()
 
 iLeaderPromo = getInfoTypeOrFail("PROMOTION_LEADER")
-sFileNamePromo = ArtFileMgr.getInterfaceArtInfo("OVERLAY_PROMOTION_FRAME").getPath()
 #screen = CyGInterfaceScreen( "MainInterface", CvScreenEnums.MAIN_INTERFACE )
 
 # constants
@@ -113,7 +114,7 @@ class UnitPlot:
 		yPixel = _getyPixel(x)
 
 		# add promo frame
-		screen.addDDSGFCAt(_getPromoString(), vBupPanel, sFileNamePromo, xPixel + 2, yPixel + 2, 32, 32, WidgetTypes.WIDGET_PLOT_LIST, iIndex, -1, False )
+		screen.addDDSGFCAt(_getPromoString(), vBupPanel, SASVisuals.InterfaceArt.OVERLAY_PROMOTION_FRAME, xPixel + 2, yPixel + 2, 32, 32, WidgetTypes.WIDGET_PLOT_LIST, iIndex, -1, False )
 		screen.hide(_getPromoString())
 
 	def _getxPixel(self, x):

@@ -10,7 +10,8 @@ import CvScreenEnums
 import CvUtil
 import CvGameUtils
 import CvScreensInterface
-from SASFontUtils import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 from SASUtils import getInfoTypeOrFail
 import SASTextScale
 
@@ -120,15 +121,15 @@ class CvDanQuayle:
 		# Set the background and exit button, and show the screen
 		screen.setDimensions(0, 0, self.W_SCREEN, self.H_SCREEN)
 
-		screen.addDDSGFC(self.BACKGROUND_ID, ArtFileMgr.getInterfaceArtInfo("SCREEN_BG_OPAQUE").getPath(), 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		screen.addDDSGFC(self.BACKGROUND_ID, SASVisuals.InterfaceArt.SCREEN_BG_OPAQUE, 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 		screen.addPanel( "TechTopPanel", u"", u"", True, False, 0, 0, self.W_SCREEN, 55, PanelStyles.PANEL_STYLE_TOPBAR )
 		screen.addPanel( "TechBottomPanel", u"", u"", True, False, 0, self.H_SCREEN - 55, self.W_SCREEN, 55, PanelStyles.PANEL_STYLE_BOTTOMBAR )
 
 		screen.showWindowBackground(False)
-		screen.setText(self.EXIT_ID, "Background", sasFontTagTitle + localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ()).upper() + SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, self.X_EXIT, self.Y_EXIT, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_CLOSE_SCREEN, -1, -1 )
+		screen.setText(self.EXIT_ID, "Background", SASTextScale.sasFontTagTitle + localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_RIGHT_JUSTIFY, self.X_EXIT, self.Y_EXIT, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_CLOSE_SCREEN, -1, -1 )
 
 		# Header...
-		screen.setLabel(self.WIDGET_HEADER, "Background", sasFontTagTitle.bold + localText.getText("TXT_KEY_GAME_END_SCREEN_TITLE", ()).upper() + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, self.X_SCREEN, self.Y_TITLE, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setLabel(self.WIDGET_HEADER, "Background", SASTextScale.sasFontTagTitle.bold + localText.getText("TXT_KEY_GAME_END_SCREEN_TITLE", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, self.X_SCREEN, self.Y_TITLE, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 		# Leaderhead
 		screen.addLeaderheadGFC(self.LEADERHEAD_ID, replayInfo.getLeader(replayInfo.getActivePlayer()), AttitudeTypes.ATTITUDE_PLEASED, self.X_LEADERHEAD, self.Y_LEADERHEAD, self.W_LEADERHEAD, self.H_LEADERHEAD, WidgetTypes.WIDGET_GENERAL, -1, -1)
@@ -188,12 +189,12 @@ class CvDanQuayle:
 		screen.addMultilineText(self.TEXT_ID, SASTextScale.labelText(szBottomText), self.X_TEXT+5, self.Y_TEXT+5, self.W_TEXT-10, self.H_TEXT-10, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
 		screen.addPanel(self.SCORE_ID, u"", u"", True, False, self.X_SCORE, self.Y_SCORE, self.W_SCORE, self.H_SCORE, PanelStyles.PANEL_STYLE_IN)
-		screen.setLabelAt("", self.SCORE_ID, sasFontTagTitle + localText.getObjectText("TXT_KEY_VICTORY_SCORE", 0) + u" : " + unicode(iScore) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, self.W_SCORE/2-10, 5, 0, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setLabelAt("", self.SCORE_ID, SASTextScale.sasFontTagTitle + localText.getObjectText("TXT_KEY_VICTORY_SCORE", 0) + u" : " + unicode(iScore) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, self.W_SCORE/2-10, 5, 0, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 		screen.addListBoxGFC(self.LIST_ID, "", self.X_LIST, self.Y_LIST, self.W_LIST, self.H_LIST, TableStyles.TABLE_STYLE_STANDARD)
 		screen.enableSelect(self.LIST_ID, False)
 		# <!-- custom: hoist out of per-leader loop. (Claude code Opus 4.7) -->
-		eColorYellow = getInfoTypeOrFail("COLOR_YELLOW")
+		eColorYellow = SASVisuals.Color.YELLOW
 		for i in range(len(self.leaders)):
 			szText = self.leaders[i]
 			if (szLeaderText == szText):
@@ -201,7 +202,7 @@ class CvDanQuayle:
 			else:
 				szText = localText.getText(szText, ())
 
-			screen.appendListBoxString(self.LIST_ID, sasFontTagLabel + szText + SAS_FONT_TAG_CLOSE, WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
+			screen.appendListBoxString(self.LIST_ID, SASTextScale.sasFontTagLabel + szText + SASTextScale.SAS_FONT_TAG_CLOSE, WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
 
 	# returns a unique ID for a widget in this screen
 	def getNextWidgetName(self):

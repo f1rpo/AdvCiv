@@ -19,7 +19,8 @@ import CvUtil
 import ScreenInput
 # <!-- custom: Removed the unused SevoScreenEnums import after its constants moved from SevoScreenEnums.py to the SevoScreenEnums class in CvScreenEnums.py.
 # This page uses none of those IDs, and the removed constants-only module had no initialization side effects. (GPT-6.1-Sol) -->
-from SASFontUtils import *
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import SASTextScale
 from SASUtils import getInfoTypeOrFail
 
@@ -167,7 +168,6 @@ class SevoPediaUnit:
 		self.Y_PEAK_HILL_CITY_TERRAINS_FEATURES_MODIFIERS = self.Y_OF_UNIT_MODIFIERS_AGAINST_OTHERS
 		self.W_PEAK_HILL_CITY_TERRAINS_FEATURES_MODIFIERS = self.W_OF_UNIT_MODIFIERS_AGAINST_OTHERS
 		self.H_PEAK_HILL_CITY_TERRAINS_FEATURES_MODIFIERS = self.H_UNDER_ANIMATION_PANELS
-		self.citiesButtonPath = ArtFileMgr.getInterfaceArtInfo("SAS_CITIES_LANDSCAPE").getPath()
 
 		# Row 5 right half: History panel - aligned with Special panel
 		self.X_HISTORY = self.X_UNIT_ANIMATION
@@ -227,7 +227,7 @@ class SevoPediaUnit:
 			if szName and szName not in aUniqueNames:
 				aUniqueNames.append(szName)
 		if len(aUniqueNames) > 0:
-			szText += sasFontTagTitle + u"Unique Names" + SAS_FONT_TAG_CLOSE + u"\n\n"
+			szText += SASTextScale.sasFontTagTitle + u"Unique Names" + SASTextScale.SAS_FONT_TAG_CLOSE + u"\n\n"
 			for i in xrange(len(aUniqueNames)):
 				if i == 0:
 					szLine = localText.getText("[ICON_STAR]", ()) + aUniqueNames[i]
@@ -235,7 +235,7 @@ class SevoPediaUnit:
 					szLine = localText.getText("[ICON_BULLET]", ()) + aUniqueNames[i]
 				if i > 0:
 					szText += u"\n"
-				szText += sasFontTagLabel + szLine + SAS_FONT_TAG_CLOSE
+				szText += SASTextScale.sasFontTagLabel + szLine + SASTextScale.SAS_FONT_TAG_CLOSE
 			szText += u"\n\n"
 		# <!-- custom: same reasoning as for TXT_KEY_CIVILOPEDIA_STRATEGY in SevoPediaBuilding.py, removing (hiding) the entry entirely from sevopedia. -->
 		# <!-- custom: same reasoning as for/in SevopediaBuilding.py, i also don't need the redundant "History:" -->
@@ -283,7 +283,7 @@ class SevoPediaUnit:
 			iStrength = gc.getUnitInfo(self.iUnit).getCombat()
 		if iStrength > 0: # advc.004y: Don't show 0 strength for nukes
 			szStrength = localText.getText("TXT_KEY_PEDIA_STRENGTH_CUSTOM", (iStrength,))
-			szStrengthText = u"%c  " % CyGame().getSymbolID(FontSymbols.STRENGTH_CHAR) + szStrength
+			szStrengthText = SASVisuals.Font.STRENGTH_CHAR + u"  " + szStrength
 			screen.appendListBoxStringNoUpdate(panelName, SASTextScale.titleText(szStrengthText), WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
 
 		eDomain = gc.getUnitInfo(self.iUnit).getDomainType()
@@ -293,7 +293,7 @@ class SevoPediaUnit:
 			## Don't show 1 move for air units
 			#elif eDomain != DomainTypes.DOMAIN_AIR: # </advc.004y>
 			szMovement = localText.getText("TXT_KEY_PEDIA_MOVEMENT_CUSTOM", (gc.getUnitInfo(self.iUnit).getMoves(),))
-			szMovementText = u"%c  " % CyGame().getSymbolID(FontSymbols.MOVES_CHAR) + szMovement
+			szMovementText = SASVisuals.Font.MOVES_CHAR + u"  " + szMovement
 			screen.appendListBoxStringNoUpdate(panelName, SASTextScale.titleText(szMovementText), WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
 
 		# advc.004y: Moved range above production cost. Condition for ICBM added.
@@ -315,7 +315,7 @@ class SevoPediaUnit:
 				unitCost = gc.getActivePlayer().getUnitProductionNeeded(self.iUnit)
 
 			szCost = localText.getText("TXT_KEY_PEDIA_COST_CUSTOM", (unitCost,))
-			szCostText = u"%c  " % gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar() + szCost
+			szCostText = SASVisuals.Yield.PRODUCTION_CHAR + u"  " + szCost
 			screen.appendListBoxStringNoUpdate(panelName, SASTextScale.titleText(szCostText), WidgetTypes.WIDGET_GENERAL, 0, 0, CvUtil.FONT_LEFT_JUSTIFY)
 		screen.updateListBox(panelName)
 
@@ -713,7 +713,7 @@ class SevoPediaUnit:
 			citiesConceptID = get_concept_id("CONCEPT_CITIES")
 			widgetType, widgetID1, widgetID2 = get_concept_widgetType_widgetID1_widgetID2(citiesConceptID, WidgetTypes, CivilopediaPageTypes)
 
-			screen.appendMultiListButton(rowListName, self.citiesButtonPath, SEVOPEDIA_MULTILIST_COLUMN_INDEX_AUTO, widgetType, widgetID1, widgetID2, False)
+			screen.appendMultiListButton(rowListName, SASVisuals.InterfaceArt.SAS_CITIES_LANDSCAPE, SEVOPEDIA_MULTILIST_COLUMN_INDEX_AUTO, widgetType, widgetID1, widgetID2, False)
 
 			numTxt = get_numTxt_attack_defense_modifiers(iCityAttack, iCityDefense)
 			extraCorrectionX = get_extra_correction_x(numTxt)

@@ -6,7 +6,8 @@ from SASMagicNumbers import *
 
 import CvUtil
 import re
-from SASFontUtils import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import SASTextScale
 from SASUtils import getNewConceptID
 
@@ -29,7 +30,7 @@ HYPOTHESIZED_NON_MULTILIST_PANEL_INTER_BUTTON_SPACING = 4
 # <!-- custom: shared standard height for Sevopedia single-row non-multilist panels. (GPT-5.3-Codex) -->
 NON_MULTILIST_PANEL_STANDARD_HEIGHT = 110
 # <!-- custom: shared Y offset for history/background text panels that sit below an animation but have no panel header.
-# Used by Bonus, Improvement, Building, Tech, Unit and the expandable text panel helper. (Claude code Sonnet 4.6) -->
+# Used by SASVisuals.Bonus, Improvement, Building, Tech, Unit and the expandable text panel helper. (Claude code Sonnet 4.6) -->
 H_ADJUST_Y_AFTER_ANIMATION_NO_HEADER = 22
 # <!-- custom: Y offset to place the EXPAND button above a headerless animation panel.
 # Smaller than H_ADJUST_Y_AFTER_ANIMATION_NO_HEADER because animation panels sit near the top of the pedia area, leaving less room above them. (Claude code Sonnet 4.6) -->
@@ -207,7 +208,7 @@ SEVOPEDIA_MULTILIST_COLUMN_INDEX_AUTO = 0
 
 # <!-- custom: wrap an asset description in Civ4's <link=literal>...</link> markup so addMultilineText renders it as a clickable link.
 # When clicked, the engine calls SevoPediaMain.link(szLink), which reverse-looks-up the text through SAS_linkMatchDefs (techs, civics, buildings, units, promotions, specialists, features, improvements, bonuses, religions, corporations, traits, concepts, etc.) via each info's isMatchForLink(...) and pedia-jumps to the right page.
-# No DLL change needed — this piggybacks on the mechanism already used by Sevopedia Building/Unit/Trait/Leader pages and by CvGameTextMgr for inline pedia links.
+# No DLL change needed — this piggybacks on the mechanism already used by Sevopedia Building/Unit/SASVisuals.Trait/Leader pages and by CvGameTextMgr for inline pedia links.
 # Pass the exact localized description string (whatever info.getDescription() returned) so the reverse lookup finds a match. (Claude code Opus 4.7) -->
 def make_pedia_link(szText):
 	if not szText:
@@ -420,8 +421,8 @@ def place_new_concept_legend_link(top, new_concept_type):
 	if iConcept < 0:
 		return
 	screen = top.getScreen()
-	# <!-- custom: sasFontTagTitle is fine for the legend link here: Sevopedia pages are roomy and the link sits with other footer/header page chrome. (Claude code Opus 4.7; GPT-5.5) -->
-	szLegendText = sasFontTagTitle + localText.getText("TXT_KEY_PEDIA_SAS_LEGEND_LINK_SHORT", ()) + SAS_FONT_TAG_CLOSE
+	# <!-- custom: SASTextScale.sasFontTagTitle is fine for the legend link here: Sevopedia pages are roomy and the link sits with other footer/header page chrome. (Claude code Opus 4.7; GPT-5.5) -->
+	szLegendText = SASTextScale.sasFontTagTitle + localText.getText("TXT_KEY_PEDIA_SAS_LEGEND_LINK_SHORT", ()) + SASTextScale.SAS_FONT_TAG_CLOSE
 	screen.setText(top.getNextWidgetName(), "Background", szLegendText, CvUtil.FONT_LEFT_JUSTIFY, top.SAS_getFooterLegendX(), top.Y_BOT_PANEL + 16, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_PEDIA_DESCRIPTION, CivilopediaPageTypes.CIVILOPEDIA_PAGE_CONCEPT_NEW, iConcept)
 
 def draw_none_text(screen, selfTop, panelX, panelY, panelW, panelH, txtKey=None):
@@ -458,7 +459,7 @@ def draw_expandable_text_panel(screen, top, panelTitle, panelX, panelY, panelW, 
 		else:
 			sBgArtKey = u"SCREEN_BG_OPAQUE"
 		if sBgArtKey != u"(none)":
-			screen.addDDSGFC(top.getNextWidgetName(), ArtFileMgr.getInterfaceArtInfo(sBgArtKey).getPath(), iOverlayX, iOverlayY, iOverlayW, iOverlayH, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.addDDSGFC(top.getNextWidgetName(), SASVisuals.InterfaceArt.getPath(sBgArtKey), iOverlayX, iOverlayY, iOverlayW, iOverlayH, WidgetTypes.WIDGET_GENERAL, -1, -1)
 		# <!-- custom: when the caller passed no title, use "(Background)" so the expanded overlay always has a header bar for the CLOSE button to sit on. (Claude code Sonnet 4.6) -->
 		if panelTitle:
 			expandedTitle = panelTitle
@@ -549,7 +550,7 @@ def draw_expandable_content_panel_container(screen, top, panelTitle, panelX, pan
 		iOverlayY = top.Y_PEDIA_PAGE
 		iOverlayW = top.R_PEDIA_PAGE - top.X_PEDIA_PAGE
 		iOverlayH = top.B_PEDIA_PAGE - top.Y_PEDIA_PAGE
-		screen.addDDSGFC(top.getNextWidgetName(), ArtFileMgr.getInterfaceArtInfo("SCREEN_BG_OPAQUE").getPath(), iOverlayX, iOverlayY, iOverlayW, iOverlayH, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.addDDSGFC(top.getNextWidgetName(), SASVisuals.InterfaceArt.SCREEN_BG_OPAQUE, iOverlayX, iOverlayY, iOverlayW, iOverlayH, WidgetTypes.WIDGET_GENERAL, -1, -1)
 		panelName = top.getNextWidgetName()
 		screen.addPanel(panelName, expandedTitle, "", True, True, iOverlayX, iOverlayY, iOverlayW, iOverlayH, PanelStyles.PANEL_STYLE_MAIN)
 		screen.setButtonGFC(top.getNextWidgetName(), SASTextScale.labelText(u"RELOAD"), "", iOverlayX + iOverlayW - (iCloseButtonW + 10 + iReloadButtonW), iOverlayY + EXPANDED_OVERLAY_CLOSE_BUTTON_Y_OFFSET, iReloadButtonW, 26, WidgetTypes.WIDGET_PYTHON, iPythonReloadData1, -1, ButtonStyles.BUTTON_STYLE_STANDARD)
@@ -579,7 +580,7 @@ def draw_expandable_leaderhead_panel(screen, top, panelX, panelY, panelW, panelH
 		iOverlayY = top.Y_PEDIA_PAGE
 		iOverlayW = top.R_PEDIA_PAGE - top.X_PEDIA_PAGE
 		iOverlayH = top.B_PEDIA_PAGE - top.Y_PEDIA_PAGE
-		screen.addDDSGFC(top.getNextWidgetName(), ArtFileMgr.getInterfaceArtInfo("SCREEN_BG_OPAQUE").getPath(), iOverlayX, iOverlayY, iOverlayW, iOverlayH, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.addDDSGFC(top.getNextWidgetName(), SASVisuals.InterfaceArt.SCREEN_BG_OPAQUE, iOverlayX, iOverlayY, iOverlayW, iOverlayH, WidgetTypes.WIDGET_GENERAL, -1, -1)
 		screen.addPanel(top.getNextWidgetName(), u"(Content)", "", True, True, iOverlayX, iOverlayY, iOverlayW, iOverlayH, PanelStyles.PANEL_STYLE_MAIN)
 		screen.setButtonGFC(top.getNextWidgetName(), SASTextScale.labelText(u"CLOSE"), "", iOverlayX + iOverlayW - (iCloseButtonW + 10), iOverlayY + EXPANDED_OVERLAY_CLOSE_BUTTON_Y_OFFSET, iCloseButtonW, 26, WidgetTypes.WIDGET_PYTHON, iPythonWidgetData1, 0, ButtonStyles.BUTTON_STYLE_STANDARD)
 		# attitude/action column: right-aligned, same width as old RELOAD+CLOSE combined
@@ -708,7 +709,7 @@ def add_multilist_numTxt_under_button(multiListX, multiListY, extraCorrectionX, 
 
 	# <!-- custom: note: in this code, it seems we are still slightly off vs an ideally centered label, i don't know what the exact cause is, but maybe we can use this as a parameter to control more precisely label positioning based on/depending on numTxt and such as we prefer (center more or less aggressively depending on whether numTxt is expected to be long (like "+25/+100" for example) vs short (for example"+25%") in trying it as such, so we add a tiny bit of in this case extra x correction (extraCorrectionX) etc -->
 	textX = multiListX + HYPOTHESIZED_MULTI_LIST_EDGE_PADDING + startAtMiddleOfButtonCorrectionX + extraCorrectionX + ((buttonColumn - 1) * button_size) + ((buttonColumn - 1) * HYPOTHESIZED_MULTI_LIST_INTER_BUTTON_SPACING) + MULTILIST_NUMTXT_GLOBAL_X_ADJUST
-	iLabelFont = getSASUIFontLabel()
+	iLabelFont = SASTextScale.getSASUIFontLabel()
 	if iLabelFont > 2:
 		textX += (-3 * (iLabelFont - 2))
 
@@ -719,7 +720,7 @@ def add_multilist_numTxt_under_button(multiListX, multiListY, extraCorrectionX, 
 	textW = 2 * button_size
 	textH = 30
 
-	szNumTxt = sasFontTagLabel + numTxt + SAS_FONT_TAG_CLOSE
+	szNumTxt = SASTextScale.sasFontTagLabel + numTxt + SASTextScale.SAS_FONT_TAG_CLOSE
 	screen.addMultilineText(textName, szNumTxt, textX, textY, textW, textH, widgetType, -1, -1, font)
 
 def add_multilist_connector_numTxt_before_button(multiListX, multiListY, iButtonIndex, button_size, maxButtonsPerRow, numTxt, screen, selfTop, widgetType, font):
@@ -735,7 +736,7 @@ def add_multilist_connector_numTxt_before_button(multiListX, multiListY, iButton
 
 def chart_font2(szText):
 	# Wrap chart text using SAS dynamic scaling instead of hardcoded <font=2>.
-	return sasFontTagLabel + unicode(szText) + SAS_FONT_TAG_CLOSE
+	return SASTextScale.sasFontTagLabel + unicode(szText) + SASTextScale.SAS_FONT_TAG_CLOSE
 
 def chart_encode_base5(iValue, iDigits):
 	# Encode an integer as a base-5 string using invisible Unicode chars.
@@ -830,7 +831,7 @@ def chart_add_csv_log_button(screen, top, x, y, w, xPos=None, yPos=None):
 		return ""
 
 	# <!-- custom: mirror Timeline LOG sizing: keep compact default, slightly enlarge only when label font is upscaled (4) so "LOG" remains readable. (GPT-5.3-Codex) -->
-	if getSASUIFontLabel() > 3:
+	if SASTextScale.getSASUIFontLabel() > 3:
 		chart_log_button_w = 66
 		chart_log_button_h = 32
 	else:
@@ -841,7 +842,7 @@ def chart_add_csv_log_button(screen, top, x, y, w, xPos=None, yPos=None):
 	chart_log_button_footer_bottom_padding = 9
 
 	widget = top.getNextWidgetName()
-	label = sasFontTagLabel + localText.getText("TXT_KEY_SAS_INFO_TIMELINE_LOG_BUTTON", ()).upper() + SAS_FONT_TAG_CLOSE
+	label = SASTextScale.sasFontTagLabel + localText.getText("TXT_KEY_SAS_INFO_TIMELINE_LOG_BUTTON", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE
 	if xPos is None:
 		if hasattr(top, "X_EXIT"):
 			xPos = top.X_EXIT - chart_log_button_w - 90

@@ -9,7 +9,8 @@ from SASMagicNumbers import *
 import CvUtil
 # <!-- custom: SevoScreenEnums.py was removed; import its unchanged page IDs from the SevoScreenEnums class in CvScreenEnums.py, keeping them distinct from vanilla Civilopedia pages. (GPT-6.1-Sol) -->
 from CvScreenEnums import SevoScreenEnums
-from SASFontUtils import *
+# <!-- custom: Consolidate this dependency at the shared SASVisualUtils/SASTextScale boundary instead of retaining the retired overlapping visual-resource helper imports. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import SASTextScale
 
 from _sevopedia_helpers import *
@@ -58,7 +59,6 @@ class SevoPediaMovie:
 		self.H_BUTTON = 64
 		self.X_BUTTON = self.X_HEADER + self.W_HEADER - self.W_BUTTON - 10
 		self.Y_BUTTON = self.Y_HEADER + (self.H_HEADER - self.H_BUTTON) / 2
-		self.playButtonPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_PLAY_BUTTON").getPath()
 
 		self.X_HISTORY = self.X_HEADER
 		self.Y_HISTORY = self.Y_HEADER + self.H_HEADER + 10
@@ -91,11 +91,11 @@ class SevoPediaMovie:
 		szTitleText = ""
 		if info:
 			szTitleText = info.getDescription()
-		szTitle = sasFontTagTitle.bold + szTitleText.upper() + SAS_FONT_TAG_CLOSE
+		szTitle = SASTextScale.sasFontTagTitle.bold + szTitleText.upper() + SASTextScale.SAS_FONT_TAG_CLOSE
 		screen.setLabel(self.top.getNextWidgetName(), "Background", szTitle, CvUtil.FONT_LEFT_JUSTIFY, self.X_TITLE, self.Y_TITLE, 0, FontTypes.TITLE_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 		if self.hasMovie(iMovieType, iMovieId):
-			screen.setImageButton(self.top.getNextWidgetName(), self.playButtonPath, self.X_BUTTON, self.Y_BUTTON, self.W_BUTTON, self.H_BUTTON, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_MOVIE_PLAY, self.iMovie)
+			screen.setImageButton(self.top.getNextWidgetName(), SASVisuals.InterfaceArt.SAS_EMOJI_PLAY_BUTTON, self.X_BUTTON, self.Y_BUTTON, self.W_BUTTON, self.H_BUTTON, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_MOVIE_PLAY, self.iMovie)
 
 	def placeHistory(self):
 		screen = self.top.getScreen()
@@ -378,7 +378,7 @@ class SevoPediaMovie:
 			szArtDef = gc.getVictoryInfo(iMovieId).getMovie()
 			if not szArtDef:
 				return None
-			szMovie = CyArtFileMgr().getMovieArtInfo(szArtDef).getPath()
+			szMovie = SASVisuals.MovieArt.getPath(szArtDef)
 			if not szMovie:
 				return None
 			return (szMovie, "movie", None)
@@ -389,7 +389,7 @@ class SevoPediaMovie:
 				return None
 			if szMovie:
 				if (szMovie.find(".") == -1) or (szMovie.find("ART_DEF") > -1):
-					szMovie = CyArtFileMgr().getMovieArtInfo(szMovie).getPath()
+					szMovie = SASVisuals.MovieArt.getPath(szMovie)
 			if not szMovie:
 				return None
 			szMovieKind = "movie"
@@ -401,7 +401,7 @@ class SevoPediaMovie:
 			szArtDef = gc.getProjectInfo(iMovieId).getMovieArtDef()
 			if not szArtDef:
 				return None
-			szMovie = CyArtFileMgr().getMovieArtInfo(szArtDef).getPath()
+			szMovie = SASVisuals.MovieArt.getPath(szArtDef)
 			if not szMovie:
 				return None
 			return (szMovie, "movie", None)

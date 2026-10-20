@@ -5,9 +5,9 @@
 
 import CvUtil
 from CvPythonExtensions import *
-from SASFontUtils import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 import SASTextScale
-import TraitUtil
 
 ArtFileMgr = CyArtFileMgr()
 localText = CyTranslator()
@@ -84,7 +84,7 @@ class CvDawnOfMan:
 		self.calculateSizesAndPositions()
 
 		self.player = gc.getPlayer(gc.getGame().getActivePlayer())
-		self.EXIT_TEXT = sasFontTagTitle + localText.getText("TXT_KEY_SCREEN_CONTINUE", ()) + SAS_FONT_TAG_CLOSE
+		self.EXIT_TEXT = SASTextScale.sasFontTagTitle + localText.getText("TXT_KEY_SCREEN_CONTINUE", ()) + SASTextScale.SAS_FONT_TAG_CLOSE
 
 		# Create screen
 
@@ -128,11 +128,11 @@ class CvDawnOfMan:
 
 		# Info/"Stats" text
 
-		szNameText = "<color=255,255,0,255>" + sasFontTagTitle.bold + gc.getLeaderHeadInfo(self.player.getLeaderType()).getDescription().upper() + SAS_FONT_TAG_CLOSE
-		szNameText += u"\n" + sasFontTagLabel + u"- " + self.player.getCivilizationDescription(0) + u" -" + SAS_FONT_TAG_CLOSE + u"\n"
-		# <!-- custom: prepend each trait name with its TraitUtil font-symbol icon (e.g. happy char for Charismatic, defense char for Protective) so the Dawn of Man header uses the same compact trait display as Victory Screen Settings, and reads without requiring pedia-jump wiring.
+		szNameText = "<color=255,255,0,255>" + SASTextScale.sasFontTagTitle.bold + gc.getLeaderHeadInfo(self.player.getLeaderType()).getDescription().upper() + SASTextScale.SAS_FONT_TAG_CLOSE
+		szNameText += u"\n" + SASTextScale.sasFontTagLabel + u"- " + self.player.getCivilizationDescription(0) + u" -" + SASTextScale.SAS_FONT_TAG_CLOSE + u"\n"
+		# <!-- custom: prepend each trait name with its SASVisuals.Trait font-symbol icon (e.g. happy char for Charismatic, defense char for Protective) so the Dawn of Man header uses the same compact trait display as Victory Screen Settings, and reads without requiring pedia-jump wiring.
 		# Mirrors SevoPediaLeader trait-icon injection. (Claude code Sonnet 4.6 + GPT-5.5) -->
-		szNameText += sasFontTagLabel + TraitUtil.getLeaderTraitsWithIcons(self.player.getLeaderType(), self.player.getCivilizationType()) + SAS_FONT_TAG_CLOSE
+		szNameText += SASTextScale.sasFontTagLabel + SASVisuals.Trait.getLeaderTraitsWithIcons(self.player.getLeaderType(), self.player.getCivilizationType()) + SASTextScale.SAS_FONT_TAG_CLOSE
 		screen.addMultilineText( "NameText", szNameText, self.X_LEADER_TITLE_TEXT, self.Y_LEADER_TITLE_TEXT, self.W_LEADER_TITLE_TEXT, self.H_LEADER_TITLE_TEXT, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 
 		if not isLaterEraStart: # advc.250c: No free tech
@@ -191,12 +191,12 @@ class CvDawnOfMan:
 			screen.addMultilineText("HeaderText4", SASTextScale.normalizeLabelText(self.Text_BoxText), iCivInfoX, iCivInfoY, iCivInfoW, iCivInfoH, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
 		# Fancy icon things
-		screen.addDDSGFC( "IconLeft", ArtFileMgr.getCivilizationArtInfo(gc.getCivilizationInfo(self.player.getCivilizationType()).getArtDefineTag()).getButton(), self.X_FANCY_ICON1, self.Y_FANCY_ICON, self.WH_FANCY_ICON, self.WH_FANCY_ICON, WidgetTypes.WIDGET_GENERAL, -1, -1 )
-		screen.addDDSGFC( "IconRight", ArtFileMgr.getCivilizationArtInfo(gc.getCivilizationInfo(self.player.getCivilizationType()).getArtDefineTag()).getButton(), self.X_FANCY_ICON2, self.Y_FANCY_ICON, self.WH_FANCY_ICON, self.WH_FANCY_ICON, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		screen.addDDSGFC( "IconLeft", SASVisuals.CivilizationArt.button(self.player.getCivilizationType()), self.X_FANCY_ICON1, self.Y_FANCY_ICON, self.WH_FANCY_ICON, self.WH_FANCY_ICON, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		screen.addDDSGFC( "IconRight", SASVisuals.CivilizationArt.button(self.player.getCivilizationType()), self.X_FANCY_ICON2, self.Y_FANCY_ICON, self.WH_FANCY_ICON, self.WH_FANCY_ICON, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 		# Main Body text
 		if not isLaterEraStart: # advc.250c
-			szDawnTitle = sasFontTagTitle + localText.getText("TXT_KEY_DAWN_OF_MAN_SCREEN_TITLE", ()).upper() + SAS_FONT_TAG_CLOSE
+			szDawnTitle = SASTextScale.sasFontTagTitle + localText.getText("TXT_KEY_DAWN_OF_MAN_SCREEN_TITLE", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE
 			screen.setLabel("DawnTitle", "Background", szDawnTitle, CvUtil.FONT_CENTER_JUSTIFY, self.X_TEXT_PANEL + (self.W_TEXT_PANEL / 2), self.Y_TEXT_PANEL + 15, -2.0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 		# <advc.250c> Show the first text block only for Ancient start
 		bodyString1 = localText.getText("TXT_KEY_DAWN_OF_MAN_TEXT1", (CyGameTextMgr().getTimeStr(gc.getGame().getGameTurn(), false), self.player.getCivilizationAdjectiveKey()))

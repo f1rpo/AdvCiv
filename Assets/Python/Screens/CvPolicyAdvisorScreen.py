@@ -1,5 +1,9 @@
 ## Sid Meier's Civilization 4
 ## Copyright Firaxis Games 2005
+
+# AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
+# (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
+
 from CvPythonExtensions import *
 import PyHelpers
 import CvUtil
@@ -9,7 +13,9 @@ import CvScreensInterface
 import BugCore
 import PlayerUtil
 import ReligionUtil
-from SASFontUtils import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
+import SASTextScale
 from SASUtils import *
 
 # globals
@@ -84,8 +90,8 @@ class CvPolicyAdvisorScreen:
 		self.m_paeDisplayPolicies = []
 		self.m_paeOriginalPolicies = []
 
-		# <!-- custom: Religion advisor tab integration state/constants kept in Policy advisor init so no standalone Religion screen state is required anymore.
-		# Removed unused legacy Religion-screen members during migration to keep this tab-host class clean.
+		# <!-- custom: SASVisuals.Religion advisor tab integration state/constants kept in Policy advisor init so no standalone SASVisuals.Religion screen state is required anymore.
+		# Removed unused legacy SASVisuals.Religion-screen members during migration to keep this tab-host class clean.
 		# Legacy credit preserved from CvReligionScreen: scrolling aspect by johny smith (CFC thread 260697), inspiration from zappara for extended religion handling, then BUG/K-Mod/advc integration layers. (GPT-5.3-Codex) -->
 		self.RELIGION_NAME = "ReligionText"
 		self.RELIGION_BUTTON_NAME = "ReligionScreenButton"
@@ -107,7 +113,7 @@ class CvPolicyAdvisorScreen:
 		self.DX_RELIGION = 98
 		self.RELIGION_LEFT_LABEL_WIDTH = 180
 		self.RELIGION_RIGHT_PADDING = 16
-		# <!-- custom: use one uniform Religion row rhythm for top info rows and BUG summary rows. (GPT-5.3-Codex) -->
+		# <!-- custom: use one uniform SASVisuals.Religion row rhythm for top info rows and BUG summary rows. (GPT-5.3-Codex) -->
 		self.RELIGION_ROW_START_Y = 90
 		self.RELIGION_ROW_STEP_Y = 26
 		self.Y_FOUNDED = self.RELIGION_ROW_START_Y
@@ -118,7 +124,7 @@ class CvPolicyAdvisorScreen:
 		self.Y_RELIGION_NAME = 58
 		# <!-- custom: keep separate max lengths for non-ID vs ID rows; non-ID fields can use a bit more room. (GPT-5.3-Codex) -->
 		self.RELIGION_HOLY_CITY_CITY_MAX_CHARS_NO_ID = 22
-		# <!-- custom: keep Leader (ID) values short enough to stay inside each Religion column at common upscaled UI sizes. (GPT-5.3-Codex) -->
+		# <!-- custom: keep Leader (ID) values short enough to stay inside each SASVisuals.Religion column at common upscaled UI sizes. (GPT-5.3-Codex) -->
 		self.RELIGION_HOLY_CITY_OWNER_MAX_CHARS_WITH_ID = 16
 		# <!-- custom: Religions tab fixed layout constants; screen-dependent geometry is derived from these in updateRuntimeLayout. (GPT-5.3-Codex) -->
 		self.RELIGION_AREA_MARGIN_X = -4
@@ -151,7 +157,7 @@ class CvPolicyAdvisorScreen:
 		self.RELIGIONS = []
 		self.bBUGConstants = False
 
-		# <!-- custom: Corporation advisor tab integration constants/state (ported from BTS CvCorporationScreen) now live in Policy advisor for a single tabbed screen flow. (GPT-5.3-Codex) -->
+		# <!-- custom: SASVisuals.Corporation advisor tab integration constants/state (ported from BTS CvCorporationScreen) now live in Policy advisor for a single tabbed screen flow. (GPT-5.3-Codex) -->
 		self.CORPORATION_NAME = "CorporationText"
 		self.CORPORATION_BUTTON_NAME = "CorporationScreenButton"
 		self.CORPORATION_AREA1_ID = "CorporationAreaWidget1"
@@ -166,13 +172,13 @@ class CvPolicyAdvisorScreen:
 		self.NUM_CORPORATION_PREREQ_BONUSES = None
 		self.CORPORATION_LEFT_LABEL_WIDTH = 150
 		self.CORPORATION_RIGHT_PADDING = 16
-		# <!-- custom: keep a distinct HQ (ID) cap constant for future independent tuning, but currently match Religion's ID-row cap. (GPT-5.3-Codex) -->
+		# <!-- custom: keep a distinct HQ (ID) cap constant for future independent tuning, but currently match SASVisuals.Religion's ID-row cap. (GPT-5.3-Codex) -->
 		self.CORPORATION_HQ_MAX_CHARS_WITH_ID = self.RELIGION_HOLY_CITY_OWNER_MAX_CHARS_WITH_ID
 		self.CORPORATION_BUTTON_SIZE = 48
 		self.X_CORPORATION_START = 155
 		self.DX_CORPORATION = 116
 		self.Y_CORPORATION_BUTTONS = 35
-		# <!-- custom: keep corporation row spacing aligned with Religion now that Headquarters is single-line. (GPT-5.3-Codex) -->
+		# <!-- custom: keep corporation row spacing aligned with SASVisuals.Religion now that Headquarters is single-line. (GPT-5.3-Codex) -->
 		self.CORPORATION_ROW_START_Y = 58
 		self.CORPORATION_ROW_STEP_Y = self.RELIGION_ROW_STEP_Y
 		self.Y_CORPORATION_GREAT_PERSON = self.CORPORATION_ROW_START_Y
@@ -198,10 +204,10 @@ class CvPolicyAdvisorScreen:
 			return
 		self.iLanguageLoaded = CyGame().getCurrentLanguage()
 
-		self.TEXT_CANCEL = sasFontTagTitle + localText.getText("TXT_KEY_SCREEN_CANCEL", ()).upper() + SAS_FONT_TAG_CLOSE
-		self.TEXT_TITLE = sasFontTagTitle.bold + localText.getText("TXT_KEY_CIVICS_SCREEN_TITLE", ()).upper() + SAS_FONT_TAG_CLOSE
-		self.TEXT_EXIT = sasFontTagTitle + localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ()).upper() + SAS_FONT_TAG_CLOSE
-		self.TEXT_REVOLUTION = sasFontTagTitle + localText.getText("TXT_KEY_CONCEPT_REVOLUTION", ()).upper() + SAS_FONT_TAG_CLOSE
+		self.TEXT_CANCEL = SASTextScale.sasFontTagTitle + localText.getText("TXT_KEY_SCREEN_CANCEL", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.TEXT_TITLE = SASTextScale.sasFontTagTitle.bold + localText.getText("TXT_KEY_CIVICS_SCREEN_TITLE", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.TEXT_EXIT = SASTextScale.sasFontTagTitle + localText.getText("TXT_KEY_PEDIA_SCREEN_EXIT", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.TEXT_REVOLUTION = SASTextScale.sasFontTagTitle + localText.getText("TXT_KEY_CONCEPT_REVOLUTION", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE
 		self.TEXT_NO_UPKEEP = localText.getText("TXT_KEY_CIVICS_SCREEN_NO_UPKEEP", ())
 		# <!-- custom: tab captions should name subsections, not advisor screens; keep them concise like other merged advisors. (GPT-5.3-Codex) -->
 		self.TEXT_TAB_POLICY = localText.getText("TXT_KEY_CONCEPT_CIVICS", ()).upper()
@@ -210,7 +216,7 @@ class CvPolicyAdvisorScreen:
 		self.TEXT_TAB_CORPORATION = localText.getText("TXT_KEY_POLICY_TAB_CORPORATIONS", ()).upper()
 		self.PAGE_NAME_LIST = [self.TEXT_TAB_POLICY, self.TEXT_TAB_RELIGION, self.TEXT_TAB_CORPORATION]
 		self.EXIT_TEXT = self.TEXT_EXIT
-		self.CONVERT_TEXT = sasFontTagTitle + localText.getText("TXT_KEY_RELIGION_CONVERT", ()).upper() + SAS_FONT_TAG_CLOSE
+		self.CONVERT_TEXT = SASTextScale.sasFontTagTitle + localText.getText("TXT_KEY_RELIGION_CONVERT", ()).upper() + SASTextScale.SAS_FONT_TAG_CLOSE
 		self.TEXT_RELIGION_NO_STATE = localText.getText("TXT_KEY_RELIGION_SCREEN_NO_STATE", ())
 		self.TEXT_RELIGION_DATE_FOUNDED = localText.getText("TXT_KEY_RELIGION_SCREEN_DATE_FOUNDED", ())
 		self.TEXT_RELIGION_HOLY_CITY = localText.getText("TXT_KEY_RELIGION_SCREEN_HOLY_CITY", ())
@@ -229,27 +235,18 @@ class CvPolicyAdvisorScreen:
 		self.TEXT_BUG_RELIGIOUS_MONASTARY = localText.getText("TXT_KEY_BUG_RELIGIOUS_MONASTARY", ())
 		self.TEXT_BUG_RELIGIOUS_MISSIONARY = localText.getText("TXT_KEY_BUG_RELIGIOUS_MISSIONARY", ())
 		self.TEXT_WONDER_CITY = localText.getText("TXT_KEY_WONDER_CITY", ())
-		self.LABEL_RELIGION_NO_STATE = sasFontTagLabel + self.TEXT_RELIGION_NO_STATE + SAS_FONT_TAG_CLOSE
-		self.LABEL_RELIGION_DATE_FOUNDED = sasFontTagLabel + self.TEXT_RELIGION_DATE_FOUNDED + SAS_FONT_TAG_CLOSE
-		self.LABEL_RELIGION_HOLY_CITY = sasFontTagLabel + self.TEXT_RELIGION_HOLY_CITY + SAS_FONT_TAG_CLOSE
-		self.LABEL_RELIGION_INFLUENCE = sasFontTagLabel + self.TEXT_RELIGION_INFLUENCE + SAS_FONT_TAG_CLOSE
-		self.LABEL_CORP_ROW_BUILT_BY = sasFontTagLabel + self.TEXT_CORP_ROW_BUILT_BY + SAS_FONT_TAG_CLOSE
-		self.LABEL_CORP_ROW_CONSUMES = sasFontTagLabel + self.TEXT_CORP_ROW_CONSUMES + SAS_FONT_TAG_CLOSE
-		self.LABEL_CORP_ROW_GENERATES = sasFontTagLabel + self.TEXT_CORP_ROW_GENERATES + SAS_FONT_TAG_CLOSE
-		self.LABEL_CORP_ROW_GENERATES_2 = sasFontTagLabel + self.TEXT_CORP_ROW_GENERATES_2 + SAS_FONT_TAG_CLOSE
-		self.LABEL_CORP_ROW_FOUNDED = sasFontTagLabel + self.TEXT_CORP_ROW_FOUNDED + SAS_FONT_TAG_CLOSE
-		self.LABEL_CORP_ROW_HQ_ID = sasFontTagLabel + self.TEXT_CORP_ROW_HQ_ID + SAS_FONT_TAG_CLOSE
-		self.LABEL_NONE = sasFontTagLabel + self.TEXT_NONE + SAS_FONT_TAG_CLOSE
-		self.LABEL_UNKNOWN = sasFontTagLabel + self.TEXT_UNKNOWN + SAS_FONT_TAG_CLOSE
-		self.NO_STATE_BUTTON_ART = ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_CANCEL").getPath()
-		self.BUTTON_HILITE_SQUARE_ART = ArtFileMgr.getInterfaceArtInfo("BUTTON_HILITE_SQUARE").getPath()
-		self.BACKGROUND_ART = ArtFileMgr.getInterfaceArtInfo("MAINMENU_SLIDESHOW_LOAD").getPath()
-		self.ZOOM_ART = ArtFileMgr.getInterfaceArtInfo("INTERFACE_BUTTONS_CITYSELECTION").getPath()
-		self.COLOR_GREEN = getInfoTypeOrFail("COLOR_GREEN")
-		self.COLOR_RED = getInfoTypeOrFail("COLOR_RED")
-		self.COLOR_BLUE = getInfoTypeOrFail("COLOR_BLUE")
-		self.COLOR_WHITE = getInfoTypeOrFail("COLOR_WHITE")
-		self.COLOR_YELLOW = getInfoTypeOrFail("COLOR_YELLOW")
+		self.LABEL_RELIGION_NO_STATE = SASTextScale.sasFontTagLabel + self.TEXT_RELIGION_NO_STATE + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.LABEL_RELIGION_DATE_FOUNDED = SASTextScale.sasFontTagLabel + self.TEXT_RELIGION_DATE_FOUNDED + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.LABEL_RELIGION_HOLY_CITY = SASTextScale.sasFontTagLabel + self.TEXT_RELIGION_HOLY_CITY + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.LABEL_RELIGION_INFLUENCE = SASTextScale.sasFontTagLabel + self.TEXT_RELIGION_INFLUENCE + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.LABEL_CORP_ROW_BUILT_BY = SASTextScale.sasFontTagLabel + self.TEXT_CORP_ROW_BUILT_BY + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.LABEL_CORP_ROW_CONSUMES = SASTextScale.sasFontTagLabel + self.TEXT_CORP_ROW_CONSUMES + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.LABEL_CORP_ROW_GENERATES = SASTextScale.sasFontTagLabel + self.TEXT_CORP_ROW_GENERATES + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.LABEL_CORP_ROW_GENERATES_2 = SASTextScale.sasFontTagLabel + self.TEXT_CORP_ROW_GENERATES_2 + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.LABEL_CORP_ROW_FOUNDED = SASTextScale.sasFontTagLabel + self.TEXT_CORP_ROW_FOUNDED + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.LABEL_CORP_ROW_HQ_ID = SASTextScale.sasFontTagLabel + self.TEXT_CORP_ROW_HQ_ID + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.LABEL_NONE = SASTextScale.sasFontTagLabel + self.TEXT_NONE + SASTextScale.SAS_FONT_TAG_CLOSE
+		self.LABEL_UNKNOWN = SASTextScale.sasFontTagLabel + self.TEXT_UNKNOWN + SASTextScale.SAS_FONT_TAG_CLOSE
 
 	def updateRuntimeLayout(self, screen):
 		self.L_SCREEN, self.T_SCREEN, self.W_SCREEN, self.H_SCREEN = getAdvisorRuntimeBounds(screen, self.W_LEFT_SPACE_FOR_COMMERCE_SLIDERS, self.W_RIGHT_SPACE_FOR_SCOREBOARD, self.H_TOP_SPACE_FOR_TECH_BAR, self.H_BOTTOM_SPACE)
@@ -345,7 +342,7 @@ class CvPolicyAdvisorScreen:
 		# Set the background and exit button, and show the screen
 		screen.setDimensions(self.L_SCREEN, self.T_SCREEN, self.W_SCREEN, self.H_SCREEN)
 		# advc.002b (note): The background image has 2:1 dimensions, so the increased W_SCREEN value makes it less distorted than in BtS. (Except maybe on very high resolutions.)
-		screen.addDDSGFC(self.BACKGROUND_ID, self.BACKGROUND_ART, 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		screen.addDDSGFC(self.BACKGROUND_ID, SASVisuals.InterfaceArt.MAINMENU_SLIDESHOW_LOAD, 0, 0, self.W_SCREEN, self.H_SCREEN, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 		screen.addPanel( "PolicyTopPanel", u"", u"", True, False, 0, 0, self.W_SCREEN, 55, PanelStyles.PANEL_STYLE_TOPBAR )
 		screen.addPanel( "PolicyBottomPanel", u"", u"", True, False, 0, self.Y_BOTTOM_PANEL, self.W_SCREEN, 55, PanelStyles.PANEL_STYLE_BOTTOMBAR )
 		screen.showWindowBackground(False)
@@ -369,7 +366,7 @@ class CvPolicyAdvisorScreen:
 	# Draw the contents...
 	def drawTabs(self):
 		screen = self.getScreen()
-		drawAdvisorFooterTabs(screen, self.PAGE_TAB_IDS, self.PAGE_NAME_LIST, self.PAGE_LINK_WIDTH, self.iPage, self.Y_LINK, -0.1, self.COLOR_YELLOW)
+		drawAdvisorFooterTabs(screen, self.PAGE_TAB_IDS, self.PAGE_NAME_LIST, self.PAGE_LINK_WIDTH, self.iPage, self.Y_LINK, -0.1, SASVisuals.Color.YELLOW)
 
 	def clearPolicyTabWidgets(self):
 		screen = self.getScreen()
@@ -411,7 +408,7 @@ class CvPolicyAdvisorScreen:
 		screen.deleteWidget(self.CORPORATION_PANEL_ID)
 		screen.deleteWidget(self.CORPORATION_AREA1_ID)
 		screen.deleteWidget(self.CORPORATION_AREA2_ID)
-		# <!-- custom: fix observed tab-switch leak from Corporation second-panel multiline entries ("Child..."); remove them explicitly when leaving the tab. (GPT-5.3-Codex) -->
+		# <!-- custom: fix observed tab-switch leak from SASVisuals.Corporation second-panel multiline entries ("Child..."); remove them explicitly when leaving the tab. (GPT-5.3-Codex) -->
 		screen.deleteWidget("Child" + self.CORPORATION_AREA1_ID)
 		screen.deleteWidget("Child" + self.CORPORATION_AREA2_ID)
 		screen.deleteWidget(self.CORPORATION_HEADER_BUILT_BY_ID)
@@ -497,7 +494,7 @@ class CvPolicyAdvisorScreen:
 			else:
 				self.RELIGIONS = ReligionUtil.getPlayerReligions(gc.getPlayer(self.iActivePlayer))
 		else:
-			# <!-- custom: preserve K-Mod/advc behavior from legacy Religion screen: in non-BUG mode, use all religions directly (the old BUG branch/condition mismatch was fixed in K-Mod and later BUG 4.5). (GPT-5.3-Codex) -->
+			# <!-- custom: preserve K-Mod/advc behavior from legacy SASVisuals.Religion screen: in non-BUG mode, use all religions directly (the old BUG branch/condition mismatch was fixed in K-Mod and later BUG 4.5). (GPT-5.3-Codex) -->
 			self.RELIGIONS = range(gc.getNumReligionInfos())
 		self.iReligionSelected = gc.getPlayer(self.iActivePlayer).getStateReligion()
 		if self.iReligionSelected == -1:
@@ -541,7 +538,7 @@ class CvPolicyAdvisorScreen:
 			screen = self.getScreen()
 			screen.addPanel(szAreaID, "", "", True, True, fX, fY, self.HEADINGS_WIDTH, self.HEADINGS_BOTTOM - self.HEADINGS_TOP, PanelStyles.PANEL_STYLE_MAIN)
 
-			screen.setLabel(self.POLICY_OPTION_HEADER_NAME + str(i), "Background", sasFontTagLabel + gc.getCivicOptionInfo(i).getDescription().upper() + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, fX + self.HEADINGS_WIDTH / 2, self.HEADINGS_TOP + self.TEXT_MARGIN, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+			screen.setLabel(self.POLICY_OPTION_HEADER_NAME + str(i), "Background", SASTextScale.sasFontTagLabel + gc.getCivicOptionInfo(i).getDescription().upper() + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, fX + self.HEADINGS_WIDTH / 2, self.HEADINGS_TOP + self.TEXT_MARGIN, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 			fY += self.TEXT_MARGIN
 
@@ -549,9 +546,9 @@ class CvPolicyAdvisorScreen:
 				if (gc.getCivicInfo(j).getCivicOptionType() == i):										
 					fY += 2 * self.TEXT_MARGIN
 
-					screen.addCheckBoxGFC(self.getPolicyButtonName(j), gc.getCivicInfo(j).getButton(), self.BUTTON_HILITE_SQUARE_ART, fX + self.BUTTON_SIZE/2, fY, self.BUTTON_SIZE, self.BUTTON_SIZE, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_LABEL)
+					screen.addCheckBoxGFC(self.getPolicyButtonName(j), gc.getCivicInfo(j).getButton(), SASVisuals.InterfaceArt.BUTTON_HILITE_SQUARE, fX + self.BUTTON_SIZE/2, fY, self.BUTTON_SIZE, self.BUTTON_SIZE, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_LABEL)
 
-					screen.setText(self.getPolicyTextName(j), "", sasFontTagLabel + gc.getCivicInfo(j).getDescription() + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, fX + self.BUTTON_SIZE + self.TEXT_MARGIN, fY, 0, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+					screen.setText(self.getPolicyTextName(j), "", SASTextScale.sasFontTagLabel + gc.getCivicInfo(j).getDescription() + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, fX + self.BUTTON_SIZE + self.TEXT_MARGIN, fY, 0, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 			self.drawCivicOptionButtons(i)
 
@@ -637,7 +634,7 @@ class CvPolicyAdvisorScreen:
 
 		fX = self.HEADINGS_SPACING  + (self.HEADINGS_WIDTH + self.HEADINGS_SPACING) * iCivicOption
 
-		screen.setLabel(self.HELP_HEADER_NAME + str(iCivicOption), "Background",  sasFontTagLabel + gc.getCivicInfo(self.m_paeDisplayPolicies[iCivicOption]).getDescription().upper() + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, fX + self.HEADINGS_WIDTH/2, self.HELP_TOP + self.TEXT_MARGIN, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
+		screen.setLabel(self.HELP_HEADER_NAME + str(iCivicOption), "Background",  SASTextScale.sasFontTagLabel + gc.getCivicInfo(self.m_paeDisplayPolicies[iCivicOption]).getDescription().upper() + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, fX + self.HEADINGS_WIDTH/2, self.HELP_TOP + self.TEXT_MARGIN, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1 )
 
 		fY = self.HELP_TOP - self.BIG_BUTTON_SIZE
 		szHelpImageID = self.HELP_IMAGE_NAME + str(iCivicOption)		
@@ -645,7 +642,7 @@ class CvPolicyAdvisorScreen:
 
 		fY = self.HELP_TOP + 3 * self.TEXT_MARGIN
 		szHelpAreaID = self.HELP_AREA_NAME + str(iCivicOption)		
-		screen.addMultilineText(szHelpAreaID, sasFontTagLabel + szHelpText + SAS_FONT_TAG_CLOSE, fX+5, fY, self.HEADINGS_WIDTH-7, self.HELP_BOTTOM - fY-2, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+		screen.addMultilineText(szHelpAreaID, SASTextScale.sasFontTagLabel + szHelpText + SASTextScale.SAS_FONT_TAG_CLOSE, fX+5, fY, self.HEADINGS_WIDTH-7, self.HELP_BOTTOM - fY-2, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
 	# Will draw the help text
 	def drawAllHelpText(self):
@@ -691,12 +688,12 @@ class CvPolicyAdvisorScreen:
 		else:
 			szText = CyGameTextMgr().setRevolutionHelp(self.iActivePlayer)
 
-		screen.setLabel("PolicyRevText", "Background", sasFontTagLabel + szText + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, self.X_SCREEN, self.BOTTOM_LINE_TOP + self.TEXT_MARGIN//2, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setLabel("PolicyRevText", "Background", SASTextScale.sasFontTagLabel + szText + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, self.X_SCREEN, self.BOTTOM_LINE_TOP + self.TEXT_MARGIN//2, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 		# Maintenance		
 		#szText = localText.getText("TXT_KEY_CIVIC_SCREEN_UPKEEP", (activePlayer.getCivicUpkeep(self.m_paeDisplayPolicies, True), ))
 		szText = localText.getText("TXT_KEY_CIVIC_SCREEN_UPKEEP", (activePlayer.getCivicUpkeep(self.m_paeDisplayPolicies, True)*(100+activePlayer.calculateInflationRate())/100, )) # K-Mod
-		screen.setLabel("PolicyUpkeepText", "Background", sasFontTagLabel + szText + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, self.X_SCREEN, self.BOTTOM_LINE_TOP + self.BOTTOM_LINE_HEIGHT - 2 * self.TEXT_MARGIN, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setLabel("PolicyUpkeepText", "Background", SASTextScale.sasFontTagLabel + szText + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, self.X_SCREEN, self.BOTTOM_LINE_TOP + self.BOTTOM_LINE_HEIGHT - 2 * self.TEXT_MARGIN, 0, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 	# Revolution!!!
 	def Revolution(self, inputClass):
@@ -742,14 +739,14 @@ class CvPolicyAdvisorScreen:
 		for iRel in self.RELIGIONS:
 			szButtonName = self.getReligionButtonName(iRel)
 			if gc.getGame().getReligionGameTurnFounded(iRel) >= 0:
-				screen.addCheckBoxGFCAt(szArea, szButtonName, gc.getReligionInfo(iRel).getButton(), self.BUTTON_HILITE_SQUARE_ART, xLoop - iButtonOffset, 5, self.RELIGION_BUTTON_SIZE, self.RELIGION_BUTTON_SIZE, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_LABEL, False)
+				screen.addCheckBoxGFCAt(szArea, szButtonName, gc.getReligionInfo(iRel).getButton(), SASVisuals.InterfaceArt.BUTTON_HILITE_SQUARE, xLoop - iButtonOffset, 5, self.RELIGION_BUTTON_SIZE, self.RELIGION_BUTTON_SIZE, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_LABEL, False)
 			else:
 				screen.setImageButtonAt(szButtonName, szArea, gc.getReligionInfo(iRel).getButtonDisabled(), xLoop - iButtonOffset, 5, self.RELIGION_BUTTON_SIZE, self.RELIGION_BUTTON_SIZE, WidgetTypes.WIDGET_GENERAL, -1, -1)
-			screen.setLabelAt(self.getReligionTextName(iRel), szArea, sasFontTagLabel + gc.getReligionInfo(iRel).getDescription() + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_RELIGION_NAME, self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.setLabelAt(self.getReligionTextName(iRel), szArea, SASTextScale.sasFontTagLabel + gc.getReligionInfo(iRel).getDescription() + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_RELIGION_NAME, self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			xLoop += self.DX_RELIGION
 
 		szButtonName = self.getReligionButtonName(gc.getNumReligionInfos())
-		screen.addCheckBoxGFCAt(szArea, szButtonName, self.NO_STATE_BUTTON_ART, self.BUTTON_HILITE_SQUARE_ART, xLoop - iButtonOffset, 5, self.RELIGION_BUTTON_SIZE, self.RELIGION_BUTTON_SIZE, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_LABEL, False)
+		screen.addCheckBoxGFCAt(szArea, szButtonName, SASVisuals.InterfaceArt.INTERFACE_BUTTONS_CANCEL, SASVisuals.InterfaceArt.BUTTON_HILITE_SQUARE, xLoop - iButtonOffset, 5, self.RELIGION_BUTTON_SIZE, self.RELIGION_BUTTON_SIZE, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_LABEL, False)
 		screen.setLabelAt(self.getReligionTextName(gc.getNumReligionInfos()), szArea, self.LABEL_RELIGION_NO_STATE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_RELIGION_NAME, self.DZ, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 	def drawHelpInfo(self):
@@ -763,11 +760,11 @@ class CvPolicyAdvisorScreen:
 		for iRel in self.RELIGIONS:
 			if gc.getGame().getReligionGameTurnFounded(iRel) >= 0:
 				szFounded = CyGameTextMgr().getTimeStr(gc.getGame().getReligionGameTurnFounded(iRel), false)
-				screen.setLabelAt("ReligionFoundedValue" + str(iRel), szArea, sasFontTagLabel + szFounded + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_FOUNDED, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+				screen.setLabelAt("ReligionFoundedValue" + str(iRel), szArea, SASTextScale.sasFontTagLabel + szFounded + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_FOUNDED, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			xLoop += self.DX_RELIGION
 
 		screen.setLabelAt(self.RELIGION_HEADER_HOLY_CITY_ID, szArea, self.LABEL_RELIGION_HOLY_CITY, CvUtil.FONT_LEFT_JUSTIFY, self.LEFT_EDGE_TEXT, self.Y_HOLY_CITY, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
-		screen.setLabelAt(self.RELIGION_HEADER_OWNER_ID, szArea, sasFontTagLabel + u"Leader (ID)" + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, self.LEFT_EDGE_TEXT, self.Y_OWNER, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+		screen.setLabelAt(self.RELIGION_HEADER_OWNER_ID, szArea, SASTextScale.sasFontTagLabel + u"Leader (ID)" + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, self.LEFT_EDGE_TEXT, self.Y_OWNER, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 		xLoop = self.X_RELIGION_START
 		for iRel in self.RELIGIONS:
@@ -784,8 +781,8 @@ class CvPolicyAdvisorScreen:
 					szHolyCityName = self.trimReligionColumnText(pHolyCity.getName(), self.RELIGION_HOLY_CITY_CITY_MAX_CHARS_NO_ID)
 					iOwner = pHolyCity.getOwner()
 					szHolyCityOwner = self.trimReligionOwnerWithId(gc.getPlayer(iOwner).getName(), iOwner, self.RELIGION_HOLY_CITY_OWNER_MAX_CHARS_WITH_ID)
-					screen.setLabelAt("ReligionHolyCityValue" + str(iRel), szArea, sasFontTagLabel + szHolyCityName + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_HOLY_CITY, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
-					screen.setLabelAt("ReligionHolyCityOwner" + str(iRel), szArea, sasFontTagLabel + szHolyCityOwner + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_OWNER, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+					screen.setLabelAt("ReligionHolyCityValue" + str(iRel), szArea, SASTextScale.sasFontTagLabel + szHolyCityName + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_HOLY_CITY, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+					screen.setLabelAt("ReligionHolyCityOwner" + str(iRel), szArea, SASTextScale.sasFontTagLabel + szHolyCityOwner + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_OWNER, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			xLoop += self.DX_RELIGION
 
 		screen.setLabelAt(self.RELIGION_HEADER_INFLUENCE_ID, szArea, self.LABEL_RELIGION_INFLUENCE, CvUtil.FONT_LEFT_JUSTIFY, self.LEFT_EDGE_TEXT, self.Y_INFLUENCE, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
@@ -794,7 +791,7 @@ class CvPolicyAdvisorScreen:
 		for iRel in self.RELIGIONS:
 			if gc.getGame().getReligionGameTurnFounded(iRel) >= 0:
 				szFounded = str(gc.getGame().calculateReligionPercent(iRel)) + "%"
-				screen.setLabelAt("ReligionInfluenceValue" + str(iRel), szArea, sasFontTagLabel + szFounded + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_INFLUENCE, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+				screen.setLabelAt("ReligionInfluenceValue" + str(iRel), szArea, SASTextScale.sasFontTagLabel + szFounded + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_INFLUENCE, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			xLoop += self.DX_RELIGION
 
 		if self.isBugReligiousEnabled():
@@ -827,39 +824,39 @@ class CvPolicyAdvisorScreen:
 					if iUnit.getUnitType() == ReligionUtil.getUnit(iRel, ReligionUtil.UNIT_MISSIONARY):
 						iMissionaries_Active[iRel] += 1
 
-			# <!-- custom: keep BUG summary rows on the same vertical rhythm as the main Religion rows for consistent line spacing in this integrated tab. (GPT-5.3-Codex) -->
+			# <!-- custom: keep BUG summary rows on the same vertical rhythm as the main SASVisuals.Religion rows for consistent line spacing in this integrated tab. (GPT-5.3-Codex) -->
 			iY = self.Y_INFLUENCE + self.RELIGION_BUG_SUMMARY_FIRST_OFFSET_Y
 			sCities = "%s [%i]:" % (self.szCities, len(cityList))
-			screen.setLabelAt("ReligionCityCountHeader", szArea, sasFontTagLabel + sCities + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, self.LEFT_EDGE_TEXT, iY, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.setLabelAt("ReligionCityCountHeader", szArea, SASTextScale.sasFontTagLabel + sCities + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, self.LEFT_EDGE_TEXT, iY, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			xLoop = self.X_RELIGION_START
 			for iRel in self.RELIGIONS:
 				if gc.getGame().getReligionGameTurnFounded(iRel) >= 0:
-					screen.setLabelAt("ReligionCityCount" + str(iRel), szArea, sasFontTagLabel + ("%i" % iCities[iRel]) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, iY, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+					screen.setLabelAt("ReligionCityCount" + str(iRel), szArea, SASTextScale.sasFontTagLabel + ("%i" % iCities[iRel]) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, iY, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 				xLoop += self.DX_RELIGION
 
 			iY += self.RELIGION_ROW_STEP_Y
-			screen.setLabelAt("ReligionTempleHeader", szArea, sasFontTagLabel + self.szTemples + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, self.LEFT_EDGE_TEXT, iY, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.setLabelAt("ReligionTempleHeader", szArea, SASTextScale.sasFontTagLabel + self.szTemples + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, self.LEFT_EDGE_TEXT, iY, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			xLoop = self.X_RELIGION_START
 			for iRel in self.RELIGIONS:
 				if gc.getGame().getReligionGameTurnFounded(iRel) >= 0:
-					screen.setLabelAt("ReligionTempleCount" + str(iRel), szArea, sasFontTagLabel + ("%i" % iTemple[iRel]) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, iY, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+					screen.setLabelAt("ReligionTempleCount" + str(iRel), szArea, SASTextScale.sasFontTagLabel + ("%i" % iTemple[iRel]) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, iY, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 				xLoop += self.DX_RELIGION
 
 			iY += self.RELIGION_ROW_STEP_Y
-			screen.setLabelAt("ReligionMonasteryHeader", szArea, sasFontTagLabel + self.szMonastaries + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, self.LEFT_EDGE_TEXT, iY, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.setLabelAt("ReligionMonasteryHeader", szArea, SASTextScale.sasFontTagLabel + self.szMonastaries + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, self.LEFT_EDGE_TEXT, iY, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			xLoop = self.X_RELIGION_START
 			for iRel in self.RELIGIONS:
 				if gc.getGame().getReligionGameTurnFounded(iRel) >= 0:
-					screen.setLabelAt("ReligionMonasteryCount" + str(iRel), szArea, sasFontTagLabel + ("%i" % iMonastery[iRel]) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, iY, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+					screen.setLabelAt("ReligionMonasteryCount" + str(iRel), szArea, SASTextScale.sasFontTagLabel + ("%i" % iMonastery[iRel]) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, iY, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 				xLoop += self.DX_RELIGION
 
 			iY += self.RELIGION_ROW_STEP_Y
-			screen.setLabelAt("ReligionMissionaryHeader", szArea, sasFontTagLabel + self.szMissionaries + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, self.LEFT_EDGE_TEXT, iY, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.setLabelAt("ReligionMissionaryHeader", szArea, SASTextScale.sasFontTagLabel + self.szMissionaries + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, self.LEFT_EDGE_TEXT, iY, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			xLoop = self.X_RELIGION_START
 			for iRel in self.RELIGIONS:
 				if gc.getGame().getReligionGameTurnFounded(iRel) >= 0:
 					szFounded = "%i [%i]" % (iMissionaries_Active[iRel], iMissionaries_Construct[iRel])
-					screen.setLabelAt("ReligionMissionaryCount" + str(iRel), szArea, sasFontTagLabel + szFounded + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, iY, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+					screen.setLabelAt("ReligionMissionaryCount" + str(iRel), szArea, SASTextScale.sasFontTagLabel + szFounded + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, iY, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 				xLoop += self.DX_RELIGION
 
 	# BUG constants
@@ -867,22 +864,19 @@ class CvPolicyAdvisorScreen:
 		if self.bBUGConstants:
 			return
 		self.bBUGConstants = True
-		self.hammerIcon = u"%c" % (gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar())
 		self.objectIsPresent = "x"
 		self.objectIsNotPresent = "-"
 		self.objectCanBeBuild = "o"
-		self.objectUnderConstruction = self.hammerIcon
-		self.objectHave = localText.changeTextColor(self.objectIsPresent, self.COLOR_GREEN)
-		self.objectNotPossible = localText.changeTextColor(self.objectIsNotPresent, self.COLOR_RED)
-		self.objectPossible = localText.changeTextColor(self.objectCanBeBuild, self.COLOR_BLUE)
-		self.objectHaveObsolete = localText.changeTextColor(self.objectIsPresent, self.COLOR_WHITE)
-		self.objectNotPossibleConcurrent = localText.changeTextColor(self.objectIsNotPresent, self.COLOR_YELLOW)
-		self.objectPossibleConcurrent = localText.changeTextColor(self.objectCanBeBuild, self.COLOR_YELLOW)
+		self.objectHave = localText.changeTextColor(self.objectIsPresent, SASVisuals.Color.GREEN)
+		self.objectNotPossible = localText.changeTextColor(self.objectIsNotPresent, SASVisuals.Color.RED)
+		self.objectPossible = localText.changeTextColor(self.objectCanBeBuild, SASVisuals.Color.BLUE)
+		self.objectHaveObsolete = localText.changeTextColor(self.objectIsPresent, SASVisuals.Color.WHITE)
+		self.objectNotPossibleConcurrent = localText.changeTextColor(self.objectIsNotPresent, SASVisuals.Color.YELLOW)
+		self.objectPossibleConcurrent = localText.changeTextColor(self.objectCanBeBuild, SASVisuals.Color.YELLOW)
 		self.szCities = self.TEXT_BUG_RELIGIOUS_CITY
 		self.szTemples = self.TEXT_BUG_RELIGIOUS_TEMPLE
 		self.szMonastaries = self.TEXT_BUG_RELIGIOUS_MONASTARY
 		self.szMissionaries = self.TEXT_BUG_RELIGIOUS_MISSIONARY
-		self.zoomArt = self.ZOOM_ART
 		self.sCity = self.TEXT_WONDER_CITY
 
 	def drawCityInfo(self, iReligion):
@@ -928,25 +922,25 @@ class CvPolicyAdvisorScreen:
 				iEffectsW = 175
 				iCityW = iTableW - iEffectsW - iZoomW - self.NUM_RELIGIONS * iReligionW - ReligionUtil.getNumUnitTypes() * iUnitW - ReligionUtil.getNumBuildingTypes() * iBuildingW
 			screen.setTableColumnHeader(self.RELIGION_TABLE_ID, self.COL_ZOOM_CITY, "", iZoomW)
-			screen.setTableColumnHeader(self.RELIGION_TABLE_ID, self.COL_CITY_NAME, sasFontTagLabel + self.sCity + SAS_FONT_TAG_CLOSE, iCityW)
+			screen.setTableColumnHeader(self.RELIGION_TABLE_ID, self.COL_CITY_NAME, SASTextScale.sasFontTagLabel + self.sCity + SASTextScale.SAS_FONT_TAG_CLOSE, iCityW)
 
 			for iRel in range(self.NUM_RELIGIONS):
 				if gc.getGame().getReligionGameTurnFounded(iRel) >= 0:
-					szRelHeader = sasFontTagLabel + (u"%c" % (gc.getReligionInfo(iRel).getChar())) + SAS_FONT_TAG_CLOSE
+					szRelHeader = SASTextScale.sasFontTagLabel + SASVisuals.Religion.char(iRel) + SASTextScale.SAS_FONT_TAG_CLOSE
 				else:
 					szRelHeader = ""
 				screen.setTableColumnHeader(self.RELIGION_TABLE_ID, self.COL_FIRST_RELIGION + iRel, szRelHeader, iReligionW)
 			for type in ReligionUtil.getUnitTypes():
-				screen.setTableColumnHeader(self.RELIGION_TABLE_ID, self.COL_FIRST_UNIT + type.index, sasFontTagLabel + (u"%s" % type.icon) + SAS_FONT_TAG_CLOSE, iUnitW)
+				screen.setTableColumnHeader(self.RELIGION_TABLE_ID, self.COL_FIRST_UNIT + type.index, SASTextScale.sasFontTagLabel + (u"%s" % type.icon) + SASTextScale.SAS_FONT_TAG_CLOSE, iUnitW)
 			for type in ReligionUtil.getBuildingTypes():
-				screen.setTableColumnHeader(self.RELIGION_TABLE_ID, self.COL_FIRST_BUILDING + type.index, sasFontTagLabel + (u"%s" % type.icon) + SAS_FONT_TAG_CLOSE, iBuildingW)
+				screen.setTableColumnHeader(self.RELIGION_TABLE_ID, self.COL_FIRST_BUILDING + type.index, SASTextScale.sasFontTagLabel + (u"%s" % type.icon) + SASTextScale.SAS_FONT_TAG_CLOSE, iBuildingW)
 			screen.setTableColumnHeader(self.RELIGION_TABLE_ID, self.COL_EFFECTS, "", iEffectsW)
 
 			for iCity in range(len(cityList)):
 				pLoopCity = cityList[iCity]
 				screen.appendTableRow(self.RELIGION_TABLE_ID)
-				screen.setTableText(self.RELIGION_TABLE_ID, self.COL_ZOOM_CITY, iCity, "", self.zoomArt, WidgetTypes.WIDGET_ZOOM_CITY, pLoopCity.getOwner(), pLoopCity.getID(), CvUtil.FONT_LEFT_JUSTIFY)
-				screen.setTableText(self.RELIGION_TABLE_ID, self.COL_CITY_NAME, iCity, sasFontTagLabel + pLoopCity.getName() + SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+				screen.setTableText(self.RELIGION_TABLE_ID, self.COL_ZOOM_CITY, iCity, "", SASVisuals.InterfaceArt.INTERFACE_BUTTONS_CITYSELECTION, WidgetTypes.WIDGET_ZOOM_CITY, pLoopCity.getOwner(), pLoopCity.getID(), CvUtil.FONT_LEFT_JUSTIFY)
+				screen.setTableText(self.RELIGION_TABLE_ID, self.COL_CITY_NAME, iCity, SASTextScale.sasFontTagLabel + pLoopCity.getName() + SASTextScale.SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
 				lHolyCity = pLoopCity.getHolyCity()
 				lReligions = pLoopCity.getReligions()
@@ -954,29 +948,29 @@ class CvPolicyAdvisorScreen:
 					if gc.getGame().getReligionGameTurnFounded(iRel) >= 0:
 						szReligionIcon = ""
 						if iRel in lHolyCity:
-							szReligionIcon = sasFontTagLabel + (u"%c" % (gc.getReligionInfo(iRel).getHolyCityChar())) + SAS_FONT_TAG_CLOSE
+							szReligionIcon = SASTextScale.sasFontTagLabel + (SASVisuals.Religion.holyCityChar(iRel)) + SASTextScale.SAS_FONT_TAG_CLOSE
 						elif iRel in lReligions:
-							szReligionIcon = sasFontTagLabel + (u"%c" % (gc.getReligionInfo(iRel).getChar())) + SAS_FONT_TAG_CLOSE
+							szReligionIcon = SASTextScale.sasFontTagLabel + SASVisuals.Religion.char(iRel) + SASTextScale.SAS_FONT_TAG_CLOSE
 						screen.setTableText(self.RELIGION_TABLE_ID, self.COL_FIRST_RELIGION + iRel, iCity, szReligionIcon, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 
 				if ReligionUtil.isValid(iReligion):
 					for i in range(ReligionUtil.getNumUnitTypes()):
 						iUnit = ReligionUtil.getUnit(iReligion, i)
 						if pLoopCity.GetCy().getFirstUnitOrder(iUnit) != -1:
-							sUnit = self.objectUnderConstruction
+							sUnit = SASVisuals.Yield.PRODUCTION_CHAR
 						elif pLoopCity.GetCy().canTrain(iUnit, False, False):
 							sUnit = self.objectPossible
 						else:
 							sUnit = self.objectNotPossible
-						screen.setTableText(self.RELIGION_TABLE_ID, self.COL_FIRST_UNIT + i, iCity, sasFontTagLabel + sUnit + SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
+						screen.setTableText(self.RELIGION_TABLE_ID, self.COL_FIRST_UNIT + i, iCity, SASTextScale.sasFontTagLabel + sUnit + SASTextScale.SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 
 					for i in range(ReligionUtil.getNumBuildingTypes()):
 						iBldg = ReligionUtil.getBuilding(iReligion, i)
 						sBldg = self.calculateBuilding(pLoopCity, iBldg)
-						screen.setTableText(self.RELIGION_TABLE_ID, self.COL_FIRST_BUILDING + i, iCity, sasFontTagLabel + sBldg + SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
+						screen.setTableText(self.RELIGION_TABLE_ID, self.COL_FIRST_BUILDING + i, iCity, SASTextScale.sasFontTagLabel + sBldg + SASTextScale.SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_CENTER_JUSTIFY)
 
 				sHelp = self.cityHelp(lReligions, pLoopCity.GetCy(), iLinkReligion)
-				screen.setTableText(self.RELIGION_TABLE_ID, self.COL_EFFECTS, iCity, sasFontTagLabel + sHelp + SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
+				screen.setTableText(self.RELIGION_TABLE_ID, self.COL_EFFECTS, iCity, SASTextScale.sasFontTagLabel + sHelp + SASTextScale.SAS_FONT_TAG_CLOSE, "", WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 		else:
 			szLeftCities = u""
 			szRightCities = u""
@@ -985,16 +979,16 @@ class CvPolicyAdvisorScreen:
 				pLoopCity = cityList[i]
 				szCityName = u""
 				if pLoopCity.isCapital():
-					szCityName += u"%c" % CyGame().getSymbolID(FontSymbols.STAR_CHAR)
+					szCityName += u"%s" % SASVisuals.Font.STAR_CHAR
 				lHolyCity = pLoopCity.getHolyCity()
 				if lHolyCity:
 					for iI in range(len(lHolyCity)):
-						szCityName += u"%c" % (gc.getReligionInfo(lHolyCity[iI]).getHolyCityChar())
+						szCityName += SASVisuals.Religion.holyCityChar(lHolyCity[iI])
 				lReligions = pLoopCity.getReligions()
 				if lReligions:
 					for iI in range(len(lReligions)):
 						if lReligions[iI] not in lHolyCity:
-							szCityName += u"%c" % (gc.getReligionInfo(lReligions[iI]).getChar())
+							szCityName += u"%s" % (SASVisuals.Religion.char(lReligions[iI]))
 				szCityName += pLoopCity.getName()[0:17] + "  "
 				szCityName += self.cityHelp(lReligions, pLoopCity.GetCy(), iLinkReligion)
 				if bFirstColumn:
@@ -1020,10 +1014,10 @@ class CvPolicyAdvisorScreen:
 
 		# <!-- custom: in BUG-religious mode, place status text in the last strip of the city panel (no separate third panel) to keep the entire religion body contiguous. (GPT-5.3-Codex) -->
 		if bBugReligious:
-			screen.setLabel(self.RELIGION_ANARCHY_WIDGET, "Background", sasFontTagLabel + szAnarchyTime + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, self.X_RELIGION_AREA + self.W_RELIGION_AREA / 2, self.Y_RELIGION_STATUS + self.H_RELIGION_STATUS / 2 + self.RELIGION_STATUS_TEXT_Y_OFFSET, self.Z_TEXT, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.setLabel(self.RELIGION_ANARCHY_WIDGET, "Background", SASTextScale.sasFontTagLabel + szAnarchyTime + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, self.X_RELIGION_AREA + self.W_RELIGION_AREA / 2, self.Y_RELIGION_STATUS + self.H_RELIGION_STATUS / 2 + self.RELIGION_STATUS_TEXT_Y_OFFSET, self.Z_TEXT, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 		else:
 			screen.addPanel(self.RELIGION_STATUS_PANEL_ID, "", "", True, True, self.X_RELIGION_AREA, self.Y_RELIGION_STATUS, self.W_RELIGION_AREA, self.H_RELIGION_STATUS, PanelStyles.PANEL_STYLE_MAIN)
-			screen.setLabel(self.RELIGION_ANARCHY_WIDGET, "Background", sasFontTagLabel + szAnarchyTime + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, self.X_RELIGION_AREA + self.W_RELIGION_AREA / 2, self.Y_RELIGION_STATUS + self.H_RELIGION_STATUS / 2, self.Z_TEXT, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.setLabel(self.RELIGION_ANARCHY_WIDGET, "Background", SASTextScale.sasFontTagLabel + szAnarchyTime + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, self.X_RELIGION_AREA + self.W_RELIGION_AREA / 2, self.Y_RELIGION_STATUS + self.H_RELIGION_STATUS / 2, self.Z_TEXT, FontTypes.GAME_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 
 	def cityHelp(self, lReligions, kCity, eHoverReligion):
 		# <!-- custom: preserve advc.172 legacy semantics from CvReligionScreen for CyGameTextMgr.getReligionHelpCity (bForceState behavior adjustment via hover-vs-state religion comparison). (GPT-5.3-Codex) -->
@@ -1106,7 +1100,7 @@ class CvPolicyAdvisorScreen:
 		if city.getNumBuilding(bldg) > 0:
 			return self.objectHave
 		elif city.GetCy().getFirstBuildingOrder(bldg) != -1:
-			return self.objectUnderConstruction
+			return SASVisuals.Yield.PRODUCTION_CHAR
 		elif city.GetCy().canConstruct(bldg, False, False, False):
 			return self.objectPossible
 		elif city.GetCy().canConstruct(bldg, True, False, False):
@@ -1130,7 +1124,7 @@ class CvPolicyAdvisorScreen:
 		for iCorp in range(gc.getNumCorporationInfos()):
 			szButtonName = self.getCorporationButtonName(iCorp)
 			kCorpInfo = gc.getCorporationInfo(iCorp)
-			screen.addCheckBoxGFCAt(self.CORPORATION_PANEL_ID, szButtonName, kCorpInfo.getButton(), self.BUTTON_HILITE_SQUARE_ART, xLoop - iButtonOffset, self.Y_CORPORATION_BUTTONS - iButtonOffset, self.CORPORATION_BUTTON_SIZE, self.CORPORATION_BUTTON_SIZE, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_LABEL, False)
+			screen.addCheckBoxGFCAt(self.CORPORATION_PANEL_ID, szButtonName, kCorpInfo.getButton(), SASVisuals.InterfaceArt.BUTTON_HILITE_SQUARE, xLoop - iButtonOffset, self.Y_CORPORATION_BUTTONS - iButtonOffset, self.CORPORATION_BUTTON_SIZE, self.CORPORATION_BUTTON_SIZE, WidgetTypes.WIDGET_GENERAL, -1, -1, ButtonStyles.BUTTON_STYLE_LABEL, False)
 			xLoop += self.DX_CORPORATION
 
 		xLoop = self.X_CORPORATION_START
@@ -1150,16 +1144,16 @@ class CvPolicyAdvisorScreen:
 			if iFoundingUnit != -1:
 				# <!-- custom: render Built by as a true inline pair (icon + text) by using one shared left anchor per column. (GPT-5.3-Codex) -->
 				screen.setImageButtonAt(self.getCorporationTextName(iCorp) + "GreatPersonIcon", self.CORPORATION_PANEL_ID, kUnitInfo.getButton(), iBuiltByLeftX, self.Y_CORPORATION_GREAT_PERSON, 24, 24, WidgetTypes.WIDGET_GENERAL, -1, -1)
-			screen.setLabelAt(self.getCorporationTextName(iCorp) + "GreatPerson", self.CORPORATION_PANEL_ID, sasFontTagLabel + szGreatPerson + SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, iBuiltByLeftX + 22, self.Y_CORPORATION_GREAT_PERSON, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.setLabelAt(self.getCorporationTextName(iCorp) + "GreatPerson", self.CORPORATION_PANEL_ID, SASTextScale.sasFontTagLabel + szGreatPerson + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_LEFT_JUSTIFY, iBuiltByLeftX + 22, self.Y_CORPORATION_GREAT_PERSON, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			xLoop += self.DX_CORPORATION
 
 		xLoop = self.X_CORPORATION_START
 		for iCorp in range(gc.getNumCorporationInfos()):
 			# <!-- custom: cache corporation info once per column and reuse across all row renderers to avoid repeated lookups in the same draw pass. (GPT-5.3-Codex) -->
 			kCorpInfo = gc.getCorporationInfo(iCorp)
-			screen.setLabelAt(self.getCorporationTextName(iCorp) + "Consumes", self.CORPORATION_PANEL_ID, sasFontTagLabel + self.getCorporationConsumedText(kCorpInfo) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_CORPORATION_CONSUMES, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
-			screen.setLabelAt(self.getCorporationTextName(iCorp) + "Generates", self.CORPORATION_PANEL_ID, sasFontTagLabel + self.getCorporationGeneratedBonusText(kCorpInfo) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_CORPORATION_GENERATES_BONUS, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
-			screen.setLabelAt(self.getCorporationTextName(iCorp) + "GeneratesYields", self.CORPORATION_PANEL_ID, sasFontTagLabel + self.getCorporationGeneratedText(kCorpInfo) + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_CORPORATION_GENERATES, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.setLabelAt(self.getCorporationTextName(iCorp) + "Consumes", self.CORPORATION_PANEL_ID, SASTextScale.sasFontTagLabel + self.getCorporationConsumedText(kCorpInfo) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_CORPORATION_CONSUMES, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.setLabelAt(self.getCorporationTextName(iCorp) + "Generates", self.CORPORATION_PANEL_ID, SASTextScale.sasFontTagLabel + self.getCorporationGeneratedBonusText(kCorpInfo) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_CORPORATION_GENERATES_BONUS, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.setLabelAt(self.getCorporationTextName(iCorp) + "GeneratesYields", self.CORPORATION_PANEL_ID, SASTextScale.sasFontTagLabel + self.getCorporationGeneratedText(kCorpInfo) + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_CORPORATION_GENERATES, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			xLoop += self.DX_CORPORATION
 
 		# <!-- custom: explicit row labels for corporation effects to keep top-panel semantics clear after tab integration and row reordering. (GPT-5.3-Codex) -->
@@ -1174,22 +1168,22 @@ class CvPolicyAdvisorScreen:
 				szFounded = self.TEXT_NOT_FOUNDED
 			else:
 				szFounded = CyGameTextMgr().getTimeStr(gc.getGame().getCorporationGameTurnFounded(iCorp), false)
-			screen.setLabelAt(self.getCorporationTextName(iCorp) + "Founded", self.CORPORATION_PANEL_ID, sasFontTagLabel + szFounded + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_CORPORATION_FOUNDED, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+			screen.setLabelAt(self.getCorporationTextName(iCorp) + "Founded", self.CORPORATION_PANEL_ID, SASTextScale.sasFontTagLabel + szFounded + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_CORPORATION_FOUNDED, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			xLoop += self.DX_CORPORATION
 
-		# <!-- custom: use one-line HQ values with owner ID (no separate nationality line) to match Religion-style concise ownership display and reduce vertical crowding. (GPT-5.3-Codex) -->
+		# <!-- custom: use one-line HQ values with owner ID (no separate nationality line) to match SASVisuals.Religion-style concise ownership display and reduce vertical crowding. (GPT-5.3-Codex) -->
 		screen.setLabelAt(self.CORPORATION_HEADER_HEADQUARTERS_ID, self.CORPORATION_PANEL_ID, self.LABEL_CORP_ROW_HQ_ID, CvUtil.FONT_LEFT_JUSTIFY, self.LEFT_EDGE_TEXT, self.Y_CORPORATION_HEADQUARTERS, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 		xLoop = self.X_CORPORATION_START
 		for iCorp in range(gc.getNumCorporationInfos()):
 			pHeadquarters = gc.getGame().getHeadquarters(iCorp)
 			if pHeadquarters.isNone():
-				screen.setLabelAt(self.getCorporationTextName(iCorp) + "HeadquartersCity", self.CORPORATION_PANEL_ID, sasFontTagLabel + u"-" + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_CORPORATION_HEADQUARTERS, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+				screen.setLabelAt(self.getCorporationTextName(iCorp) + "HeadquartersCity", self.CORPORATION_PANEL_ID, SASTextScale.sasFontTagLabel + u"-" + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_CORPORATION_HEADQUARTERS, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			elif not pHeadquarters.isRevealed(iMapObserverTeam, False):
 				screen.setLabelAt(self.getCorporationTextName(iCorp) + "HeadquartersCity", self.CORPORATION_PANEL_ID, self.LABEL_UNKNOWN, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_CORPORATION_HEADQUARTERS, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			else:
 				iOwner = pHeadquarters.getOwner()
 				szHeadquarters = self.trimTextWithId(pHeadquarters.getName(), iOwner, self.CORPORATION_HQ_MAX_CHARS_WITH_ID)
-				screen.setLabelAt(self.getCorporationTextName(iCorp) + "HeadquartersCity", self.CORPORATION_PANEL_ID, sasFontTagLabel + szHeadquarters + SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_CORPORATION_HEADQUARTERS, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
+				screen.setLabelAt(self.getCorporationTextName(iCorp) + "HeadquartersCity", self.CORPORATION_PANEL_ID, SASTextScale.sasFontTagLabel + szHeadquarters + SASTextScale.SAS_FONT_TAG_CLOSE, CvUtil.FONT_CENTER_JUSTIFY, xLoop, self.Y_CORPORATION_HEADQUARTERS, self.DZ, FontTypes.SMALL_FONT, WidgetTypes.WIDGET_GENERAL, -1, -1)
 			xLoop += self.DX_CORPORATION
 
 	def getCorporationGeneratedText(self, kCorpInfo):
@@ -1200,19 +1194,19 @@ class CvPolicyAdvisorScreen:
 			if iValue != 0:
 				if len(szText) > 0:
 					szText += u", "
-				szText += self.getCorporationGeneratedValueText(iValue) + u"%c" % gc.getYieldInfo(iYield).getChar()
+				szText += self.getCorporationGeneratedValueText(iValue) + u"%s" % SASVisuals.Yield.char(iYield)
 		for iCommerce in range(CommerceTypes.NUM_COMMERCE_TYPES):
 			iValue = self.getScaledCorporationGeneratedValue(kCorpInfo.getCommerceProduced(iCommerce), iWorldPercent)
 			if iValue != 0:
 				if len(szText) > 0:
 					szText += u", "
-				szText += self.getCorporationGeneratedValueText(iValue) + u"%c" % gc.getCommerceInfo(iCommerce).getChar()
+				szText += self.getCorporationGeneratedValueText(iValue) + u"%s" % SASVisuals.Commerce.char(iCommerce)
 		if len(szText) <= 0:
 			return u"-"
 		return szText
 
 	def getScaledCorporationGeneratedValue(self, iStoredValue, iWorldPercent):
-		# <!-- custom: Corporation XML yield/commerce values are stored in hundredths.
+		# <!-- custom: SASVisuals.Corporation XML yield/commerce values are stored in hundredths.
 		# Match native CvGameTextMgr truncation after world-size scaling, including C++ truncation toward zero for negative values. See KI#231. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		iScaledValueX100 = iStoredValue * iWorldPercent
 		if iScaledValueX100 >= 0:
@@ -1236,7 +1230,7 @@ class CvPolicyAdvisorScreen:
 		return szText
 
 	def getMapObserverTeam(self):
-		# <!-- custom: A selected vassal remains the Policy Advisor's subject, but outside debug its Holy City and Corporation Headquarters rows must use the real active player's map knowledge so the perspective selector cannot reveal hidden locations.
+		# <!-- custom: A selected vassal remains the Policy Advisor's subject, but outside debug its Holy City and SASVisuals.Corporation Headquarters rows must use the real active player's map knowledge so the perspective selector cannot reveal hidden locations.
 		# Debug mode deliberately retains the selected player's map knowledge. See KI#232. (ChatGPT-5.6-Sol + GPT-5.6-Sol) -->
 		if CyGame().isDebugMode():
 			return gc.getPlayer(self.iActivePlayer).getTeam()
@@ -1250,7 +1244,7 @@ class CvPolicyAdvisorScreen:
 			if eBonus != -1:
 				if len(szText) > 0:
 					szText += u", "
-				szText += u"%c" % (gc.getBonusInfo(eBonus).getChar(),)
+				szText += u"%s" % (SASVisuals.Bonus.char(eBonus),)
 		if len(szText) <= 0:
 			return u"-"
 		return szText
@@ -1259,7 +1253,7 @@ class CvPolicyAdvisorScreen:
 		eBonus = kCorpInfo.getBonusProduced()
 		if eBonus == -1:
 			return u"-"
-		return u"%c" % (gc.getBonusInfo(eBonus).getChar(),)
+		return u"%s" % (SASVisuals.Bonus.char(eBonus),)
 
 	def drawCorporationCityInfo(self, iCorporation):
 		screen = self.getScreen()
@@ -1286,18 +1280,18 @@ class CvPolicyAdvisorScreen:
 			pLoopCity = cityList[iCity]
 			szCityName = u""
 			if pLoopCity.isCapital():
-				szCityName += u"%c" % CyGame().getSymbolID(FontSymbols.STAR_CHAR)
+				szCityName += u"%s" % SASVisuals.Font.STAR_CHAR
 
 			lHeadquarters = pLoopCity.getHeadquarters()
 			if lHeadquarters:
 				for iHeadquarter in range(len(lHeadquarters)):
-					szCityName += u"%c" % (gc.getCorporationInfo(lHeadquarters[iHeadquarter]).getHeadquarterChar())
+					szCityName += SASVisuals.Corporation.headquarterChar(lHeadquarters[iHeadquarter])
 
 			lCorporations = pLoopCity.getCorporations()
 			if lCorporations:
 				for iCorporationInCity in range(len(lCorporations)):
 					if lCorporations[iCorporationInCity] not in lHeadquarters:
-						szCityName += u"%c" % (gc.getCorporationInfo(lCorporations[iCorporationInCity]).getChar())
+						szCityName += u"%s" % (SASVisuals.Corporation.char(lCorporations[iCorporationInCity]))
 
 			szCityName += pLoopCity.getName()[0:17] + "  "
 			if iLinkCorporation == -1:
@@ -1313,9 +1307,9 @@ class CvPolicyAdvisorScreen:
 				szCityName += CyGameTextMgr().getCorporationHelpCity(iLinkCorporation, pLoopCity.GetCy(), False, True)
 
 			if bFirstColumn:
-				szLeftCities += sasFontTagLabel + szCityName + SAS_FONT_TAG_CLOSE + u"\n"
+				szLeftCities += SASTextScale.sasFontTagLabel + szCityName + SASTextScale.SAS_FONT_TAG_CLOSE + u"\n"
 			else:
-				szRightCities += sasFontTagLabel + szCityName + SAS_FONT_TAG_CLOSE + u"\n"
+				szRightCities += SASTextScale.sasFontTagLabel + szCityName + SASTextScale.SAS_FONT_TAG_CLOSE + u"\n"
 
 		screen.addMultilineText("Child" + self.CORPORATION_AREA1_ID, szLeftCities, self.X_CORPORATION_CITY1_AREA + 5, self.Y_CORPORATION_CITY_AREA + 5, self.W_CORPORATION_CITY_AREA - 10, self.H_CORPORATION_CITY_AREA - 10, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 		screen.addMultilineText("Child" + self.CORPORATION_AREA2_ID, szRightCities, self.X_CORPORATION_CITY2_AREA + 5, self.Y_CORPORATION_CITY_AREA + 5, self.W_CORPORATION_CITY_AREA - 10, self.H_CORPORATION_CITY_AREA - 10, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
@@ -1411,5 +1405,5 @@ class CvPolicyAdvisorScreen:
 		return 0
 
 	def update(self, fDelta):
-		# <!-- custom: no Religion dirty-bit enum exists in this branch; keep tab refresh event-driven via input/actions. (GPT-5.3-Codex) -->
+		# <!-- custom: no SASVisuals.Religion dirty-bit enum exists in this branch; keep tab refresh event-driven via input/actions. (GPT-5.3-Codex) -->
 		return

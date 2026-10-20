@@ -6,6 +6,8 @@
 #
 
 from CvPythonExtensions import *
+# <!-- custom: Route shared visual resources through the centralized SASVisualUtils namespace after retiring overlapping helper/cache imports; keep one canonical visual-resource boundary. (ChatGPT-5.6-Sol) -->
+import SASVisualUtils as SASVisuals
 from SASMagicNumbers import *
 import CvUtil
 # <!-- custom: SevoScreenEnums.py was removed; import its unchanged page IDs from the SevoScreenEnums class in CvScreenEnums.py, keeping them distinct from vanilla Civilopedia pages. (GPT-6.1-Sol) -->
@@ -34,7 +36,6 @@ class SevoPediaEraChart:
 		self.SHOW_ERA_BUTTONS = (gc.getDefineINT("SAS_SEVOPEDIA_ERA_CHART_SHOW_ERA_BUTTONS") > 0)
 
 		# <!-- custom: Cache emoji icon path for performance. (GPT-5.2-Codex (summarized)) -->
-		self.playButtonPath = ArtFileMgr.getInterfaceArtInfo("SAS_EMOJI_PLAY_BUTTON").getPath()
 
 	def interfaceScreen(self):
 		screen = self.top.getScreen()
@@ -88,14 +89,14 @@ class SevoPediaEraChart:
 			else:
 				buttonRowStartX = tableX + self.W_FIELD
 
-			if self.playButtonPath:
+			if SASVisuals.InterfaceArt.SAS_EMOJI_PLAY_BUTTON:
 				playButtonX = buttonRowStartX - wNum
 				# <!-- custom: redirect to first era track (Track 01 of Ancient era) in Sevopedia Music category -->
 				iFirstEraMusicKey = self.top.SAS_getFirstEraMusicKey()
 				if iFirstEraMusicKey != -1:
-					screen.setImageButton(self.top.getNextWidgetName(), self.playButtonPath, playButtonX, buttonRowY, buttonSize, buttonSize, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_MUSIC_ENTRY, iFirstEraMusicKey)
+					screen.setImageButton(self.top.getNextWidgetName(), SASVisuals.InterfaceArt.SAS_EMOJI_PLAY_BUTTON, playButtonX, buttonRowY, buttonSize, buttonSize, WidgetTypes.WIDGET_PYTHON, SAS_MAGIC_PEDIA_PYTHON_MUSIC_ENTRY, iFirstEraMusicKey)
 				else:
-					screen.setImageButton(self.top.getNextWidgetName(), self.playButtonPath, playButtonX, buttonRowY, buttonSize, buttonSize, WidgetTypes.WIDGET_PEDIA_MAIN, SevoScreenEnums.PEDIA_MUSIC, -1)
+					screen.setImageButton(self.top.getNextWidgetName(), SASVisuals.InterfaceArt.SAS_EMOJI_PLAY_BUTTON, playButtonX, buttonRowY, buttonSize, buttonSize, WidgetTypes.WIDGET_PEDIA_MAIN, SevoScreenEnums.PEDIA_MUSIC, -1)
 
 			era_count = gc.getNumEraInfos()
 			for iEra in xrange(era_count):
@@ -240,19 +241,19 @@ class SevoPediaEraChart:
 
 		_btn_defs = (("lion", "SAS_EMOJI_LION_FACE"), ("skull", "SAS_EMOJI_SKULL"), ("swords", "SAS_EMOJI_CROSSED_SWORDS"), ("fire", "SAS_EMOJI_FIRE"), ("gear", "SAS_EMOJI_GEAR"), ("brain", "SAS_EMOJI_BRAIN"),)
 		for i, (name, artKey) in enumerate(_btn_defs):
-			btn_by_name[name] = (ArtFileMgr.getInterfaceArtInfo(artKey).getPath(), (i + 1) * 10)
+			btn_by_name[name] = (SASVisuals.InterfaceArt.getPath(artKey), (i + 1) * 10)
 
 		glyph_by_name = {}
 		_glyph_defs = (
 			# (name, glyph_char)
-			("food",         (u"%c" % (gc.getYieldInfo(YieldTypes.YIELD_FOOD).getChar()))),
-			("prod",         (u"%c" % (gc.getYieldInfo(YieldTypes.YIELD_PRODUCTION).getChar()))),
-			("gold",         (u"%c" % (gc.getCommerceInfo(CommerceTypes.COMMERCE_GOLD).getChar()))),
-			("research",     (u"%c" % (gc.getCommerceInfo(CommerceTypes.COMMERCE_RESEARCH).getChar()))),
-			("culture",      (u"%c" % (gc.getCommerceInfo(CommerceTypes.COMMERCE_CULTURE).getChar()))),
-			("citizen",      (u"%c" % (game.getSymbolID(FontSymbols.CITIZEN_CHAR)))),
-			("defense",      (u"%c" % (game.getSymbolID(FontSymbols.DEFENSE_CHAR)))),
-			("great_people", (u"%c" % (game.getSymbolID(FontSymbols.GREAT_PEOPLE_CHAR)))),
+			("food",         (u"%s" % (SASVisuals.Yield.FOOD_CHAR))),
+			("prod",         (u"%s" % (SASVisuals.Yield.PRODUCTION_CHAR))),
+			("gold",         (u"%s" % (SASVisuals.Commerce.GOLD_CHAR))),
+			("research",     (u"%s" % (SASVisuals.Commerce.RESEARCH_CHAR))),
+			("culture",      (u"%s" % (SASVisuals.Commerce.CULTURE_CHAR))),
+			("citizen",      (u"%s" % (SASVisuals.Font.CITIZEN_CHAR))),
+			("defense",      (u"%s" % (SASVisuals.Font.DEFENSE_CHAR))),
+			("great_people", (u"%s" % (SASVisuals.Font.GREAT_PEOPLE_CHAR))),
 		)
 		for name, glyph in _glyph_defs:
 			glyph_by_name[name] = glyph
