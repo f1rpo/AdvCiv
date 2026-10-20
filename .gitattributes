@@ -76,10 +76,12 @@
 # <!-- custom: include most doc or debug as not too heavy and may be useful if downloaded as ZIP (manual.odt, manual.txt, CIV4BUG_Sourceforge_net_All_Classes_Doc, git_logs (as of now pre-AdvCiv-SAS), Docs/git_logs (as of now AdvCiv-SAS), Docs/changelogs_web, Modding_Ressources, Sevopedia/Debug/) -->
 /Assets/Res/Fonts/other_mods/                             export-ignore
 
-# <!-- custom: Keep development examples tracked and available in the dedicated light-source ZIP, but omit the whole folder from player/GitHub Download ZIP archives.
-# Folder-wide exclusion covers future captures without a maintained per-file list. (GPT-5.6 + GPT-6.1-Sol) -->
-/_1_AdvCiv-SAS/Docs/examples/    export-ignore
-/_1_AdvCiv-SAS/Docs/examples/**  export-ignore
+# <!-- custom: Include compact documentation examples such as runtime JSON/JSONL and build reports in player/GitHub Download ZIP archives.
+# Exclude the large raw SASGameRecord captures and historical source-comparison files; both remain tracked and available to the dedicated light-source ZIP. (GPT-5.6 + GPT-6.1-Sol) -->
+/_1_AdvCiv-SAS/Docs/examples/sasgamerecord    export-ignore
+/_1_AdvCiv-SAS/Docs/examples/sasgamerecord/**  export-ignore
+/_1_AdvCiv-SAS/Docs/examples/source_comparison    export-ignore
+/_1_AdvCiv-SAS/Docs/examples/source_comparison/**  export-ignore
 
 # <!-- custom: Local platform-specific harnesses are development tools, not gameplay/release content; keep them in Git and the dedicated light-source ZIP. (GPT-6.1-Sol) -->
 /tests/    export-ignore

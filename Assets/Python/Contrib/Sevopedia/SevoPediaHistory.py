@@ -13,7 +13,8 @@
 from CvPythonExtensions import *
 import CvUtil
 import ScreenInput
-import SevoScreenEnums
+# <!-- custom: SevoScreenEnums.py was removed; import its unchanged page IDs from the SevoScreenEnums class in CvScreenEnums.py, keeping them distinct from vanilla Civilopedia pages. (GPT-6.1-Sol) -->
+from CvScreenEnums import SevoScreenEnums
 import CvModName # <!-- custom: Build the dynamic AdvCiv-SAS Version / Source Mods Info page from the centralized runtime resolver and saved game lineage. (ChatGPT-5.6-Sol) -->
 from SASFontUtils import *
 import SASTextScale

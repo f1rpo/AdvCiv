@@ -41,6 +41,24 @@ class SourceChangeProvenanceTests(unittest.TestCase):
     def errors(self, path, old, new):
         return checker.check_change(path, old, new)
 
+    # <!-- custom: Header enforcement must accept both source formats without replacing upstream credits, and must reject credit text that appears only in executable content or after code. (GPT-6.1-Sol) -->
+    def test_python_xml_modification_headers(self):
+        notice = "AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)\n(c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)"
+        python_header = "# " + notice.replace("\n", "\n# ") + "\n"
+        xml_header = "<!--\n" + notice + "\n-->\n"
+        self.assertEqual(checker.modification_header_errors("Assets/Python/Test.py", "#!/usr/bin/env python\n# coding: utf-8\n# Copyright Firaxis Games 2005\n\n" + python_header + "value = 1\n"), [])
+        self.assertEqual(checker.modification_header_errors("Assets/XML/Test.xml", '<?xml version="1.0"?>\n<!-- Copyright Firaxis Games 2005 -->\n' + xml_header + "<root/>\n"), [])
+        for path, source in (
+            ("Assets/Python/Test.py", "# Copyright Firaxis Games 2005\nvalue = 1\n"),
+            ("Assets/XML/Test.xml", "<root/>\n"),
+            ("Assets/Python/Test.py", "notice = " + repr(notice) + "\n"),
+            ("Assets/Python/Test.py", "value = 1\n" + python_header),
+            ("Assets/XML/Test.xml", "<root/>\n" + xml_header),
+        ):
+            with self.subTest(path=path, source=source):
+                self.assertTrue(checker.modification_header_errors(path, source))
+        self.assertEqual(checker.modification_header_errors("CvGameCoreDLL/Test.cpp", "int value;\n"), [])
+
     def test_new_noncustom_comment_fails_but_credentialed_custom_passes(self):
         old = "int value = 1;\n"
         bad = "// New explanation.\nint value = 1;\n"

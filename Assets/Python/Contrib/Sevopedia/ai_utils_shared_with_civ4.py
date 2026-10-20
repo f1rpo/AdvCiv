@@ -1,12 +1,20 @@
 # AI Utilities for normalization and general helpers
 # AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
 # (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
-
-from sas_utils_shared_with_civ4 import get_sas_python_file_header_lines
-
-
+#
 # <!-- custom: This module is shared by Civ4 runtime Python and GitHub workflow Python.
 # Keep it pure-helper only: no CvPythonExtensions imports, no game-context globals, and no syntax newer than Python 2.4 unless guarded outside runtime paths. (ChatGPT-5.5) -->
+
+# <!-- custom: This header generator previously lived in standalone sas_utils_shared_with_civ4.py as a generic pure helper when outside-Civ4 AIP predump writing first needed the same header as Civ4-side code.
+# ai_utils_shared_with_civ4.py is now its only consumer and is itself the Python 2.4/Python 3 pure shared boundary, so a separate one-function module no longer provides useful isolation. (ChatGPT-5.6-Sol) -->
+def get_sas_python_file_header_lines():
+	return (
+		"# AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)",
+		"# (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)",
+		"#",
+		"",
+	)
+
 # <!-- custom: Shared AIP enum/type metadata used by both the in-game Sevopedia AIP code and workflow predump validation.
 # These specs mirror the compact subset currently assessed by the AIP panel, not every possible future field. (ChatGPT-5.5) -->
 def get_aip_excluded_leader_types():

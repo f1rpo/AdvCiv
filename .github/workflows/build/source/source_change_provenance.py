@@ -48,11 +48,14 @@ CONTROL_NAMES = {
     "return", "new", "delete", "FAssert", "FAssertMsg",
 }
 
-# <!-- custom: Treat repository credit headers and machine directives as metadata rather than newly authored explanatory comments, so new files can keep required boilerplate without weakening provenance checks for ordinary prose. (ChatGPT-6-Sol) -->
+# <!-- custom: Treat repository credit headers and machine directives as metadata rather than newly authored explanatory comments, so new files can keep required boilerplate without weakening provenance checks for ordinary prose.
+# For example, moving SevoScreenEnums.py's definitions into CvScreenEnums.py also carries "Copyright 2007 BUG Mod" there; that original notice needs no custom marker or model credit.
+# This is a comment-style exemption only; the separate changed-file check still requires the SAS modification copyright header. (ChatGPT-6-Sol + GPT-6.1-Sol) -->
 BOILERPLATE_COMMENT_RE = re.compile(
     r"^(?:"
     r"AI, UI, logging, or other modifications first developed in AdvCiv-SAS"
     r"|\(c\)\s+2026\s+wonderingabout\b"
+    r"|Copyright\b"
     r"|[-*]\s*-\*-\s*coding:"
     r"|coding[:=]"
     r"|noqa\b"
@@ -673,6 +676,38 @@ def python_bindings(text: str):
     return result
 
 
+# <!-- custom: Check the leading comment metadata of changed Python/XML files, rather than requiring a bulk header edit across inherited source.
+# Keep original owners' notices; the SAS notice identifies our modifications and must not be satisfied by a string literal or a later explanatory comment. (GPT-6.1-Sol) -->
+def modification_header_errors(path: str, text: str) -> list[str]:
+    suffix = Path(path).suffix.lower()
+    if suffix not in PY_SUFFIXES | XML_SUFFIXES:
+        return []
+    remaining = text.lstrip("\ufeff \t\r\n")
+    header = []
+    if suffix in PY_SUFFIXES:
+        while remaining.startswith("#"):
+            line, _separator, remaining = remaining.partition("\n")
+            header.append(line)
+            remaining = remaining.lstrip()
+    else:
+        if remaining.startswith("<?xml"):
+            _declaration, _separator, remaining = remaining.partition("?>")
+            remaining = remaining.lstrip()
+        while remaining.startswith("<!--"):
+            block, separator, remaining = remaining.partition("-->")
+            if not separator:
+                break
+            header.append(block)
+            remaining = remaining.lstrip()
+    metadata = "\n".join(header)
+    if (
+        "modifications first developed in AdvCiv-SAS" in metadata
+        and re.search(r"(?:\(c\)|copyright)\s+\d{4}(?:\s*-\s*\d{4})?\s+wonderingabout\s*&\s*AI/LLM helpers", metadata, re.I)
+    ):
+        return []
+    return [f"{path}:1: changed Python/XML file lacks the SAS modification copyright header; preserve inherited notices and add our standard header"]
+
+
 # <!-- custom: Add an optional warnings collector so missing model credits remain advisory: Git cannot distinguish an uncredited user comment from an LLM comment.
 # Other provenance failures retain their blocking results. (GPT-6.1-Sol) -->
 def check_change(path: str, old_text: str | None, new_text: str | None, warnings: list[str] | None = None) -> list[str]:
@@ -807,6 +842,8 @@ def check(repo: Path, base_ref: str | None, event_name: str | None = None, warni
             # <!-- custom: Whole-file deletion cannot introduce a misleading new comment/dependency/interface, so only surviving current files need source-change provenance checks. (ChatGPT-6-Sol) -->
             continue
         count += 1
+        if old != new:
+            errors.extend(modification_header_errors(path, new))
         errors.extend(check_change(path, old, new, warnings))
     return errors, count
 

@@ -27,6 +27,9 @@ jobs:
       - name: Temporary files
         run: python .github/workflows/build/repository/temp_files.py
 
+      - name: Example archive size
+        run: python .github/workflows/build/repository/examples_archive_size.py
+
       - name: IDE source/header coverage
         run: python .github/workflows/build/repository/project_sources.py
 

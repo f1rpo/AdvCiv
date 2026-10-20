@@ -43,15 +43,15 @@ Another significant logging improvement is "flushing":
 - Live access was also verified: both logs could be read as they grew during autoplay and after the run finished, while Civ4 remained open.
 - This also opens up the door to further future interactive change possibilities; for example, making changes and observing their effect live, possibly.
 
-Python debug and error output (e.g. PythonDbg.log, PythonErr.log and PythonErr2.log) also gains UTC timestamps, making it easier for users and AI/LLM agents to follow when messages occurred and correlate them with game activity during debugging.
+Python logs (e.g. PythonDbg.log, PythonErr.log, PythonErr2.log) gain UTC timestamps, while debug messages also gain readable names and searchable fields: for example, `99 SCREEN TURNED ON` becomes `2026-10-20T08:16:29.114Z record=SCREEN_TURNED_ON screenId=99 screenType=CvScreenEnums.MAIN_INTERFACE`, showing when it happened and which screen it was.
 
 Additional LLM/agent instrumentation helps users and AI assistants follow Civ4 runs and investigate development:
 
 - `SASRuntimeStatus.json` gives the latest observed game/session and autoplay state, together with the identity of the DLL reporting it.
 - `SASRuntimeHistory_*.jsonl` keeps a timed history of game creation, save loading and autoplay activity, including why autoplay stopped, across games and loads while Civ4 stays open.
-- `CvGameCoreDLL.dll.build.json` reports DLL build status, origin and result, including builds in progress.
+- `CvGameCoreDLL.dll.build.json` provides the build-side counterpart: users and AI/LLM agents can follow compilation status and review source/configuration, timing, warnings/errors and DLL identity, alongside the enriched `AdvCiv.log` with full compiler output and build summaries.
 
-Together with live-readable BBAI and SASGameRecord logs, richer compiler logs and embedded DLL provenance, these make it easier to follow runs, investigate problems, and connect observations to the code and binary being tested.
+Together with live-readable BBAI and SASGameRecord logs, richer and more searchable UWAI diagnostics integrated into BBAI and controlled through SAS defines, enriched compiler logs and embedded DLL provenance, these make it easier to follow runs, investigate problems, and connect observations to the code and binary being tested.
 
 Other system/tooling convenience enhancements are added to help reduce tedium, notably include SASFastSave (e.g. `ALEXANDER_T0000_HUGE_CUSTOM_CONTINENTS_NORMAL_41500016_41500016_20260909T171232Z_START` or `ALEXANDER_T0459_HUGE_CUSTOM_CONTINENTS_SPACE_ZARA_YAQOB_NORMAL_41500016_41500016_20260910T184208Z`), make save info clearer, and avoid identical filename handling issues, AIAutoPlay runs not being interrupted when the active player dies or other notices so they can continue and complete unattended, or the default number of turns being adjusted to max depending on game speed or tunable (e.g., 501 turns at Normal Gamespeed, 1001 turns at Marathon).
 
@@ -159,13 +159,16 @@ For license and reuse terms, including project-specific restrictions and express
 &emsp;[CI](/README.md#ci)\
 &emsp;[Light-source ZIP](/README.md#light-source-zip)\
 &emsp;[Repository](/README.md#repository)\
-[DLL Logging](/README.md#dll-logging)\
-&emsp;[Versioning](/README.md#versioning)\
-&emsp;[If .git does exist (dev)](#if-git-does-exist-dev)\
-&emsp;[If .git does not exist (regular users or download ZIP from GitHub)](#if-git-does-not-exist-regular-users-or-download-zip-from-github)\
-&emsp;[BBAI logging and head example](/README.md#bbai-logging-and-head-example)\
-&emsp;[SASGameRecord log](/README.md#sasgamerecord-log)\
-&emsp;[Live log inspection during gameplay](#live-log-inspection-during-gameplay)\
+[Logging and diagnostics](/README.md#logging-and-diagnostics)\
+&emsp;[Python diagnostic modernization](#python-diagnostic-modernization)\
+&emsp;[Logging reference](#logging-reference)\
+&emsp;[DLL Logging](/README.md#dll-logging)\
+&emsp;&emsp;[Versioning](/README.md#versioning)\
+&emsp;&emsp;&emsp;[If .git does exist (dev)](#if-git-does-exist-dev)\
+&emsp;&emsp;&emsp;[If .git does not exist (regular users or download ZIP from GitHub)](#if-git-does-not-exist-regular-users-or-download-zip-from-github)\
+&emsp;&emsp;[BBAI logging and head example](/README.md#bbai-logging-and-head-example)\
+&emsp;&emsp;[SASGameRecord log](/README.md#sasgamerecord-log)\
+&emsp;&emsp;[Live log inspection during gameplay](#live-log-inspection-during-gameplay)\
 [CuCuGS](#cucugs)\
 [LLM-assisted source analysis](/README.md#llm-assisted-source-analysis)\
 &emsp;[Light-source analysis](#light-source-analysis)\
@@ -1162,9 +1165,29 @@ Very large/generated/binary/redundant historical payloads are summarized instead
 
 - See the [Main Changes Guide's Repository section](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#repository) for Git-ignore and archive conventions; automated repository checks are covered under [CI](#ci).
 
-## DLL Logging
+## Logging and diagnostics
 
-The [logging reference](/_1_AdvCiv-SAS/Docs/README_Logging_Inventory.md) explains files such as `PythonDbg.log` (prints/debug messages), `PythonErr.log` (tracebacks), `PythonErr2.log` (including module-loading output) and `xml.log` (XML loading/errors), with Before/After timestamp examples.
+### Python diagnostic modernization
+
+The Python diagnostic modernization combines UTC timestamps, readable identities and consistent `record=` fields so messages are easier to search and correlate. For example, the same `PythonDbg.log` screen notification becomes identifiable without looking up screen number 99 (reconstructed formats using captured data):
+
+Before:
+
+```text
+99 SCREEN TURNED ON
+```
+
+After:
+
+```text
+2026-10-20T08:16:29.114Z record=SCREEN_TURNED_ON screenId=99 screenType=CvScreenEnums.MAIN_INTERFACE
+```
+
+### Logging reference
+
+The [logging reference](/_1_AdvCiv-SAS/Docs/README_Logging_Inventory.md) documents this work with matched Before/After samples, file controls and limits, including startup/EXE output that bypasses Python timestamping.
+
+It also explains files such as `PythonDbg.log` (prints/debug messages), `PythonErr.log` (tracebacks), `PythonErr2.log` (including module-loading output) and `xml.log` (XML loading/errors).
 
 Other examples covered there include:
 
@@ -1172,8 +1195,13 @@ Other examples covered there include:
 - `ASyncRand.log` for asynchronous RNG, and `OOSLog - <player> - Turn <turn>.log` for game-state comparisons after multiplayer desynchronization.
 - `StartingPos.log` for starting-position diagnostics and `IFP_log.txt` / `TSCProfile.log` for profiling.
 - BUG Autolog's configurable text/HTML gameplay journal, distinct from error/debug logs.
+- `BBAI_*.log`, including Settler diagnostics and the former independent UWAI reports now merged into BBAI, with `UWAIAgent`, `MilitaryAnalyst`, `InvasionGraph`, `ArmamentForecast`, `WarEvaluator` and `WarUtilityAspect` named explicitly.
+- SAS-created `SASGameRecord_*.log` gameplay/run records, with a captured 30-row excerpt and a full example.
+- `SASRuntimeStatus.json` / `SASRuntimeHistory_*.jsonl` for runtime observations, and compiler `AdvCiv.log` / `CvGameCoreDLL.dll.build.json` for build progress/results, linked to their dedicated guides and tracked example captures.
 
 It also traces outputs such as `bull.log` (BULL), `C2C.log` (Caveman2Cosmos) and `MLF.log` (modular XML loading), and marks uncertain cases such as `ResourceAllocation.log`.
+
+### DLL Logging
 
 AdvCiv-SAS has two complementary log families, that are as of now both tunable via SAS defines (i.e. XML) without needing DLL modifications: the BBAI log, and the SASGameRecord log. See [README_Main_Changes_Guide.md (Logging)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#logging).
 
@@ -1191,11 +1219,11 @@ For example, a changed C++ diff fingerprint with an unchanged DLL fingerprint ex
 
 With no scoped tracked diff the byte count is `0`; unavailable Git-derived provenance remains explicit instead of being mislabeled as clean. These fingerprints are diagnostic identities, not cryptographic security hashes.
 
-### Versioning
+#### Versioning
 
 AdvCiv-SAS supports showing the current version/commit of the downloaded ZIP from GitHub, as well as in local dev folders cloned from GitHub.
 
-### If .git does exist (dev)
+##### If .git does exist (dev)
 
 Civ4 launches hidden commands of roughly this form:
 
@@ -1230,7 +1258,7 @@ and the command literally contains:
 git.exe
 ```
 
-### If .git does not exist (regular users or download ZIP from GitHub)
+##### If .git does not exist (regular users or download ZIP from GitHub)
 
 Civ4 does not launch git.exe. The resolver first checks the exported Assets/SASModVersion.txt marker.
 
@@ -1280,7 +1308,7 @@ Dirty state is retained as context but does not by itself manufacture a new revi
 
 Full dirty-file lists remain session-log data rather than being serialized into the save. As with other AdvCiv-SAS save-layout changes, older save formats are intentionally unsupported rather than migrated.
 
-### BBAI logging and head example
+#### BBAI logging and head example
 
 BBAI logs provide detailed AI-decision diagnostics whose levels can be adjusted in XML without editing/recompiling the DLL.
 
@@ -1288,33 +1316,47 @@ Also, several BBAI log categories were split into separate levels, making it eas
 
 UWAI Agent, Military Analyst, Invasion Graph, Armament Forecast and War Utility diagnostics also use this shared BBAI stream, with separate XML log-level controls.
 
+For example, these five captured rows show Lincoln evaluating war against team 13: war utility is -43, peace utility is -5, giving a final difference of -38. They describe a hypothetical comparison, not a declaration of war.
+
+Selected unchanged rows from `BBAI_20261018T080928Z_load1.log` (intervening rows omitted):
+
+```log
+UWAI_WAR_EVALUATION_BEGIN turn=21 agentTeam=2 targetTeam=13 proposedPlan=WARPLAN_LIMITED naval=0 currentPlan=NO_WARPLAN consideringPeace=0 prepTurns=8 immediateDoW=0 ignoreDistraction=0 agentHuman=0 targetHuman=0
+UWAI_WAR_EVALUATION_AGENT_MEMBER turn=21 agentTeam=2 player=2 name=Lincoln
+UWAI_WAR_SCENARIO_TOTAL turn=21 agentTeam=2 targetTeam=13 scenario=WAR utility=-43
+UWAI_WAR_SCENARIO_TOTAL turn=21 agentTeam=2 targetTeam=13 scenario=PEACE utility=-5
+UWAI_WAR_UTILITY_FINAL turn=21 agentTeam=2 targetTeam=13 warUtility=-43 peaceUtility=-5 finalUtility=-38
+```
+
 Identity rows place the stable `processUtc` for one Civ4 launch before plain `utc`; the row type identifies that second timestamp as a new-game, save-load or individual snapshot observation. Timestamped filename counters such as `new1` and `load2` preserve game order within the process.
 
 `dirty` is tri-state: `-1` means unavailable because there is no inspectable Git worktree (for example an extracted GitHub ZIP), `0` means Git verified the tracked tree clean, and `1` means tracked local edits were found.
 
-See [README_Main_Changes_Guide.md (BBAI log)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#bbai-log).
-
-Source commit identifiers in these documentation examples are mapped to the rewritten Git history; recorded runtime and binary measurements are retained.
-
-For example, this save-load header was captured during the iterable-category-registry development test on October 9, 2026, before that change was committed.
-
-Its source identity and Debug-opt DLL describe that test build; they are not the current shipped Release DLL. The settings row includes disabled categories explicitly so zero levels can be distinguished from missing categories:
+Brief header preview (selected fields from the October 9, 2026 capture):
 
 ```log
-BBAI_SAVE_LOADED processUtc=20261009T160524Z utc=20261009T160535Z logFile="BBAI_20261009T160535Z_load1.log" turn=0 elapsed=0 year=-50000 scenario=0 activePlayer=0 activeCivilization=CIVILIZATION_INCA activeHandicap=HANDICAP_MONARCH playersDefined=16 playersAlive=16 playersEverAlive=16 humans=1
-BBAI_GAME_SETTINGS mapScript=Archipelago map=120x84 landHeavy=0 navalHeavy=1 world=WORLDSIZE_HUGE climate=CLIMATE_TEMPERATE seaLevel=SEALEVEL_MEDIUM gameSpeed=GAMESPEED_NORMAL startEra=ERA_ANCIENT gameHandicap=HANDICAP_MONARCH options=GAMEOPTION_AGGRESSIVE_AI,GAMEOPTION_NO_EVENTS
-BBAI_GAME_RNG mapRandState=1378213624 syncRandState=909279002
-BBAI_MOD_CONTEXT displayName="AdvCiv-SAS" folderName="AdvCiv-SAS" modPath="Mods\\AdvCiv-SAS\\"
-BBAI_SOURCE_CONTEXT version="6606" commit="39e40d78917c42d67dfa9c87a1fc92da178ad7dd" shortCommit="39e40d7891" branch="main" commitDate="2026-10-09T17:28:00+02:00" metadataSource="git" dirty=1 dirtyTrackedCount=6 trackedCodeRulesDiffBytes=16408 trackedCodeRulesDiffFingerprint="FNV1A64:F3AD9234EBE21773" dirtyFiles="[MM] .github/workflows/build/xml/sas_define_usage.py; [MM] .github/workflows/tests/test_sas_define_usage.py; [ M] Assets/CvGameCoreDLL.dll; [ M] Assets/XML/GlobalDefines_advciv_sas.xml; [MM] CvGameCoreDLL/BBAILog.cpp; [ M] _1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md"
-BBAI_DLL_CONTEXT build=Debug-opt moduleFound=1 fileReadable=1 fileSizeBytes=13774848 dllFingerprint=FNV1A64:97635FA4B4F6CE96 dllLastWriteUtc=20261009T160322.407Z peTimestampRaw=1791561793 peTimestampUtc=20261009T160313Z fassertEnabled=0 debugDefine=0 ndebugDefine=1
-BBAI_LOG_SETTINGS SAS_BBAI_LOG_ENABLE=1 SAS_BBAI_LOG_USE_TIMESTAMPED_FILENAME=1 SAS_BBAI_PLAYER_LOG_LEVEL=2 SAS_BBAI_TEAM_LOG_LEVEL=2 SAS_BBAI_WAR_LOG_LEVEL=0 SAS_BBAI_CITY_LOG_LEVEL=0 SAS_BBAI_PRODUCTION_NO_TARGET_LOG_LEVEL=0 SAS_BBAI_MILITARY_PRODUCTION_LOG_LEVEL=0 SAS_BBAI_SPACE_PRODUCTION_LOG_LEVEL=0 SAS_BBAI_LIMITED_PROJECT_PRODUCTION_LOG_LEVEL=0 SAS_BBAI_BUILDING_PRODUCTION_LOG_LEVEL=0 SAS_BBAI_CITIZEN_LOG_LEVEL=0 SAS_BBAI_UNIT_LOG_LEVEL=0 SAS_BBAI_OVERSEAS_TRANSPORT_LOG_LEVEL=0 SAS_BBAI_GREAT_GENERAL_LOG_LEVEL=0 SAS_BBAI_SETTLER_LOG_LEVEL=0 SAS_BBAI_FOUND_LOG_LEVEL=0 SAS_BBAI_EVACUATION_LOG_LEVEL=0 SAS_BBAI_WORKER_LOG_LEVEL=0 SAS_BBAI_WORKER_SEA_LOG_LEVEL=0 SAS_BBAI_MAP_LOG_LEVEL=0 SAS_BBAI_DEAL_CANCEL_LOG_LEVEL=0 SAS_BBAI_BONUS_LOG_LEVEL=0 SAS_BBAI_CULTURE_LOG_LEVEL=0 SAS_BBAI_UWAI_AGENT_LOG_LEVEL=0 SAS_BBAI_UWAI_MILITARY_ANALYST_LOG_LEVEL=0 SAS_BBAI_UWAI_INVASION_GRAPH_LOG_LEVEL=0 SAS_BBAI_UWAI_ARMAMENT_FORECAST_LOG_LEVEL=0 SAS_BBAI_UWAI_WAR_UTILITY_LOG_LEVEL=0 SAS_BBAI_SCORE_LOG_INTERVAL_TURNS_UNSCALED_GAMESPEED=100
+BBAI_SAVE_LOADED processUtc=20261009T160524Z utc=20261009T160535Z turn=0 activeCivilization=CIVILIZATION_INCA
 ```
 
-### SASGameRecord log
+See the [full BBAI header and its context](/_1_AdvCiv-SAS/Docs/README_Logging_Inventory.md#bbai-session-header-example), or [README_Main_Changes_Guide.md (BBAI log)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#bbai-log).
+
+#### SASGameRecord log
 
 `SASGameRecord_*.log` is a separate compact game record for autoplay, AI-strength, and cheap wall-clock performance review. It records broadly, yet in a detailed but also compact/efficient format most of what happens in a game.
 
 The `SASGameRecord` log records many fields or information (see [README_Main_Changes_Guide.md (SASGameRecord log)](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md#sasgamerecord-log)).
+
+For example, these five captured rows record research discoveries and a Great Engineer hurrying the Statue of Zeus at Constantinople, followed by its completion, showing what happened during play rather than only reporting settings.
+
+Selected unchanged rows from `SASGameRecord_20261019T160718Z_load1.log`, turn 75 (intervening rows omitted):
+
+```log
+GAME_RECORD_ACTION seq=13446 turn=75 type=TECH_ACQUIRED player=0 team=0 tech=TECH_POLYTHEISM source=RESEARCH enablesTechTrading=0 enablesGoldTrading=0
+GAME_RECORD_ACTION seq=13447 turn=75 type=GREAT_PERSON_USED use=HURRY_BUILDING player=1 unitId=139274 unit=UNIT_GREAT_ENGINEER cityId=8192 city="Constantinople" building=BUILDING_STATUE_OF_ZEUS production=200
+GAME_RECORD_ACTION seq=13450 turn=75 type=TECH_ACQUIRED player=1 team=1 tech=TECH_CALENDAR source=RESEARCH enablesTechTrading=0 enablesGoldTrading=0
+GAME_RECORD_ACTION seq=13451 turn=75 type=BUILDING_COMPLETED player=1 cityId=8192 city="Constantinople" building=BUILDING_STATUE_OF_ZEUS productionNeeded=200 rawModifiedOverflow=6 unmodifiedOverflow=6 keptOverflow=6 lostProduction=0 unusedOverflowCapacity=28 overflowGold=0
+GAME_RECORD_ACTION seq=13452 turn=75 type=WONDER_BUILT player=1 cityId=8192 city="Constantinople" building=BUILDING_STATUE_OF_ZEUS
+```
 
 Thus, the `SASGameRecord` log can be used for various purposes, not just AI auditing or analysis/review.
 
@@ -1366,24 +1408,13 @@ See also the full raw [SASGameRecord example log](/_1_AdvCiv-SAS/Docs/examples/s
 
 The matching [`SASRuntimeStatus_example.json`](/_1_AdvCiv-SAS/Docs/examples/runtime_status/SASRuntimeStatus_example.json) and [`SASRuntimeHistory_example.jsonl`](/_1_AdvCiv-SAS/Docs/examples/runtime_status/SASRuntimeHistory_example.jsonl) show real current-state observations and timed activity history alongside the detailed game logs.
 
-For example, `SASGameRecord_*.log` starts with lifecycle, provenance and run-setup rows before adding RNG/state checkpoints and compact turn snapshots. These selected revision-137 rows come from the same October 9, 2026 development test as the BBAI header above; gaps in `seq` mean unrelated intervening rows are omitted:
+Brief header preview (selected fields from the same October 9, 2026 capture):
 
 ```log
-GAME_RECORD_SAVE_LOADED seq=1 processUtc=20261009T160524Z utc=20261009T160535Z logFile="SASGameRecord_20261009T160535Z_load1.log" turn=0 elapsed=0 year=-50000 scenario=0 activePlayer=0 activeCivilization=CIVILIZATION_INCA activeHandicap=HANDICAP_MONARCH playersDefined=16 playersAlive=16 playersEverAlive=16 humans=1 sessionWallMilliseconds=0
-GAME_RECORD_SESSION_CONTEXT seq=2 gameType=GAME_SP_LOAD gameMode=GAMEMODE_NORMAL newGame=0 savedGame=1 scenario=0 gameMultiplayer=0 networkMultiplayer=0 hotseat=0 pbem=0 pitboss=0 simultaneousTeamTurns=0 mpOptions=-
-GAME_RECORD_GAME_SETTINGS seq=3 mapScript="Archipelago" map=120x84 landHeavy=0 navalHeavy=1 world=WORLDSIZE_HUGE climate=CLIMATE_TEMPERATE seaLevel=SEALEVEL_MEDIUM gameSpeed=GAMESPEED_NORMAL startEra=ERA_ANCIENT calendar=CALENDAR_DEFAULT startTurn=0 startYear=-50000 gameHandicap=HANDICAP_MONARCH maxTurns=500 targetScore=0 advancedStartConfiguredPoints=-1 advancedStartXmlDefaultPoints=-1 victories=VICTORY_SCORE,VICTORY_TIME,VICTORY_CONQUEST,VICTORY_DOMINATION,VICTORY_CULTURAL,VICTORY_SPACE_RACE,VICTORY_DIPLOMATIC options=GAMEOPTION_AGGRESSIVE_AI,GAMEOPTION_NO_EVENTS
-GAME_RECORD_WAR_AI_SETTINGS seq=8 warPeaceAI=UWAI uwaiMode=FULL engineAggressiveAI=1 USE_KMOD_AI_NONAGGRESSIVE=0 DISABLE_UWAI=0 UWAI_IN_BACKGROUND=0 SAS_UWAI_INVASION_GRAPH_NAVAL_LOGISTICS_DEPLOYMENT_OPTIMIZE=1
-GAME_RECORD_RUNTIME_CONTEXT seq=9 systemContextLevel=2 win32Runtime=NATIVE_WINDOWS wineVersion=- windowsMajor=10 windowsMinor=0 windowsBuild=19045 windowsUpdateRevision=6466 windowsServicePackMajor=0 windowsServicePackMinor=0 windowsDisplayVersion="22H2" pointerBits=32 processArch=X86 nativeArch=X64 wow64=1 cpuVendor=- logicalProcessors=-1 totalPhysicalMemoryMB=-1
-GAME_RECORD_GAME_RNG seq=10 mapRandState=1378213624 syncRandState=909279002 initialMapRandSeed=13016467 initialSyncRandSeed=13016467
-GAME_RECORD_MOD_CONTEXT seq=11 displayName="AdvCiv-SAS" folderName="AdvCiv-SAS" modPath="Mods\\AdvCiv-SAS\\"
-GAME_RECORD_SOURCE_CONTEXT seq=12 recordRevision=137 version="6606" commit="39e40d78917c42d67dfa9c87a1fc92da178ad7dd" shortCommit="39e40d7891" branch="main" commitDate="2026-10-09T17:28:00+02:00" metadataSource="git" dirty=1 dirtyTrackedCount=6 trackedCodeRulesDiffBytes=16408 trackedCodeRulesDiffFingerprint="FNV1A64:F3AD9234EBE21773" dirtyFiles="[MM] .github/workflows/build/xml/sas_define_usage.py; [MM] .github/workflows/tests/test_sas_define_usage.py; [ M] Assets/CvGameCoreDLL.dll; [ M] Assets/XML/GlobalDefines_advciv_sas.xml; [MM] CvGameCoreDLL/BBAILog.cpp; [ M] _1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md"
-GAME_RECORD_DLL_CONTEXT seq=13 build=Debug-opt moduleFound=1 fileReadable=1 fileSizeBytes=13774848 dllFingerprint=FNV1A64:97635FA4B4F6CE96 dllLastWriteUtc=20261009T160322.407Z peTimestampRaw=1791561793 peTimestampUtc=20261009T160313Z fassertEnabled=0 debugDefine=0 ndebugDefine=1
-GAME_RECORD_EXE_CONTEXT seq=14 moduleFound=1 fileReadable=1 fileSizeBytes=12594192 exeFingerprint=FNV1A64:98123F43E2DC14E6 exeLastWriteUtc=20250328T141834.588Z peTimestampRaw=1401330529 peTimestampUtc=20140529T022849Z
-GAME_RECORD_INSTALL_CONTEXT seq=15 systemContextLevel=2 distributionHint=STEAM steamAppId=8800 steamBuildId=283175 steamBetaKey=- absoluteExePath=- absoluteModPath=-
-GAME_RECORD_RNG_CHECKPOINT seq=1005 turn=0 reason=SAVE_LOADED rngFingerprintSchema=1 mapSessionStartState=1378213624 mapIntervalStartState=1378213624 mapState=1378213624 mapIntervalCalls=0 mapSessionCalls=0 mapIntervalNullMessageCalls=0 mapSessionNullMessageCalls=0 mapIntervalExternalCalls=0 mapSessionExternalCalls=0 mapIntervalDeterministicRangeCalls=0 mapSessionDeterministicRangeCalls=0 mapIntervalSeedSets=0 mapSessionSeedSets=0 mapIntervalStreamFingerprint=FNV1A32:811C9DC5 mapSessionStreamFingerprint=FNV1A64:CBF29CE484222325 mapIntervalCallFingerprint=FNV1A32:811C9DC5 mapSessionCallFingerprint=FNV1A64:CBF29CE484222325 syncSessionStartState=909279002 syncIntervalStartState=909279002 syncState=909279002 syncIntervalCalls=0 syncSessionCalls=0 syncIntervalNullMessageCalls=0 syncSessionNullMessageCalls=0 syncIntervalExternalCalls=0 syncSessionExternalCalls=0 syncIntervalDeterministicRangeCalls=0 syncSessionDeterministicRangeCalls=0 syncIntervalSeedSets=0 syncSessionSeedSets=0 syncIntervalStreamFingerprint=FNV1A32:811C9DC5 syncSessionStreamFingerprint=FNV1A64:CBF29CE484222325 syncIntervalCallFingerprint=FNV1A32:811C9DC5 syncSessionCallFingerprint=FNV1A64:CBF29CE484222325
-GAME_RECORD_STATE_CHECKPOINT seq=1006 turn=0 reason=SAVE_LOADED coverage=CORE everAliveTeamCount=17 everAlivePlayerCount=17 cityCount=0 unitCount=42 groupCount=42 plotCount=10080 dealCount=0 gameFingerprint=FNV1A64:42C52DAC031376BE teamsFingerprint=FNV1A64:9930DDDBA105F78D playersFingerprint=FNV1A64:DFEA4FECF846B4A2 citiesFingerprint=FNV1A64:CBF29CE484222325 unitsFingerprint=FNV1A64:2609F54E25323597 groupsFingerprint=FNV1A64:150853F5D03277E4 plotsFingerprint=FNV1A64:247E00FA3931F2B9 dealsFingerprint=FNV1A64:CBF29CE484222325 combinedFingerprint=FNV1A64:45EFBFA446592383 computeMilliseconds=1
-GAME_RECORD_ACTION seq=1007 turn=0 type=DEBUG_MODE_CHANGED old=0 new=1 activePlayer=0
+GAME_RECORD_SAVE_LOADED seq=1 processUtc=20261009T160524Z utc=20261009T160535Z turn=0 activeCivilization=CIVILIZATION_INCA
 ```
+
+See the [full SASGameRecord header and its context](/_1_AdvCiv-SAS/Docs/README_Logging_Inventory.md#sasgamerecord-session-header-example); the reference also includes a [30-row gameplay excerpt](/_1_AdvCiv-SAS/Docs/README_Logging_Inventory.md#sasgamerecord-captured-example).
 
 <img src="./_1_AdvCiv-SAS/Images/LLM/SASGameRecord_example.PNG" alt="SASGameRecord_example.PNG" width="250"></img>
 
@@ -1391,7 +1422,7 @@ Note: `SASGameRecord` log has its own revision system, see [`SASGameRecord.md`](
 
 Note 2: when sending this file or other logs to external/web LLMs such as ChatGPT, ZIP them first for a smaller upload and, currently, a substantially faster one; uploading raw `.log` files can hang or take much longer.
 
-### Live log inspection during gameplay
+#### Live log inspection during gameplay
 
 Enabled SASGameRecord and BBAI logs submit each completed row to Windows immediately through shared file handles, so players and local agents can inspect or copy output while the game continues. This makes early-game analysis available during long autoplay runs, without waiting for the run to finish or restarting Civ4 to release its logs.
 
@@ -1501,6 +1532,7 @@ Non-exhaustive list below:
   - Note: XML changes such as increasing the cost of this unit or changing the bonus needed in the xml for this building or such should generally if not always be fine, at least seems so to me, but i don't know too much about these, check if accurate.
   - See related info at [KI#46](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-46) as well.
 - the old K-Mod Aggressive AI (Legacy): we may ship a fix/tweak/change or change here and there or not, and they may or not work but we as of now don't support them (we don't use or value it since we use UWAI so no need to bother supporting it).
+- Legacy Civilopedia: AdvCiv-SAS supports Sevopedia, which is enabled by default. The older Civilopedia option remains in the inherited code but has not been validated in this work; it may function partly and omit SAS information, including Sevopedia-only categories such as Music, Votes and Event Triggers.
 - BUG Military Advisor [CvBUGMilitaryAdvisor.py](/Assets/Python/Screens/CvBUGMilitaryAdvisor.py) and BUG Custom Domestic Advisor [CvCustomizableDomesticAdvisor.py](/Assets/Python/Screens/CvCustomizableDomesticAdvisor.py) (in particular about the Custom Domestic Advisor it is lacking the Finance Tab that the AdvCiv-SAS equivalent as of now has); see also [KI#123](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-123)): we may ship a fix/tweak/change or change here and there or not, and they may or not work but we as of now don't support them (we have SAS-specific equivalent or clearly better alternative advisors so no need to bother supporting them).
 - Multiplayer gameplay: we may ship a fix/tweak/change or change here and there or not, and they may or not work but we as of now don't support them (we don't use multiplayer so no need to support it).
 - Base AdvCiv previous behaviour and now an issue in AdvCiv-SAS of trying to support reading mod (e.g., AdvCiv/AdvCiv-SAS) replay/Hall of Fame data in unmodded BTS, or unmodded BTS replay/Hall of Fame data in the mod (e.g., AdvCiv/AdvCiv-SAS): AdvCiv-SAS changes raw XML ids for game speeds, world sizes, handicaps, and other modded data; we also do not want AdvCiv-SAS data to tediously and needlessly be supported in unmodded BTS or vice-versa (launch from AdvCiv-SAS or unmodded BTS depending on data rather than make them tediously/needlessly vanilla BtS-compatible).

@@ -10,7 +10,6 @@ on:
       - 'Assets/XML/AI_Variables_GlobalDefines.xml'
       - 'Assets/XML/GlobalDefines_advciv_sas.xml'
       - 'Assets/Python/Contrib/Sevopedia/ai_utils_shared_with_civ4.py'
-      - 'Assets/Python/Contrib/Sevopedia/sas_utils_shared_with_civ4.py'
       - 'Assets/Python/Contrib/Sevopedia/SevoPediaLeaderAIPValues.py'
       - '.github/workflows/build/runtime/aip_predump_values.py'
       - '.github/workflows/runtime-aip-predump-refresh.yml'

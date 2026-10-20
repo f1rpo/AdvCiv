@@ -271,6 +271,7 @@ If you find yourself stuck like for audio stopping issues, feel free to ask the 
 
 ### Comment markers and attribution
 
+- When adding or modifying Python/XML source, retain inherited copyright notices and include our standard AdvCiv-SAS modification header (e.g. as of now `(c) 2026 wonderingabout & AI/LLM helpers`, with the root README Authors reference). The source-provenance check enforces it on changed files; untouched inherited files do not need a bulk update.
 - When adding new comments, use the format `<!-- custom: ... (model credit) -->` (with `//` or `#` prefix as appropriate), and put the model credit in the suffix before `-->` (e.g., `(GPT-5.3-Codex) -->`, `GPT-5.5`, `(ChatGPT-5.6-Sol) -->`, `(Claude code Sonnet 4.5 (summarized)) -->`).
   - Do not use other tags like `advc.` as the authorship marker (they do not belong to us: e.g., base AdvCiv uses `advc.sas` to reference our AdvCiv-SAS changes).
   - Model-authored comments need a model credit. User-authored comments may remain uncredited; do not add the user's name or bulk-clean existing uncredited comments. The automated source-provenance check reports missing model credits only as advisory warnings because Git cannot distinguish user and model authorship.
@@ -330,6 +331,7 @@ If you find yourself stuck like for audio stopping issues, feel free to ask the 
 - Do not silently rewrite inherited/non-custom comment wording. Pure reflow means changing only physical wrapping/whitespace while preserving the normalized wording and punctuation; it is allowed without changing authorship. Otherwise leave the inherited comment intact and add a separate custom note, or remove the inherited comment if it is stale.
   - If a replacement custom comment supersedes an inherited comment that carries a provenance marker such as `advc.xxx`, `KI#...`, or `Long_Comments_... #N`, retain that reference in the new custom comment.
 - Keep distinct adjacent comments distinct, especially an untagged/base/upstream comment followed by an AdvCiv-SAS `<!-- custom: ... -->` comment; adjacency does not make them one comment.
+- Across languages, keep explanatory comments above the code they explain. Hoist an existing comment when relevant; otherwise add or adjust a comment as needed.
 - For AdvCiv-SAS `<!-- custom: ... -->` prose comments, physical lines follow logical sentences/clauses rather than character count. Wrap only at natural logical boundaries when needed (normally complete sentences or independent clauses), and do not arbitrarily split one sentence across `//`, `#`, or XML-comment lines.
   - A reasonably readable long sentence can stay on one physical line; do not strand a short ending, `See KI#...`, or the model credit on its own line just to meet a width target.
   - Do not normally place two substantial complete sentences on one physical custom-comment line. Put them on separate comment lines instead. If two short, closely related independent clauses read naturally together, prefer a semicolon on one line (e.g. `A is true; B follows.`); if that combined thought becomes clearly long, prefer a period and a new logical line.

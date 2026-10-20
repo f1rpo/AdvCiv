@@ -247,7 +247,8 @@ class CvEventManager:
 
 		iData1, iData2, iData3, iData4, iData5 = argsList
 
-		print("Modder's net message!")
+		# <!-- custom: Identify the mod-network callback and its existing integer payload instead of emitting an uninformative generic notice. (GPT-6.1-Sol) -->
+		print("record=MOD_NET_MESSAGE data1=%d data2=%d data3=%d data4=%d data5=%d" % (iData1, iData2, iData3, iData4, iData5))
 
 		CvUtil.pyPrint( 'onModNetMessage' )
 
@@ -325,7 +326,8 @@ class CvEventManager:
 
 	def onGameEnd(self, argsList):
 		'Called at the End of the game'
-		print("Game is ending")
+		# <!-- custom: Name the game-end callback explicitly; it does not mean the Civ4 process is exiting. (GPT-6.1-Sol) -->
+		print("record=GAME_END_CALLBACK")
 		return
 
 	def onBeginGameTurn(self, argsList):

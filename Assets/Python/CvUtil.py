@@ -324,33 +324,39 @@ def initDynamicFontIcons():
 
 	info = ""
 	desc = ""
+	# <!-- custom: Supply the glyph role and XML type to addIconToMap so startup diagnostics identify commerce/yield icons and distinguish religion from holy-city icons with the same description.
+	# The getters and description keys still select the same icons; the extra fields explain the existing font character codes. (GPT-6.1-Sol) -->
 	# add Commerce Icons
 	for i in range(CommerceTypes.NUM_COMMERCE_TYPES):
 		info = gc.getCommerceInfo(i)
 		desc = info.getDescription().lower()
-		addIconToMap(info.getChar, desc)
+		addIconToMap(info.getChar, desc, "commerce", info.getType())
 	# add Yield Icons
 	for i in range(YieldTypes.NUM_YIELD_TYPES):
 		info = gc.getYieldInfo(i)
 		desc = info.getDescription().lower()
-		addIconToMap(info.getChar, desc)
+		addIconToMap(info.getChar, desc, "yield", info.getType())
 	# add Religion & Holy City Icons
 	for i in range(gc.getNumReligionInfos()):
 		info = gc.getReligionInfo(i)
 		desc = info.getDescription().lower()
-		addIconToMap(info.getChar, desc)
-		addIconToMap(info.getHolyCityChar, desc)
+		szType = info.getType()
+		addIconToMap(info.getChar, desc, "religion", szType)
+		addIconToMap(info.getHolyCityChar, desc, "holy-city", szType)
 	for key in OtherFontIcons.keys():
 		#print key
 		FontIconMap[key] = (u"%c" % CyGame().getSymbolID(OtherFontIcons.get(key)))
 
 	#print FontIconMap
 
-def addIconToMap(infoChar, desc):
+# <!-- custom: Replace the inherited "character code - description" diagnostic with named role/XML-type fields so different glyphs sharing a description are distinguishable.
+# Read the glyph getter once for both logging and insertion; retain the description-keyed map, including the holy-city overwrite, so richer logging does not change icon selection. (GPT-6.1-Sol) -->
+# <!-- custom: Use record=FONT_ICON so this row kind is searchable with the same key=value convention as its glyph fields. (GPT-6.1-Sol) -->
+def addIconToMap(infoChar, desc, szRole, szType):
 	global FontIconMap
 	desc = convertToStr(desc)
-	print("%s - %s" %(infoChar(), desc))
 	uc = infoChar()
+	print("record=FONT_ICON role=%s type=%s charCode=%d description=%s" % (szRole, szType, uc, desc))
 	if (uc>=0):
 		FontIconMap[desc] = u"%c" %(uc,)
 # advc (note): Don't add to this list; it seems that BUG's FontUtil.py handles the values of the FontSymbols enum in the DLL (so long as they're exposed to Python). Adding to the IconMap in CvTranslator.py also seems moot.

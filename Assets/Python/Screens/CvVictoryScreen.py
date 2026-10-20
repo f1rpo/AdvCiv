@@ -907,18 +907,20 @@ class CvVictoryScreen:
 					szReligionName = gc.getReligionInfo(iReligion).getDescription()
 					SASTextScale.setTableTextLabel(screen, szTable, 1, iRow, szReligionName, szReligionButton, WidgetTypes.WIDGET_GENERAL, -1, -1, CvUtil.FONT_LEFT_JUSTIFY)
 
+				# <!-- custom: Bare numbers and votesource/secgen prints hide which vote-definition scan produced them; use named records and voteId fields.
+				# These identify vote definitions used to draw the screen, not player election choices. (GPT-6.1-Sol) -->
 				iSecretaryGeneralVote = -1
 				if (gc.getGame().canHaveSecretaryGeneral(i) and -1 != gc.getGame().getSecretaryGeneral(i)):
 					for j in range(gc.getNumVoteInfos()):
-						print(j)
+						print("record=VICTORY_SCREEN_VOTE_SCAN voteId=%d" % j)
 						if gc.getVoteInfo(j).isVoteSourceType(i):
-							print("votesource")
+							print("record=VICTORY_SCREEN_VOTE_SOURCE_MATCH voteId=%d" % j)
 							if gc.getVoteInfo(j).isSecretaryGeneral():
-								print("secgen")
+								print("record=VICTORY_SCREEN_SECRETARY_GENERAL_MATCH voteId=%d" % j)
 								iSecretaryGeneralVote = j
 								break
 
-				print(iSecretaryGeneralVote)
+				print("record=VICTORY_SCREEN_SECRETARY_GENERAL_VOTE voteId=%d" % iSecretaryGeneralVote)
 				for j in range(gc.getMAX_PLAYERS()):
 					if gc.getPlayer(j).isAlive() and not gc.getPlayer(j).isBarbarian() and gc.getTeam(iActiveTeam).isHasMet(gc.getPlayer(j).getTeam()):
 						# <!-- custom: add leader icon to player name (claude opus 4.5) -->
@@ -1151,7 +1153,8 @@ class CvVictoryScreen:
 			return False, localText.getText("TXT_KEY_TOPCIVS_UNKNOWN", ())
 
 	def getVoteTotalColor(self, iVoteReq, iVoteTotal, iVoteCand, bWinner, bVictoryVote):
-		print("%i %i %i" % (iVoteReq, iVoteTotal, iVoteCand))
+		# <!-- custom: Label the existing three-value diagnostic; candidateOwnVotes is the candidate's own contribution, distinct from predicted total support. (GPT-6.1-Sol) -->
+		print("record=VICTORY_SCREEN_VOTE_TOTALS requiredVotes=%d predictedVotes=%d candidateOwnVotes=%d" % (iVoteReq, iVoteTotal, iVoteCand))
 		if not bWinner:
 			return -1
 		if (iVoteCand > iVoteReq and bVictoryVote):

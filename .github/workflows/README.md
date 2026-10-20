@@ -34,7 +34,6 @@ This also helped spot and fix duplicate parent XML keys [found by new GitHub wor
 - `Assets/XML/AI_Variables_GlobalDefines.xml`
 - `Assets/XML/GlobalDefines_advciv_sas.xml`
 - `Assets/Python/Contrib/Sevopedia/ai_utils_shared_with_civ4.py`
-- `Assets/Python/Contrib/Sevopedia/sas_utils_shared_with_civ4.py`
 - `Assets/Python/Contrib/Sevopedia/SevoPediaLeaderAIPValues.py`
 - `.github/workflows/build/runtime/aip_predump_values.py`
 - `.github/workflows/runtime-aip-predump-refresh.yml`
@@ -231,6 +230,18 @@ The guard does not compile or run Civ4, authenticate a report or prove that all 
 ```sh
 python .github/workflows/build/repository/dll_python_bindings.py
 python .github/workflows/build/repository/dll_python_bindings.py --base-ref HEAD~3 --head-ref HEAD
+```
+
+#### `build/repository/examples_archive_size.py`
+
+Keeps compact documentation examples in archives while requiring manual review when an included example file or folder grows beyond **1 MB (1,000,000 bytes)**.
+
+- Checks tracked files under `_1_AdvCiv-SAS/Docs/examples/`; measures uncompressed file bytes and sums included descendants for every folder, including the examples root. Exactly 1 MB is allowed.
+- Uses Git's effective `export-ignore` attributes, including parent-directory exclusions. Excluded captures do not inflate their parents' included totals; untracked local captures are outside the check.
+- Reports all oversized files/folders together and fails. Review their usefulness, then reduce included content or add appropriate archive exclusions in `.gitattributes`; the check does not edit that file automatically.
+
+```bash
+python .github/workflows/build/repository/examples_archive_size.py
 ```
 
 #### `build/repository/version_metadata.py`
@@ -718,6 +729,7 @@ Diff-aware source-history guard for maintained C/C++, Python and XML source. It 
 
 It enforces these review rules introduced after repeated provenance mistakes:
 
+- added/modified Python and XML files carry the standard AdvCiv-SAS modification copyright header alongside inherited owners' notices; unchanged files and pure renames are excluded;
 - newly authored or substantively rewritten source comments use `<!-- custom: ... (model credit) -->`; model-authored comments need the credit, while user-authored comments may omit it. Missing model credits are advisory warnings, not helper failures; unchanged/moved inherited comments and whitespace-only reflow remain valid, while stale inherited comments may simply be removed;
 - when a nearby replacement custom comment retains identical or substantially unchanged prose, recognized existing credits in its trailing parenthesized credit list are preserved; dropping one contributor still fails even if another credit remains. Credit reordering/additions and whitespace reflow are allowed, as are whole-comment deletions and unrelated replacements;
 - if an inherited comment is replaced by a nearby custom comment, known provenance markers such as `advc.xxx`, `KI#...` and `Long_Comments_... #N` are retained;

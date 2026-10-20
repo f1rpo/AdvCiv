@@ -25,6 +25,12 @@ Add a latest-first entry explaining the behavior and rationale. The diagnostics 
   - These are observation-only timeline rows: they preserve the underlying `NO_GAME`, creation/load or play activity interval instead of inventing a menu-overlay/loading-screen activity. Python checks the cached native enable flag before diagnostic-only interface/screen queries; the samples occur only on existing callbacks, without frame polling.
   - The exact initial main-menu frame, exact loading-frame visibility and the EXE-owned main-menu Exit button remain unavailable through the reviewed SDK/Python callbacks. Continue to report scene/loading requests and orderly teardown as separate evidence rather than inferring those missing facts.
 
+- **Follow-up, 2026-10-19:** The menu/loading-visibility and EXE main-menu Exit-button investigations were closed for the current callback-based recorder after live tests and SDK/Python review. Neither missing feature was added. (ChatGPT-5.6-Sol investigation, reviewed with Codex.)
+  - **Initial menu/loading visibility:** reviewed getters select assets, `isInMainMenu()` samples state, and `PreGameStart` marks initialization; no callback establishing the first displayed frame was found. Polling or more asset observations would still not establish that render boundary.
+    - Proactively calling `getSoundtrack()` would also change SAS's shuffle bag/ASyncRand state, while merely observing its existing call would add another asset-request proxy.
+  - **EXE main-menu Exit button:** its handler is inside the EXE, unlike the in-game `CvDLLButtonPopup::OnOkClicked` path. The real button test produced orderly teardown without a Windows close-request or dedicated UI-request row.
+    - Generic destruction/quit/uninitialization observations identify shutdown, not its originating button; additional hooks would not reliably distinguish that source. Existing requests, state samples and teardown remain separate evidence.
+
 ### Revision 4 - SAS practical 6645
 
 - **Date:** 2026-10-19

@@ -16,7 +16,8 @@ from CvPythonExtensions import *
 
 import CvUtil
 import ScreenInput
-import SevoScreenEnums
+# <!-- custom: SevoScreenEnums.py was removed; import its unchanged page IDs from the SevoScreenEnums class in CvScreenEnums.py, keeping them distinct from vanilla Civilopedia pages. (GPT-6.1-Sol) -->
+from CvScreenEnums import SevoScreenEnums
 
 import CvPediaScreen
 import SevoPediaTech
@@ -308,10 +309,10 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		iconGreatGeneral = u"%c  " % (CyGame().getSymbolID(FontSymbols.GREAT_GENERAL_CHAR))
 		iconOccupation = u"%c  " % (CyGame().getSymbolID(FontSymbols.OCCUPATION_CHAR))
 
-		# <!-- custom: central category wiring for list generators, screen handlers, and PEDIA_MAIN links.
+		# <!-- custom: Central category wiring for list generators, screen handlers, and PEDIA_MAIN links; page IDs come from class SevoScreenEnums in CvScreenEnums.py.
 		# To add a category, insert one row in SAS_CATEGORY_DEFS: (PEDIA_ENUM, TXT_KEY, icon, listMethodName, screenClassOrInstance, PEDIA_MAIN_LINK_KEY or None).
 		# Example: (SevoScreenEnums.PEDIA_TECHS, "TXT_KEY_PEDIA_CATEGORY_TECH", iconCommerceResearch, "placeTechs", SevoPediaTech.SevoPediaTech, "PEDIA_MAIN_TECH").
-		# Reorder by moving rows here; no other maps or link tables need edits. (GPT-5.2-Codex) -->
+		# Reorder by moving rows here; no other maps or link tables need edits. (GPT-5.2-Codex + GPT-6.1-Sol) -->
 		self.SAS_CATEGORY_DEFS = (
 			(SevoScreenEnums.PEDIA_INDEX, "TXT_KEY_PEDIA_SCREEN_INDEX", iconYieldCommerce, "placeIndexCategory", None, None),
 			(SevoScreenEnums.PEDIA_BTS_CONCEPTS, "TXT_KEY_PEDIA_CATEGORY_CONCEPT_NEW", iconYieldCommerce, "placeBTSConcepts", SevoPediaHistory.SevoPediaHistory, None),
@@ -1493,7 +1494,8 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 		if not self.IS_FEATURES_PRE_LOADING_XML_DATA_VALIDATION_DONE:
 			SevoPediaFeature.do_pre_load_xml_features_info_required_data_validation()
 			self.IS_FEATURES_PRE_LOADING_XML_DATA_VALIDATION_DONE = True
-			print("Sevopedia Feature pre load XML data validation done from Sevopedia Main. This should appear only once even if we exit sevopedia entirely, as long as we are during the same gaming session (i.e. game was not exited) (for info, in SevopediaMain, self.IS_FEATURES_PRE_LOADING_XML_DATA_VALIDATION_DONE=%s)." % str(self.IS_FEATURES_PRE_LOADING_XML_DATA_VALIDATION_DONE))
+			# <!-- custom: Keep the existing initialization flag in a compact record= diagnostic instead of a repeated prose explanation of its lifetime. (GPT-6.1-Sol) -->
+			print("record=SEVOPEDIA_FEATURE_XML_VALIDATION validationDone=%d" % self.IS_FEATURES_PRE_LOADING_XML_DATA_VALIDATION_DONE)
 
 	def SAS_getFeaturesGroupedByLandWater_fromBaseList(self, baseList):
 		return SAS_MainGroupings.SAS_getFeaturesGroupedByLandWater_fromBaseList(baseList, False, self.SAS_SEVOPEDIA_TERRAIN_GRAPHICAL_ONLY_HIGH_IDS)
@@ -1614,7 +1616,8 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 			SevoPediaLeader.LEADERS_INFO_CACHED = SevoPediaLeader.getPrecomputedCacheOnceOnlyFromSevopediaMainInSevopediaLeaderForEntireSession()
 			# <!-- custom: do not rebuild if built once already, for the entire session keep the same cache, even if we exit sevopedia, store data in memory or wherever it is stored, but do not build it until we click on leaders category the first time, not at module load (so a bit later than module load and not automatic but conditional in this case), but still before any leader is selected -->
 			self.IS_SEVOPEDIALEADER_CACHE_PREBUILT = True
-			print("Sevopedia Leader cache prebuilt from Sevopedia Main. This should appear only once even if we exit sevopedia entirely, as long as we are during the same gaming session (i.e. game was not exited) (for info, in SevopediaMain, self.IS_SEVOPEDIALEADER_CACHE_PREBUILT=%s)." % str(self.IS_SEVOPEDIALEADER_CACHE_PREBUILT))
+			# <!-- custom: Report leader-cache preparation separately from feature XML validation, retaining its existing flag as a named field. (GPT-6.1-Sol) -->
+			print("record=SEVOPEDIA_LEADER_CACHE cachePrebuilt=%d" % self.IS_SEVOPEDIALEADER_CACHE_PREBUILT)
 
 	def getLeaderList(self):
 		if self.IS_SAS_SEVOPEDIA_MAIN_LEADERS_GROUP_BY_CIV:

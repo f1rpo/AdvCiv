@@ -4,10 +4,14 @@
 #
 # EF: Converted from Civilopedia version by fitchn.
 
+# AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
+# (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)
+
 from CvPythonExtensions import *
 import CvUtil
 import ScreenInput
-import SevoScreenEnums
+# <!-- custom: SevoScreenEnums.py was removed; import its unchanged page IDs from the SevoScreenEnums class in CvScreenEnums.py, keeping them distinct from vanilla Civilopedia pages. (GPT-6.1-Sol) -->
+from CvScreenEnums import SevoScreenEnums
 import BugUtil
 from SASFontUtils import *
 from _sevopedia_helpers import place_new_concept_legend_link

@@ -29,9 +29,7 @@ import CvWonderMovieScreen
 import CvEraMovieScreen
 import CvSpaceShipScreen
 
-# BUG - Sevopedia - start
-import SevoScreenEnums
-# BUG - Sevopedia - end
+# <!-- custom: SevoScreenEnums.py was removed; its IDs now live in class SevoScreenEnums in CvScreenEnums.py and arrive through the existing import below, so the separate module import is unnecessary. (GPT-6.1-Sol) -->
 
 import CvWorldBuilderScreen
 import CvWorldBuilderDiplomacyScreen
@@ -65,7 +63,8 @@ g_bIsScreenActive = -1
 
 def toggleSetNoScreens():
 	global g_bIsScreenActive
-	BugUtil.logSASPythonDiagnostic("SCREEN OFF")
+	# <!-- custom: Name the last notified screen on OFF as context; this callback reports no screens, not a verified per-screen close event. (GPT-6.1-Sol) -->
+	BugUtil.logSASPythonDiagnostic("record=SCREEN_OFF previousScreenId=%d previousScreenType=%s" % (g_bIsScreenActive, getSASScreenName(g_bIsScreenActive, bUsingSevopedia)))
 	g_bIsScreenActive = -1
 	# <!-- custom: Real menu/game Sevopedia tests emitted this EXE no-screens notification without a recorded onClose hide edge.
 	# Observe that lifecycle boundary directly; querying isActive here could still see the old flag during dispatch.
@@ -76,7 +75,9 @@ def toggleSetNoScreens():
 
 def toggleSetScreenOn(argsList):
 	global g_bIsScreenActive
-	BugUtil.logSASPythonDiagnostic("%s SCREEN TURNED ON" %(argsList[0],))
+	# <!-- custom: Screen IDs alone require a source lookup; reuse the canonical enum names while preserving the ID and the existing notification semantics.
+	# Use record=SCREEN_TURNED_ON so the diagnostic kind is searchable by the same key=value convention as its screen fields. (GPT-6.1-Sol) -->
+	BugUtil.logSASPythonDiagnostic("record=SCREEN_TURNED_ON screenId=%d screenType=%s" % (argsList[0], getSASScreenName(argsList[0], bUsingSevopedia)))
 	g_bIsScreenActive = argsList[0]
 
 # BUG - Options - start
@@ -765,7 +766,8 @@ def WorldBuilderGetHighlightPlot(argsList):
 
 def WorldBuilderOnAdvancedStartBrushSelected(argsList):
 	iList,iIndex,iTab = argsList
-	BugUtil.logSASPythonDiagnostic("WB Advanced Start brush selected, iList=%d, iIndex=%d, type=%d" %(iList,iIndex,iTab))
+	# <!-- custom: One WB_BRUSH_SELECTED record family makes brush messages searchable; mode distinguishes the callback and tabId names the former ambiguous type field. (GPT-6.1-Sol) -->
+	BugUtil.logSASPythonDiagnostic("record=WB_BRUSH_SELECTED mode=ADVANCED_START listId=%d index=%d tabId=%d" %(iList,iIndex,iTab))
 	if (iTab == worldBuilderScreen.m_iASTechTabID):
 		showTechChooser()
 	elif (iTab == worldBuilderScreen.m_iASCityTabID and iList == worldBuilderScreen.m_iASAutomateListID):
@@ -778,14 +780,16 @@ def WorldBuilderOnAdvancedStartBrushSelected(argsList):
 
 def WorldBuilderOnNormalPlayerBrushSelected(argsList):
 	iList,iIndex,iTab = argsList
-	BugUtil.logSASPythonDiagnostic("WB brush selected, iList=%d, iIndex=%d, type=%d" %(iList,iIndex,iTab))
+	# <!-- custom: Identify the player-brush callback within the shared WB_BRUSH_SELECTED family. (GPT-6.1-Sol) -->
+	BugUtil.logSASPythonDiagnostic("record=WB_BRUSH_SELECTED mode=PLAYER listId=%d index=%d tabId=%d" %(iList,iIndex,iTab))
 	if (worldBuilderScreen.setCurrentNormalPlayerIndex(iIndex)):
 		return 1
 	return 0
 
 def WorldBuilderOnNormalMapBrushSelected(argsList):
 	iList,iIndex,iTab = argsList
-	BugUtil.logSASPythonDiagnostic("WB brush selected, iList=%d, iIndex=%d, type=%d" %(iList,iIndex,iTab))
+	# <!-- custom: Identify the map-brush callback within the shared WB_BRUSH_SELECTED family. (GPT-6.1-Sol) -->
+	BugUtil.logSASPythonDiagnostic("record=WB_BRUSH_SELECTED mode=MAP listId=%d index=%d tabId=%d" %(iList,iIndex,iTab))
 	if (worldBuilderScreen.setCurrentNormalMapIndex(iIndex)):
 		if (worldBuilderScreen.setCurrentNormalMapList(iList)):
 			return 1
@@ -1097,7 +1101,8 @@ def handleBack(screens):
 		if (HandleNavigationMap.has_key(iScreen)):
 			screen = HandleNavigationMap.get( iScreen )
 			screen.back()
-	BugUtil.logSASPythonDiagnostic("Mouse BACK")
+	# <!-- custom: This callback receives a navigation request; its token does not assume mouse input or successful page movement. (GPT-6.1-Sol) -->
+	BugUtil.logSASPythonDiagnostic("record=SCREEN_BACK_REQUEST")
 	return 0
 
 def handleForward(screens):
@@ -1105,7 +1110,8 @@ def handleForward(screens):
 		if (HandleNavigationMap.has_key(iScreen)):
 			screen = HandleNavigationMap.get( iScreen )
 			screen.forward()
-	BugUtil.logSASPythonDiagnostic("Mouse FWD")
+	# <!-- custom: Match the backward-request token without attributing the request to a particular input device. (GPT-6.1-Sol) -->
+	BugUtil.logSASPythonDiagnostic("record=SCREEN_FORWARD_REQUEST")
 	return 0
 
 def refreshMilitaryAdvisor (argsList):

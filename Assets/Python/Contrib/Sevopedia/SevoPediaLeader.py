@@ -17,7 +17,8 @@
 from CvPythonExtensions import *
 import CvUtil
 import ScreenInput
-import SevoScreenEnums
+# <!-- custom: SevoScreenEnums.py was removed; import its unchanged page IDs from the SevoScreenEnums class in CvScreenEnums.py, keeping them distinct from vanilla Civilopedia pages. (GPT-6.1-Sol) -->
+from CvScreenEnums import SevoScreenEnums
 import SASTextScale
 from SASFontUtils import sasFontTagLabel
 from SASMagicNumbers import *

@@ -16,7 +16,8 @@ from CvPythonExtensions import *
 from SASMagicNumbers import *
 import CvUtil
 import ScreenInput
-import SevoScreenEnums
+# <!-- custom: Removed the unused SevoScreenEnums import after its constants moved from SevoScreenEnums.py to the SevoScreenEnums class in CvScreenEnums.py.
+# This page uses none of those IDs, and the removed constants-only module had no initialization side effects. (GPT-6.1-Sol) -->
 import SASTextScale
 
 from _sevopedia_helpers import *
