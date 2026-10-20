@@ -71,29 +71,8 @@ def _xml_types(path, prefix):
 
 
 class PythonVisualResourceTests(unittest.TestCase):
-    def test_raw_visual_lookup_stays_in_sas_visual_utils(self):
-        # <!-- custom: The central module may perform raw engine/XML/art lookup; ordinary UI modules consume its shared cached collections instead. (ChatGPT-5.6-Sol) -->
-        patterns = (
-            ("direct GameFont symbol lookup", re.compile(r"\bgetSymbolID\s*\(")),
-            ("direct holy-city/HQ char lookup", re.compile(r"\.\s*get(?:HolyCityChar|HeadquarterChar)\s*\(")),
-            ("direct interface/movie/civilization art-manager lookup", re.compile(r"(?:ArtFileMgr|CyArtFileMgr\(\))\s*\.\s*get(?:Interface|Movie|Civilization)ArtInfo\s*\(")),
-            ("direct COLOR_* XML lookup", re.compile(r"\b(?:getInfoTypeOrFail|(?:gc\.)?getInfoTypeForString)\s*\(\s*[uUrR]*[\"\']COLOR_")),
-            ("direct literal ColorUtil lookup", re.compile(r"\bColorUtil\.keyToType\s*\(\s*[uUrR]*[\"\']COLOR_")),
-            ("direct yield color lookup", re.compile(r"\bgetYieldInfo\s*\([^)]*\)\s*\.\s*getColorType\s*\(")),
-        )
-        failures = []
-        for path in _gameplay_python_files():
-            source = _masked_source(path, False)
-            # <!-- custom: DynamicFont.getChar(symbol) is the intentional runtime-variable BUG-symbol API; any other raw .getChar() bypasses the central indexed collections. (ChatGPT-5.6-Sol) -->
-            raw_char_source = source.replace("SASVisuals.DynamicFont.getChar(", "")
-            if re.search(r"\.\s*getChar\s*\(", raw_char_source):
-                failures.append("%s: direct info/font .getChar() lookup" % path.relative_to(REPO_ROOT))
-            for label, pattern in patterns:
-                if pattern.search(source):
-                    failures.append("%s: %s" % (path.relative_to(REPO_ROOT), label))
-        self.assertEqual(failures, [], "\n".join(failures))
-
-
+    # <!-- custom: Raw lookup and duplicated shared-art enforcement now belongs to the source-derived python_resource_api check and its fixtures.
+    # Replacing these regex scans also lets its narrow, justified direct-read exception work consistently; unrelated .getChar() methods and one-off local art are not shared-cache bypasses. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
     def test_display_code_uses_cached_chars_not_ordinals(self):
         # <!-- custom: UI rendering should consume the cached Unicode glyph itself.
         # Keep ordinal() for the small set of integer contracts (translator/XML %c arguments, offset/index arithmetic, diagnostics), not for immediately formatting a glyph back through Python %c. (ChatGPT-5.6-Sol) -->
@@ -129,16 +108,6 @@ class PythonVisualResourceTests(unittest.TestCase):
         # <!-- custom: These were deterministic arrays rebuilt by individual screens despite the same tuples/ordinals already being owned by SASVisualUtils.
         # Keep the concrete legacy cache names retired. (ChatGPT-5.6-Sol) -->
         pattern = re.compile(r"\bself\.(?:COMMERCE_CHARS|YIELD_CHARS)\b")
-        failures = []
-        for path in _gameplay_python_files():
-            if pattern.search(_masked_source(path, False)):
-                failures.append(str(path.relative_to(REPO_ROOT)))
-        self.assertEqual(failures, [], "\n".join(failures))
-
-    def test_literal_interface_art_stays_central(self):
-        # <!-- custom: Literal Art/Interface paths are visual resource identities too.
-        # Keep them in StaticArt/trait maps rather than scattering path strings or aliases through screens. (ChatGPT-5.6-Sol) -->
-        pattern = re.compile(r"[uUrR]*[\"\']Art/Interface/")
         failures = []
         for path in _gameplay_python_files():
             if pattern.search(_masked_source(path, False)):

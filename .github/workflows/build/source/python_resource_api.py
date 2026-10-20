@@ -9,6 +9,9 @@ import ast
 from dataclasses import dataclass, field
 from pathlib import Path
 import re
+# <!-- custom: tokenize and StringIO read actual comment tokens for narrowly justified direct-resource exceptions; marker-like strings must not suppress a lookup failure. (GPT-6.1-Sol) -->
+import tokenize
+from io import StringIO
 import sys
 import warnings
 import xml.etree.ElementTree as ET
@@ -88,6 +91,7 @@ def function_surface(node, bound=False):
 # Unknown computed values remain opaque; do not invent members or execute a provider to discover them. (GPT-6.1-Sol) -->
 class Catalog:
     def __init__(self, sources, xml_names=None, enums=None):
+        self.sources = sources
         self.trees = {name: parse(source, name) for name, source in sources.items()}
         self.xml_names = xml_names or {}
         self.enums = enums or {}
@@ -284,6 +288,219 @@ def data_sources(root):
     return xml_names, enums
 
 
+# <!-- custom: A changing displayed amount does not invalidate its stable glyph/art resource.
+# Derive direct-lookup signatures from writes into provider caches, including inherited constructor-supplied getters, rather than copying every resource-family name into CI.
+# This recognizes engine lookup origins and exact shared literal paths; it does not prove arbitrary hand-written formatting/mapping logic equivalent to a cached helper. (GPT-6.1-Sol) -->
+def resource_origin(node, env):
+    if isinstance(node, ast.Name):
+        return env.get(node.id)
+    if isinstance(node, ast.Attribute):
+        key = ".".join(chain(node))
+        if key in env:
+            return env[key]
+        base = resource_origin(node.value, env)
+        return base + (node.attr,) if base else None
+    if isinstance(node, ast.Call):
+        origin = resource_origin(node.func, env)
+        if origin and origin[:1] == ("CvPythonExtensions",) and len(origin) == 2:
+            return {"CyGlobalContext": ("CyGlobalContext",), "CyGame": ("CyGlobalContext", "getGame"), "CyArtFileMgr": ("CyArtFileMgr",)}.get(origin[1])
+        return origin
+    return None
+
+
+def resource_environment(tree):
+    env = {name: (name,) for name in ("CyGlobalContext", "CyArtFileMgr")}
+    env["CyGame"] = ("CyGlobalContext", "getGame")
+    env["getInfoTypeOrFail"] = ("getInfoTypeOrFail",)
+    for node in tree.body:
+        if isinstance(node, ast.Import):
+            for item in node.names:
+                env[item.asname or item.name] = (item.name,)
+        elif isinstance(node, (ast.FunctionDef, ast.ClassDef)):
+            env[node.name] = None
+        elif isinstance(node, ast.ImportFrom):
+            for item in node.names:
+                if item.name != "*":
+                    env[item.asname or item.name] = env.get(item.name) if node.module in {"CvPythonExtensions", "SASUtils"} else (node.module, item.name)
+        elif isinstance(node, ast.Assign):
+            for target in node.targets:
+                if isinstance(target, ast.Name):
+                    env[target.id] = resource_origin(node.value, env)
+    return env
+
+
+class ResourceCachePolicy:
+    def __init__(self, catalog):
+        self.rules = {}
+        self.literals = {}
+        for module in PROVIDERS:
+            if module not in catalog.trees:
+                continue
+            tree = catalog.trees[module]
+            classes = {item.name: item for item in tree.body if isinstance(item, ast.ClassDef)}
+            base_env = resource_environment(tree)
+            for node in tree.body:
+                if isinstance(node, ast.Assign) and isinstance(node.value, ast.Call) and isinstance(node.value.func, ast.Name) and node.value.func.id in classes:
+                    public = next((target.id for target in node.targets if isinstance(target, ast.Name) and not target.id.startswith("_")), None)
+                    if public:
+                        self.instance(module, public, classes, node.value.func.id, node.value.args, base_env)
+                elif isinstance(node, ast.FunctionDef):
+                    env = dict(base_env)
+                    for arg in node.args.args:
+                        env[arg.arg] = None
+                    self.method(module + "." + node.name, node, env, tree)
+
+        # <!-- custom: The former raw-lookup tests also guarded legacy cached wrappers such as ColorUtil.keyToType.
+        # Derive straightforward return-value forwarding from their source, retaining that coverage through aliases without adding a new wrapper-name blacklist for each helper. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+        wrappers = {}
+        for module, tree in catalog.trees.items():
+            if module in PROVIDERS:
+                continue
+            for function in tree.body:
+                if not isinstance(function, ast.FunctionDef):
+                    continue
+                env = resource_environment(tree)
+                for arg in function.args.args:
+                    env[arg.arg] = None
+                for item in ast.walk(function):
+                    if isinstance(item, ast.Assign):
+                        for target in item.targets:
+                            if isinstance(target, ast.Name):
+                                env[target.id] = resource_origin(item.value, env)
+                for item in ast.walk(function):
+                    if isinstance(item, ast.Return):
+                        origin = resource_origin(item.value, env)
+                        if origin in self.rules:
+                            rules = self.rules[origin]
+                            parameters = {arg.arg for arg in function.args.args}
+                            forwards_key = any(isinstance(call, ast.Call) and resource_origin(call, env) == origin and call.args and isinstance(call.args[0], ast.Name) and call.args[0].id in parameters for call in ast.walk(function))
+                            if forwards_key or all(not prefixes and not literals for _accessor, prefixes, literals in rules):
+                                wrappers[module, function.name] = list(rules)
+        self.rules.update(wrappers)
+
+    def instance(self, module, public, classes, name, arguments, env):
+        cls = classes[name]
+        state = dict(env)
+        def initialize(owner, values):
+            constructor = next((item for item in owner.body if isinstance(item, ast.FunctionDef) and item.name == "__init__"), None)
+            if constructor is None:
+                return
+            local = dict(state)
+            for arg, value in zip(constructor.args.args[1:], values):
+                local[arg.arg] = value
+            for item in ast.walk(constructor):
+                if isinstance(item, ast.Call) and isinstance(item.func, ast.Attribute) and item.func.attr == "__init__" and isinstance(item.func.value, ast.Name) and item.func.value.id in classes:
+                    initialize(classes[item.func.value.id], [resource_origin(arg, local) for arg in item.args[1:]])
+                elif isinstance(item, ast.Assign):
+                    for target in item.targets:
+                        if isinstance(target, ast.Attribute) and chain(target)[:1] == ["self"]:
+                            state[".".join(chain(target))] = resource_origin(item.value, local)
+        initialize(cls, [resource_origin(arg, env) for arg in arguments])
+        visited = set()
+        def methods(owner):
+            if owner.name in visited:
+                return
+            visited.add(owner.name)
+            for base in owner.bases:
+                if isinstance(base, ast.Name) and base.id in classes:
+                    methods(classes[base.id])
+            for item in owner.body:
+                if isinstance(item, ast.FunctionDef) and not item.name.startswith("_"):
+                    self.method(module + "." + public + "." + item.name, item, dict(state), owner)
+                elif isinstance(item, ast.Assign):
+                    for target in item.targets:
+                        if isinstance(target, ast.Name) and not target.id.startswith("_") and isinstance(item.value, ast.Constant) and isinstance(item.value.value, str) and item.value.value.lower().startswith("art/"):
+                            self.literals.setdefault(item.value.value.lower(), module + "." + public + "." + target.id)
+        methods(cls)
+
+    def method(self, accessor, function, env, container):
+        prefixes = {item.args[0].value for item in ast.walk(container) if isinstance(item, ast.Call) and isinstance(item.func, ast.Attribute) and item.func.attr == "startswith" and item.args and isinstance(item.args[0], ast.Constant) and isinstance(item.args[0].value, str) and item.args[0].value.endswith("_") and item.args[0].value != "_"}
+        literals = {item.args[0].value for item in ast.walk(container) if isinstance(item, ast.Call) and isinstance(item.func, ast.Name) and item.func.id == function.name and item.args and isinstance(item.args[0], ast.Constant) and isinstance(item.args[0].value, str)}
+        for item in ast.walk(function):
+            if not isinstance(item, ast.Assign):
+                continue
+            origin = resource_origin(item.value, env)
+            for target in item.targets:
+                if isinstance(target, ast.Name):
+                    env[target.id] = origin
+                elif isinstance(target, ast.Subscript) and origin and (origin[0] in {"CyGlobalContext", "CyArtFileMgr", "getInfoTypeOrFail"}):
+                    # <!-- custom: Only a lookup whose result is stored in a returned cache is a replacement contract; incidental metadata reads such as trait descriptions are not equivalent to a cached trait icon. (GPT-6.1-Sol) -->
+                    cache = ast.dump(target.value)
+                    returned = any(isinstance(ret, ast.Return) and ret.value is not None and any(ast.dump(part) == cache for part in ast.walk(ret.value)) for ret in ast.walk(function))
+                    if returned and (len(origin) > 1 or prefixes):
+                        if origin[-1] == "getDefineINT":
+                            # <!-- custom: A private generic Define reader is not the public API; derive each fixed-name wrapper and restrict the rule to its literal key, leaving unrelated/live gameplay Defines alone. (GPT-6.1-Sol) -->
+                            for wrapper in container.body:
+                                if not isinstance(wrapper, ast.FunctionDef) or wrapper.name.startswith("_"):
+                                    continue
+                                for call in ast.walk(wrapper):
+                                    if isinstance(call, ast.Call) and isinstance(call.func, ast.Name) and call.func.id == function.name and call.args and isinstance(call.args[0], ast.Constant) and call.args[0].value in literals:
+                                        public = accessor.rsplit(".", 1)[0] + "." + wrapper.name
+                                        self.rules.setdefault(origin, []).append((public, set(), {call.args[0].value}))
+                        else:
+                            self.rules.setdefault(origin, []).append((accessor, prefixes if origin[0] == "getInfoTypeOrFail" else set(), set()))
+
+    def inspect(self, tree, source):
+        errors = []
+        exceptions = {}
+        for token in tokenize.generate_tokens(StringIO(source).readline):
+            if token.type == tokenize.COMMENT and "resource-cache-direct:" in token.string:
+                reason = token.string.split("resource-cache-direct:", 1)[1].split("-->", 1)[0].strip()
+                if not reason or reason.startswith("("):
+                    errors.append((token.start[0], "resource-cache-direct requires a concrete reason"))
+                else:
+                    exceptions[token.start[0]] = reason
+        policy = self
+        class Visitor(ast.NodeVisitor):
+            def __init__(self):
+                self.env = resource_environment(tree)
+            def visit_FunctionDef(self, node):
+                outer = self.env
+                self.env = dict(outer)
+                for arg in ast.walk(node.args):
+                    if isinstance(arg, ast.arg):
+                        self.env[arg.arg] = None
+                for item in ast.walk(node):
+                    if isinstance(item, ast.Name) and isinstance(item.ctx, ast.Store):
+                        self.env[item.id] = None
+                for statement in node.body:
+                    self.visit(statement)
+                self.env = outer
+            visit_AsyncFunctionDef = visit_FunctionDef
+            def visit_Lambda(self, node):
+                outer = self.env
+                self.env = dict(outer)
+                for arg in ast.walk(node.args):
+                    if isinstance(arg, ast.arg):
+                        self.env[arg.arg] = None
+                self.visit(node.body)
+                self.env = outer
+            def visit_Assign(self, node):
+                self.visit(node.value)
+                for target in node.targets:
+                    if isinstance(target, ast.Name):
+                        self.env[target.id] = resource_origin(node.value, self.env)
+            def allowed(self, node):
+                return node.lineno in exceptions or node.lineno - 1 in exceptions
+            def visit_Call(self, node):
+                origin = resource_origin(node, self.env)
+                for accessor, prefixes, literals in policy.rules.get(origin, []):
+                    literal = node.args[0].value if node.args and isinstance(node.args[0], ast.Constant) else None
+                    if prefixes and (not isinstance(literal, str) or not any(literal.startswith(prefix) for prefix in prefixes)):
+                        continue
+                    if literals and literal not in literals:
+                        continue
+                    if not self.allowed(node):
+                        errors.append((node.lineno, "direct resource lookup bypasses shared cache; use " + accessor + " or document resource-cache-direct: reason"))
+                    break
+                self.generic_visit(node)
+            def visit_Constant(self, node):
+                if isinstance(node.value, str) and node.value.lower() in policy.literals and not self.allowed(node):
+                    errors.append((node.lineno, "duplicated shared art path; use " + policy.literals[node.value.lower()] + " or document resource-cache-direct: reason"))
+        Visitor().visit(tree)
+        return errors
+
+
 # <!-- custom: Follow explicit module/member aliases and local-module re-exports, but only validate typed resource surfaces; arbitrary engine objects and computed return values remain outside this static check. (GPT-6.1-Sol) -->
 def inspect_consumer(module, catalog):
     tree = catalog.trees[module]
@@ -380,6 +597,10 @@ def inspect_consumer(module, catalog):
             supplied = set(positional[:given]) | set(keywords)
             if (given > len(positional) and not vararg) or (not kwarg and any(key not in positional for key in keywords)) or any(key in positional[:given] for key in keywords) or any(key not in supplied for key in positional[:required]):
                 errors.append((node.lineno, "invalid API arguments: %s" % ".".join(parts)))
+    if module not in PROVIDERS:
+        if not hasattr(catalog, "resource_cache_policy"):
+            catalog.resource_cache_policy = ResourceCachePolicy(catalog)
+        errors.extend(catalog.resource_cache_policy.inspect(tree, catalog.sources[module]))
     return sorted(set(errors))
 
 

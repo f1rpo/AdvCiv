@@ -448,6 +448,7 @@ These are general guidelines, not irrevocable requirements; adjust based on task
 #### Visual resources and UI fonts
 
 - Share reusable glyphs, colors and art through `import SASVisualUtils as SASVisuals`, keeping text scaling in `SASTextScale` and screen-dependent presentation with its caller. Reuse cached chars for display and ordinals where an API or calculation requires an integer.
+  - Reuse these resources even when the displayed game value changes: a current gold amount and its stable gold glyph are separate values. If a direct resource read is necessary, explain the reason beside it rather than recreating another local cache; CI catches recognizable bypasses but cannot prove all equivalent code patterns.
   - Collections notably cover Font/DynamicFont, Yield/Commerce, Religion/Corporation/Bonus, Color/art, Trait/GreatPeople, Specialist and CityEmphasis. They replace `FontUtil`, `TraitUtil` and `GGUtil`, and centralize visual resources formerly held by helpers such as `GPUtil`; `GPUtil` retains its gameplay/progress logic.
 - For UI text, do not hardcode font tags like `<font=2/3/4>`; use `SASTextScale` (`sasFontTag*` / `sasFontTag*.bold` / `SAS_FONT_TAG_CLOSE` / `getSASUIFont*`) so XML defines control scaling globally.
   - Example good: `SASTextScale.sasFontTagLabel + szText + SASTextScale.SAS_FONT_TAG_CLOSE` or `SASTextScale.sasFontTagTitle.bold + szText + SASTextScale.SAS_FONT_TAG_CLOSE`; avoid: `u"<font=3>%s</font>" % szText` or `u"<font=4b>%s</font>" % szText`.

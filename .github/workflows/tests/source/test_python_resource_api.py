@@ -26,6 +26,110 @@ class PythonResourceApiTests(unittest.TestCase):
         catalog = api.Catalog(definitions, self.xml, self.enums)
         return api.inspect_consumer("Consumer", catalog)
 
+    # <!-- custom: Stable resource identity and changing gameplay values are different contracts: reject raw visual lookups but keep current gold/production/state reads legal.
+    # Test source-derived new families too, rather than only today's spellings. (GPT-6.1-Sol) -->
+    def test_raw_cached_resource_families(self):
+        calls = [
+            "CyGame().getSymbolID(FontSymbols.HAPPY_CHAR)",
+            "gc.getGame().getSymbolID(FontSymbols.HAPPY_CHAR)",
+            "gc.getYieldInfo(0).getChar()",
+            "gc.getYieldInfo(0).getColorType()",
+            "gc.getCommerceInfo(0).getChar()",
+            "gc.getReligionInfo(0).getChar()",
+            "gc.getReligionInfo(0).getHolyCityChar()",
+            "gc.getCorporationInfo(0).getChar()",
+            "gc.getCorporationInfo(0).getHeadquarterChar()",
+            "gc.getBonusInfo(0).getChar()",
+            "Art.getInterfaceArtInfo('SOME_ART').getPath()",
+            "Art.getMovieArtInfo('SOME_MOVIE').getPath()",
+            "Art.getCivilizationArtInfo('SOME_CIV').getButton()",
+            "getInfoTypeOrFail('COLOR_RED')",
+            "gc.getDefineINT('SAS_UI_FONT_BODY')",
+        ]
+        for call in calls:
+            with self.subTest(call=call):
+                source = "gc = CyGlobalContext()\nArt = CyArtFileMgr()\n" + call + "\n"
+                self.assertTrue(any("bypasses shared cache" in message for _line, message in self.inspect(source)))
+        errors = self.inspect("gc = CyGlobalContext()\ngc.getDefineINT('SAS_UI_FONT_BODY')\n")
+        self.assertTrue(any("SASTextScale.getSASUIFontBody" in message for _line, message in errors))
+
+    def test_resource_origins_follow_aliases_and_info_variables(self):
+        source = "from CvPythonExtensions import CyGlobalContext as Context\nworld = Context()\ngetter = world.getCommerceInfo\ninfo = getter(0)\ninfo.getChar()\n"
+        self.assertTrue(any("SASVisualUtils.Commerce.ordinal" in message for _line, message in self.inspect(source)))
+        source = "from SASUtils import getInfoTypeOrFail as lookup\nlookup('COLOR_RED')\n"
+        self.assertTrue(any("SASVisualUtils.Color.get" in message for _line, message in self.inspect(source)))
+
+    def test_source_derived_legacy_wrapper_alias(self):
+        wrappers = {"ColorHelper": "from SASUtils import getInfoTypeOrFail\ndef resolve(key):\n    result = getInfoTypeOrFail(key)\n    return result\n"}
+        source = "import ColorHelper as Colors\nColors.resolve('COLOR_RED')\n"
+        self.assertTrue(any("SASVisualUtils.Color.get" in message for _line, message in self.inspect(source, wrappers)))
+        self.assertEqual(self.inspect("import ColorHelper as Colors\nColors.resolve('UNIT_SETTLER')\n", wrappers), [])
+        wrappers["UnitHelper"] = "from SASUtils import getInfoTypeOrFail\ndef resolve(label):\n    return getInfoTypeOrFail('UNIT_SETTLER')\n"
+        self.assertEqual(self.inspect("import UnitHelper\nUnitHelper.resolve('COLOR_RED')\n", wrappers), [])
+
+    def test_module_qualified_engine_factory(self):
+        source = "import CvPythonExtensions as Engine\nEngine.CyGame().getSymbolID(0)\n"
+        self.assertTrue(any("SASVisualUtils.Font.ordinal" in message for _line, message in self.inspect(source)))
+
+    def test_shared_cache_access_and_unrelated_dynamic_reads_are_valid(self):
+        # <!-- custom: Fixture imports use SASVisualUtils for shared visual access and SASTextScale for the cached font-size accessor; they are parsed without importing the game. (GPT-6.1-Sol) -->
+        source = """import SASVisualUtils as V
+import SASTextScale as Text
+gc = CyGlobalContext()
+amount = gc.getPlayer(0).getGold()
+gc.getYieldInfo(0).getDescription()
+gc.getYieldInfo(0).getButton()
+gc.getDefineINT('UNRELATED_GAMEPLAY_SETTING')
+getInfoTypeOrFail('UNIT_SETTLER')
+V.Commerce.char(0)
+V.Yield.color(0)
+V.InterfaceArt.getPath('SOME_ART')
+Text.getSASUIFontBody()
+"""
+        self.assertEqual(self.inspect(source), [])
+
+    def test_resource_name_shadowing_is_not_an_engine_lookup(self):
+        for source in (
+            "gc = CyGlobalContext()\ndef render(gc):\n    return gc.getCommerceInfo(0).getChar()\n",
+            "gc = CyGlobalContext()\nread = lambda gc: gc.getCommerceInfo(0).getChar()\n",
+            "from unrelated import CyGlobalContext\ngc = CyGlobalContext()\ngc.getCommerceInfo(0).getChar()\n",
+            "gc = otherObject\ngc.getCommerceInfo(0).getChar()\n",
+        ):
+            with self.subTest(source=source):
+                self.assertEqual(self.inspect(source), [])
+
+    def test_direct_resource_exception_is_local_and_requires_reason(self):
+        call = "gc.getCommerceInfo(0).getChar()\n"
+        prefix = "gc = CyGlobalContext()\n"
+        note = "# <!-- custom: resource-cache-direct: Compare the engine value with the shared cache in this diagnostic. (GPT-6.1-Sol) -->\n"
+        self.assertEqual(self.inspect(prefix + note + call), [])
+        self.assertTrue(self.inspect(prefix + note + call + call))
+        self.assertTrue(self.inspect(prefix + "# <!-- custom: resource-cache-direct: -->\n" + call))
+        self.assertTrue(self.inspect(prefix + "note = 'resource-cache-direct: fake exception'\n" + call))
+
+    def test_shared_art_literals_and_provider_implementation(self):
+        self.assertTrue(any("duplicated shared art path" in message for _line, message in self.inspect("path = 'Art/Interface/Buttons/Actions/FoundCity.dds'\n")))
+        self.assertEqual(self.inspect("path = 'Art/Interface/Buttons/Unshared.dds'\n"), [])
+        catalog = api.Catalog(self.sources, self.xml, self.enums)
+        for module in api.PROVIDERS:
+            self.assertEqual(api.inspect_consumer(module, catalog), [])
+
+    def test_new_cached_family_is_derived_without_checker_edits(self):
+        definitions = dict(self.sources)
+        definitions['SASVisualUtils'] += """
+class _NewResources:
+    def __init__(self):
+        self._cache = {}
+    def symbol(self, index):
+        if index not in self._cache:
+            self._cache[index] = gc.getNewInfo(index).getSymbol()
+        return self._cache[index]
+NewResources = _NewResources()
+"""
+        source = "gc = CyGlobalContext()\ngc.getNewInfo(0).getSymbol()\n"
+        errors = self.inspect(source, sources=definitions)
+        self.assertTrue(any("SASVisualUtils.NewResources.symbol" in message for _line, message in errors), errors)
+
     def test_all_real_collection_families_reject_missing_members(self):
         catalog = api.Catalog(self.sources, self.xml, self.enums)
         tree = catalog.trees["SASVisualUtils"]

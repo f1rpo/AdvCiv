@@ -399,14 +399,16 @@ Color = _ColorResources()
 
 # <!-- custom: BUG dynamic FontSymbols and [ICON_*] compatibility. (ChatGPT-5.6-Sol) -->
 
+# <!-- custom: This section absorbs BUG FontUtil.py instead of retaining a facade module whose only state already lived here.
+# The BUG notice below credits the inherited FontUtil.py code.
+# The former FontUtil/TraitUtil/GGUtil notices limiting edits to minor third-party maintenance no longer describe these actively maintained shared implementations.
+# Human keys such as "happy" and "war" are compatibility aliases only; new Python UI code should use code-native collections/attributes above whenever possible. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 # Copyright (c) 2008 The BUG Mod. Author: EmperorFool.
 # Inherited FontUtil compatibility API, moved here with its behavior rather than discarded:
 # - getSymbol/getOrdinal/getChar accept a FontSymbols value or registered key.
 # - replaceSymbols replaces [ICON_XXX] tags in translated/XML text.
 # - <symbol> entries in BUG config may register built-in, offset, or DLL-gated symbols through SymbolHandler.
 # - BUG initializes this externally through Assets/Config/init.xml; callers should use the code-native SASVisuals collections when a static symbol is known.
-# <!-- custom: This section absorbs BUG FontUtil.py instead of retaining a facade module whose only state already lived here.
-# Human keys such as "happy" and "war" are compatibility aliases only; new Python UI code should use code-native collections/attributes above whenever possible. (ChatGPT-5.6-Sol) -->
 
 UNKNOWN_CHAR = "?"
 SYMBOL_REGEXP = re.compile(r"\[ICON_([a-zA-Z0-9_]+)\]")
@@ -562,6 +564,9 @@ def registerSymbolSynonym(szKey, eSymbol, szSynonym):
 		DynamicFont.registerSynonym(szSynonym, eSymbol)
 
 
+# <!-- custom: FontUtil.py's inherited public contract remains here: getSymbol accepts a FontSymbols value unchanged or resolves a registered string key; getChar returns its single Unicode glyph and getOrdinal its integer code point.
+# replaceSymbols substitutes registered [ICON_XXX] tags and replaces unknown tags with szUnknownReplacement (default empty string).
+# BUG's init.xml initializes registrations through init() and <symbol> handlers. (GPT-6.1-Sol) -->
 def getSymbol(symbolOrKey):
 	try:
 		return DynamicFont.getSymbol(symbolOrKey)
@@ -714,9 +719,9 @@ Attitude = _AttitudeResources()
 
 # <!-- custom: Trait visuals. (ChatGPT-5.6-Sol) -->
 
-# Copyright (c) 2008 The BUG Mod. Author: EmperorFool.
 # <!-- custom: TraitUtil.py has been absorbed here because its remaining job was entirely visual-resource mapping/formatting.
-# Keep historical disabled/changed mappings beside the live exhaustive map so their provenance is not lost. (ChatGPT-5.6-Sol) -->
+# The BUG notice below credits that inherited code; keep historical disabled/changed mappings beside the live exhaustive map so their provenance is not lost. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+# Copyright (c) 2008 The BUG Mod. Author: EmperorFool.
 _TRAIT_RESOURCE_SPECS = {
 	"TRAIT_AGGRESSIVE": (Font, FontSymbols.STRENGTH_CHAR, "Art/Interface/Buttons/Promotions/Combat1.dds"),
 	"TRAIT_CHARISMATIC": (Font, FontSymbols.HAPPY_CHAR, "Art/Interface/Buttons/TechTree/MassMedia.dds"),
@@ -730,9 +735,9 @@ _TRAIT_RESOURCE_SPECS = {
 	"TRAIT_SPIRITUAL": (Font, FontSymbols.RELIGION_CHAR, "Art/Interface/Buttons/TechTree/Meditation.dds"),
 }
 # <!-- custom: Preserve the historical disabled BUG/SAS mappings below without making them live; the XML trait no longer exists or the glyph was intentionally changed. (ChatGPT-5.6-Sol) -->
-# <!-- custom: Historical disabled mapping example: TRAIT_EXPANSIVE used Font.HEALTHY_CHAR with the Heal button. (ChatGPT-5.6-Sol) -->
-# <!-- custom: Historical disabled mapping: TRAIT_IMPERIALIST formerly used FontSymbols.OCCUPATION_CHAR. (ChatGPT-5.6-Sol) -->
-# <!-- custom: Historical disabled mapping: TRAIT_ORGANIZED formerly used FontSymbols.TRADE_CHAR. (ChatGPT-5.6-Sol) -->
+# <!-- custom: TRAIT_EXPANSIVE was removed; its disabled TraitUtil.py entry used Font.HEALTHY_CHAR with Art/Interface/Buttons/Actions/Heal.dds and remains outside the live map. (GPT-5.2-Codex (summarized) + ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+# <!-- custom: TraitUtil.py changed TRAIT_IMPERIALIST from FontSymbols.OCCUPATION_CHAR to FontSymbols.TRADE_CHAR; the live map above preserves that choice. (GPT-5.2-Codex (summarized) + ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+# <!-- custom: TraitUtil.py changed TRAIT_ORGANIZED from FontSymbols.TRADE_CHAR to FontSymbols.OCCUPATION_CHAR; the live map above preserves that choice. (GPT-5.2-Codex (summarized) + ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 
 
 class _TraitResources:
@@ -783,6 +788,8 @@ class _TraitResources:
 			self.init()
 		return self._buttons
 
+	# <!-- custom: Moved from TraitUtil.py: format CyGameTextMgr leader-trait text with each trait name preceded by its shared Trait icon.
+	# Dawn of Man and Victory Screen both use this compact "icon Trait" display, while CyGameTextMgr keeps the normal trait wording/order. (GPT-5.5 + GPT-6.1-Sol) -->
 	def getLeaderTraitsWithIcons(self, eLeader, eCiv):
 		szTraits = CyGameTextMgr().parseLeaderTraits(eLeader, eCiv, True, False)
 		leaderInfo = gc.getLeaderHeadInfo(eLeader)
@@ -798,6 +805,7 @@ Trait = _TraitResources()
 
 # <!-- custom: Great Person / Great General visuals. (ChatGPT-5.6-Sol) -->
 
+# <!-- custom: Retain BUG/EmperorFool attribution for the GPUtil.py and GGUtil.py code moved into this section; AdvCiv-SAS modification credits are in the file header. (GPT-6.1-Sol) -->
 # Copyright (c) 2007-2009 The BUG Mod. Author: EmperorFool.
 # <!-- custom: GPUtil keeps gameplay/progress behavior; the complete live GP unit/icon/color inventory is centralized here.
 # GGUtil's only live Great-General text helper is absorbed here too; its unused promotion-button cache/getters are intentionally retired. (ChatGPT-5.6-Sol) -->
