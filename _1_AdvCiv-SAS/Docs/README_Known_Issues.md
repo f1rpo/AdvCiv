@@ -346,6 +346,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#241 - (Fixed and beautified AdvCiv-SAS bug) Treaties rows hid resource terms while canceling their complete mixed deal](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-241)\
 [KI#242 - (Fixed AdvCiv-SAS bug) Large Facing Islands underprovided islands for default Arena and Small games](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-242)\
 [KI#243 - (Fixed inherited Water bug broadened by AdvCiv-SAS) River overrides leaked across map generations](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-243)\
+[KI#243.2 - (Fixed inherited AdvCiv cross-game plot-group buffer overflow) Static visited flags retained the previous map size](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-243.2)\
 [KI#244 - (Fixed inherited Water topology bug) One-tile lake cleanup wrapped the non-wrapping Y axis](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-244)\
 [KI#245 - (Fixed AdvCiv-SAS bug) Spiky Avenues underprovided houses for default Tiny and Small games](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-245)\
 [KI#246 - (Fixed AdvCiv-SAS bug) Longworld fallback could reuse another player's starting plot](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-246)\
@@ -19050,6 +19051,50 @@ The original script was checked through `mapscript_refs/Water`.
 
 Found and investigated through the systematic archaeology with the help of ChatGPT-5.6-Sol; fixed and documented with the help of GPT-5.6-Sol and compile/runtime-smoke-tested with the help of wonderingabout, thanks.
 
+<a id="ki-243.2"></a>
+
+## KI#243.2 - (Fixed inherited AdvCiv cross-game plot-group buffer overflow) Static visited flags retained the previous map size
+
+Screenshots/files for this issue: [google drive folder link](https://drive.google.com/drive/folders/1w6b0CbAz1NN1hbNPtjQuf9xY2pTAcKo7?usp=sharing).
+
+The recurrent same-process Arena/Pangaea -> Huge-save crash investigation initially produced several unrelated-looking failure sites, including already-corrupted trade-route references and a separate heap free-block failure. Those dumps showed memory corruption but not its first write.
+
+A later T0 Huge-save reproduction caught an `INVALID_POINTER_WRITE` directly in `CvPlotGroupSizeCheck::reset` while an AI founded its first city: `AI_foundFirstCity -> found -> CvCity::init -> updatePlotGroups -> recalculatePlots -> CvPlotGroupSizeCheck::reset`. This is the strongest direct write observed in the crash investigation.
+
+AdvCiv's `CvPlotGroup::recalculatePlots` keeps one function-static `CvPlotGroupSizeCheck` to avoid reallocating visited flags.
+
+Its `SingleVisitPlotVisitor` base embeds an eager `EagerEnumMap<PlotNumTypes,bool>` whose dynamic storage is sized when the checker is constructed. `PlotNumTypes` length, however, follows the current `GC.getMap().numPlots()`, and later `reset()` fills according to that current length without reallocating the old storage.
+
+A checker first constructed on the small Arena/Pangaea game can therefore retain the small visited buffer after a Huge game is loaded in the same process. The first plot-group reset on the Huge map then clears the buffer using the Huge plot count and writes past the original allocation. A fresh-process direct Huge load does not have that size mismatch, matching the successful control.
+
+The fix preserves AdvCiv's reuse optimization within a map size but owns the static checker through `std::auto_ptr` and records the plot count for which its eager buffer was constructed. When a later game has a different plot count, the checker is reconstructed once before reset; otherwise the existing allocation is reused exactly as before.
+
+Equal plot counts need no rebuild because `PlotNumTypes` indexes only that count, not map dimensions.
+
+The sibling review found no second static `SingleVisitPlotVisitor`: `CvPlotGroupSizeCheck` is its only current use. Other current `EagerEnumMap<PlotNumTypes,...>` instances are automatic or ordinary member state rather than a function-static visited buffer reused across games.
+
+This source-level fix directly addresses the captured T0 overflow mechanism.
+
+2026-10-21 replay validation with the repaired DLL repeated the formerly near-deterministic small-map -> Huge-map transition across the known reproductions. Note that it was reproducible either usingt he same Gandhi T0 save creating/reloading it then, or even any new among those tested (~5+ maps) Pangea Arena maps for a 24 turn autoplay as well:
+
+- Arena/Pangaea T0 (26x18) autoplayed through T23, then a Huge T0 game (120x84) autoplayed to T151 before a user-requested clean exit.
+- The same T0 transition was repeated; the Huge game autoplayed through T73 and the process exited cleanly at T74.
+- Arena/Pangaea T0 again autoplayed through T23, then the historical Wang Kon Huge T379 save loaded and autoplayed to T431 (last completed turn T430) before a user-requested clean exit.
+
+All three runtime histories end in `PROCESS_EXIT` rather than a crash. The supplied final-run `PythonErr.log` is empty. These replays cover both the Huge T0 case that exposed the direct write and the original T379 crash sequence, so KI#243.2 is considered replay-validated and solved for the known reproductions as of 2026-10-21.
+
+Earlier downstream trade-route, heap, Python/UI and EXE failure variants are consistent with corruption from this overflow, but the successful replays do not prove that every historical crash instance had this single cause.
+
+Source archaeology identifies the exact origin as AdvCiv commit `cf83cd90b3b4635bb4ccfafa98b5cf9e399dab87` on 2022-11-11, **Use DFS to check if plot group update needed** (`advc.pf`). That commit created `DepthFirstPlotSearch.h`, introduced `CvPlotGroupSizeCheck`, and made the checker function-static specifically to avoid reallocating its visited flags.
+
+AdvCiv 1.07 still uses the older FAStar plot-group check, while the DFS/static implementation is present by AdvCiv 1.08 and remains in Base AdvCiv 1.14.
+
+The downloaded K-Mod 1.46, Taurus 1.04 and Civ4CE reference trees do not contain `CvPlotGroupSizeCheck`, `SingleVisitPlotVisitor` or `DepthFirstPlotSearch`. The defect is therefore an AdvCiv-origin optimization regression inherited by AdvCiv-SAS, not a K-Mod/BtS/Civ4CE behavior.
+
+KI#243.2 is grouped with KI#243 because both defects retain map-dependent static/shared state across maps in one Civ4 process; the affected subsystems are otherwise unrelated.
+
+Found from the user-reproduced crash sequence and T0 dump, investigated with GPT-6.1-Sol and ChatGPT-5.6-Sol, fixed/documented with ChatGPT-5.6-Sol, and replay-validated by wonderingabout across the known crash sequences, thanks.
+
 <a id="ki-244"></a>
 
 ## KI#244 - (Fixed inherited Water topology bug) One-tile lake cleanup wrapped the non-wrapping Y axis
@@ -33530,6 +33575,8 @@ Pending replacing both scalar deletions with `delete[]`.
 Reviewing the audit album for independently relevant memory-safety findings therefore resurfaced KI#979. A later T0 crash provided a more direct overflow lead in `CvPlotGroupSizeCheck::reset`, so no causal link between KI#979 and the recurrent crash is claimed.
 
 Fixed both helpers by pairing their temporary arrays with `delete[]`, matching the `InitList`/`new[]` allocation and the already-correct sibling `SetRateTagList` cleanup. This removes the undefined allocation/deallocation mismatch without changing parsed XML data.
+
+2026-10-21 post-fix replay: the recurrent Arena/Pangaea -> Huge-save crash still reproduced after KI#979 was applied and before KI#243.2 was applied. KI#979 was therefore not sufficient to resolve that crash sequence; it remains an independently valid memory-safety repair.
 
 Commit-diff archaeology narrows the defect to AdvCiv commit `0e04fd7f799d19ad61430cf8a4a684c7626e0756` (2021-06-04), **EnumMaps for nested XML data** (`advc.003t`).
 

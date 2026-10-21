@@ -49,6 +49,9 @@ public:
 	bool isVisited(CvPlot const& kPlot) const { return m_abVisited.get(kPlot.plotNum()); }
 	void setVisited(CvPlot const& kPlot) { m_abVisited.set(kPlot.plotNum(), true); }
 	// Needs to be called when using the same instance for multiple searches
+	// <!-- custom: Keep AdvCiv's existing reset semantics unchanged: reset clears the eager PlotNum map but does not resize it; its allocation size is fixed at visitor construction.
+	// Callers that keep a visitor across a map/game switch must reconstruct it when the plot count changes.
+	// This reusable visitor machinery originated in AdvCiv commit cf83cd90b3 (2022-11-11). See KI#243.2. (ChatGPT-5.6-Sol) -->
 	void reset() { m_abVisited.reset(); }
 };
 

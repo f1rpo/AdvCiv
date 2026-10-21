@@ -121,6 +121,8 @@ Release preparation: when preparing a stable release or substantial release upda
 ### Commit message writing
 
 - Do not wrap commit-message text at an arbitrary character/word count; use logical paragraphs and bullets. This keeps Git logs easier to read and follows our general preference against needless fixed-width wrapping.
+- For a defect/crash fix whose origin is established, prefer a concise provenance label in the commit title (e.g. `inherited AdvCiv`, `inherited K-Mod/BUG`, `SAS`); if that would make the title awkward, put the provenance in the first body bullet instead. Do not infer origin merely because another codebase currently contains similar code.
+  - Preserve useful discovery context in the body, such as an issue resurfacing during a broader crash investigation, while distinguishing that from a claim that it caused the crash.
 - Do not include practical commit numbers in commit messages: they can change across branches, rebases, merges and squashes.
 - When an explicitly authorized commit changes a tracked `.dll`, include the exact phrase `Update DLL` in its title or body (e.g. `- Update DLL`); the DLL commit-message CI check requires it.
   - This catches accidental inclusion of local test/Debug-opt binaries when the shipped Release DLL is updated less frequently than source commits.
@@ -133,8 +135,13 @@ Release preparation: when preparing a stable release or substantial release upda
 
 Use these specialized records for inherited regressions, suspicious behavior changes, provenance questions, or systematic audits; routine coding tasks should normally start from current source and Git.
 
-- [`historical_source_archaeology.txt`](/_1_AdvCiv-SAS/Docs/Source_Analysis/historical_source_archaeology.txt) records the completed commit-oriented lineage sweep.
-  - For a new historical question, search `LLM_Helpers/context/commit_diffs/` through `INDEX.txt` or `PATH_HISTORY_INDEX.txt`, then inspect the matching diff and Git-log evidence.
+- "Archaeology" broadly means a focused source/history/provenance investigation; it is not limited to the named historical-archaeology record or the C++ File Audit Album. The album is a systematic current-tree audit and can itself trigger archaeology when a finding needs its origin traced.
+- For a defect/crash that may be inherited, start with the greppable `LLM_Helpers/context/commit_diffs/` corpus and its `INDEX.txt` / `PATH_HISTORY_INDEX.txt`, then inspect the introducing/preserving diffs and matching Git-log evidence.
+  - Local agents such as Codex can grep the generated `.diff` files directly in the working tree.
+  - External agents such as ChatGPT can use the same corpus when it is supplied through a full-history light-source ZIP; the ZIP intentionally carries these greppable commit diffs for the same archaeology workflow.
+  - Comparison trees (AdvCiv, K-Mod, Taurus, Civ4CE/BtS, etc.) support lineage, but current tip-state presence alone does not prove origin.
+  - When supported, record the strongest provenance in the Known Issue/source rationale and preferably the commit title/body (e.g. SAS-origin vs inherited AdvCiv/K-Mod/Civ4CE/third-party), including an exact introducing commit/date when useful; leave provenance uncertain rather than guessing.
+- [`historical_source_archaeology.txt`](/_1_AdvCiv-SAS/Docs/Source_Analysis/historical_source_archaeology.txt) records the completed commit-oriented lineage sweep; use the workflow above for new questions rather than treating that one record as the definition of archaeology.
 - For AdvCiv-SAS release-history/provenance questions, use [`Docs/changelogs_web/`](/_1_AdvCiv-SAS/Docs/changelogs_web/) for manually archived published CivFanatics/ModDB release text and [`Docs/git_logs/`](/_1_AdvCiv-SAS/Docs/git_logs/) for the detailed tracked commit history.
   - The published changelog copies are historical source material, not a replacement for current source/Git when exact implementation state matters.
 - The [C++ File Audit Album](/_1_AdvCiv-SAS/Docs/Source_Analysis/cpp_file_audit_album.txt) records the ongoing current-tree sweep, including clean files, false positives, stable `F###` findings and its continuation cursor.

@@ -5,6 +5,7 @@
 #include "CvCity.h"
 #include "CvMap.h"
 #include "DepthFirstPlotSearch.h" // advc.opt
+#include <memory> // <!-- custom: Own the reusable plot-group DFS checker so it can be rebuilt safely when a later game uses a different map size. See KI#243.2. (ChatGPT-5.6-Sol) -->
 
 int CvPlotGroup::m_iRecalculating = 0; // advc.064d
 
@@ -150,11 +151,20 @@ void CvPlotGroup::recalculatePlots(/* advc.064d: */ bool bVerifyProduction)
 				FAStar finder for this purpose. Semantically, it's the same check
 				as in BtS: whether all plots in the (old) group are still connected.
 				I guess expanding plot groups are handled by CvPlot::updatePlotGroup. */
-			// Static to avoid reallocating memory for visited flags
-			static CvPlotGroupSizeCheck check;
-			check.reset(GET_PLAYER(eOwner), iOldCount + 1);
-			DepthFirstPlotSearch<CvPlotGroupSizeCheck> dfs(kPlot, check);
-			int iCount = check.getCount();
+			// <!-- custom: AdvCiv commit cf83cd90b3 (2022-11-11, advc.pf) introduced this static checker to reuse its eager PlotNum visited buffer.
+			// That buffer is allocated for the map size at construction, while EnumMap reset uses the current map's dynamic PlotNum length; loading a differently sized map can therefore write past the old allocation.
+			// Keep AdvCiv's reuse optimization while the plot count matches, but reconstruct the checker once when it changes. See KI#243.2. (ChatGPT-5.6-Sol) -->
+			static std::auto_ptr<CvPlotGroupSizeCheck> pCheck;
+			static PlotNumTypes eCheckMapPlots = NO_PLOT_NUM;
+			PlotNumTypes const eMapPlots = GC.getMap().numPlots();
+			if (pCheck.get() == NULL || eCheckMapPlots != eMapPlots)
+			{
+				pCheck.reset(new CvPlotGroupSizeCheck(GET_PLAYER(eOwner), iOldCount + 1));
+				eCheckMapPlots = eMapPlots;
+			}
+			else pCheck->reset(GET_PLAYER(eOwner), iOldCount + 1);
+			DepthFirstPlotSearch<CvPlotGroupSizeCheck> dfs(kPlot, *pCheck);
+			int iCount = pCheck->getCount();
 			FAssert(iCount <= iOldCount); // </advc.pf>
 			if (iCount == iOldCount)
 				return;
