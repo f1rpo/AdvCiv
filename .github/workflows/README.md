@@ -422,6 +422,23 @@ Verifies GlobalDefines XML files under `Assets/XML` have `<Define>` entries with
 
 We check this because we suspect they may possibly cause unclear errors; for intentional "empty" string-like behavior, explicit values such as `NONE` are clearer and more reliable.
 
+#### `build/xml/global_define_lengths.py`
+
+Verifies every shipped root GlobalDefines/PythonCallbackDefines file and any modular `*_GlobalDefines.xml` / `*_PythonCallbackDefines.xml` file keeps `<DefineName>` and `<DefineTextVal>` content at no more than 255 UTF-8 bytes.
+
+The inherited loader passes those fields through fixed `char[256]` scratch buffers and the visible FXML `char*` interface supplies no destination capacity, so 255 bytes leaves room for the C-string terminator.
+
+This is a loader-safety boundary, not a general `FVariableSystem` string-length limit; integer/float/boolean values are parsed through typed branches and are outside this check. See KI#1001.
+
+The checker reports the longest current name/text values on success so growth remains visible without imposing a lower stylistic name limit. It counts surrounding whitespace conservatively rather than assuming the closed XML API removes it before copying.
+
+Regression tests cover the exact 255/256 boundary, UTF-8 byte counting, whitespace, `PythonCallbackDefines.xml`, and modular define files.
+
+One logical value uses an unsuffixed name. When split across two or more defines, every member uses `_PART_N`, consecutively from `_PART_1`, with positive, unpadded suffixes and no unsuffixed base key alongside them.
+
+- A lone numbered key fails and should use the unsuffixed name; `EXAMPLE_LIST` plus `EXAMPLE_LIST_PART_2` also fails because a split family must number every member.
+- Names are grouped across shipped files, allowing repeated override declarations; this checks naming, not whether a consumer reads every part.
+
 #### `build/xml/launch_guard.py`
 
 Verifies `SASDefineGuard.py` exists and its int/string sentinel constants match `GlobalDefines_advciv_sas.xml`.

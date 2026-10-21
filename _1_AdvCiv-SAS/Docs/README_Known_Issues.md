@@ -1139,7 +1139,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#998 - (Provisional Pending AdvCiv XML-loader regression partly masked by SAS) Great Wall conditional abilities never switch](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-998)\
 [KI#999 - (Provisional Pending inherited AdvCiv replay-compatibility defect) Taurus version 132 is parsed as AdvC format](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-999)\
 [KI#1000 - (Provisional Pending Base AdvCiv replay-export defect inactive in SAS) Late fallback can retain an empty mod name](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-1000)\
-[KI#1001 - (Provisional Pending inherited XML-buffer defect activated by SAS) An overlong GlobalDefine exceeds 256 bytes](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-1001)\
+[KI#1001 - (Mitigated in SAS; inherited XML-buffer defect activated by SAS) An overlong GlobalDefine exceeds 256 bytes](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-1001)\
 [KI#1002 - (Fixed AdvCiv initialization regression) FirstContactData could contain uninitialized plot coordinates](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-1002)\
 [KI#1003 - (Provisional Pending inherited Taurus/AdvC memory leak) Fallback EXE search leaks 512 KiB](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-1003)\
 [KI#1004 - (Provisional Pending AdvC memory leak) Rebuilding SPaH settings abandons the prior string](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-1004)\
@@ -33914,7 +33914,7 @@ Found as F678/provisional KI#1000 during ChatGPT-5.6-Sol's C031-WIP550 `CvReplay
 
 <a id="ki-1001"></a>
 
-## KI#1001 - (Provisional Pending inherited XML-buffer defect activated by SAS) An overlong GlobalDefine exceeds 256 bytes
+## KI#1001 - (Mitigated in SAS; inherited XML-buffer defect activated by SAS) An overlong GlobalDefine exceeds 256 bytes
 
 The inherited GlobalDefines text/string loader reads through the capacity-less closed FXML `GetLastNodeValue(char*)` interface into `char szVal[256]`.
 
@@ -33929,6 +33929,33 @@ Pending using the existing size-safe `CvString` XML overload in both GlobalDefin
 Current DefineName and node-type lengths remain below their separate 256-byte buffers and are preventive hardening surfaces, not part of this finding.
 
 Found as F680/provisional KI#1001 during ChatGPT-5.6-Sol's C031-WIP555 `CvXMLLoadUtilityGet.cpp` cross-file audit; reconciled into Known Issues with the help of GPT-5.6-Sol, thanks.
+
+2026-10-21 follow-up: source archaeology narrows the first shipped SAS value beyond the buffer capacity precisely.
+
+- Practical 5456 left `SAS_MAP_SCRIPT_NAMES_LAND_HEAVY` at exactly 255 ASCII bytes.
+- SAS commit `3fffd5ea98c6ba9287173e65d7733feb32ee5098` on 2026-02-14 (practical 5457, `minor - also make Mixed_Continents.py land_heavy, and remove it from Simple Game`) added `Mixed_Continents` and reordered the list, increasing it to 272 bytes. Later map additions reached the 297-byte value above.
+
+Rather than change the inherited loader while its closed FXML copy behavior remains unknown, SAS now keeps that logical list in `SAS_MAP_SCRIPT_NAMES_LAND_HEAVY_PART_1` and `SAS_MAP_SCRIPT_NAMES_LAND_HEAVY_PART_2`; the DLL consumes both together. The two text values are 143 and 153 ASCII/UTF-8 bytes, so classification is unchanged while each fits the inherited 256-byte destination.
+
+Existing saves need no format conversion: the cached land/naval booleans are already serialized, and this change neither changes their layout nor recomputes them while loading an old save. A matching rebuilt DLL and XML should nevertheless be used for new/recomputed classifications because older DLLs do not know the second key.
+
+A blocking XML check now covers all shipped root GlobalDefines/PythonCallbackDefines files plus modular `*_GlobalDefines.xml` and `*_PythonCallbackDefines.xml` files. It limits both `<DefineName>` and `<DefineTextVal>` to 255 UTF-8 bytes, leaving one byte for the inherited `char[256]` terminator and preventing SAS data from reactivating the weakness.
+
+The loader itself remains unchanged, so this is a shipped-data mitigation and regression guard rather than a general repair for arbitrary external XML.
+
+Public Civ4 documentation was reviewed for context rather than used as proof of the buffer size. The [Civ IV Wiki GlobalDefines page](https://civ4.wikidot.com/xml:globaldefines) documents the `DefineName`/`DefineTextVal` structure, while a [CivFanatics DLL explanation](https://forums.civfanatics.com/threads/how-to-change-city-growth-threshold.619005/) describes `getDefineINT` values as cached in a hash table keyed by the XML strings.
+
+Neither source documents a semantic 256-character GlobalDefine limit, which is consistent with treating 256 as this inherited loader implementation's scratch-buffer size rather than a general variable-system contract. A targeted public search found no reliable report establishing a different GlobalDefine name/text limit.
+
+Another search result, the [CivFanatics C2C missing-interface discussion](https://forums.civfanatics.com/threads/just-loaded-up-the-caveman2cosmos-mod-for-the-first-time-why-is-the-whole-interface-missing.649183/), raises filesystem-path length as a possible cause.
+
+That discussion concerns paths, not GlobalDefine names or values, so it does not establish this loader's limit; the local fixed-buffer declarations remain the evidence for the 255-byte content budget.
+
+2026-10-21 validation: wonderingabout tested the split with assertion-enabled Debug-opt.
+
+- Fresh Pangaea Arena reports `landHeavy=1 navalHeavy=0`, exercising a script listed in `_PART_2`; loading the Wang Kon Archipelago save retains `landHeavy=0 navalHeavy=1` and advances through completed T72. The process exits cleanly with an empty final `PythonErr.log`.
+- Joining the two XML values with a comma reproduces the original 297-byte list exactly. The shipped Release DLL was then rebuilt successfully with zero warnings/errors; its binary matches the accompanying build report and contains both renamed keys.
+- The CI command rejects the original 297-byte XML value. Boundary, whitespace and generic numbered-family fixtures pass with the mitigated data; the guard applies to inherited and SAS definitions alike.
 
 <a id="ki-1002"></a>
 

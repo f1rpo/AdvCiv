@@ -394,9 +394,11 @@ void CvGame::recomputeMapnameHeaviness()
 	CvWString const szName = GC.getInitCore().getMapScriptName();
 
 	// <!-- custom: note: not static since we compute them only once -->
+	// <!-- custom: Keep the two XML land-heavy parts as one logical override list; splitting only avoids the inherited 256-byte GlobalDefines text scratch buffer and must not change classification. See KI#1001. (ChatGPT-5.6-Sol) -->
 	m_bLandHeavyMapname =
 		SAS_isMapScriptListedInDefine(szName, "SAS_MAP_SCRIPT_NAMES_ALMOST_ALL_LAND") ||
-		SAS_isMapScriptListedInDefine(szName, "SAS_MAP_SCRIPT_NAMES_LAND_HEAVY");
+		SAS_isMapScriptListedInDefine(szName, "SAS_MAP_SCRIPT_NAMES_LAND_HEAVY_PART_1") ||
+		SAS_isMapScriptListedInDefine(szName, "SAS_MAP_SCRIPT_NAMES_LAND_HEAVY_PART_2");
 	m_bNavalHeavyMapname = SAS_isMapScriptListedInDefine(szName, "SAS_MAP_SCRIPT_NAMES_NAVAL_HEAVY");
 
 	if (m_bLandHeavyMapname && m_bNavalHeavyMapname)

@@ -27,6 +27,9 @@ jobs:
       - name: Nonempty global defines
         run: python .github/workflows/build/xml/global_defines_nonempty.py
 
+      - name: Global define fixed-buffer lengths
+        run: python .github/workflows/build/xml/global_define_lengths.py
+
       - name: SAS define declarations and use
         run: python .github/workflows/build/xml/sas_define_usage.py
 

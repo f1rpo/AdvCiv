@@ -16,14 +16,17 @@ REPO_ROOT = Path(__file__).resolve().parents[4]
 GLOBAL_DEFINES_PATH = REPO_ROOT / "Assets" / "XML" / "GlobalDefines_advciv_sas.xml"
 PRIVATE_MAPS_DIR = REPO_ROOT / "PrivateMaps"
 
-# These first three defines are gameplay/DLL map-heaviness override inputs.
+# <!-- custom: These four defines are gameplay/DLL map-heaviness override inputs.
+# KI#1001 splits the one logical land-heavy list only to stay below the inherited GlobalDefines text-buffer limit; coverage still checks both physical parts so no map script can disappear or be duplicated. (ChatGPT-5.6-Sol) -->
 GAMEPLAY_HEAVINESS_DEFINE_NAMES = (
-    "SAS_MAP_SCRIPT_NAMES_LAND_HEAVY",
+    "SAS_MAP_SCRIPT_NAMES_LAND_HEAVY_PART_1",
+    "SAS_MAP_SCRIPT_NAMES_LAND_HEAVY_PART_2",
     "SAS_MAP_SCRIPT_NAMES_ALMOST_ALL_LAND",
     "SAS_MAP_SCRIPT_NAMES_NAVAL_HEAVY",
 )
 
-# This fourth define is coverage/documentation only; the DLL does not need to read it.
+# <!-- custom: The unspecified-heaviness define is coverage/documentation only; the DLL does not need to read it.
+# Avoid an ordinal here because the logical land-heavy list spans two physical defines after KI#1001. (GPT-6.1-Sol) -->
 COVERAGE_ONLY_DEFINE_NAMES = (
     "SAS_MAP_SCRIPT_NAMES_HEAVINESS_UNSPECIFIED",
 )

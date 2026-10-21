@@ -975,10 +975,15 @@ Enforced by the turn_define_gamespeed CI check. (GPT-5.6 Thinking) -->
 
 
 
-	<!-- custom: comma-separated map script names (optional .py/path tolerated) treated as land-heavy by DLL cache (GPT-5.3-Codex) -->
+	<!-- custom: Comma-separated map script names (optional .py/path tolerated) treated as one land-heavy override list by the DLL cache.
+	Split the logical list across two defines because the inherited GlobalDefines loader reads text through a 256-byte scratch buffer; both halves are consumed together, and CI caps shipped names/text at 255 UTF-8 bytes. See KI#1001. (GPT-5.3-Codex + ChatGPT-5.6-Sol) -->
 	<Define>
-		<DefineName>SAS_MAP_SCRIPT_NAMES_LAND_HEAVY</DefineName>
-		<DefineTextVal>aDebugMap,Arboria,Balanced,BTG_Cross,BTG_Grid,BTG_Lagoon,Continents,Custom_Continents,Donut,Earth2,Fractal,Global_Highlands,Hemispheres,Ice_Age,Inland_Sea,Maze,Mixed_Continents,Pangaea,Peirce,Planet_Generator_0_68,Ring,SAS_Longworld,SAS_Parallel_Lines,SAS_Spiky_Avenues,Tectonics,Terra,Water,Wheel</DefineTextVal>
+		<DefineName>SAS_MAP_SCRIPT_NAMES_LAND_HEAVY_PART_1</DefineName>
+		<DefineTextVal>aDebugMap,Arboria,Balanced,BTG_Cross,BTG_Grid,BTG_Lagoon,Continents,Custom_Continents,Donut,Earth2,Fractal,Global_Highlands,Hemispheres,Ice_Age</DefineTextVal>
+	</Define>
+	<Define>
+		<DefineName>SAS_MAP_SCRIPT_NAMES_LAND_HEAVY_PART_2</DefineName>
+		<DefineTextVal>Inland_Sea,Maze,Mixed_Continents,Pangaea,Peirce,Planet_Generator_0_68,Ring,SAS_Longworld,SAS_Parallel_Lines,SAS_Spiky_Avenues,Tectonics,Terra,Water,Wheel</DefineTextVal>
 	</Define>
 	<!-- custom: note: these are about making AI stronger by telling it map land/naval heaviness, which is distinct and as of now unrelated to map grid size adjustments in map scripts (.py files) (e.g., if almost_all_land then reduce grid size to accommodate for no water that causes too wide city spacing if not corrected for it) -->
 	<!-- custom: almost entirely land; DLL currently folds this into land-heavy logic, while keeping the distinction for future tuning. (GPT-5.3-Codex); note: may not be up to date since i didn't review all map scripts yet -->
