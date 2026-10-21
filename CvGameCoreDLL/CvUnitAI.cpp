@@ -742,6 +742,15 @@ static bool SAS_shouldScoutPromisingFoggedNearbyFoundSite(CvUnitAI& kSettler, Mo
 				pAdj->getX(), pAdj->getY(), iSelectedPathTurns, iPathTurns, iMaxExtraPathTurns);
 			continue;
 		}
+		// <!-- custom: SAS fog scouting accepted a successful path whose end-turn plot was the Settler's current tile, violating pushGroupMoveTo's !at(kTo) contract.
+		// A reachable destination need not provide movement this turn, and the candidate can itself be the current plot.
+		// Reject no-progress candidates before scoring so another route can win; if none can move, retain the ordinary founding decision instead of repeatedly issuing an empty scout mission. See KI#185.2. (GPT-6.1-Sol) -->
+		CvPlot const& kScoutEndTurnPlot = kSettler.getPathEndTurnPlot();
+		if (kSettler.at(kScoutEndTurnPlot))
+		{
+			if (gSettlerLogLevel >= 3) logBBAI("SETTLER_FOG_SITE_REJECT candidate=%d,%d reason=NO_MOVEMENT_THIS_TURN", pAdj->getX(), pAdj->getY());
+			continue;
+		}
 		int const iRevealedBFC = SAS_countRevealedNonHomeBFCPlots(*pAdj, kSettler.getTeam());
 		int const iUnrevealedBFC = SAS_countUnrevealedNonHomeBFCPlots(*pAdj, kSettler.getTeam());
 		int const iFoundValue = kEvaluator.evaluate(*pAdj);
@@ -756,7 +765,7 @@ static bool SAS_shouldScoutPromisingFoggedNearbyFoundSite(CvUnitAI& kSettler, Mo
 		if (pScoutSite == NULL || iFoundValue * iScoutRevealedBFC > iScoutFoundValue * iRevealedBFC || (iFoundValue * iScoutRevealedBFC == iScoutFoundValue * iRevealedBFC && iUnrevealedBFC > iScoutUnrevealedBFC))
 		{
 			pScoutSite = pAdj;
-			pScoutEndTurnPlot = &kSettler.getPathEndTurnPlot();
+			pScoutEndTurnPlot = &kScoutEndTurnPlot;
 			iScoutFoundValue = iFoundValue;
 			iScoutPathTurns = iPathTurns;
 			iScoutRevealedBFC = iRevealedBFC;
@@ -23002,6 +23011,17 @@ bool CvUnitAI::AI_found(MovementFlags eFlags)
 	}
 	else
 	{
+		// <!-- custom: The T68 follow-up also reached ordinary founding movement with the current tile as its saved end-turn endpoint, despite a different founding target.
+		// Path reachability alone does not guarantee movement this turn.
+		// Wait with MISSIONAI_FOUND and retain the selected site, rather than issue an invalid self-move or abandon that site for another AI action.
+		// Keep the movement wrapper's assertion intact; the optional fog detour above separately rejects no-progress candidates so normal founding can still proceed. See KI#185.2. (GPT-6.1-Sol) -->
+		if (at(*pBestPlot))
+		{
+			if (bLogSettlerAILevel2) SAS_logSettlerMissionDecision("WAIT_TO_FOUND", *this, pBestFoundPlot, pBestPlot, pBestFoundPlot->getFoundValue(getOwner()), iBestPathTurns, "NO_MOVEMENT_THIS_TURN");
+			getGroup()->pushMission(MISSION_SKIP, -1, -1, NO_MOVEMENT_FLAGS,
+					false, false, MISSIONAI_FOUND, pBestFoundPlot);
+			return true;
+		}
 		if (bLogSASSettlerDecision) logSASGameRecordAISettlerSiteDecision(*this, *pBestFoundPlot, false, eBestDecisionSource, iBestDecisionRawFoundValue, iBestDecisionSelectionFoundValue, iBestPathTurns, iBestDecisionPathAdjustedScore, bSafe);
 		if (gSettlerLogLevel >= 2) SAS_logSettlerMissionDecision("PUSH_MOVE_TO_FOUND", *this, pBestFoundPlot, pBestPlot, pBestFoundPlot->getFoundValue(getOwner()), iBestPathTurns, "AI_FOUND_MOVE");
 		pushGroupMoveTo(*pBestPlot, eFlags, false, false,

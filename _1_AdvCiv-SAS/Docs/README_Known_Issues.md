@@ -264,6 +264,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#184.2 - (Fixed/Improved) UWAI Space victory-denial could still start too late when stage-3 Space leaders already had many spaceship parts before countdown](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-184.2)\
 [KI#184.3 - (Fixed/Improved) Base AdvCiv/K-Mod ordinary production reevaluation can repeatedly park heavily invested launch-required spaceship components](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-184.3)\
 [KI#185 - (Fixed/Improved) Base AdvCiv issue: post-capital AI Settlers could ignore promising fogged nearby city-site alternatives and then follow stale cached targets after scouting](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-185)\
+[KI#185.2 - (Fixed/Improved) Settler scouting and founding paths can request movement to the current tile](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-185.2)\
 [KI#186 - (Fixed/Improved) Base AdvCiv `AI_isAwfulSite` could cause economically wasteful captured-city raze/resettle cycles and destroy valuable population and buildings](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-186)\
 [KI#186.2 - (Fixed/Improved) Base AdvCiv active-World-Wonder exemption could make the AI retain remote captured cities, exhaust defenders, and return the preserved Wonder to a nearer rival](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-186.2)\
 [KI#186.3 - (Fixed) AdvCiv-SAS regression: captured-city force-raze safeguards could pre-empt Base AdvCiv's Domination keep rule](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-186.3)\
@@ -14760,6 +14761,59 @@ This should make post-capital Settlers less brittle around small fog differences
 
 Fixed/improved with the help of GPT-5.5 (on ChatGPT Codex) thanks.
 
+<a id="ki-185.2"></a>
+
+## KI#185.2 - (Fixed/Improved) Settler scouting and founding paths can request movement to the current tile
+
+2026-10-21: assertion-enabled Debug-opt testing of the Arena -> Huge T0 sequence exposed this assertion during T53 processing, verbatim:
+
+```text
+Assert Failed
+
+File:  ..\.\CvUnit.cpp
+Line:  2472
+Func:  CvUnit::pushGroupMoveTo
+Expression:  !at(kTo)
+Message:
+
+----------------------------------------------------------
+```
+
+The user reported it firing almost every turn from T53 through T73, roughly twenty turns of repeated dialogs while play still advanced, and also encountered it in a longer run that reached approximately T171. These are approximate user observations, without an automatic assertion count.
+
+The captured stack is `CvUnitAI::AI_found -> CvUnit::pushGroupMoveTo`, with `MISSIONAI_EXPLORE`. Its fog-scout record also has identical departure and end-turn coordinates, `(108,22)`. This is a Settler movement-contract violation, separate from the map-size buffer overflow in KI#243.2.
+
+The assertion correctly rejects a move to the unit's current tile.
+
+The SAS promising-fog-site helper introduced by `8c8b3184c49ae3e6b2d4d69585296d3553d73e01` on 2026-07-15 for KI#185 checked path success and travel duration but did not require a different end-turn plot. A path can succeed for the current plot or provide no movement this turn; accepting it as the scouting winner sends a self-move to the wrapper and bypasses the ordinary founding decision.
+
+The prepared fix rejects such candidates immediately after path generation, before evaluating their site value. Other candidates can still compete; when none provide movement, `AI_found` continues its existing founding logic. The wrapper's assertion remains intact, and level-3 Settler diagnostics identify the rejection as `NO_MOVEMENT_THIS_TURN`.
+
+At this initial step, compilation and replay validation were outstanding.
+
+The earlier T52-reported dump is an assertion breakpoint (`0x80000003`) at this condition, not a captured access violation. Its stack identifies this defect but does not establish the cause of the other heap, Python or EXE failures.
+
+Found through wonderingabout's repeated runtime tests and dump captures; reviewed and fix prepared with GPT-6.1-Sol, thanks.
+
+2026-10-21 follow-up: wonderingabout rebuilt assertion-enabled Debug-opt with the fog-scout guard, then encountered the same expression again at reported T68.
+
+- The matching-symbol live stack and caller disassembly identify the ordinary `AI_found` movement dispatch with `MISSIONAI_FOUND`, rather than the previously captured `MISSIONAI_EXPLORE` detour.
+- The recorder had reached internal turn 69 while the displayed/last-completed turn was 68.
+- This is evidence of another caller path, not an omitted rebuild or proof that the fog-scout guard failed.
+
+The ordinary branch also needs to distinguish a reachable founding destination from a usable movement endpoint this turn.
+
+- When its saved endpoint is the current tile, the prepared follow-up issues `MISSION_SKIP` with `MISSIONAI_FOUND` and the selected founding destination. Thus the group waits while retaining its intended site instead of requesting a self-move or falling through to a different AI action.
+- Level-2 Settler logging identifies this case as `WAIT_TO_FOUND` with reason `NO_MOVEMENT_THIS_TURN`; the movement wrapper's assertion remains unchanged.
+- The captured call establishes the invalid endpoint, but does not establish why the path offered no progress in this particular group.
+
+The ordinary-branch follow-up was prepared with GPT-6.1-Sol.
+
+2026-10-21 replay validation: wonderingabout rebuilt Debug-opt with both guards and reported no recurrence of the self-move assertion through T153.
+
+- The corresponding record reports `fassertEnabled=1`; runtime history records last-completed turn 153 and a clean process exit.
+- This supports the two corrected dispatch paths without claiming that unrelated assertions or all Settler situations are resolved.
+
 <a id="ki-186"></a>
 
 ## KI#186 - (Fixed/Improved) Base AdvCiv `AI_isAwfulSite` could cause economically wasteful captured-city raze/resettle cycles and destroy valuable population and buildings
@@ -19094,6 +19148,10 @@ The downloaded K-Mod 1.46, Taurus 1.04 and Civ4CE reference trees do not contain
 KI#243.2 is grouped with KI#243 because both defects retain map-dependent static/shared state across maps in one Civ4 process; the affected subsystems are otherwise unrelated.
 
 Found from the user-reproduced crash sequence and T0 dump, investigated with GPT-6.1-Sol and ChatGPT-5.6-Sol, fixed/documented with ChatGPT-5.6-Sol, and replay-validated by wonderingabout across the known crash sequences, thanks.
+
+2026-10-21 validation detail: the repeat Huge T0 run's `SASRuntimeHistory_20261021T084524.319Z_40860.jsonl` records `AUTOPLAY_ENDED` at T73 with `autoplayEndCause="ASSERTION"`, followed by `PROCESS_EXIT` at T74. This supports the absence of an observed crash in that replay, not an assertion-free run.
+
+The end-cause field does not identify the failing expression; the separate Settler self-move assertion is documented in KI#185.2.
 
 <a id="ki-244"></a>
 
