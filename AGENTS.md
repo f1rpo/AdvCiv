@@ -259,6 +259,7 @@ If you find yourself stuck like for audio stopping issues, feel free to ask the 
 
 ### Main Changes Guide
 
+- Keep it a practical overview of current changes rather than a chronological changelog; rewrite, merge or reorder related entries as features evolve, preserving useful rationale and applicable version requirements.
 - In [README_Main_Changes_Guide.md](/_1_AdvCiv-SAS/Docs/README_Main_Changes_Guide.md), apply the same rule especially strictly: parent change/feature bullets should use real nested sub-bullets for distinct details, evidence, validation, updates, or part 2 of that same change.
   - Plain continuation indentation does not create visible list structure.
   - Keep a new top-level bullet for a separately trackable feature/change.
@@ -417,6 +418,8 @@ These are general guidelines, not irrevocable requirements; adjust based on task
 - Use specific asset names whenever possibly to avoid likely reuse of an unknown BTS one that may not be listed in our mod's files. Example: `TXT_KEY_PEDIA_STATISTICS` to `TXT_KEY_PEDIA_SAS_STATISTICS`.
 - For machine-readable diagnostics/provenance of static C++ enums that have no `CvInfo` type string, prefer one shared `getSAS*Type(...)` helper in `CvGameCoreUtils` over duplicated switches or preprocessor stringification.
   - Keep translated/friendly UI labels separate when they serve presentation rather than canonical raw identity.
+- For new structured Python log rows, use `CvUtil.pyPrintRecord(...)` when `CvUtil` is already a safe dependency, or `SASPythonLogging.writeRecord(...)` at leaf/early-startup boundaries where importing `CvUtil` would create a cycle.
+  - Pass a stable record name plus explicit `key=value` fields instead of hand-building `record=` text at each call site; keep inherited `CvUtil.pyPrint(...)` for intentional human prose/debug dumps.
 - Avoid fluff like `================`, keep it nice and simple and clean.
 - Avoid silent fallbacks or placeholder defaults when data is missing: we want it to loudly fail so code is more robust rather.
 - Avoid complicated and formatting-error prone characters (e.g., `“` or `”`), use simple characters (e.g., `"`) instead.

@@ -247,14 +247,13 @@ class CvEventManager:
 
 		iData1, iData2, iData3, iData4, iData5 = argsList
 
-		# <!-- custom: Identify the mod-network callback and its existing integer payload instead of emitting an uninformative generic notice. (GPT-6.1-Sol) -->
-		print("record=MOD_NET_MESSAGE data1=%d data2=%d data3=%d data4=%d data5=%d" % (iData1, iData2, iData3, iData4, iData5))
-
-		CvUtil.pyPrint( 'onModNetMessage' )
+		# <!-- custom: Identify the mod-network callback and its existing integer payload instead of emitting an uninformative generic notice. (GPT-6.1-Sol + ChatGPT-5.6-Sol) -->
+		CvUtil.pyPrintRecord("MOD_NET_MESSAGE", "data1=%d data2=%d data3=%d data4=%d data5=%d" % (iData1, iData2, iData3, iData4, iData5))
 
 	def onInit(self, argsList):
 		'Called when Civ starts up'
-		CvUtil.pyPrint( 'OnInit' )
+		# <!-- custom: Give the inherited event-manager lifecycle callback a stable grep key instead of the vague PY:OnInit row. (ChatGPT-5.6-Sol) -->
+		CvUtil.pyPrintRecord("EVENT_MANAGER_INIT")
 
 	def onUpdate(self, argsList):
 		'Called every frame'
@@ -270,14 +269,16 @@ class CvEventManager:
 
 	def onUnInit(self, argsList):
 		'Called when Civ shuts down'
-		CvUtil.pyPrint('OnUnInit')
+		# <!-- custom: Pair shutdown with the structured initialization record; direct EXE UnInit output remains separate and native. (ChatGPT-5.6-Sol) -->
+		CvUtil.pyPrintRecord("EVENT_MANAGER_UNINIT")
 
 	def onPreSave(self, argsList):
 		"called before a game is actually saved"
 		# <advc.007>
 		if (not self.__LOG_SAVING):
 			return # </advc.007>
-		CvUtil.pyPrint('OnPreSave')
+		# <!-- custom: Preserve the inherited save-debug gate while making the emitted callback searchable when enabled. (ChatGPT-5.6-Sol) -->
+		CvUtil.pyPrintRecord("PRE_SAVE_CALLBACK")
 
 	def onSaveGame(self, argsList):
 		"return the string to be saved - Must be a string"
@@ -326,8 +327,8 @@ class CvEventManager:
 
 	def onGameEnd(self, argsList):
 		'Called at the End of the game'
-		# <!-- custom: Name the game-end callback explicitly; it does not mean the Civ4 process is exiting. (GPT-6.1-Sol) -->
-		print("record=GAME_END_CALLBACK")
+		# <!-- custom: Name the game-end callback explicitly; it does not mean the Civ4 process is exiting. (GPT-6.1-Sol + ChatGPT-5.6-Sol) -->
+		CvUtil.pyPrintRecord("GAME_END_CALLBACK")
 		return
 
 	def onBeginGameTurn(self, argsList):
@@ -789,7 +790,8 @@ class CvEventManager:
 		'Set Player Alive Event'
 		iPlayerID = argsList[0]
 		bNewValue = argsList[1]
-		CvUtil.pyPrint("Player %d's alive status set to: %d" %(iPlayerID, int(bNewValue)))
+		# <!-- custom: Replace the prose-only player-alive notice with stable fields while preserving the same callback data. (ChatGPT-5.6-Sol) -->
+		CvUtil.pyPrintRecord("PLAYER_ALIVE_CHANGED", "playerId=%d alive=%d" % (iPlayerID, int(bNewValue)))
 
 	def onPlayerChangeStateReligion(self, argsList):
 		'Player changes his state religion'

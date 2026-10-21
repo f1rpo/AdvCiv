@@ -84,6 +84,22 @@ def writeRaw(text):
 	writer = getattr(sys.stdout, "writeSASRaw", sys.stdout.write)
 	return writer(text)
 
+# <!-- custom: Standardize machine-searchable Python diagnostics at the shared stream boundary without changing timestamp enablement or destinations.
+# szRecord is the stable grep key; szFields is an optional already-formatted key=value payload and may be byte or Unicode text.
+# Submit the prefix, payload and terminating newline together; TimestampedStream remains solely responsible for UTC.
+# Preserve byte payloads instead of interpolating them into a Unicode template: Python 2.4 implicitly decodes those bytes as ASCII and raises on accented filenames/text.
+# Match the prefix type to the payload so the existing native byte/Unicode destinations remain in control of text encoding. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
+def writeRecord(szRecord, szFields=""):
+	szPrefix = "record=%s" % szRecord
+	if isinstance(szFields, unicode):
+		szPrefix = unicode(szPrefix)
+	elif isinstance(szPrefix, unicode):
+		szPrefix = szPrefix.encode("utf-8")
+	if szFields:
+		sys.stdout.write(szPrefix + " " + szFields + "\n")
+	else:
+		sys.stdout.write(szPrefix + "\n")
+
 # <!-- custom: Install as this dedicated stream module finishes importing, before CvUtil's next dependency can emit output.
 # This keeps callers' imports together without postponing the early interception; install() is idempotent for reused streams. (GPT-6.1-Sol) -->
 install()

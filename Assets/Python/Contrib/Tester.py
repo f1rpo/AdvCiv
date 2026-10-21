@@ -4,6 +4,9 @@
 #
 # Provides event debug output and other testing faculties
 
+# AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
+# (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md).
+
 from CvPythonExtensions import *
 import CvUtil
 import sys
@@ -20,7 +23,8 @@ class Tester :
 
 	def __init__(self, customEM):
 
-		print("Initializing Tester")
+		# <!-- custom: Give this inherited optional component the same searchable lifecycle identity as the other Python components. (ChatGPT-5.6-Sol) -->
+		CvUtil.pyPrintRecord("PY_COMPONENT_INIT", "component=Tester")
 
 		self.LOG_DEBUG = True
 
@@ -29,7 +33,7 @@ class Tester :
 		self.customEM = customEM
 
 	def removeEventHandlers( self ) :
-		print("Removing event handlers from Tester")
+		CvUtil.pyPrintRecord("PY_COMPONENT_REMOVE_HANDLERS", "component=Tester")
 
 		self.customEM.removeEventHandler( "kbdEvent", self.onKbdEvent )
 

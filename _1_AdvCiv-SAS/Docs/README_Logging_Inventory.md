@@ -426,7 +426,13 @@ Timestamp work occurs when Python writes output; there is no frame timer or back
 
 The wrapper does not gate on the INI's `LoggingEnabled` switch. If Python still emits text while the engine suppresses file output, formatting work can still occur; the logging-disabled case has not been measured here.
 
+Structured SAS Python diagnostics use the same stream boundary through `SASPythonLogging.writeRecord`; ordinary callers normally use `CvUtil.pyPrintRecord`. A stable record name is followed by explicit `key=value` fields, while the stream wrapper remains responsible for UTC timestamps.
+
+This avoids repeated hand-built `record=` prefixes without changing inherited `CvUtil.pyPrint` prose/debug behavior.
+
 EXE output produced before installation or written directly to its files bypasses these streams. In particular, the Python startup preamble and early `PythonErr2.log` warnings cannot be assumed to pass through the Python wrappers.
+
+`PythonErr.log` keeps ordinary traceback syntax rather than converting frames into `record=` fields; preserving Python's standard exception shape is more useful than machine-labelling each frame. `PythonErr2.log` likewise retains module-loader/warning prose after the shared timestamp prefix. Generic BUG severity rows and intentionally human-oriented debug dumps also remain prose.
 
 ## Startup rows and run boundaries
 
@@ -440,7 +446,7 @@ The companion `SASRuntimeHistory_*.jsonl` preserves dated transitions, including
 
 There is no separate universal `sessionEndedUtc` field, and a crash or forced termination can leave only the last observation rather than an exact end time.
 
-## Reading Python screen and font messages
+## Structured Python diagnostic records
 
 Screen notifications retain their numeric ID and add its canonical Python constant name, such as `screenId=99 screenType=CvScreenEnums.MAIN_INTERFACE`; `13` is `REPLAY_SCREEN` and `18` is `INFO_SCREEN`.
 
@@ -454,7 +460,9 @@ Font initialization messages identify the icon role, XML type, font character co
 
 SAS-formatted diagnostics identify their kind through a `record=` field, such as `record=SCREEN_TURNED_ON`, `record=SCREEN_OFF` or `record=FONT_ICON`. Searching for `record=SCREEN_` groups screen/navigation messages; `record=WB_BRUSH_SELECTED` finds brush rows with `mode=ADVANCED_START`, `PLAYER` or `MAP`.
 
-Other labelled families include `record=VICTORY_SCREEN_*` for vote-definition scans/tallies, `record=DIPLOMACY_*` for optional diplomacy debugging, `record=MOD_NET_MESSAGE`, `record=GAME_END_CALLBACK` and `record=SEVOPEDIA_*` initialization notices.
+Other labelled families include `record=VICTORY_SCREEN_*` for vote-definition scans/tallies, `record=DIPLOMACY_*` for optional diplomacy debugging, `record=EVENT_MANAGER_*` and `record=PLAYER_ALIVE_CHANGED` for event lifecycle/state, and `record=PY_COMPONENT_*` for Python component lifecycle.
+
+AI Auto Play and ChangePlayer use their own action/result records, SAS font-size resolution uses `record=UI_FONT_SIZE_RESOLVED`, and WorldBuilder save/read/apply work uses `record=WB_*`. `record=MOD_NET_MESSAGE`, `record=GAME_END_CALLBACK` and `record=SEVOPEDIA_*` remain explicit families as well.
 
 These labels describe existing diagnostics; game-end callbacks are distinct from process exit, and vote-definition scans are distinct from player choices.
 
@@ -470,7 +478,7 @@ The PythonDbg/PythonErr2 captures are from 2026-10-20 with the matching Release 
 
 | File | Change | Examples |
 | --- | --- | --- |
-| `PythonDbg.log` | UTC prefixes and named screen/glyph fields | [Before](#before-pythondbglog) / [After](#after-pythondbglog) |
+| `PythonDbg.log` | UTC prefixes plus structured screen/glyph, lifecycle, component, autoplay and WorldBuilder records | [Before](#before-pythondbglog) / [After](#after-pythondbglog) |
 | `PythonErr.log` | UTC prefixes on traceback rows | [Before](#before-pythonerrlog) / [After](#after-pythonerrlog) |
 | `PythonErr2.log` | UTC prefixes on module-loading/warning rows | [Before](#before-pythonerr2log) / [After](#after-pythonerr2log) |
 | `app.log` | Native EXE format; no live SAS/DLL writer found | [Current format](#applog) |
@@ -526,7 +534,7 @@ UnInit Python
 
 #### After: PythonDbg.log
 
-Current formatting reconstructed from captured rows, with the same selection and order.
+Current formatting reconstructed from the captured rows, with the same selection and order. The WorldBuilder and event-manager rows below apply the current source's structured record names to the captured message data; replace these reconstructed lines with a live capture after the candidate is exercised in game.
 
 The rebuilt-DLL run also captured the direct C++ Starting Position row exactly as `utc=20261020T170806.389Z record=STARTING_POSITION_ITERATION phase=BEGIN source=AdvCiv`. It bypasses `SASPythonLogging`, so its compact `utc=` field is intentionally not rewritten into the Python wrapper's extended ISO prefix.
 
@@ -541,8 +549,8 @@ The rebuilt-DLL run also captured the direct C++ Starting Position row exactly a
 2026-10-20T08:16:29.363Z load_module BugUnitPlot
 2026-10-20T08:16:30.925Z load_module CvWBInterface
 2026-10-20T08:16:30.926Z load_module CvWBDesc
-2026-10-20T08:16:30.932Z PY:saveDesc:C:\Users\PC\Documents\My Games\Beyond the Sword\Saves\WorldBuilder\WBQuickSave, curDir:C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword
-2026-10-20T08:16:31.417Z WBSave done
+2026-10-20T08:16:30.932Z record=WB_SAVE_BEGIN file=C:\Users\PC\Documents\My Games\Beyond the Sword\Saves\WorldBuilder\WBQuickSave currentDir=C:\Program Files (x86)\Steam\steamapps\common\Sid Meier's Civilization IV Beyond the Sword\Beyond the Sword
+2026-10-20T08:16:31.417Z record=WB_SAVE_END outcome=SUCCEEDED
 2026-10-20T08:16:31.433Z load_module encodings.ascii
 2026-10-20T08:16:34.331Z record=SCREEN_TURNED_ON screenId=0 screenType=CvScreenEnums.DOMESTIC_ADVISOR
 2026-10-20T08:16:34.903Z record=SCREEN_TURNED_ON screenId=9 screenType=CvScreenEnums.POLICY_ADVISOR_SCREEN
@@ -559,7 +567,7 @@ The rebuilt-DLL run also captured the direct C++ Starting Position row exactly a
 2026-10-20T08:17:17.857Z record=VICTORY_SCREEN_SECRETARY_GENERAL_MATCH voteId=0
 2026-10-20T08:17:20.783Z record=SCREEN_OFF previousScreenId=15 previousScreenType=CvScreenEnums.VICTORY_SCREEN
 2026-10-20T08:17:23.955Z record=SCREEN_TURNED_ON screenId=30 screenType=CvScreenEnums.FOREIGN_DIPLOMACY_ADVISOR
-2026-10-20T08:30:49.505Z PY:OnUnInit
+2026-10-20T08:30:49.505Z record=EVENT_MANAGER_UNINIT
 UnInit Python
 ```
 
@@ -947,7 +955,7 @@ building:Art/Structures/Buildings/Levee/Levee.nif does not contain a node called
   - [UWAIAgent](../../CvGameCoreDLL/UWAIAgent.cpp), [MilitaryAnalyst](../../CvGameCoreDLL/MilitaryAnalyst.cpp), [InvasionGraph](../../CvGameCoreDLL/InvasionGraph.cpp), [ArmamentForecast](../../CvGameCoreDLL/ArmamentForecast.cpp), [WarEvaluator](../../CvGameCoreDLL/WarEvaluator.cpp) and [WarUtilityAspect](../../CvGameCoreDLL/WarUtilityAspect.cpp).
   - [Shared nested mute state](../../CvGameCoreDLL/UWAILogMuteState.h).
 - Inherited comparison: local sibling `AdvCiv/CvGameCoreDLL/BBAILog.h`, `BBAILog.cpp`, `CvUnitAI.cpp`, `UWAIReport.cpp` and `UWAIAgent.cpp` (AdvCiv 1.14); [KI#505.3](README_Known_Issues.md#ki-505.3) preserves the SAS investigation of the retired report path.
-- [Python logging utilities](../../Assets/Python/BUG/BugUtil.py), [shared SAS Python writer](../../Assets/Python/SASPythonLogging.py), [OOS logger](../../Assets/Python/Contrib/OOSLogger.py), [Autolog](../../Assets/Python/Contrib/autolog.py).
+- [BUG generic logging](../../Assets/Python/BUG/BugUtil.py), [shared SAS timestamp/record writer](../../Assets/Python/SASPythonLogging.py), [CvUtil structured-record facade](../../Assets/Python/CvUtil.py), [OOS logger](../../Assets/Python/Contrib/OOSLogger.py) and [Autolog](../../Assets/Python/Contrib/autolog.py).
 - [Inherited-log row formatter](../../CvGameCoreDLL/CvGameCoreUtils.cpp), [XML log producer](../../CvGameCoreDLL/CvXMLLoadUtility.cpp) and [XML setup/cache producers](../../CvGameCoreDLL/CvXMLLoadUtilitySet.cpp).
 - [StatusDump event manager](../../Assets/Python/Contrib/StatusDumpEventManager.py), [older StatusDump helper](../../Assets/Python/Contrib/StatusDump.py), [StatusDump config](../../Assets/Config/StatusDump.xml).
 - [Starting-position iteration](../../CvGameCoreDLL/StartingPositionIteration.cpp), [internal profiler](../../CvGameCoreDLL/FProfiler.cpp), [TSC profiler](../../CvGameCoreDLL/TSCProfiler.cpp).

@@ -3,6 +3,9 @@
 # by jdog5000
 # Version 0.71
 
+# AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
+# (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md).
+
 from CvPythonExtensions import *
 import CvUtil
 import PyHelpers
@@ -24,7 +27,8 @@ class ChangePlayer :
 
 	def __init__(self, customEM ) :
 
-		print("Initializing ChangePlayer Mod")
+		# <!-- custom: Make inherited component lifecycle output searchable without changing its registration behavior. (ChatGPT-5.6-Sol) -->
+		CvUtil.pyPrintRecord("PY_COMPONENT_INIT", "component=ChangePlayer")
 
 		global LOG_DEBUG
 
@@ -42,7 +46,7 @@ class ChangePlayer :
 		CvUtil.SilentEvents.extend([changeCivPopupNum,changeHumanPopupNum])
 
 	def removeEventHandlers( self ) :
-		print("Removing event handlers from ChangePlayer")
+		CvUtil.pyPrintRecord("PY_COMPONENT_REMOVE_HANDLERS", "component=ChangePlayer")
 
 		self.customEM.removeEventHandler( "kbdEvent", self.onKbdEvent )
 
@@ -142,7 +146,7 @@ def changeCivHandler( playerID, netUserData, popupReturn ) :
 	#teamIdx = popupReturn.getSelectedPullDownValue( 4 )
 
 	if (LOG_DEBUG):
-		CvUtil.pyPrint( "   CP : You have selected player %d, the %s, on team %d"%(playerIdx, gc.getPlayer(playerIdx).getCivilizationDescription(0), gc.getPlayer(playerIdx).getTeam()) )
+		CvUtil.pyPrintRecord("CHANGE_CIV_REQUEST", "playerId=%d civilization=%s teamId=%d newCivId=%d newLeaderId=%d" % (playerIdx, gc.getPlayer(playerIdx).getCivilizationDescription(0), gc.getPlayer(playerIdx).getTeam(), newCivType, newLeaderType))
 	# advc.127c: Commented out
 	#if(LOG_DEBUG):
 	#	CvUtil.pyPrint( "   CP : New team idx is %d"%(teamIdx) )
@@ -156,11 +160,11 @@ def changeCivHandler( playerID, netUserData, popupReturn ) :
 	if( success ) :
 		CyInterface().addImmediateMessage("Player %d has been changed"%(playerIdx),"")
 		if (LOG_DEBUG):
-			CvUtil.pyPrint( "   CP : Player change completed" )
+			CvUtil.pyPrintRecord("CHANGE_CIV_RESULT", "playerId=%d outcome=SUCCEEDED" % playerIdx)
 	else :
 		CyInterface().addImmediateMessage("An error occured in changeCiv.","")
 		if (LOG_DEBUG):
-			CvUtil.pyPrint( "   CP : Error on changeCiv" )
+			CvUtil.pyPrintRecord("CHANGE_CIV_RESULT", "playerId=%d outcome=FAILED" % playerIdx)
 		return
 
 def updateGraphicsHandler( playerID, netUserData, popupReturn ) :
@@ -231,27 +235,25 @@ def changeHumanHandler( playerID, netUserData, popupReturn ) :
 
 	if( newHumanIdx == oldHumanIdx ) :
 		if (LOG_DEBUG):
-			CvUtil.pyPrint( "   CP : You have selected the same civ, no change")
+			CvUtil.pyPrintRecord("CHANGE_HUMAN_RESULT", "fromPlayerId=%d toPlayerId=%d outcome=NO_CHANGE" % (oldHumanIdx, newHumanIdx))
 		CyInterface().addImmediateMessage("You retain control of the %s"%(oldPlayer.getCivilizationDescription(0)),"")
 		return
 
 	if (LOG_DEBUG):
-		CvUtil.pyPrint( "   CP : You have selected player %d, the %s"%(newHumanIdx, newPlayer.getCivilizationDescription(0)) )
+		CvUtil.pyPrintRecord("CHANGE_HUMAN_REQUEST", "fromPlayerId=%d toPlayerId=%d civilization=%s" % (oldHumanIdx, newHumanIdx, newPlayer.getCivilizationDescription(0)))
 
 	success = changeHuman( newHumanIdx, oldHumanIdx )
 
 	if( success ) :
 		if (LOG_DEBUG):
-			CvUtil.pyPrint( "   CP : Number of human players is now %d"%(game.getNumHumanPlayers()) )
-		if (LOG_DEBUG):
-			CvUtil.pyPrint( "   CP : Active player is now %d"%(game.getActivePlayer()) )
+			CvUtil.pyPrintRecord("CHANGE_HUMAN_RESULT", "fromPlayerId=%d toPlayerId=%d outcome=SUCCEEDED humanPlayerCount=%d activePlayerId=%d" % (oldHumanIdx, newHumanIdx, game.getNumHumanPlayers(), game.getActivePlayer()))
 ##			for i in range(0,gc.getMAX_CIV_PLAYERS()) :
 ##				if (LOG_DEBUG):
 ##					CvUtil.pyPrint( "   CP : Player %d is human %d"%(i,gc.getPlayer(i).isHuman()))
 		CyInterface().addImmediateMessage("You now control the %s"%(newPlayer.getCivilizationDescription(0)),"")
 	else :
 		if (LOG_DEBUG):
-			CvUtil.pyPrint( "   CP : Error occured, number of human players is now %d"%(game.getNumHumanPlayers()) )
+			CvUtil.pyPrintRecord("CHANGE_HUMAN_RESULT", "fromPlayerId=%d toPlayerId=%d outcome=FAILED humanPlayerCount=%d" % (oldHumanIdx, newHumanIdx, game.getNumHumanPlayers()))
 		CyInterface().addImmediateMessage("An error occured in changeHuman ...","")
 
 ########################## Player modification functions ###########################################
@@ -309,7 +311,7 @@ def doRefortify( iPlayer ) :
 	#pyPlayer = PyPlayer( iPlayer )
 	pPlayer = gc.getPlayer(iPlayer)
 
-	CvUtil.pyPrint( "Refortifying units for player %d"%(iPlayer))
+	CvUtil.pyPrintRecord("CHANGE_PLAYER_REFORTIFY", "playerId=%d" % iPlayer)
 
 	for groupID in range(0,pPlayer.getNumSelectionGroups()) :
 		pGroup = pPlayer.getSelectionGroup(groupID)

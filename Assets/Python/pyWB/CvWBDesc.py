@@ -7,6 +7,10 @@
 # Author -	Mustafa Thamer
 #
 
+# AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)
+# (c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md).
+#
+
 from CvPythonExtensions import *
 import os
 import sys
@@ -820,7 +824,7 @@ class CvUnitDesc:
 
 			v = parser.findTokenValue(toks, "ScriptData")
 			if v!=-1:
-				print("found script data: %s" %(v))
+				CvUtil.pyPrintRecord("WB_UNIT_SCRIPT_DATA_FOUND", "data=%s" % v)
 				self.szScriptData = v
 				continue
 
@@ -891,7 +895,7 @@ class CvCityDesc:
 		player = getPlayer(self.owner)
 		# <advc.056>
 		if player is None:
-			CvUtil.pyPrint("Error: City owner %d not alive" %(self.owner))
+			CvUtil.pyPrintRecord("WB_CITY_APPLY", "outcome=OWNER_NOT_ALIVE ownerId=%d" % self.owner)
 			return # </advc.056>
 
 		self.city = player.initCity(self.plotX, self.plotY)
@@ -1415,7 +1419,7 @@ class CvMapDesc:
 		self.__init__()
 		parser = CvWBParser()
 		if parser.findNextToken(f, "BeginMap")==false:
-			print("can't find map")
+			CvUtil.pyPrintRecord("WB_READ_SECTION", "section=MAP outcome=BEGIN_TOKEN_NOT_FOUND")
 			return
 		while (true):
 			nextLine = parser.getNextLine(f)
@@ -1519,7 +1523,7 @@ class CvSignDesc:
 		self.__init__()
 		parser = CvWBParser()
 		if parser.findNextToken(f, "BeginSign")==false:
-			print("can't find sign")
+			CvUtil.pyPrintRecord("WB_READ_SECTION", "section=SIGN outcome=BEGIN_TOKEN_NOT_FOUND")
 			return
 		while (true):
 			nextLine = parser.getNextLine(f)
@@ -1574,7 +1578,8 @@ class CvWBDesc:
 		#
 		fileName = os.path.normpath(fileName)
 		fileName,ext = os.path.splitext(fileName)
-		CvUtil.pyPrint( 'saveDesc:%s, curDir:%s' %(fileName,os.getcwd()) )
+		# <!-- custom: Preserve the existing WorldBuilder path context but give save/load/apply lifecycle rows stable record names and fields. (ChatGPT-5.6-Sol) -->
+		CvUtil.pyPrintRecord("WB_SAVE_BEGIN", "file=%s currentDir=%s" % (fileName, os.getcwd()))
 
 		f = file(self.getDescFileName(fileName), "w")		# open text file
 		f.write("Version=%d\n" %(self.getVersion(),))
@@ -1607,7 +1612,7 @@ class CvWBDesc:
 
 		f.close()
 
-		print("WBSave done\n")
+		CvUtil.pyPrintRecord("WB_SAVE_END", "outcome=SUCCEEDED")
 		return 0	# success
 
 	def applyMap(self):
@@ -1616,35 +1621,35 @@ class CvWBDesc:
 		self.gameDesc.apply()
 
 		# recreate map
-		print("map rebuild. gridw=%d, gridh=%d" %(self.mapDesc.iGridW, self.mapDesc.iGridH))
+		CvUtil.pyPrintRecord("WB_MAP_APPLY_BEGIN", "gridWidth=%d gridHeight=%d" % (self.mapDesc.iGridW, self.mapDesc.iGridH))
 		worldSizeType = CvUtil.findInfoTypeNum(gc.getWorldInfo, gc.getNumWorldInfos(), self.mapDesc.worldSize)
 		climateType = CvUtil.findInfoTypeNum(gc.getClimateInfo, gc.getNumClimateInfos(), self.mapDesc.climate)
 		seaLevelType = CvUtil.findInfoTypeNum(gc.getSeaLevelInfo, gc.getNumSeaLevelInfos(), self.mapDesc.seaLevel)
 		CyMap().rebuild(self.mapDesc.iGridW, self.mapDesc.iGridH, self.mapDesc.iTopLatitude, self.mapDesc.iBottomLatitude, self.mapDesc.bWrapX, self.mapDesc.bWrapY, WorldSizeTypes(worldSizeType), ClimateTypes(climateType), SeaLevelTypes(seaLevelType), 0, None)
 
-		print("preapply plots")
+		CvUtil.pyPrintRecord("WB_MAP_APPLY_STAGE", "stage=PREAPPLY_PLOTS")
 		for pDesc in self.plotDesc:
 			pDesc.preApply()	# set plot type / terrain type
 
-		print("map apply - recalc areas/regions")
+		CvUtil.pyPrintRecord("WB_MAP_APPLY_STAGE", "stage=RECALCULATE_AREAS")
 		CyMap().recalculateAreas()
 
-		print("apply plots")
+		CvUtil.pyPrintRecord("WB_MAP_APPLY_STAGE", "stage=APPLY_PLOTS")
 		for pDesc in self.plotDesc:
 			pDesc.apply()
 
-		print("apply signs")
+		CvUtil.pyPrintRecord("WB_MAP_APPLY_STAGE", "stage=APPLY_SIGNS")
 		for pDesc in self.signDesc:
 			pDesc.apply()
 
-		print("Randomize Resources")
+		CvUtil.pyPrintRecord("WB_MAP_APPLY_STAGE", "stage=RANDOMIZE_RESOURCES enabled=%d" % (self.mapDesc.bRandomizeResources != "false"))
 		if (self.mapDesc.bRandomizeResources != "false"):
 			for iPlotLoop in range(CyMap().numPlots()):
 				pPlot = CyMap().plotByIndex(iPlotLoop)
 				pPlot.setBonusType(BonusTypes.NO_BONUS)
 			CyMapGenerator().addBonuses()
 
-		print ("WB apply done\n")
+		CvUtil.pyPrintRecord("WB_MAP_APPLY_END", "outcome=SUCCEEDED")
 		return 0	# ok
 
 	def getAssignedStartingPlots(self):
@@ -1754,7 +1759,7 @@ class CvWBDesc:
 					# Random Start Location
 					if (pWBPlayer.bRandomStartLocation != "false"):
 						pPlayer.setStartingPlot(pPlayer.findStartingPlot(true), True)
-						print("Setting player %d starting location to (%d,%d)" % (pPlayer.getID(), pPlayer.getStartingPlot().getX(), pPlayer.getStartingPlot().getY()))
+						CvUtil.pyPrintRecord("WB_STARTING_PLOT_ASSIGNED", "playerId=%d x=%d y=%d" % (pPlayer.getID(), pPlayer.getStartingPlot().getX(), pPlayer.getStartingPlot().getY()))
 
 					# Civics
 					for iCivicLoop in range(len(pWBPlayer.aaiCivics)):
@@ -1819,7 +1824,8 @@ class CvWBDesc:
 		# units
 		for pDesc in self.plotDesc:
 			pDesc.applyUnits()
-		CvUtil.pyPrint("applyInitialItems: done") # advc.056
+		# <!-- custom: Keep advc.056's completion notice but identify the completed WorldBuilder phase explicitly. (ChatGPT-5.6-Sol) -->
+		CvUtil.pyPrintRecord("WB_INITIAL_ITEMS_APPLY_END", "outcome=SUCCEEDED") # advc.056
 		return 0	# ok
 
 	def read(self, fileName):
@@ -1829,10 +1835,10 @@ class CvWBDesc:
 		fileName,ext=os.path.splitext(fileName)
 		if len(ext) == 0:
 			ext = getWBSaveExtension()
-		CvUtil.pyPrint( 'loadDesc:%s, curDir:%s' %(fileName,os.getcwd()) )
+		CvUtil.pyPrintRecord("WB_READ_BEGIN", "file=%s currentDir=%s" % (fileName, os.getcwd()))
 
 		if (not os.path.isfile(fileName+ext)):
-			CvUtil.pyPrint("Error: file %s does not exist" %(fileName+ext,))
+			CvUtil.pyPrintRecord("WB_READ_END", "outcome=FILE_NOT_FOUND file=%s" % (fileName + ext))
 			return -1	# failed
 
 		f=file(fileName+ext, "r")		# open text file
@@ -1840,16 +1846,16 @@ class CvWBDesc:
 		parser = CvWBParser()
 		version = int(parser.findNextTokenValue(f, "Version"))
 		if (version != self.getVersion()):
-			CvUtil.pyPrint("Error: wrong WorldBuilder save version.  Expected %d, got %d" %(self.getVersion(), version))
+			CvUtil.pyPrintRecord("WB_READ_END", "outcome=VERSION_MISMATCH expected=%d actual=%d" % (self.getVersion(), version))
 			return -1	# failed
 
-		print("Reading game desc")
+		CvUtil.pyPrintRecord("WB_READ_SECTION", "section=GAME")
 		self.gameDesc.read(f)	# read game info
-		print("Reading teams desc")
+		CvUtil.pyPrintRecord("WB_READ_SECTION", "section=TEAMS")
 		filePos = f.tell()
 		self.teamsDesc = []
 		for i in range(gc.getMAX_CIV_TEAMS()):
-			print ("reading team %d" %(i))
+			CvUtil.pyPrintRecord("WB_READ_SECTION", "section=TEAM teamId=%d" % i)
 			teamsDesc = CvTeamDesc()
 			if teamsDesc.read(f)==False:
 				f.seek(filePos)	# abort and backup
@@ -1859,7 +1865,7 @@ class CvWBDesc:
 		for i in range(len(self.teamsDesc), gc.getMAX_CIV_TEAMS()):
 			self.teamsDesc.append(CvTeamDesc()) # </advc.056>
 
-		print("Reading players desc")
+		CvUtil.pyPrintRecord("WB_READ_SECTION", "section=PLAYERS")
 		filePos = f.tell() # advc.056
 		self.playersDesc = []
 		for i in range(gc.getMAX_CIV_PLAYERS()):
@@ -1878,10 +1884,10 @@ class CvWBDesc:
 			deadPlayer.neverAlive = True
 			self.playersDesc.append(deadPlayer)
 		# </advc.056>
-		print("Reading map desc")
+		CvUtil.pyPrintRecord("WB_READ_SECTION", "section=MAP")
 		self.mapDesc.read(f)	# read map info
 
-		print("Reading/creating %d plot descs" %(self.mapDesc.numPlotsWritten,))
+		CvUtil.pyPrintRecord("WB_READ_SECTION", "section=PLOTS count=%d" % self.mapDesc.numPlotsWritten)
 		self.plotDesc = []
 		for i in range(self.mapDesc.numPlotsWritten):
 			pDesc = CvPlotDesc()
@@ -1890,7 +1896,7 @@ class CvWBDesc:
 			else:
 				break
 
-		print("Reading/creating %d sign descs" %(self.mapDesc.numSignsWritten,))
+		CvUtil.pyPrintRecord("WB_READ_SECTION", "section=SIGNS count=%d" % self.mapDesc.numSignsWritten)
 		self.signDesc = []
 		for i in range(self.mapDesc.numSignsWritten):
 			pDesc = CvSignDesc()
@@ -1900,5 +1906,5 @@ class CvWBDesc:
 				break
 
 		f.close()
-		print ("WB read done\n")
+		CvUtil.pyPrintRecord("WB_READ_END", "outcome=SUCCEEDED")
 		return 0

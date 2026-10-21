@@ -47,7 +47,8 @@ class AIAutoPlay :
 
 	def __init__(self, customEM ) :
 
-		print("Initializing AIAutoPlay Mod")
+		# <!-- custom: Use the shared component lifecycle record instead of unlabelled initialization prose. (ChatGPT-5.6-Sol) -->
+		CvUtil.pyPrintRecord("PY_COMPONENT_INIT", "component=AIAutoPlay")
 
 		self.LOG_DEBUG = False
 		self.blockPopups = True
@@ -80,23 +81,24 @@ class AIAutoPlay :
 		CvUtil.SilentEvents.extend([7050,7052])
 
 		if( self.blockPopups ) :
-			print("Removing some event handlers")
+			# <!-- custom: Identify why AIAutoPlay replaces inherited handlers instead of emitting an ambiguous removal notice. (ChatGPT-5.6-Sol) -->
+			CvUtil.pyPrintRecord("PY_COMPONENT_HANDLER_OVERRIDE", "component=AIAutoPlay handlerCount=2")
 			try :
 				self.customEM.removeEventHandler( "cityBuilt", customEM.onCityBuilt )
 				self.customEM.addEventHandler( "cityBuilt", self.onCityBuilt )
 			except ValueError :
-				print("Failed to remove 'onCityBuilt', perhaps not registered")
+				CvUtil.pyPrintRecord("PY_COMPONENT_HANDLER_OVERRIDE", "component=AIAutoPlay handler=cityBuilt outcome=NOT_REGISTERED fallback=SET")
 				self.customEM.setEventHandler( "cityBuilt", self.onCityBuilt )
 
 			try :
 				self.customEM.removeEventHandler( "BeginGameTurn", customEM.onBeginGameTurn )
 				self.customEM.addEventHandler( "BeginGameTurn", self.onBeginGameTurn )
 			except ValueError :
-				print("Failed to remove 'onBeginGameTurn', perhaps not registered")
+				CvUtil.pyPrintRecord("PY_COMPONENT_HANDLER_OVERRIDE", "component=AIAutoPlay handler=BeginGameTurn outcome=NOT_REGISTERED fallback=SET")
 				self.customEM.setEventHandler( "BeginGameTurn", self.onBeginGameTurn )
 
 	def removeEventHandlers( self ) :
-		print("Removing event handlers from AIAutoPlay")
+		CvUtil.pyPrintRecord("PY_COMPONENT_REMOVE_HANDLERS", "component=AIAutoPlay")
 
 		self.customEM.removeEventHandler( "kbdEvent", self.onKbdEvent )
 		# advc: Disable unused handlers
@@ -141,7 +143,7 @@ class AIAutoPlay :
 
 	def pickHumanHandler( self, iPlayerID, netUserData, popupReturn ) :
 
-		CvUtil.pyPrint('Handling pick human popup')
+		CvUtil.pyPrintRecord("AI_AUTOPLAY_PICK_HUMAN_RESPONSE", "playerId=%d" % iPlayerID)
 
 		if( popupReturn.getButtonClicked() == 0 ):  # if you pressed cancel
 			CyInterface().addImmediateMessage("Kill your remaining units if you'd like to see end game screens","")
@@ -162,7 +164,7 @@ class AIAutoPlay :
 
 		if( toKillPlayer.getNumCities() == 0 ) :
 			# Kills off the lion in the ice field
-			CvUtil.pyPrint("Killing off player %d"%(toKillPlayer.getID()))
+			CvUtil.pyPrintRecord("AI_AUTOPLAY_KILL_PLAYER", "playerId=%d" % toKillPlayer.getID())
 			toKillPlayer.killUnits()
 			toKillPlayer.setIsHuman(False)
 			#success = game.changePlayer( toKillPlayer.getID(), toKillPlayer.getCivilizationType(), toKillPlayer.getLeaderType(), -1, False, False )
@@ -246,7 +248,7 @@ class AIAutoPlay :
 			popup.addSeparator()
 
 			popup.addButton( localText.getText("TXT_KEY_AIAUTOPLAY_NONE", ()) )
-			CvUtil.pyPrint('Launching pick human popup')
+			CvUtil.pyPrintRecord("AI_AUTOPLAY_PICK_HUMAN_POPUP", "activePlayerId=%d" % activePlayerIdx)
 			popup.launch()
 
 			#gc.getActivePlayer().setNewPlayerAlive( True )
@@ -255,7 +257,8 @@ class AIAutoPlay :
 			#gc.getActivePlayer().setFoundedFirstCity( False )
 			gc.getActivePlayer().setIsHuman( True )
 
-		CvUtil.pyPrint('CDP: Setting autoplay to 0')
+		# <!-- custom: Record the explicit end cause already passed to the DLL instead of the old CDP-era "setting autoplay to 0" prose. (ChatGPT-5.6-Sol) -->
+		CvUtil.pyPrintRecord("AI_AUTOPLAY_END_REQUEST", "activePlayerId=%d endCause=%d" % (pPlayer.getID(), iEndCause))
 		# advc.127 (comment): Re-enables humans
 		# <!-- custom: Use the AdvCiv-SAS Python API rather than the ambiguous one-argument reset so the end cause reaches CvGame and SASGameRecord. See KI#203. (GPT-5.6-Sol) -->
 		game.endAIAutoPlay(iEndCause)
@@ -266,7 +269,7 @@ class AIAutoPlay :
 			SASFastSave.saveAutoPlayStop()
 
 		if( not pPlayer.isHuman() ) :
-			CvUtil.pyPrint('Returning human player to control of %s'%(pPlayer.getCivilizationDescription(0)))
+			CvUtil.pyPrintRecord("AI_AUTOPLAY_RETURN_CONTROL", "playerId=%d civilization=%s" % (pPlayer.getID(), pPlayer.getCivilizationDescription(0)))
 			game.setActivePlayer( pPlayer.getID(), False )
 			pPlayer.setIsHuman( True )
 
@@ -324,9 +327,9 @@ class AIAutoPlay :
 			self.customEM.onCityBuilt(argsList)
 		else:
 			try :
-				CvUtil.pyPrint('City Built Event: %s' %(city.getName()))
+				CvUtil.pyPrintRecord("AI_AUTOPLAY_CITY_BUILT", "cityName=%s" % city.getName())
 			except :
-				CvUtil.pyPrint('City Built Event: Error processing city name' )
+				CvUtil.pyPrintRecord("AI_AUTOPLAY_CITY_BUILT", "cityName=<UNAVAILABLE>")
 
 	def toAIChooser( self ) :
 		'Chooser window for when user switches to AI auto play'
@@ -411,7 +414,7 @@ def doRefortify( iPlayer ) :
 	#pyPlayer = PyPlayer( iPlayer )
 	pPlayer = gc.getPlayer(iPlayer)
 
-	CvUtil.pyPrint( "Refortifying units for player %d"%(iPlayer))
+	CvUtil.pyPrintRecord("AI_AUTOPLAY_REFORTIFY", "playerId=%d" % iPlayer)
 
 	for groupID in range(0,pPlayer.getNumSelectionGroups()) :
 		pGroup = pPlayer.getSelectionGroup(groupID)

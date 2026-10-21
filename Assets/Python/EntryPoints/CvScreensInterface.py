@@ -50,8 +50,7 @@ import SASDefineGuard
 # Emit SHOW_REQUEST before drawing: a drawing failure otherwise loses its causal row, and interfaceScreen may return without actually opening.
 # This is intent, not visibility confirmation. (ChatGPT-5.6-Sol + GPT-6.1-Sol) -->
 import SASGameRecordActions
-# <!-- custom: BugUtil supplies the shared SAS Python diagnostic writer for ordinary interface messages; the stream layer supplies row timestamps without adding a new log-level filter here. (GPT-6.1-Sol) -->
-import BugUtil
+# <!-- custom: Structured interface diagnostics now use CvUtil.pyPrintRecord, so the former BugUtil-only writer import is no longer needed; the same shared stream layer still supplies row timestamps. (GPT-6.1-Sol + ChatGPT-5.6-Sol) -->
 # K-Mod
 import BugOptionsScreen
 def showBugOptionsScreen(argsList=None):
@@ -64,7 +63,7 @@ g_bIsScreenActive = -1
 def toggleSetNoScreens():
 	global g_bIsScreenActive
 	# <!-- custom: Name the last notified screen on OFF as context; this callback reports no screens, not a verified per-screen close event. (GPT-6.1-Sol) -->
-	BugUtil.logSASPythonDiagnostic("record=SCREEN_OFF previousScreenId=%d previousScreenType=%s" % (g_bIsScreenActive, getSASScreenName(g_bIsScreenActive, bUsingSevopedia)))
+	CvUtil.pyPrintRecord("SCREEN_OFF", "previousScreenId=%d previousScreenType=%s" % (g_bIsScreenActive, getSASScreenName(g_bIsScreenActive, bUsingSevopedia)))
 	g_bIsScreenActive = -1
 	# <!-- custom: Real menu/game Sevopedia tests emitted this EXE no-screens notification without a recorded onClose hide edge.
 	# Observe that lifecycle boundary directly; querying isActive here could still see the old flag during dispatch.
@@ -77,7 +76,7 @@ def toggleSetScreenOn(argsList):
 	global g_bIsScreenActive
 	# <!-- custom: Screen IDs alone require a source lookup; reuse the canonical enum names while preserving the ID and the existing notification semantics.
 	# Use record=SCREEN_TURNED_ON so the diagnostic kind is searchable by the same key=value convention as its screen fields. (GPT-6.1-Sol) -->
-	BugUtil.logSASPythonDiagnostic("record=SCREEN_TURNED_ON screenId=%d screenType=%s" % (argsList[0], getSASScreenName(argsList[0], bUsingSevopedia)))
+	CvUtil.pyPrintRecord("SCREEN_TURNED_ON", "screenId=%d screenType=%s" % (argsList[0], getSASScreenName(argsList[0], bUsingSevopedia)))
 	g_bIsScreenActive = argsList[0]
 
 # BUG - Options - start
@@ -767,7 +766,7 @@ def WorldBuilderGetHighlightPlot(argsList):
 def WorldBuilderOnAdvancedStartBrushSelected(argsList):
 	iList,iIndex,iTab = argsList
 	# <!-- custom: One WB_BRUSH_SELECTED record family makes brush messages searchable; mode distinguishes the callback and tabId names the former ambiguous type field. (GPT-6.1-Sol) -->
-	BugUtil.logSASPythonDiagnostic("record=WB_BRUSH_SELECTED mode=ADVANCED_START listId=%d index=%d tabId=%d" %(iList,iIndex,iTab))
+	CvUtil.pyPrintRecord("WB_BRUSH_SELECTED", "mode=ADVANCED_START listId=%d index=%d tabId=%d" % (iList, iIndex, iTab))
 	if (iTab == worldBuilderScreen.m_iASTechTabID):
 		showTechChooser()
 	elif (iTab == worldBuilderScreen.m_iASCityTabID and iList == worldBuilderScreen.m_iASAutomateListID):
@@ -781,7 +780,7 @@ def WorldBuilderOnAdvancedStartBrushSelected(argsList):
 def WorldBuilderOnNormalPlayerBrushSelected(argsList):
 	iList,iIndex,iTab = argsList
 	# <!-- custom: Identify the player-brush callback within the shared WB_BRUSH_SELECTED family. (GPT-6.1-Sol) -->
-	BugUtil.logSASPythonDiagnostic("record=WB_BRUSH_SELECTED mode=PLAYER listId=%d index=%d tabId=%d" %(iList,iIndex,iTab))
+	CvUtil.pyPrintRecord("WB_BRUSH_SELECTED", "mode=PLAYER listId=%d index=%d tabId=%d" % (iList, iIndex, iTab))
 	if (worldBuilderScreen.setCurrentNormalPlayerIndex(iIndex)):
 		return 1
 	return 0
@@ -789,7 +788,7 @@ def WorldBuilderOnNormalPlayerBrushSelected(argsList):
 def WorldBuilderOnNormalMapBrushSelected(argsList):
 	iList,iIndex,iTab = argsList
 	# <!-- custom: Identify the map-brush callback within the shared WB_BRUSH_SELECTED family. (GPT-6.1-Sol) -->
-	BugUtil.logSASPythonDiagnostic("record=WB_BRUSH_SELECTED mode=MAP listId=%d index=%d tabId=%d" %(iList,iIndex,iTab))
+	CvUtil.pyPrintRecord("WB_BRUSH_SELECTED", "mode=MAP listId=%d index=%d tabId=%d" % (iList, iIndex, iTab))
 	if (worldBuilderScreen.setCurrentNormalMapIndex(iIndex)):
 		if (worldBuilderScreen.setCurrentNormalMapList(iList)):
 			return 1
@@ -1102,7 +1101,7 @@ def handleBack(screens):
 			screen = HandleNavigationMap.get( iScreen )
 			screen.back()
 	# <!-- custom: This callback receives a navigation request; its token does not assume mouse input or successful page movement. (GPT-6.1-Sol) -->
-	BugUtil.logSASPythonDiagnostic("record=SCREEN_BACK_REQUEST")
+	CvUtil.pyPrintRecord("SCREEN_BACK_REQUEST")
 	return 0
 
 def handleForward(screens):
@@ -1111,7 +1110,7 @@ def handleForward(screens):
 			screen = HandleNavigationMap.get( iScreen )
 			screen.forward()
 	# <!-- custom: Match the backward-request token without attributing the request to a particular input device. (GPT-6.1-Sol) -->
-	BugUtil.logSASPythonDiagnostic("record=SCREEN_FORWARD_REQUEST")
+	CvUtil.pyPrintRecord("SCREEN_FORWARD_REQUEST")
 	return 0
 
 def refreshMilitaryAdvisor (argsList):

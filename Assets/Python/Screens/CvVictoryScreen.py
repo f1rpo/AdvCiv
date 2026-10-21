@@ -904,15 +904,15 @@ class CvVictoryScreen:
 				iSecretaryGeneralVote = -1
 				if (gc.getGame().canHaveSecretaryGeneral(i) and -1 != gc.getGame().getSecretaryGeneral(i)):
 					for j in range(gc.getNumVoteInfos()):
-						print("record=VICTORY_SCREEN_VOTE_SCAN voteId=%d" % j)
+						CvUtil.pyPrintRecord("VICTORY_SCREEN_VOTE_SCAN", "voteId=%d" % j)
 						if gc.getVoteInfo(j).isVoteSourceType(i):
-							print("record=VICTORY_SCREEN_VOTE_SOURCE_MATCH voteId=%d" % j)
+							CvUtil.pyPrintRecord("VICTORY_SCREEN_VOTE_SOURCE_MATCH", "voteId=%d" % j)
 							if gc.getVoteInfo(j).isSecretaryGeneral():
-								print("record=VICTORY_SCREEN_SECRETARY_GENERAL_MATCH voteId=%d" % j)
+								CvUtil.pyPrintRecord("VICTORY_SCREEN_SECRETARY_GENERAL_MATCH", "voteId=%d" % j)
 								iSecretaryGeneralVote = j
 								break
 
-				print("record=VICTORY_SCREEN_SECRETARY_GENERAL_VOTE voteId=%d" % iSecretaryGeneralVote)
+				CvUtil.pyPrintRecord("VICTORY_SCREEN_SECRETARY_GENERAL_VOTE", "voteId=%d" % iSecretaryGeneralVote)
 				for j in range(gc.getMAX_PLAYERS()):
 					if gc.getPlayer(j).isAlive() and not gc.getPlayer(j).isBarbarian() and gc.getTeam(iActiveTeam).isHasMet(gc.getPlayer(j).getTeam()):
 						# <!-- custom: add leader icon to player name (claude opus 4.5) -->
@@ -1146,7 +1146,7 @@ class CvVictoryScreen:
 
 	def getVoteTotalColor(self, iVoteReq, iVoteTotal, iVoteCand, bWinner, bVictoryVote):
 		# <!-- custom: Label the existing three-value diagnostic; candidateOwnVotes is the candidate's own contribution, distinct from predicted total support. (GPT-6.1-Sol) -->
-		print("record=VICTORY_SCREEN_VOTE_TOTALS requiredVotes=%d predictedVotes=%d candidateOwnVotes=%d" % (iVoteReq, iVoteTotal, iVoteCand))
+		CvUtil.pyPrintRecord("VICTORY_SCREEN_VOTE_TOTALS", "requiredVotes=%d predictedVotes=%d candidateOwnVotes=%d" % (iVoteReq, iVoteTotal, iVoteCand))
 		if not bWinner:
 			return -1
 		if (iVoteCand > iVoteReq and bVictoryVote):

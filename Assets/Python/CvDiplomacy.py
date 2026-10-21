@@ -22,9 +22,9 @@ class CvDiplomacy:
 	def __init__(self):
 		# constructor - set up class vars, AI and User strings
 		#
-		# <!-- custom: Prefix optional diplomacy diagnostics with record= and name their existing IDs/arguments; retain DebugLogging gates so disabled tracing does no message formatting. (GPT-6.1-Sol) -->
+		# <!-- custom: Name optional diplomacy diagnostics through the shared record writer; retain DebugLogging gates so disabled tracing does no message formatting. (GPT-6.1-Sol + ChatGPT-5.6-Sol) -->
 		if DebugLogging:
-			print("record=DIPLOMACY_LAUNCH")
+			CvUtil.pyPrintRecord("DIPLOMACY_LAUNCH")
 
 		self.iLastResponseID = -1
 
@@ -38,7 +38,7 @@ class CvDiplomacy:
 		# Will determine the user responses given an AI comment
 		#
 		if DebugLogging:
-			print("record=DIPLOMACY_DETERMINE_RESPONSES commentId=%s" %(eComment,))
+			CvUtil.pyPrintRecord("DIPLOMACY_DETERMINE_RESPONSES", "commentId=%s" % (eComment,))
 
 		# Eliminate previous comments
 		self.diploScreen.clearUserComments()
@@ -351,9 +351,9 @@ class CvDiplomacy:
 		AIString = self.getDiplomacyComment(eComment)
 
 		if DebugLogging:
-			print("record=DIPLOMACY_SET_AI_COMMENT commentId=%s" %(eComment,))
+			CvUtil.pyPrintRecord("DIPLOMACY_SET_AI_COMMENT", "commentId=%s" % (eComment,))
 			if (len(args)):
-				print("record=DIPLOMACY_COMMENT_ARGS commentId=%s args=%r" % (eComment, args))
+				CvUtil.pyPrintRecord("DIPLOMACY_COMMENT_ARGS", "commentId=%s args=%r" % (eComment, args))
 			AIString = "(%d) - %s" %(self.getLastResponseID(), AIString)
 
 		# <!-- custom: diplomacy main AI line text uses label scaling so upscaled UI font settings apply here too. (GPT-5.3-Codex) -->
@@ -408,7 +408,7 @@ class CvDiplomacy:
 		# <!-- custom: Remove the redundant formatted debugString built before the debug gate; the labelled diagnostic uses the converted comment ID below. (GPT-6.1-Sol) -->
 		eComment = int(eComment)
 		if DebugLogging:
-			print("record=DIPLOMACY_COMMENT_LOOKUP commentId=%d" % eComment)
+			CvUtil.pyPrintRecord("DIPLOMACY_COMMENT_LOOKUP", "commentId=%d" % eComment)
 
 		szString = ""
 		szFailString = "Error***: No string found for eComment: %s"
@@ -416,7 +416,7 @@ class CvDiplomacy:
 		if ( gc.getDiplomacyInfo(eComment) ):
 			DiplomacyTextInfo = gc.getDiplomacyInfo(eComment)
 			if ( not DiplomacyTextInfo ):
-				print("record=DIPLOMACY_INVALID_COMMENT commentId=%s" %(eComment,))
+				CvUtil.pyPrintRecord("DIPLOMACY_INVALID_COMMENT", "commentId=%s" % (eComment,))
 				CvUtil.pyAssert(True, "CvDiplomacy.getDiplomacyComment: %s does not have a DiplomacyTextInfo" %(eComment,))
 				return szFailString %(eComment,)
 
@@ -511,7 +511,7 @@ class CvDiplomacy:
 
 	def handleUserResponse(self, eComment, iData1, iData2):
 		if DebugLogging:
-			print("record=DIPLOMACY_USER_RESPONSE commentId=%s data1=%d data2=%d" % (eComment, iData1, iData2))
+			CvUtil.pyPrintRecord("DIPLOMACY_USER_RESPONSE", "commentId=%s data1=%d data2=%d" % (eComment, iData1, iData2))
 
 		diploScreen = CyDiplomacy()
 

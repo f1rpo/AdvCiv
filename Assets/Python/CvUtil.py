@@ -160,6 +160,11 @@ def pyPrint(stuff):
 	stuff = stuff.encode("UTF-8")
 	sys.stdout.write(stuff)
 
+# <!-- custom: Keep inherited pyPrint prose semantics intact while giving existing CvUtil callers a concise path to the shared structured diagnostic writer.
+# szRecord and optional szFields pass through unchanged; SASPythonLogging owns Unicode handling, the row newline and UTC prefix. (ChatGPT-5.6-Sol) -->
+def pyPrintRecord(szRecord, szFields=""):
+	SASPythonLogging.writeRecord(szRecord, szFields)
+
 def pyAssert(cond, msg):
 	if not cond:
 		sys.stderr.write(msg)

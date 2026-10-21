@@ -1490,7 +1490,7 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 			SevoPediaFeature.do_pre_load_xml_features_info_required_data_validation()
 			self.IS_FEATURES_PRE_LOADING_XML_DATA_VALIDATION_DONE = True
 			# <!-- custom: Keep the existing initialization flag in a compact record= diagnostic instead of a repeated prose explanation of its lifetime. (GPT-6.1-Sol) -->
-			print("record=SEVOPEDIA_FEATURE_XML_VALIDATION validationDone=%d" % self.IS_FEATURES_PRE_LOADING_XML_DATA_VALIDATION_DONE)
+			CvUtil.pyPrintRecord("SEVOPEDIA_FEATURE_XML_VALIDATION", "validationDone=%d" % self.IS_FEATURES_PRE_LOADING_XML_DATA_VALIDATION_DONE)
 
 	def SAS_getFeaturesGroupedByLandWater_fromBaseList(self, baseList):
 		return SAS_MainGroupings.SAS_getFeaturesGroupedByLandWater_fromBaseList(baseList, False, self.SAS_SEVOPEDIA_TERRAIN_GRAPHICAL_ONLY_HIGH_IDS)
@@ -1612,7 +1612,7 @@ class SevoPediaMain(CvPediaScreen.CvPediaScreen):
 			# <!-- custom: do not rebuild if built once already, for the entire session keep the same cache, even if we exit sevopedia, store data in memory or wherever it is stored, but do not build it until we click on leaders category the first time, not at module load (so a bit later than module load and not automatic but conditional in this case), but still before any leader is selected -->
 			self.IS_SEVOPEDIALEADER_CACHE_PREBUILT = True
 			# <!-- custom: Report leader-cache preparation separately from feature XML validation, retaining its existing flag as a named field. (GPT-6.1-Sol) -->
-			print("record=SEVOPEDIA_LEADER_CACHE cachePrebuilt=%d" % self.IS_SEVOPEDIALEADER_CACHE_PREBUILT)
+			CvUtil.pyPrintRecord("SEVOPEDIA_LEADER_CACHE", "cachePrebuilt=%d" % self.IS_SEVOPEDIALEADER_CACHE_PREBUILT)
 
 	def getLeaderList(self):
 		if self.IS_SAS_SEVOPEDIA_MAIN_LEADERS_GROUP_BY_CIV:

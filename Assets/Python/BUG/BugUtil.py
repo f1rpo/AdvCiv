@@ -287,10 +287,8 @@ def logToScreen(message):
 	interface.addImmediateMessage(escapeXml(message), "")
 
 def logSASPythonDiagnostic(message):
-	# <!-- custom: Give the shared SAS Python diagnostic writer an explicit name for new callers; the inherited logToFile name remains an alias below.
-	# The existing logTime option controls timestamps, so the name does not promise that every message is timestamped. (GPT-6.1-Sol) -->
-	# <!-- custom: Shared stream redirects now timestamp all Python-written rows, including direct prints and multiline errors; do not add another prefix here.
-	# Preserve BUG's encoding and level filtering while its existing timestamp preference controls the shared formatter. (GPT-6.1-Sol) -->
+	# <!-- custom: Keep this as BUG's generic compatibility writer behind the inherited logToFile alias; structured SAS record rows use SASPythonLogging.writeRecord/CvUtil.pyPrintRecord instead.
+	# Shared stream redirects timestamp both paths, so do not add another prefix here; preserve BUG's encoding/filtering and existing timestamp preference. (GPT-6.1-Sol + ChatGPT-5.6-Sol) -->
 	if isinstance(message, unicode):
 		message = message.encode("iso8859")
 	sys.stdout.write(message + "\n")

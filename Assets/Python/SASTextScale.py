@@ -3,6 +3,8 @@
 
 from CvPythonExtensions import *
 import re
+# <!-- custom: Use the leaf logging module directly for structured font-size diagnostics; importing CvUtil here would create CvUtil -> SASTextScale -> CvUtil. (ChatGPT-5.6-Sol) -->
+import SASPythonLogging
 
 gc = CyGlobalContext()
 
@@ -18,7 +20,8 @@ def _getSASUIFontSize(szDefineName):
 		_SAS_UI_FONT_SIZE_CACHE[szDefineName] = None
 		raise RuntimeError("SASTextScale: %s=%d out of [1,4] - check GlobalDefines_advciv_sas.xml" % (szDefineName, iSize))
 	_SAS_UI_FONT_SIZE_CACHE[szDefineName] = iSize
-	print("SASTextScale: initialized %s = %d" % (szDefineName, iSize))
+	# <!-- custom: Font-size resolution is deterministic per define/run, so expose the define and resolved size as searchable fields instead of ad-hoc prose. (ChatGPT-5.6-Sol) -->
+	SASPythonLogging.writeRecord("UI_FONT_SIZE_RESOLVED", "define=%s size=%d" % (szDefineName, iSize))
 	return iSize
 
 

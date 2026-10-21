@@ -1,6 +1,6 @@
 # Main Changes Guide
 
-This guide highlights key differences between AdvCiv-SAS and base AdvCiv.
+This living overview highlights key differences between AdvCiv-SAS and base AdvCiv. Entries can be rewritten, combined or reorganized as features evolve; it is not a chronological changelog.
 
 It’s intentionally practical, mostly player-facing, and a bit verbose so newer players can follow the "what changed" and "why it matters."
 
@@ -534,11 +534,11 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
 
 #### Python and engine diagnostic logs
 
-- (Requires AdvCiv-SAS 6652+) **Structured DLL-written legacy diagnostics:** `xml.log` now pairs its native elapsed-time prefix with UTC timestamps and searchable `record=` fields, making XML loading, cache activity and type errors easier to identify and correlate with other logs.
-  - File-load rows identify `phase=BEGIN` or `phase=END`, the path and final outcome; other records identify setup stages and unknown XML types. The direct C++ Starting Position Iteration notice in `PythonDbg.log` also receives UTC and `record=STARTING_POSITION_ITERATION`, since it bypasses the Python stream formatter.
-  - These changes cover DLL-controlled rows. EXE-owned writers retain their formats; see [README_Logging_Inventory.md](README_Logging_Inventory.md#before-and-after-shared-python-log-timestamps) for ownership details and captured Before/After examples.
-- (Requires AdvCiv-SAS 6648+) **Python diagnostic modernization:** building on UTC timestamps and readable screen/font identities, consistent `record=` fields make messages easier to find and connect to game activity. This replaces vague notices and bare numbers with explicit record types and named values.
-  - The same `PythonDbg.log` screen notification before and after the modernization (reconstructed formats using captured data):
+- (Requires AdvCiv-SAS 6647+) **UTC Python diagnostic timestamps:** ordinary Python prints and module-loading messages often had no timestamp, while BUG messages used only local `HH:MM:SS`. Shared stdout/stderr formatting adds the UTC date and milliseconds so output can be correlated with game/runtime activity across runs and time zones.
+  - This covers Python-written rows in files such as `PythonDbg.log` and `PythonErr2.log`, including multiline error text passing through these streams. The DLL supplies the Windows clock because the embedded Python wall-clock readings stayed fixed during a measured game trial.
+  - Existing BUG log levels and its timestamp option remain in control; blank rows and the copyable leader-cache dump are preserved. Early startup and direct EXE writes bypass the Python streams; engine logs such as `app.log` and `audio.log` keep their existing formats.
+- (Requires AdvCiv-SAS 6648+) **Readable, searchable Python diagnostics:** `record=` types and named fields replace vague notices and bare numbers in `PythonDbg.log`, identifying what happened alongside its timestamp.
+  - The same screen notification before and after modernization (reconstructed formats using captured data):
     - Before:
 
       ```log
@@ -551,16 +551,16 @@ Some features are not supported in AdvCiv-SAS; e.g., non-English languages, pre-
       2026-10-20T08:16:29.114Z record=SCREEN_TURNED_ON screenId=99 screenType=CvScreenEnums.MAIN_INTERFACE
       ```
 
-  - Other records include `record=SCREEN_OFF` and `record=WB_BRUSH_SELECTED`, with the previous screen or brush mode identified.
-  - Screen names come from the shared catalog in `CvScreenEnums.py`, including Sevopedia IDs moved from `SevoScreenEnums.py`; the lookup distinguishes vanilla Civilopedia and Sevopedia pages where IDs overlap. See [Code/Performance optimizations](#codeperformance-optimizations) for the consolidation.
-  - Font initialization identifies religion/holy-city glyphs with XML types and character codes.
-  - See the [README_Logging_Inventory.md](README_Logging_Inventory.md) for the broader modernization, matched Before/After samples and each file's controls and limits.
-  - Victory-screen prints such as bare vote numbers, `votesource` and `secgen` now identify the vote definition being inspected through `record=VICTORY_SCREEN_*` records; tally rows name required votes, predicted support and the candidate's own votes. These are display diagnostics, not player election-choice records.
-  - Diplomacy debug messages, mod-network/game-end callbacks and Sevopedia initialization notices use the same convention. Existing debug gates remain in place; these changes label diagnostic output without adding game-state lookups.
-- (Requires AdvCiv-SAS 6647+) **UTC Python diagnostic timestamps:** ordinary Python prints and module-loading messages often had no timestamp, while BUG messages used only local `HH:MM:SS`. This made it harder to establish when output occurred or correlate it with game/runtime activity, especially across runs and time zones.
-  - Shared stdout/stderr formatting now adds the UTC date and milliseconds to Python-written rows in files such as `PythonDbg.log` and `PythonErr2.log`, including multiline error text passing through these streams. The DLL supplies the Windows clock because the embedded Python wall-clock readings stayed fixed during a measured game trial.
-  - Existing BUG log levels and its timestamp option remain in control; blank rows and the copyable leader-cache dump are preserved. Early startup and direct EXE writes bypass the Python streams; engine logs such as `app.log` and `audio.log` keep their existing formats.
-  - See the [README_Logging_Inventory.md](README_Logging_Inventory.md) for file roles, historical/mod origins, enabling conditions, runtime start/end evidence and captured per-file Before/After examples.
+  - `SCREEN_OFF` identifies the previous screen, while `WB_BRUSH_SELECTED` identifies the brush mode. Screen names come from `CvScreenEnums.py`, including Sevopedia IDs moved from `SevoScreenEnums.py`; the lookup distinguishes vanilla Civilopedia and Sevopedia pages where IDs overlap. See [Code/Performance optimizations](#codeperformance-optimizations) for the consolidation.
+  - Font initialization identifies religion/holy-city glyphs with XML types and character codes. Victory-screen `VICTORY_SCREEN_*` records replace bare vote numbers, `votesource` and `secgen` with vote definitions, required votes, predicted support and the candidate's own votes; these describe display diagnostics, not player election choices.
+  - Diplomacy debug messages, mod-network/game-end callbacks and Sevopedia initialization notices use the same convention. Existing debug gates remain in place; labelling these messages adds no game-state lookups.
+  - (Requires AdvCiv-SAS 6653+) Component initialization, player-alive changes, autoplay termination/control return and WorldBuilder save/read/apply stages also use structured records. For example, `WBSave done` becomes `record=WB_SAVE_END outcome=SUCCEEDED`, and `Reading teams desc` becomes `record=WB_READ_SECTION section=TEAMS`.
+    - New and previously structured messages share `SASPythonLogging.writeRecord` (normally through `CvUtil.pyPrintRecord`), keeping row assembly consistent while the existing stream wrapper supplies UTC. Ordinary error tracebacks and module-loading warnings retain their formats.
+- (Requires AdvCiv-SAS 6652+) **Structured DLL-written legacy diagnostics:** `xml.log` pairs its native elapsed-time prefix with UTC timestamps and searchable `record=` fields, making XML loading, cache activity and type errors easier to identify and correlate with other logs.
+  - File-load rows identify `phase=BEGIN` or `phase=END`, the path and final outcome; other records identify setup stages and unknown XML types. The direct C++ Starting Position Iteration notice in `PythonDbg.log` also receives UTC and `record=STARTING_POSITION_ITERATION`, since it bypasses the Python stream formatter.
+  - These changes cover DLL-controlled rows; EXE-owned writers retain their formats.
+
+See [README_Logging_Inventory.md](README_Logging_Inventory.md#before-and-after-shared-python-log-timestamps) for matched Before/After samples, file roles and historical/mod origins, enabling conditions, writer ownership and runtime start/end evidence.
 
 #### Logging (Common)
 

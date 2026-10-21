@@ -17,6 +17,8 @@ import BugConfig
 import BugDll
 import BugUtil
 import re
+# <!-- custom: Use the leaf diagnostic writer for FONT_ICON records; importing CvUtil would reintroduce an early visual-resource dependency cycle. (ChatGPT-5.6-Sol) -->
+import SASPythonLogging
 # <!-- custom: Reuse SASUtils.getInfoTypeOrFail for cached color/unit/specialist XML identities so centralizing resources preserves the existing fail-loud contract and raw-lookup CI guard. (GPT-6.1-Sol) -->
 from SASUtils import getInfoTypeOrFail
 
@@ -651,7 +653,7 @@ def initLegacyIconMap():
 # <!-- custom: Retain the committed record=FONT_ICON label while moving CvUtil's icon-map writer here; resource consolidation must not revert searchable diagnostic fields. (GPT-6.1-Sol) -->
 def _addLegacyIcon(iOrdinal, szDescription, szRole, szType):
 	szDescription = _toLegacyKey(szDescription)
-	print("record=FONT_ICON role=%s type=%s charCode=%d description=%s" % (szRole, szType, iOrdinal, szDescription))
+	SASPythonLogging.writeRecord("FONT_ICON", "role=%s type=%s charCode=%d description=%s" % (szRole, szType, iOrdinal, szDescription))
 	if iOrdinal >= 0:
 		_legacyIconMap[szDescription] = _char(iOrdinal)
 
