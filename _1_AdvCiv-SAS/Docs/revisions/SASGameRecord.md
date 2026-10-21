@@ -77,10 +77,19 @@ Because this numbering is reconstructed after the fact, the descriptions are con
 
 ## History (latest first)
 
+### Revision 161 - SAS practical 6654
+
+- **Date:** 2026-10-21
+- **Git commit:** pending
+- **Change:** Correct three recorder accessor misuses exposed by an assertion-enabled Debug-opt run; row layouts are unchanged.
+  - Player fingerprints omit the obsolete first-contact field; current contact state is already covered by team fingerprints. Removing that contribution changes player fingerprints.
+  - Eliminated-team fingerprints use `NO_ERA` without invoking the era calculation that requires living members.
+  - Session, run-status and player-appearance/revival records use AdvCiv's maintained ever-alive player count instead of its initialization-only recounting API.
+
 ### Revision 160 - SAS practical 6650
 
 - **Date:** 2026-10-20
-- **Git commit:** pending
+- **Git commit:** `2f911392037fe188cb05e91533211e480564533a`
 - **Change:** Remove one redundant blank separator in the recorder as part of the source-spacing cleanup; emitted data and recording behavior are unchanged.
 
 ### Revision 159 - SAS practical 6646

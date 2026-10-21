@@ -559,7 +559,9 @@ static SASGameRecordStateObjectHash getSASGameRecordTeamStateSignature(CvTeamAI 
 	updateSASGameRecordStateValue(uiHash, kTeam.getVassalPower());
 	updateSASGameRecordStateValue(uiHash, kTeam.getMasterPower());
 	updateSASGameRecordStateValue(uiHash, kTeam.getEnemyWarWearinessModifier());
-	updateSASGameRecordStateValue(uiHash, kTeam.getCurrentEra());
+	// <!-- custom: Team fingerprints include eliminated teams, but getCurrentEra requires a living member and asserts otherwise.
+	// Hash its existing NO_ERA sentinel directly for dead teams instead of entering that live-team calculation. (GPT-6.1-Sol) -->
+	updateSASGameRecordStateValue(uiHash, kTeam.isAlive() ? kTeam.getCurrentEra() : NO_ERA);
 	updateSASGameRecordStateValue(uiHash, kTeam.AI_getWorstEnemy());
 	for (int iI = 0; iI < GC.getNumTechInfos(); iI++)
 	{
@@ -724,6 +726,8 @@ static SASGameRecordStateObjectHash getSASGameRecordPlayerStateSignature(CvPlaye
 			updateSASGameRecordStateValue(uiHash, kPlayer.AI_getNumAIUnits((UnitAITypes)iI));
 			updateSASGameRecordStateValue(uiHash, kPlayer.AI_getNumTrainAIUnits((UnitAITypes)iI));
 		}
+		// <!-- custom: AI_isFirstContact exposes an obsolete serialized BtS field and deliberately asserts in AdvCiv.
+		// Omit it from this diagnostic signature; current contact state is already covered by the team fingerprint's isHasMet values. (GPT-6.1-Sol) -->
 		for (int iI = 0; iI < MAX_CIV_PLAYERS; iI++)
 		{
 			PlayerTypes const eOther = (PlayerTypes)iI;
@@ -735,7 +739,6 @@ static SASGameRecordStateObjectHash getSASGameRecordPlayerStateSignature(CvPlaye
 			updateSASGameRecordStateValue(uiHash, kPlayer.AI_getPeacetimeTradeValue(eOther));
 			updateSASGameRecordStateValue(uiHash, kPlayer.AI_getPeacetimeGrantValue(eOther));
 			updateSASGameRecordStateValue(uiHash, kPlayer.AI_getGoldTradedTo(eOther));
-			updateSASGameRecordStateValue(uiHash, kPlayer.AI_isFirstContact(eOther));
 			for (int iJ = 0; iJ < NUM_MEMORY_TYPES; iJ++)
 				updateSASGameRecordStateValue(uiHash, kPlayer.AI_getMemoryCount(eOther, (MemoryTypes)iJ));
 			for (int iJ = 0; iJ < NUM_CONTACT_TYPES; iJ++)
@@ -2320,12 +2323,13 @@ static void logSASGameRecordGameState(const char* szRowType)
 	if (szMPOptions.empty())
 		szMPOptions = "-";
 	const CvString szLogName = getSASGameRecordLogName();
-	// <!-- custom: This session boundary is a useful timing anchor: on a new game it measures initialization, and on load it measures recorder setup before the finalized save context is available. (GPT-5.6-Sol) -->
+	// <!-- custom: This session boundary is a useful timing anchor: on a new game it measures initialization, and on load it measures recorder setup before the finalized save context is available.
+	// Use getCivPlayersEverAlive: AdvCiv maintains this count after loading and its recounting API deliberately asserts during normal gameplay. (GPT-5.6-Sol + GPT-6.1-Sol) -->
 	logSASGameRecord("%s processUtc=%s utc=%s logFile=%s turn=%d elapsed=%d year=%d scenario=%d activePlayer=%d activeCivilization=%s activeHandicap=%s playersDefined=%d playersAlive=%d playersEverAlive=%d humans=%d sessionWallMilliseconds=%u",
 		szRowType, getSASProcessUtcTimestamp().GetCString(), getSASGameRecordLogTimestamp().GetCString(),
 		getSASDiagnosticQuoted(szLogName.GetCString()).GetCString(), kGame.getGameTurn(), kGame.getElapsedGameTurns(),
 		kGame.getGameTurnYear(), kGame.isScenario(), eActivePlayer, szActiveCivilization, szActiveHandicap, kInitCore.getNumDefinedPlayers(),
-		kGame.countCivPlayersAlive(), kGame.countCivPlayersEverAlive(), kGame.getNumHumanPlayers(),
+		kGame.countCivPlayersAlive(), kGame.getCivPlayersEverAlive(), kGame.getNumHumanPlayers(),
 		getSASGameRecordSessionWallMilliseconds());
 	// <!-- custom: Record the engine's durable launch/load and multiplayer identities so standalone logs distinguish ordinary games, scenarios, saves, replays, and supported network/turn modes.
 	// The explicit booleans avoid requiring consumers to reproduce Civ4's non-obvious GameType groupings.
@@ -8068,11 +8072,12 @@ void logSASGameRecordRunStatus(char const* szReason)
 	PlayerTypes const eTopScorePlayer = getSASGameRecordTopScorePlayer();
 	PlayerTypes const eTopPowerPlayer = getSASGameRecordTopPowerPlayer();
 	// <!-- custom: Compact run-status row gives autoplay/LLM review a single parse-friendly checkpoint for who is alive, eliminated, leading by score, and leading by power.
-	// Victory already has its own action row; this row also works for ordinary stopped autoplays where no victory event fires. (GPT-5.5) -->
+	// Victory already has its own action row; this row also works for ordinary stopped autoplays where no victory event fires.
+	// As at session start, read the maintained ever-alive count instead of its initialization-only recounting API. (GPT-5.5 + GPT-6.1-Sol) -->
 	logSASGameRecord("GAME_RECORD_RUN_STATUS turn=%d reason=%s elapsed=%d year=%d winnerTeam=%d victory=%s playersAlive=%d teamsAlive=%d playersEverAlive=%d humans=%d eliminatedPlayers=%s topScorePlayer=%d topScore=%d topPowerPlayer=%d topPower=%d totalCities=%d totalPopulation=%d",
 		kGame.getGameTurn(), szReason == NULL ? "-" : szReason, kGame.getElapsedGameTurns(), kGame.getGameTurnYear(), kGame.getWinner(),
 		kGame.getVictory() == NO_VICTORY ? "-" : GC.getInfo(kGame.getVictory()).getType(), kGame.countCivPlayersAlive(),
-		kGame.countCivTeamsAlive(), kGame.countCivPlayersEverAlive(), kGame.getNumHumanPlayers(),
+		kGame.countCivTeamsAlive(), kGame.getCivPlayersEverAlive(), kGame.getNumHumanPlayers(),
 		getSASGameRecordEliminatedPlayers().GetCString(), eTopScorePlayer,
 		eTopScorePlayer == NO_PLAYER ? 0 : GET_PLAYER(eTopScorePlayer).calculateScore(), eTopPowerPlayer,
 		eTopPowerPlayer == NO_PLAYER ? 0 : GET_PLAYER(eTopPowerPlayer).getPower(), kGame.getNumCities(), kGame.getTotalPopulation());
@@ -15672,12 +15677,13 @@ void logSASGameRecordPlayerAliveChanged(PlayerTypes ePlayer, bool bRevived)
 	if (ePlayer < 0 || ePlayer >= MAX_PLAYERS)
 		return;
 	CvPlayer const& kPlayer = GET_PLAYER(ePlayer);
+	// <!-- custom: Player appearance/revival updates AdvCiv's maintained ever-alive count; observe it through the gameplay getter, not the initialization-only recounting API. (GPT-6.1-Sol) -->
 	logSASGameRecord("GAME_RECORD_ACTION turn=%d type=%s player=%d team=%d civ=%s leader=%s cities=%d units=%d score=%d power=%d playersAlive=%d teamsAlive=%d playersEverAlive=%d",
 		GC.getGame().getGameTurn(), bRevived ? "PLAYER_REVIVED" : "PLAYER_APPEARED", ePlayer, kPlayer.getTeam(),
 		kPlayer.getCivilizationType() == NO_CIVILIZATION ? "-" : GC.getInfo(kPlayer.getCivilizationType()).getType(),
 		kPlayer.getLeaderType() == NO_LEADER ? "-" : GC.getInfo(kPlayer.getLeaderType()).getType(), kPlayer.getNumCities(),
 		kPlayer.getNumUnits(), kPlayer.calculateScore(), kPlayer.getPower(), GC.getGame().countCivPlayersAlive(),
-		GC.getGame().countCivTeamsAlive(), GC.getGame().countCivPlayersEverAlive());
+		GC.getGame().countCivTeamsAlive(), GC.getGame().getCivPlayersEverAlive());
 	logSASGameRecordRunStatus(bRevived ? "playerRevived" : "playerAppeared");
 }
 
