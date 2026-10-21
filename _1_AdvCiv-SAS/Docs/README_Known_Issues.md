@@ -1115,7 +1115,7 @@ Stable `#ki-number` anchors keep links valid when an entry title or status is re
 [KI#976 - (Provisional Pending inherited K-Mod/AdvCiv AI strength-memory lifecycle defect) Revived teams use ancient enemy locations](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-976)\
 [KI#977 - (Provisional Pending AdvCiv random-setup defect gated off by SAS defaults) Enhanced assignment can duplicate leaders](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-977)\
 [KI#978 - (Provisional Pending inherited AdvCiv transferred-map classification defect) Pangaea's `_t` execution alias disables Pangaea-specific logic](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-978)\
-[KI#979 - (Provisional Pending inherited AdvCiv allocator-pairing defect) XML enum-map temporaries use scalar `delete`](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-979)\
+[KI#979 - (Fixed inherited AdvCiv allocator-pairing defect) XML enum-map temporaries use scalar `delete`](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-979)\
 [KI#980 - (Provisional Pending AdvCiv Python enum-binding defect) `NO_GLOBE_LAYER` exports the count sentinel](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-980)\
 [KI#981 - (Provisional Pending inherited AdvCiv info-cleanup lifetime defect) Dependency order leaks nested arrays](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-981)\
 [KI#982 - (Provisional Pending AdvCiv Rise & Fall allocator-pairing defect) Loaded leader names use scalar `delete`](/_1_AdvCiv-SAS/Docs/README_Known_Issues.md#ki-982)\
@@ -33515,7 +33515,7 @@ Found as F656/provisional KI#978 during ChatGPT-5.6-Sol's C031-WIP512-WIP513 `Cv
 
 <a id="ki-979"></a>
 
-## KI#979 - (Provisional Pending inherited AdvCiv allocator-pairing defect) XML enum-map temporaries use scalar `delete`
+## KI#979 - (Fixed inherited AdvCiv allocator-pairing defect) XML enum-map temporaries use scalar `delete`
 
 AdvC's enum-map XML helper allocates temporary commerce arrays with `new[]` but destroys them with scalar `delete`.
 
@@ -33525,7 +33525,23 @@ The parsed data have already been copied before destruction, but the allocation/
 
 Pending replacing both scalar deletions with `delete[]`.
 
-Found as F657/provisional KI#979 during ChatGPT-5.6-Sol's C031-WIP515-WIP516 `CvXMLLoadUtilitySet.cpp` audit; reconciled into Known Issues with the help of GPT-5.6-Sol, thanks.
+2026-10-21 follow-up: recurrent same-process Arena/Pangaea -> Huge-save crash investigation produced several memory-corruption symptoms, including damaged trade-route `IDInfo` data and a separate `HEAP_FAILURE_BLOCK_NOT_BUSY`. Historical snapshot testing showed that the broader failure pattern predates the current work.
+
+Reviewing the audit album for independently relevant memory-safety findings therefore resurfaced KI#979. A later T0 crash provided a more direct overflow lead in `CvPlotGroupSizeCheck::reset`, so no causal link between KI#979 and the recurrent crash is claimed.
+
+Fixed both helpers by pairing their temporary arrays with `delete[]`, matching the `InitList`/`new[]` allocation and the already-correct sibling `SetRateTagList` cleanup. This removes the undefined allocation/deallocation mismatch without changing parsed XML data.
+
+Commit-diff archaeology narrows the defect to AdvCiv commit `0e04fd7f799d19ad61430cf8a4a684c7626e0756` (2021-06-04), **EnumMaps for nested XML data** (`advc.003t`).
+
+That conversion replaced `CvBuildingInfo`'s persistent yield/commerce arrays, whose inherited lifetime used `SAFE_DELETE_ARRAY`, with temporary arrays copied into enum maps. The new `SetVariableListPerYield` and `SetVariableListPerCommerce` helpers introduced scalar `delete` for those temporaries.
+
+AdvCiv commit `59a3e3190061b421b117b58d047aa1196259f5fa` (2021-08-17), **Rewrite of enum map classes**, moved/generalized the helpers while preserving the scalar deletes.
+
+Commit `3db7cb8e1d8a2e113a0b21594e2adca978c759cc` (2021-08-31), **Restore CvXMLLoadUtility::SetYields, SetCommerce**, switched AdvCiv callers to the later `SetYieldArray`/`SetCommerceArray` wrappers without correcting the deallocation. Base AdvCiv 1.14 therefore still carries the original mismatch.
+
+K-Mod 1.46, Taurus 1.04 and Civ4CE/BtS do not contain these enum-map temporary wrappers; their corresponding `CvBuildingInfo` paths load directly into persistent arrays and later free those arrays with `SAFE_DELETE_ARRAY`. KI#979 is therefore an AdvCiv-origin regression inherited unchanged by SAS, rather than a K-Mod/Firaxis allocator defect.
+
+Found as F657/provisional KI#979 during ChatGPT-5.6-Sol's C031-WIP515-WIP516 `CvXMLLoadUtilitySet.cpp` audit; reconciled into Known Issues with the help of GPT-5.6-Sol, and revisited/fixed during the crash investigation with the help of ChatGPT-5.6-Sol, thanks.
 
 <a id="ki-980"></a>
 

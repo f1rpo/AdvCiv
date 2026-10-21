@@ -308,7 +308,8 @@ public:
 				int iVal = piTmp[eLoopYield];
 				kMap.insert(eLoopYield, safeIntCast<typename kMap::ValueType>(iVal));
 			}
-			delete piTmp;
+			// <!-- custom: AdvCiv commit 0e04fd7f79 (2021-06-04, advc.003t) introduced this temporary enum-map conversion with scalar delete; InitList allocates the SetYieldArray storage with new[], so use delete[] to preserve the array allocation/deallocation contract. See KI#979. (ChatGPT-5.6-Sol) -->
+			delete[] piTmp;
 		}
 	}
 	template<class InfoMap>
@@ -327,7 +328,8 @@ public:
 						break;
 					kMap.insert(eLoopCommerce, pbTmp[eLoopCommerce]);
 				}
-				delete pbTmp;
+				// <!-- custom: AdvCiv commit 0e04fd7f79 (2021-06-04, advc.003t) introduced this temporary enum-map conversion with scalar delete; InitList allocates the SetCommerceArray storage with new[], so use delete[] to preserve the array allocation/deallocation contract. See KI#979. (ChatGPT-5.6-Sol) -->
+				delete[] pbTmp;
 			}
 		}
 	}
