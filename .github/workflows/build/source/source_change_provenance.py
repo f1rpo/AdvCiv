@@ -837,6 +837,19 @@ def check_change(path: str, old_text: str | None, new_text: str | None, warnings
     errors.extend(blank_line_errors(path, old_text, new_text, suffix))
     old_comments = comments(old_text, suffix)
     new_comments = comments(new_text, suffix)
+    # <!-- custom: A KI#243.2 rationale used a multiline C++ block around its custom prose, unlike our per-line // convention.
+    # Check real comment tokens so quoted examples remain legal; compare raw occurrences so a delimiter-only conversion or duplicate cannot evade the rule through normalized prose matching.
+    # Existing untouched blocks remain outside this diff-aware check; inherited prose containing an inline custom fragment is not a dedicated custom block, and single-line annotations still fit between C++ tokens. (GPT-6.1-Sol) -->
+    if suffix in CPP_SUFFIXES:
+        old_multiline_custom = [block.raw for block in old_comments
+                                if block.text.startswith(CUSTOM_OPEN) and block.raw.startswith("/*") and "\n" in block.raw]
+        for block in new_comments:
+            if not (block.text.startswith(CUSTOM_OPEN) and block.raw.startswith("/*") and "\n" in block.raw):
+                continue
+            if block.raw in old_multiline_custom:
+                old_multiline_custom.remove(block.raw)
+            else:
+                errors.append(f"{path}:{block.start}: multiline custom C++ block comment; use // on each prose line instead of /* ... */")
     removed_legacy, added_legacy = unmatched_blocks(old_comments, new_comments, custom=False)
     removed_custom, added_custom = unmatched_blocks(old_comments, new_comments, custom=True)
 

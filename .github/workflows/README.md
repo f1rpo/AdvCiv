@@ -323,6 +323,15 @@ Checks list layout in every tracked Markdown file, plus added/edited maintained 
 
 The [existing helper](/LLM_Helpers/README.md#reflow_markdown_prosepy) previews sentence boundaries; its source-only output still needs review for visible structure. Passing this automated check does not establish that the chosen paragraphs or bullets are coherent.
 
+#### `build/documentation/known_issues_chronology.py`
+
+Keeps new history paragraphs at the end of an existing Known Issues entry. It compares that document with the push/PR base, matching entries by KI number; unchanged content requires no chronology scan.
+
+- The motivating example is KI#979's dated post-fix replay note inserted before its existing archaeology and credits. Such placement interrupts the investigation thread; the corrected note follows the earlier material.
+- Rejects clear inserted paragraphs when retained body paragraphs still follow them. New KI entries and appended follow-ups are allowed, including additions before the next entry's anchor.
+- Whitespace reflow, title/status edits, paragraph corrections and deletions are allowed. This conservative check cannot tell whether rewritten prose falsifies history; semantic review remains necessary.
+- Run `python .github/workflows/build/documentation/known_issues_chronology.py --base-ref HEAD` locally. It reports all detected insertions without editing the document.
+
 #### `build/documentation/markdown_images.py`
 
 Verifies every repository-local image referenced by a Markdown file resolves to an existing file. It checks normal and reference-style Markdown images plus HTML `<img src="...">` tags, while ignoring external URLs and fenced-code, inline-code, or comment examples.
@@ -743,6 +752,10 @@ It enforces these review rules introduced after repeated provenance mistakes:
   - Changed Python, C/C++ and XML are compared against the base. Unchanged or shortened inherited runs remain allowed; multiline strings, block comments and XML text are protected.
   - Removing code that joins two short separators is checked too. Comment reflow and the critical Ruff gate do not enforce this source-spacing rule; Markdown keeps its existing documentation checks.
 - new or rewritten comments reject clear cascading layouts: an extra Python/C++ comment prefix introducing an appended custom explanation, two custom blocks joined on one line, or a nested XML comment. Use separate comment blocks; ordinary inline C++ annotations and marker text inside code strings remain valid. This detects structure, not whether an explanation should be split on meaning alone;
+- new or edited dedicated multiline custom C/C++ comments use `//` on each line, rather than `/* ... */`;
+  - Each matching grep line should identify itself as a comment without requiring surrounding block context. This catches the block-style KI#243.2 rationale and delimiter-only changes even when the prose stays identical.
+  - The existing source check runs this on changed files, without a separate workflow.
+  - Quoted examples, untouched blocks, inherited prose with inline custom fragments and single-line inline annotations are allowed.
 - if an inherited comment is replaced by a nearby custom comment, known provenance markers such as `advc.xxx`, `KI#...` and `Long_Comments_... #N` are retained;
 - every added/removed/changed C/C++ `#include` or Python import has a nearby newly added custom rationale comment, including dependencies in new files; untouched inherited directives are excluded;
 - added/removed/changed literal-named Boost.Python `.def(...)` bindings have a nearby new custom rationale comment; a Python help string alone is insufficient. A coherent nearby binding group may share its explanation, and unchanged/reflowed bindings are excluded;

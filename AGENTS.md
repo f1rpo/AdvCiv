@@ -250,6 +250,7 @@ If you find yourself stuck like for audio stopping issues, feel free to ask the 
   - Refresh example captures when convenient or worthwhile, weighing their usefulness against commit noise and review effort; no per-commit refresh is required.
 - Preserve the chronology and original intent of historical or incremental documentation; append later developments with their date and explain how they follow from the earlier work.
   - For Known Issues, append at the end of the relevant entry or add a relevant unused `.x` follow-up/new issue when warranted. Correct factual errors explicitly without rewriting the sequence of discovery.
+    - New findings and replay results go after the entry's existing reasoning and credits; inserting them between earlier paragraphs blurs the investigation's chronology. The KI chronology check catches clear paragraph insertions, while intent still needs review.
   - Audit/archaeology records change only when their own documented investigation resumes; ordinary source changes do not refresh their findings or continuation cursors.
   - Prefer dates for later follow-ups; practical commit-count versions can change across branches/rebases. Reserve those versions for documents that need them, such as the Main Changes Guide and SASGameRecord revision history; omit them from commit messages.
 
@@ -281,6 +282,7 @@ If you find yourself stuck like for audio stopping issues, feel free to ask the 
 
 - When adding or modifying Python/XML source, retain inherited copyright notices and include our standard AdvCiv-SAS modification header (e.g. as of now `(c) 2026 wonderingabout & AI/LLM helpers`, with the root README Authors reference). The source-provenance check enforces it on changed files; untouched inherited files do not need a bulk update.
 - When adding new comments, use the format `<!-- custom: ... (model credit) -->` (with `//` or `#` prefix as appropriate), and put the model credit in the suffix before `-->` (e.g., `(GPT-5.3-Codex) -->`, `GPT-5.5`, `(ChatGPT-5.6-Sol) -->`, `(Claude code Sonnet 4.5 (summarized)) -->`).
+  - For multiline custom C/C++ prose, use `//` on each line instead of enclosing it in `/* ... */`, so an isolated grep result identifies itself as a comment without surrounding context. Single-line inline annotations may use block syntax where needed between code tokens.
   - Do not use other tags like `advc.` as the authorship marker (they do not belong to us: e.g., base AdvCiv uses `advc.sas` to reference our AdvCiv-SAS changes).
   - Model-authored comments need a model credit. User-authored comments may remain uncredited; do not add the user's name or bulk-clean existing uncredited comments. The automated source-provenance check reports missing model credits only as advisory warnings because Git cannot distinguish user and model authorship.
 - Generally preserve model-name credits as context for chronology, authorship and intent, and prefer appending your own (e.g., `+ GPT-6.1-Sol`). Credits may be dropped when clearly stale, for example when a comment is removed or its explanation is entirely replaced.

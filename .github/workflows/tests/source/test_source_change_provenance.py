@@ -42,6 +42,21 @@ class SourceChangeProvenanceTests(unittest.TestCase):
     def errors(self, path, old, new):
         return checker.check_change(path, old, new)
 
+    # <!-- custom: Exercise multiline custom C++ comments, including delimiter-only edits that retain identical prose, while preserving string literals, inherited blocks and single-line inline annotations. (GPT-6.1-Sol) -->
+    def test_multiline_custom_cpp_block_comments(self):
+        path = "CvGameCoreDLL/Test.cpp"
+        block = "/* <!-- custom: Explain the contract.\nKeep the reason. (GPT-6.1-Sol) --> */\n"
+        lines = "// <!-- custom: Explain the contract.\n// Keep the reason. (GPT-6.1-Sol) -->\n"
+        for old, new in (("", block), (lines, block), (block, block.replace("reason", "intent")), (block, block * 2)):
+            with self.subTest(old=old, new=new):
+                self.assertTrue(any("multiline custom C++ block comment" in error for error in self.errors(path, old, new)))
+        for old, new in ((block, block), (block, lines), ("", "/* Inherited prose\non two lines. */\n"),
+                         ("", "/* Inherited prose\nwith <!-- custom: Inline annotation. --> here. */\n"),
+                         ("", "void f(int /* <!-- custom: Unused. --> */ value);\n"),
+                         ("", 'const char* example = "/* <!-- custom: Example.\\nMore. --> */";\n')):
+            with self.subTest(old=old, new=new):
+                self.assertFalse(any("multiline custom C++ block comment" in error for error in self.errors(path, old, new)))
+
     # <!-- custom: Header enforcement must accept both source formats without replacing upstream credits, and must reject credit text that appears only in executable content or after code. (GPT-6.1-Sol) -->
     def test_python_xml_modification_headers(self):
         notice = "AI, UI, logging, or other modifications first developed in AdvCiv-SAS (Simple Advanced Strategy)\n(c) 2026 wonderingabout & AI/LLM helpers (see Authors in AdvCiv-SAS's root README.md)"

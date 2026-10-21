@@ -33634,8 +33634,6 @@ Reviewing the audit album for independently relevant memory-safety findings ther
 
 Fixed both helpers by pairing their temporary arrays with `delete[]`, matching the `InitList`/`new[]` allocation and the already-correct sibling `SetRateTagList` cleanup. This removes the undefined allocation/deallocation mismatch without changing parsed XML data.
 
-2026-10-21 post-fix replay: the recurrent Arena/Pangaea -> Huge-save crash still reproduced after KI#979 was applied and before KI#243.2 was applied. KI#979 was therefore not sufficient to resolve that crash sequence; it remains an independently valid memory-safety repair.
-
 Commit-diff archaeology narrows the defect to AdvCiv commit `0e04fd7f799d19ad61430cf8a4a684c7626e0756` (2021-06-04), **EnumMaps for nested XML data** (`advc.003t`).
 
 That conversion replaced `CvBuildingInfo`'s persistent yield/commerce arrays, whose inherited lifetime used `SAFE_DELETE_ARRAY`, with temporary arrays copied into enum maps. The new `SetVariableListPerYield` and `SetVariableListPerCommerce` helpers introduced scalar `delete` for those temporaries.
@@ -33647,6 +33645,8 @@ Commit `3db7cb8e1d8a2e113a0b21594e2adca978c759cc` (2021-08-31), **Restore CvXMLL
 K-Mod 1.46, Taurus 1.04 and Civ4CE/BtS do not contain these enum-map temporary wrappers; their corresponding `CvBuildingInfo` paths load directly into persistent arrays and later free those arrays with `SAFE_DELETE_ARRAY`. KI#979 is therefore an AdvCiv-origin regression inherited unchanged by SAS, rather than a K-Mod/Firaxis allocator defect.
 
 Found as F657/provisional KI#979 during ChatGPT-5.6-Sol's C031-WIP515-WIP516 `CvXMLLoadUtilitySet.cpp` audit; reconciled into Known Issues with the help of GPT-5.6-Sol, and revisited/fixed during the crash investigation with the help of ChatGPT-5.6-Sol, thanks.
+
+2026-10-21 post-fix replay: the recurrent Arena/Pangaea -> Huge-save crash still reproduced after KI#979 was applied and before KI#243.2 was applied. KI#979 was therefore not sufficient to resolve that crash sequence; it remains an independently valid memory-safety repair.
 
 <a id="ki-980"></a>
 
