@@ -174,6 +174,7 @@ For license and reuse terms, including project-specific restrictions and express
 &emsp;[Light-source analysis](#light-source-analysis)\
 &emsp;[Historical source archaeology](#historical-source-archaeology)\
 &emsp;[C++ File Audit Album](#c-file-audit-album)\
+&emsp;[Focused source and data reviews](#focused-source-and-data-reviews)\
 [Known issues that may be fixed or not fixed in base AdvCiv or Civ4](/README.md#known-issues-that-may-be-fixed-or-not-fixed-in-base-advciv-or-civ4)\
 ["Temporary" crashes](/README.md#temporary-crashes)\
 [Not supported in AdvCiv-SAS](/README.md#not-supported-in-advciv-sas)\
@@ -1474,6 +1475,10 @@ The completed commit-oriented investigation follows Civ4 BtS -> K-Mod -> AdvCiv 
 The active current-tree [C++ File Audit Album](/_1_AdvCiv-SAS/Docs/Source_Analysis/cpp_file_audit_album.txt) instead reviews every current `.cpp` file and its associated contracts from longest to shortest. This catches cross-file or cross-commit interactions in the final combined source and records clean files and false positives.
 
 Future Python, XML or other analysis albums can extend the same source-analysis family.
+
+### Focused source and data reviews
+
+[`global_define_name_length_review.md`](/_1_AdvCiv-SAS/Docs/Source_Analysis/global_define_name_length_review.md) compares SAS GlobalDefine names with inherited Civ4/mod definitions, distinguishes loader-safety limits from optional naming policy, and examines lookup, caching and save implications before choosing whether to shorten names.
 
 ## Known issues that may be fixed or not fixed in base AdvCiv or Civ4
 

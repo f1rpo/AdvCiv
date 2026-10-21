@@ -10,4 +10,8 @@ These tracked development records preserve resumable LLM-assisted source investi
 
 [`cpp_file_audit_album.txt`](/_1_AdvCiv-SAS/Docs/Source_Analysis/cpp_file_audit_album.txt) reviews current C++ files and cross-file contracts. Future Python, XML or other file-oriented albums belong beside it.
 
+## Focused reviews
+
+[`global_define_name_length_review.md`](/_1_AdvCiv-SAS/Docs/Source_Analysis/global_define_name_length_review.md) compares current SAS GlobalDefine key lengths with inherited/reference XML, separates the hard 255-byte loader boundary from optional shorter naming policy, and records the lookup/performance/save-compatibility evidence for any later rename work.
+
 Keep canonical filenames stable across checkpoints. Preserve each audit's completed results, false positives and exact continuation cursor; reconcile provisional KI numbers against current Known Issues before promotion.
